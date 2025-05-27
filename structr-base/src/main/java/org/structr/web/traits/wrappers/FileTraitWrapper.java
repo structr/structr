@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,8 +33,8 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
@@ -129,7 +129,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			final AbstractMethod method = Methods.resolveMethod(traits, "onUpload");
 			if (method != null) {
 
-				method.execute(ctx, wrappedObject, new Arguments(), new EvaluationHints());
+				method.execute(ctx, wrappedObject, new UnnamedArguments(), new EvaluationHints());
 			}
 
 			tx.success();
@@ -145,8 +145,13 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public String getFormattedSize() {
 		return FileUtils.byteCountToDisplaySize(
-				StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size()
+				getSize()
 		);
+	}
+
+	@Override
+	public Long getSize() {
+		return StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size();
 	}
 
 	@Override
@@ -306,11 +311,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public String getContentType() {
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
-	}
-
-	@Override
-	public boolean useAsJavascriptLibrary() {
-		return wrappedObject.getProperty(traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY));
 	}
 
 	@Override
@@ -586,23 +586,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 		// default to setting in security context
 		return wrappedObject.getSecurityContext().doIndexing();
-	}
-
-	// ----- interface JavaScriptSource -----
-	@Override
-	public String getJavascriptLibraryCode() {
-
-		try (final InputStream is = getInputStream()) {
-
-			return IOUtils.toString(new InputStreamReader(is));
-
-		} catch (IOException ioex) {
-
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("", ioex);
-		}
-
-		return null;
 	}
 
 	@Override

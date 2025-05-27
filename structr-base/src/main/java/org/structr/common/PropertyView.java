@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -61,4 +61,9 @@ public interface PropertyView {
 	 * The "html" view used by structr UI.
 	 */
 	public static final String Html =	"_html_";
+
+	/**
+	 * The "schema" view used by structr UI.
+	 */
+	public static final String Schema =	"schema";
 }

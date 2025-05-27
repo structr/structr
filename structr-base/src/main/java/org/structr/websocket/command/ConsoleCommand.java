@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,15 +70,11 @@ public class ConsoleCommand extends AbstractCommand {
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
 
-		Console console = getWebSocket().getConsole(ConsoleMode.JavaScript);
-
 		final String  line       = webSocketData.getNodeDataStringValue(LINE_KEY);
 		final String  mode       = webSocketData.getNodeDataStringValue(MODE_KEY);
 		final Boolean completion = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
 
-		if (StringUtils.isNotBlank(mode)) {
-			console    = getWebSocket().getConsole(ConsoleMode.valueOf(mode));
-		}
+		Console console = getWebSocket().getConsole((StringUtils.isNotBlank(mode) ? ConsoleMode.valueOf(mode) : ConsoleMode.JavaScript));
 
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		OutputStreamWritable writeable = new OutputStreamWritable(out);

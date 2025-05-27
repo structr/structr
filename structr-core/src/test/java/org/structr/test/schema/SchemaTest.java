@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -455,84 +455,6 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
-	//@Test
-	public void testJavaSchemaMethod() {
-
-		final String groupType = StructrTraits.GROUP;
-
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface schemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.GROUP).getFirst();
-
-			assertNotNull("Schema node Group should exist", schemaNode);
-
-			final StringBuilder source = new StringBuilder();
-
-			source.append("final Set<String> test = new LinkedHashSet<>();\n");
-			source.append("\t\ttest.add(\"one\");\n");
-			source.append("\t\ttest.add(\"two\");\n");
-			source.append("\t\ttest.add(\"three\");\n");
-			source.append("\t\treturn test;\n\n");
-
-			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), schemaNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),       "testJavaMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),      source.toString()),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),   "java")
-			);
-
-			app.create(groupType, "test");
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			final Object result = Actions.execute(securityContext, null, "${first(find('Group')).testJavaMethod}", "test");
-
-			assertTrue("Result should be of type Set", result instanceof Set);
-
-			final Set<String> set = (Set)result;
-			final String[] array  = set.toArray(String[]::new);
-
-			assertEquals("Invalid Java schema method result", "one",   array[0]);
-			assertEquals("Invalid Java schema method result", "two",   array[1]);
-			assertEquals("Invalid Java schema method result", "three", array[2]);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-	}
-
-	@Test
-	public void testJavaSchemaMethodWithEmptySource() {
-
-		try (final Tx tx = app.tx()) {
-
-			final String source = "";
-
-			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.GROUP),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                 "testJavaMethod"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),               source),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),             "java")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-			fail("Unexpected exception");
-		}
-	}
-
 	@Test
 	public void testNonGraphPropertyInView() {
 
@@ -776,81 +698,6 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
-	/*
-	@Test
-	public void testInitializationOfNonStructrNodesWithoutTenantIdentifier() {
-
-		// don't run tests that depend on Cypher being available in the backend
-		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
-
-			Settings.TenantIdentifier.setValue(null);
-
-			try (final Tx tx = app.tx()) {
-
-				final JsonSchema schema = StructrSchema.createFromDatabase(app);
-
-				schema.addType("PERSON");
-
-				StructrSchema.extendDatabaseSchema(app, schema);
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				fail("Unexpected exception.");
-			}
-
-			final String type = Traits.of("PERSON");
-
-			try (final Tx tx = app.tx()) {
-
-				app.query("CREATE (p:PERSON { name: \"p1\" } )", new HashMap<>());
-				app.query("CREATE (p:PERSON { name: \"p2\" } )", new HashMap<>());
-				app.query("CREATE (p:PERSON { name: \"p3\" } )", new HashMap<>());
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				fail("Unexpected exception.");
-			}
-
-			try (final Tx tx = app.tx()) {
-
-				app.command(BulkCreateLabelsCommand.class).execute(Collections.emptyMap());
-				app.command(BulkSetUuidCommand.class).execute(map("allNodes", true));
-				app.command(BulkRebuildIndexCommand.class).execute(Collections.emptyMap());
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				fail("Unexpected exception.");
-			}
-
-			try (final Tx tx = app.tx()) {
-
-				final List<NodeInterface> nodes = app.nodeQuery(type).getAsList();
-
-				assertEquals("Non-Structr nodes not initialized correctly", 3, nodes.size());
-				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(0).getType());
-				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(1).getType());
-				assertEquals("Non-Structr nodes not initialized correctly", "PERSON", nodes.get(2).getType());
-
-				tx.success();
-
-			} catch (Throwable t) {
-
-				t.printStackTrace();
-				fail("Unexpected exception.");
-			}
-		}
-	}
-	*/
-
 	@Test
 	public void testRelatedTypeOnNotionProperty() {
 
@@ -877,27 +724,6 @@ public class SchemaTest extends StructrTest {
 			fail("NotionProperty setup failed.");
 		}
 	}
-
-	/*
-	@Test
-	public void testPreventCreationOfExistingTypes() {
-
-		// setup 1: create types
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
-			final JsonObjectType base  = schema.addType(StructrTraits.LOCATION);
-
-			StructrSchema.extendDatabaseSchema(app, schema);
-
-			tx.success();
-
-			fail("Creating a type that already exists should fail.");
-
-		} catch (FrameworkException fex) {
-		}
-	}
-	*/
 
 	@Test
 	public void testSchemaRenameInheritedBaseType() {
@@ -1033,17 +859,6 @@ public class SchemaTest extends StructrTest {
 			logger.info("Deleting base type..");
 
 			final NodeInterface base = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("BaseType").getFirst();
-
-			/* getGeneratedSourceCode does not exist any more
-			try {
-
-				//System.out.println(app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("BaseType").getFirst().getGeneratedSourceCode(securityContext));
-				System.out.println(app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Extended1").getFirst().getGeneratedSourceCode(securityContext));
-
-			} catch (UnlicensedTypeException ex) {
-				logger.error("Caught UnlicensedTypeException: ", ex);
-			}
-			*/
 
 			assertNotNull("Base type schema node not found", base);
 
@@ -1409,12 +1224,311 @@ public class SchemaTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-
-
-
 	}
 
+	@Test
+	public void testMultipleInheritanceForMethods1() {
+
+		// setup: create the classical diamond-shaped inheritance
+		//    A
+		//   / \
+		//  B   C
+		//   \ /
+		//    D
+		//
+		// Each type has its own method and, we expect TestD to inherit all four methods.
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType testA       = sourceSchema.addType("TestA");
+			final JsonType testB       = sourceSchema.addType("TestB");
+			final JsonType testC       = sourceSchema.addType("TestC");
+			final JsonType testD       = sourceSchema.addType("TestD");
+
+			testB.addTrait("TestA");
+			testC.addTrait("TestA");
+
+			testD.addTrait("TestB");
+			testD.addTrait("TestC");
+
+			// add methods
+			testA.addMethod("testAMethod", "{ return 'testA!'; }");
+			testB.addMethod("testBMethod", "{ return 'testB!'; }");
+			testC.addMethod("testCMethod", "{ return 'testC!'; }");
+			testD.addMethod("testDMethod", "{ return 'testD!'; }");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test existence of all methods on TestD!
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface test = app.create("TestD", "TestObject");
+
+			assertEquals("Method from TestA was not inherited correctly", "testA!", Actions.execute(securityContext, test, "{ $.this.testAMethod(); }", "testTestA"));
+			assertEquals("Method from TestB was not inherited correctly", "testB!", Actions.execute(securityContext, test, "{ $.this.testBMethod(); }", "testTestB"));
+			assertEquals("Method from TestC was not inherited correctly", "testC!", Actions.execute(securityContext, test, "{ $.this.testCMethod(); }", "testTestC"));
+			assertEquals("Method from TestD was not inherited correctly", "testD!", Actions.execute(securityContext, test, "{ $.this.testDMethod(); }", "testTestD"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testMultipleInheritanceForMethods2() {
+
+		// setup: create the classical diamond-shaped inheritance but with overlapping identical methods
+		//    A
+		//   / \
+		//  B   C
+		//   \ /
+		//    D
+		//
+		// Each type except TestC has its own method, and we expect all methods to return the correct value
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType testA       = sourceSchema.addType("TestA");
+			final JsonType testB       = sourceSchema.addType("TestB");
+			final JsonType testC       = sourceSchema.addType("TestC");
+			final JsonType testD       = sourceSchema.addType("TestD");
+
+			testB.addTrait("TestA");
+			testC.addTrait("TestA");
+
+			testD.addTrait("TestB");
+			testD.addTrait("TestC");
+
+			// add methods
+			testA.addMethod("testAMethod", "{ return 'testA!'; }");
+			testB.addMethod("testAMethod", "{ return 'testB!'; }");
+
+			// TestC does not have the testAMethod, so it should inherit the method from TestA
+			//testC.addMethod("testAMethod", "{ return 'testC!'; }");
+
+			testD.addMethod("testAMethod", "{ return 'testD!'; }");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// test existence of all methods on TestD!
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface testA = app.create("TestA", "TestObjectA");
+			final NodeInterface testB = app.create("TestB", "TestObjectB");
+			final NodeInterface testC = app.create("TestC", "TestObjectC");
+			final NodeInterface testD = app.create("TestD", "TestObjectD");
+
+			assertEquals("Method from TestA was not inherited correctly", "testA!", Actions.execute(securityContext, testA, "{ $.this.testAMethod(); }", "testTestA"));
+			assertEquals("Method from TestB was not inherited correctly", "testB!", Actions.execute(securityContext, testB, "{ $.this.testAMethod(); }", "testTestB"));
+			assertEquals("Method from TestA was not inherited correctly in TestC", "testA!", Actions.execute(securityContext, testC, "{ $.this.testAMethod(); }", "testTestC"));
+			assertEquals("Method from TestD was not inherited correctly", "testD!", Actions.execute(securityContext, testD, "{ $.this.testAMethod(); }", "testTestD"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testMultipleInheritanceForDifferentProperties() {
+
+		// setup: create the classical diamond-shaped inheritance
+		//    A
+		//   / \
+		//  B   C
+		//   \ /
+		//    D
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType testA          = sourceSchema.addType("TestA");
+			final JsonType testB          = sourceSchema.addType("TestB");
+			final JsonType testC          = sourceSchema.addType("TestC");
+			final JsonType testD          = sourceSchema.addType("TestD");
+
+			testB.addTrait("TestA");
+			testC.addTrait("TestA");
+
+			testD.addTrait("TestB");
+			testD.addTrait("TestC");
+
+			// add methods
+			testA.addStringProperty("testAProperty");
+			testB.addStringProperty("testBProperty");
+			testC.addStringProperty("testCProperty");
+			testD.addStringProperty("testDProperty");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final Traits traits      = Traits.of("TestD");
+			final NodeInterface test = app.create("TestD",
+				new NodeAttribute<>(traits.key("testAProperty"), "testA!"),
+				new NodeAttribute<>(traits.key("testBProperty"), "testB!"),
+				new NodeAttribute<>(traits.key("testCProperty"), "testC!"),
+				new NodeAttribute<>(traits.key("testDProperty"), "testD!")
+			);
+
+			assertEquals("Property from TestA was not inherited correctly", "testA!", Actions.execute(securityContext, test, "{ $.this.testAProperty; }", "testTestA"));
+			assertEquals("Property from TestB was not inherited correctly", "testB!", Actions.execute(securityContext, test, "{ $.this.testBProperty; }", "testTestB"));
+			assertEquals("Property from TestC was not inherited correctly", "testC!", Actions.execute(securityContext, test, "{ $.this.testCProperty; }", "testTestC"));
+			assertEquals("Property from TestD was not inherited correctly", "testD!", Actions.execute(securityContext, test, "{ $.this.testDProperty; }", "testTestD"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testMultipleInheritanceForIdenticalProperties() {
+
+		// setup: create the classical diamond-shaped inheritance and expect the schema creation to fail
+		//    A
+		//   / \
+		//  B   C
+		//   \ /
+		//    D
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType testA       = sourceSchema.addType("TestA");
+			final JsonType testB       = sourceSchema.addType("TestB");
+			final JsonType testC       = sourceSchema.addType("TestC");
+			final JsonType testD       = sourceSchema.addType("TestD");
+
+			testB.addTrait("TestA");
+			testC.addTrait("TestA");
+
+			// order of traits here determines the type of the inherited property in TestD!
+			testD.addTrait("TestB");
+			testD.addTrait("TestC");
+
+			// add properties
+			testB.addBooleanProperty("testAProperty");
+			testC.addIntegerProperty("testAProperty");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+			fail("Defining clashing properties in inherited traits should throw an exception.");
+
+		} catch (FrameworkException expected) {
+		}
+	}
+
+	@Test
+	public void testAbstractProperties() {
+
+		try (final Tx tx = app.tx()) {
+
+			// We create the following class structure:
+			//    A
+			//   / \
+			//  B   C
+			//
+			// A has an abstract property that is overridden by B and C, and we
+			// make sure that this only works of the property in A is abstract.
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType testA          = sourceSchema.addType("TestA");
+			final JsonType testB          = sourceSchema.addType("TestB");
+			final JsonType testC          = sourceSchema.addType("TestC");
+			final JsonType testD          = sourceSchema.addType("TestD");
+
+			testB.addTrait("TestA");
+			testC.addTrait("TestB");
+			testD.addTrait("TestC");
+
+			// add properties
+			testA.addStringProperty("testAProperty").setAbstract(true);
+			testB.addBooleanProperty("testAProperty");
+			testC.addIntegerProperty("testAProperty");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Overwriting an abstract property should not throw an exception.");
+		}
+	}
+
+	@Test
+	public void testAbstractProperties2() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType testA          = sourceSchema.addType("TestA");
+			final JsonType testB          = sourceSchema.addType("TestB");
+
+			testB.addTrait("TestA");
+
+			// add properties
+			testA.addStringProperty("testAProperty");
+			testB.addFunctionProperty("testAProperty").setReadFunction("'test'").setTypeHint("string");
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Overwriting a property with a correctly typed function property should not throw an exception.");
+		}
+	}
 
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,15 +21,14 @@ package org.structr.bolt;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.*;
 import org.structr.api.Transaction;
+import org.structr.api.*;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -57,10 +56,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	private boolean supportsRelationshipIndexes                   = false;
 	private boolean supportsIdempotentIndexCreation               = false;
 	private int neo4jMajorVersion                                 = -1;
+	private int neo4jMinorVersion                                 = -1;
+	private int neo4jPatchVersion                                 = -1;
 	private String errorMessage                                   = null;
 	private String databaseUrl                                    = null;
 	private Driver driver                                         = null;
 	private SessionConfig sessionConfig                           = null;
+	private IndexUpdater indexUpdater                             = null;
 
 	@Override
 	public boolean initialize(final String name, final String version, final String instance) {
@@ -164,8 +166,11 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	public Transaction beginTx(boolean forceNew) {
 
 		if (!forceNew) {
+
 			return beginTx();
+
 		} else {
+
 			try {
 				if (neo4jMajorVersion >= 4) {
 
@@ -477,16 +482,43 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		switch (neo4jMajorVersion) {
 
+			// Cheers to date-based versioning.....
+			case 2025:
+			case 2026:
+			case 2027:
+			case 2028:
+			case 2029:
+			case 2030:
+			case 2031:
+			case 2032:
+			case 2033:
+			case 2034:
+			case 2035:
+			case 2036:
+			case 2037:
+			case 2038:
+			case 2039:
+			case 2040:
+			case 2041:
+			case 2042:
+			case 2043:
+			case 2044:
+			case 2045:
+			case 2046:
+			case 2047:
+			case 2048:
+			case 2049:
+			case 2050:
 			case 5:
 				// cannot use db.indexes(), replaced by SHOW INDEXES call
-				new Neo5IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+				indexUpdater = new Neo5IndexUpdater(this, supportsRelationshipIndexes);
 				break;
 
 			case 4:
 				if (supportsIdempotentIndexCreation) {
 
 					// idempotent index update, no need to check for existance first
-					new Neo4IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+					indexUpdater = new Neo4IndexUpdater(this, supportsRelationshipIndexes);
 
 				} else {
 
@@ -497,7 +529,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			case 3:
 
 				// non-idempotent index update, need to check for existance first
-				new Neo3IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+				indexUpdater = new Neo3IndexUpdater(this, supportsRelationshipIndexes);
 				break;
 
 			default:
@@ -506,10 +538,21 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 				logger.warn("This driver does not support index creation on Neo4j " + neo4jMajorVersion + ".x databases. Performance will be impacted.");
 				break;
 		}
+
+		if (indexUpdater != null) {
+
+			indexUpdater.updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+		}
 	}
 
 	@Override
 	public boolean isIndexUpdateFinished() {
+
+		if (indexUpdater != null) {
+			return indexUpdater.isFinished();
+		}
+
+		// no updater, no update in progress
 		return true;
 	}
 
@@ -773,15 +816,30 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 	private void configureVersionDependentFeatures() {
 
-		final String versionString  = getNeo4jVersion();
-		final long versionNumber    = parseVersionString(versionString);
+		final String version      = getNeo4jVersion();
+		final String[] parts      = version.replaceAll("[^0-9.]", "").split("\\.");
+		final String majorVersion = stringOrDefault(parts, 0, "0");
+		final String minorVersion = stringOrDefault(parts, 1, "0");
+		final String patchVersion = stringOrDefault(parts, 2, "0");
 
-		logger.info("Neo4j version is {}", versionString);
+		logger.info("Neo4j version is {}", version);
 
-		neo4jMajorVersion = Long.valueOf(versionNumber / 10000000000000000L).intValue();
+		neo4jMajorVersion = Integer.valueOf(majorVersion);
+		neo4jMinorVersion = Integer.valueOf(minorVersion);
+		neo4jPatchVersion = Integer.valueOf(patchVersion);
 
-		this.supportsRelationshipIndexes     = versionNumber >= parseVersionString("4.3.0");
-		this.supportsIdempotentIndexCreation = versionNumber >= parseVersionString("4.1.3");
+		// all versions >= 5 support the below flags
+		this.supportsRelationshipIndexes     = neo4jMajorVersion >= 5 || (neo4jMajorVersion >= 4 && neo4jMinorVersion >= 3);
+		this.supportsIdempotentIndexCreation = neo4jMajorVersion >= 5 || (neo4jMajorVersion >= 4 && neo4jMinorVersion >= 1 && neo4jPatchVersion >= 3);
+	}
+
+	private String stringOrDefault(final String[] source, final int index, final String defaultValue) {
+
+		if (index >= source.length) {
+			return defaultValue;
+		}
+
+		return source[index];
 	}
 
 	@Override
@@ -922,39 +980,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Splits version strings into individual elements and creates comparable numbers.
-	 * This implementation supports version strings with up to 4 components
-	 * and minor versions up to 9999. If you need more, please  adapt the "num"
-	 * and "size values below. Before splitting at ".", we remove all characters that
-	 * are non-numeric and not the ".".
-
-	 * @param version
-	 * @return a numerical representation of the version string
-	 */
-	private static long parseVersionString(final String version) {
-
-		final String[] parts = version.replaceAll("[^0-9.]", "").split("\\.");
-		final int num        = 4; // 4 components
-		final int size       = 4; // 0 - 9999
-		long versionNumber   = 0L;
-		int exponent         = num * size;
-
-		for (final String part : parts) {
-
-			try {
-
-				final int value = Integer.valueOf(part.trim());
-				versionNumber += (long)(value * Math.pow(10, exponent));
-
-			} catch (Throwable t) {}
-
-			exponent -= size;
-		}
-
-		return versionNumber;
 	}
 
 	private void setInitialPassword(final String initialPassword) {

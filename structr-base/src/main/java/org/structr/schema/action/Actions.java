@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,10 +38,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.StructrTraits;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -124,10 +122,14 @@ public class Actions {
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-		return execute(securityContext, entity, source, parameters, methodName, codeSource, Settings.WrapJSInMainFunction.getValue(false));
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.build();
+
+		return execute(securityContext, entity, source, parameters, methodName, codeSource, scriptConfig);
 	}
 
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource, final boolean wrapJsInFunction) throws FrameworkException, UnlicensedScriptException {
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
 
 		final ContextStore store = securityContext.getContextStore();
 		final Map<String, Object> previousParams = store.getTemporaryParameters();
@@ -135,7 +137,7 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource, wrapJsInFunction);
+		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource, scriptConfig);
 
 		store.setTemporaryParameters(previousParams);
 
@@ -168,7 +170,10 @@ public class Actions {
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
+
 					logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
+
+					throw new FrameworkException(422, "Cannot execute user-defined function " + key + ": function not found.");
 				}
 
 			} else {
@@ -184,7 +189,7 @@ public class Actions {
 						final String source = method.getSource();
 						if (source != null) {
 
-							cachedSource = new CachedMethod(source, method.getName(), method.getUuid());
+							cachedSource = new CachedMethod(source, method.getName(), method.getUuid(), method.returnRawResult());
 
 							// store in cache
 							methodCache.put(key, cachedSource);
@@ -204,7 +209,17 @@ public class Actions {
 		}
 
 		if (cachedSource != null) {
-			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource, true);
+
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(true)
+					.build();
+
+			if (cachedSource.shouldReturnRawResult) {
+
+				securityContext.enableReturnRawResult();
+			}
+
+			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource, scriptConfig);
 		}
 
 		return null;
@@ -219,15 +234,17 @@ public class Actions {
 	// ----- nested classes -----
 	private static class CachedMethod {
 
-		public String sourceCode   = null;
-		public String uuidOfSource = null;
-		public String name         = null;
+		public final String sourceCode;
+		public final String uuidOfSource;
+		public final String name;
+		public final boolean shouldReturnRawResult;
 
-		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource) {
+		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource, final boolean shouldReturnRawResult) {
 
-			this.sourceCode   = sourceCode;
-			this.uuidOfSource = uuidOfSource;
-			this.name         = name;
+			this.sourceCode            = sourceCode;
+			this.uuidOfSource          = uuidOfSource;
+			this.name                  = name;
+			this.shouldReturnRawResult = shouldReturnRawResult;
 		}
 	}
 }

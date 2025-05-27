@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,6 +36,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
@@ -210,7 +211,11 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						final String _sharedComponentConfiguration = node.getSharedComponentConfiguration();
 						if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid(), Settings.WrapJSInMainFunction.getValue(false));
+							final ScriptConfig scriptConfig = ScriptConfig.builder()
+									.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+									.build();
+
+							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid(), scriptConfig);
 						}
 
 						// determine some postprocessing flags
@@ -617,7 +622,11 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), Settings.WrapJSInMainFunction.getValue(false));
+					final ScriptConfig scriptConfig = ScriptConfig.builder()
+							.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+							.build();
+
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), scriptConfig);
 					if (value != null) {
 
 						String content = null;

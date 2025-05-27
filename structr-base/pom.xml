@@ -21,7 +21,7 @@
         <jaxb.version>2.3.3</jaxb.version>
         <imageio.version>3.10.1</imageio.version>
         <batik.version>[1.17,)</batik.version>
-        <graal.version>24.0.2</graal.version>
+        <graal.version>24.2.1</graal.version>
         <apache.sshd.version>2.7.0</apache.sshd.version>
     </properties>
 
@@ -97,11 +97,11 @@
             <artifactId>structr-neo4j-bolt-driver</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-memory-driver</artifactId>
             <version>${project.version}</version>
-        </dependency>
+        </dependency-->
         <!--dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-memgraph-driver</artifactId>
@@ -701,6 +701,14 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>18</source>
+                    <target>18</target>
+                </configuration>
+            </plugin>
         </plugins>
 
         <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
@@ -741,7 +749,7 @@
             <name>GNU Affero General Public License, Version 3</name>
             <url>http://www.gnu.org/licenses/agpl-3.0-standalone.html</url>
             <comments>
-                Copyright (C) 2010-2022 Structr GmbH
+                Copyright (C) 2010-2025 Structr GmbH
 
                 This file is part of Structr &lt;http://structr.org&gt;.
 

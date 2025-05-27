@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,8 @@ let _Dialogs = {
 						position: fixed;
 						top: 0;
 						left: 0;
+						bottom: 0;
+						right: 0;
 						border: none;
 						margin: 0;
 						padding: 0;
@@ -43,14 +45,9 @@ let _Dialogs = {
 						cursor: initial;
 						background-color: var(--solid-black);
 						opacity: 0.6;
-					"></div>
+			"></div>
 					<div class="${_Dialogs.basic.contentClass}" style="
 						z-index: ${content_max_zIndex};
-						position: fixed;
-						top: 40vh;
-						left: 35vw;
-						background-color: var(--gray-eee);
-						box-shadow: 0 0 .1rem var(--gray-999);
 					">
 						${messageHtml}
 					</div>
@@ -70,6 +67,8 @@ let _Dialogs = {
 			return contentElement;
 		},
 		centerAll: () => {
+			// do nothing
+			return;
 
 			for (let messageDiv of document.querySelectorAll(`.${_Dialogs.basic.contentClass}`)) {
 
@@ -276,7 +275,7 @@ let _Dialogs = {
 		show: (messageHtml = '') => {
 
 			let tempInfoMessage = `
-				<div class="text-center">
+				<div class="dialog text-center">
 					<div class="infoHeading"></div>
 					<div class="infoMsg min-h-20">
 						${messageHtml}
@@ -286,7 +285,7 @@ let _Dialogs = {
 					</div>
 				</div>
 			`;
-			let messageDiv  = _Dialogs.basic.append(tempInfoMessage, { padding: '1rem' });
+			let messageDiv  = _Dialogs.basic.append(tempInfoMessage);
 			let closeButton = messageDiv.querySelector('.closeButton');
 
 			closeButton.addEventListener('click', (e) => {
@@ -329,7 +328,7 @@ let _Dialogs = {
 					</div>
 				`;
 
-				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage, { padding: '1rem' });
+				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage);
 				let confirmationContainer = messageDiv.querySelector('.confirmationText');
 
 				let answerFunction = (e, response) => {
@@ -419,7 +418,7 @@ let _Dialogs = {
 			_Dialogs.loadingMessage.hide(messageId);
 
 			let loadingMessage = `
-				<div id="${messageId}" class="text-center">
+				<div id="${messageId}" class="dialog text-center">
 					<div class="flex items-center justify-center">
 						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
 					</div>
@@ -428,7 +427,7 @@ let _Dialogs = {
 				</div>
 			`;
 
-			_Dialogs.basic.append(loadingMessage, { padding: '1rem' });
+			_Dialogs.basic.append(loadingMessage);
 		},
 		hide: (messageId = _Dialogs.loadingMessage.defaultId) => {
 
@@ -502,28 +501,17 @@ let _Dialogs = {
 		isDialogOpen: () => {
 			return (!!_Dialogs.custom.elements.dialogBox && !!_Dialogs.custom.elements.dialogBox.offsetParent);
 		},
-		setDialogSize: (windowWidth, windowHeight, dialogWidth, dialogHeight) => {
-
-			let horizontalOffset = 130;
-
-			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
-			if (dialogTextWrapperElement) {
-
-				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 2rem)`;
-				dialogTextWrapperElement.style.height = `${dialogHeight - horizontalOffset}px`;
-			}
-
+		minimizeDialog: () => {
+			_Dialogs.custom.getDialogBoxElement()?.classList.remove('maximized');
+			_Dialogs.custom.getDialogTextWrapperElement()?.classList.remove('maximized');
 			// needed for maximized dialog (currently assumes there is only one dialog!)
-			let blockPageElement = document.querySelector(`.${_Dialogs.basic.contentClass}`);
-			if (blockPageElement) {
-
-				let left = (windowWidth - dialogWidth) / 2;
-				let top  = (windowHeight - dialogHeight) / 2;
-
-				blockPageElement.style.width = `${dialogWidth}px`;
-				blockPageElement.style.top   = `${top}px`;
-				blockPageElement.style.left  = `${left}px`;
-			}
+			document.querySelector(`.${_Dialogs.basic.contentClass}`)?.classList.remove('maximized');
+		},
+		maximizeDialog: () => {
+			_Dialogs.custom.getDialogBoxElement()?.classList.add('maximized');
+			_Dialogs.custom.getDialogTextWrapperElement()?.classList.add('maximized');
+			// needed for maximized dialog (currently assumes there is only one dialog!)
+			document.querySelector(`.${_Dialogs.basic.contentClass}`)?.classList.add('maximized');
 		},
 		getDialogDimensions: (marginLeft, marginTop) => {
 
@@ -555,7 +543,7 @@ let _Dialogs = {
 					// Calculate dimensions of dialog
 					if (_Dialogs.custom.isDialogOpen() && !_Dialogs.loginDialog.isOpen()) {
 
-						_Dialogs.custom.setDialogSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+						_Dialogs.custom.minimizeDialog();
 
 						if (_Dialogs.custom.getMinimizeDialogButton()) _Dialogs.custom.getMinimizeDialogButton().style.display = 'none';
 						if (_Dialogs.custom.getMaximizeDialogButton()) _Dialogs.custom.getMaximizeDialogButton().style.display = 'block';
@@ -631,10 +619,9 @@ let _Dialogs = {
 		getMaximizeDialogButton: () => _Dialogs.custom.getDialogBoxElement().querySelector('#maximizeDialog'),
 		getCloseDialogButton: () => _Dialogs.custom.getDialogBoxElement().querySelector('#closeDialog'),
 		maximizeDialogButtonAction: () => {
-
-			// Calculate dimensions of dialog
+			_Dialogs.custom.maximizeDialog();
 			if (_Dialogs.custom.isDialogOpen() && !_Dialogs.loginDialog.isOpen()) {
-				_Dialogs.custom.setDialogSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+				_Dialogs.custom.maximizeDialog();
 			}
 
 			_Dialogs.custom.isMaximized = true;
@@ -646,8 +633,8 @@ let _Dialogs = {
 			Structr.getActiveModule()?.dialogSizeChanged?.();
 		},
 		minimizeDialogButtonAction: () => {
-
 			_Dialogs.custom.isMaximized = false;
+			_Dialogs.custom.minimizeDialog();
 			LSWrapper.removeItem(_Dialogs.custom.dialogMaximizedKey);
 			Structr.resize();
 

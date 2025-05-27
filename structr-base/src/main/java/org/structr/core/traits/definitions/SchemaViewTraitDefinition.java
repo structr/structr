@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -92,14 +92,9 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				),
 
-				"schema",
+				PropertyView.Schema,
 				newSet(
 						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
-				),
-
-				"export",
-				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				)
 		);
 	}

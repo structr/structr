@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,8 @@ import org.structr.process.entity.Process;
 import org.structr.process.entity.ProcessStep;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.util.Map;
 
 public interface ActionMapping extends NodeInterface {
 
@@ -76,4 +78,5 @@ public interface ActionMapping extends NodeInterface {
 	String getFailureNotificationsEvent();
 	Integer getFailureNotificationsDelay();
 
+	NodeInterface cloneActionMapping(final Map<String, DOMNode> mapOfClonedNodes) throws FrameworkException;
 }

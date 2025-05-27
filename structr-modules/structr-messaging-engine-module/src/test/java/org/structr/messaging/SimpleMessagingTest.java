@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -56,7 +56,7 @@ public class SimpleMessagingTest extends MessagingTestBase  {
 			sub.setProperty(subscriberTraits.key(MessageSubscriberTraitDefinition.TOPIC_PROPERTY),    "test");
 			sub.setProperty(subscriberTraits.key(MessageSubscriberTraitDefinition.CALLBACK_PROPERTY), "set(this, 'name', retrieve('message'))");
 
-			Scripting.replaceVariables(new ActionContext(securityContext, null), client1, "${{Structr.log('Sending message'); Structr.get('this').sendMessage('test','testmessage');}}");
+			Scripting.replaceVariables(new ActionContext(securityContext, null), client1, "${{Structr.log('Sending message'); Structr.get('this').sendMessage({ topic: 'test', message: 'testmessage' });}}");
 
 			assertEquals("testmessage", sub.getName());
 

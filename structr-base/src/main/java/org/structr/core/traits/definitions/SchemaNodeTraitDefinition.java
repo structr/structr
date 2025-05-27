@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,6 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -47,7 +46,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -106,7 +104,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					checkInheritanceConstraints(graphObject.as(SchemaNode.class));
 					throwExceptionIfTypeAlreadyExists(graphObject);
 
 					TransactionCommand.postProcess("reloadSchema", new ReloadSchema(true));
@@ -118,8 +115,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-					checkInheritanceConstraints(graphObject.as(SchemaNode.class));
 
 					if (modificationQueue.isPropertyModified(graphObject, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY))) {
 						throwExceptionIfTypeAlreadyExists(graphObject);
@@ -211,7 +206,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					CATEGORY_PROPERTY, DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY, AbstractSchemaNodeTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY, INHERITED_TRAITS_PROPERTY
 			),
 
-			"schema",
+			PropertyView.Schema,
 			newSet(
 					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY,
 					AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_VIEWS_PROPERTY,
@@ -219,13 +214,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					AbstractSchemaNodeTraitDefinition.CHANGELOG_DISABLED_PROPERTY, RELATED_TO_PROPERTY, RELATED_FROM_PROPERTY, DEFAULT_SORT_KEY_PROPERTY, DEFAULT_SORT_ORDER_PROPERTY,
 					HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY, CATEGORY_PROPERTY, SCHEMA_GRANTS_PROPERTY,
 					DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY, AbstractSchemaNodeTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY, INHERITED_TRAITS_PROPERTY
-			),
-
-			"export",
-			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY,
-					DEFAULT_SORT_KEY_PROPERTY, DEFAULT_SORT_ORDER_PROPERTY, HIERARCHY_LEVEL_PROPERTY, REL_COUNT_PROPERTY, IS_INTERFACE_PROPERTY, IS_ABSTRACT_PROPERTY,
-					DEFAULT_VISIBLE_TO_PUBLIC_PROPERTY, DEFAULT_VISIBLE_TO_AUTH_PROPERTY, INHERITED_TRAITS_PROPERTY
 			)
 		);
 	}
@@ -234,169 +222,6 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public Relation getRelation() {
 		return null;
 	}
-
-	/*
-	public void handleMigration(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
-
-		final Map<String, Class> staticTypes = new LinkedHashMap<>();
-
-		staticTypes.put(StructrTraits.USER, User.class);
-		staticTypes.put(StructrTraits.PAGE, Page.class);
-		staticTypes.put(StructrTraits.MAIL_TEMPLATE, MailTemplate.class);
-		staticTypes.put(StructrTraits.GROUP, Group.class);
-
-		final String name = getName();
-
-		if (staticTypes.keySet().contains(name)) {
-
-			final Class type = staticTypes.get(name);
-
-			// migrate fully dynamic types to static types
-			setProperty(SchemaNode.extendsClass, null);
-			setProperty(SchemaNode.implementsInterfaces, null);
-			setProperty(SchemaNode.extendsClassInternal, type.getName());
-
-		} else {
-
-			final String extendsClassInternalValue = getProperty(SchemaNode.extendsClassInternal);
-			if (extendsClassInternalValue != null && extendsClassInternalValue.startsWith("LinkedTreeNodeImpl<")) {
-
-				setProperty(SchemaNode.extendsClassInternal, null);
-			}
-
-			final String previousExtendsClassValue = (String) this.getNode().getProperty("extendsClass");
-			if (previousExtendsClassValue != null) {
-
-				final String extendsClass = StringUtils.substringBefore(previousExtendsClassValue, "<"); // remove optional generic parts from class name
-				final String className = StringUtils.substringAfterLast(extendsClass, ".");
-
-				final SchemaNode baseType = schemaNodes.get(className);
-				if (baseType != null) {
-
-					setProperty(SchemaNode.extendsClass, baseType);
-					this.getNode().setProperty("extendsClass", null);
-
-				} else {
-
-					setProperty(SchemaNode.extendsClassInternal, previousExtendsClassValue);
-				}
-			}
-
-			// migrate dynamic classes that extend static types (that were dynamic before)
-			final Set<String> prefixes    = Set.of("org.structr.core.entity.", "org.structr.web.entity.", "org.structr.mail.entity.");
-			final String ifaces           = getProperty(SchemaNode.implementsInterfaces);
-			final List<String> interfaces = new LinkedList<>();
-			String extendsClass           = null;
-
-			if (StringUtils.isNotBlank(ifaces) && !getProperty(isBuiltinType)) {
-
-				final String[] parts = ifaces.split("[, ]+");
-				for (final String part : parts) {
-
-					for (final String prefix : prefixes) {
-
-						if (part.startsWith(prefix)) {
-
-							final String typeName = part.substring(prefix.length());
-							final Class type = Traits.of(typeName);
-
-							if (type != null) {
-
-								extendsClass = type.getName();
-								break;
-							}
-						}
-					}
-
-					// re-add interface if no extending class was found
-					if (extendsClass == null) {
-						interfaces.add(part);
-					}
-				}
-
-				if (extendsClass != null) {
-					setProperty(SchemaNode.extendsClassInternal, extendsClass);
-				}
-
-				if (interfaces.isEmpty()) {
-
-					setProperty(SchemaNode.implementsInterfaces, null);
-
-				} else {
-
-					final String implementsInterfaces = StringUtils.join(interfaces, ", ");
-
-					setProperty(SchemaNode.implementsInterfaces, implementsInterfaces);
-				}
-			}
-
-			// migrate extendsClass relationship from dynamic to static
-		}
-
-		// remove "all" view since it is internal and shouldn't be updated explicitly
-		for (final SchemaView view : getProperty(SchemaNode.schemaViews)) {
-
-			if ("all".equals(view.getName())) {
-
-				StructrApp.getInstance().delete(view);
-			}
-		}
-	}
-
-	@Export
-	public String getGeneratedSourceCode(final SecurityContext securityContext) throws FrameworkException, UnlicensedTypeException {
-
-		final SourceFile sourceFile               = new SourceFile("");
-		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
-
-		// collect list of schema nodes
-		StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
-
-		// return generated source code for this class
-		SchemaHelper.getSource(sourceFile, this, schemaNodes, SchemaService.getBlacklist(), new ErrorBuffer());
-
-		return sourceFile.getContent();
-	}
-
-	// ----- private methods -----
-	private String addToList(final String source, final String value) {
-
-		final List<String> list = new LinkedList<>();
-
-		if (source != null) {
-
-			list.addAll(Arrays.asList(source.split(",")));
-		}
-
-		list.add(value);
-
-		return StringUtils.join(list, ",");
-	}
-
-
-	private String getRelatedType(final SchemaNode schemaNode, final String propertyNameToCheck) {
-
-		final Set<String> existingPropertyNames = new LinkedHashSet<>();
-		final String _className                 = schemaNode.getProperty(name);
-
-		for (final SchemaRelationshipNode outRel : schemaNode.getProperty(SchemaNode.relatedTo)) {
-
-			if (propertyNameToCheck.equals(outRel.getPropertyName(_className, existingPropertyNames, true))) {
-				return outRel.getSchemaNodeTargetType();
-			}
-		}
-
-		// output related node definitions, collect property views
-		for (final SchemaRelationshipNode inRel : schemaNode.getProperty(SchemaNode.relatedFrom)) {
-
-			if (propertyNameToCheck.equals(inRel.getPropertyName(_className, existingPropertyNames, false))) {
-				return inRel.getSchemaNodeSourceType();
-			}
-		}
-
-		return null;
-	}
-	*/
 
 	/**
 	* If the system is fully initialized (and no schema replacement is currently active), we disallow overriding (known) existing types so we can prevent unwanted behavior.
@@ -429,21 +254,5 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			}
 			*/
 		}
-	}
-
-	private void checkInheritanceConstraints(final SchemaNode schemaNode) throws FrameworkException {
-
-		final Set<String> traitNames = schemaNode.getInheritedTraits();
-		final Set<Trait> traits      = traitNames.stream().map(name -> Traits.getTrait(name)).filter(t -> t != null).collect(Collectors.toSet());
-
-		for (final Trait trait1 : traits) {
-
-			for (final Trait trait2 : traits) {
-
-				trait1.checkCompatibilityWith(trait2);
-
-			}
-		}
-
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -2883,7 +2883,7 @@ let _Pages = {
 
 								//console.log(e.clientX, e.clientY, el[0].getBoundingClientRect());
 
-								Command.get(structrId, null, (data) => { console.log('#', data);
+								Command.get(structrId, null, (data) => {
 									const entity = StructrModel.createFromData(data);
 									_Elements.contextMenu.activateContextMenu(e, el[0],
 										{
@@ -3100,6 +3100,8 @@ let _Pages = {
 					}
 
 					Command.get(pageId, 'id,name,path,site', (pageObj) => {
+
+						_Helpers.fastRemoveAllChildren(parentElement);
 
 						parentElement.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
 
@@ -3375,7 +3377,7 @@ let _Pages = {
 
 				deleteUnattachedNodesButton.addEventListener('click', async () => {
 
-					let confirm = await _Dialogs.confirmation.showPromise('<p>Delete all DOM elements without parent?</p>');
+					let confirm = await _Dialogs.confirmation.showPromise('Delete all DOM elements without parent?');
 					if (confirm === true) {
 
 						Command.deleteUnattachedNodes();
@@ -4020,7 +4022,7 @@ let _Pages = {
 		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">
-				<div class="editor flex-grow"></div>
+				<div class="editor flex-grow overflow-hidden"></div>
 				<div class="editor-info-container"></div>
 				<div class="editor-button-container"></div>
 			</div>
@@ -4105,7 +4107,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden em-action-element em-action-method">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for global methods.">UUID or type of data object to call method on</label>
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for user-defined functions.">UUID or type of data object to call method on</label>
 								</div>
 
 								<div class="hidden em-action-element em-action-custom">

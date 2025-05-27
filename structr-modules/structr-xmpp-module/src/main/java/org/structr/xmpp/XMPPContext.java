@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,6 @@ import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.InitializationCallback;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -43,6 +42,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.xmpp.handler.*;
 
 import java.io.IOException;
@@ -71,10 +71,9 @@ public class XMPPContext {
 
 	static {
 
-		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
+		Services.getInstance().registerInitializationCallback(() -> {
 
-			@Override
-			public void initializationDone() {
+			if (Traits.exists(StructrTraits.XMPP_CLIENT)) {
 
 				final App app = StructrApp.getInstance();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,12 +40,13 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -96,7 +97,11 @@ public class Scripting {
 
 					try {
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, Settings.WrapJSInMainFunction.getValue(false));
+						final ScriptConfig scriptConfig = ScriptConfig.builder()
+								.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+								.build();
+
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, scriptConfig);
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -143,18 +148,27 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, null, Settings.WrapJSInMainFunction.getValue(false));
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.build();
+
+		return evaluate(actionContext, entity, input, methodName, null, scriptConfig);
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, 0, codeSource, Settings.WrapJSInMainFunction.getValue(false));
+
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.build();
+
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, scriptConfig);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource, final boolean wrapInJSFunction) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, 0, codeSource, wrapInJSFunction);
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, scriptConfig);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource, final boolean wrapInJSFunction) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = StringUtils.strip(input);
 
@@ -191,7 +205,7 @@ public class Scripting {
 			securityContext.setDoTransactionNotifications(false);
 		}
 
-		final Snippet snippet = new Snippet(methodName, source, wrapInJSFunction);
+		final Snippet snippet = new Snippet(methodName, source, scriptConfig.wrapJsInMain());
 		snippet.setCodeSource(codeSource);
 		snippet.setStartRow(startRow);
 
@@ -250,6 +264,10 @@ public class Scripting {
 	}
 
 	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
+		return evaluateScript(actionContext, entity, engineName, snippet, ScriptConfig.builder().build());
+	}
+
+	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet, final ScriptConfig scriptConfig) throws FrameworkException {
 
 		// Clear output buffer
 		actionContext.clear();
@@ -262,6 +280,7 @@ public class Scripting {
 
 		final Context context = ContextFactory.getContext(engineName, actionContext, entity);
 
+		ContextHelper.incrementReferenceCount(context);
 		context.enter();
 
 		Object result = null;
@@ -274,8 +293,16 @@ public class Scripting {
 		} finally {
 
 			context.leave();
-			context.close();
-			actionContext.putScriptingContext(engineName, null);
+			ContextHelper.decrementReferenceCount(context);
+
+			if (scriptConfig == null || !scriptConfig.keepContextOpen()) {
+
+				if (ContextHelper.getReferenceCount(context) <= 0) {
+
+					context.close();
+					actionContext.putScriptingContext(engineName, null);
+				}
+			}
 		}
 
 		// Legacy print() support: Prefer explicitly printed output over actual result

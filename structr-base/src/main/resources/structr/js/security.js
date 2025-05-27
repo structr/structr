@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -388,8 +388,8 @@ let _UsersAndGroups = {
 
 		let userElement = $(`
 			<div class="node user ${_UsersAndGroups.userNodeClassPrefix}${user.id}" data-user-id="${user.id}">
-				<div class="node-container flex items-center">
-					${_Icons.getIconForPrincipal(user)}<b class="name_ flex-grow truncate" data-input-class="max-w-75"></b>
+				<div class="node-container flex items-center overflow-hidden">
+					${_Icons.getIconForPrincipal(user)}<b class="name_ flex-grow truncate" data-input-class="flex-grow"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -589,7 +589,7 @@ let _UsersAndGroups = {
 			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
 				<div class="node-container flex items-center">
 					${_Icons.getIconForPrincipal(group)}
-					<b class="name_ flex-grow" data-input-class="max-w-75"></b>
+					<b class="name_ flex-grow" data-input-class="flex-grow"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>

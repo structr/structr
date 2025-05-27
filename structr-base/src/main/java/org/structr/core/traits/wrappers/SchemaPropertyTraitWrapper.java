@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -150,6 +150,14 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public boolean isAbstract() {
+
+		final Boolean isAbstract = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_ABSTRACT_PROPERTY));
+
+		return Boolean.TRUE.equals(isAbstract);
+	}
+
+	@Override
 	public AbstractSchemaNode getSchemaNode() {
 
 		final NodeInterface node = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY));
@@ -224,6 +232,11 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 		}
 
 		return _writeFunction;
+	}
+
+	@Override
+	public boolean isSerializationDisabled() {
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY));
 	}
 
 	@Override

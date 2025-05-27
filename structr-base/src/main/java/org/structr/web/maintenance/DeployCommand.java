@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -769,7 +769,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Traits traits                 = Traits.of(StructrTraits.FILE);
 		final PropertyKey<Boolean> inclKey  = traits.key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY);
-		final PropertyKey<Boolean> jsKey    = traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY);
 		final PropertyKey<Folder> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 		final Map<String, Object> config    = new TreeMap<>();
 		final App app                       = StructrApp.getInstance();
@@ -781,14 +780,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				exportFilesAndFolders(target, folder, config);
 			}
 
-			// fetch toplevel files that are marked for export or for use as a javascript library
+			// fetch toplevel files that are marked for export
 			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE)
 				.sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY))
 				.and()
 					.key(parentKey, null)
-					.or()
-						.key(inclKey, true)
-						.key(jsKey, true)
+					.key(inclKey, true)
 				.getAsList()) {
 
 				exportFile(target, file, config);
@@ -1454,7 +1451,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, FileTraitDefinition.DONT_CACHE_PROPERTY,                file.dontCache());
 			putData(config, FileTraitDefinition.CONTENT_TYPE_PROPERTY,              file.getContentType());
 			putData(config, FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,         file.getCacheForSeconds());
-			putData(config, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY, file.useAsJavascriptLibrary());
 		}
 
 		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport());

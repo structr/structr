@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1811,7 +1811,7 @@ let _Crud = {
 					let row = _Helpers.createSingleDOMElementFromHTML(`
 						<tr>
 							<td class="key"><label>${key}</label></td>
-							<td class="__value"></td>
+							<td class="__value relative"></td>
 						</tr>
 					`);
 					table.appendChild(row);
@@ -2905,7 +2905,7 @@ let _Crud = {
 		},
 		crudAskDelete: async (type, id) => {
 
-			let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
+			let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete <b>${type}</b> ${id}?`);
 			if (confirm === true) {
 				_Crud.helpers.crudDelete(type, id);
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -420,7 +420,7 @@ let _Files = {
 			}
 
 			Structr.performActionAfterEnvResourceLoaded(() => {
-				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
+				if (fileCount === 1 && contentType === 'text/csv') {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
 						name: 'Import CSV',
@@ -432,7 +432,7 @@ let _Files = {
 			});
 
 			Structr.performActionAfterEnvResourceLoaded(() => {
-				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
+				if (fileCount === 1 && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
 						name: 'Import XML',
@@ -651,10 +651,10 @@ let _Files = {
 
 		[..._Files.getFolderContentsElement().children].map(el => el.style.display = 'none');
 
-		let url = Structr.rootUrl + 'files/ui?' + Structr.getRequestParameterName('loose') + '=1';
+		let url = Structr.rootUrl + 'File/ui?' + Structr.getRequestParameterName('inexact') + '=1';
 
 		for (let str of searchString.split(' ')) {
-			url = url + '&indexedWords=' + str;
+			url = url + '&extractedContent=' + str;
 		}
 
 		_Files.displaySearchResultsForURL(url, searchString);
@@ -1289,7 +1289,7 @@ let _Files = {
 
 				if (closed) {
 
-					new SuccessMessage().requiresConfirmation("Close").show();
+					new SuccessMessage().text(message).requiresConfirmation().show();
 
 				} else {
 
@@ -1719,6 +1719,8 @@ let _Files = {
 
 					tbody.insertAdjacentHTML('beforeend', `<tr><td>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.type}${d.isFile && d.contentType ? ` (${d.contentType})` : ''}</td><td>${d.name}</td><td>${d.size}</td></tr>`);
 
+					/*
+					// this is currently not possible -> commented out
 					let contextResponse = await fetch(`${Structr.rootUrl}files/${d.id}/getSearchContext`, {
 						method: 'POST',
 						body: JSON.stringify({
@@ -1766,6 +1768,8 @@ let _Files = {
 							div.append('<div style="clear: both;"></div>');
 						}
 					}
+
+					 */
 				}
 			}
 		}

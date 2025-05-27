@@ -3,7 +3,16 @@
 # configuration options for structr-ui
 #
 
-if [ -f bin/memory.config ]; then
+if [ -z "$REPLICA" ]; then
+	export LOG_FILE="logs/server.log"
+else
+	export LOG_FILE="logs/server.${REPLICA}.log"
+fi
+
+if [ -f bin/memory.conf ]; then
+	MEMORY_OPTS="$(cat bin/memory.conf)"
+elif [ -f bin/memory.config ]; then
+  echo -e "\n\nDeprecation warning: The default name for the memory configuration file has been changed to memory.conf. Please adjust accordingly.\n\n" >> $LOG_FILE
 	MEMORY_OPTS="$(cat bin/memory.config)"
 elif [ -n "$MEMORY_OPTS" ]; then
 	MEMORY_OPTS="$MEMORY_OPTS"
@@ -39,9 +48,3 @@ JAVA_OPTS="$JAVA_AGENT_PATH -Djava.awt.headless=true -Djava.net.preferIPv4Stack=
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${project.build.finalName}.jar"
 PID_FILE="server.pid"
-
-if [ -z "$REPLICA" ]; then
-	export LOG_FILE="logs/server.log"
-else
-	export LOG_FILE="logs/server.${REPLICA}.log"
-fi

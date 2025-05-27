@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,41 +31,39 @@ import java.net.URI;
  */
 public interface JsonReferenceType extends JsonType {
 
-	public JsonReferenceType setRelationship(final String relationship);
-	public String getRelationship();
+	JsonReferenceType setRelationship(final String relationship);
+	String getRelationship();
 
-	public JsonReferenceType setCardinality(final Cardinality cardinality);
-	public Cardinality getCardinality();
+	JsonReferenceType setCardinality(final Cardinality cardinality);
+	Cardinality getCardinality();
 
-	public Cascade getCascadingDelete();
-	public Cascade getCascadingCreate();
+	Cascade getCascadingDelete();
+	Cascade getCascadingCreate();
 
-	public JsonReferenceType setCascadingDelete(final Cascade cascade);
-	public JsonReferenceType setCascadingCreate(final Cascade cascade);
+	JsonReferenceType setCascadingDelete(final Cascade cascade);
+	JsonReferenceType setCascadingCreate(final Cascade cascade);
 
-	public PropagationDirection getPermissionPropagation();
-	public PropagationMode getReadPermissionPropagation();
-	public PropagationMode getWritePermissionPropagation();
-	public PropagationMode getDeletePermissionPropagation();
-	public PropagationMode getAccessControlPermissionPropagation();
+	PropagationDirection getPermissionPropagation();
+	PropagationMode getReadPermissionPropagation();
+	PropagationMode getWritePermissionPropagation();
+	PropagationMode getDeletePermissionPropagation();
+	PropagationMode getAccessControlPermissionPropagation();
 
-	public JsonReferenceType setPermissionPropagation(final PropagationDirection value);
-	public JsonReferenceType setReadPermissionPropagation(final PropagationMode value);
-	public JsonReferenceType setWritePermissionPropagation(final PropagationMode value);
-	public JsonReferenceType setDeletePermissionPropagation(final PropagationMode value);
-	public JsonReferenceType setAccessControlPermissionPropagation(final PropagationMode value);
+	JsonReferenceType setPermissionPropagation(final PropagationDirection value);
+	JsonReferenceType setReadPermissionPropagation(final PropagationMode value);
+	JsonReferenceType setWritePermissionPropagation(final PropagationMode value);
+	JsonReferenceType setDeletePermissionPropagation(final PropagationMode value);
+	JsonReferenceType setAccessControlPermissionPropagation(final PropagationMode value);
 
-	public URI getSourceType();
-	public URI getTargetType();
+	URI getSourceType();
+	URI getTargetType();
 
-	public String getSourcePropertyName();
-	public String getTargetPropertyName();
+	String getSourcePropertyName();
+	String getTargetPropertyName();
 
-	public JsonReferenceType setSourcePropertyName(final String sourcePropertyName);
-	public JsonReferenceType setTargetPropertyName(final String targetPropertyName);
+	JsonReferenceType setSourcePropertyName(final String sourcePropertyName);
+	JsonReferenceType setTargetPropertyName(final String targetPropertyName);
 
-	public JsonReferenceProperty getSourceProperty();
-	public JsonReferenceProperty getTargetProperty();
-
-
+	JsonReferenceProperty getSourceProperty();
+	JsonReferenceProperty getTargetProperty();
 }

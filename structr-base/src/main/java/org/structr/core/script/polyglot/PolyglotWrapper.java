@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot;
 
+import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
@@ -25,6 +26,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
+import org.structr.core.api.IllegalArgumentTypeException;
+import org.structr.core.api.NamedArguments;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
@@ -325,7 +329,7 @@ public abstract class PolyglotWrapper {
 
 	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {
 
-		final Arguments arguments = new Arguments();
+		final NamedArguments arguments = new NamedArguments();
 
 		for (final Value value : args) {
 
@@ -339,8 +343,8 @@ public abstract class PolyglotWrapper {
 
 			} else {
 
-				// we don't have names for the arguments here... :(
-				arguments.add(null, unwrapped);
+				throw new IllegalArgumentTypeException();
+				//arguments.add(unwrapped);
 			}
 
 		}
@@ -448,37 +452,67 @@ public abstract class PolyglotWrapper {
 		private Value func;
 		private final ActionContext actionContext;
 		private final ReentrantLock lock;
+		private boolean hasRun;
 
 		public FunctionWrapper(final ActionContext actionContext, final Value func) {
 
 			this.actionContext = actionContext;
 			this.lock = new ReentrantLock();
+			this.hasRun = false;
 
 			if (func.canExecute()) {
 
 				this.func = func;
+				ContextHelper.incrementReferenceCount(func.getContext());
 			}
 		}
 
 		@Override
 		public Object execute(Value... arguments) {
 
+			if (func == null) {
+				throw new IllegalStateException("FunctionWrapper: Function cannot be null.");
+			}
+
 			synchronized (func.getContext()) {
 
-				if (func != null) {
+				if (hasRun) {
 
-					lock.lock();
-					List<Value> processedArgs = Arrays.stream(arguments)
-							.map(a -> unwrap(actionContext, a))
-							.map(a -> wrap(actionContext, a))
-							.map(Value::asValue)
-							.collect(Collectors.toList());
+					ContextHelper.incrementReferenceCount(func.getContext());
+					hasRun = false;
+				}
 
+				lock.lock();
+				List<Value> processedArgs = Arrays.stream(arguments)
+						.map(a -> unwrap(actionContext, a))
+						.map(a -> wrap(actionContext, a))
+						.map(Value::asValue)
+						.toList();
 
-					Object result = func.execute(processedArgs.toArray());
-					lock.unlock();
+				Object result = func.execute(processedArgs.toArray());
+				lock.unlock();
 
-					return wrap(actionContext, unwrap(actionContext, result));
+				final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));
+
+				// Handle context reference counter and close current context if thread is the last one referencing it
+				ContextHelper.decrementReferenceCount(func.getContext());
+				if (ContextHelper.getReferenceCount(func.getContext()) <= 0) {
+
+					final Context curContext = actionContext.getScriptingContexts()
+							.entrySet()
+							.stream()
+							.filter(entry -> entry.getValue().equals(func.getContext()))
+							.findFirst()
+							.map(Entry::getValue)
+							.orElse(null);
+
+					if (curContext != null) {
+
+						curContext.close();
+						actionContext.removeScriptingContextByValue(curContext);
+					}
+
+					return wrappedResult;
 				}
 			}
 

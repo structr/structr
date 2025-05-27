@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -93,7 +94,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 
 			try (final Tx tx = app.tx()) {
 
-				final Arguments arguments     = Arguments.fromMap(propertySet);
+				final Arguments arguments     = NamedArguments.fromMap(propertySet);
 				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
 
 				tx.success();

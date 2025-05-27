@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,10 +19,6 @@
 package org.structr.text;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.tika.language.detect.LanguageDetector;
-import org.apache.tika.language.detect.LanguageResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -37,19 +33,13 @@ import java.util.Set;
  */
 public class FulltextTokenizer extends Writer {
 
-	private static final Logger logger   = LoggerFactory.getLogger(FulltextTokenizer.class.getName());
-
 	public static final Set<Character> SpecialChars = new LinkedHashSet<>();
 
-	private Integer wordMinLength            = null;
-	private Integer wordMaxLength            = null;
-	private final StringBuilder rawText      = new StringBuilder();
-	private final StringBuilder wordBuffer   = new StringBuilder();
-	private final List<String> words         = new LinkedList<>();
-	private String language                  = "en";
-	private char lastCharacter               = 0;
-	private int consecutiveCharCount         = 0;
-	private int wordCount                    = 0;
+	private final StringBuilder rawText    = new StringBuilder();
+	private final StringBuilder wordBuffer = new StringBuilder();
+	private final List<String> words       = new LinkedList<>();
+	private char lastCharacter             = 0;
+	private int consecutiveCharCount       = 0;
 
 	static {
 
@@ -65,13 +55,6 @@ public class FulltextTokenizer extends Writer {
 		SpecialChars.add('@');
 		SpecialChars.add('.');
 		SpecialChars.add(',');
-	}
-
-	public FulltextTokenizer(final Integer wordMinLength, final Integer wordMaxLength) {
-
-		this.wordMinLength = wordMinLength;
-		this.wordMaxLength = wordMaxLength;
-
 	}
 
 	@Override
@@ -119,16 +102,8 @@ public class FulltextTokenizer extends Writer {
 		}
 	}
 
-	public String getLanguage() {
-		return language;
-	}
-
 	public String getRawText() {
 		return rawText.toString().trim();
-	}
-
-	public List<String> getWords() {
-		return words;
 	}
 
 	@Override
@@ -148,43 +123,18 @@ public class FulltextTokenizer extends Writer {
 
 				if (StringUtils.isNotBlank(part) && !StringUtils.isNumeric(part)) {
 
-					addWord(part.toLowerCase());
+					words.add(part.toLowerCase());
 				}
 			}
 		}
 
 		wordBuffer.setLength(0);
+
 	}
 
 	@Override
 	public void close() throws IOException {
-
 		flush();
-
-		final LanguageDetector detector = LanguageDetector.getDefaultLanguageDetector();
-		detector.loadModels();
-
-		final LanguageResult result = detector.detect(getRawText());
-		if (result != null) {
-
-			language = result.getLanguage();
-		}
-	}
-
-	public int getWordCount() {
-		return wordCount;
-	}
-
-	// ----- private methods -----
-	private void addWord(final String word) {
-
-		final int length = word.length();
-		if (length >= wordMinLength && length <= wordMaxLength) {
-
-			words.add(word);
-
-			wordCount++;
-		}
 	}
 
 	private boolean accept(final String word) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -135,6 +135,14 @@ public abstract class PropertyGenerator<T> {
 
 		if (StringUtils.isNotBlank(source.getWriteFunction())) {
 			propertyKey.writeFunction(source.getWriteFunction());
+		}
+
+		if (source.isSerializationDisabled()) {
+			propertyKey.disableSerialization(source.isSerializationDisabled());
+		}
+
+		if (source.isAbstract()) {
+			propertyKey.setIsAbstract(true);
 		}
 
 		if (StringUtils.isNotBlank(source.getTypeHint())) {

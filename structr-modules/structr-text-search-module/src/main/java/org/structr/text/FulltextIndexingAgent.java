@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.text;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
 import org.apache.tika.metadata.Metadata;
@@ -37,7 +36,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
@@ -51,8 +49,10 @@ import org.structr.web.traits.definitions.FileTraitDefinition;
 import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.*;
-import java.util.Map.Entry;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -113,7 +113,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 				}
 			}
 
-			return ReturnValue.Success;
+			// retry
+			return ReturnValue.Retry;
 		}
 
 		return ReturnValue.Abort;
@@ -132,9 +133,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 	// ----- private methods -----
 	private boolean doIndexing(final App app, final File indexable) {
 
-		boolean parsingSuccessful         = false;
-		InputStream inputStream           = null;
-		String fileName                   = "unknown file";
+		boolean parsingSuccessful;
+		InputStream inputStream;
 
 		try {
 
@@ -151,13 +151,12 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 				indexable.getSecurityContext().disableModificationOfAccessTime();
 				inputStream = indexable.getInputStream();
-				fileName    = indexable.getName();
 
 				if (inputStream != null) {
 
 					final Metadata metadata = new Metadata();
 
-					try (final FulltextTokenizer tokenizer = new FulltextTokenizer(indexedWordMinLength(), indexedWordMaxLength())) {
+					try (final FulltextTokenizer tokenizer = new FulltextTokenizer()) {
 
 						try (final InputStream is = inputStream) {
 
@@ -174,70 +173,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 							// save raw extracted text
 							indexable.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), tokenizer.getRawText());
 							return true;
-
-/*
-							// tokenize name
-							tokenizer.write(getName());
-
-							// tokenize owner name
-							final Principal _owner = indexable.getOwnerNode();
-							if (_owner != null) {
-
-								final String ownerName = _owner.getName();
-								if (ownerName != null) {
-
-									tokenizer.write(ownerName);
-								}
-
-								final String eMail = _owner.getEMail();
-								if (eMail != null) {
-
-									tokenizer.write(eMail);
-								}
-							}
-
-							// index document excluding stop words
-							final Set<String> stopWords             = languageStopwordMap.get(tokenizer.getLanguage());
-							final Iterator<String> wordIterator     = tokenizer.getWords().iterator();
-							final Map<String, Integer> indexedWords = new LinkedHashMap<>();
-
-							while (wordIterator.hasNext()) {
-
-								// strip quotes
-								final String word = StringUtils.strip(wordIterator.next(), "\"\'");
-								if (!stopWords.contains(word)) {
-
-									add(indexedWords, word);
-								}
-							}
-							final List<String> topWords       = getFrequencySortedTopWords(indexedWords, maximumIndexedWords());
-							final List<IndexedWord> wordNodes = new LinkedList<>();
-
-							try {
-
-								// create words first
-								for (final String word : topWords) {
-
-									IndexedWord wordNode = app.nodeQuery("IndexedWord").andName(word).getFirst();
-									if (wordNode == null) {
-
-										wordNode = app.create("IndexedWord", word);
-									}
-
-									wordNodes.add(wordNode);
-								}
-
-								// store indexed words
-								indexable.setProperty(StructrApp.key(File.class, "words"), wordNodes);
-
-							} catch (Throwable t) {
-
-								logger.info("Unable to store fulltext indexing result for {}, retrying after 1000ms..", fileName);
-
-								return false;
-							}
-*/
-
 						}
 					}
 				}
@@ -259,76 +194,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 		return true;
 	}
 
-	private void add(final Map<String, Integer> frequencyMap, final String word) {
-
-		Integer count = frequencyMap.get(word);
-		if (count == null) {
-
-			frequencyMap.put(word, 1);
-
-		} else {
-
-			frequencyMap.put(word, count + 1);
-		}
-	}
-
-	private List<String> getFrequencySortedTopWords(final Map<String, Integer> frequency, final Integer maxEntries) {
-
-		final Map<Integer, Set<String>> words = new TreeMap<>(Collections.reverseOrder());
-		final ArrayList<String> resultList    = new ArrayList<>();
-
-		for (final Entry<String, Integer> frequencyEntry : frequency.entrySet()) {
-
-			final String word   = frequencyEntry.getKey();
-			final Integer count = frequencyEntry.getValue();
-
-			Set<String> wordSet = words.get(count);
-			if (wordSet == null) {
-
-				wordSet = new TreeSet<>();
-				words.put(count, wordSet);
-			}
-
-			wordSet.add(word);
-		}
-
-		for (final Set<String> set : words.values()) {
-
-			for (final String word : set) {
-
-				resultList.add(word);
-
-				if (resultList.size() >= maxEntries) {
-					break;
-				}
-			}
-
-			if (resultList.size() >= maxEntries) {
-				break;
-			}
-		}
-
-		return resultList;
-	}
-
 	private long getFileSize(final File file) {
 		return StorageProviderFactory.getStorageProvider(file).size();
-	}
-
-	private boolean indexingEnabled() {
-		return Settings.IndexingEnabled.getValue();
-	}
-
-	private Integer maximumIndexedWords() {
-		return Settings.IndexingLimit.getValue();
-	}
-
-	private Integer indexedWordMinLength() {
-		return Settings.IndexingMinLength.getValue();
-	}
-
-	private Integer indexedWordMaxLength() {
-		return Settings.IndexingMaxLength.getValue();
 	}
 
 	static {

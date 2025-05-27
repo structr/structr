@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -63,9 +63,10 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
 	protected boolean dynamic                   = false;
-	protected boolean isPartOfBuiltInSchema     = false;
 	protected boolean cachingEnabled            = false;
 	protected boolean nodeOnly                  = false;
+	protected boolean isAbstract                = false;
+	protected boolean serializationDisabled     = false;
 	protected String dbName                     = null;
 	protected String jsonName                   = null;
 	protected String format                     = null;
@@ -246,6 +247,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isAbstract() {
+		return isAbstract;
+	}
+
+	@Override
 	public boolean requiresSynchronization() {
 		return requiresSynchronization;
 	}
@@ -341,6 +347,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> setIsAbstract(final boolean isAbstract) {
+
+		this.isAbstract = isAbstract;
+
+		return this;
+	}
+
+	@Override
 	public Property<T> notNull(final boolean notNull) {
 		this.notNull = notNull;
 		return this;
@@ -377,6 +391,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> cachingEnabled(final boolean enabled) {
 		this.cachingEnabled = enabled;
+		return this;
+	}
+
+	public Property<T> disableSerialization(final boolean disableSerialization) {
+		this.serializationDisabled = disableSerialization;
 		return this;
 	}
 
@@ -518,7 +537,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean cachingEnabled() { return cachingEnabled; }
+	public boolean cachingEnabled() {
+		return cachingEnabled;
+	}
+
+	@Override
+	public boolean serializationDisabled() {
+		return serializationDisabled;
+	}
 
 	@Override
 	public Object getIndexValue(final Object value) {
@@ -628,7 +654,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return new DefaultSortOrder(this, descending);
 	}
 
-    // ----- interface Comparable -----
+	// ----- interface Comparable -----
 	@Override
 	public int compareTo(final PropertyKey other) {
 		return dbName().compareTo(other.dbName());

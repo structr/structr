@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,8 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
+import org.structr.core.api.NamedArguments;
+import org.structr.core.api.UnnamedArguments;
 import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
@@ -50,7 +51,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 		if ("GET".equals(method.getHttpVerb())) {
 
 			final Principal entity        = securityContext.getUser(false);
-			final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+			final RestMethodResult result = executeMethod(securityContext, entity, UnnamedArguments.fromPath(call.getPathParameters()));
 
 			return new PagingIterable("GET " + getURL(), result.getContent());
 
@@ -67,7 +68,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 			final Principal entity = securityContext.getUser(false);
 
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
+			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet));
 
 		} else {
 
@@ -82,7 +83,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 			final Principal entity = securityContext.getUser(false);
 
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet));
+			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet));
 
 		} else {
 
@@ -98,7 +99,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 			final Principal entity = securityContext.getUser(false);
 
 			// FIXME, only the first property set is used, we need to test this
-			return executeMethod(securityContext, entity, Arguments.fromMap(propertySet.get(0)));
+			return executeMethod(securityContext, entity, NamedArguments.fromMap(propertySet.get(0)));
 
 		} else {
 
@@ -113,7 +114,7 @@ public class MeMethodResourceHandler extends RESTMethodCallHandler {
 
 			final Principal entity = securityContext.getUser(false);
 
-			return executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+			return executeMethod(securityContext, entity, UnnamedArguments.fromPath(call.getPathParameters()));
 
 		} else {
 

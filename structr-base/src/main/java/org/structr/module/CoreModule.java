@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,7 +32,7 @@ import java.util.Set;
 public class CoreModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerBaseType(new PropertyContainerTraitDefinition());
 		StructrTraits.registerBaseType(new GraphObjectTraitDefinition());
@@ -202,6 +202,8 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new GetCacheValueFunction());
 		Functions.put(licenseManager, new DeleteCacheValueFunction());
 		Functions.put(licenseManager, new InvalidateCacheValueFunction());
+		Functions.put(licenseManager, new SetLogLevelFunction());
+
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(licenseManager, new SetFunction());

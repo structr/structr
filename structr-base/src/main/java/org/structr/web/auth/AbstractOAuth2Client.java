@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,8 +33,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -219,7 +219,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), "onOAuthLogin");
 		if (method != null) {
 
-			final Arguments arguments = new Arguments();
+			final NamedArguments arguments = new NamedArguments();
 
 			arguments.add("provider", this.provider);
 			arguments.add("userinfo", this.getUserInfo());

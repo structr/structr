@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,7 @@
 	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
 	padding: .5rem;
 	margin: 0 ! important;
+	cursor: move;
 }
 
 #schema-graph .node.selected {
@@ -207,6 +208,10 @@
 .schema b,
 .schema-details b {
 	display: inline-block;
+}
+
+.schema-details .propTabContent {
+	margin-top: 1rem;
 }
 
 .schema-props .property-name:hover:not(:disabled),

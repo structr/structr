@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -880,31 +880,26 @@ public class HttpService implements RunnableService, StatsCallback {
 								if (servlet instanceof HttpServiceServlet) {
 
 									final HttpServiceServlet httpServiceServlet = (HttpServiceServlet)servlet;
+									final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();
+									if (cfg != null) {
 
-									// check license for servlet
-									if (licenseManager == null || licenseManager.isValid(httpServiceServlet)) {
-
-										final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();
-										if (cfg != null) {
-
-											cfg.initializeFromSettings(servletName);
-										}
-
-										final ServletHolder servletHolder = new ServletHolder(servlet);
-										((HttpServiceServlet) servlet).configureServletHolder(servletHolder);
-
-										if (servletPath.endsWith("*")) {
-
-											servlets.put(servletPath, servletHolder);
-
-										} else {
-
-											servlets.put(servletPath + "/*", servletHolder);
-										}
-
-										// callback for statistics
-										httpServiceServlet.registerStatsCallback(this);
+										cfg.initializeFromSettings(servletName);
 									}
+
+									final ServletHolder servletHolder = new ServletHolder(servlet);
+									((HttpServiceServlet) servlet).configureServletHolder(servletHolder);
+
+									if (servletPath.endsWith("*")) {
+
+										servlets.put(servletPath, servletHolder);
+
+									} else {
+
+										servlets.put(servletPath + "/*", servletHolder);
+									}
+
+									// callback for statistics
+									httpServiceServlet.registerStatsCallback(this);
 								}
 
 							} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException nfex) {

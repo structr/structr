@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,41 +19,47 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.DatabaseService;
-import org.structr.api.config.Settings;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.RelationshipType;
-import org.structr.api.search.Operation;
 import org.structr.api.search.QueryContext;
-import org.structr.api.search.SortOrder;
-import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
-import org.structr.api.util.QueryHistogram;
-import org.structr.api.util.QueryTimer;
-
-import java.util.*;
 
 /**
  *
  */
 public class FulltextNodeIndexQuery extends AdvancedCypherQuery {
 
+	private final String tenantIdentifier;
 	private String key = null;
 	private Object value = null;
 
-	public FulltextNodeIndexQuery(QueryContext queryContext, AbstractCypherIndex<?> index, int requestedPageSize, int requestedPage) {
+	public FulltextNodeIndexQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index, final int requestedPageSize, final int requestedPage) {
+
 		super(queryContext, index, requestedPageSize, requestedPage);
+
+		tenantIdentifier = index.getDatabaseService().getTenantIdentifier();
 	}
 
 	@Override
 	public void addSimpleParameter(final String identifier, final String key, final String operator, final Object value, final boolean isProperty, final boolean caseInsensitive) {
+
 		this.key   = key;
 		this.value = value;
 	}
 
 	@Override
 	public String getStatement() {
-		return "CALL db.index.fulltext.queryNodes(\"" + Iterables.first(typeLabels) + "_" + key + "\", \"" + value +"\") YIELD node RETURN node LIMIT 10";
+
+		//return "CALL db.index.fulltext.queryNodes(\"" + Iterables.first(typeLabels) + "_" + key + "\", \"" + value +"\") YIELD node RETURN node LIMIT 10";
+
+		// CALL db.index.fulltext.queryNodes("File_extractedContent", "sit") YIELD node WHERE ANY(l in labels(node) WHERE l = "AZXHCAWZFX") RETURN node;
+
+		if (StringUtils.isNotBlank(tenantIdentifier)) {
+
+			return "CALL db.index.fulltext.queryNodes(\"" + Iterables.first(typeLabels) + "_" + key + "\", \"" + value + "\") YIELD node WHERE ANY (l in labels(node) WHERE l = \"" + tenantIdentifier + "\") RETURN node";
+
+		} else {
+
+			return "CALL db.index.fulltext.queryNodes(\"" + Iterables.first(typeLabels) + "_" + key + "\", \"" + value + "\") YIELD node RETURN node";
+		}
 	}
 
 }

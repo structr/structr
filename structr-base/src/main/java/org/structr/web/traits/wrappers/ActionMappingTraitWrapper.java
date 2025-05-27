@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,14 @@
 package org.structr.web.traits.wrappers;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.process.entity.Process;
@@ -31,6 +36,10 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.traits.definitions.ActionMappingTraitDefinition;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implements ActionMapping {
 
@@ -276,5 +285,85 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	@Override
 	public Integer getFailureNotificationsDelay() {
 		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY));
+	}
+
+	@Override
+	public NodeInterface cloneActionMapping(final Map<String, DOMNode> mapOfClonedNodes) throws FrameworkException {
+
+		final SecurityContext securityContext = getSecurityContext();
+		final App app                         = StructrApp.getInstance(securityContext);
+		final PropertyMap properties          = new PropertyMap();
+
+		// clone primitives (String, Integer)
+		properties.put(traits.key(ActionMappingTraitDefinition.EVENT_PROPERTY),                         getEvent());
+		properties.put(traits.key(ActionMappingTraitDefinition.ACTION_PROPERTY),                        getAction());
+		properties.put(traits.key(ActionMappingTraitDefinition.METHOD_PROPERTY),                        getMethod());
+		properties.put(traits.key(ActionMappingTraitDefinition.DATA_TYPE_PROPERTY),                     getDataType());
+		properties.put(traits.key(ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY),                 getIdExpression());
+		properties.put(traits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY),                       getOptions());
+		properties.put(traits.key(ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY),                   getDialogType());
+		properties.put(traits.key(ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY),                  getDialogTitle());
+		properties.put(traits.key(ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY),                   getDialogText());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY),         getSuccessNotifications());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY), getSuccessNotificationsPartial());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY),   getSuccessNotificationsEvent());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY),   getSuccessNotificationsDelay());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY),         getFailureNotifications());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY), getFailureNotificationsPartial());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY),   getFailureNotificationsEvent());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY),   getFailureNotificationsDelay());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY),             getSuccessBehaviour());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY),               getSuccessPartial());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY),                   getSuccessURL());
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY),                 getSuccessEvent());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY),             getFailureBehaviour());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY),               getFailurePartial());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY),                   getFailureURL());
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY),                 getFailureEvent());
+
+		// clone parameters
+		final List<NodeInterface> clonedParameters = new LinkedList<>();
+
+		for (final ParameterMapping param : getParameterMappings()) {
+
+			final NodeInterface clonedParameter = param.cloneParameterMapping(mapOfClonedNodes);
+			if (clonedParameter != null) {
+
+				clonedParameters.add(clonedParameter);
+			}
+		}
+
+		properties.put(traits.key(ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY), clonedParameters);
+
+		// clone relationships to DOM elements
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY),               collectClonedNodes(getSuccessTargets(), mapOfClonedNodes));
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY),               collectClonedNodes(getFailureTargets(), mapOfClonedNodes));
+		properties.put(traits.key(ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY), collectClonedNodes(getSuccessNotificationElements(), mapOfClonedNodes));
+		properties.put(traits.key(ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY), collectClonedNodes(getFailureNotificationElements(), mapOfClonedNodes));
+
+		return app.create(StructrTraits.ACTION_MAPPING, properties);
+	}
+
+	// ----- private methods -----
+	private List<NodeInterface> collectClonedNodes(final Iterable<DOMNode> source, final Map<String, DOMNode> mapOfClonedNodes) {
+
+		final List<NodeInterface> clonedNodes = new LinkedList<>();
+
+		for (final DOMNode originalNode : source) {
+
+			// find cloned input element
+			DOMNode clonedNode = mapOfClonedNodes.get(originalNode.getUuid());
+			if (clonedNode == null) {
+
+				// if the element was not cloned, it is outside the cloned subtree and can be referenced directly
+				clonedNode = originalNode;
+			}
+
+			if (clonedNode != null) {
+				clonedNodes.add(clonedNode);
+			}
+		}
+
+		return clonedNodes;
 	}
 }

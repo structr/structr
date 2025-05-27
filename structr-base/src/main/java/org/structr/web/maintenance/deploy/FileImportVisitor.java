@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.web.maintenance.deploy;
 
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -59,6 +60,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	private final ArrayList<String> encounteredPaths               = new ArrayList<>();
 	private final Set<String> encounteredButNotConfiguredFilePaths = new HashSet<>();
+	private final Map<String, String> forceRenamedFilesAndFolders  = new HashMap<>();
 
 	public FileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata) {
 
@@ -105,10 +107,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	public FileImportProblems getFileImportProblems() {
 
+		// this is basically "remaining metadata after import" because for encountered files, this metadata is removed
 		final Set configuredButNotEncounteredPaths = new HashSet(metadata.keySet());
 		configuredButNotEncounteredPaths.removeAll(encounteredPaths);
 
-		return new FileImportProblems(configuredButNotEncounteredPaths, encounteredButNotConfiguredFilePaths);
+		return new FileImportProblems(configuredButNotEncounteredPaths, encounteredButNotConfiguredFilePaths, forceRenamedFilesAndFolders);
 	}
 
 	// ----- private methods -----
@@ -182,19 +185,21 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			logger.error("Error occurred while importing folder " + folderObj, ex);
 		}
+
+		checkIfFileOrFolderWasRenamed(traits, folderPath, folderObj.getFileName().toString());
 	}
 
 	protected void createFile(final Path path, final String fileName) throws IOException {
 
-		String newFileUuid = null;
+		String newFileUuid    = null;
+		final Traits traits   = Traits.of(StructrTraits.FILE);
+		final String fullPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			tx.disableChangelog();
 
-			final String fullPath                   = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(fullPath);
-			final Traits traits                     = Traits.of(StructrTraits.FILE);
 			final PropertyKey<String> idProperty    = traits.key(GraphObjectTraitDefinition.ID_PROPERTY);
 
 			encounteredPaths.add(fullPath);
@@ -332,7 +337,33 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+
 			logger.error("Error occured while reading file properties " + fileName, ex);
+		}
+
+		checkIfFileOrFolderWasRenamed(traits, fullPath, fileName);
+	}
+
+	protected void checkIfFileOrFolderWasRenamed(final Traits traits, final String fullPath, final String targetName) {
+
+		try (final Tx tx = app.tx(true, false, false)) {
+
+			final PropertyMap properties = getConvertedPropertiesForFileOrFolder(fullPath);
+			final NodeInterface node     = app.getNodeById(properties.get(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY)), properties.get(traits.key(GraphObjectTraitDefinition.ID_PROPERTY)));
+
+			if (node != null) {
+
+				if (!node.getName().equals(targetName)) {
+
+					forceRenamedFilesAndFolders.put(fullPath, node.getProperty(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY)));
+				}
+			}
+
+			tx.success();
+
+		} catch (Exception ex) {
+
+			logger.error("Error occurred while checking imported file/folder: " + fullPath, ex);
 		}
 	}
 
@@ -411,18 +442,20 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	public class FileImportProblems {
 
-		final Set configuredButNotEncountered;
-		final Set encounteredButNotConfigured;
+		final Set<String> configuredButNotEncountered;
+		final Set<String> encounteredButNotConfigured;
+		final Map<String, String> forceRenamedFilesAndFolders;
 
-		public FileImportProblems(final Set configuredButNotEncountered, final Set encounteredButNotConfigured) {
+		public FileImportProblems(final Set<String> configuredButNotEncountered, final Set<String> encounteredButNotConfigured, final Map<String, String> forceRenamedFilesAndFolders) {
 
 			this.configuredButNotEncountered = configuredButNotEncountered;
 			this.encounteredButNotConfigured = encounteredButNotConfigured;
+			this.forceRenamedFilesAndFolders = forceRenamedFilesAndFolders;
 		}
 
 		public boolean hasAnyProblems() {
 
-			return configuredButNotEncountered.size() > 0 || encounteredButNotConfigured.size() > 0;
+			return (configuredButNotEncountered.size() > 0 || encounteredButNotConfigured.size() > 0 || forceRenamedFilesAndFolders.size() > 0);
 		}
 
 		public String getProblemsHtml() {
@@ -445,6 +478,14 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				);
 			}
 
+			if (forceRenamedFilesAndFolders.size() > 0) {
+
+				problems.add(
+						"The following files/folders were auto-renamed to prevent name clashes. The most common cause is that a previously installed app was not removed completely. If files/folders are linked in the application, this link will not be restored and thus the app will not work as expected. Removing the clashing file/folder and re-importing is recommended."
+						+ "<ul><li>" + forceRenamedFilesAndFolders.entrySet().stream().map(entry -> entry.getKey() + " renamed to " + entry.getValue()).collect(Collectors.joining("</li><li>")) + "</li></ul>"
+				);
+			}
+
 			return String.join("<br>", problems);
 		}
 
@@ -460,6 +501,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			if (encounteredButNotConfigured.size() > 0) {
 
 				problems.add("\tThe following files were found, but are missing in files.json. The most common cause is that files.json was not correctly committed.\n\t\t" + String.join("\n\t\t", encounteredButNotConfigured));
+			}
+
+			if (forceRenamedFilesAndFolders.size() > 0) {
+
+				problems.add("\tThe following files/folders were auto-renamed to prevent name clashes. The most common cause is that a previously installed app was not removed completely. If files/folders are linked in the application, this link will not be restored and thus the app will not work as expected. Removing the clashing file/folder and re-importing is recommended.\n\t\t" + forceRenamedFilesAndFolders.entrySet().stream().map(entry -> entry.getKey() + " renamed to " + entry.getValue()).collect(Collectors.joining("\n\t\t")));
 			}
 
 			return String.join("\n\n", problems);

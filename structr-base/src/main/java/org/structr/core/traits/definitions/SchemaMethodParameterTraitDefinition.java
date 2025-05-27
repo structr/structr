@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -93,13 +93,7 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
 				),
 
-				"schema",
-				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
-						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
-				),
-
-				"export",
+				PropertyView.Schema,
 				newSet(
 						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY

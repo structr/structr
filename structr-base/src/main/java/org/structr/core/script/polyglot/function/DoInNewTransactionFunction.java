@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -83,6 +84,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 							// Execute batch function until it returns anything but true
 							do {
+								ContextHelper.incrementReferenceCount(innerContext);
 								boolean hasError = false;
 
 								try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
@@ -123,11 +125,18 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 									}
 								}
 
+								ContextHelper.decrementReferenceCount(innerContext);
 							} while (result != null && result.equals(true));
 
 						} finally {
 
 							innerContext.leave();
+
+							if (ContextHelper.getReferenceCount(innerContext) <= 0) {
+
+								innerContext.close();
+								actionContext.removeScriptingContextByValue(innerContext);
+							}
 						}
 					}
 

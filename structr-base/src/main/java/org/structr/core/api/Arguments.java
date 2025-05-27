@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,9 @@
 package org.structr.core.api;
 
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.Value;
 import org.structr.common.SecurityContext;
-import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.schema.action.ActionContext;
 
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Base class for arguments that can be passed to Method implementations.
@@ -33,37 +29,22 @@ import java.util.Map.Entry;
  * method, and we might need map-like argument objects as well as Java-
  * like argument passing (arg0, arg1, arg2) etc.
  */
-public class Arguments {
+public abstract class Arguments {
 
-	private final List<Argument> arguments = new LinkedList<>();
+	protected final List<Argument> arguments = new LinkedList<>();
 
 	@Override
 	public String toString() {
 		return this.arguments.toString();
 	}
 
-	public void add(final Entry<String, Object> entry) {
-		arguments.add(new Argument(entry.getKey(), entry.getValue()));
-	}
+	public Object get(final int index) {
 
-	public void add(final Object value) {
-		arguments.add(new Argument(null, value));
-	}
+		if (index < arguments.size()) {
+			return arguments.get(index).getValue();
+		}
 
-	public void add(final String name, final Object value) {
-		arguments.add(new Argument(name, value));
-	}
-
-	public void prepend(final Object value) {
-		arguments.add(0, new Argument(null, value));
-	}
-
-	public void prepend(final String name, final Object value) {
-		arguments.add(0, new Argument(name, value));
-	}
-
-	public boolean isEmpty() {
-		return arguments.isEmpty();
+		return null;
 	}
 
 	public Object get(final String name) {
@@ -77,66 +58,6 @@ public class Arguments {
 		}
 
 		return null;
-	}
-
-	public Object get(final int index) {
-
-		if (arguments.size() > index) {
-
-			final Argument a = arguments.get(index);
-
-			return a.getValue();
-		}
-
-		return null;
-	}
-
-	public static Arguments fromMap(final Map<String, Object> map) {
-
-		final Arguments arguments = new Arguments();
-
-		for (final Entry<String, Object> entry : map.entrySet()) {
-
-			arguments.add(entry.getKey(), entry.getValue());
-		}
-
-		return arguments;
-	}
-
-	public static Arguments fromPath(final List<String> parts) {
-
-		final Arguments arguments = new Arguments();
-
-		for (final String part : parts) {
-
-			arguments.add(part);
-		}
-
-		return arguments;
-	}
-
-	public static Arguments fromValues(final ActionContext actionContext, final Value... values) {
-
-		final Arguments arguments = new Arguments();
-
-		for (final Value value : values) {
-
-			final Object unwrapped = PolyglotWrapper.unwrap(actionContext, value);
-			if (unwrapped instanceof Map) {
-
-				final Map<String, Object> map = (Map<String, Object>) unwrapped;
-				for (final Entry<String, Object> entry : map.entrySet()) {
-
-					arguments.add(entry);
-				}
-
-			} else {
-
-				arguments.add(unwrapped);
-			}
-		}
-
-		return arguments;
 	}
 
 	public Map<String, Object> toMap() {

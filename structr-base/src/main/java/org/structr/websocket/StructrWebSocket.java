@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,7 @@ import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.command.FileUploadHandler;
 import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.command.PingCommand;
+import org.structr.websocket.command.ServerLogCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -379,7 +380,7 @@ public class StructrWebSocket implements WebSocketListener {
 			final String msg = gson.toJson(message, WebSocketMessage.class);
 
 			logger.debug("################### Private message: {}", message.getCommand());
-			logger.debug("############################################################ SENDING \n{}", msg);
+			logger.debug("############################################################ SENDING \n{}", message.getCommand().equals("SERVER_LOG") ? msg.substring(0, 60) + "... # server log truncated" : msg);
 
 			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
 			if (securityContext != null) {
@@ -580,7 +581,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		if (this.securityContext != null) {
 
-			if (this.console != null && this.console.getMode().equals(mode)) {
+			if (this.console != null) {
 
 				return this.console;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
@@ -751,6 +752,50 @@ public class OpenAPITest extends StructrUiTest {
 				.statusCode(401)
 			.when()
 				.get("/structr/openapi/schema.json");
+
+	}
+
+	@Test
+	public void testParameterConversion() {
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			final JsonMethod method = type.addMethod("testDateInput", "{ return $.methodParameters; }");
+
+			method.setIsStatic(true);
+
+			method.addParameter("param1", "Date");
+			method.addParameter("param2", "Date");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.body("{ param1: '2022-01-01T00:00:00+0100', moep1: test, param2: '2022-01-01T23:59:59+0100' }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.post("/structr/rest/Test/testDateInput");
 
 	}
 

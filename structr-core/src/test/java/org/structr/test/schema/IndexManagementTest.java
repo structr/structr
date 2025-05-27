@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -660,6 +660,10 @@ public class IndexManagementTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<IndexInfo> infos = queryIndexes(db, entityType);
+
+			for (final IndexInfo info : infos) {
+				System.out.println(info.type + ", " + info.types + ", " + info.props);
+			}
 
 			tx.success();
 

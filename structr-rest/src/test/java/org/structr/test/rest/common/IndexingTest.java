@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -63,11 +63,9 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 
-		final Services services = Services.getInstance();
-
 		Services.enableIndexConfiguration();
 
-		System.out.println("############################################ INDEXING ENABLED");
+		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
 		do {

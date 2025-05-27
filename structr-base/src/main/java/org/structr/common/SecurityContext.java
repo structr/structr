@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,26 +24,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.File;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -86,7 +79,6 @@ public class SecurityContext {
 	private int serializationDepth                        = -1;
 
 
-	private final Map<String, Source> libraryCache = new HashMap<>();
 	private final Map<String, QueryRange> ranges   = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs        = new ConcurrentHashMap<>();
 	private AccessMode accessMode                  = AccessMode.Frontend;
@@ -953,74 +945,6 @@ public class SecurityContext {
 		}
 
 		return softLimit;
-	}
-
-	public Source getJavascriptLibraryCode(String fileName) {
-
-		synchronized (libraryCache) {
-
-			Source cachedSource = libraryCache.get(fileName);
-			if (cachedSource == null) {
-
-				final StringBuilder buf = new StringBuilder();
-				final App app           = StructrApp.getInstance();
-				String language         = "js";
-
-				try (final Tx tx = app.tx()) {
-
-					final List<NodeInterface> jsFiles = app.nodeQuery(StructrTraits.FILE)
-							.key(Traits.key(StructrTraits.FILE, NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName)
-							.key(Traits.key(StructrTraits.FILE, FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true)
-							.getAsList();
-
-					if (jsFiles.isEmpty()) {
-
-						logger.warn("No JavaScript library file found with fileName: {}", fileName );
-
-					} else if (jsFiles.size() > 1) {
-
-						logger.warn("Multiple JavaScript library files found with fileName: {}. This may cause problems!", fileName );
-					}
-
-					for (final NodeInterface node : jsFiles) {
-
-						final File jsLibraryFile = node.as(File.class);
-						final String contentType = jsLibraryFile.getContentType();
-
-						if (contentType != null) {
-
-							final String lowerCaseContentType = contentType.toLowerCase();
-
-							language = Source.findLanguage(lowerCaseContentType);
-
-							if ("text/javascript".equals(lowerCaseContentType) || "application/javascript".equals(lowerCaseContentType) || "application/javascript+module".equals(lowerCaseContentType)) {
-
-								buf.append(jsLibraryFile.getJavascriptLibraryCode());
-
-							} else {
-
-								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript, application/javascript or application/javascript+module for ES modules.", new Object[] { node.getName(), contentType } );
-							}
-
-						} else {
-
-							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { node.getName(), contentType } );
-						}
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					logger.warn("", fex);
-				}
-
-				cachedSource = Source.create(language, buf.toString());
-
-				libraryCache.put(fileName, cachedSource);
-			}
-
-			return cachedSource;
-		}
 	}
 
 	public boolean returnRawResult() {

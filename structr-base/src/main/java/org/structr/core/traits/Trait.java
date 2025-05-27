@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,9 +30,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
-public class Trait {
+public class Trait implements TypeInfo {
 
 	private static final Set<String> DEFAULT_PROPERTY_KEYS = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
 
@@ -251,8 +250,11 @@ public class Trait {
 		// set declaring trait
 		key.setDeclaringTrait(this);
 
-		// add key to "all" view
-		this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
+		if (!key.serializationDisabled()) {
+
+			// add key to "all" view
+			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
+		}
 
 		// add dynamic keys to "custom" view
 		if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {
@@ -260,36 +262,22 @@ public class Trait {
 		}
 	}
 
-	public void checkCompatibilityWith(final Trait otherTrait) throws FrameworkException {
+	// ----- interface TypeInfo -----
+	@Override
+	public String getTypeName() {
+		return getName();
+	}
 
-		if (!label.equals(otherTrait.label)) {
+	@Override
+	public Iterable<PropertyInfo> getPropertyInfo() {
 
-			final Set<PropertyKey> propertyKeyIntersection = new HashSet<>();
-			propertyKeyIntersection.addAll(propertyKeys.values());
-			propertyKeyIntersection.retainAll(otherTrait.propertyKeys.values());
+		final List<PropertyInfo> propertyInfos = new LinkedList<>();
 
-			if (!propertyKeyIntersection.isEmpty()){
+		for (final PropertyKey property : getPropertyKeys().values()) {
 
-				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same properties " + propertyKeyIntersection);
-			}
-
-			final Set<FrameworkMethod> frameworkMethodIntersection = new HashSet<>();
-			frameworkMethodIntersection.addAll(frameworkMethods.values());
-			frameworkMethodIntersection.retainAll(otherTrait.frameworkMethods.values());
-
-			if (!frameworkMethodIntersection.isEmpty()){
-
-				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same methods " + frameworkMethodIntersection.stream().map(m -> m.getClass().getSuperclass().getName()).collect(Collectors.toList()));
-			}
-
-			final Set<AbstractMethod> dynamicMethodIntersection = new HashSet<>();
-			dynamicMethodIntersection.addAll(dynamicMethods.values());
-			dynamicMethodIntersection.retainAll(otherTrait.dynamicMethods.values());
-
-			if (!dynamicMethodIntersection.isEmpty()){
-
-				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same methods " + dynamicMethodIntersection.stream().map(m -> m.getFullMethodName()).collect(Collectors.toList()));
-			}
+			propertyInfos.add(new PropertyInfo(property));
 		}
+
+		return propertyInfos;
 	}
 }

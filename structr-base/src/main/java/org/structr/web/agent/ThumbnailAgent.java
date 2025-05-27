@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -167,7 +167,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					properties.put(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY),                                            Long.valueOf(data.length));
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                        originalImage.as(AccessControllable.class).getOwnerNode());
 					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),                                  originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
-					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY),                              originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
+					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY),                              true);
 
 					thumbnail.unlockSystemPropertiesOnce();
 					thumbnail.setProperties(securityContext, properties);

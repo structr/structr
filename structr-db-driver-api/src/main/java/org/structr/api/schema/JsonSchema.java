@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,6 +58,7 @@ public interface JsonSchema {
 	String KEY_HINT                     = "hint";
 	String KEY_CATEGORY                 = "category";
 	String KEY_READ_ONLY                = "readOnly";
+	String KEY_SERIALIZATION_DISABLED   = "serializationDisabled";
 	String KEY_VALIDATORS               = "validators";
 	String KEY_TRANSFORMATORS           = "transformators";
 	String KEY_DATE_PATTERN             = "datePattern";

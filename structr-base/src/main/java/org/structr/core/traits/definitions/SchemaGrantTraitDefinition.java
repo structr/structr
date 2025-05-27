@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -131,13 +131,9 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 			newSet(
 				"principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
 			),
-			"schema",
+			PropertyView.Schema,
 			newSet(
 				"id", "principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
-			),
-			"export",
-			newSet(
-				"principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
 			)
 		);
 	}

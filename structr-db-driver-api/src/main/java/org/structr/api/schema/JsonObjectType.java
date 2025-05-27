@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,13 +28,13 @@ import java.net.URI;
  */
 public interface JsonObjectType extends JsonType {
 
-	public JsonReferenceType relate(final JsonObjectType type);
-	public JsonReferenceType relate(final URI externalTypeReference);
-	public JsonReferenceType relate(final JsonObjectType type, final String relationship);
-	public JsonReferenceType relate(final URI externalTypeReference, final String relationship);
-	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality);
-	public JsonReferenceType relate(final URI externalTypeReference, final String relationship, final Cardinality cardinality);
-	public JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
-	public JsonReferenceType relate(final URI externalTypeReference, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
-	public JsonReferenceType relate(final Class type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
+	JsonReferenceType relate(final JsonObjectType type);
+	JsonReferenceType relate(final URI externalTypeReference);
+	JsonReferenceType relate(final JsonObjectType type, final String relationship);
+	JsonReferenceType relate(final URI externalTypeReference, final String relationship);
+	JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality);
+	JsonReferenceType relate(final URI externalTypeReference, final String relationship, final Cardinality cardinality);
+	JsonReferenceType relate(final JsonObjectType type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
+	JsonReferenceType relate(final URI externalTypeReference, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
+	JsonReferenceType relate(final Class type, final String relationship, final Cardinality cardinality, final String sourceAttributeName, final String targetAttributeName);
 }

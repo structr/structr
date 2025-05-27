@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -101,9 +101,6 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 			info.setProperty(new StringProperty("debuggerPath"), ContextFactory.getDebuggerPath());
 		}
-
-		info.setProperty(new StringProperty("availableReleasesUrl"),    Settings.ReleasesIndexUrl.getValue());
-		info.setProperty(new StringProperty("availableSnapshotsUrl"),   Settings.SnapshotsIndexUrl.getValue());
 
 		info.setProperty(new GenericProperty("dashboardInfo"),   getStructrDashboardInfo());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.module.StructrModule;
@@ -45,11 +46,12 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 	private static final GenericProperty contextKey = new GenericProperty("context");
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
+		Functions.put(licenseManager, new StopWordsFunction());
 	}
 
 	@Override

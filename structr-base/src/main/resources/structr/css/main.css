@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -395,9 +395,10 @@ input[type="checkbox"] {
 
 #main {
 	position: absolute;
-	top: 6rem;
+	top: 8rem;
 	width: 100%;
 	height: calc(100% - 8rem);
+	overflow: hidden;
 	background-color: var(--main-background);
 }
 
@@ -423,7 +424,7 @@ input[type="checkbox"] {
 }
 
 .main-app-box {
-	margin: 2rem;
+	margin: 0 2rem;
 }
 
 .menu > ul {
@@ -622,23 +623,23 @@ img.disabled {
  */
 #pagesTab,
 #widgetsTab {
-	top: 4rem;
+	top: 2rem;
 }
 
 #localizationsTab {
-	top: 10rem;
+	top: 8rem;
 }
 
 #componentsTab {
-	top: 9rem;
+	top: 7rem;
 }
 
 #elementsTab {
-	top: 15rem;
+	top: 13rem;
 }
 
 #previewTab {
-	top: 21rem;
+	top: 19rem;
 }
 
 
@@ -657,7 +658,7 @@ img.disabled {
 	height: calc(100% - 2rem);
 	position: absolute;
 	z-index: 2;
-	top: 2rem;
+	top: 0;
 	background-color: var(--solid-white) ! important;
 }
 
@@ -1331,9 +1332,27 @@ button.action.disabled:hover {
 	cursor: not-allowed;
 }
 
-.dialog {
+.non-block-ui-blocker-content {
+	position: relative;
+	display: flex;
+	width: 100%;
+	height: calc(100vh - 8rem);
+}
+
+.non-block-ui-blocker-content.maximized {
+	position: absolute;
+	top: 0;
+	height: calc(100vh);
+}
+
+body[style*=zoom] .non-block-ui-blocker-content {
+	height: calc(50vh - 4rem);
+}
+
+.dialog, .confirmationText {
 	padding: 1rem;
 	background-color: var(--solid-white);
+	margin: auto;
 }
 
 #dialogBox .window-icon {
@@ -1368,8 +1387,15 @@ button.action.disabled:hover {
 }
 
 #dialogBox {
+	min-width: calc(60vw);
+	height: calc(60vh);
 	padding-bottom: 4rem;
 	position: relative;
+}
+
+#dialogBox.maximized {
+	width: calc(100vw - 4rem);
+	height: calc(100vh - 7rem);
 }
 
 /* Make dialog title invisible */
@@ -1397,7 +1423,8 @@ button.action.disabled:hover {
 
 .dialogTextWrapper {
 	width: 100%;
-	overflow-y: auto;
+	height: calc(60vh - 1rem);
+	overflow: auto;
 }
 
 .dialogText textarea {
@@ -1482,7 +1509,8 @@ button.action.disabled:hover {
 }
 
 #login {
-	width: 264px;
+	width: 20rem;
+	margin: auto;
 }
 
 .errorText img {
@@ -2178,6 +2206,7 @@ th.center {
 	bottom: 12px;
 }
 
+/*  BEGIN: Growl-Style Message Area Styles */
 #info-area {
 	z-index: 10000;
 	position: absolute;
@@ -2188,13 +2217,21 @@ th.center {
 	max-height: 100vh;
 }
 
+#info-area #close-all-button {
+	display: none;
+}
+
+#info-area:has(#messages .message:nth-of-type(2)) #close-all-button {
+	display: block;
+}
+
 #info-area .message-text {
 	max-height: 75vh;
 }
 
 #info-area .message.dismissed {
 	overflow: hidden;
-	animation: dismissMessage 0.5s;
+	animation: dismissMessage 0.25s;
 	animation-timing-function: ease-in;
 	animation-fill-mode: forwards;
 }
@@ -2217,9 +2254,9 @@ th.center {
 	list-style: disc;
 }
 
-#info-area .message.SCRIPT-QUEUED .text,
-#info-area .message.SCRIPT-BEGIN .text,
-#info-area .message.SCRIPT-END .text {
+#info-area .message.SCRIPT-QUEUED .message-text,
+#info-area .message.SCRIPT-BEGIN .message-text,
+#info-area .message.SCRIPT-END .message-text {
 	max-height: 200px;
 	overflow: auto;
 }
@@ -2227,11 +2264,7 @@ th.center {
 #info-area .message-buttons:empty {
 	margin: 0;
 }
-
-#info-area .message:only-child .confirmAll {
-	visibility: hidden;
-	display: none;
-}
+/*  END: Growl-Style Message Area Styles */
 
 table#relationship-options {
 	table-layout: fixed;
@@ -2428,7 +2461,7 @@ td#cascading-options, td#propagation-options {
 .tree-main {
 	display: flex;
 	height: calc(100% - 2rem);
-	margin: 2rem;
+	margin: 0 2rem 2rem 2rem;
 }
 
 .tree-container {
@@ -3556,6 +3589,16 @@ table.props td.__value {
 	height: 100%;
 }
 
+.popup-dialog-with-editor .dialogTextWrapper,
+.full-height-dialog-text .dialogTextWrapper {
+	height: calc(60vh - 5rem);
+}
+
+.popup-dialog-with-editor .dialogTextWrapper.maximized,
+.full-height-dialog-text .dialogTextWrapper.maximized {
+	height: calc(100vh - 12rem);
+}
+
 .popup-dialog-with-editor .dialogText #widget-dialog_content {
 	height: calc(100% - 8px);
 }
@@ -4286,6 +4329,9 @@ ul.combined-input-select-field li:hover {
 }
 .pb-4 {
 	padding-bottom: 1rem;
+}
+.pb-6 {
+	padding-bottom: 1.5rem;
 }
 .pt-1 {
 	padding-top: .25rem;

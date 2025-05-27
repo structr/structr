@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,7 +40,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
-import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -177,7 +176,6 @@ public abstract class AbstractHintProvider {
 			hints.add(func);
 		}
 
-		hints.add(new IncludeJSFunction(actionContext));
 		hints.add(new DoInNewTransactionFunction(actionContext, null));
 		hints.add(new DoAsFunction(actionContext));
 		hints.add(new DoPrivilegedFunction(actionContext));
@@ -322,7 +320,7 @@ public abstract class AbstractHintProvider {
 
 				case "this":
 
-					if (currentNode.isNode()) {
+					if (currentNode != null && currentNode.isNode()) {
 
 						final NodeInterface node = (NodeInterface)currentNode;
 

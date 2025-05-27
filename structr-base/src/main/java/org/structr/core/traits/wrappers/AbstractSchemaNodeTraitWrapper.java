@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,18 +19,21 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.PropertyInfo;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TypeInfo;
 import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -233,98 +236,125 @@ public class AbstractSchemaNodeTraitWrapper extends AbstractNodeTraitWrapper imp
 		return viewNames;
 	}
 
-	/*
-	public void createBuiltInSchemaEntities(final ErrorBuffer errorBuffer) throws FrameworkException {
-		new CreateBuiltInSchemaEntities(this).execute(securityContext, errorBuffer);
-	}
+	@Override
+	public void checkInheritanceConstraints() throws FrameworkException {
 
-	public void addDynamicView(final String view) {
-		dynamicViews.add(view);
-	}
+		if (this.is(StructrTraits.SCHEMA_NODE)) {
 
-	public Set<String> getDynamicViews() {
-		return dynamicViews;
-	}
+			final App app                = StructrApp.getInstance();
+			final Set<String> traitNames = this.as(SchemaNode.class).getInheritedTraits();
+			final Set<TypeInfo> types    = new LinkedHashSet<>();
 
-	private static class CreateBuiltInSchemaEntities implements TransactionPostProcess {
+			// check inheriting node as well
+			//nodes.add(this.as(SchemaNode.class));
 
-		private AbstractSchemaNode node = null;
+			for (final String name : traitNames) {
 
-		public CreateBuiltInSchemaEntities(final AbstractSchemaNode node) {
-			this.node = node;
-		}
+				final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(name).getFirst();
+				if (node != null && node.is(StructrTraits.SCHEMA_NODE)) {
 
-		@Override
-		public boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+					types.add(node.as(SchemaNode.class));
 
-			final ConfigurationProvider config  = StructrApp.getConfiguration();
+				} else if (Traits.getTrait(name) != null) {
 
-			// determine runtime type
-			Class builtinClass = config.getNodeEntityClass(node.getClassName());
-			if (builtinClass == null) {
-
-				// second try: relationship class name
-				builtinClass = config.getRelationshipEntityClass(node.getClassName());
+					types.add(Traits.getTrait(name));
+				}
 			}
 
-			if (builtinClass != null) {
+			for (final TypeInfo type1 : types) {
 
-				createViewNodesForClass(node, builtinClass, config, null);
+				for (final TypeInfo type2 : types) {
 
-				final Class superClass = builtinClass.getSuperclass();
-				if (superClass != null) {
-					final AbstractSchemaNode parentNode = ((AbstractSchemaNode) node).getProperty(traits.key("extendsClass"));
-					createViewNodesForClass(node, superClass, config, parentNode);
+					checkCompatibilityWith(type1, type2);
 				}
+			}
+		}
+	}
 
+	// ----- private methods -----
+	private void checkCompatibilityWith(final TypeInfo type1, final TypeInfo type2) throws FrameworkException {
+
+		final String label1 = type1.getTypeName();
+		final String label2 = type2.getTypeName();
+
+		if (!label1.equals(label2)) {
+
+			checkPropertyCompatibility(type1, type2);
+
+			/* we don't check method compatibility here!
+			final Set<FrameworkMethod> frameworkMethodIntersection = new HashSet<>();
+			frameworkMethodIntersection.addAll(frameworkMethods.values());
+			frameworkMethodIntersection.retainAll(otherTrait.frameworkMethods.values());
+
+			if (!frameworkMethodIntersection.isEmpty()){
+
+				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same methods " + frameworkMethodIntersection.stream().map(m -> m.getClass().getSuperclass().getName()).collect(Collectors.toList()));
 			}
 
-			return true;
+			final Set<AbstractMethod> dynamicMethodIntersection = new HashSet<>();
+			dynamicMethodIntersection.addAll(dynamicMethods.values());
+			dynamicMethodIntersection.retainAll(otherTrait.dynamicMethods.values());
+
+			if (!dynamicMethodIntersection.isEmpty()){
+
+				throw new FrameworkException(422, "Incompatible traits: trait " + name + " clashes with trait " + otherTrait.name + " because both define the same methods " + dynamicMethodIntersection.stream().map(m -> m.getFullMethodName()).collect(Collectors.toList()));
+			}
+
+			 */
 		}
+	}
 
-		private static void createViewNodesForClass(final AbstractSchemaNode schemaNode, final Class cls, final ConfigurationProvider config, final AbstractSchemaNode parentNode) throws FrameworkException {
+	private void checkPropertyCompatibility(final TypeInfo type1, final TypeInfo type2) throws FrameworkException {
 
-			final Set<String> existingViewNames = Iterables.toList(schemaNode.getSchemaViews()).stream().map(v -> v.getName()).collect(Collectors.toSet());
+		final Map<String, PropertyInfo> properties1 = new LinkedHashMap<>();
+		final Map<String, PropertyInfo> properties2 = new LinkedHashMap<>();
 
-			for (final String view : config.getPropertyViewsForType(cls)) {
+		properties1.putAll(collectPropertiesAndTypes(type1));
+		properties2.putAll(collectPropertiesAndTypes(type2));
 
-				// Don't create duplicate and internal views
-				if (existingViewNames.contains(view)) {
-					continue;
+		final Set<String> intersection = new LinkedHashSet<>(properties1.keySet());
+		intersection.retainAll(properties2.keySet());
+
+		if (!intersection.isEmpty()) {
+
+			// now we can check the types as well
+			for (final String propertyName : intersection) {
+
+				final PropertyInfo propertyType1 = properties1.get(propertyName);
+				final PropertyInfo propertyType2 = properties2.get(propertyName);
+
+				if (!propertyType1.canOverride(propertyType2)) {
+
+					throw new FrameworkException(422, "Incompatible property inheritance in type " + getName() + ": traits " + type1.getTypeName() + " and " + type2.getTypeName() + " define the same property " + propertyName + " with different types (" + propertyType1 + " vs. " + propertyType2 + ")");
+
+				} else {
+
+					System.out.println("ignoring property " + propertyName + " because types are identical: " + propertyType1);
 				}
+			}
+		}
+	}
 
-				final Set<String> viewPropertyNames   = new HashSet<>();
-				final List<SchemaProperty> properties = new LinkedList<>();
+	private Map<String, PropertyInfo> collectPropertiesAndTypes(final TypeInfo type) {
 
-				// collect names of properties in the given view
-				for (final PropertyKey key : config.getPropertySet(cls, view)) {
+		final Map<String, PropertyInfo> propertiesAndTheirTypes = new LinkedHashMap<>();
 
-					if (parentNode != null || key.isPartOfBuiltInSchema()) {
-						viewPropertyNames.add(key.jsonName());
+		if (type != null) {
+
+			final Iterable<PropertyInfo> propertyInfos = type.getPropertyInfo();
+			if (propertyInfos != null) {
+
+				for (final PropertyInfo p : propertyInfos) {
+
+					// abstract properties are exempt from overwrite check
+					if (p.getPropertyName() != null && !p.isAbstract()) {
+
+						propertiesAndTheirTypes.put(p.getPropertyName(), p);
 					}
 				}
-
-				// collect schema properties that match the view
-				// if parentNode is set, we're adding inherited properties from the parent node
-				for (final SchemaProperty schemaProperty : (parentNode != null ? parentNode : schemaNode).getProperty(SchemaNode.schemaProperties)) {
-
-					final String schemaPropertyName = schemaProperty.getProperty(SchemaProperty.name);
-					if (viewPropertyNames.contains(schemaPropertyName)) {
-
-						properties.add(schemaProperty);
-					}
-				}
-
-				// create view node
-				StructrApp.getInstance(schemaNode.getSecurityContext()).create(SchemaView.class,
-						new NodeAttribute(SchemaView.schemaNode, schemaNode),
-						new NodeAttribute(SchemaView.name, view),
-						new NodeAttribute(SchemaView.schemaProperties, properties),
-						new NodeAttribute(SchemaView.isBuiltinView, true)
-				);
-
 			}
 		}
+
+		return propertiesAndTheirTypes;
 	}
-	*/
 }

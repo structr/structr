@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -163,7 +163,6 @@ public class Deployment1Test extends DeploymentTestBase {
 			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), true);
-			file.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true);
 
 			tx.success();
 
@@ -190,7 +189,6 @@ public class Deployment1Test extends DeploymentTestBase {
 			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
-			assertTrue("Deployment import does not restore attributes correctly",  file.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
 
 			tx.success();
 
@@ -222,7 +220,6 @@ public class Deployment1Test extends DeploymentTestBase {
 			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), true);
-			file.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 
 			tx.success();
@@ -244,7 +241,6 @@ public class Deployment1Test extends DeploymentTestBase {
 					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), false);
-					file.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), false);
 					file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), false);
 
 					tx.success();
@@ -271,7 +267,6 @@ public class Deployment1Test extends DeploymentTestBase {
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY)));
 
 			tx.success();
@@ -304,7 +299,6 @@ public class Deployment1Test extends DeploymentTestBase {
 			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), true);
-			file.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true);
 			file.setProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true);
 
 			tx.success();
@@ -331,7 +325,6 @@ public class Deployment1Test extends DeploymentTestBase {
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
-			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
 			assertTrue("Deployment import of existing file does not restore attributes correctly", file.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY)));
 
 			tx.success();

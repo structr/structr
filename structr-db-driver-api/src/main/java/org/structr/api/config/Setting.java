@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ public abstract class Setting<T> {
 
 	protected SettingsGroup group                = null;
 	protected boolean isDynamic                  = false;
+	protected boolean isModified                 = false;
+	protected boolean isProtected                = false;
 	protected T defaultValue                     = null;
 	protected String category                    = null;
 	protected String key                         = null;
@@ -144,6 +146,8 @@ public abstract class Setting<T> {
 
 			changeHandler.execute(this, oldValue, value);
 		}
+
+		isModified = changed;
 	}
 
 	public void setDefaultValue(final T value) {
@@ -151,11 +155,24 @@ public abstract class Setting<T> {
 	}
 
 	public boolean isModified() {
-		return (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
+		return isModified || (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
+	}
+
+	public void setIsModified(final boolean isModified) {
+		this.isModified = isModified;
 	}
 
 	public boolean isDynamic() {
 		return isDynamic;
+	}
+
+	public Setting setIsProtected() {
+		this.isProtected = true;
+		return this;
+	}
+
+	public boolean isProtected() {
+		return this.isProtected;
 	}
 
 	public void setIsDynamic(boolean isDynamic) {

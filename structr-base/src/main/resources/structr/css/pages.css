@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -179,11 +179,11 @@
  * Central content container
  */
 .dialogText .content-container {
-	margin-top: 0rem;
+	margin-top: 0;
 	height: calc(100% - 20rem);
 }
 .content-container {
-	margin-top: 2rem;
+	margin-top: 0;
 	background-color: var(--solid-white);
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
 	overflow: auto;
