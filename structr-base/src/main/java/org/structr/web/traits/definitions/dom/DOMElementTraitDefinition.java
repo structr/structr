@@ -871,12 +871,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final ActionContext actionContext = new ActionContext(securityContext);
 					final EventContext  eventContext  = new EventContext();
-					final String        event         = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 					final String        action;
-
-					if (event == null) {
-						throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
-					}
 
 					ActionMapping triggeredAction;
 					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
