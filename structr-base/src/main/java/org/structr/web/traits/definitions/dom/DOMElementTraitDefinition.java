@@ -968,8 +968,8 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private ActionMapping getActionMapping(final DOMElement domElementNode) throws FrameworkException {
 
 		ActionMapping triggeredAction;
+		final List<ActionMapping> triggeredActions = Iterables.toList(domElementNode.getTriggeredActions());
 
-		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, domElementNode.getUuid()).getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY));
 		if (triggeredActions != null && !triggeredActions.isEmpty()) {
 
 			triggeredAction = triggeredActions.get(0);
