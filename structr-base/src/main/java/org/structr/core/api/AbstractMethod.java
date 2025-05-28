@@ -32,6 +32,7 @@ import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -121,7 +122,22 @@ public abstract class AbstractMethod {
 							// store current AbstractMethod object in ActionContext
 							inner.setCurrentMethod(this);
 
+							// Context reference count handling
+							ContextHelper.incrementReferenceCount(context);
+							context.enter();
+
 							final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+
+							// Context reference count handling
+							context.leave();
+							ContextHelper.decrementReferenceCount(context);
+
+							if (ContextHelper.getReferenceCount(context) <= 0) {
+
+								context.close();
+								actionContext.putScriptingContext(engineName, null);
+							}
+
 							effectiveLocale = inner.getLocale();
 							return result;
 
