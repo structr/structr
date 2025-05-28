@@ -79,7 +79,6 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
                         executable.execute();
 
                         tx.success();
-                        TransactionCommand.commitTx();
                     } catch (FrameworkException e) {
 
                         throw new RuntimeException(e);
