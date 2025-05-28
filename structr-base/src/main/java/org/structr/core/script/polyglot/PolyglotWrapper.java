@@ -490,6 +490,7 @@ public abstract class PolyglotWrapper {
 						.toList();
 
 				Object result = func.execute(processedArgs.toArray());
+				hasRun = true;
 				lock.unlock();
 
 				final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));
