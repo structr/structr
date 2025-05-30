@@ -62,11 +62,7 @@ export class Frontend {
 				continue;
 			}
 
-<<<<<<< HEAD
-            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression') {
-=======
             if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
->>>>>>> main
 				continue;
             }
 
