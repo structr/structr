@@ -20,6 +20,7 @@ package org.structr.schema.action;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -34,6 +35,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.File;
@@ -533,9 +535,16 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			if (value instanceof Map) {
 
 				final Map<String, Object> map = (Map<String, Object>)value;
-				final GraphObjectMap obj = new GraphObjectMap();
+				final GraphObjectMap obj = GraphObjectMap.fromMap(source);
 
-				destination.put(obj.getTraits().key(key), obj);
+				final Traits traits           = obj.getTraits();
+				final PropertyKey propertyKey = traits.key(key);
+
+				if (propertyKey != null) {
+					destination.put(propertyKey, obj);
+				} else {
+					logger.warn("PropertyKey is null for key '{}' in map {}", key, map);
+				}
 
 				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 
