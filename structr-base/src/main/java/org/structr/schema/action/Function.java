@@ -533,7 +533,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			if (value instanceof Map) {
 
-				final Map<String, Object> map = (Map<String, Object>)value;
+				final Map<String, Object> map = (Map<String, Object>) value;
 				final GraphObjectMap obj = GraphObjectMap.fromMap(source);
 
 				final Traits traits           = obj.getTraits();
