@@ -29,7 +29,7 @@
         <dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-db-driver-api</artifactId>
-            <version>${version}</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <!-- COMMON DEPENDENCIES -->
@@ -549,7 +549,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>[32.0.0,)</version>
+            <version>[33.4.8-jre,)</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

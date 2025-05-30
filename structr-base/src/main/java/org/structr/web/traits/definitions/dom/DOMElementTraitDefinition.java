@@ -1523,7 +1523,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 //		}
 //	}
 
-
 	private Object handleSignInAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		removeInternalDataBindingKeys(parameters);
@@ -2210,25 +2209,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 			t.printStackTrace();
 		}
-	}
-
-	public boolean isTargetElement(final DOMElement thisElement) {
-
-		final boolean isManualReloadTarget                   = thisElement.isManualReloadTarget();
-		final List<DOMElement> reloadSources                 = Iterables.toList(thisElement.getReloadSources());
-		final List<ActionMapping> reloadingActions           = Iterables.toList(thisElement.getReloadingActions());
-		final List<ActionMapping> failureActions             = Iterables.toList(thisElement.getFailureActions());
-		final List<ActionMapping> successNotificationActions = Iterables.toList(thisElement.getSuccessNotificationActions());
-		final List<ActionMapping> failureNotificationActions = Iterables.toList(thisElement.getFailureNotificationActions());
-		final List<ActionMapping> processSuccessShowActions  = Iterables.toList(thisElement.getProcessSuccessShowActions());
-		final List<ActionMapping> processSuccessHideActions  = Iterables.toList(thisElement.getProcessSuccessHideActions());
-		final List<ActionMapping> processFailureShowActions  = Iterables.toList(thisElement.getProcessFailureShowActions());
-		final List<ActionMapping> processFailureHideActions  = Iterables.toList(thisElement.getProcessSuccessHideActions());
-
-		return isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty()
-				|| !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty()
-				|| !processSuccessShowActions.isEmpty() || !processSuccessHideActions.isEmpty() || !processFailureShowActions.isEmpty() || !processFailureHideActions.isEmpty()
-				;
 	}
 
 	// ----- private methods -----
