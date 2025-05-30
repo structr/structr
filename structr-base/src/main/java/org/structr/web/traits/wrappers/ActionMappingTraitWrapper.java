@@ -71,6 +71,11 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	}
 
 	@Override
+	public String getFlow() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FLOW_PROPERTY));
+	}
+
+	@Override
 	public void setMethod(final String method) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(ActionMappingTraitDefinition.METHOD_PROPERTY), method);
 	}
