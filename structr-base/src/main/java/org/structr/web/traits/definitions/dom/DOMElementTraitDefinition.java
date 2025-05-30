@@ -33,7 +33,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.InstanceMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
