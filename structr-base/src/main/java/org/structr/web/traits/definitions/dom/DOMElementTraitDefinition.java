@@ -1232,122 +1232,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	private Object handleSignInAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		removeInternalDataBindingKeys(parameters);
-
-		final Principal currentUser              = renderContext.getSecurityContext().getUser(false);
-		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-		final Map<String, Object> properties     = new LinkedHashMap<>();
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			properties.put(key, value);
-		}
-
-		return loginResource.doPost(renderContext.getSecurityContext(), properties);
-	}
-
-	private Object handleSignOutAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		removeInternalDataBindingKeys(parameters);
-
-		final Principal currentUser                = renderContext.getSecurityContext().getUser(false);
-		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-		final Map<String, Object> properties       = new LinkedHashMap<>();
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			properties.put(key, value);
-		}
-
-		return logoutResource.doPost(renderContext.getSecurityContext(), properties);
-	}
-
-	private Object handleSignUpAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		final Principal currentUser          = renderContext.getSecurityContext().getUser(false);
-		final Map<String, Object> properties = new LinkedHashMap<>();
-
-		removeInternalDataBindingKeys(parameters);
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			if (value != null) properties.put(key, value);
-		}
-
-		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-
-		return registrationResource.doPost(renderContext.getSecurityContext(), properties);
-	}
-
-	private Object handleResetPasswordAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		final Principal currentUser          = renderContext.getSecurityContext().getUser(false);
-		final Map<String, Object> properties = new LinkedHashMap<>();
-
-		removeInternalDataBindingKeys(parameters);
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			if (value != null) properties.put(key, value);
-		}
-
-		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-
-		return resetPasswordResource.doPost(renderContext.getSecurityContext(), properties);
-	}
-
-//	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
-//
-//		final SecurityContext securityContext = actionContext.getSecurityContext();
-//
-//		if (parameters.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET)) {
-//
-//			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET));
-//
-//			switch (action) {
-//
-//				case "open-tree-item":
-//					setSessionAttribute(securityContext, key, true);
-//					break;
-//
-//				case "close-tree-item":
-//					removeSessionAttribute(securityContext, key);
-//					break;
-//
-//				case "toggle-tree-item":
-//
-//					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
-//
-//						removeSessionAttribute(securityContext, key);
-//
-//					} else {
-//
-//						setSessionAttribute(securityContext, key, true);
-//					}
-//					break;
-//			}
-//
-//
-//		} else {
-//
-//			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
-//		}
-//	}
-
 	private GraphObject handleCreateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
@@ -1404,175 +1288,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				app.delete((RelationshipInterface)target);
 			}
 		}
-	}
-
-	private Object handleCustomAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
-
-		final String dataTarget = getDataTargetFromParameters(parameters, "custom", false);
-
-		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
-		if (StringUtils.isNotBlank(methodName) && StringUtils.isBlank(dataTarget)) {
-
-			removeInternalDataBindingKeys(parameters);
-
-			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters);
-		}
-
-		if (Settings.isValidUuid(dataTarget)) {
-
-			final List<GraphObject> targets = resolveDataTargets(renderContext, entity, dataTarget);
-			final Logger logger             = LoggerFactory.getLogger(getClass());
-
-			if (targets.size() > 1) {
-				logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
-			}
-
-			removeInternalDataBindingKeys(parameters);
-
-			for (final GraphObject target : targets) {
-
-				final AbstractMethod method = Methods.resolveMethod(target.getTraits(), methodName);
-				if (method != null) {
-
-					if (method.shouldReturnRawResult()) {
-						renderContext.getSecurityContext().enableReturnRawResult();
-					}
-
-					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
-
-				} else {
-
-					throw new FrameworkException(422, "Cannot execute method " + target.getClass().getSimpleName() + "." + methodName + ": method not found.");
-				}
-			}
-
-		} else {
-
-			if (dataTarget != null) {
-
-				// add support for static methods
-				if (Traits.exists(dataTarget)) {
-
-					final Traits traits         = Traits.of(dataTarget);
-					final AbstractMethod method = Methods.resolveMethod(traits, methodName);
-
-					if (method != null) {
-
-						if (method.shouldReturnRawResult()) {
-							renderContext.getSecurityContext().enableReturnRawResult();
-						}
-
-						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
-
-					} else {
-
-						throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
-					}
-
-				} else {
-
-					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
-				}
-
-			} else {
-
-				throw new FrameworkException(422, "Custom action has empty dataTarget.");
-			}
-		}
-
-		return null;
-	}
-
-
-	private Object handleFlowAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String flowName) throws FrameworkException {
-
-		if (flowName != null) {
-
-			return Scripting.evaluate(renderContext,  entity, "${flow('" + flowName.trim() + "')}", "flow query");
-
-		} else {
-
-			throw new FrameworkException(422, "Cannot execute Flow because no or empty name was provided.");
-		}
-
-	}
-
-	private Object handleProcessAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final Process process) throws FrameworkException {
-
-		final SecurityContext securityContext = renderContext.getSecurityContext();
-
-		final NodeInterface processInstance;
-
-		if (process != null) {
-
-			final String processInstanceId = (String) parameters.get("processInstance"); // renderContext.getRequestParameter("processInstance");
-
-			if (processInstanceId == null) {
-
-				// Start the process by creating a new ProcessInstance object
-				processInstance = process.getTraits().getMethod(CreateInstance.class).createInstance(entity, securityContext);
-
-			} else {
-
-				// Existing process instance => continue with next step
-				processInstance = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.PROCESS_INSTANCE, processInstanceId);
-
-				// Update process parameter values
-				final NodeInterface nextState = processInstance
-						.getProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY));
-
-				final NodeInterface nextStep = nextState
-						.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.NEXT_STEP_PROPERTY));
-
-				final List<NodeInterface> parameterValues = new LinkedList<>();
-
-				final Iterable<NodeInterface> processParameters = nextStep.getProperty(Traits.of(StructrTraits.PROCESS_STEP).key(ProcessStepTraitDefinition.PARAMETERS_PROPERTY));
-				for (final NodeInterface parameter : processParameters) {
-
-					final NodeInterface newValue = StructrApp.getInstance().create(StructrTraits.PROCESS_PARAMETER_VALUE);
-					final String parameterName = parameter.getName();
-
-					newValue.setProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), parameterName);
-					newValue.setProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(ProcessParameterValueTraitDefinition.VALUE_PROPERTY), (String) parameters.get(parameter.getName()));
-
-					parameterValues.add(newValue);
-				}
-
-				processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY), parameterValues);
-
-				// Evaluate decision that belongs to the next step
-				final ProcessDecision decision = nextStep.getProperty(Traits.of(StructrTraits.PROCESS_STEP).key(ProcessStepTraitDefinition.DECISION_PROPERTY));
-				final String         condition = decision.getProperty(Traits.of(StructrTraits.PROCESS_DECISION).key(ProcessDecisionTraitDefinition.CONDITION_PROPERTY));
-
-				//final Iterable<ProcessParameterValue> parameterValues = processInstance.getProperty(ProcessInstance.parameterValues);
-				final Map<String, Object> data = new HashMap();
-
-				for (final NodeInterface parameterValue : parameterValues) {
-					data.put(parameterValue.getName(), parameterValue.getProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(ProcessParameterValueTraitDefinition.VALUE_PROPERTY)));
-				}
-
-				final boolean resultOfDecisionEvaluation = (boolean) Scripting.evaluate(renderContext,  GraphObjectMap.fromMap(data), "${if(" + condition.trim() + ", true, false)}", "evaluateDecision");
-
-				final Iterable<NodeInterface> possibleStates = decision.getProperty(Traits.of(StructrTraits.PROCESS_DECISION).key(ProcessDecisionTraitDefinition.POSSIBLE_STATES_PROPERTY));
-
-				final Iterable<NodeInterface> successStates = Iterables.filter(((NodeInterface value) -> ((Integer) value.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.STATUS_PROPERTY))) < 300), possibleStates);
-				final Iterable<NodeInterface> failureStates = Iterables.filter(((NodeInterface value) -> ((Integer) value.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.STATUS_PROPERTY))) >= 300), possibleStates);
-
-
-				if (resultOfDecisionEvaluation) {
-					processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY), Iterables.first(successStates));
-				} else {
-					processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY), Iterables.last(failureStates));
-				}
-			}
-
-
-		} else {
-			throw new FrameworkException(422, "Cannot start process because process object is null.");
-		}
-
-		return processInstance;
-
 	}
 
 	private Object handleAppendChildAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
@@ -1765,6 +1480,291 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			} else {
 
 				throw new FrameworkException(422, "Cannot execute replace-html action on " + target.getClass().getSimpleName() + " (must be a DOMElement).");
+			}
+		}
+
+		return null;
+	}
+
+//	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+//
+//		final SecurityContext securityContext = actionContext.getSecurityContext();
+//
+//		if (parameters.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET)) {
+//
+//			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET));
+//
+//			switch (action) {
+//
+//				case "open-tree-item":
+//					setSessionAttribute(securityContext, key, true);
+//					break;
+//
+//				case "close-tree-item":
+//					removeSessionAttribute(securityContext, key);
+//					break;
+//
+//				case "toggle-tree-item":
+//
+//					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
+//
+//						removeSessionAttribute(securityContext, key);
+//
+//					} else {
+//
+//						setSessionAttribute(securityContext, key, true);
+//					}
+//					break;
+//			}
+//
+//
+//		} else {
+//
+//			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
+//		}
+//	}
+
+
+	private Object handleSignInAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		removeInternalDataBindingKeys(parameters);
+
+		final Principal currentUser              = renderContext.getSecurityContext().getUser(false);
+		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+		final Map<String, Object> properties     = new LinkedHashMap<>();
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			properties.put(key, value);
+		}
+
+		return loginResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleSignOutAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		removeInternalDataBindingKeys(parameters);
+
+		final Principal currentUser                = renderContext.getSecurityContext().getUser(false);
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+		final Map<String, Object> properties       = new LinkedHashMap<>();
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			properties.put(key, value);
+		}
+
+		return logoutResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleSignUpAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final Principal currentUser          = renderContext.getSecurityContext().getUser(false);
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		removeInternalDataBindingKeys(parameters);
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			if (value != null) properties.put(key, value);
+		}
+
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+
+		return registrationResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleResetPasswordAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final Principal currentUser          = renderContext.getSecurityContext().getUser(false);
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		removeInternalDataBindingKeys(parameters);
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			if (value != null) properties.put(key, value);
+		}
+
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+
+		return resetPasswordResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleFlowAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String flowName) throws FrameworkException {
+
+		if (flowName != null) {
+
+			return Scripting.evaluate(renderContext,  entity, "${flow('" + flowName.trim() + "')}", "flow query");
+
+		} else {
+
+			throw new FrameworkException(422, "Cannot execute Flow because no or empty name was provided.");
+		}
+
+	}
+
+	private Object handleProcessAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final Process process) throws FrameworkException {
+
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+
+		final NodeInterface processInstance;
+
+		if (process != null) {
+
+			final String processInstanceId = (String) parameters.get("processInstance"); // renderContext.getRequestParameter("processInstance");
+
+			if (processInstanceId == null) {
+
+				// Start the process by creating a new ProcessInstance object
+				processInstance = process.getTraits().getMethod(CreateInstance.class).createInstance(entity, securityContext);
+
+			} else {
+
+				// Existing process instance => continue with next step
+				processInstance = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.PROCESS_INSTANCE, processInstanceId);
+
+				// Update process parameter values
+				final NodeInterface nextState = processInstance
+						.getProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY));
+
+				final NodeInterface nextStep = nextState
+						.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.NEXT_STEP_PROPERTY));
+
+				final List<NodeInterface> parameterValues = new LinkedList<>();
+
+				final Iterable<NodeInterface> processParameters = nextStep.getProperty(Traits.of(StructrTraits.PROCESS_STEP).key(ProcessStepTraitDefinition.PARAMETERS_PROPERTY));
+				for (final NodeInterface parameter : processParameters) {
+
+					final NodeInterface newValue = StructrApp.getInstance().create(StructrTraits.PROCESS_PARAMETER_VALUE);
+					final String parameterName = parameter.getName();
+
+					newValue.setProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), parameterName);
+					newValue.setProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(ProcessParameterValueTraitDefinition.VALUE_PROPERTY), (String) parameters.get(parameter.getName()));
+
+					parameterValues.add(newValue);
+				}
+
+				processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.PARAMETER_VALUES_PROPERTY), parameterValues);
+
+				// Evaluate decision that belongs to the next step
+				final ProcessDecision decision = nextStep.getProperty(Traits.of(StructrTraits.PROCESS_STEP).key(ProcessStepTraitDefinition.DECISION_PROPERTY));
+				final String         condition = decision.getProperty(Traits.of(StructrTraits.PROCESS_DECISION).key(ProcessDecisionTraitDefinition.CONDITION_PROPERTY));
+
+				//final Iterable<ProcessParameterValue> parameterValues = processInstance.getProperty(ProcessInstance.parameterValues);
+				final Map<String, Object> data = new HashMap();
+
+				for (final NodeInterface parameterValue : parameterValues) {
+					data.put(parameterValue.getName(), parameterValue.getProperty(Traits.of(StructrTraits.PROCESS_PARAMETER_VALUE).key(ProcessParameterValueTraitDefinition.VALUE_PROPERTY)));
+				}
+
+				final boolean resultOfDecisionEvaluation = (boolean) Scripting.evaluate(renderContext,  GraphObjectMap.fromMap(data), "${if(" + condition.trim() + ", true, false)}", "evaluateDecision");
+
+				final Iterable<NodeInterface> possibleStates = decision.getProperty(Traits.of(StructrTraits.PROCESS_DECISION).key(ProcessDecisionTraitDefinition.POSSIBLE_STATES_PROPERTY));
+
+				final Iterable<NodeInterface> successStates = Iterables.filter(((NodeInterface value) -> ((Integer) value.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.STATUS_PROPERTY))) < 300), possibleStates);
+				final Iterable<NodeInterface> failureStates = Iterables.filter(((NodeInterface value) -> ((Integer) value.getProperty(Traits.of(StructrTraits.PROCESS_STATE).key(ProcessStateTraitDefinition.STATUS_PROPERTY))) >= 300), possibleStates);
+
+
+				if (resultOfDecisionEvaluation) {
+					processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY), Iterables.first(successStates));
+				} else {
+					processInstance.setProperty(Traits.of(StructrTraits.PROCESS_INSTANCE).key(ProcessInstanceTraitDefinition.STATE_PROPERTY), Iterables.last(failureStates));
+				}
+			}
+
+
+		} else {
+			throw new FrameworkException(422, "Cannot start process because process object is null.");
+		}
+
+		return processInstance;
+
+	}
+
+	private Object handleCustomAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
+
+		final String dataTarget = getDataTargetFromParameters(parameters, "custom", false);
+
+		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
+		if (StringUtils.isNotBlank(methodName) && StringUtils.isBlank(dataTarget)) {
+
+			removeInternalDataBindingKeys(parameters);
+
+			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters);
+		}
+
+		if (Settings.isValidUuid(dataTarget)) {
+
+			final List<GraphObject> targets = resolveDataTargets(renderContext, entity, dataTarget);
+			final Logger logger             = LoggerFactory.getLogger(getClass());
+
+			if (targets.size() > 1) {
+				logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
+			}
+
+			removeInternalDataBindingKeys(parameters);
+
+			for (final GraphObject target : targets) {
+
+				final AbstractMethod method = Methods.resolveMethod(target.getTraits(), methodName);
+				if (method != null) {
+
+					if (method.shouldReturnRawResult()) {
+						renderContext.getSecurityContext().enableReturnRawResult();
+					}
+
+					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute method " + target.getClass().getSimpleName() + "." + methodName + ": method not found.");
+				}
+			}
+
+		} else {
+
+			if (dataTarget != null) {
+
+				// add support for static methods
+				if (Traits.exists(dataTarget)) {
+
+					final Traits traits         = Traits.of(dataTarget);
+					final AbstractMethod method = Methods.resolveMethod(traits, methodName);
+
+					if (method != null) {
+
+						if (method.shouldReturnRawResult()) {
+							renderContext.getSecurityContext().enableReturnRawResult();
+						}
+
+						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
+
+					} else {
+
+						throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
+					}
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Custom action has empty dataTarget.");
 			}
 		}
 
