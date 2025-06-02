@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,7 @@ public interface DOMElement extends DOMNode  {
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET = "structrTarget";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE = "structrDataType";
 	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD = "structrMethod";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFLOW = "structrFlow";
 	String EVENT_ACTION_MAPPING_PARAMETER_CHILDID = "childId";
 	String EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT = "sourceObject";
 	String EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY = "sourceProperty";

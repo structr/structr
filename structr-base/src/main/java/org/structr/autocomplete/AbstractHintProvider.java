@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -320,7 +320,7 @@ public abstract class AbstractHintProvider {
 
 				case "this":
 
-					if (currentNode.isNode()) {
+					if (currentNode != null && currentNode.isNode()) {
 
 						final NodeInterface node = (NodeInterface)currentNode;
 

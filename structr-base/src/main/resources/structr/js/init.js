@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1814,7 +1814,7 @@ let Structr = {
 			</div>
 		`;
 
-		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
+		_Dialogs.basic.append(reconnectDialog);
 	},
 	getReconnectDialogElement: () => {
 		return document.getElementById('reconnect-dialog');

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -76,6 +76,7 @@ let _Schema = {
 
 			_Schema.init(null,() => {
 				Structr.resize();
+				_Schema.initPanZoom();
 			});
 
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
@@ -225,6 +226,38 @@ let _Schema = {
 		});
 
 		Structr.adaptUiToAvailableFeatures();
+	},
+	initPanZoom: () => {
+		const schemaContainer = document.getElementById('schema-container');
+		const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
+
+		const panzoom = Panzoom(schemaContainer, { cursor: 'default', exclude: nodeElements, handleStartEvent: (event) => {
+			if (!event.shiftKey) {
+				panzoom.setOptions({ disablePan: true, cursor: 'default' });
+			} else {
+				panzoom.setOptions({ disablePan: false, cursor: 'move' });
+				event.preventDefault();
+				event.stopPropagation();
+			}
+		} });
+		document.addEventListener('keydown', (event) => {
+			if (event.shiftKey) {
+				schemaContainer.style.cursor = 'move';
+			}
+		});
+		document.addEventListener('keyup', (event) => {
+			if (!event.shiftKey) {
+				schemaContainer.style.cursor = 'default';
+			}
+		});
+		schemaContainer.addEventListener('panzoomstart', (event) => {
+			if (!event.shiftKey) {
+				e.preventDefault();
+			}
+		});
+		schemaContainer.addEventListener('wheel', (event) => {
+			panzoom.zoomWithWheel(event);
+		});
 	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');

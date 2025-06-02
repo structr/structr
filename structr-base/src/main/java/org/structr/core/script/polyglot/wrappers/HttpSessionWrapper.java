@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,6 +48,10 @@ public class HttpSessionWrapper implements ProxyObject  {
 
 	@Override
 	public Object getMember(String key) {
+
+		if (session == null) {
+			return null;
+		}
 
 		if (staticKeywords.containsKey(key)) {
 			return PolyglotWrapper.wrap(actionContext, staticKeywords.get(key).apply(session));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -3765,7 +3765,7 @@ let _Pages = {
 		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">
-				<div class="editor flex-grow"></div>
+				<div class="editor flex-grow overflow-hidden"></div>
 				<div class="editor-info-container"></div>
 				<div class="editor-button-container"></div>
 			</div>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -490,6 +490,7 @@ public abstract class PolyglotWrapper {
 						.toList();
 
 				Object result = func.execute(processedArgs.toArray());
+				hasRun = true;
 				lock.unlock();
 
 				final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));

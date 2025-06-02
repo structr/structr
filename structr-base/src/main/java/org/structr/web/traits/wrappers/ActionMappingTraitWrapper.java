@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -68,6 +68,11 @@ public class ActionMappingTraitWrapper extends AbstractNodeTraitWrapper implemen
 	@Override
 	public String getMethod() {
 		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.METHOD_PROPERTY));
+	}
+
+	@Override
+	public String getFlow() {
+		return wrappedObject.getProperty(traits.key(ActionMappingTraitDefinition.FLOW_PROPERTY));
 	}
 
 	@Override
