@@ -33,6 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -87,7 +88,7 @@ public class AutocompleteTest extends StructrUiTest {
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${contains(", ")", 0, 0));
 
 		// current is at least an AbstractNode
-		assertFirstResult("text", GraphObjectTraitDefinition.BASE_PROPERTY,       AbstractHintProvider.getHints(actionContext, false, null, "${current.", "", 0, 0));
+		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${current.", "", 0, 0));
 		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${current.c", "", 0, 0));
 
 		// patterns that should not produce any autocomplete results
@@ -116,7 +117,7 @@ public class AutocompleteTest extends StructrUiTest {
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.contains($.", ")", 0, 0));
 
 		// current is at least an AbstractNode
-		assertFirstResult("text", GraphObjectTraitDefinition.BASE_PROPERTY,       AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.current.", "", 0, 0));
+		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.current.", "", 0, 0));
 		assertFirstResult("text", GraphObjectTraitDefinition.CREATED_BY_PROPERTY, AbstractHintProvider.getHints(actionContext, false, null, "${{\n\tlet test = $.current.c", "", 0, 0));
 
 		// patterns that should not produce any autocomplete results
@@ -138,10 +139,10 @@ public class AutocompleteTest extends StructrUiTest {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 
-		assertFirstResult("text", "base",    AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.page.",  "", 0, 0));
-		assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.page.n", "", 0, 0));
+		assertFirstResult("text", "basicAuthRealm", AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.page.",  "", 0, 0));
+		assertFirstResult("text", "name",           AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.page.n", "", 0, 0));
 
-		assertFirstResult("text", "base",    AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.me.",   "", 0, 0));
+		assertFirstResult("text", "blocked", AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.me.",   "", 0, 0));
 		assertFirstResult("text", "isAdmin", AbstractHintProvider.getHints(actionContext, false, null, "${{\n\t$.me.isA", "", 0, 0));
 	}
 
@@ -150,10 +151,10 @@ public class AutocompleteTest extends StructrUiTest {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 
-		assertFirstResult("text", "base",    AbstractHintProvider.getHints(actionContext, false, null, "${page.",  "", 0, 0));
-		assertFirstResult("text", "name",    AbstractHintProvider.getHints(actionContext, false, null, "${page.n", "", 0, 0));
+		assertFirstResult("text", "basicAuthRealm", AbstractHintProvider.getHints(actionContext, false, null, "${page.",  "", 0, 0));
+		assertFirstResult("text", "name",           AbstractHintProvider.getHints(actionContext, false, null, "${page.n", "", 0, 0));
 
-		assertFirstResult("text", "base",    AbstractHintProvider.getHints(actionContext, false, null, "${me.",   "", 0, 0));
+		assertFirstResult("text", "blocked", AbstractHintProvider.getHints(actionContext, false, null, "${me.",   "", 0, 0));
 		assertFirstResult("text", "isAdmin", AbstractHintProvider.getHints(actionContext, false, null, "${me.isA", "", 0, 0));
 	}
 
@@ -220,17 +221,18 @@ public class AutocompleteTest extends StructrUiTest {
 			final NodeInterface method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMethod").getFirst();
 
 			// verify that the properties of the Test type are in the autocomplete result
-			final List<GraphObject> result1       = AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.", "", 0, 0);
-			final Map<String, Object> base        = ((GraphObjectMap)result1.get(0)).toMap();
-			final Map<String, Object> createdBy   = ((GraphObjectMap)result1.get(1)).toMap();
-			final Map<String, Object> createdDate = ((GraphObjectMap)result1.get(2)).toMap();
-			final Map<String, Object> description = ((GraphObjectMap)result1.get(3)).toMap();
-			final Map<String, Object> id          = ((GraphObjectMap)result1.get(4)).toMap();
-			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.BASE_PROPERTY,         base.get("text"));
-			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.CREATED_BY_PROPERTY,   createdBy.get("text"));
-			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, createdDate.get("text"));
-			assertEquals("Invalid autocomplete result", "description", description.get("text"));
-			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.ID_PROPERTY,          id.get("text"));
+			final List<GraphObject> result1          = AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.", "", 0, 0);
+			final Map<String, Object> createdBy      = ((GraphObjectMap)result1.get(0)).toMap();
+			final Map<String, Object> createdDate    = ((GraphObjectMap)result1.get(1)).toMap();
+			final Map<String, Object> description    = ((GraphObjectMap)result1.get(2)).toMap();
+			final Map<String, Object> id             = ((GraphObjectMap)result1.get(3)).toMap();
+			final Map<String, Object> lastModifiedBy = ((GraphObjectMap)result1.get(4)).toMap();
+
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.CREATED_BY_PROPERTY,       createdBy.get("text"));
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.CREATED_DATE_PROPERTY,     createdDate.get("text"));
+			assertEquals("Invalid autocomplete result", SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY,     description.get("text"));
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.ID_PROPERTY,               id.get("text"));
+			assertEquals("Invalid autocomplete result", GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, lastModifiedBy.get("text"));
 
 			// verify that the letter "d" is correctly expanded into "description"
 			assertFirstResult("text", "description", AbstractHintProvider.getHints(actionContext, false, method, "{\n\t$.this.d", "", 0, 0));
