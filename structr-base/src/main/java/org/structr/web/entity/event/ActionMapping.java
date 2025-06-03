@@ -30,6 +30,7 @@ public interface ActionMapping extends NodeInterface {
 	String getEvent();
 	String getAction();
 	String getMethod();
+	String getFlow();
 	String getDataType();
 	String getIdExpression();
 	String getOptions();

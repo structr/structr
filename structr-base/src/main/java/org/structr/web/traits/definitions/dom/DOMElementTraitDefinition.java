@@ -603,7 +603,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									}
 
 									// append all stored action mapping keys as data-structr-<key> attributes
-									for (final String key : Set.of(ActionMappingTraitDefinition.EVENT_PROPERTY, ActionMappingTraitDefinition.ACTION_PROPERTY, ActionMappingTraitDefinition.METHOD_PROPERTY, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY)) {
+									for (final String key : Set.of(ActionMappingTraitDefinition.EVENT_PROPERTY, ActionMappingTraitDefinition.ACTION_PROPERTY, ActionMappingTraitDefinition.METHOD_PROPERTY, ActionMappingTraitDefinition.FLOW_PROPERTY, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY)) {
 
 										final String value = actionNode.getPropertyWithVariableReplacement(renderContext, eamTraits.key(key));
 										if (StringUtils.isNotBlank(value)) {
@@ -869,32 +869,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
-					final ActionContext actionContext = new ActionContext(securityContext);
+					final RenderContext renderContext = new RenderContext(securityContext);
 					final EventContext  eventContext  = new EventContext();
-					final String        event         = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
 					final String        action;
 
-					if (event == null) {
-						throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
-					}
-
-					ActionMapping triggeredAction;
 					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
 					final DOMElement domElement                = domElementNode.as(DOMElement.class);
-					final List<ActionMapping> triggeredActions = Iterables.toList(domElement.getTriggeredActions());
 
-					if (triggeredActions != null && !triggeredActions.isEmpty()) {
-
-						triggeredAction = triggeredActions.get(0);
-						action          = triggeredAction.getAction();
-
-					} else {
-
-						throw new FrameworkException(422, "Cannot execute action without action defined on this DOMElement: " + this);
-					}
+					action = getActionMapping(entity.as(DOMElement.class)).getAction();
 
 					// store event context in object
-					actionContext.setConstant("eventContext", eventContext);
+					renderContext.setConstant("eventContext", eventContext);
 
 					switch (action) {
 
@@ -902,29 +887,29 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						// they are not migrated accidentially..
 
 						case "create":
-							return handleCreateAction(actionContext, domElementNode, parameters, eventContext);
+							return handleCreateAction(renderContext, domElementNode, parameters, eventContext);
 
 						case "update":
-							handleUpdateAction(actionContext, domElementNode, parameters, eventContext);
+							handleUpdateAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
 						case "delete":
-							handleDeleteAction(actionContext, domElementNode, parameters, eventContext);
+							handleDeleteAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
 						case "append-child":
-							handleAppendChildAction(actionContext, domElementNode, parameters, eventContext);
+							handleAppendChildAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
 						case "remove-child":
-							handleRemoveChildAction(actionContext, domElementNode, parameters, eventContext);
+							handleRemoveChildAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
 						case "insert-html":
-							return handleInsertHtmlAction(actionContext, domElementNode, parameters, eventContext);
+							return handleInsertHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
 						case "replace-html":
-							return handleReplaceHtmlAction(actionContext, domElementNode, parameters, eventContext);
+							return handleReplaceHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
 						/*
 						case "open-tree-item":
@@ -935,28 +920,56 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						*/
 
 						case "sign-in":
-							return handleSignInAction(actionContext, domElementNode, parameters, eventContext);
+							return handleSignInAction(renderContext, domElementNode, parameters, eventContext);
 
 						case "sign-out":
-							return handleSignOutAction(actionContext, domElementNode, parameters, eventContext);
+							return handleSignOutAction(renderContext, domElementNode, parameters, eventContext);
 
 						case "sign-up":
-							return handleSignUpAction(actionContext, domElementNode, parameters, eventContext);
+							return handleSignUpAction(renderContext, domElementNode, parameters, eventContext);
 
 						case "reset-password":
-							return handleResetPasswordAction(actionContext, domElementNode, parameters, eventContext);
+							return handleResetPasswordAction(renderContext, domElementNode, parameters, eventContext);
+
+						case "flow":
+							//final String flow = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFLOW);
+							final String flow = getActionMapping(entity.as(DOMElement.class)).getFlow();
+							return handleFlowAction(renderContext, domElementNode, parameters, eventContext, flow);
 
 						case "method":
 						default:
 							// execute custom method (and return the result directly)
 							final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
-							return handleCustomAction(actionContext, domElementNode, parameters, eventContext, method);
+							return handleCustomAction(renderContext, domElementNode, parameters, eventContext, method);
 					}
 
 					return eventContext;
 				}
 			}
 		);
+	}
+
+	/**
+	 * Get the action mapping object connected to this element.
+	 *
+	 * @return The action mapping object
+	 * @throws FrameworkException
+	 */
+	private ActionMapping getActionMapping(final DOMElement domElementNode) throws FrameworkException {
+
+		ActionMapping triggeredAction;
+		final List<ActionMapping> triggeredActions = Iterables.toList(domElementNode.getTriggeredActions());
+
+		if (triggeredActions != null && !triggeredActions.isEmpty()) {
+
+			triggeredAction = triggeredActions.get(0);
+
+			return triggeredAction;
+
+		} else {
+
+			throw new FrameworkException(422, "Cannot execute action without action defined on this DOMElement: " + this);
+		}
 	}
 
 	@Override
@@ -1207,125 +1220,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	private Object handleSignInAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private GraphObject handleCreateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		removeInternalDataBindingKeys(parameters);
-
-		final Principal currentUser              = actionContext.getSecurityContext().getUser(false);
-		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-		final Map<String, Object> properties     = new LinkedHashMap<>();
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			properties.put(key, value);
-		}
-
-		return loginResource.doPost(actionContext.getSecurityContext(), properties);
-	}
-
-	private Object handleSignOutAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		removeInternalDataBindingKeys(parameters);
-
-		final Principal currentUser                = actionContext.getSecurityContext().getUser(false);
-		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-		final Map<String, Object> properties       = new LinkedHashMap<>();
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			properties.put(key, value);
-		}
-
-		return logoutResource.doPost(actionContext.getSecurityContext(), properties);
-	}
-
-	private Object handleSignUpAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
-		final Map<String, Object> properties = new LinkedHashMap<>();
-
-		removeInternalDataBindingKeys(parameters);
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			if (value != null) properties.put(key, value);
-		}
-
-		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-
-		return registrationResource.doPost(actionContext.getSecurityContext(), properties);
-	}
-
-	private Object handleResetPasswordAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
-		final Map<String, Object> properties = new LinkedHashMap<>();
-
-		removeInternalDataBindingKeys(parameters);
-
-		for (final Entry<String, Object> entry : parameters.entrySet()) {
-
-			final String key   = entry.getKey();
-			final String value = (String) entry.getValue();
-
-			if (value != null) properties.put(key, value);
-		}
-
-		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
-
-		return resetPasswordResource.doPost(actionContext.getSecurityContext(), properties);
-	}
-
-//	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
-//
-//		final SecurityContext securityContext = actionContext.getSecurityContext();
-//
-//		if (parameters.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET)) {
-//
-//			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET));
-//
-//			switch (action) {
-//
-//				case "open-tree-item":
-//					setSessionAttribute(securityContext, key, true);
-//					break;
-//
-//				case "close-tree-item":
-//					removeSessionAttribute(securityContext, key);
-//					break;
-//
-//				case "toggle-tree-item":
-//
-//					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
-//
-//						removeSessionAttribute(securityContext, key);
-//
-//					} else {
-//
-//						setSessionAttribute(securityContext, key, true);
-//					}
-//					break;
-//			}
-//
-//
-//		} else {
-//
-//			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
-//		}
-//	}
-
-	private GraphObject handleCreateAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
-
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final String dataTarget               = getDataTargetFromParameters(parameters, "create", true);
 
 		// resolve target type
@@ -1344,14 +1241,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return StructrApp.getInstance(securityContext).create(dataTarget, properties);
 	}
 
-	private void handleUpdateAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleUpdateAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final String dataTarget               = getDataTargetFromParameters(parameters, "update", true);
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
 			// convert input
 			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, target.getType(), parameters);
@@ -1362,13 +1259,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	private void handleDeleteAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private void handleDeleteAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
 		final String dataTarget               = getDataTargetFromParameters(parameters, "delete", true);
 
-		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
 			if (target.isNode()) {
 
@@ -1381,90 +1278,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		}
 	}
 
-	private Object handleCustomAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
-
-		final String dataTarget = getDataTargetFromParameters(parameters, "custom", false);
-
-		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
-		if (StringUtils.isNotBlank(methodName) && StringUtils.isBlank(dataTarget)) {
-
-			removeInternalDataBindingKeys(parameters);
-
-			return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
-		}
-
-		if (Settings.isValidUuid(dataTarget)) {
-
-			final List<GraphObject> targets = resolveDataTargets(actionContext, entity, dataTarget);
-			final Logger logger             = LoggerFactory.getLogger(getClass());
-
-			if (targets.size() > 1) {
-				logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
-			}
-
-			removeInternalDataBindingKeys(parameters);
-
-			for (final GraphObject target : targets) {
-
-				final AbstractMethod method = Methods.resolveMethod(target.getTraits(), methodName);
-				if (method != null) {
-
-					if (method.shouldReturnRawResult()) {
-						actionContext.getSecurityContext().enableReturnRawResult();
-					}
-
-					return method.execute(actionContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
-
-				} else {
-
-					throw new FrameworkException(422, "Cannot execute method " + target.getType() + "." + methodName + ": method not found.");
-				}
-			}
-
-		} else {
-
-			if (dataTarget != null) {
-
-				// add support for static methods
-				if (Traits.exists(dataTarget)) {
-
-					final Traits traits         = Traits.of(dataTarget);
-					final AbstractMethod method = Methods.resolveMethod(traits, methodName);
-
-					if (method != null) {
-
-						if (method.shouldReturnRawResult()) {
-							actionContext.getSecurityContext().enableReturnRawResult();
-						}
-
-						return method.execute(actionContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
-
-					} else {
-
-						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
-					}
-
-				} else {
-
-					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
-				}
-
-			} else {
-
-				throw new FrameworkException(422, "Custom action has empty dataTarget.");
-			}
-		}
-
-		return null;
-	}
-
 	private Object handleAppendChildAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = getDataTargetFromParameters(parameters, "append-child", true);
+		final String dataTarget = getDataTargetFromParameters(parameters, "append-child", true);
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
+		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child UUID (data-child-id attribute).");
@@ -1496,13 +1316,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	private Object handleRemoveChildAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private Object handleRemoveChildAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final String dataTarget               = getDataTargetFromParameters(parameters, "remove-child", true);
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
+		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child UUID (data-child-id attribute).");
@@ -1517,13 +1337,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
 			if (target.is(StructrTraits.DOM_ELEMENT)) {
 
 				final DOMElement parent = target.as(DOMElement.class);
 
-				RemoveDOMChildFunction.apply(actionContext.getSecurityContext(), parent, child.as(DOMNode.class));
+				RemoveDOMChildFunction.apply(renderContext.getSecurityContext(), parent, child.as(DOMNode.class));
 
 			} else {
 
@@ -1534,9 +1354,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	private Object handleInsertHtmlAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private Object handleInsertHtmlAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final String dataTarget               = getDataTargetFromParameters(parameters, "insert-html", true);
 
 		final String sourceObjectId = (String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
@@ -1571,7 +1391,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
 			if (target instanceof NodeInterface node && node.is(StructrTraits.DOM_ELEMENT)) {
 
@@ -1586,9 +1406,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	private Object handleReplaceHtmlAction(final ActionContext actionContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+	private Object handleReplaceHtmlAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
-		final SecurityContext securityContext = actionContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final String dataTarget               = getDataTargetFromParameters(parameters, "replace-html", true);
 
 		// fetch child ID
@@ -1637,7 +1457,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		removeInternalDataBindingKeys(parameters);
 
-		for (final GraphObject target : resolveDataTargets(actionContext, entity, dataTarget)) {
+		for (final GraphObject target : resolveDataTargets(renderContext, entity, dataTarget)) {
 
 			if (target instanceof NodeInterface n && n.is(StructrTraits.DOM_ELEMENT)) {
 
@@ -1654,12 +1474,219 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
+//	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+//
+//		final SecurityContext securityContext = actionContext.getSecurityContext();
+//
+//		if (parameters.containsKey(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET)) {
+//
+//			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET));
+//
+//			switch (action) {
+//
+//				case "open-tree-item":
+//					setSessionAttribute(securityContext, key, true);
+//					break;
+//
+//				case "close-tree-item":
+//					removeSessionAttribute(securityContext, key);
+//					break;
+//
+//				case "toggle-tree-item":
+//
+//					if (Boolean.TRUE.equals(getSessionAttribute(securityContext, key))) {
+//
+//						removeSessionAttribute(securityContext, key);
+//
+//					} else {
+//
+//						setSessionAttribute(securityContext, key, true);
+//					}
+//					break;
+//			}
+//
+//
+//		} else {
+//
+//			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
+//		}
+//	}
+
+	private Object handleSignInAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		removeInternalDataBindingKeys(parameters);
+
+		final Principal currentUser              = renderContext.getSecurityContext().getUser(false);
+		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+		final Map<String, Object> properties     = new LinkedHashMap<>();
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			properties.put(key, value);
+		}
+
+		return loginResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleSignOutAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		removeInternalDataBindingKeys(parameters);
+
+		final Principal currentUser                = renderContext.getSecurityContext().getUser(false);
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+		final Map<String, Object> properties       = new LinkedHashMap<>();
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			properties.put(key, value);
+		}
+
+		return logoutResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleSignUpAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final Principal currentUser          = renderContext.getSecurityContext().getUser(false);
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		removeInternalDataBindingKeys(parameters);
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			if (value != null) properties.put(key, value);
+		}
+
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+
+		return registrationResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleResetPasswordAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final Principal currentUser          = renderContext.getSecurityContext().getUser(false);
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		removeInternalDataBindingKeys(parameters);
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			if (value != null) properties.put(key, value);
+		}
+
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, StructrTraits.USER)));
+
+		return resetPasswordResource.doPost(renderContext.getSecurityContext(), properties);
+	}
+
+	private Object handleFlowAction(final RenderContext renderContext, final NodeInterface entity, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String flowName) throws FrameworkException {
+
+		if (flowName != null) {
+
+			return Scripting.evaluate(renderContext,  entity, "${flow('" + flowName.trim() + "')}", "flow query");
+
+		} else {
+
+			throw new FrameworkException(422, "Cannot execute Flow because no or empty name was provided.");
+		}
+
+	}
+
+	private Object handleCustomAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
+
+		final String dataTarget = getDataTargetFromParameters(parameters, "custom", false);
+
+		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
+		if (StringUtils.isNotBlank(methodName) && StringUtils.isBlank(dataTarget)) {
+
+			removeInternalDataBindingKeys(parameters);
+
+			return Actions.callWithSecurityContext(methodName, renderContext.getSecurityContext(), parameters);
+		}
+
+		if (Settings.isValidUuid(dataTarget)) {
+
+			final List<GraphObject> targets = resolveDataTargets(renderContext, entity, dataTarget);
+			final Logger logger             = LoggerFactory.getLogger(getClass());
+
+			if (targets.size() > 1) {
+				logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
+			}
+
+			removeInternalDataBindingKeys(parameters);
+
+			for (final GraphObject target : targets) {
+
+				final AbstractMethod method = Methods.resolveMethod(target.getTraits(), methodName);
+				if (method != null) {
+
+					if (method.shouldReturnRawResult()) {
+						renderContext.getSecurityContext().enableReturnRawResult();
+					}
+
+					return method.execute(renderContext.getSecurityContext(), target, NamedArguments.fromMap(parameters), new EvaluationHints());
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute method " + target.getClass().getSimpleName() + "." + methodName + ": method not found.");
+				}
+			}
+
+		} else {
+
+			if (dataTarget != null) {
+
+				// add support for static methods
+				if (Traits.exists(dataTarget)) {
+
+					final Traits traits         = Traits.of(dataTarget);
+					final AbstractMethod method = Methods.resolveMethod(traits, methodName);
+
+					if (method != null) {
+
+						if (method.shouldReturnRawResult()) {
+							renderContext.getSecurityContext().enableReturnRawResult();
+						}
+
+						return method.execute(renderContext.getSecurityContext(), null, NamedArguments.fromMap(parameters), new EvaluationHints());
+
+					} else {
+
+						throw new FrameworkException(422, "Cannot execute static  method " + methodName + ": method not found.");
+					}
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Custom action has empty dataTarget.");
+			}
+		}
+
+		return null;
+	}
+
 	private void removeInternalDataBindingKeys(final Map<String, Object> parameters) {
 
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFLOW);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
@@ -2055,7 +2082,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			String selector = "[data-structr-id='" + node.getUuid() + "']";
 
 			final String dataKey = node.as(DOMNode.class).getDataKey();
-			if (dataKey != null) {
+			if (dataKey != null && renderContext.getDataNode(dataKey) != null) {
 
 				selector += "[data-repeater-data-object-id='" + renderContext.getDataNode(dataKey).getUuid() + "']";
 			}

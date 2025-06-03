@@ -62,7 +62,7 @@ export class Frontend {
 				continue;
 			}
 
-            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
+            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
 				continue;
             }
 
@@ -795,7 +795,7 @@ export class Frontend {
 
 
 			// Dialog
-			if(data.structrDialogType === 'okcancel') {
+			if (data.structrDialogType === 'okcancel') {
 
 				let dialogMessage = data.structrDialogTitle + '\n\n' + data.structrDialogText;
 				if(!window.confirm(dialogMessage)) {
@@ -805,10 +805,6 @@ export class Frontend {
 			}
 
 			this.fireEvent('start', { target: target, data: data, event: event });
-
-			// server-side
-			// store event type in htmlEvent property
-			data.htmlEvent = event.type;
 
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
 				body: JSON.stringify(this.resolveData(event, target)),
