@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -110,7 +110,6 @@ let _Apps = {
 			.title(`Unable to install "${app.name}"`)
 			.text('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.')
 			.requiresConfirmation()
-			.allowConfirmAll()
 			.show();
 	},
 

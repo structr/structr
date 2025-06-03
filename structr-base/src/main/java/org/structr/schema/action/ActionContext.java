@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,6 +42,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
 
@@ -56,7 +57,6 @@ import java.util.*;
 public class ActionContext {
 
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
-	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	// Regular members
 	private Map<String, Context> scriptingContexts       = new HashMap<>();
@@ -281,14 +281,14 @@ public class ActionContext {
 				}
 
 				// HttpSession
-				if (data instanceof HttpSession) {
+				if (data instanceof HttpSessionWrapper sessionWrapper) {
 
 					if (StringUtils.isNotBlank(key)) {
 
 						hints.reportExistingKey(key);
 
 						// use "user." prefix to separate user and system data
-						value = ((HttpSession) data).getAttribute(SESSION_ATTRIBUTE_PREFIX + key);
+						value = sessionWrapper.getMember(key);
 					}
 				}
 
@@ -358,7 +358,7 @@ public class ActionContext {
 							case "session":
 								if (securityContext.getRequest() != null) {
 									hints.reportExistingKey(key);
-									return securityContext.getRequest().getSession(false);
+									return new HttpSessionWrapper(new ActionContext(securityContext), securityContext.getRequest().getSession(false));
 								}
 								break;
 

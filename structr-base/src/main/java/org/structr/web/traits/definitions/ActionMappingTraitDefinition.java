@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -46,6 +46,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EVENT_PROPERTY                         = "event";
 	public static final String ACTION_PROPERTY                        = "action";
 	public static final String METHOD_PROPERTY                        = "method";
+	public static final String FLOW_PROPERTY                          = "flow";
 	public static final String DATA_TYPE_PROPERTY                     = "dataType";
 	public static final String ID_EXPRESSION_PROPERTY                 = "idExpression";
 	public static final String OPTIONS_PROPERTY                       = "options";
@@ -114,6 +115,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> eventProperty                                 = new StringProperty(EVENT_PROPERTY).hint("DOM event which triggers the action");
 		final Property<String> actionProperty                                = new StringProperty(ACTION_PROPERTY).hint("Action which will be triggered");
 		final Property<String> methodProperty                                = new StringProperty(METHOD_PROPERTY).hint("Name of method to execute when triggered action is 'method'");
+		final Property<String> flowProperty                                  = new StringProperty(FLOW_PROPERTY).hint("Name of flow to execute when triggered action is 'flow'");
 		final Property<String> dataTypeProperty                              = new StringProperty(DATA_TYPE_PROPERTY).hint("Data type for create action");
 		final Property<String> idExpressionProperty                          = new StringProperty(ID_EXPRESSION_PROPERTY).hint("Script expression that evaluates to the id of the object the method should be executed on");
 		final Property<String> optionsProperty                               = new StringProperty(OPTIONS_PROPERTY).hint("JSON string with that contains configuration options for this action mapping");
@@ -153,6 +155,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 			eventProperty,
 			actionProperty,
 			methodProperty,
+			flowProperty,
 			dataTypeProperty,
 			idExpressionProperty,
 			optionsProperty,
@@ -194,7 +197,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-					EVENT_PROPERTY, ACTION_PROPERTY, METHOD_PROPERTY, DATA_TYPE_PROPERTY, ID_EXPRESSION_PROPERTY, OPTIONS_PROPERTY,
+					EVENT_PROPERTY, ACTION_PROPERTY, METHOD_PROPERTY, FLOW_PROPERTY, ID_EXPRESSION_PROPERTY, OPTIONS_PROPERTY,
 					DIALOG_TYPE_PROPERTY, DIALOG_TITLE_PROPERTY, DIALOG_TEXT_PROPERTY, SUCCESS_NOTIFICATIONS_PROPERTY, SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY,
 					SUCCESS_NOTIFICATIONS_EVENT_PROPERTY, FAILURE_NOTIFICATIONS_PROPERTY, FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY,
 					FAILURE_NOTIFICATIONS_EVENT_PROPERTY, SUCCESS_BEHAVIOUR_PROPERTY, SUCCESS_PARTIAL_PROPERTY, SUCCESS_URL_PROPERTY,

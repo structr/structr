@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,6 @@
 package org.structr.schema;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.service.ServiceResult;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -37,9 +35,6 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Trait;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.schema.parser.*;
 
@@ -49,28 +44,11 @@ import java.util.*;
  */
 public class SchemaHelper {
 
-	private static final Logger logger                                 = LoggerFactory.getLogger(SchemaHelper.class.getName());
 	private static final Map<String, String> normalizedEntityNameCache = new HashMap<>();
 	private static final String WORD_SEPARATOR                         = "_";
 
 	public static final Map<Type, PropertyGeneratorFactory> generatorMap = new TreeMap<>(new ReverseTypeComparator());
-	public static final Map<Type, Integer> sortIndexMap                        = new LinkedHashMap<>();
-
-	private static final Set<String> basePropertyNames = new LinkedHashSet<>(Arrays.asList(
-			// from GraphObject
-			GraphObjectTraitDefinition.BASE_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.ID_PROPERTY,
-			GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
-			GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
-
-			// from AbstractRelationship
-			RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY,
-			RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY,
-			RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
-
-			// from NodeInterface
-			NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY,
-			NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY, NodeInterfaceTraitDefinition.GRANTEES_PROPERTY
-	));
+	public static final Map<Type, Integer> sortIndexMap                  = new LinkedHashMap<>();
 
 	static {
 

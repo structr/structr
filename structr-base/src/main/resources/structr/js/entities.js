@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -74,7 +74,7 @@ let _Entities = {
 	},
 	deleteNode: (entity, recursive, callback) => {
 
-		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${_Helpers.escapeTags(entity?.name ?? '')}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`Delete ${entity.type} <strong>${_Helpers.escapeTags(entity?.name ?? '')}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?`).then(confirm => {
 
 			if (confirm === true) {
 
@@ -87,7 +87,7 @@ let _Entities = {
 	},
 	deleteEdge: (entity, recursive, callback) => {
 
-		_Dialogs.confirmation.showPromise(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`Delete Relationship (${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?`).then(confirm => {
 
 			if (confirm === true) {
 

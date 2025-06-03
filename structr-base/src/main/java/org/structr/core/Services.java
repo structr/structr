@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,6 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
+import org.structr.core.function.SetLogLevelFunction;
 import org.structr.core.graph.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
@@ -215,6 +216,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 			logger.info("Reading {}..", Settings.ConfigFileName);
 			Settings.loadConfiguration(Settings.ConfigFileName);
 
+			SetLogLevelFunction.setLogLevel(Settings.LogLevel.getValue());
+
 			// this might be the first start with a new / upgraded version
 			// check if we need to do some migration maybe?
 
@@ -357,6 +360,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				RestartRequiredChangeHandler.logRestartRequiredMessage(setting);
 			}
+		});
+
+		Settings.LogLevel.setChangeHandler((setting, oldValue, newValue) -> {
+			SetLogLevelFunction.setLogLevel(newValue.toString());
 		});
 	}
 
@@ -768,16 +775,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 			logger.info("Creating {}..", serviceClass.getSimpleName());
 
 			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
-
-			if (licenseManager != null && !licenseManager.isValid(service)) {
-
-				logger.error("Configured service {} is not part of the currently licensed Structr Edition.", serviceClass.getSimpleName());
-				return new ServiceResult("Service is not part of the currently licensed Structr Edition", false);
-			}
-
-			final int retryDelay     = service.getRetryDelay();
-			int retryCount           = service.getRetryCount();
-			isVital                  = service.isVital();
+			final int retryDelay  = service.getRetryDelay();
+			int retryCount        = service.getRetryCount();
+			isVital               = service.isVital();
 
 			while (waitAndRetry && retryCount-- > 0) {
 

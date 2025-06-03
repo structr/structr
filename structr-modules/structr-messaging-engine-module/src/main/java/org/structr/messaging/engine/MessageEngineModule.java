@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -61,7 +61,7 @@ public class MessageEngineModule implements StructrModule {
 	private static final Logger logger = LoggerFactory.getLogger(MessageEngineModule.class.getName());
 
 	@Override
-	public void onLoad(LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, new MessageClientHASMessageSubscriber());
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.File;
@@ -532,10 +533,17 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			if (value instanceof Map) {
 
-				final Map<String, Object> map = (Map<String, Object>)value;
-				final GraphObjectMap obj = new GraphObjectMap();
+				final Map<String, Object> map = (Map<String, Object>) value;
+				final GraphObjectMap obj = GraphObjectMap.fromMap(source);
 
-				destination.put(obj.getTraits().key(key), obj);
+				final Traits traits           = obj.getTraits();
+				final PropertyKey propertyKey = traits.key(key);
+
+				if (propertyKey != null) {
+					destination.put(propertyKey, obj);
+				} else {
+					logger.warn("PropertyKey is null for key '{}' in map {}", key, map);
+				}
 
 				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 

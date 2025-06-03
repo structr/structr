@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -158,7 +158,7 @@ let _Localization = {
 			name: 'Delete Localization',
 			clickHandler: async () => {
 
-				let confirm = await _Dialogs.confirmation.showPromise(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`);
+				let confirm = await _Dialogs.confirmation.showPromise(`Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?`);
 				if (confirm === true) {
 					await _Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
 
@@ -486,7 +486,7 @@ let _Localization = {
 
 			let key     = _Localization.uiElements.getLocalizationDetailKey().value;
 			let domain  = _Localization.uiElements.getLocalizationDetailDomain().value;
-			let confirm = await _Dialogs.confirmation.showPromise(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`);
+			let confirm = await _Dialogs.confirmation.showPromise(`Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?`);
 
 			if (confirm === true) {
 

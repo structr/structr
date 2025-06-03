@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,7 +37,7 @@ import java.util.Set;
 public class RestModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.OBJECT_EVENT_RELATIONSHIP,  new ObjectEventRelationship());
 		StructrTraits.registerRelationshipType(StructrTraits.SUBJECT_EVENT_RELATIONSHIP, new SubjectEventRelationship());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -115,7 +115,13 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return new GrantFunction(actionContext, node);
 			}
 
-			final PropertyKey propKey = node.getTraits().key(key);
+			final Traits traits = node.getTraits();
+
+			if (traits == null) {
+				return null;
+			}
+
+			final PropertyKey propKey = traits.key(key);
 			if (propKey != null) {
 
 				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.isArray())) {
@@ -203,7 +209,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				}
 
 				final Traits traits       = node.getTraits();
-				final boolean hasProperty = traits.hasKey(key);
+				final boolean hasProperty = traits != null && traits.hasKey(key);
 
 				return hasProperty || Methods.resolveMethod(traits, key) != null;
 

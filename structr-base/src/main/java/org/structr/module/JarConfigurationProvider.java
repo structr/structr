@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -220,13 +220,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				structrModule.registerModuleFunctions(licenseManager);
 			} catch (Throwable t) {}
 
-			if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
+			modules.put(moduleName, structrModule);
+			logger.info("Activating module {}", moduleName);
 
-				modules.put(moduleName, structrModule);
-				logger.info("Activating module {}", moduleName);
-
-				structrModule.onLoad(licenseManager);
-			}
+			structrModule.onLoad();
 		}
 	}
 
@@ -314,76 +311,21 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 						// only scan and load modules that are licensed
 						if (name != null) {
 
-							if (licenseManager == null || licenseManager.isModuleLicensed(name)) {
+							for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
 
-								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+								final JarEntry entry = entries.nextElement();
+								final String entryName = entry.getName();
 
-									final JarEntry entry = entries.nextElement();
-									final String entryName = entry.getName();
+								if (entryName.endsWith(".class")) {
 
-									if (entryName.endsWith(".class")) {
+									// cat entry > /dev/null (necessary to get signers below)
+									IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
 
-										// cat entry > /dev/null (necessary to get signers below)
-										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
+									final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+									final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
 
-										// verify module
-										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
-
-											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
-
-											// add class entry to Module
-											classes.add(fqcn);
-
-											if (licenseManager != null) {
-												// store licensing information
-												licenseManager.addLicensedClass(fqcn);
-											}
-										}
-									}
-								}
-
-							} else {
-
-								// module is not licensed, only load functions as unlicensed
-
-								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
-
-									final JarEntry entry = entries.nextElement();
-									final String entryName = entry.getName();
-
-									if (entryName.endsWith(".class")) {
-
-										// cat entry > /dev/null (necessary to get signers below)
-										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
-
-										// verify module
-										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
-
-											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
-
-											try {
-
-												final Class clazz   = Class.forName(fqcn);
-												final int modifiers = clazz.getModifiers();
-
-												// register entity classes
-												if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
-
-													// we need to make sure that a module is initialized exactly once
-													final StructrModule structrModule = (StructrModule) clazz.getDeclaredConstructor().newInstance();
-
-													structrModule.registerModuleFunctions(licenseManager);
-
-												}
-
-											} catch (Throwable t) {
-												//t.printStackTrace();
-												//logger.warn("Error trying to load class {}: {}",  fqcn, t.getMessage());
-											}
-										}
-									}
+									// add class entry to Module
+									classes.add(fqcn);
 								}
 							}
 						}

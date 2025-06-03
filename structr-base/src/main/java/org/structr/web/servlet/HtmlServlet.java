@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -81,7 +81,6 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
@@ -283,9 +282,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
 
 							final NodeInterface node = findNodeByUuid(securityContext, uriParts[0]);
-							if (node != null && node.is(StructrTraits.DOM_ELEMENT)) {
+							if (node != null && node.is(StructrTraits.DOM_NODE)) {
 
-								rootElement = node.as(DOMElement.class);
+								rootElement = node.as(DOMNode.class);
 
 								renderContext.setIsPartialRendering(true);
 							}
@@ -363,7 +362,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
-								if (possibleRootNode.is(StructrTraits.DOM_NODE)) {
+								if (possibleRootNode != null && possibleRootNode.is(StructrTraits.DOM_NODE)) {
 									rootElement = possibleRootNode.as(DOMNode.class);
 								}
 							}

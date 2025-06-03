@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -2635,7 +2635,7 @@ let _Pages = {
 
 								//console.log(e.clientX, e.clientY, el[0].getBoundingClientRect());
 
-								Command.get(structrId, null, (data) => { console.log('#', data);
+								Command.get(structrId, null, (data) => {
 									const entity = StructrModel.createFromData(data);
 									_Elements.contextMenu.activateContextMenu(e, el[0],
 										{
@@ -2852,6 +2852,8 @@ let _Pages = {
 					}
 
 					Command.get(pageId, 'id,name,path,site', (pageObj) => {
+
+						_Helpers.fastRemoveAllChildren(parentElement);
 
 						parentElement.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
 
@@ -3127,7 +3129,7 @@ let _Pages = {
 
 				deleteUnattachedNodesButton.addEventListener('click', async () => {
 
-					let confirm = await _Dialogs.confirmation.showPromise('<p>Delete all DOM elements without parent?</p>');
+					let confirm = await _Dialogs.confirmation.showPromise('Delete all DOM elements without parent?');
 					if (confirm === true) {
 
 						Command.deleteUnattachedNodes();
@@ -3989,7 +3991,7 @@ let _Pages = {
 		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">
-				<div class="editor flex-grow"></div>
+				<div class="editor flex-grow overflow-hidden"></div>
 				<div class="editor-info-container"></div>
 				<div class="editor-button-container"></div>
 			</div>

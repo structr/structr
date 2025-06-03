@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,12 +50,9 @@ let _Dashboard = {
 				dashboardUiConfig.envInfo = dashboardUiConfig.envInfo[0];
 			}
 
-			dashboardUiConfig.envInfo.version = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).version || '';
-			dashboardUiConfig.envInfo.build   = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).build   || '';
-			dashboardUiConfig.envInfo.date    = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).date    || '';
-
-			dashboardUiConfig.releasesIndexUrl  = dashboardUiConfig.envInfo.availableReleasesUrl;
-			dashboardUiConfig.snapshotsIndexUrl = dashboardUiConfig.envInfo.availableSnapshotsUrl;
+			dashboardUiConfig.envInfo.version = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).version || '';
+			dashboardUiConfig.envInfo.build   = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).build   || '';
+			dashboardUiConfig.envInfo.date    = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).date    || '';
 
 			if (dashboardUiConfig.envInfo.startDate) {
 				dashboardUiConfig.envInfo.startDate = dashboardUiConfig.envInfo.startDate.slice(0, 10);
@@ -121,14 +118,14 @@ let _Dashboard = {
 
 				let drawStatistics = (interval) => {
 
-					fetch(`${Structr.rootUrl}stats?interval=${interval}&max=3600`).then(response => response.json()).then(json => {
+					fetch(`${Structr.rootUrl}stats?interval=${interval}`).then(response => response.json()).then(json => {
 
 						httpStatisticsCell.innerHTML = `
 							<label>Resolution: </label>
 							<select id="statistics-resolution-selector">
-								<option value="1000">Seconds</option>
 								<option value="60000">Minutes</option>
 								<option value="3600000">Hours</option>
+								<option value="86400000">Days</option>
 								</option>
 							</select>
 							<button id="statistics-refresh-button">Refresh</button>
@@ -359,17 +356,23 @@ let _Dashboard = {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: (dashboardUiConfig) => {
-				_Dashboard.tabs['about-structr'].gatherVersionUpdateInfo(dashboardUiConfig.envInfo.version, dashboardUiConfig.releasesIndexUrl, dashboardUiConfig.snapshotsIndexUrl);
+				_Dashboard.tabs['about-structr'].gatherVersionUpdateInfo(dashboardUiConfig.envInfo);
 				_Dashboard.tabs['about-structr'].checkLicenseEnd(dashboardUiConfig.envInfo, $('#dashboard-about-structr .end-date'), { noSpan: true });
 			},
-			gatherVersionUpdateInfo: async (currentVersion, releasesIndexUrl, snapshotsIndexUrl) => {
+			gatherVersionUpdateInfo: async (envInfo) => {
+
+				let currentVersion = envInfo.version;
+				// let currentBuild = envInfo.build;
+				// let currentDate = envInfo.date;
+
+				let releasesIndexUrl  = 'https://download.structr.com/repositories/releases/org/structr/structr/index';
+				let snapshotsIndexUrl = 'https://download.structr.com/repositories/snapshots/org/structr/structr/index';
 
 				let releaseInfo  = '';
 				let snapshotInfo = '';
 
-				if (releasesIndexUrl !== '') {
-
-					// Search for newer releases and store latest version
+				// Search for newer releases and store latest version
+				{
 					let response = await fetch(releasesIndexUrl);
 					if (response.ok) {
 
@@ -386,8 +389,8 @@ let _Dashboard = {
 					}
 				}
 
-				if (snapshotsIndexUrl !== '') {
-
+				// Search for newer snapshots and store latest version
+				{
 					let response = await fetch(snapshotsIndexUrl);
 					if (response.ok) {
 
@@ -497,7 +500,7 @@ let _Dashboard = {
 						let downloadUrl = deploymentUrlInput.value;
 
 						if (!(downloadUrl && downloadUrl.length)) {
-							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().show();
 						} else {
 							_Dashboard.tabs.deployment.actions.importFromZIPURL('app', downloadUrl, zipContentPath);
 						}
@@ -544,7 +547,7 @@ let _Dashboard = {
 
 						if (!(downloadUrl && downloadUrl.length)) {
 
-							new WarningMessage().title('Unable to start data import from URL').text('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start data import from URL').text('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().show();
 
 						} else {
 
@@ -600,7 +603,7 @@ let _Dashboard = {
 				deploy: async (mode, location) => {
 
 					if (!(location && location.length)) {
-						new WarningMessage().title(`Unable to start application ${mode}`).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title(`Unable to start application ${mode}`).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().show();
 						return;
 					}
 
@@ -624,7 +627,7 @@ let _Dashboard = {
 				deployData: async (mode, location, types) => {
 
 					if (!(location && location.length)) {
-						new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().show();
 						return;
 					}
 
@@ -638,7 +641,7 @@ let _Dashboard = {
 						if (types && types.length) {
 							data['types'] = types.join(',');
 						} else {
-							new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().show();
 							return;
 						}
 					}
@@ -675,7 +678,7 @@ let _Dashboard = {
 
 					if (prefix === '') {
 
-						new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
 
 					} else {
 
@@ -703,11 +706,11 @@ let _Dashboard = {
 
 					if (types.length === 0) {
 
-						new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().show();
 
 					} else if (prefix === '') {
 
-						new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
 
 					} else {
 
@@ -734,7 +737,7 @@ let _Dashboard = {
 						if (!response.ok && response.status === 400) {
 
 							let responseText = await response.text();
-							new WarningMessage().title(`Unable to import ${deploymentType} from ZIP URL`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to import ${deploymentType} from ZIP URL`).text(responseText).requiresConfirmation().show();
 
 						} else {
 
@@ -765,7 +768,7 @@ let _Dashboard = {
 						if (!response.ok && response.status === 400) {
 
 							let responseText = await response.text();
-							new WarningMessage().title(`Unable to import ${deploymentType} from uploaded ZIP`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to import ${deploymentType} from uploaded ZIP`).text(responseText).requiresConfirmation().show();
 
 						} else {
 
@@ -778,7 +781,7 @@ let _Dashboard = {
 				cleanFileNamePrefix: (prefix) => {
 					let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
 					if (cleaned !== prefix) {
-						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().allowConfirmAll().show();
+						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().show();
 					}
 					return cleaned;
 				},

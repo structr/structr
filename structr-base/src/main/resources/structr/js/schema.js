@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -78,6 +78,7 @@ let _Schema = {
 
 			_Schema.init(null,() => {
 				Structr.resize();
+				_Schema.initPanZoom();
 			});
 
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
@@ -174,6 +175,38 @@ let _Schema = {
 
 		Structr.adaptUiToAvailableFeatures();
 	},
+	initPanZoom: () => {
+		const schemaContainer = document.getElementById('schema-container');
+		const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
+
+		const panzoom = Panzoom(schemaContainer, { cursor: 'default', exclude: nodeElements, handleStartEvent: (event) => {
+			if (!event.shiftKey) {
+				panzoom.setOptions({ disablePan: true, cursor: 'default' });
+			} else {
+				panzoom.setOptions({ disablePan: false, cursor: 'move' });
+				event.preventDefault();
+				event.stopPropagation();
+			}
+		} });
+		document.addEventListener('keydown', (event) => {
+			if (event.shiftKey) {
+				schemaContainer.style.cursor = 'move';
+			}
+		});
+		document.addEventListener('keyup', (event) => {
+			if (!event.shiftKey) {
+				schemaContainer.style.cursor = 'default';
+			}
+		});
+		schemaContainer.addEventListener('panzoomstart', (event) => {
+			if (!event.shiftKey) {
+				e.preventDefault();
+			}
+		});
+		schemaContainer.addEventListener('wheel', (event) => {
+			panzoom.zoomWithWheel(event);
+		});
+	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');
 	},
@@ -198,9 +231,9 @@ let _Schema = {
 		if (Structr.isModuleActive(_Schema)) {
 
 			new InfoMessage()
-				.title("Schema recompiled")
-				.text("Another user made changes to the schema. Do you want to reload to see the changes?")
-				.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
+				.title('Schema recompiled')
+				.text('Another user made changes to the schema. Do you want to reload to see the changes?')
+				.specialInteractionButton('Reload', _Schema.reloadSchemaAfterRecompileNotification)
 				.uniqueClass('schema')
 				.incrementsUniqueCount()
 				.show();
@@ -903,10 +936,8 @@ let _Schema = {
 
 			fetch(`${Structr.rootUrl}_schema`).then(response => response.json()).then(schemaData => {
 
-				let isHtmlType = (type) => type.traits.includes('DOMNode');
-
-				let customTypes  = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
-				let builtinTypes = schemaData.result.filter(type => !isHtmlType(type) && !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
+				let customTypes  = schemaData.result.filter(type => !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && !type.isBuiltin && type.name !== entity.name);
+				let builtinTypes = schemaData.result.filter(type => !type.isAbstract && !type.isRel && !type.isInterface && !type.isServiceClass && type.isBuiltin && type.name !== entity.name);
 
 				let getOptionsForListOfTypes = (typeList) => {
 					return typeList.map(type => type.name).sort().map(name => `<option ${(entity.inheritedTraits ?? []).includes(name) ? 'selected' : ''} value="${name}">${name}</option>`).join('');
@@ -3001,7 +3032,8 @@ let _Schema = {
 					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options' + (viewIsEditable ? '' : ' not-editable'),
 					closeOnSelect: true,
 					scrollAfterSelect: false,
-					dropdownParent: dropdownParent
+					dropdownParent: dropdownParent,
+					closeOnSelect: false
 				});
 
 				if (!viewIsEditable) {

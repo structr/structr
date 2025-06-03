@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,7 +59,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(APIBuilderModule.class.getName());
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY, new VirtualTypevirtualPropertyVirtualProperty());
 

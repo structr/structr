@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,6 +53,7 @@ public interface File extends AbstractFile, DataSource {
 	String getMd5();
 
 	void setSize(Long size) throws FrameworkException;
+	Long getSize();
 
 	Folder getCurrentWorkingDir();
 	String getFormattedSize();

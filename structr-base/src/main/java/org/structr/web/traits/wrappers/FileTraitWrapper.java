@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -145,8 +145,13 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public String getFormattedSize() {
 		return FileUtils.byteCountToDisplaySize(
-				StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size()
+				getSize()
 		);
+	}
+
+	@Override
+	public Long getSize() {
+		return StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size();
 	}
 
 	@Override

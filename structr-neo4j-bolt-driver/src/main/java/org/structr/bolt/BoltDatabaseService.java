@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -56,6 +56,8 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	private boolean supportsRelationshipIndexes                   = false;
 	private boolean supportsIdempotentIndexCreation               = false;
 	private int neo4jMajorVersion                                 = -1;
+	private int neo4jMinorVersion                                 = -1;
+	private int neo4jPatchVersion                                 = -1;
 	private String errorMessage                                   = null;
 	private String databaseUrl                                    = null;
 	private Driver driver                                         = null;
@@ -480,6 +482,33 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		switch (neo4jMajorVersion) {
 
+			// Cheers to date-based versioning.....
+			case 2025:
+			case 2026:
+			case 2027:
+			case 2028:
+			case 2029:
+			case 2030:
+			case 2031:
+			case 2032:
+			case 2033:
+			case 2034:
+			case 2035:
+			case 2036:
+			case 2037:
+			case 2038:
+			case 2039:
+			case 2040:
+			case 2041:
+			case 2042:
+			case 2043:
+			case 2044:
+			case 2045:
+			case 2046:
+			case 2047:
+			case 2048:
+			case 2049:
+			case 2050:
 			case 5:
 				// cannot use db.indexes(), replaced by SHOW INDEXES call
 				indexUpdater = new Neo5IndexUpdater(this, supportsRelationshipIndexes);
@@ -787,15 +816,30 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 	private void configureVersionDependentFeatures() {
 
-		final String versionString  = getNeo4jVersion();
-		final long versionNumber    = parseVersionString(versionString);
+		final String version      = getNeo4jVersion();
+		final String[] parts      = version.replaceAll("[^0-9.]", "").split("\\.");
+		final String majorVersion = stringOrDefault(parts, 0, "0");
+		final String minorVersion = stringOrDefault(parts, 1, "0");
+		final String patchVersion = stringOrDefault(parts, 2, "0");
 
-		logger.info("Neo4j version is {}", versionString);
+		logger.info("Neo4j version is {}", version);
 
-		neo4jMajorVersion = Long.valueOf(versionNumber / 10000000000000000L).intValue();
+		neo4jMajorVersion = Integer.valueOf(majorVersion);
+		neo4jMinorVersion = Integer.valueOf(minorVersion);
+		neo4jPatchVersion = Integer.valueOf(patchVersion);
 
-		this.supportsRelationshipIndexes     = versionNumber >= parseVersionString("4.3.0");
-		this.supportsIdempotentIndexCreation = versionNumber >= parseVersionString("4.1.3");
+		// all versions >= 5 support the below flags
+		this.supportsRelationshipIndexes     = neo4jMajorVersion >= 5 || (neo4jMajorVersion >= 4 && neo4jMinorVersion >= 3);
+		this.supportsIdempotentIndexCreation = neo4jMajorVersion >= 5 || (neo4jMajorVersion >= 4 && neo4jMinorVersion >= 1 && neo4jPatchVersion >= 3);
+	}
+
+	private String stringOrDefault(final String[] source, final int index, final String defaultValue) {
+
+		if (index >= source.length) {
+			return defaultValue;
+		}
+
+		return source[index];
 	}
 
 	@Override
@@ -936,39 +980,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		return null;
-	}
-
-	/**
-	 * Splits version strings into individual elements and creates comparable numbers.
-	 * This implementation supports version strings with up to 4 components
-	 * and minor versions up to 9999. If you need more, please  adapt the "num"
-	 * and "size values below. Before splitting at ".", we remove all characters that
-	 * are non-numeric and not the ".".
-
-	 * @param version
-	 * @return a numerical representation of the version string
-	 */
-	private static long parseVersionString(final String version) {
-
-		final String[] parts = version.replaceAll("[^0-9.]", "").split("\\.");
-		final int num        = 4; // 4 components
-		final int size       = 4; // 0 - 9999
-		long versionNumber   = 0L;
-		int exponent         = num * size;
-
-		for (final String part : parts) {
-
-			try {
-
-				final int value = Integer.valueOf(part.trim());
-				versionNumber += (long)(value * Math.pow(10, exponent));
-
-			} catch (Throwable t) {}
-
-			exponent -= size;
-		}
-
-		return versionNumber;
 	}
 
 	private void setInitialPassword(final String initialPassword) {

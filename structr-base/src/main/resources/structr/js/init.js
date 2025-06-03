@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,13 @@ document.addEventListener("DOMContentLoaded", () => {
 	Structr.mainContainerOffscreen   = document.createElement('div');
 	Structr.functionBarOffscreen     = document.createElement('div');
 	Structr.dialogContainerOffscreen = document.createElement('div');
+
+	/* Message-area: Hook up "Close All" button */
+	document.querySelector('#info-area #close-all-button').addEventListener('click', () => {
+		for (let confirmButton of document.querySelectorAll(`#info-area .${MessageBuilder.closeButtonClass}`)) {
+			confirmButton.dispatchEvent(new Event('click'));
+		}
+	});
 
 	document.querySelector('#logout_').addEventListener('click', (e) => {
 		e.stopPropagation();
@@ -172,6 +179,12 @@ document.addEventListener("DOMContentLoaded", () => {
 			event.preventDefault();
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
+		}
+
+		// Ctrl-Alt-e
+		if ((code === 'KeyQ' || keyCode === 69) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+			document.querySelector('#info-area').classList.toggle('hidden');
 		}
 	});
 
@@ -875,7 +888,7 @@ let Structr = {
 				let date        = ui.date;
 				let versionInfo = `
 					<div>
-						<a target="_blank" href="https://structr.com/download">${ui.version}</a>
+						<span>${ui.version}</span>
 						${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
 						${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
 					</div>
@@ -1100,7 +1113,7 @@ let Structr = {
 		});
 	},
 	isModulePresent: (moduleName) => {
-		return Structr.activeModules[moduleName] !== undefined;
+		return true; // Structr.activeModules[moduleName] !== undefined;
 	},
 	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
@@ -1264,21 +1277,21 @@ let Structr = {
 
 					let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
 
-					messageBuilder.title(titles[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().allowConfirmAll().text(texts[data.subtype]).show();
+					messageBuilder.title(titles[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().text(texts[data.subtype]).show();
 				}
 				break;
 
 			case "CSV_IMPORT_WARNING":
 
 				if (StructrWS.me.username === data.username) {
-					new WarningMessage().title(data.title).text(data.text).requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title(data.title).text(data.text).requiresConfirmation().show();
 				}
 				break;
 
 			case "CSV_IMPORT_ERROR":
 
 				if (StructrWS.me.username === data.username) {
-					new ErrorMessage().title(data.title).text(data.text).requiresConfirmation().allowConfirmAll().show();
+					new ErrorMessage().title(data.title).text(data.text).requiresConfirmation().show();
 				}
 				break;
 
@@ -1314,7 +1327,7 @@ let Structr = {
 					messageBuilder.title(`${data.jobtype} ${fileImportTitles[data.subtype]}`).text(fileImportTexts[data.subtype]).uniqueClass(`${data.jobtype}-import-status-${data.filepath}`);
 
 					if (data.subtype !== 'QUEUED') {
-						messageBuilder.updatesText().requiresConfirmation().allowConfirmAll();
+						messageBuilder.updatesText().requiresConfirmation();
 					}
 
 					messageBuilder.show();
@@ -1334,7 +1347,7 @@ let Structr = {
 						text += `<br>${data.stringvalue}`;
 					}
 
-					new ErrorMessage().title(`Exception while importing ${data.jobtype}`).text(`File: ${data.filepath}<br>${text}`).requiresConfirmation().allowConfirmAll().show();
+					new ErrorMessage().title(`Exception while importing ${data.jobtype}`).text(`File: ${data.filepath}<br>${text}`).requiresConfirmation().show();
 				}
 
 				if (Structr.isModuleActive(Importer)) {
@@ -1358,10 +1371,10 @@ let Structr = {
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
-					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).appendsText();
+					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).prependsText();
 
 					if (data.subtype !== 'QUEUED') {
-						messageBuilder.requiresConfirmation().allowConfirmAll();
+						messageBuilder.requiresConfirmation();
 					}
 
 					messageBuilder.show();
@@ -1439,7 +1452,7 @@ let Structr = {
 
 					if (isImport) {
 
-						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').updatesButtons();
+						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }).updatesButtons();
 
 						Structr.cleanupAfterDeploymentImport();
 					}
@@ -1496,7 +1509,7 @@ let Structr = {
 
 				} else if (data.subtype === 'WARNING') {
 
-					new WarningMessage().title("Certificate retrieval progress").text(data.message).uniqueClass('cert-retrieval').requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title("Certificate retrieval progress").text(data.message).uniqueClass('cert-retrieval').requiresConfirmation().show();
 				}
 
 				break;
@@ -1505,7 +1518,7 @@ let Structr = {
 
 				let enabled = data.enabled ? 'enabled' : 'disabled';
 
-				new WarningMessage().title(`Maintenance Mode ${enabled}`).text(`Maintenance Mode has been ${enabled}.<br><br> Redirecting...`).allowConfirmAll().show();
+				new WarningMessage().title(`Maintenance Mode ${enabled}`).text(`Maintenance Mode has been ${enabled}.<br><br> Redirecting...`).show();
 
 				window.setTimeout(() => {
 					location.href = data.baseUrl + location.pathname + location.search;
@@ -1513,22 +1526,22 @@ let Structr = {
 				break;
 
 			case "WARNING":
-				new WarningMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
+				new WarningMessage().title(data.title).text(data.message).requiresConfirmation().show();
 				break;
 
 			case "INFO":
-				new InfoMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
+				new InfoMessage().title(data.title).text(data.message).requiresConfirmation().show();
 				break;
 
 			case "SCRIPT_JOB_EXCEPTION":
-				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().allowConfirmAll().show();
+				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().show();
 				break;
 
 			case "RESOURCE_ACCESS":
 
 				if (showResourceAccessPopups) {
 
-					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation().allowConfirmAll();
+					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation();
 
 					let createPermission = (permissionData) => {
 
@@ -1576,15 +1589,15 @@ let Structr = {
 
 					if (data.validUser === false) {
 
-						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) });
 
 					} else {
 
 						if (data.isServicePrincipal === false) {
-							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) });
 						}
 
-						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) });
 					}
 
 					builder.show();
@@ -1667,7 +1680,7 @@ let Structr = {
 
 									_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
 
-								}, 'Dismiss');
+								});
 
 							} else {
 
@@ -1688,15 +1701,15 @@ let Structr = {
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
 
-								}, 'Dismiss');
+								});
 							}
 
 							// show message
-							builder.allowConfirmAll().show();
+							builder.show();
 						});
 
 					} else {
-						new WarningMessage().title('Server-side Scripting Error').text(data.message).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Server-side Scripting Error').text(data.message).requiresConfirmation().show();
 					}
 				}
 				break;
@@ -1738,19 +1751,19 @@ let Structr = {
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
 
-								}, 'Dismiss');
+								});
 
-								builder.allowConfirmAll().show();
+								builder.show();
 							});
 
 						} else {
 
-							builder.allowConfirmAll().show();
+							builder.show();
 						}
 
 					} else {
 
-						builder.allowConfirmAll().show();
+						builder.show();
 					}
 				}
 				break;
@@ -1782,7 +1795,7 @@ let Structr = {
 		}
 
 		let reconnectDialog = `
-			<div id="reconnect-dialog">
+			<div id="reconnect-dialog" class="dialog">
 				<div class="flex flex-col gap-y-4 items-center justify-center">
 					<div class="flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')}
@@ -1801,7 +1814,7 @@ let Structr = {
 			</div>
 		`;
 
-		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
+		_Dialogs.basic.append(reconnectDialog);
 	},
 	getReconnectDialogElement: () => {
 		return document.getElementById('reconnect-dialog');
@@ -1914,7 +1927,14 @@ let Structr = {
 
 	templates: {
 		mainBody: config => `
-			<div id="info-area"></div>
+
+			<div id="info-area">
+				<div id="close-all-button" class="my-4 mx-2 text-right">
+					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
+				</div>
+				<div id="messages"></div>
+			</div>
+
 			<div id="header">
 
 				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo'])}
@@ -2414,6 +2434,7 @@ class MessageBuilder {
 		error: 'error',
 		info: 'info'
 	});
+	static closeButtonClass = 'close-message-button';
 
 	constructor (typeClass) {
 
@@ -2427,15 +2448,14 @@ class MessageBuilder {
 		this.params = {
 			text: 'Default message',
 			delayDuration: 3000,
-			confirmButtonText: 'Confirm',
-			allowConfirmAll: false,
-			confirmAllButtonText: 'Confirm all...',
 			uniqueClass: undefined,
 			uniqueCount: 1,
 			updatesText: false,
 			updatesButtons: false,
 			appendsText: false,
+			prependsText: false,
 			appendSelector: '',
+			prependSelector: '',
 			replacesElement: false,
 			replacesSelector: '',
 			replaceInParentSelector: '',
@@ -2444,16 +2464,8 @@ class MessageBuilder {
 		};
 	}
 
-	requiresConfirmation(confirmButtonText = this.params.confirmButtonText) {
+	requiresConfirmation() {
 		this.params.requiresConfirmation = true;
-		this.params.confirmButtonText = confirmButtonText;
-		return this;
-	};
-
-	allowConfirmAll(confirmAllButtonText = this.params.confirmAllButtonText) {
-		this.params.allowConfirmAll = true;
-		this.params.confirmAllButtonText = confirmAllButtonText;
-
 		return this;
 	};
 
@@ -2476,25 +2488,12 @@ class MessageBuilder {
 
 		if (this.params.requiresConfirmation === true) {
 
-			let confirmationButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirm hover:border-gray-666 mb-2">${this.params.confirmButtonText}</button>`);
-			buttonElement.appendChild(confirmationButton);
+			let closeButton = buttonElement.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
 
-			confirmationButton.addEventListener('click', (e) => {
-				e.target.closest('button').remove();
+			closeButton.classList.remove('hidden');
+			closeButton.addEventListener('click', (e) => {
 				this.dismiss();
 			});
-
-			if (this.params.allowConfirmAll === true) {
-
-				let confirmAllButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirmAll hover:border-gray-666 mb-2">${this.params.confirmAllButtonText}</button>`);
-				buttonElement.appendChild(confirmAllButton);
-
-				confirmAllButton.addEventListener('click', () => {
-					for (let confirmButton of document.querySelectorAll(`#info-area button.confirm`)) {
-						confirmButton.click();
-					}
-				});
-			}
 
 		} else {
 
@@ -2509,7 +2508,7 @@ class MessageBuilder {
 
 		for (let btn of this.params.specialInteractionButtons) {
 
-			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mb-2">${btn.text}</button>`);
+			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mr-0">${btn.text}</button>`);
 			buttonElement.appendChild(specialBtn);
 
 			specialBtn.addEventListener('click', () => {
@@ -2524,7 +2523,7 @@ class MessageBuilder {
 	show() {
 
 		let uniqueMessageAlreadyPresented = false;
-		let allClasses                    = ['message', 'break-word', 'flex', 'rounded-md', 'pt-5', 'pl-5', 'pr-3', 'pb-3', 'm-1', this.typeClass, this.params.uniqueClass];
+		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-4', 'm-1', this.typeClass, this.params.uniqueClass];
 
 		if (this.params.uniqueClass) {
 
@@ -2558,6 +2557,16 @@ class MessageBuilder {
 					}
 
 					messageTextElement.innerHTML = this.params.text;
+
+				} else if (this.params.prependsText) {
+
+					if (titleElement) {
+						titleElement.innerHTML = this.params.title;
+					}
+
+					let prependTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.prependSelector) ?? messageTextElement);
+
+					prependTarget.insertAdjacentHTML('afterbegin', this.params.text);
 
 				} else if (this.params.appendsText) {
 
@@ -2604,22 +2613,23 @@ class MessageBuilder {
 
 			let message = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="${allClasses.join(' ')}" id="${this.params.msgId}" data-unique-count="${this.params.uniqueCount}">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer', 'absolute', 'top-3', 'right-3']))}
 					<div class="message-icon flex-shrink-0 mr-2">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
 						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg title">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
-						<div class="message-text overflow-y-auto">
+						<div class="message-text mb-2 overflow-y-auto">
 							${this.params.text}
 						</div>
-						<div class="message-buttons text-right mt-2"></div>
+						<div class="message-buttons flex gap-2 justify-end"></div>
 					</div>
 				</div>
 			`);
 
 			this.appendButtons(message.querySelector('.message-buttons'));
 
-			document.querySelector('#info-area').appendChild(message);
+			document.querySelector('#info-area #messages').appendChild(message);
 		}
 	};
 
@@ -2636,14 +2646,14 @@ class MessageBuilder {
 		}
 	};
 
-	specialInteractionButton(buttonText, callback, confirmButtonText) {
+	specialInteractionButton(buttonText, callback) {
 
 		this.params.specialInteractionButtons.push({
 			text: buttonText,
 			action: callback
 		});
 
-		return this.requiresConfirmation(confirmButtonText);
+		return this.requiresConfirmation();
 	};
 
 	uniqueClass(className) {
@@ -2672,6 +2682,12 @@ class MessageBuilder {
 	appendsText(selector = '') {
 		this.params.appendsText    = true;
 		this.params.appendSelector = selector;
+		return this;
+	};
+
+	prependsText(selector = '') {
+		this.params.prependsText    = true;
+		this.params.prependSelector = selector;
 		return this;
 	};
 

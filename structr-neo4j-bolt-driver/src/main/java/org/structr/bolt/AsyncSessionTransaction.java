@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -295,18 +295,23 @@ class AsyncSessionTransaction extends SessionTransaction {
 	@Override
 	protected Iterable<Record> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer consumer) {
 
-		final String statement        = query.getStatement();
-		final Map<String, Object> map = query.getParameters();
+		if (consumer != null) {
 
-		logQuery(query);
+			final String statement = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
-		tx.runAsync(statement, map)
-			.thenCompose(cursor -> consumer.start(cursor))
-			.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
-			.thenAccept(summary -> consumer.finish())
-			.exceptionally(t -> consumer.exception(t));
+			logQuery(query);
 
-		return consumer;
+			tx.runAsync(statement, map)
+				.thenCompose(cursor -> consumer.start(cursor))
+				.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
+				.thenAccept(summary -> consumer.finish())
+				.exceptionally(t -> consumer.exception(t));
+
+			return consumer;
+		}
+
+		return List.of();
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.schema.action.ActionContext;
 
 
@@ -50,9 +51,11 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final HttpSession session = ctx.getSecurityContext().getSession();
+			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
-				session.removeAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+
+				sessionWrapper.removeMember(sources[0].toString());
 			} else {
 				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
 			}

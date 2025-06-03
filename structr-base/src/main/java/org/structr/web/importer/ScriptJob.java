@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,9 +70,10 @@ public class ScriptJob extends ScheduledJob {
 
 		return () -> {
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			final SecurityContext securityContext = user.getSecurityContext();
 
-				final SecurityContext securityContext = user.getSecurityContext();
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
 				final ActionContext actionContext     = new ActionContext(securityContext);
 
 				reportBegin();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -420,7 +420,7 @@ let _Files = {
 			}
 
 			Structr.performActionAfterEnvResourceLoaded(() => {
-				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
+				if (fileCount === 1 && contentType === 'text/csv') {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
 						name: 'Import CSV',
@@ -432,7 +432,7 @@ let _Files = {
 			});
 
 			Structr.performActionAfterEnvResourceLoaded(() => {
-				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
+				if (fileCount === 1 && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
 						name: 'Import XML',
@@ -1289,7 +1289,7 @@ let _Files = {
 
 				if (closed) {
 
-					new SuccessMessage().requiresConfirmation("Close").show();
+					new SuccessMessage().text(message).requiresConfirmation().show();
 
 				} else {
 

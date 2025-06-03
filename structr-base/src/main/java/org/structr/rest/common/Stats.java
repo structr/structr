@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,26 +18,41 @@
  */
 package org.structr.rest.common;
 
-import java.util.LinkedList;
-import java.util.List;
+import org.structr.api.config.Settings;
+import org.structr.common.error.FrameworkException;
+
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class Stats {
 
-	private List<Long> values = new LinkedList<>();
-	private long count        = 0L;
-	private long sum          = 0L;
-	private long min          = Long.MAX_VALUE;
-	private long max          = Long.MIN_VALUE;
+	// static final => can only be changed by restarting the app (would mess up stats otherwise)
+	private static final long globalAggregationIntervalMilliseconds = Settings.HttpStatsAggregationInterval.getValue(60_000);
+
+	private Map<Long, Long> values = new LinkedHashMap<>();
+	private long count             = 0L;
+	private long sum               = 0L;
+	private long min               = Long.MAX_VALUE;
+	private long max               = Long.MIN_VALUE;
 
 	public void value(final long value, final boolean aggregateOnly) {
 
 		if (!aggregateOnly) {
 
 			synchronized (values) {
-				// list is reversed!
-				values.add(0, value);
+
+				final Long key = value - (value % globalAggregationIntervalMilliseconds);
+
+				Long sum = values.get(key);
+				if (sum == null) {
+
+					values.put(key, 1L);
+
+				} else {
+
+					values.put(key, sum + 1);
+				}
 			}
 		}
 
@@ -52,10 +67,6 @@ public class Stats {
 		}
 
 		count++;
-	}
-
-	public List<Long> getValues() {
-		return values;
 	}
 
 	public long getCount() {
@@ -74,24 +85,38 @@ public class Stats {
 		return sum / count;
 	}
 
-	public Map<Long, Long> aggregate(final long aggregationIntervalMilliseconds, final long maxCount) {
+	public Map<Long, Long> aggregate(final long aggregationIntervalMilliseconds, final long maxCount) throws FrameworkException {
+
+		// we can only return stats if the desired aggregation interval is a multiple of the global aggregation interval (our time resolution)
+		if (aggregationIntervalMilliseconds % this.globalAggregationIntervalMilliseconds != 0) {
+
+			throw new FrameworkException(422, "Requested aggregation interval " + aggregationIntervalMilliseconds + " is not a multiple of the global aggregation interval " + this.globalAggregationIntervalMilliseconds);
+		}
+
+		// aggregation interval matches => return data
+		if (aggregationIntervalMilliseconds == this.globalAggregationIntervalMilliseconds) {
+
+			return values;
+		}
 
 		final Map<Long, Long> aggregation = new TreeMap<>();
 
 		synchronized (values) {
 
-			for (final Long value : values) {
+			for (final Map.Entry<Long, Long> entry : values.entrySet()) {
 
-				final Long key = value - (value % aggregationIntervalMilliseconds);
+				final Long originalKey    = entry.getKey();
+				final Long aggregationKey = originalKey - (originalKey % aggregationIntervalMilliseconds);
+				final Long value          = entry.getValue();
 
-				Long sum = aggregation.get(key);
+				Long sum = aggregation.get(aggregationKey);
 				if (sum == null) {
 
-					aggregation.put(key, 1L);
+					aggregation.put(aggregationKey, value);
 
 				} else {
 
-					aggregation.put(key, sum + 1);
+					aggregation.put(aggregationKey, sum + value);
 				}
 
 				// max

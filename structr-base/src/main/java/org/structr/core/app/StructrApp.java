@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -209,7 +209,12 @@ public class StructrApp implements App {
 		} else {
 
 			try {
-				return nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+
+				final NodeInterface node = nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+				if (node != null && (type == null || node.is(type))) {
+
+					return node;
+				}
 
 			} catch (NotFoundException ignore) {
 				nodeUuidMap.remove(uuid);
