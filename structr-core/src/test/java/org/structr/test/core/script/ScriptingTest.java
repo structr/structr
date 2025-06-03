@@ -7117,6 +7117,23 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testGetOrCreateWithUnknownProperty() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Scripting.evaluate(actionContext, null, "${{ $.getOrCreate('MailTemplate', { doesNotExist: 'test' }); }}", "test1");
+
+			fail("Providing a nonexistent key to getOrCreate() should throw an exception.");
+
+			tx.success();
+
+		} catch (FrameworkException expected) {
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
