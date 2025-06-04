@@ -297,4 +297,69 @@ public class UploadServletTest extends StructrUiTest {
 			.when()
 				.post("structr/upload");
 	}
+
+	@Test
+	public void testForbiddenProperties() {
+
+		String folderId = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			folderId = app.create(StructrTraits.FOLDER, "upload").getUuid();
+
+			tx.success();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		// setting isTemplate is very forbidden
+		RestAssured
+			.given()
+			.header(X_USER_HEADER,       ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
+			.multiPart("file", "test.txt", "This is a test!".getBytes(Charset.forName("utf-8")), "text/plain")
+			.multiPart("isTemplate", "true")
+
+			.expect()
+			.statusCode(422)
+
+			.when()
+			.post("structr/upload");
+
+		// setting the parent folder is allowed
+		RestAssured
+			.given()
+			.header(X_USER_HEADER,       ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
+			.multiPart("file", "test.txt", "This is a test!".getBytes(Charset.forName("utf-8")), "text/plain")
+			.multiPart("parent", folderId)
+
+			.expect()
+			.statusCode(200)
+
+			.when()
+			.post("structr/upload");
+
+		// setting the parent folder via ID is allowed
+		RestAssured
+			.given()
+			.header(X_USER_HEADER,       ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER,   ADMIN_PASSWORD)
+			.multiPart("file", "test.txt", "This is a test!".getBytes(Charset.forName("utf-8")), "text/plain")
+			.multiPart("parentId", folderId)
+
+			.expect()
+			.statusCode(200)
+
+			.when()
+			.post("structr/upload");
+	}
 }
