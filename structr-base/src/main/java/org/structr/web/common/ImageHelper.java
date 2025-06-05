@@ -26,7 +26,6 @@ import com.drew.metadata.exif.ExifIFD0Directory;
 import com.drew.metadata.exif.ExifSubIFDDirectory;
 import com.drew.metadata.exif.GpsDirectory;
 import com.twelvemonkeys.image.AffineTransformOp;
-import net.coobird.thumbnailator.Thumbnails;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -326,24 +325,22 @@ public abstract class ImageHelper extends FileHelper {
 
 						final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
 
-						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
+						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", dims[0], dims[1], dims[2], dims[3]);
 
-						Thumbnails.of(source)
-								.scale(1.0f / scale)
-								.sourceRegion((int) (dims[0]*scale), (int) (dims[1]*scale), (int) (dims[2]*scale), (int) (dims[3]*scale))
-								.outputFormat(format.name())
-								.toOutputStream(baos);
+						final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
+						final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
 
+						ImageIO.write(scaled, format.name(), baos);
 
 						tn.setWidth(dims[2]);
 						tn.setHeight(dims[3]);
 
 					} else {
 
-						Thumbnails.of(source)
-								.scale(1.0f / scale)
-								.outputFormat(format.name())
-								.toOutputStream(baos);
+						final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, false);
+						final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
+
+						ImageIO.write(scaled, format.name(), baos);
 
 						tn.setWidth(destWidth);
 						tn.setHeight(destHeight);
@@ -352,10 +349,10 @@ public abstract class ImageHelper extends FileHelper {
 
 				} else {
 
-					Thumbnails.of(source)
-							.scale(1.0d)
-							.outputFormat(format.name())
-							.toOutputStream(baos);
+					final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, false);
+					final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
+
+					ImageIO.write(scaled, format.name(), baos);
 
 					tn.setWidth(sourceWidth);
 					tn.setHeight(sourceHeight);
@@ -388,8 +385,6 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createCroppedImage(final Image originalImage, final int maxWidth, final int maxHeight, final Integer reqOffsetX, final Integer reqOffsetY, final String formatString) {
 
-
-		// String contentType = (String) originalImage.getProperty(Image.CONTENT_TYPE_KEY);
 		Thumbnail tn;
 
 		try (final InputStream in = originalImage.getInputStream()) {
@@ -449,15 +444,14 @@ public abstract class ImageHelper extends FileHelper {
 
 			final Integer[] dims = finalImageDimensions(offsetX, offsetY, maxWidth, maxHeight, sourceWidth, sourceHeight);
 
-			logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", new Object[] { dims[0], dims[1], dims[2], dims[3] });
+			logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", dims[0], dims[1], dims[2], dims[3]);
 
 			try {
 
-				Thumbnails.of(source)
-						.sourceRegion(dims[0], dims[1], dims[2], dims[3])
-						.scale(1)
-						.outputFormat(format.name())
-						.toOutputStream(baos);
+				final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, false);
+				final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
+
+				ImageIO.write(scaled, format.name(), baos);
 
 			} catch (Throwable t) {
 				logger.warn("Unable to create thumbnail of source image", t);
@@ -504,51 +498,63 @@ public abstract class ImageHelper extends FileHelper {
 
 			// no need for try-with-resources for the below InputStream because ImageIO.read() closes its input stream
 			final ImageInputStream in = ImageIO.createImageInputStream(originalImage.getInputStream());
-			final int           orientation = getOrientation(originalImage);
-			final BufferedImage source      = ImageIO.read(in);
+			final int orientation     = getOrientation(originalImage);
+			BufferedImage source      = ImageIO.read(in);
 
 			if (source != null) {
 
 				final int sourceWidth  = source.getWidth();
 				final int sourceHeight = source.getHeight();
 
+				{
+					// remove alpha channel before creating thumbnail
+					final BufferedImage target = new BufferedImage(sourceWidth, sourceHeight, BufferedImage.TYPE_INT_RGB);
+					final Graphics2D g         = target.createGraphics();
+
+					g.drawImage(source, 0, 0, null);
+					g.dispose();
+
+					source = target;
+				}
+
 				final AffineTransform affineTransform = new AffineTransform();
 
 				switch (orientation) {
-				case 1:
-					break;
-				case 2: // Flip X
-					affineTransform.scale(-1.0, 1.0);
-					affineTransform.translate(-sourceWidth, 0);
-					break;
-				case 3: // PI rotation
-					affineTransform.translate(sourceWidth, sourceHeight);
-					affineTransform.rotate(Math.PI);
-					break;
-				case 4: // Flip Y
-					affineTransform.scale(1.0, -1.0);
-					affineTransform.translate(0, -sourceHeight);
-					break;
-				case 5: // - PI/2 and Flip X
-					affineTransform.rotate(-Math.PI / 2);
-					affineTransform.scale(-1.0, 1.0);
-					break;
-				case 6: // -PI/2 and -width
-					affineTransform.translate(sourceHeight, 0);
-					affineTransform.rotate(Math.PI / 2);
-					break;
-				case 7: // PI/2 and Flip
-					affineTransform.scale(-1.0, 1.0);
-					affineTransform.translate(-sourceHeight, 0);
-					affineTransform.translate(0, sourceWidth);
-					affineTransform.rotate(3 * Math.PI / 2);
-					break;
-				case 8: // PI / 2
-					affineTransform.translate(0, sourceWidth);
-					affineTransform.rotate(3 * Math.PI / 2);
-					break;
-				default:
-					break;
+
+					case 1:
+						break;
+					case 2: // Flip X
+						affineTransform.scale(-1.0, 1.0);
+						affineTransform.translate(-sourceWidth, 0);
+						break;
+					case 3: // PI rotation
+						affineTransform.translate(sourceWidth, sourceHeight);
+						affineTransform.rotate(Math.PI);
+						break;
+					case 4: // Flip Y
+						affineTransform.scale(1.0, -1.0);
+						affineTransform.translate(0, -sourceHeight);
+						break;
+					case 5: // - PI/2 and Flip X
+						affineTransform.rotate(-Math.PI / 2);
+						affineTransform.scale(-1.0, 1.0);
+						break;
+					case 6: // -PI/2 and -width
+						affineTransform.translate(sourceHeight, 0);
+						affineTransform.rotate(Math.PI / 2);
+						break;
+					case 7: // PI/2 and Flip
+						affineTransform.scale(-1.0, 1.0);
+						affineTransform.translate(-sourceHeight, 0);
+						affineTransform.translate(0, sourceWidth);
+						affineTransform.rotate(3 * Math.PI / 2);
+						break;
+					case 8: // PI / 2
+						affineTransform.translate(0, sourceWidth);
+						affineTransform.rotate(3 * Math.PI / 2);
+						break;
+					default:
+						break;
 				}
 
 				final AffineTransformOp op = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
@@ -565,6 +571,25 @@ public abstract class ImageHelper extends FileHelper {
 
 		} catch (Throwable t) {
 			logger.debug("Unable to transform image", t);
+		}
+
+		return null;
+	}
+
+	private static BufferedImage getScaledImage(final BufferedImage source, final double sx, final double sy) {
+
+		try {
+
+			final AffineTransform affineTransform = AffineTransform.getScaleInstance(sx, sy);
+			final AffineTransformOp op            = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
+			BufferedImage destinationImage        = op.createCompatibleDestImage(source, source.getColorModel());
+
+			destinationImage = op.filter(source, destinationImage);
+
+			return destinationImage;
+
+		} catch (Throwable t) {
+			logger.debug("Unable to scale image", t);
 		}
 
 		return null;
@@ -626,7 +651,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			} catch (IOException ignore) {}
 
-		} finally {}
+		}
 
 		return out.toByteArray();
 	}
