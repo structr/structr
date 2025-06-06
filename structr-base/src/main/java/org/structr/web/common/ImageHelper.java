@@ -65,6 +65,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Set;
 
@@ -143,9 +144,7 @@ public abstract class ImageHelper extends FileHelper {
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	public static void setImageData(final Image img, final byte[] imageData, final String contentType)
-		throws FrameworkException, IOException {
-
+	public static void setImageData(final Image img, final byte[] imageData, final String contentType) throws FrameworkException, IOException {
 		setFileData(img, imageData, contentType);
 	}
 
@@ -231,7 +230,6 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static float getScaleRatio(final int sourceWidth, final int sourceHeight, final int maxWidth, final int maxHeight, final boolean crop) {
 
-		// float aspectRatio = sourceWidth/sourceHeight;
 		final float scaleX = 1.0f * sourceWidth / maxWidth;
 		final float scaleY = 1.0f * sourceHeight / maxHeight;
 		final float scale;
@@ -275,18 +273,7 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static Thumbnail createThumbnail(final Image originalImage, final int maxWidth, final int maxHeight, final String formatString, final boolean crop, final Integer reqOffsetX, final Integer reqOffsetY) {
 
-		Thumbnail.Format format = Thumbnail.defaultFormat;
-
-		try {
-
-			final String imageFormatString = getImageFormatString(originalImage);
-			format = formatString != null ? Thumbnail.Format.valueOf(formatString) : (imageFormatString != null ? Thumbnail.Format.valueOf(imageFormatString) : Thumbnail.defaultFormat);
-
-		} catch (IllegalArgumentException iae) {
-
-			logger.debug("Unsupported thumbnail format - using default");
-		}
-
+		final Thumbnail.Format format    = Thumbnail.defaultFormat;
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		final Thumbnail tn               = new Thumbnail();
 
@@ -327,20 +314,14 @@ public abstract class ImageHelper extends FileHelper {
 
 						logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", dims[0], dims[1], dims[2], dims[3]);
 
-						final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, crop);
-						final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
-
-						ImageIO.write(scaled, format.name(), baos);
+						scaleAndWrite(source, dims[2], dims[3], baos, format.name());
 
 						tn.setWidth(dims[2]);
 						tn.setHeight(dims[3]);
 
 					} else {
 
-						final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, false);
-						final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
-
-						ImageIO.write(scaled, format.name(), baos);
+						scaleAndWrite(source, destWidth, destHeight, baos, format.name());
 
 						tn.setWidth(destWidth);
 						tn.setHeight(destHeight);
@@ -349,10 +330,7 @@ public abstract class ImageHelper extends FileHelper {
 
 				} else {
 
-					final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, false);
-					final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
-
-					ImageIO.write(scaled, format.name(), baos);
+					scaleAndWrite(source, sourceWidth, sourceHeight, baos, format.name());
 
 					tn.setWidth(sourceWidth);
 					tn.setHeight(sourceHeight);
@@ -446,16 +424,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			logger.debug("Offset and Size (x,y,w,h): {},{},{},{}", dims[0], dims[1], dims[2], dims[3]);
 
-			try {
-
-				final double scaleRatio    = 1.0 / getScaleRatio(sourceWidth, sourceHeight, maxWidth, maxHeight, false);
-				final BufferedImage scaled = getScaledImage(source, scaleRatio, scaleRatio);
-
-				ImageIO.write(scaled, format.name(), baos);
-
-			} catch (Throwable t) {
-				logger.warn("Unable to create thumbnail of source image", t);
-			}
+			scaleAndWrite(source, dims[2], dims[3], baos, format.name());
 
 			tn.setWidth(dims[2]);
 			tn.setHeight(dims[3]);
@@ -503,21 +472,9 @@ public abstract class ImageHelper extends FileHelper {
 
 			if (source != null) {
 
-				final int sourceWidth  = source.getWidth();
-				final int sourceHeight = source.getHeight();
-
-				{
-					// remove alpha channel before creating thumbnail
-					final BufferedImage target = new BufferedImage(sourceWidth, sourceHeight, BufferedImage.TYPE_INT_RGB);
-					final Graphics2D g         = target.createGraphics();
-
-					g.drawImage(source, 0, 0, null);
-					g.dispose();
-
-					source = target;
-				}
-
 				final AffineTransform affineTransform = new AffineTransform();
+				final int sourceWidth                 = source.getWidth();
+				final int sourceHeight                = source.getHeight();
 
 				switch (orientation) {
 
@@ -557,8 +514,8 @@ public abstract class ImageHelper extends FileHelper {
 						break;
 				}
 
-				final AffineTransformOp op = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
-				BufferedImage destinationImage = op.createCompatibleDestImage(source, source.getColorModel());
+				final AffineTransformOp op     = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
+				BufferedImage destinationImage = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
 
 				final Graphics2D g = destinationImage.createGraphics();
 				g.setBackground(Color.WHITE);
@@ -581,7 +538,7 @@ public abstract class ImageHelper extends FileHelper {
 		try {
 
 			final AffineTransform affineTransform = AffineTransform.getScaleInstance(sx, sy);
-			final AffineTransformOp op            = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
+			final AffineTransformOp op            = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_NEAREST_NEIGHBOR);
 			BufferedImage destinationImage        = op.createCompatibleDestImage(source, source.getColorModel());
 
 			destinationImage = op.filter(source, destinationImage);
@@ -700,8 +657,6 @@ public abstract class ImageHelper extends FileHelper {
 		}
 	}
 
-	//~--- static methods ----------------------------------------------------
-
 	public static Integer[] finalImageDimensions(final int offsetX, final int offsetY, final int requestedWidth, final int requestedHeight, final int sourceWidth, final int sourceHeight) {
 
 		final Integer[] finalDimensions = new Integer[4];
@@ -751,7 +706,7 @@ public abstract class ImageHelper extends FileHelper {
 			return false;
 		}
 
-		final String extension         = StringUtils.substringAfterLast(urlString.toLowerCase(), ".");
+		final String extension = StringUtils.substringAfterLast(urlString.toLowerCase(), ".");
 		final String[] imageExtensions = {
 
 			"png", "gif", "jpg", "jpeg", "bmp", "tif", "tiff"
@@ -763,11 +718,9 @@ public abstract class ImageHelper extends FileHelper {
 
 				return true;
 			}
-
 		}
 
 		return false;
-
 	}
 
 	/**
@@ -968,14 +921,30 @@ public abstract class ImageHelper extends FileHelper {
 		return getVariantName(originalImageName, tnWidth, tnHeight, "_thumb_");
 	}
 
-	//~--- inner classes --------------------------------------------------
+	private static void scaleAndWrite(final BufferedImage image, final int width, final int height, final OutputStream out, final String format) {
+
+		try {
+
+			final java.awt.Image scaled = image.getScaledInstance(width, height, java.awt.Image.SCALE_SMOOTH);
+			final BufferedImage img     = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+			img.getGraphics().drawImage(scaled, 0, 0, width, height, null);
+
+			scaled.flush();
+			img.flush();
+
+			ImageIO.write(img, format, out);
+
+		} catch (Throwable t) {
+			logger.warn("Unable to create thumbnail of source image", t);
+		}
+
+	}
 
 	public static class Base64URIData {
 
 		private String contentType;
 		private String data;
-
-		//~--- constructors -------------------------------------------
 
 		public Base64URIData(final String rawData) {
 
@@ -983,49 +952,29 @@ public abstract class ImageHelper extends FileHelper {
 
 			data        = parts[1];
 			contentType = StringUtils.substringBetween(parts[0], "data:", ";base64");
-
 		}
 
-		//~--- get methods --------------------------------------------
-
 		public String getContentType() {
-
 			return contentType;
-
 		}
 
 		public String getData() {
-
 			return data;
-
 		}
-
-		public byte[] getBinaryData() {
-
-			return Base64.decode(data);
-
-		}
-
 	}
-
 
 	public static class Thumbnail {
 
-
-		public static enum Format {
+		public enum Format {
 			png, jpg, jpeg, gif;
 		}
 
-		public static Format defaultFormat = Format.jpeg;
-
-		//~--- fields -------------------------------------------------
+		public static Format defaultFormat = Format.png;
 
 		private byte[] bytes;
 		private int height;
 		private int width;
 		private Format format;
-
-		//~--- constructors -------------------------------------------
 
 		public Thumbnail() {}
 
@@ -1051,8 +1000,6 @@ public abstract class ImageHelper extends FileHelper {
 			this.format = Format.valueOf(formatString);
 		}
 
-		//~--- get methods --------------------------------------------
-
 		public byte[] getBytes() {
 			return bytes;
 		}
@@ -1073,8 +1020,6 @@ public abstract class ImageHelper extends FileHelper {
 			return format.name();
 		}
 
-		//~--- set methods --------------------------------------------
-
 		public void setBytes(final byte[] bytes) {
 			this.bytes = bytes;
 		}
@@ -1090,11 +1035,5 @@ public abstract class ImageHelper extends FileHelper {
 		public void setFormat(final Format format) {
 			this.format = format;
 		}
-
-		public void setFormatByString(final String formatString) {
-			this.format = Format.valueOf(formatString);
-		}
-
 	}
-
 }
