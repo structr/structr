@@ -116,7 +116,7 @@ public class UiTest extends StructrUiTest {
 			assertEquals(Integer.valueOf(200), tn.getWidth());
 			assertEquals(Integer.valueOf(48), tn.getHeight());  // cropToFit = false
 
-			assertEquals("image/" + Thumbnail.Format.jpeg, tn.getContentType());
+			assertEquals("image/" + Thumbnail.Format.png, tn.getContentType());
 
 			tx.success();
 
