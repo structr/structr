@@ -153,7 +153,7 @@ public class CacheTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.PERSON).getFirst()),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.MAIL_TEMPLATE).getFirst()),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name")
 				);
@@ -178,7 +178,7 @@ public class CacheTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				final JsonSchema schema = StructrSchema.createFromDatabase(app);
-				final JsonType type     = schema.getType(StructrTraits.PERSON);
+				final JsonType type     = schema.getType(StructrTraits.MAIL_TEMPLATE);
 
 				final Iterator<JsonProperty> iterator = type.getProperties().iterator();
 				while (iterator.hasNext()) {

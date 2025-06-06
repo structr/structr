@@ -365,9 +365,9 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.13.0</version>
 				<configuration>
-					<source>24</source>
-					<target>24</target>
-					<release>24</release>
+					<source>22</source>
+					<target>22</target>
+					<release>22</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 					<useModulePath>true</useModulePath>

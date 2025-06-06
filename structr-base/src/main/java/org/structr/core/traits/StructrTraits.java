@@ -60,7 +60,6 @@ public class StructrTraits {
 	public static final String LOCALIZATION                        = "Localization";
 	public static final String LOCATION                            = "Location";
 	public static final String MAIL_TEMPLATE                       = "MailTemplate";
-	public static final String PERSON                              = "Person";
 	public static final String SESSION_DATA_NODE                   = "SessionDataNode";
 	public static final String SCHEMA_METHOD_PARAMETER             = "SchemaMethodParameter";
 	public static final String CORS_SETTING                        = "CorsSetting";

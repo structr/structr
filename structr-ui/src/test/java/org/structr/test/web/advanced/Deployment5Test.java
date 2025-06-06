@@ -38,6 +38,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -430,53 +431,6 @@ public class Deployment5Test extends DeploymentTestBase {
 		compare(calculateHash(), true);
 	}
 
-	/* disabled, no support for pure Java methods any more
-	public void test55JavaSchemaMethods() {
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-
-			// a customer
-			final JsonType customer = sourceSchema.addType("Customer");
-
-			customer.addMethod("test", "System.out.println(parameters); return null;").setCodeType("java");
-
-			StructrSchema.replaceDatabaseSchema(app, sourceSchema);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		// test
-		doImportExportRoundtrip(true);
-
-		// check
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test").getFirst();
-
-			assertNotNull("Invalid deployment result", method1);
-
-			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY)));
-			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY)));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// test
-		compare(calculateHash(), true);
-	}
-	*/
-
 	@Test
 	public void test56RenamedFileAndFolderInNewerVersionOfDeploymentExport() {
 
@@ -645,5 +599,112 @@ public class Deployment5Test extends DeploymentTestBase {
 		final String hash2 = calculateHash();
 
 		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);
+	}
+
+	@Test
+	public void test59NewlinesInRepeaterCode() {
+
+		final String multilineQuery =
+			"""
+			{
+				[
+					{ name: 'Test1' },
+					{ name: 'Test2' },
+					{ name: 'Test3' },
+					{ name: 'Test4' }
+				];
+			}
+			""";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test59");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test59");
+
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1  = createElement(page1, body1, "div");
+			final Content content  = createContent(page1, div1, "${group.name}");
+
+			div1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), multilineQuery);
+			div1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "group");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// check HTML result before roundtrip
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+			.body("html.body.div[0]", Matchers.equalTo("Test1"))
+			.body("html.body.div[1]", Matchers.equalTo("Test2"))
+			.body("html.body.div[2]", Matchers.equalTo("Test3"))
+			.body("html.body.div[3]", Matchers.equalTo("Test4"))
+			.statusCode(200)
+			.when()
+			.get("/test59");
+
+		// test roundtrip
+		compare(calculateHash(), true);
+
+		// user must be created again
+		createAdminUser();
+
+		// wait for transaction to settle
+		try { Thread.sleep(1000); } catch (Throwable t) {}
+
+		RestAssured.basePath = "/";
+
+		// check HTML result after roundtrip
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+			.body("html.body.div[0]", Matchers.equalTo("Test1"))
+			.body("html.body.div[1]", Matchers.equalTo("Test2"))
+			.body("html.body.div[2]", Matchers.equalTo("Test3"))
+			.body("html.body.div[3]", Matchers.equalTo("Test4"))
+			.statusCode(200)
+			.when()
+			.get("/test59");
+
+		// check that the function query property value is identical
+		try (final Tx tx = app.tx()) {
+
+			final DOMElement div = app.nodeQuery("Div").getFirst().as(DOMElement.class);
+
+			assertEquals("Invalid deployment roundtrip result: function query has changed!", multilineQuery, div.getFunctionQuery());
+
+			System.out.println(div.getFunctionQuery());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 	}
 }

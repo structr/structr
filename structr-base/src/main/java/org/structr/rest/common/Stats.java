@@ -30,7 +30,7 @@ public class Stats {
 	// static final => can only be changed by restarting the app (would mess up stats otherwise)
 	private static final long globalAggregationIntervalMilliseconds = Settings.HttpStatsAggregationInterval.getValue(60_000);
 
-	private Map<Long, Long> values = new LinkedHashMap<>();
+	private LinkedHashMap<Long, Long> values = new LinkedHashMap<>();
 	private long count             = 0L;
 	private long sum               = 0L;
 	private long min               = Long.MAX_VALUE;
@@ -93,35 +93,48 @@ public class Stats {
 			throw new FrameworkException(422, "Requested aggregation interval " + aggregationIntervalMilliseconds + " is not a multiple of the global aggregation interval " + this.globalAggregationIntervalMilliseconds);
 		}
 
+		final Map<Long, Long> aggregation = new TreeMap<>();
+
 		// aggregation interval matches => return data
 		if (aggregationIntervalMilliseconds == this.globalAggregationIntervalMilliseconds) {
 
-			return values;
-		}
+			synchronized (values) {
 
-		final Map<Long, Long> aggregation = new TreeMap<>();
+				for (final Map.Entry<Long, Long> entry : values.reversed().entrySet()) {
 
-		synchronized (values) {
+					aggregation.put(entry.getKey(), entry.getValue());
 
-			for (final Map.Entry<Long, Long> entry : values.entrySet()) {
-
-				final Long originalKey    = entry.getKey();
-				final Long aggregationKey = originalKey - (originalKey % aggregationIntervalMilliseconds);
-				final Long value          = entry.getValue();
-
-				Long sum = aggregation.get(aggregationKey);
-				if (sum == null) {
-
-					aggregation.put(aggregationKey, value);
-
-				} else {
-
-					aggregation.put(aggregationKey, sum + value);
+					// max
+					if (aggregation.size() >= maxCount) {
+						break;
+					}
 				}
+			}
 
-				// max
-				if (aggregation.size() >= maxCount) {
-					break;
+		} else {
+
+			synchronized (values) {
+
+				for (final Map.Entry<Long, Long> entry : values.reversed().entrySet()) {
+
+					final Long originalKey = entry.getKey();
+					final Long aggregationKey = originalKey - (originalKey % aggregationIntervalMilliseconds);
+					final Long value = entry.getValue();
+
+					Long sum = aggregation.get(aggregationKey);
+					if (sum == null) {
+
+						aggregation.put(aggregationKey, value);
+
+					} else {
+
+						aggregation.put(aggregationKey, sum + value);
+					}
+
+					// max
+					if (aggregation.size() >= maxCount) {
+						break;
+					}
 				}
 			}
 		}

@@ -63,7 +63,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.LOCALIZATION,             new LocalizationTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.LOCATION,                 new LocationTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.MAIL_TEMPLATE,            new MailTemplateTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.PERSON,                   new PersonTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        new SessionDataNodeTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_GRANT,             new SchemaReloadingNodeTraitDefinition(), new SchemaGrantTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.ABSTRACT_SCHEMA_NODE,     new AbstractSchemaNodeTraitDefinition());

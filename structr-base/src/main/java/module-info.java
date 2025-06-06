@@ -90,7 +90,6 @@ module structr.base {
 	requires simpleclient.servlet.jakarta;
 	requires simpleclient;
 	requires textile.j;
-	requires thumbnailator;
 	requires urlrewritefilter;
 	requires xml.apis.ext;
 	requires zero.allocation.hashing;
