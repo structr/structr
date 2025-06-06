@@ -42,13 +42,13 @@ public class EntityResolverTest extends StructrRestTestBase {
 
 		try {
 
-			final List<String> personIds = new LinkedList<>();
+			final List<String> mailTemplateIds = new LinkedList<>();
 
 			try (final Tx tx = app.tx()) {
 
 				// create list of persons to test the resolver resource
-				for (final NodeInterface person : createTestNodes(StructrTraits.PERSON, 10)) {
-					personIds.add(person.getUuid());
+				for (final NodeInterface mailTemplate : createTestNodes(StructrTraits.MAIL_TEMPLATE, 10)) {
+					mailTemplateIds.add(mailTemplate.getUuid());
 				}
 
 				tx.success();
@@ -59,14 +59,14 @@ public class EntityResolverTest extends StructrRestTestBase {
 				.given()
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.contentType("application/json; charset=UTF-8")
-					.body(" { ids: [\"" + personIds.get(2) + "\", \"" + personIds.get(5) + "\", \"" + personIds.get(7) + "\", \"" + personIds.get(8) + "\"] } ")
+					.body(" { ids: [\"" + mailTemplateIds.get(2) + "\", \"" + mailTemplateIds.get(5) + "\", \"" + mailTemplateIds.get(7) + "\", \"" + mailTemplateIds.get(8) + "\"] } ")
 				.expect()
 					.statusCode(200)
 					.body("result_count", equalTo(4))
-					.body("result[0].id", equalTo(personIds.get(2)))
-					.body("result[1].id", equalTo(personIds.get(5)))
-					.body("result[2].id", equalTo(personIds.get(7)))
-					.body("result[3].id", equalTo(personIds.get(8)))
+					.body("result[0].id", equalTo(mailTemplateIds.get(2)))
+					.body("result[1].id", equalTo(mailTemplateIds.get(5)))
+					.body("result[2].id", equalTo(mailTemplateIds.get(7)))
+					.body("result[3].id", equalTo(mailTemplateIds.get(8)))
 				.when()
 					.post("/resolver");
 
@@ -75,12 +75,12 @@ public class EntityResolverTest extends StructrRestTestBase {
 				.given()
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.contentType("application/json; charset=UTF-8")
-					.body(" { ids: [\"" + personIds.get(2) + "\", \"" + personIds.get(5) + "\"] } ")
+					.body(" { ids: [\"" + mailTemplateIds.get(2) + "\", \"" + mailTemplateIds.get(5) + "\"] } ")
 				.expect()
 					.statusCode(200)
 					.body("result_count", equalTo(2))
-					.body("result[0].id", equalTo(personIds.get(2)))
-					.body("result[1].id", equalTo(personIds.get(5)))
+					.body("result[0].id", equalTo(mailTemplateIds.get(2)))
+					.body("result[1].id", equalTo(mailTemplateIds.get(5)))
 				.when()
 					.post("/resolver/ui");
 
@@ -132,7 +132,7 @@ public class EntityResolverTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get("/Person/vvv");
+				.get("/MailTemplate/vvv");
 
 	}
 

@@ -52,11 +52,13 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
@@ -65,18 +67,23 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Simple upload servlet.
  */
 public class UploadServlet extends AbstractServletBase implements HttpServiceServlet {
+
+	private static final Set<String> AllowedProperties = Set.of(
+		GraphObjectTraitDefinition.TYPE_PROPERTY,
+		NodeInterfaceTraitDefinition.NAME_PROPERTY,
+		AbstractFileTraitDefinition.PARENT_ID_PROPERTY,
+		AbstractFileTraitDefinition.PARENT_PROPERTY
+	);
 
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
@@ -219,8 +226,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			response.setContentType("text/html");
 
-			final Map<String, Object> params         = new HashMap<>();
-			String uuid                              = null;
+			final Map<String, Object> params = new HashMap<>();
+			String uuid                      = null;
 
 			// 1. Collect non-file parts
 			final Collection<Part> parts = request.getParts();
@@ -303,6 +310,28 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					if (cls != null) {
 
 						type = cls.getName();
+					}
+
+					final Set<String> forbiddenProperties = new LinkedHashSet<>();
+
+					// check parameters against whitelist (and allow dynamic properties to be set)
+					// (this needs to be done here because we need the target type)
+					for (final Iterator<String> it = params.keySet().iterator(); it.hasNext(); ) {
+
+						final String propertyName = it.next();
+						if (cls.hasKey(propertyName)) {
+
+							final PropertyKey key = cls.key(propertyName);
+
+							if (!AllowedProperties.contains(propertyName) && !key.isDynamic()) {
+
+								forbiddenProperties.add(propertyName);
+							}
+						}
+					}
+
+					if (!forbiddenProperties.isEmpty()) {
+						throw new FrameworkException(422, "The following properties may not be set during upload: " + forbiddenProperties);
 					}
 
 					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");

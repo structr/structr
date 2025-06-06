@@ -1292,7 +1292,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	private Object handleAppendChildAction(final RenderContext renderContext, final NodeInterface entity, final Map<String, Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
-		final String dataTarget               = getDataTargetFromParameters(parameters, "append-child", true);
+		final String dataTarget = getDataTargetFromParameters(parameters, "append-child", true);
 
 		// fetch child ID
 		final String childId = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_CHILDID);

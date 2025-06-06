@@ -32,7 +32,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
-import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.api.UnnamedArguments;
@@ -6797,7 +6796,6 @@ public class ScriptingTest extends StructrTest {
 			expected.add(NodeInterfaceTraitDefinition.OWNER_PROPERTY);
 			expected.add(NodeInterfaceTraitDefinition.OWNER_ID_PROPERTY);
 			expected.add(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY);
-			expected.add(GraphObjectTraitDefinition.BASE_PROPERTY);
 			expected.add(GraphObjectTraitDefinition.TYPE_PROPERTY);
 			expected.add(GraphObjectTraitDefinition.ID_PROPERTY);
 			expected.add(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY);
@@ -7116,6 +7114,23 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testGetOrCreateWithUnknownProperty() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Scripting.evaluate(actionContext, null, "${{ $.getOrCreate('MailTemplate', { doesNotExist: 'test' }); }}", "test1");
+
+			fail("Providing a nonexistent key to getOrCreate() should throw an exception.");
+
+			tx.success();
+
+		} catch (FrameworkException expected) {
 		}
 	}
 

@@ -26,8 +26,11 @@ import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
@@ -64,10 +67,23 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
                     final ProxyExecutable executable = (ProxyExecutable) parameters[1];
 
                     final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);
-
                     userContext.setContextStore(initialSecurityContext.getContextStore());
                     actionContext.setSecurityContext(userContext);
-                    executable.execute();
+
+                    if (executable instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
+
+                        functionWrapper.setActionContext(actionContext);
+                    }
+
+                    try (final Tx tx = StructrApp.getInstance(userContext).tx()) {
+                        executable.execute();
+
+                        tx.success();
+                    } catch (FrameworkException e) {
+
+                        throw new RuntimeException(e);
+                    }
+
                     initialSecurityContext.setContextStore(userContext.getContextStore());
 
                 } else {
