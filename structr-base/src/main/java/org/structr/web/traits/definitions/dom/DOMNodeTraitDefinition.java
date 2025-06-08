@@ -30,6 +30,7 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.InstanceMethod;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.Relation;
@@ -49,6 +50,7 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
@@ -628,7 +630,51 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
+
+		return Set.of(
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "cloneNode") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+					final boolean deep = parameters.get("deep") != null && Boolean.parseBoolean(parameters.get("deep").toString());
+
+					final DOMNode clonedNode = node.cloneNode(deep);
+
+					return clonedNode;
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "appendChild") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node      = entity.as(DOMNode.class);
+					final DOMNode newChild = ((NodeInterface) parameters.get("newChild")).as(DOMNode.class);
+
+					node.appendChild(newChild);
+
+					return newChild;
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "setOwnerDocument") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node      = entity.as(DOMNode.class);
+					final DOMNode newChild = ((NodeInterface) parameters.get("newChild")).as(DOMNode.class);
+
+					node.appendChild(newChild);
+
+					return newChild;
+				}
+			}
+		);
 	}
 
 	@Override
