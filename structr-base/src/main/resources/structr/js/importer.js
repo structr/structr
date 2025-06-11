@@ -271,7 +271,7 @@ let Importer = {
 
 		Importer.clearSchemaTypeCache();
 
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload);
 
 		let startButton = _Dialogs.custom.prependCustomDialogButton('<button class="action disabled" disabled id="start-import">Start import</button>');
 
@@ -462,15 +462,15 @@ let Importer = {
 
 		if (!Importer.schemaTypeCachePopulated) {
 
-			fetch(Structr.rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name').then(response => response.json()).then(data => {
+			_Helpers.getSchemaInformationPromise().then(schemaData => {
 
-				if (data && data.result) {
+				Importer.clearSchemaTypeCache();
 
-					Importer.clearSchemaTypeCache();
+				for (let res of schemaData) {
 
-					for (let res of data.result) {
+					if (res.isServiceClass === false) {
 
-						if (res.type === 'SchemaRelationshipNode') {
+						if (res.isRel) {
 
 							Importer.schemaTypeCache['relTypes'].push(res);
 
@@ -480,11 +480,11 @@ let Importer = {
 							Importer.schemaTypeCache['nodeTypes'].push(res);
 						}
 					}
-
-					Importer.updateSchemaTypeSelector(targetTypeSelector);
-
-					Importer.schemaTypeCachePopulated = true;
 				}
+
+				Importer.updateSchemaTypeSelector(targetTypeSelector);
+
+				Importer.schemaTypeCachePopulated = true;
 			});
 		}
 	},
@@ -499,15 +499,15 @@ let Importer = {
 
 		typeSelect.append(data.map(name => `<option value="${name}">${name}</option>`).join(''));
 	},
-	getSchemaTypeSelectorData: (importType = "") => {
+	getSchemaTypeSelectorData: (importType = '') => {
 
-		let allTypeData = Importer.schemaTypeCache[importType + "Types"];
+		let allTypeData = Importer.schemaTypeCache[importType + 'Types'];
 
-		if ((importType === 'node' || importType === 'graph') && Importer.customTypesOnly === true) {
-			allTypeData = allTypeData.filter(t => t.isBuiltinType === false);
+		if (Importer.customTypesOnly === true) {
+			allTypeData = allTypeData.filter(t => t.isBuiltin === false);
 		}
 
-		return allTypeData.map(t => t.name);
+		return allTypeData.map(t => t.name).sort();
 	},
 	clearSchemaTypeCache: () => {
 
@@ -517,7 +517,7 @@ let Importer = {
 			graphTypes: []
 		};
 	},
-	updateMapping: function(file, data) {
+	updateMapping: (file, data) => {
 
 		let targetTypeSelector = $('#target-type-select');
 		let propertySelector   = $('#property-select');
@@ -756,7 +756,7 @@ let Importer = {
 
 		let configuration = {};
 
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import XML from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import XML from ${file.name}`, Importer.unload);
 
 		let prevButton = _Dialogs.custom.prependCustomDialogButton('<button id="prev-element">Previous</button>');
 		let nextButton = _Dialogs.custom.prependCustomDialogButton('<button id="next-element">Next</button>');
@@ -1709,6 +1709,7 @@ let Importer = {
 			<select id="target-type-select" name="targetType">
 				<option value="" disabled="disabled" selected="selected">Select target type..</option>
 			</select>
+			<span><input type="checkbox" id="target-type-custom-only"><label for="target-type-custom-only">Only show custom types</label></span>
 			<div id="property-select"></div>
 		`,
 		snippetMappingRow: config => `

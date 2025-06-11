@@ -697,6 +697,13 @@ let _Helpers = {
 		}
 
 		return '';
+	},
+	getSchemaInformationPromise: async () => {
+		return new Promise((resolve) => {
+			fetch(Structr.rootUrl + '_schema').then(response => response.json()).then(schemaData => {
+				resolve(schemaData.result);
+			});
+		});
 	}
 };
 

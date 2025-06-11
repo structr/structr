@@ -478,7 +478,7 @@ let _Entities = {
 						dialogTitle = `Edit properties of ${entity?.type ?? ''} node ${entity?.name ?? entity.id}`;
 					}
 
-					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
+					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle);
 
 					if (showDeleteBtn) {
 
