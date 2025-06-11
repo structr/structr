@@ -692,7 +692,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			Folder folder = FileHelper.createFolderPath(securityContext, path).as(Folder.class);
+			final NodeInterface newFolder = FileHelper.createFolderPath(securityContext, path);
+			Folder folder = newFolder != null ? newFolder.as(Folder.class) : null;
 			tx.success();
 
 			return folder;

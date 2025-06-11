@@ -30,6 +30,7 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.InstanceMethod;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.Relation;
@@ -628,7 +629,67 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
+
+		return Set.of(
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "cloneNode") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+					final boolean deep = parameters.get("deep") != null && Boolean.parseBoolean(parameters.get("deep").toString());
+
+					final DOMNode clonedNode = node.cloneNode(deep);
+
+					return clonedNode;
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "appendChild") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
+
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
+
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.appendChild(): missing required argument `newChild` of type DOMNode.");
+					}
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "setOwnerDocument") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
+
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
+
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.setOwnerDocument(): missing required argument `newChild` of type DOMNode.");
+					}
+				}
+			}
+		);
 	}
 
 	@Override
