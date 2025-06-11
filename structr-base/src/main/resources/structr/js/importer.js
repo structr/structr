@@ -411,7 +411,7 @@ let Importer = {
 			}
 		});
 	},
-	formatImportTypeSelectorDialog: function(file, mixedMappingConfig) {
+	formatImportTypeSelectorDialog: (file, mixedMappingConfig) => {
 
 		let importType = $('input[name=import-type]:checked').val();
 
@@ -434,7 +434,9 @@ let Importer = {
 
 		let targetTypeSelector = $('#target-type-select');
 
-		Importer.updateSchemaTypeCache(targetTypeSelector);
+		Importer.updateSchemaTypeCache().then(ignore => {
+			Importer.updateSchemaTypeSelector(targetTypeSelector);
+		});
 
 		targetTypeSelector.off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
 		$(".import-option").off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
@@ -458,35 +460,42 @@ let Importer = {
 		Importer.updateSchemaTypeSelector(targetTypeSelector);
 
 	},
-	updateSchemaTypeCache: (targetTypeSelector) => {
+	updateSchemaTypeCache: async () => {
 
-		if (!Importer.schemaTypeCachePopulated) {
+		return new Promise((resolve) => {
 
-			_Helpers.getSchemaInformationPromise().then(schemaData => {
+			if (!Importer.schemaTypeCachePopulated) {
 
-				Importer.clearSchemaTypeCache();
+				_Helpers.getSchemaInformationPromise().then(schemaData => {
 
-				for (let res of schemaData) {
+					Importer.clearSchemaTypeCache();
 
-					if (res.isServiceClass === false) {
+					for (let res of schemaData) {
 
-						if (res.isRel) {
+						if (res.isServiceClass === false) {
 
-							Importer.schemaTypeCache['relTypes'].push(res);
+							if (res.isRel) {
 
-						} else {
+								Importer.schemaTypeCache['relTypes'].push(res);
 
-							Importer.schemaTypeCache['graphTypes'].push(res);
-							Importer.schemaTypeCache['nodeTypes'].push(res);
+							} else {
+
+								Importer.schemaTypeCache['graphTypes'].push(res);
+								Importer.schemaTypeCache['nodeTypes'].push(res);
+							}
 						}
 					}
-				}
 
-				Importer.updateSchemaTypeSelector(targetTypeSelector);
+					Importer.schemaTypeCachePopulated = true;
 
-				Importer.schemaTypeCachePopulated = true;
-			});
-		}
+					resolve('success');
+				});
+
+			} else {
+
+				resolve('success_from_cache');
+			}
+		});
 	},
 	updateSchemaTypeSelector: (typeSelect) => {
 
@@ -1031,19 +1040,6 @@ let Importer = {
 		let propertySelector = $('#property-select');
 		let typeConfig       = configuration[path];
 
-		fetch(Structr.rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name').then(response => response.json()).then(data => {
-
-			if (data && data.result) {
-
-				typeSelector.append(data.result.map(r => `<option value="${r.name}">${r.name}</option>`).join(''));
-
-				// trigger select event when an element is already configured
-				if (typeConfig && typeConfig.type) {
-					typeSelector.val(typeConfig.type).trigger('change');
-				}
-			}
-		});
-
 		typeSelector.on('change', function(e) {
 
 			let type  = $(this).val();
@@ -1190,6 +1186,16 @@ let Importer = {
 			});
 
 		});
+
+		Importer.updateSchemaTypeCache().then(ignore => {
+
+			typeSelector.append(Importer.schemaTypeCache.nodeTypes.map(n => `<option value="${n.name}">${n.name}</option>`).sort().join(''));
+
+			// trigger select event when an element is already configured
+			if (typeConfig && typeConfig.type) {
+				typeSelector.val(typeConfig.type).trigger('change');
+			}
+		});
 	},
 	showSetPropertyOptions: (el, key, path, structure, configuration, attributes) => {
 
@@ -1324,7 +1330,9 @@ let Importer = {
 			customOnlyCheckbox.prop('checked', true);
 		}
 
-		Importer.updateSchemaTypeCache(targetTypeSelector);
+		Importer.updateSchemaTypeCache().then(ignore => {
+			Importer.updateSchemaTypeSelector(targetTypeSelector);
+		});
 
 		$('#types-container').empty();
 		$('#start-import').off('click');
