@@ -216,7 +216,7 @@ input.readonly {
 .exportArea, .importArea {
 	border: 1x solid var(--input-field-border);
 	margin: 0;
-	height: 448px;
+	height: calc(100% - .5rem);
 	overflow: auto;
 }
 

@@ -217,11 +217,11 @@ let _Crud = {
 					let recentTypesList = document.querySelector('#crud-recent-types-list');
 
 					recentTypesList.innerHTML = recentTypes.map(type => `
-							<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}" data-type="${type}">
-								<div class="truncate">${type}</div>
-								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
-							</div>
-						`).join('');
+						<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}" data-type="${type}">
+							<div class="truncate">${type}</div>
+							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
+						</div>
+					`).join('');
 				}
 
 				LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);

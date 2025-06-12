@@ -271,7 +271,7 @@ let Importer = {
 
 		Importer.clearSchemaTypeCache();
 
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload);
 
 		let startButton = _Dialogs.custom.prependCustomDialogButton('<button class="action disabled" disabled id="start-import">Start import</button>');
 
@@ -411,7 +411,7 @@ let Importer = {
 			}
 		});
 	},
-	formatImportTypeSelectorDialog: function(file, mixedMappingConfig) {
+	formatImportTypeSelectorDialog: (file, mixedMappingConfig) => {
 
 		let importType = $('input[name=import-type]:checked').val();
 
@@ -434,7 +434,9 @@ let Importer = {
 
 		let targetTypeSelector = $('#target-type-select');
 
-		Importer.updateSchemaTypeCache(targetTypeSelector);
+		Importer.updateSchemaTypeCache().then(ignore => {
+			Importer.updateSchemaTypeSelector(targetTypeSelector);
+		});
 
 		targetTypeSelector.off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
 		$(".import-option").off('change').on('change', function(e, data) { Importer.updateMapping(file, data); });
@@ -458,35 +460,42 @@ let Importer = {
 		Importer.updateSchemaTypeSelector(targetTypeSelector);
 
 	},
-	updateSchemaTypeCache: (targetTypeSelector) => {
+	updateSchemaTypeCache: async () => {
 
-		if (!Importer.schemaTypeCachePopulated) {
+		return new Promise((resolve) => {
 
-			fetch(Structr.rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name').then(response => response.json()).then(data => {
+			if (!Importer.schemaTypeCachePopulated) {
 
-				if (data && data.result) {
+				_Helpers.getSchemaInformationPromise().then(schemaData => {
 
 					Importer.clearSchemaTypeCache();
 
-					for (let res of data.result) {
+					for (let res of schemaData) {
 
-						if (res.type === 'SchemaRelationshipNode') {
+						if (res.isServiceClass === false) {
 
-							Importer.schemaTypeCache['relTypes'].push(res);
+							if (res.isRel) {
 
-						} else {
+								Importer.schemaTypeCache['relTypes'].push(res);
 
-							Importer.schemaTypeCache['graphTypes'].push(res);
-							Importer.schemaTypeCache['nodeTypes'].push(res);
+							} else {
+
+								Importer.schemaTypeCache['graphTypes'].push(res);
+								Importer.schemaTypeCache['nodeTypes'].push(res);
+							}
 						}
 					}
 
-					Importer.updateSchemaTypeSelector(targetTypeSelector);
-
 					Importer.schemaTypeCachePopulated = true;
-				}
-			});
-		}
+
+					resolve('success');
+				});
+
+			} else {
+
+				resolve('success_from_cache');
+			}
+		});
 	},
 	updateSchemaTypeSelector: (typeSelect) => {
 
@@ -499,15 +508,15 @@ let Importer = {
 
 		typeSelect.append(data.map(name => `<option value="${name}">${name}</option>`).join(''));
 	},
-	getSchemaTypeSelectorData: (importType = "") => {
+	getSchemaTypeSelectorData: (importType = '') => {
 
-		let allTypeData = Importer.schemaTypeCache[importType + "Types"];
+		let allTypeData = Importer.schemaTypeCache[importType + 'Types'];
 
-		if ((importType === 'node' || importType === 'graph') && Importer.customTypesOnly === true) {
-			allTypeData = allTypeData.filter(t => t.isBuiltinType === false);
+		if (Importer.customTypesOnly === true) {
+			allTypeData = allTypeData.filter(t => t.isBuiltin === false);
 		}
 
-		return allTypeData.map(t => t.name);
+		return allTypeData.map(t => t.name).sort();
 	},
 	clearSchemaTypeCache: () => {
 
@@ -517,7 +526,7 @@ let Importer = {
 			graphTypes: []
 		};
 	},
-	updateMapping: function(file, data) {
+	updateMapping: (file, data) => {
 
 		let targetTypeSelector = $('#target-type-select');
 		let propertySelector   = $('#property-select');
@@ -756,7 +765,7 @@ let Importer = {
 
 		let configuration = {};
 
-		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import XML from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import XML from ${file.name}`, Importer.unload);
 
 		let prevButton = _Dialogs.custom.prependCustomDialogButton('<button id="prev-element">Previous</button>');
 		let nextButton = _Dialogs.custom.prependCustomDialogButton('<button id="next-element">Next</button>');
@@ -1031,19 +1040,6 @@ let Importer = {
 		let propertySelector = $('#property-select');
 		let typeConfig       = configuration[path];
 
-		fetch(Structr.rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name').then(response => response.json()).then(data => {
-
-			if (data && data.result) {
-
-				typeSelector.append(data.result.map(r => `<option value="${r.name}">${r.name}</option>`).join(''));
-
-				// trigger select event when an element is already configured
-				if (typeConfig && typeConfig.type) {
-					typeSelector.val(typeConfig.type).trigger('change');
-				}
-			}
-		});
-
 		typeSelector.on('change', function(e) {
 
 			let type  = $(this).val();
@@ -1190,6 +1186,16 @@ let Importer = {
 			});
 
 		});
+
+		Importer.updateSchemaTypeCache().then(ignore => {
+
+			typeSelector.append(Importer.schemaTypeCache.nodeTypes.map(n => `<option value="${n.name}">${n.name}</option>`).sort().join(''));
+
+			// trigger select event when an element is already configured
+			if (typeConfig && typeConfig.type) {
+				typeSelector.val(typeConfig.type).trigger('change');
+			}
+		});
 	},
 	showSetPropertyOptions: (el, key, path, structure, configuration, attributes) => {
 
@@ -1324,7 +1330,9 @@ let Importer = {
 			customOnlyCheckbox.prop('checked', true);
 		}
 
-		Importer.updateSchemaTypeCache(targetTypeSelector);
+		Importer.updateSchemaTypeCache().then(ignore => {
+			Importer.updateSchemaTypeSelector(targetTypeSelector);
+		});
 
 		$('#types-container').empty();
 		$('#start-import').off('click');
@@ -1709,6 +1717,7 @@ let Importer = {
 			<select id="target-type-select" name="targetType">
 				<option value="" disabled="disabled" selected="selected">Select target type..</option>
 			</select>
+			<span><input type="checkbox" id="target-type-custom-only"><label for="target-type-custom-only">Only show custom types</label></span>
 			<div id="property-select"></div>
 		`,
 		snippetMappingRow: config => `

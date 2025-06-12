@@ -1392,10 +1392,12 @@ body[style*=zoom] .non-block-ui-blocker-content {
 }
 
 #dialogBox {
-	min-width: calc(60vw);
+	width: calc(60vw);
 	height: calc(60vh);
 	padding-bottom: 4rem;
 	position: relative;
+	display: flex;
+	flex-direction: column;
 }
 
 #dialogBox.maximized {
@@ -1423,13 +1425,13 @@ body[style*=zoom] .non-block-ui-blocker-content {
 }
 
 .dialogMeta {
-	padding: 1rem 0 0 0;
+	padding: .5rem 0 0 0;
 }
 
 .dialogTextWrapper {
 	width: 100%;
-	height: calc(60vh - 1rem);
 	overflow: auto;
+	flex-grow: 1;
 }
 
 .dialogText textarea {
@@ -1509,8 +1511,9 @@ body[style*=zoom] .non-block-ui-blocker-content {
 	margin-right: 0.5rem;
 }
 
-#infoText, #dialogBox .dialogText {
-	vertical-align: top;
+#dialogBox .dialogText {
+	height: 100%;
+	overflow: auto;
 }
 
 #login {
@@ -3512,14 +3515,6 @@ table.props td.__value {
 	width: 80%;
 }
 
-#dialogBox .dialogText {
-	position: relative;
-}
-
-#dialogBox.full-height-dialog-text .dialogText {
-	height: 100%;
-}
-
 /**
  * Forms
  */
@@ -3592,16 +3587,6 @@ table.props td.__value {
  */
 .popup-dialog-with-editor .dialogText {
 	height: 100%;
-}
-
-.popup-dialog-with-editor .dialogTextWrapper,
-.full-height-dialog-text .dialogTextWrapper {
-	height: calc(60vh - 5rem);
-}
-
-.popup-dialog-with-editor .dialogTextWrapper.maximized,
-.full-height-dialog-text .dialogTextWrapper.maximized {
-	height: calc(100vh - 12rem);
 }
 
 .popup-dialog-with-editor .dialogText #widget-dialog_content {
