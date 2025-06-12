@@ -196,7 +196,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		if (!index.containsKey(id)) {
 
 			final Map<String, Object> map = new LinkedHashMap<>();
-			final String name             = node.getName();
+			final String name             = getNameOrText(node);
 			final String type             = node.getType();
 
 			map.put("id",       id);
@@ -572,5 +572,9 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		}
 
 		return false;
+	}
+
+	private String getNameOrText(final NodeInterface node) {
+		return node.getName();
 	}
 }
