@@ -78,7 +78,6 @@ let _Schema = {
 
 			_Schema.init(null,() => {
 				Structr.resize();
-				_Schema.initPanZoom();
 			});
 
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
@@ -174,38 +173,6 @@ let _Schema = {
 		}
 
 		Structr.adaptUiToAvailableFeatures();
-	},
-	initPanZoom: () => {
-		const schemaContainer = document.getElementById('schema-container');
-		const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
-
-		const panzoom = Panzoom(schemaContainer, { cursor: 'default', exclude: nodeElements, handleStartEvent: (event) => {
-			if (!event.shiftKey) {
-				panzoom.setOptions({ disablePan: true, cursor: 'default' });
-			} else {
-				panzoom.setOptions({ disablePan: false, cursor: 'move' });
-				event.preventDefault();
-				event.stopPropagation();
-			}
-		} });
-		document.addEventListener('keydown', (event) => {
-			if (event.shiftKey) {
-				schemaContainer.style.cursor = 'move';
-			}
-		});
-		document.addEventListener('keyup', (event) => {
-			if (!event.shiftKey) {
-				schemaContainer.style.cursor = 'default';
-			}
-		});
-		schemaContainer.addEventListener('panzoomstart', (event) => {
-			if (!event.shiftKey) {
-				event.preventDefault();
-			}
-		});
-		schemaContainer.addEventListener('wheel', (event) => {
-			panzoom.zoomWithWheel(event);
-		});
 	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');
@@ -5234,6 +5201,7 @@ let _Schema = {
 				'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
 				'elk.layered.edgeLabels.sideSelection':                'ALWAYS_UP',
 				'elk.layered.spacing.edgeNodeBetweenLayers':           40,
+				'elk.spacing.portPort':                                0,
 			}
 		};
 
@@ -5259,15 +5227,20 @@ let _Schema = {
 				ports: [
 					{
 						id: 'id_' + n.id + '_NORTH',
-						layoutOptions: { 'port.side': 'NORTH' }
+						layoutOptions: {
+							'port.side': 'NORTH',
+						},
 					},
 					{
 						id: 'id_' + n.id + '_SOUTH',
-						layoutOptions: { 'port.side': 'SOUTH' }
+						layoutOptions: {
+							'port.side': 'SOUTH',
+						},
 					},
 				],
 				layoutOptions: {
-					portConstraints: 'FIXED_SIDE'
+					portConstraints: 'FIXED_SIDE',
+					'portAlignment.default': 'CENTER',
 				}
 			};
 
@@ -5355,9 +5328,9 @@ let _Schema = {
 		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels));
 
 		// todo: implement click handler for nodes
-		node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
-			_Schema.openEditDialog(entity.id);
-		});
+		//node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
+		//	_Schema.openEditDialog(entity.id);
+		//});
 
 
 	},

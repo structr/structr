@@ -12,6 +12,24 @@ class SchemaNodesFormatter {
 
 		svg.appendChild(shape);
 
+		// ports
+		if (child?.ports?.length) {
+
+			for (let port of child.ports) {
+
+				let portShape = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+
+				portShape.setAttribute('cx', child.x + (port.x || 0) + offset.x);
+				portShape.setAttribute('cy', child.y + (port.y || 0) + offset.y);
+				portShape.setAttribute('r', 5);
+				portShape.setAttribute('fill', '#999999');
+
+				svg.appendChild(portShape);
+
+				console.log(child);
+			}
+		}
+
 		if (child?.labels?.length) {
 
 			let label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
