@@ -1027,11 +1027,15 @@ let Importer = {
 			isRoot = true;
 		}
 
+		let defaultSelectEntry = '<option>-- select --</option>';
+
 		el.append(`
 			<label>Select type:</label>
-			<select id="type-select" class="xml-config-select">
-				<option>-- select --</option>
-			</select>
+			<select id="type-select" class="xml-config-select"></select>
+			<span>
+				<input type="checkbox" id="target-type-custom-only">
+				<label for="target-type-custom-only">Only show custom types</label>
+			</span>
 			${(!isRoot) ? '<div id="non-root-options"></div>' : ''}
 			<div id="property-select"></div>
 		`);
@@ -1187,13 +1191,45 @@ let Importer = {
 
 		});
 
+		let showOnlyCustomTypesCheckbox = el[0].querySelector('#target-type-custom-only');
+
 		Importer.updateSchemaTypeCache().then(ignore => {
 
-			typeSelector.append(Importer.schemaTypeCache.nodeTypes.map(n => `<option value="${n.name}">${n.name}</option>`).sort().join(''));
+			showOnlyCustomTypesCheckbox.addEventListener('change', () => {
 
-			// trigger select event when an element is already configured
-			if (typeConfig && typeConfig.type) {
-				typeSelector.val(typeConfig.type).trigger('change');
+				let showOnlyCustomTypes                 = showOnlyCustomTypesCheckbox.checked;
+				configuration[path].showOnlyCustomTypes = showOnlyCustomTypes;
+				let list                                = Importer.schemaTypeCache.nodeTypes;
+				let prevSelected                        = typeSelector.val();
+
+				if (showOnlyCustomTypes) {
+					list = list.filter(type => !type.isBuiltin);
+				}
+
+				typeSelector.html(defaultSelectEntry + list.map(n => `<option value="${n.name}">${n.name}</option>`).sort().join(''));
+
+				typeSelector.val(prevSelected);
+
+				if (typeSelector.val() !== prevSelected) {
+					typeSelector[0].selectedIndex = 0;
+
+					typeSelector.trigger('change');
+				}
+			});
+
+			typeSelector.html(defaultSelectEntry + Importer.schemaTypeCache.nodeTypes.map(n => `<option value="${n.name}">${n.name}</option>`).sort().join(''));
+
+			if (typeConfig) {
+
+				if (typeConfig.showOnlyCustomTypes === true) {
+					showOnlyCustomTypesCheckbox.checked = true;
+					showOnlyCustomTypesCheckbox.dispatchEvent(new Event('change'));
+				}
+
+				// trigger select event when an element is already configured
+				if (typeConfig && typeConfig.type) {
+					typeSelector.val(typeConfig.type).trigger('change');
+				}
 			}
 		});
 	},
