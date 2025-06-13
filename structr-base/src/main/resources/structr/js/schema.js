@@ -252,7 +252,7 @@ let _Schema = {
 		});
 		schemaContainer.addEventListener('panzoomstart', (event) => {
 			if (!event.shiftKey) {
-				e.preventDefault();
+				event.preventDefault();
 			}
 		});
 		schemaContainer.addEventListener('wheel', (event) => {
@@ -4865,12 +4865,13 @@ let _Schema = {
 	},
 	openTypeVisibilityDialog: () => {
 
-		let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility', null, ['full-height-dialog-text']);
+		let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
 
 		let contentEl = _Helpers.createSingleDOMElementFromHTML('<div class="code-tabs flex flex-col h-full overflow-hidden"></div>');
 		dialogText.appendChild(contentEl);
 
 		let customView = 'id,name,isBuiltinType,category';
+		// TODO: Use helper function to fetch all types rather than only schema nodes
 		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
 
 			contentEl.insertAdjacentHTML('beforeend', `

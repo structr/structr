@@ -50,7 +50,6 @@ import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.nodeinterface.VisitForUsage;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.property.CustomHtmlAttributeProperty;
@@ -652,12 +651,20 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
-					final DOMNode node      = entity.as(DOMNode.class);
-					final DOMNode newChild = ((NodeInterface) parameters.get("newChild")).as(DOMNode.class);
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
 
-					node.appendChild(newChild);
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
 
-					return newChild;
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.appendChild(): missing required argument `newChild` of type DOMNode.");
+					}
 				}
 			},
 
@@ -666,12 +673,20 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
 
-					final DOMNode node      = entity.as(DOMNode.class);
-					final DOMNode newChild = ((NodeInterface) parameters.get("newChild")).as(DOMNode.class);
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
 
-					node.appendChild(newChild);
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
 
-					return newChild;
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.setOwnerDocument(): missing required argument `newChild` of type DOMNode.");
+					}
 				}
 			}
 		);
