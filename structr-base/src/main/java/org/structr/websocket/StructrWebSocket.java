@@ -487,7 +487,7 @@ public class StructrWebSocket implements WebSocketListener {
 				synchronized (this) {
 
 					final HttpSession session  = SessionHelper.getSessionBySessionId(sessionId);
-					final boolean sessionValid = !SessionHelper.isSessionTimedOut(session);
+					final boolean sessionValid = session == null || !SessionHelper.isSessionTimedOut(session);
 
 					//logger.info("[{}]: session from cache: {}, valid? {}", nodeName, session, sessionValid);
 
