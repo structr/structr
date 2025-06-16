@@ -844,7 +844,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.error("Exception occured when trying to start service " + serviceName, t);
 
-            if (!disableRetry && isVital) {
+                        if (!disableRetry && isVital) {
 
 				checkVitalService(serviceClass, t);
 
@@ -1268,8 +1268,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		if (t != null) {
 
-			logger.error("Vital service {} failed to start with {}, aborting.", service.getSimpleName(), t.getMessage() );
-			System.err.println("Vital service " + service.getSimpleName() + " failed to start with " + t.getMessage() + ", aborting.");
+			logger.error("Vital service {} failed to start with \"{}\", aborting.", service.getSimpleName(), t.getMessage() );
+			System.err.println("Vital service " + service.getSimpleName() + " failed to start with \"" + t.getMessage() + "\", aborting.");
 
 		} else {
 

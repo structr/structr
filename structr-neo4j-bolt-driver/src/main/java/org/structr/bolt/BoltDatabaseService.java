@@ -59,6 +59,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	private int neo4jMinorVersion                                 = -1;
 	private int neo4jPatchVersion                                 = -1;
 	private String errorMessage                                   = null;
+	private String databaseName                                   = null;
 	private String databaseUrl                                    = null;
 	private Driver driver                                         = null;
 	private SessionConfig sessionConfig                           = null;
@@ -75,9 +76,9 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		databaseUrl               = Settings.ConnectionUrl.getPrefixedValue(serviceName);
+		databaseName              = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
 		final String username     = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password     = Settings.ConnectionPassword.getPrefixedValue(serviceName);
-		final String databaseName = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
 		String databaseDriverUrl  = (!databaseUrl.contains("://") ? "bolt://" + databaseUrl : databaseUrl);
 
 		// build list of supported query languages
@@ -143,6 +144,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			}
 
 			configureVersionDependentFeatures();
+
+			if (!databaseExists()) {
+
+				errorMessage = "Database " + databaseName + " does not exist.";
+
+				throw new RuntimeException(errorMessage);
+			}
 
 			// signal success
 			return true;
@@ -831,6 +839,19 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		// all versions >= 5 support the below flags
 		this.supportsRelationshipIndexes     = neo4jMajorVersion >= 5 || (neo4jMajorVersion >= 4 && neo4jMinorVersion >= 3);
 		this.supportsIdempotentIndexCreation = neo4jMajorVersion >= 5 || (neo4jMajorVersion >= 4 && neo4jMinorVersion >= 1 && neo4jPatchVersion >= 3);
+	}
+
+	private boolean databaseExists() {
+
+		try (final Session session = driver.session()) {
+
+			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+
+				final Result result = tx.run("SHOW DATABASE " + databaseName);
+
+				return !result.list().isEmpty();
+			}
+		}
 	}
 
 	private String stringOrDefault(final String[] source, final int index, final String defaultValue) {
