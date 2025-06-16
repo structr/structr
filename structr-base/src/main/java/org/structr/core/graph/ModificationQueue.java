@@ -549,34 +549,37 @@ public class ModificationQueue {
 			}
 
 			final Relation relation  = rel.getTraits().getRelation();
-			final PropertyKey source = relation.getSourceProperty();
-			final PropertyKey target = relation.getTargetProperty();
-			final Object sourceValue = source != null && source.isCollection() ? new LinkedList<>() : null;
-			final Object targetValue = target != null && target.isCollection() ? new LinkedList<>() : null;
+			if (relation != null) {
 
-			modify(user, startNode, target, null, targetValue);
-			modify(user, endNode, source, null, sourceValue);
+				final PropertyKey source = relation.getSourceProperty();
+				final PropertyKey target = relation.getTargetProperty();
+				final Object sourceValue = source != null && source.isCollection() ? new LinkedList<>() : null;
+				final Object targetValue = target != null && target.isCollection() ? new LinkedList<>() : null;
 
-			if (source != null && target != null) {
+				modify(user, startNode, target, null, targetValue);
+				modify(user, endNode, source, null, sourceValue);
 
-				if (isDeletion) {
+				if (source != null && target != null) {
 
-					// update removed properties
-					getState(startNode).remove(target, endNode);
-					getState(endNode).remove(source, startNode);
+					if (isDeletion) {
+
+						// update removed properties
+						getState(startNode).remove(target, endNode);
+						getState(endNode).remove(source, startNode);
+
+					} else {
+
+
+						// update added properties
+						getState(startNode).add(target, endNode);
+						getState(endNode).add(source, startNode);
+					}
 
 				} else {
 
-
-					// update added properties
-					getState(startNode).add(target, endNode);
-					getState(endNode).add(source, startNode);
+					// dont log so much..
+					//logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
 				}
-
-			} else {
-
-				// dont log so much..
-				//logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
 			}
 		}
 	}
