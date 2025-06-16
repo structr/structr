@@ -1686,7 +1686,7 @@ let _Pages = {
 
 			methodNameInput.value                  = actionMapping.method;
 			dataTypeSelect.value                   = actionMapping.dataType;
-			dataTypeInput.value                    = actionMapping.dataType;
+			dataTypeInput.value                    = actionMapping.dataType ?? '';
 
 			idExpressionInput.value                = actionMapping.idExpression;
 
