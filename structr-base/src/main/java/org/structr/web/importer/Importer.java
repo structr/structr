@@ -1091,7 +1091,7 @@ public class Importer {
 					final DOMNode parentDOMNode = parent.as(DOMNode.class);
 
 					// special handling for <head> elements
-					if (newNode.is("Head") && parent.is("Body")) {
+					if (newNode.is(StructrTraits.HEAD) && parent.is(StructrTraits.BODY)) {
 
 						final DOMNode html = parentDOMNode.getParent();
 						html.insertBefore(newNode, parentDOMNode);
