@@ -443,7 +443,7 @@ public class StructrWebSocket implements WebSocketListener {
 		try {
 
 			NodeInterface fileNode = StructrApp.getInstance(securityContext).getNodeById(uuid);
-			if (fileNode != null && fileNode.is("File")) {
+			if (fileNode != null && fileNode.is(StructrTraits.FILE)) {
 
 				final File file = fileNode.as(File.class);
 
