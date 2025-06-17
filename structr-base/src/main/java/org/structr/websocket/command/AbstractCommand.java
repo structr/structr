@@ -258,14 +258,12 @@ public abstract class AbstractCommand {
 
 		while (child != null) {
 
-			DOMNode next = (DOMNode) child.getNextSibling();
+			DOMNode next = child.getNextSibling();
 
 			targetNode.appendChild(child);
 
 			child = next;
-
 		}
-
 	}
 
 	/**

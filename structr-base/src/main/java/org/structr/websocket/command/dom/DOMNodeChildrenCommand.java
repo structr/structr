@@ -66,8 +66,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 			result.add(currentNode);
 
-			currentNode = (DOMNode) currentNode.getNextSibling();
-
+			currentNode = currentNode.getNextSibling();
 		}
 
 		webSocketData.setView(PropertyView.All);
@@ -75,7 +74,6 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		// send only over local connection
 		getWebSocket().send(webSocketData, true);
-
 	}
 
 	@Override

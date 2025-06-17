@@ -1883,7 +1883,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		try {
 
-			doRemoveChild((DOMNode)node);
+			doRemoveChild(node);
 
 		} catch (FrameworkException fex) {
 

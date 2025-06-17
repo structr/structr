@@ -282,7 +282,7 @@ public class RepeaterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page1     = app.nodeQuery(StructrTraits.PAGE).getFirst().as(Page.class);
-			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").get(0);
+			final DOMNode option = page1.getElementsByTagName("option").get(0);
 
 			option.setProperty(Traits.of("Option").key( "selectedValues"), "project.test");
 
@@ -318,7 +318,7 @@ public class RepeaterTest extends StructrUiTest {
 
 		final DOMElement child = page.createElement(tag);
 
-		parent.appendChild((DOMNode)child);
+		parent.appendChild(child);
 
 		if (content != null && content.length > 0) {
 
