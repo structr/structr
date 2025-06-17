@@ -138,7 +138,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 					*/
 
-					if (!(otherNode.is("Html") || otherNode.is(StructrTraits.COMMENT) || otherNode.is(StructrTraits.TEMPLATE))) {
+					if (!(otherNode.is(StructrTraits.HTML) || otherNode.is(StructrTraits.COMMENT) || otherNode.is(StructrTraits.TEMPLATE))) {
 
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 					}
