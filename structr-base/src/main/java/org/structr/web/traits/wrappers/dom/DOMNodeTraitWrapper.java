@@ -1944,12 +1944,12 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 				// fetch original node, so we can check for action mappings to clone
 				final NodeInterface originalNode = app.getNodeById(uuid);
-				if (originalNode != null && originalNode.is("DOMElement")) {
+				if (originalNode != null && originalNode.is(StructrTraits.DOM_ELEMENT)) {
 
 					final DOMElement originalElement = originalNode.as(DOMElement.class);
 					final DOMNode clonedNode         = cloneMap.get(uuid);
 
-					if (clonedNode.is("DOMElement")) {
+					if (clonedNode.is(StructrTraits.DOM_ELEMENT)) {
 
 						final List<NodeInterface> clonedActionMappings = new LinkedList<>();
 						final DOMElement clonedElement = clonedNode.as(DOMElement.class);

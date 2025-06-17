@@ -254,7 +254,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						if (((_contentType == null) || _contentType.equals("text/plain"))) {
 
 							final DOMNode _parent = node.getParent();
-							if (_parent == null || !(_parent.is("Textarea"))) {
+							if (_parent == null || !(_parent.is(StructrTraits.TEXTAREA))) {
 
 								handler.setReplaceNewlines(true);
 							}

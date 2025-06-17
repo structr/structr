@@ -138,7 +138,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 							addFileToZipArchive(file.getName(), file, zipFile, params);
 
-						} else if (fileOrFolder.is("folder")) {
+						} else if (fileOrFolder.is(StructrTraits.FOLDER)) {
 
 							final Folder folder = fileOrFolder.as(Folder.class);
 
