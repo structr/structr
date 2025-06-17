@@ -333,7 +333,7 @@ public abstract class AbstractHintProvider {
 								type = schemaNode.getClassName();
 							}
 
-						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(((SchemaProperty) currentNode).getPropertyType())) {
+						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(currentNode.as(SchemaProperty.class).getPropertyType())) {
 
 
 							final AbstractSchemaNode schemaNode = node.as(SchemaProperty.class).getSchemaNode();
