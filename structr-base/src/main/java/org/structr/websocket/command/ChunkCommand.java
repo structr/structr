@@ -89,9 +89,9 @@ public class ChunkCommand extends AbstractCommand {
 				return;
 			}
 
-			if (!fileNode.is("File")) {
+			if (!fileNode.is(StructrTraits.FILE)) {
 				logger.warn("Node {} is not a file", uuid);
-				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " is not a filee").code(400).build(), true);
+				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " is not a file").code(400).build(), true);
 				return;
 			}
 
