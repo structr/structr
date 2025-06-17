@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
