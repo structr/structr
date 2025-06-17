@@ -801,7 +801,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 								final Iterable<ParameterMapping> parameterMappings = thisElementWithSuperuserContext.getParameterMappings();
 
-								outputStructrId |= (thisElementWithSuperuserContext.is("TemplateElement") || parameterMappings.iterator().hasNext());
+								outputStructrId |= (thisElementWithSuperuserContext.is(StructrTraits.TEMPLATE_ELEMENT) || parameterMappings.iterator().hasNext());
 
 								// output data-structr-id only once
 								if (outputStructrId) {
