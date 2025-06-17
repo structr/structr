@@ -46,6 +46,7 @@ public class MemoryTransaction implements Transaction {
 	private final long transactionId                                           = idCounter.incrementAndGet();
 	private MemoryDatabaseService db                                           = null;
 	private boolean failureOverride                                            = false;
+	private boolean isPing                                                     = false;
 	private boolean success                                                    = false;
 
 	public MemoryTransaction(final MemoryDatabaseService db) {
@@ -74,6 +75,7 @@ public class MemoryTransaction implements Transaction {
 
 	@Override
 	public void setIsPing(final boolean isPing) {
+		this.isPing = isPing;
 	}
 
 	@Override
@@ -250,5 +252,9 @@ public class MemoryTransaction implements Transaction {
 
 	@Override
 	public void prefetch2(String query, Set<String> outgoingKeys, Set<String> incomingKeys, final String id) {
+	}
+
+	public boolean isPing() {
+		return isPing;
 	}
 }

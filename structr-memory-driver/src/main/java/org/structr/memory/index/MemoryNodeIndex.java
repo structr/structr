@@ -18,6 +18,8 @@
  */
 package org.structr.memory.index;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
@@ -32,6 +34,8 @@ import java.util.Set;
  */
 public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
 
+	private static final Logger logger = LoggerFactory.getLogger(MemoryNodeIndex.class);
+
 	public MemoryNodeIndex(final MemoryDatabaseService db) {
 
 		super(db);
@@ -43,6 +47,14 @@ public class MemoryNodeIndex extends AbstractMemoryIndex<Node> {
 		final QueryContext queryContext = query.getQueryContext();
 		final Set<String> labels        = query.getTypeLabels();
 		Iterable<Node> result           = null;
+
+		if (db.logQueries()) {
+
+			if (!queryContext.isPing() || db.logPingQueries()) {
+
+				logger.info("{}: {}", Thread.currentThread().getId(), query);
+			}
+		}
 
 		if (labels.isEmpty()) {
 

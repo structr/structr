@@ -45,33 +45,14 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 		if (predicate instanceof GroupQuery group) {
 
 			// Filter type predicates since they require special handling
-			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
-			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> p instanceof TypeQuery).collect(Collectors.toList());
+			final List<QueryPredicate> predicateList = group.getQueryPredicates();
+			final List<QueryPredicate> typePredicates = predicateList.stream().filter((p) -> p instanceof TypeQuery).collect(Collectors.toList());
 			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> !(p instanceof TypeQuery)).collect(Collectors.toList());
 
-			if (!typePredicates.isEmpty()) {
+			// Apply all type queries first as they affect as different part of the query expression
+			for (final QueryPredicate p : typePredicates) {
 
-				switch (group.getOperation()) {
-
-					case AND:
-						query.beginGroup(Conjunction.And);
-						break;
-
-					case OR:
-						query.beginGroup(Conjunction.Or);
-						break;
-
-					case NOT:
-						query.beginGroup(Conjunction.Not);
-						break;
-				}
-
-				for (final QueryPredicate p : typePredicates) {
-
-					index.createQuery(p, query, isFirst);
-				}
-
-				query.endGroup();
+				index.createQuery(p, query, isFirst);
 			}
 
 			// Apply any group and attribute predicates, if existent
@@ -79,17 +60,13 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 				// Check if any child group contains elements
 				boolean allChildrenAreGroups = true;
-				boolean nonEmptyGroup        = false;
+				boolean nonEmptyGroup = false;
 
 				for (QueryPredicate p : attributeAndGroupPredicates) {
 
 					if (p instanceof GroupQuery g) {
 
-						final List<QueryPredicate> containedPredicates = g.getQueryPredicates();
-						if (containedPredicates.size() > 0) {
-
-							nonEmptyGroup = true;
-						}
+						nonEmptyGroup = !g.isEmpty();
 
 					} else {
 
@@ -98,11 +75,24 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 				}
 
 				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
-					//checkOperation(query, predicate.getOperation(), isFirst);
+					checkOperation(query, group.getOperation(), isFirst);
 				}
 
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
-					query.beginGroup(Conjunction.And);
+				final boolean createGroup = attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup);
+
+				if (createGroup) {
+
+					switch (group.getOperation()) {
+						case AND:
+							query.beginGroup(Conjunction.And);
+							break;
+						case OR:
+							query.beginGroup(Conjunction.Or);
+							break;
+						case NOT:
+							query.beginGroup(Conjunction.Not);
+							break;
+					}
 				}
 
 				boolean firstWithinGroup = true;
@@ -111,64 +101,44 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 				while (it.hasNext()) {
 
-					if (index.createQuery(it.next(), query, firstWithinGroup)) {
+					if (!firstWithinGroup) {
+
+						switch (group.getOperation()) {
+
+							case NOT:
+								query.not();
+								break;
+							case AND:
+								query.and();
+								break;
+							case OR:
+								query.or();
+								break;
+						}
+					}
+
+					if (index.createQuery(it.next(), query, true)) {
 
 						firstWithinGroup = false;
 					}
 				}
 
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
+				if (createGroup) {
 					query.endGroup();
 				}
 
 				if (allChildrenAreGroups && !nonEmptyGroup) {
+
 					return false;
+
 				} else {
+
 					return true;
 				}
 
 			}
-
-			return false;
 		}
 
 		return false;
 	}
-
-	/*
-	@Override
-	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
-
-		if (predicate instanceof GroupQuery) {
-
-			final GroupQuery group = (GroupQuery)predicate;
-
-			query.beginGroup();
-
-			switch (group.getOccurrence()) {
-
-				case REQUIRED:
-					query.and();
-					break;
-
-				case OPTIONAL:
-					query.or();
-					break;
-
-				case FORBIDDEN:
-					query.not();
-					break;
-			}
-
-			for (final QueryPredicate p : group.getQueryPredicates()) {
-
-				index.createQuery(p, query, isFirst);
-			}
-
-			query.endGroup();
-		}
-
-		return false;
-	}
-*/
 }

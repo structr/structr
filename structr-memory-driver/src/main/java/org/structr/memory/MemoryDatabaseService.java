@@ -19,6 +19,7 @@
 package org.structr.memory;
 
 import org.structr.api.*;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
 import org.structr.api.index.Index;
 import org.structr.api.index.IndexConfig;
@@ -422,6 +423,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		tx.delete(rel);
 	}
 
+	public boolean logQueries() {
+		return Settings.CypherDebugLogging.getValue();
+	}
+
+	public boolean logPingQueries() {
+		return Settings.CypherDebugLoggingPing.getValue();
+	}
+
 	MemoryTransaction getCurrentTransaction() throws NotInTransactionException {
 		return getCurrentTransaction(true);
 	}
@@ -486,11 +495,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 	void updateCache(final MemoryRelationship relationship) {
 		relationships.updateCache(relationship);
-	}
-
-	@Override
-	public Identity identify(long id) {
-		return null;
 	}
 
 	// ----- nested classes -----

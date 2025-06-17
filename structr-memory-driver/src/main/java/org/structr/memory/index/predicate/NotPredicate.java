@@ -32,6 +32,11 @@ public class NotPredicate<T extends PropertyContainer, V> implements Predicate<T
 	}
 
 	@Override
+	public String toString() {
+		return "Not(" + predicate + ")";
+	}
+
+	@Override
 	public boolean accept(final T entity) {
 		return !predicate.accept(entity);
 	}

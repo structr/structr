@@ -30,7 +30,6 @@ import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.predicate.Conjunction;
 import org.structr.memory.index.predicate.GroupPredicate;
-import org.structr.memory.index.predicate.NotPredicate;
 
 import java.util.*;
 
@@ -45,7 +44,6 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	private GroupPredicate<T> currentPredicate    = rootPredicate;
 	private QueryContext queryContext             = null;
 	private SortOrder sortOrder                   = null;
-	private boolean negateNextPredicate           = false;
 
 	public MemoryQuery(final QueryContext queryContext) {
 		this.queryContext = queryContext;
@@ -53,11 +51,10 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public String toString() {
-		return "MemoryQuery(" + labels.toString() + ", " + rootPredicate + ")";
+		return rootPredicate.toString();
 	}
 
 	public void addTypeLabel(final String typeLabel) {
-
 		labels.add(typeLabel);
 	}
 
@@ -66,36 +63,42 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	}
 
 	public void addPredicate(final Predicate<T> predicate) {
-
-		if (negateNextPredicate) {
-
-			negateNextPredicate = false;
-			currentPredicate.add(new NotPredicate<>(predicate));
-
-		} else {
-
-			currentPredicate.add(predicate);
-		}
+		currentPredicate.add(predicate);
 	}
 
 	@Override
 	public void and() {
-		currentPredicate.setConjunction(Conjunction.And);
+
+		final GroupPredicate<T> p = new GroupPredicate<>(currentPredicate, Conjunction.And);
+
+		currentPredicate.add(p);
+
+		currentPredicate = p;
 	}
 
 	@Override
 	public void or() {
-		currentPredicate.setConjunction(Conjunction.Or);
+
+		final GroupPredicate<T> p = new GroupPredicate<>(currentPredicate, Conjunction.Or);
+
+		currentPredicate.add(p);
+
+		currentPredicate = p;
 	}
 
 	@Override
 	public void not() {
-		negateNextPredicate = true;
+
+		final GroupPredicate<T> p = new GroupPredicate<>(currentPredicate, Conjunction.Not);
+
+		currentPredicate.add(p);
+
+		currentPredicate = p;
 	}
 
 	@Override
 	public void andNot() {
-		currentPredicate.setConjunction(Conjunction.And);
+		and();
 		not();
 	}
 

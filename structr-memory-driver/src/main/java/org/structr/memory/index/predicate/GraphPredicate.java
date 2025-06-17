@@ -77,23 +77,7 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 						}
 					}
 
-					/*
-
-					switch (graphQuery.getOperation()) {
-
-						FIXME
-						case CONTAINS:
-						case REQUIRED:
-						case OPTIONAL:
-							actual.retainAll(expected);
-							return !actual.isEmpty();
-
-						case EXACT:
-							return actual.containsAll(expected) && actual.size() == expected.size();
-						default:
-							break;
-					}
-					*/
+					return actual.containsAll(expected) && actual.size() == expected.size();
 
 				} else {
 

@@ -93,7 +93,6 @@ public interface DatabaseService {
 
 	// utils
 	CountResult getNodeAndRelationshipCount();
-	Identity identify(final long id);
 
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);

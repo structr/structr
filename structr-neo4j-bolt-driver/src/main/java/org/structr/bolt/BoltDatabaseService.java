@@ -863,11 +863,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		return source[index];
 	}
 
-	@Override
-	public Identity identify(long id) {
-		return new BoltIdentity(id);
-	}
-
 	// ----- nested classes -----
 	private static class TypePredicate implements TypeQuery {
 
