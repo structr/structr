@@ -876,7 +876,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
 					final DOMElement domElement                = domElementNode.as(DOMElement.class);
 
-					action = getActionMapping(entity.as(DOMElement.class)).getAction();
+					action = getActionMapping(domElement).getAction();
 
 					// store event context in object
 					renderContext.setConstant("eventContext", eventContext);
