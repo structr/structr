@@ -1565,21 +1565,19 @@ let _Files = {
 			}
 		});
 
-		let checkForUnsaved = () => {
-			if (document.querySelectorAll('.file-tab.has-changes').length > 0) {
-				return confirm('You have unsaved changes, really close without saving?');
-			} else {
-				return true;
-			}
-		};
+		let hasUnsavedChanges = () => {
+			return (document.querySelectorAll('.file-tab.has-changes').length > 0);
+		}
 
 		let newCancelButton = _Dialogs.custom.updateOrCreateDialogCloseButton();
 
 		newCancelButton.addEventListener('click', async (e) => {
 
-			if (checkForUnsaved()) {
+			e.stopPropagation();
 
-				e.stopPropagation();
+			let closeWithoutAsking = (hasUnsavedChanges() === false) || (true === await _Dialogs.confirmation.showPromise('You have unsaved changes, really close without saving?'));
+
+			if (closeWithoutAsking) {
 
 				_Dialogs.custom.dialogCancelBaseAction();
 			}
@@ -1589,7 +1587,7 @@ let _Files = {
 			e.stopPropagation();
 			saveButton.click();
 
-			if (checkForUnsaved()) {
+			if (!hasUnsavedChanges()) {
 				window.setTimeout(() => {
 					newCancelButton.click();
 				}, 250);

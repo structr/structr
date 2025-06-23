@@ -733,6 +733,8 @@ let _Dialogs = {
 			}
 			_Dialogs.custom.elements.dialogCancelButton = _Dialogs.custom.elements.dialogBtn.querySelector('.closeButton');
 
+			_Dialogs.custom.setHasCustomCloseHandler();
+
 			return _Dialogs.custom.elements.dialogCancelButton;
 		},
 		replaceDialogCloseButton: (button, inPlace = true) => {
