@@ -1570,6 +1570,7 @@ let _Files = {
 		}
 
 		let newCancelButton = _Dialogs.custom.updateOrCreateDialogCloseButton();
+		_Dialogs.custom.setHasCustomCloseHandler();
 
 		newCancelButton.addEventListener('click', async (e) => {
 
