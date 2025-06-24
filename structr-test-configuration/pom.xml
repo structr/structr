@@ -52,7 +52,6 @@
 							<!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
 							<systemPropertyVariables>
 								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
-								<!--testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver-->
 								<testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
 							</systemPropertyVariables>
 						</configuration>

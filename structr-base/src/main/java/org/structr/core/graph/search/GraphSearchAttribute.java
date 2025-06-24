@@ -61,6 +61,11 @@ public class GraphSearchAttribute<T> extends PropertySearchAttribute<T> implemen
 	}
 
 	@Override
+	public String toString() {
+		return key.jsonName() + "." + notionKey.jsonName() + "=" + value;
+	}
+
+	@Override
 	public Class getQueryType() {
 		return GraphQuery.class;
 	}

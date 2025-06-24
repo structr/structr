@@ -22,8 +22,8 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
 
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * A predicate that accepts entities whose array property value
@@ -31,13 +31,20 @@ import java.util.Set;
  */
 public class ArrayPropertyPredicate<T extends PropertyContainer, V> implements Predicate<T> {
 
-	private String key     = null;
-	private V expectedValue = null;
+	private final String key;
+	private final V expectedValue;
+	private final boolean exactMatch;
 
-	public ArrayPropertyPredicate(final String key, final V expectedValue) {
+	public ArrayPropertyPredicate(final String key, final V expectedValue, final boolean exactMatch) {
 
-		this.key          = key;
+		this.key           = key;
 		this.expectedValue = expectedValue;
+		this.exactMatch    = exactMatch;
+	}
+
+	@Override
+	public String toString() {
+		return "Array(" + key + "=" + Arrays.toString((Object[]) expectedValue) + ")";
 	}
 
 	@Override
@@ -52,8 +59,8 @@ public class ArrayPropertyPredicate<T extends PropertyContainer, V> implements P
 
 		if (value != null) {
 
-			Set expected = new HashSet<>();
-			Set actual   = new HashSet<>(Arrays.asList((Object[])value));
+			List expected = new LinkedList<>();
+			List actual   = Arrays.asList((Object[])value);
 
 			if (expectedValue.getClass().isArray()) {
 
@@ -65,7 +72,18 @@ public class ArrayPropertyPredicate<T extends PropertyContainer, V> implements P
 				expected.add(expectedValue);
 			}
 
-			return actual.containsAll(expected);
+			final boolean result;
+
+			if (exactMatch) {
+
+				result = Arrays.deepEquals(expected.toArray(), actual.toArray());
+
+			} else {
+
+				result = actual.containsAll(expected);
+			}
+
+			return result;
 		}
 
 		return false;

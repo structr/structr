@@ -18,12 +18,14 @@
  */
 package org.structr.memory.index.predicate;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 
 import java.util.LinkedList;
 import java.util.List;
 
 import static org.structr.memory.index.predicate.Conjunction.And;
+import static org.structr.memory.index.predicate.Conjunction.Not;
 
 /**
  */
@@ -41,24 +43,7 @@ public class GroupPredicate<T> implements Predicate<T> {
 
 	@Override
 	public String toString() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append(conjunction.name());
-		buf.append("(");
-
-		for (final Predicate<T> predicate : predicates) {
-			buf.append(predicate.toString());
-			buf.append(", ");
-		}
-
-		// remove last ","
-		buf.setLength(buf.length() - 2);
-
-		buf.append(")");
-
-		return buf.toString();
-
+		return conjunction.name() + "(" + StringUtils.join(predicates, ", ") + ")";
 	}
 
 	public GroupPredicate<T> getParent() {
@@ -76,7 +61,7 @@ public class GroupPredicate<T> implements Predicate<T> {
 	@Override
 	public boolean accept(final T value) {
 
-		boolean result = And.equals(conjunction);
+		boolean result = And.equals(conjunction) || Not.equals(conjunction);
 
 		for (final Predicate<T> predicate : predicates) {
 

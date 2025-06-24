@@ -22,13 +22,8 @@ import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.TypeQuery;
 import org.structr.memory.index.MemoryQuery;
 import org.structr.memory.index.predicate.Conjunction;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -44,99 +39,34 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		if (predicate instanceof GroupQuery group) {
 
-			// Filter type predicates since they require special handling
-			final List<QueryPredicate> predicateList = group.getQueryPredicates();
-			final List<QueryPredicate> typePredicates = predicateList.stream().filter((p) -> p instanceof TypeQuery).collect(Collectors.toList());
-			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> !(p instanceof TypeQuery)).collect(Collectors.toList());
+			boolean newGroup = false;
+
+			switch (group.getOperation()) {
+
+				case AND:
+					query.beginGroup(Conjunction.And);
+					newGroup = true;
+					break;
+				case OR:
+					query.beginGroup(Conjunction.Or);
+					newGroup = true;
+					break;
+				case NOT:
+					query.not();
+					break;
+			}
 
 			// Apply all type queries first as they affect as different part of the query expression
-			for (final QueryPredicate p : typePredicates) {
+			for (final QueryPredicate p : group.getQueryPredicates()) {
 
 				index.createQuery(p, query, isFirst);
 			}
 
-			// Apply any group and attribute predicates, if existent
-			if (!attributeAndGroupPredicates.isEmpty()) {
-
-				// Check if any child group contains elements
-				boolean allChildrenAreGroups = true;
-				boolean nonEmptyGroup = false;
-
-				for (QueryPredicate p : attributeAndGroupPredicates) {
-
-					if (p instanceof GroupQuery g) {
-
-						nonEmptyGroup = !g.isEmpty();
-
-					} else {
-
-						allChildrenAreGroups = false;
-					}
-				}
-
-				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
-					checkOperation(query, group.getOperation(), isFirst);
-				}
-
-				final boolean createGroup = attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup);
-
-				if (createGroup) {
-
-					switch (group.getOperation()) {
-						case AND:
-							query.beginGroup(Conjunction.And);
-							break;
-						case OR:
-							query.beginGroup(Conjunction.Or);
-							break;
-						case NOT:
-							query.beginGroup(Conjunction.Not);
-							break;
-					}
-				}
-
-				boolean firstWithinGroup = true;
-
-				Iterator<QueryPredicate> it = attributeAndGroupPredicates.iterator();
-
-				while (it.hasNext()) {
-
-					if (!firstWithinGroup) {
-
-						switch (group.getOperation()) {
-
-							case NOT:
-								query.not();
-								break;
-							case AND:
-								query.and();
-								break;
-							case OR:
-								query.or();
-								break;
-						}
-					}
-
-					if (index.createQuery(it.next(), query, true)) {
-
-						firstWithinGroup = false;
-					}
-				}
-
-				if (createGroup) {
-					query.endGroup();
-				}
-
-				if (allChildrenAreGroups && !nonEmptyGroup) {
-
-					return false;
-
-				} else {
-
-					return true;
-				}
-
+			if (newGroup) {
+				query.endGroup();
 			}
+
+			return true;
 		}
 
 		return false;

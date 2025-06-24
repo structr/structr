@@ -40,7 +40,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 		// interesting fact: the query engine separates array values and calls createQuery for
 		// each of the components separately, so the value here is never an array.
 		
-		query.addPredicate(new ArrayPropertyPredicate(name, value));
+		query.addPredicate(new ArrayPropertyPredicate(name, value, predicate.isExactMatch()));
 
 		return true;
 	}

@@ -30,6 +30,7 @@ import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.predicate.Conjunction;
 import org.structr.memory.index.predicate.GroupPredicate;
+import org.structr.memory.index.predicate.NotPredicate;
 
 import java.util.*;
 
@@ -44,6 +45,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	private GroupPredicate<T> currentPredicate    = rootPredicate;
 	private QueryContext queryContext             = null;
 	private SortOrder sortOrder                   = null;
+	private boolean negateNextPredicate           = false;
 
 	public MemoryQuery(final QueryContext queryContext) {
 		this.queryContext = queryContext;
@@ -63,7 +65,17 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 	}
 
 	public void addPredicate(final Predicate<T> predicate) {
-		currentPredicate.add(predicate);
+
+		if (negateNextPredicate) {
+
+			currentPredicate.add(new NotPredicate<>(predicate));
+
+			negateNextPredicate = false;
+
+		} else {
+
+			currentPredicate.add(predicate);
+		}
 	}
 
 	@Override
@@ -88,12 +100,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public void not() {
-
-		final GroupPredicate<T> p = new GroupPredicate<>(currentPredicate, Conjunction.Not);
-
-		currentPredicate.add(p);
-
-		currentPredicate = p;
+		negateNextPredicate = true;
 	}
 
 	@Override
@@ -144,7 +151,10 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public boolean accept(final T value) {
-		return rootPredicate.accept(value);
+
+		final boolean accepted = currentPredicate.accept(value);
+
+		return accepted;
 	}
 
 	public QueryContext getQueryContext() {
