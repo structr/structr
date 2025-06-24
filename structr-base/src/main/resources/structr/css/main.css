@@ -1333,7 +1333,7 @@ button.action.disabled:hover {
 }
 
 .non-block-ui-blocker-content {
-	position: relative;
+	position: fixed;
 	display: flex;
 	width: 100%;
 	height: calc(100vh - 8rem);

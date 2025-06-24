@@ -18,6 +18,8 @@
  */
 package org.structr.rest.service;
 
+import java.util.Collections;
+import org.apache.commons.collections.map.LRUMap;
 import org.eclipse.jetty.server.session.AbstractSessionDataStore;
 import org.eclipse.jetty.server.session.SessionData;
 import org.slf4j.Logger;
@@ -48,7 +50,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
-	private static final Map<String, SessionData> anonymousSessionCache = new ConcurrentHashMap<>();
+	private static final Map<String, SessionData> anonymousSessionCache = Collections.synchronizedMap(new LRUMap(100_000));
 
 	@Override
 	public boolean doExists(final String id) throws Exception {
@@ -67,12 +69,12 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore store");
 
-			final Traits sessionTraits = Traits.of(StructrTraits.SESSION_DATA_NODE);
-			final NodeInterface user   = AuthHelper.getPrincipalForSessionId(id);
+			final NodeInterface user = AuthHelper.getPrincipalForSessionId(id);
 
 			if (user != null) {
 
-				final NodeInterface node = getOrCreateSessionDataNode(app, sessionTraits, id);
+				final Traits sessionTraits = Traits.of(StructrTraits.SESSION_DATA_NODE);
+				final NodeInterface node   = getOrCreateSessionDataNode(app, sessionTraits, id);
 				if (node != null) {
 
 					final PropertyMap properties = new PropertyMap();

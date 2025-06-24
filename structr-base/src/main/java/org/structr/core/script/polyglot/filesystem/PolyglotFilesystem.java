@@ -259,7 +259,7 @@ public class PolyglotFilesystem implements FileSystem {
 
 		for (String attr : attributes.split(",")) {
 			switch (attr) {
-				case "isDirectory" -> attributeMap.put("isDirectory", (file.is("folder")));
+				case "isDirectory" -> attributeMap.put("isDirectory", (file.is(StructrTraits.FOLDER)));
 				case "creationTime" -> attributeMap.put("creationTime", FileTime.fromMillis(file.getCreatedDate().getTime()));
 				case "lastModifiedTime" -> attributeMap.put("lastModifiedTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
 				case "lastAccessTime" -> attributeMap.put("lastAccessTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));

@@ -205,6 +205,12 @@ export class Frontend {
 
 			if (element.value.length) {
 
+				if (element.type === 'datetime-local') {
+
+					// converts local date format without offset to ISO
+					return new Date(element.value).toISOString();
+				}
+
 				// all other node types
 				return element.value;
 			}

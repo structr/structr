@@ -408,6 +408,7 @@ let _Schema = {
 			if (Structr.isModuleActive(_Schema)) {
 
 				let newCancelButton = _Dialogs.custom.updateOrCreateDialogCloseButton();
+				_Dialogs.custom.setHasCustomCloseHandler();
 
 				newCancelButton.addEventListener('click', async (e) => {
 
@@ -1975,7 +1976,7 @@ let _Schema = {
 			$('.indexed',          gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.property-default', gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 
-			let readWriteButtonClickHandler = (targetProperty) => {
+			let readWriteButtonClickHandler = async (targetProperty) => {
 
 				if (overrides && overrides.editReadWriteFunction) {
 
@@ -1985,7 +1986,7 @@ let _Schema = {
 
 					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInGrid(gridRow[0].closest('.schema-grid'));
 
-					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+					if (!unsavedChanges || (true === await _Dialogs.confirmation.showPromise("Really switch to code editing? There are unsaved changes which will be lost!"))) {
 						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, () => {
 							if (Structr.isModuleActive(_Schema)) {
 								_Schema.openEditDialog(property.schemaNode.id, 'local');
@@ -2242,6 +2243,7 @@ let _Schema = {
 				};
 
 				let editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
+				_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, key, editor);
 
 				_Editors.resizeVisibleEditors();
 				Structr.resize();
@@ -3770,6 +3772,7 @@ let _Schema = {
 			};
 
 			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', document.querySelector('#methods-content .editor'), sourceMonacoConfig);
+			_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, 'source', sourceEditor);
 			_Editors.focusEditor(sourceEditor);
 
 			sourceMonacoConfig.changeFn(sourceEditor);

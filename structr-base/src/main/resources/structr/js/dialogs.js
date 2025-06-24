@@ -564,7 +564,7 @@ let _Dialogs = {
 			_Dialogs.custom.getMaximizeDialogButton().addEventListener('click', _Dialogs.custom.maximizeDialogButtonAction);
 			_Dialogs.custom.getCloseDialogButton().addEventListener('click', _Dialogs.custom.clickDialogCancelButton);
 
-			_Dialogs.custom.getDialogBoxElement().classList.add(...["dialog", ...customClasses]);
+			_Dialogs.custom.getDialogBoxElement().classList.add(...['dialog', ...customClasses]);
 
 			_Dialogs.custom.getDialogTitleElement().textContent = dialogTitleText;
 
@@ -694,17 +694,36 @@ let _Dialogs = {
 		},
 		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.noConfirmOnEscapeClass) ?? false,
 		hasCustomCloseHandler: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.hasCustomCloseHandlerClass) ?? false,
-		checkSaveOrCloseOnEscapeKeyPressed: () => {
+		checkSaveOrCloseOnEscapeKeyPressed: async () => {
 
 			let hasAttachedAndEnabledSaveButton = _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled;
 
 			if (_Dialogs.custom.isDialogOpen() && hasAttachedAndEnabledSaveButton && !_Dialogs.custom.isNoConfirmOnEscape() && !_Dialogs.custom.hasCustomCloseHandler()) {
 
-				let saveBeforeExit = confirm('Save changes before closing?');
-				if (saveBeforeExit) {
+				let SAVE_AND_CLOSE    = 1;
+				let DISCARD_AND_CLOSE = 2;
+				let KEEP_OPEN         = 3;
+				let options = [
+					{ buttonText: 'Save and close', result: SAVE_AND_CLOSE },
+					{ buttonText: 'Discard and close', result: DISCARD_AND_CLOSE },
+					{ buttonText: 'Keep open', result: KEEP_OPEN }
+				];
+
+				let action = await _Dialogs.multipleChoiceQuestion.askPromise('Save changes before closing?', options, SAVE_AND_CLOSE);
+
+				if (action === SAVE_AND_CLOSE) {
+
 					_Dialogs.custom.clickSaveButton();
 
-					window.setTimeout(_Dialogs.custom.clickDialogCancelButton, 500);
+					window.setTimeout(_Dialogs.custom.clickDialogCancelButton, 750);
+
+				} else if (action === DISCARD_AND_CLOSE) {
+
+					_Dialogs.custom.clickDialogCancelButton();
+
+				} else if (action === KEEP_OPEN) {
+
+					// do nothing
 				}
 
 			} else {

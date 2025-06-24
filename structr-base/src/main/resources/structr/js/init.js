@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	StructrWS.init();
 
-	document.body.addEventListener('keyup', (event) => {
+	document.body.addEventListener('keyup', async (event) => {
 
 		let keyCode = event.keyCode;
 		let code    = event.code;
@@ -93,8 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			_Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
+			await _Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
 		}
+
 		return false;
 	});
 

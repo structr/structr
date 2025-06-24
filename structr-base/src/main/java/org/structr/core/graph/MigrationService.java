@@ -115,6 +115,7 @@ public class MigrationService {
 		"MQTTClient.port",
 		"MQTTClient.protocol",
 		"MQTTClient.url",
+		"PaymentNode.state",
 		"Person.twitterName",
 		"Principal.customPermissionQueryAccessControl",
 		"Principal.customPermissionQueryDelete",
@@ -639,17 +640,21 @@ public class MigrationService {
 
 			if (keyName.startsWith("data-structr-")) {
 
-				final String value = node.getProperty(key);
+				Object value       = node.getProperty(key);
 				final String name  = CaseHelper.dashesToCamelCase(keyName.substring(13));
 
-				if ("options".equals(name)) {
+				// convert on the fly
+				if (value != null) {
 
-					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), value);
+					if ("options".equals(name)) {
 
-				} else {
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), value.toString());
 
-					// map to configuration option
-					settings.put(name, value);
+					} else {
+
+						// map to configuration option
+						settings.put(name, value.toString());
+					}
 				}
 
 				// remove old key

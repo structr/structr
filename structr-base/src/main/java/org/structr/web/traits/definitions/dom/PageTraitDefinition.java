@@ -90,7 +90,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					DOMNode subNode = node.getFirstChild();
 
 					// output doctype definition only if first child is not a template
-					if (subNode != null && subNode.is("Html")) {
+					if (subNode != null && subNode.is(StructrTraits.HTML)) {
 						renderContext.getBuffer().append("<!DOCTYPE html>\n");
 					}
 
@@ -138,7 +138,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 					*/
 
-					if (!(otherNode.is("Html") || otherNode.is(StructrTraits.COMMENT) || otherNode.is(StructrTraits.TEMPLATE))) {
+					if (!(otherNode.is(StructrTraits.HTML) || otherNode.is(StructrTraits.COMMENT) || otherNode.is(StructrTraits.TEMPLATE))) {
 
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 					}
