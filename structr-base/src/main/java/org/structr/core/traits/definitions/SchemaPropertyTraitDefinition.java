@@ -76,6 +76,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CONTENT_HASH_PROPERTY               = "contentHash";
 	public static final String READ_FUNCTION_PROPERTY              = "readFunction";
 	public static final String WRITE_FUNCTION_PROPERTY             = "writeFunction";
+	public static final String WRITE_FUNCTION_WRAP_JS_PROPERTY     = "writeFunctionWrapJS";
+	public static final String READ_FUNCTION_WRAP_JS_PROPERTY      = "readFunctionWrapJS";
 	public static final String IS_SERIALIZATION_DISABLED_PROPERTY  = "isSerializationDisabled";
 	public static final String OPEN_API_RETURN_TYPE_PROPERTY       = "openAPIReturnType";
 	public static final String VALIDATORS_PROPERTY                 = "validators";
@@ -163,6 +165,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>             contentHash             = new StringProperty(CONTENT_HASH_PROPERTY);
 		final Property<String>             readFunction            = new StringProperty(READ_FUNCTION_PROPERTY);
 		final Property<String>             writeFunction           = new StringProperty(WRITE_FUNCTION_PROPERTY);
+		final Property<Boolean>            writeFunctionWrapJS     = new BooleanProperty(WRITE_FUNCTION_WRAP_JS_PROPERTY).defaultValue(true);
+		final Property<Boolean>            readFunctionWrapJS      = new BooleanProperty(READ_FUNCTION_WRAP_JS_PROPERTY).defaultValue(true);
 		final Property<Boolean>            isSerializationDisabled = new BooleanProperty(IS_SERIALIZATION_DISABLED_PROPERTY);
 		final Property<String>             openAPIReturnType       = new StringProperty(OPEN_API_RETURN_TYPE_PROPERTY);
 		final Property<String[]>           validators              = new ArrayProperty(VALIDATORS_PROPERTY, String.class);
@@ -198,6 +202,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			contentHash,
 			readFunction,
 			writeFunction,
+			readFunctionWrapJS,
+			writeFunctionWrapJS,
 			isSerializationDisabled,
 			openAPIReturnType,
 			validators,
@@ -217,7 +223,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
 						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
-						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
 						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
@@ -231,7 +237,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						FQCN_PROPERTY, FORMAT_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY, NOT_NULL_PROPERTY,
 						COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
 						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
-						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
 						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
@@ -242,7 +248,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
 						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
 						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
-						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
+						WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
 						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				)
 		);

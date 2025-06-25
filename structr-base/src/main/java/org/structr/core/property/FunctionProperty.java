@@ -124,7 +124,7 @@ public class FunctionProperty<T> extends Property<T> {
 					actionContext.setPredicate(predicate);
 
 					final ScriptConfig scriptConfig = ScriptConfig.builder()
-							.wrapJsInMain(true)
+							.wrapJsInMain(this.readFunctionWrapJS())
 							.build();
 
 					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid, scriptConfig);
@@ -286,7 +286,7 @@ public class FunctionProperty<T> extends Property<T> {
 				ctx.setConstant("value", value);
 
 				final ScriptConfig scriptConfig = ScriptConfig.builder()
-						.wrapJsInMain(true)
+						.wrapJsInMain(this.writeFunctionWrapJS())
 						.build();
 
 				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid, scriptConfig);

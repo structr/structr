@@ -235,6 +235,18 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public boolean getWriteFunctionWrapJS() {
+
+        return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_WRAP_JS_PROPERTY));
+	}
+
+	@Override
+	public boolean getReadFunctionWrapJS() {
+
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_WRAP_JS_PROPERTY));
+	}
+
+	@Override
 	public boolean isSerializationDisabled() {
 		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY));
 	}

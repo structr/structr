@@ -43,6 +43,8 @@ public interface PropertyDefinition extends CodeSource {
 	String getContentType();
 	String getReadFunction();
 	String getWriteFunction();
+	boolean getReadFunctionWrapJS();
+	boolean getWriteFunctionWrapJS();
 
 	boolean isSerializationDisabled();
 	String getOpenAPIReturnType();

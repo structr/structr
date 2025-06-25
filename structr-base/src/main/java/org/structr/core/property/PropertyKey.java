@@ -170,6 +170,20 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	String writeFunction();
 
 	/**
+	 * Returns the readFunctionWrapJS value for this property.
+	 *
+	 * @return readFunctionWrapJS
+	 */
+	Boolean readFunctionWrapJS();
+
+	/**
+	 * Returns the writeFunctionWrapJS value for this property.
+	 *
+	 * @return writeFunctionWrapJS
+	 */
+	Boolean writeFunctionWrapJS();
+
+	/**
 	 * Returns the cachingEnabled value for this property.
 	 *
 	 * @return cachingEnabled
@@ -374,6 +388,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	PropertyKey<T> dynamic();
 	PropertyKey<T> readFunction(final String readFunction);
 	PropertyKey<T> writeFunction(final String writeFunction);
+	PropertyKey<T> writeFunctionWrapJS(final boolean wrap);
+	PropertyKey<T> readFunctionWrapJS(final boolean wrap);
 	PropertyKey<T> cachingEnabled(final boolean enabled);
 	PropertyKey<T> openAPIReturnType(final String openAPIReturnType);
 	PropertyKey<T> transformators(final String... transformators);
