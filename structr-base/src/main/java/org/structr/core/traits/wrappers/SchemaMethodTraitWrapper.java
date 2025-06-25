@@ -180,6 +180,11 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
+	public boolean wrapJsInMain() {
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY));
+	}
+
+	@Override
 	public boolean isJava() {
 		return "java".equals(getCodeType());
 	}
