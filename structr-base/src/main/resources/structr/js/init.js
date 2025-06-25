@@ -1930,10 +1930,10 @@ let Structr = {
 		mainBody: config => `
 
 			<div id="info-area">
-				<div id="close-all-button" class="my-4 mx-2 text-right">
+				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
 				</div>
-				<div id="messages"></div>
+				<div id="messages" class="py-1"></div>
 			</div>
 
 			<div id="header">
