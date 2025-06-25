@@ -132,6 +132,8 @@ public class SchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.properties.description.format",                 "multi-line");
 			mapPathValue(map, "definitions.Customer.properties.displayName.type",                   "function");
 			mapPathValue(map, "definitions.Customer.properties.displayName.readFunction",           "concat(this.name, '.', this.id)");
+			mapPathValue(map, "definitions.Customer.properties.displayName.readFunctionWrapJS",     true);
+			mapPathValue(map, "definitions.Customer.properties.displayName.writeFunctionWrapJS",    true);
 			mapPathValue(map, "definitions.Customer.properties.name.type",                          "string");
 			mapPathValue(map, "definitions.Customer.properties.name.unique",                        true);
 			mapPathValue(map, "definitions.Customer.properties.street.type",                        "string");

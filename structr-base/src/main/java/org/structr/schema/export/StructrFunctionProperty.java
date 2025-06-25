@@ -43,8 +43,8 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	protected Boolean cachingEnabled	                   = false;
 	protected String readFunction  		                   = null;
 	protected String writeFunction 		                   = null;
-	protected boolean writeFunctionWrapJS                  = false;
-	protected boolean readFunctionWrapJS                   = false;
+	protected boolean writeFunctionWrapJS                  = true;
+	protected boolean readFunctionWrapJS                   = true;
 	protected String contentType                           = null;
 	protected String openAPIReturnType	                   = null;
 
