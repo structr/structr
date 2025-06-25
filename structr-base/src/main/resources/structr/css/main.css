@@ -2215,7 +2215,7 @@ th.center {
 	position: absolute;
 	left: 60%;
 	right: 4px;
-	top: 4px;
+	top: 0;
 	overflow-y: auto;
 	max-height: 100vh;
 }
