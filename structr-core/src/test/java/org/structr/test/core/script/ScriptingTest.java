@@ -37,9 +37,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.*;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.FunctionInfoFunction;
@@ -55,6 +53,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
+import org.structr.core.traits.relationships.SchemaNodePropertyDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -7131,6 +7130,126 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException expected) {
+		}
+	}
+
+	@Test
+	public void testScriptingJSModes() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "testJSScriptModesMethod"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return true; }")
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"))),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "returnTest"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return true }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			final Object result     = Scripting.evaluate(ctx, null, "${{Structr.call('testJSScriptModesMethod')}}", "test");
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (UnlicensedScriptException |FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface obj = app.create(type, "test1");
+			final Object result     = obj.getProperty(Traits.of(type).key("returnTest"));
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// Switch scripting modes and try again
+		try (final Tx tx = app.tx()) {
+
+			final SchemaMethod method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name("testJSScriptModesMethod").getFirst().as(SchemaMethod.class);
+
+			final SchemaNode testSchemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Test").getFirst().as(SchemaNode.class);
+
+			final SchemaProperty functionProp = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY)
+					.key(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), testSchemaNode)
+					.key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "returnTest")
+					.getFirst()
+					.as(SchemaProperty.class);
+
+			// disable wrapping for both methods
+			method.setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY), false);
+			method.setSource("{true;}");
+
+			functionProp.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_WRAP_JS_PROPERTY), false);
+			functionProp.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{true;}");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			final Object result     = Scripting.evaluate(ctx, null, "${{Structr.call('testJSScriptModesMethod')}}", "test");
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (UnlicensedScriptException |FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface obj = app.create(type, "test1");
+			final Object result     = obj.getProperty(Traits.of(type).key("returnTest"));
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 
