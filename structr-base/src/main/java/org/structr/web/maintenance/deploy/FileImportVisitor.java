@@ -194,6 +194,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		String newFileUuid    = null;
 		final Traits traits   = Traits.of(StructrTraits.FILE);
 		final String fullPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
+		boolean wasIgnored    = false;
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -209,6 +210,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				logger.info("Ignoring {} (not in files.json)", fullPath);
 
 				encounteredButNotConfiguredFilePaths.add(path.toString());
+				wasIgnored = true;
 
 			} else {
 
@@ -341,7 +343,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			logger.error("Error occured while reading file properties " + fileName, ex);
 		}
 
-		checkIfFileOrFolderWasRenamed(traits, fullPath, fileName);
+		if (wasIgnored == false) {
+
+			checkIfFileOrFolderWasRenamed(traits, fullPath, fileName);
+		}
 	}
 
 	protected void checkIfFileOrFolderWasRenamed(final Traits traits, final String fullPath, final String targetName) {
