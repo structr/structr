@@ -21,7 +21,7 @@ else
 fi
 
 if [ "$ENABLE_STRUCTR_DEBUG" == "yes" ]; then
-  DEBUG_OPTS="-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=*:5005,server=y,suspend=n"
+  DEBUG_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
   echo "        debug enabled with config: $DEBUG_OPTS"
 fi
 
