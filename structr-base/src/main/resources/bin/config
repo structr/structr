@@ -43,7 +43,9 @@ else
   echo "Using system TZ env timezone '$TZ'"
 fi
 
-RUN_OPTS="-cp lib/*:${project.build.finalName}.jar"
+mkdir -p plugins
+
+RUN_OPTS="-cp ./lib/*:./plugins/*:${project.build.finalName}.jar"
 JAVA_OPTS="$JAVA_AGENT_PATH -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.country=US -Duser.language=en -Duser.timezone=$PROCESS_TZ -Dfile.encoding=UTF-8 -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -server $MEMORY_OPTS -XX:+UseNUMA -XX:+UseG1GC $DEBUG_OPTS"
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${project.build.finalName}.jar"
