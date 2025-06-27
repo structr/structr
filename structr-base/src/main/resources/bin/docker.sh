@@ -137,8 +137,23 @@ if [ -e $PID_FILE ]; then
 
 		exit 0
 	fi
-
 fi
+
+# Check if there is an additional lib folder mounted into container
+SOURCE_DIR="/structr-plugins"
+STRUCTR_LIB_DIRECTORY="${_STRUCTR_HOME}/lib"
+
+if [ -d "$SOURCE_DIR" ]; then
+    mkdir -p "$STRUCTR_LIB_DIRECTORY"
+
+    for file in "$SOURCE_DIR"/*; do
+        echo "        Linking jar plugin $file into structr lib directory"
+        if [ -f "$file" ]; then
+            ln -sf "$file" "$STRUCTR_LIB_DIRECTORY/"
+        fi
+    done
+fi
+
 
 if [ ! -d $LOGS_DIR ]; then
 		echo "        Creating logs directory..."
