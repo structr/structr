@@ -940,7 +940,7 @@ let _Code = {
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
-				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'basic');
+				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'general');
 				let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView);
 
 				// remove bulk edit save/discard buttons
@@ -1899,7 +1899,7 @@ let _Code = {
 						_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 						_Code.codeContents.append(_Code.templates.propertyRemote({ data, entity, sourceNode, targetNode }));
 
-						let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
+						let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'general');
 						let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents)[0], $('.tabs-content-container', _Code.codeContents)[0], sourceNode, targetNode, targetView);
 
 						// remove bulk edit save/discard buttons
@@ -2904,7 +2904,7 @@ let _Code = {
 				<div class="flex flex-wrap gap-8">
 
 					<div class="min-w-48">
-						<label class="block mb-5">Enabled</label>
+						<label class="block mb-5">Enable/include this type</label>
 						<label class="flex"><input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output</label>
 					</div>
 

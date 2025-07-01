@@ -871,8 +871,8 @@ let _Schema = {
 
 			let tabControls = {};
 
-			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity);
+			let generalTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'general', 'General', targetView === 'general');
+			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(generalTabContent, entity);
 
 			if (entity.isServiceClass === false) {
 
@@ -880,7 +880,7 @@ let _Schema = {
 				let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
 				let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
 				let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
-				let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
+				let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Permissions', targetView === 'schema-grants');
 
 				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
 				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
@@ -1764,15 +1764,15 @@ let _Schema = {
 				class: 'local schema-props grid',
 				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
-					{ class: 'pb-1 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Type' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Format' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Idx' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Default' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
+					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Type' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Format' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default' },
 					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
 				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
@@ -2389,9 +2389,9 @@ let _Schema = {
 		templates: {
 			propertyBuiltin: config => `
 				<div class="schema-grid-row contents" data-property-name="${config.property.name}" data-property-id="${config.property.id}">
-					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</div>
-					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
-					<div class="py-1 flex items-center">${config.property.propertyType}</div>
+					<div class="py-3 px-2 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</div>
+					<div class="py-3 px-2 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
+					<div class="py-3 px-2 flex items-center">${config.property.propertyType}</div>
 					<div class="flex items-center justify-center">
 						<input class="not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')} style="margin-right: 0;">
 					</div>
@@ -2408,17 +2408,17 @@ let _Schema = {
 			`,
 			propertyLocal: config => `
 				<div class="schema-grid-row contents" data-property-id="${config.property.id}" >
-					<div class="p-1 flex items-center">
+					<div class="p-2 flex items-center">
 						<input size="15" type="text" class="property-name" value="${_Helpers.escapeForHtmlAttributes(config.property.name)}">
 					</div>
-					<div class="p-1 ${config.dbNameClass}">
+					<div class="p-2 ${config.dbNameClass}">
 						<input size="15" type="text" class="property-dbname" value="${_Helpers.escapeForHtmlAttributes(config.property.dbName)}">
 					</div>
 					<div class="flex items-center">
 						${config.typeOptions}
 						${(config.property.propertyType === 'String' && !config.property.isBuiltinProperty) ? '<input type="text" class="content-type w-12" title="Content-Type">' : ''}
 					</div>
-					<div class="p-1">
+					<div class="p-2">
 						${(() => {
 							switch (config.property.propertyType) {
 								case 'Function':
@@ -2450,7 +2450,7 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
 					</div>
-					<div class="p-1"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
+					<div class="py-3 px-2"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
 					<div class="actions-col flex items-center justify-center">
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Delete')}
@@ -4243,7 +4243,7 @@ let _Schema = {
 							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 						</div>
 						<div class="inline-info-text">
-							To grant the corresponding permissions on <strong>all nodes of that type</strong>, simply check the corresponding boxes and save the grants.
+							To define group permissions for access to <strong>all nodes of this type</strong>, simply check the corresponding boxes and save the changes.
 						</div>
 					</div>
 	
@@ -4255,7 +4255,7 @@ let _Schema = {
 			`,
 			schemaGrantRow: config => `
 				<div class="schema-grid-row contents" data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
-					<div class="p-2">${config.name}</div>
+					<div class="py-3 px-2">${config.name}</div>
 					<div class="flex items-center justify-center">
 						<input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
@@ -5460,7 +5460,7 @@ let _Schema = {
 			</div>
 		`,
 		typeBasicTab: config => `
-			<div class="schema-details pl-2">
+			<div class="schema-details">
 				<div class="flex items-center gap-x-2 pt-4">
 
 					<input data-property="name" class="flex-grow" placeholder="Type Name...">
@@ -5473,7 +5473,7 @@ let _Schema = {
 					` : ''}
 				</div>
 
-				<h3>Options</h3>
+				<h3 class="mt-8">Options</h3>
 				<div class="property-options-group">
 					<div class="flex">
 						${config.isServiceClass ? `
@@ -5495,7 +5495,7 @@ let _Schema = {
 					</div>
 				</div>
 
-				<h3>OpenAPI</h3>
+				<h3 class="mt-8">OpenAPI</h3>
 				<div class="property-options-group">
 					<div id="type-openapi">
 						${_Code.templates.openAPIBaseConfig({ type: 'SchemaNode' })}

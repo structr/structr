@@ -25,6 +25,10 @@
 	margin-left: 2rem;
 }
 
+#code-contents {
+	position: relative;
+}
+
 #code-contents h2 {
 	margin: 0 0 1rem 0;
 	/*border-bottom: 1px solid var(--gray-ccc);*/
@@ -177,4 +181,16 @@ ul#usage-tree {
 
 h2.has-changes::after {
 	content: "*";
+}
+
+#type-actions, #create-type-actions {
+	background-color: white;
+	z-index: 1;
+	position: absolute;
+	top: 1rem;
+	right: 1rem;
+}
+
+.code-tabs {
+	margin-top: 2rem;
 }
