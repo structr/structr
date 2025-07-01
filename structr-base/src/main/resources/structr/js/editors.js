@@ -201,7 +201,7 @@ let _Editors = {
 	getContainerForIdAndProperty: (id, propertyName) => {
 
 		_Editors.editors[id]               = _Editors.editors?.[id] ?? {};
-		_Editors.editors[id][propertyName] = _Editors.editors[id]?.[propertyName] ?? {};
+		_Editors.editors[id][propertyName] = _Editors.editors[id]?.[propertyName] ?? { instanceDisposables: [] };
 
 		return _Editors.editors[id][propertyName];
 	},
