@@ -3097,7 +3097,7 @@ let _Code = {
 							<label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''}>Property value can be cached</label>
 						</div>
 						<div data-is-property-attribute-container>
-							<label data-comment="If active, the property will not be serialized via REST but can be used otherwise. Adding it to a view does not do anything, this setting overrides view configurations.">
+							<label data-comment="If active, the property will not be serialized (REST/CSV etc) but can be used otherwise (e.g. scripting). It will not be shown in the backend UI in the data area and dialogs. This setting overrides view configurations. Such attributes will still not be serialized even if they are in a view.">
 								<input type="checkbox" id="property-is-serialization-disabled" data-property="isSerializationDisabled" ${config.property.isSerializationDisabled ? 'checked' : ''}>Disable Property serialization (via REST)
 							</label>
 						</div>

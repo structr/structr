@@ -250,11 +250,8 @@ public class Trait implements TypeInfo {
 		// set declaring trait
 		key.setDeclaringTrait(this);
 
-		if (!key.serializationDisabled()) {
-
-			// add key to "all" view
-			this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
-		}
+		// add key to "all" view
+		this.views.computeIfAbsent("all", k -> new LinkedHashSet<>()).add(name);
 
 		// add dynamic keys to "custom" view
 		if (key.isDynamic() || DEFAULT_PROPERTY_KEYS.contains(name)) {

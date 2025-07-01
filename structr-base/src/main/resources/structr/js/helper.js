@@ -704,6 +704,32 @@ let _Helpers = {
 				resolve(schemaData.result);
 			});
 		});
+	},
+	getTimestampWithPrefix: (prefix) => {
+
+		let date    = new Date();
+		let year    = date.getFullYear();
+		let month   = String(date.getMonth() + 1).padStart(2, '0');
+		let day     = String(date.getDate()).padStart(2, '0');
+		let hours   = String(date.getHours()).padStart(2, '0');
+		let minutes = String(date.getMinutes()).padStart(2, '0');
+		let seconds = String(date.getSeconds()).padStart(2, '0');
+
+		return `${prefix}_${year}${month}${day}_${hours}${minutes}${seconds}`;
+	},
+	downloadFile: (content, name, contentType) => {
+
+		const file = new File(content, name, { type: contentType });
+		const link = document.createElement('a');
+		const url  = URL.createObjectURL(file);
+
+		link.href = url;
+		link.download = file.name;
+		document.body.appendChild(link);
+		link.click();
+
+		document.body.removeChild(link);
+		window.URL.revokeObjectURL(url);
 	}
 };
 

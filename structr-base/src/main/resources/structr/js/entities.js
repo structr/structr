@@ -649,10 +649,11 @@ let _Entities = {
 	},
 	listProperties: (entity, view, tabView, typeInfo, callback) => {
 
-		_Entities.getSchemaProperties(entity.type, view, (properties) => {
+		_Entities.getSchemaProperties(entity.type, view, (schemaProperties) => {
 
-			let filteredProperties   = Object.keys(properties).filter(key => typeInfo[key] && !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
-			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key] && (typeInfo[key].isCollection && typeInfo[key].relatedType) );
+			let serializableKeys     = Object.keys(schemaProperties).filter(key => schemaProperties[key].serializationDisabled !== true);
+			let filteredProperties   = serializableKeys.filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
+			let collectionProperties = serializableKeys.filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
 				headers: _Helpers.getHeadersForCustomView(filteredProperties)
@@ -671,24 +672,29 @@ let _Entities = {
 						});
 					});
 
-					let keys           = Object.keys(properties);
+					let keys           = Object.keys(schemaProperties);
 					let noCategoryKeys = [];
 					let groupedKeys    = {};
 
 					for (let key of keys) {
 
-						let category = typeInfo?.[key]?.category ?? 'System';
+						// completely hide attributes with the "serializationDisabled" flag
+						let serializationDisabled = typeInfo?.[key]?.serializationDisabled;
+						if (serializationDisabled !== true) {
 
-						if (category !== 'System') {
+							let category = typeInfo?.[key]?.category ?? 'System';
 
-							if (!groupedKeys[category]) {
-								groupedKeys[category] = [];
+							if (category !== 'System') {
+
+								if (!groupedKeys[category]) {
+									groupedKeys[category] = [];
+								}
+								groupedKeys[category].push(key);
+
+							} else {
+
+								noCategoryKeys.push(key);
 							}
-							groupedKeys[category].push(key);
-
-						} else {
-
-							noCategoryKeys.push(key);
 						}
 					}
 
@@ -721,7 +727,7 @@ let _Entities = {
 					}
 				}
 
-				callback?.(properties);
+				callback?.(schemaProperties);
 			});
 		});
 	},

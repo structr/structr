@@ -2893,7 +2893,7 @@ let UISettings = {
 					<div class="flex items-center">
 						<label class="flex items-center p-1">
 							${setting.text}
-							<select class="mr-2 ${setting.inputCssClass ?? ''}">
+							<select class="ml-2 ${setting.inputCssClass ?? ''}">
 								${Object.values(setting.possibleValues).map(option => `<option value="${option.value}">${option.text}</option>`)}
 							</select>
 						</label>
