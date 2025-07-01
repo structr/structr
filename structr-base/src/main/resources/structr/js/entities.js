@@ -512,7 +512,13 @@ let _Entities = {
 					}
 
 					activeView = activeViewOverride || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`) || activeView;
-					$(`#tab-${activeView}`).click();
+
+					let requestedTabLi = mainTabs.querySelector(`#tab-${activeView}`);
+					if (requestedTabLi) {
+						requestedTabLi.click();
+					} else {
+						mainTabs.querySelector('li').click();
+					}
 
 					Structr.resize();
 				});

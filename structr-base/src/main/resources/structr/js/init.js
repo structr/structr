@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showAccessControlDialog(obj);
+					_Entities.showProperties(obj, 'permissions');
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();

@@ -864,16 +864,13 @@ let _Schema = {
 				throw new Error("Loading of Schema nodes failed");
 			}
 		},
-		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
+		loadNode: (entity, mainTabs, contentDiv, targetView = 'general', callbackCancel) => {
 
-			let tabControls = {};
-
-			let generalTabContent      = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'general', 'General', targetView === 'general');
-			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(generalTabContent, entity);
+			let tabControls       = {};
+			let generalTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'general', 'General', targetView === 'general');
+			tabControls.basic     = _Schema.nodes.appendBasicNodeInfo(generalTabContent, entity);
 
 			if (entity.isServiceClass === false) {
-
-				let basicTabContentContainer = generalTabContent.querySelector('.schema-details');
 
 				let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
 				let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
@@ -883,6 +880,8 @@ let _Schema = {
 				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
 				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
 				tabControls.schemaViews      = _Schema.views.appendViews(viewsTabContent, entity);
+
+				let basicTabContentContainer = generalTabContent.querySelector('.schema-details');
 				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(basicTabContentContainer, entity);
 
 				_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
@@ -892,6 +891,11 @@ let _Schema = {
 			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
+
+			// fallback: if no tab is active because the given targetView is not available, use the first tab
+			if (!mainTabs.querySelector('.active')) {
+				mainTabs.querySelector('li').click();
+			}
 
 			Structr.resize();
 
@@ -1274,6 +1278,11 @@ let _Schema = {
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(tabsContainer, callbackCancel);
 
 			Structr.resize();
+
+			// fallback: if no tab is active because the given targetView is not available, use the first tab
+			if (!tabsContainer.querySelector('.active')) {
+				tabsContainer.querySelector('li').click();
+			}
 
 			return tabControls;
 		},
