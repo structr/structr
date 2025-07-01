@@ -110,6 +110,10 @@ let _Config = {
 			_Helpers.activateCommentsInElement(document, { css: '' });
 
 			let anchor = (new URL(window.location.href)).hash || '#general';
+			if (!document.querySelector(anchor)) {
+				// if selected anchor does not exist, activate the first tab
+				anchor = document.querySelector('.tabs-menu li a')?.getAttribute('href') ?? '#welcome';
+			}
 			activateHash(anchor);
 
 			let toggleButtonClicked = (button) => {
