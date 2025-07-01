@@ -64,7 +64,7 @@ let _Widgets = {
 		if (entity.isLocalWidget === true) {
 
 			elements.push({
-				name: 'Properties',
+				name: 'Advanced',
 				clickHandler: () => {
 					_Entities.showProperties(entity, 'ui');
 				}

@@ -210,10 +210,6 @@
 	display: inline-block;
 }
 
-.schema-details .propTabContent {
-	margin-top: 1rem;
-}
-
 .schema-props .property-name:hover:not(:disabled),
 .schema-props .property-dbname:hover,
 .schema-props .property-format:hover,

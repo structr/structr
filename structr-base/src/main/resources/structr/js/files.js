@@ -327,14 +327,14 @@ let _Files = {
 		}
 
 		elements.push({
-			name: 'Basic',
+			name: 'General',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'general');
 			}
 		});
 
 		elements.push({
-			name: 'Properties',
+			name: 'Advanced',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
 			}

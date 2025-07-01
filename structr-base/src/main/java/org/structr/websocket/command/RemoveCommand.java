@@ -106,6 +106,9 @@ public class RemoveCommand extends AbstractCommand {
 
 						TransactionCommand.registerNodeCallback(node, callback);
 
+						// send success
+						getWebSocket().send(webSocketData, true);
+
 					} catch (Throwable t) {
 
 						logger.error("Could not delete relationship", t);

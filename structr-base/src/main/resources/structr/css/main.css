@@ -2542,7 +2542,7 @@ input.tree-search-input {
 	vertical-align: top;
 	background-color: var(--solid-white);
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
-	padding: 1rem;
+	padding: 1.5rem 2rem;
 	margin-top: 0;
 	overflow: auto;
 }
@@ -4334,6 +4334,10 @@ ul.combined-input-select-field li:hover {
 .py-2 {
 	padding-top: .5rem;
 	padding-bottom: .5rem;
+}
+.py-3 {
+	padding-top: .75rem;
+	padding-bottom: .75rem;
 }
 .py-4 {
 	padding-top: 1rem;
