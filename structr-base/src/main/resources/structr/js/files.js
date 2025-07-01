@@ -327,7 +327,7 @@ let _Files = {
 		}
 
 		elements.push({
-			name: 'Basic',
+			name: 'General',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'general');
 			}

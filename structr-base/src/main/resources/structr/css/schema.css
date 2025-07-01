@@ -205,17 +205,9 @@
 	z-index: 9999;
 }
 
-.schema-details {
-	margin-top: 2rem;
-}
-
 .schema b,
 .schema-details b {
 	display: inline-block;
-}
-
-.schema-details .propTabContent {
-	margin-top: 1rem;
 }
 
 .schema-props .property-name:hover:not(:disabled),

@@ -2786,14 +2786,17 @@ let _Code = {
 			<h2>System Types</h2>
 		`,
 		createNewType: config => `
-			<h2>Create New ${config?.text ?? 'Type'}</h2>
-			<div id="method-buttons">
-				<div class="flex flex-wrap gap-x-4">
-					<div class="mb-2">
-						<div id="create-type-actions"></div>
+			<div class="flex flex-wrap justify-between gap-2 mb-2">
+				<h2>Create New ${config?.text ?? 'Type'}</h2>
+				<div id="method-buttons">
+					<div class="flex flex-wrap gap-x-4">
+						<div class="mb-2">
+							<div id="create-type-actions"></div>
+						</div>
 					</div>
 				</div>
 			</div>
+				
 			<div id="create-type-container"></div>
 		`,
 		cypherProperty: config => `
@@ -3122,9 +3125,11 @@ let _Code = {
 			<div id="property-buttons"></div>
 		`,
 		type: config => `
-			<h2>Type ${config.type.name}</h2>
-			<div id="type-actions"></div>
-
+			<div class="flex flex-wrap justify-between gap-2 mb-2">
+				<h2>Type ${config.type.name}</h2>
+				<div id="type-actions"></div>
+			</div>
+			
 			<div class="tabs-container code-tabs">
 				<ul></ul>
 			</div>

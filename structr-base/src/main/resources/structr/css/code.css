@@ -185,12 +185,4 @@ h2.has-changes::after {
 
 #type-actions, #create-type-actions {
 	background-color: white;
-	z-index: 1;
-	position: absolute;
-	top: 1rem;
-	right: 1rem;
-}
-
-.code-tabs {
-	margin-top: 2rem;
 }

@@ -2896,7 +2896,7 @@ let _Crud = {
 
 					if (!isNew || isChanged) {
 
-						let val = _Entities.basicTab.getValueFromFormElement(i);
+						let val = _Entities.generalTab.getValueFromFormElement(i);
 
 
 						if (isCollection) {
