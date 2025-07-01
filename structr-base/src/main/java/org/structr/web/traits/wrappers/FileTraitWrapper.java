@@ -50,6 +50,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.providers.local.LocalFSHelper;
 import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -62,6 +63,7 @@ import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.operations.OnUploadCompletion;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
@@ -96,29 +98,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public void notifyUploadCompletion() {
-
-		try {
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				FileHelper.updateMetadata(this, true);
-				increaseVersion();
-
-				// indexing can be controlled for each file separately
-				if (doIndexing()) {
-
-					final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
-					indexer.addToFulltextIndex(wrappedObject);
-				}
-
-				tx.success();
-			}
-
-		} catch (FrameworkException fex) {
-
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("Unable to index {}: {}", this, fex.getMessage());
-		}
+		traits.getMethod(OnUploadCompletion.class).onUploadCompletion(this, getSecurityContext());
 	}
 
 	@Override
@@ -218,6 +198,20 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public String getPath() {
 		return wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.PATH_PROPERTY));
+	}
+
+	@Override
+	public String getDiskFilePath(final SecurityContext securityContext) {
+
+		final LocalFSHelper helper    = new LocalFSHelper(getStorageConfiguration());
+		final java.io.File fileOnDisk = helper.getFileOnDisk(this);
+
+		if (fileOnDisk != null) {
+
+			return fileOnDisk.getAbsolutePath();
+		}
+
+		return null;
 	}
 
 	@Override

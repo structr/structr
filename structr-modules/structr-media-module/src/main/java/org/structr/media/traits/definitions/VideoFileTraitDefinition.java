@@ -22,15 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.JsonInput;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.InstanceMethod;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
@@ -38,20 +35,18 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
-import org.structr.core.traits.operations.graphobject.OnCreation;
-import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.media.AVConv;
 import org.structr.media.VideoFile;
 import org.structr.media.traits.wrappers.VideoFileTraitWrapper;
-import org.structr.rest.RestMethodResult;
+import org.structr.web.entity.File;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.operations.OnUploadCompletion;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -81,23 +76,20 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Map<Class, LifecycleMethod> getLifecycleMethods() {
 
+		return Map.of();
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+			OnUploadCompletion.class,
+			new OnUploadCompletion() {
 
 				@Override
-				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-					updateVideoInfo(graphObject.as(VideoFile.class), securityContext);
-				}
-			},
-
-			OnModification.class,
-			new OnModification() {
-
-				@Override
-				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-					updateVideoInfo(graphObject.as(VideoFile.class), securityContext);
+				public void onUploadCompletion(final File file, final SecurityContext securityContext) {
+					updateVideoInfo(file.as(VideoFile.class), securityContext);
 				}
 			}
 		);
@@ -113,7 +105,20 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
-		return super.getDynamicMethods();
+
+		return Set.of(
+
+			new InstanceMethod(StructrTraits.VIDEO_FILE, "updateVideoInfo") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					VideoFileTraitDefinition.updateVideoInfo(entity.as(VideoFile.class), securityContext);
+
+					return null;
+				}
+			}
+		);
 	}
 
 	@Override
@@ -177,86 +182,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	/*
-	static class Impl { static {
-
-		type.addMethod("updateVideoInfo")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setSource(VideoFile.class.getName() + ".updateVideoInfo(this, ctx);")
-			.setDoExport(true);
-
-		type.addMethod("convert")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("scriptName", String.class.getName())
-			.addParameter("newFileName", String.class.getName())
-			.setSource(AVConv.class.getName() + ".newInstance(ctx, this, newFileName).doConversion(scriptName);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-
-		type.addMethod("grab")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("scriptName", String.class.getName())
-			.addParameter("imageFileName", String.class.getName())
-			.addParameter("timeIndex", "long")
-			.setSource(AVConv.class.getName() + ".newInstance(ctx, this, imageFileName).grabFrame(scriptName, imageFileName, timeIndex);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-
-		type.addMethod("getMetadata")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setReturnType(RestMethodResult.class.getName())
-			.setSource("return " + VideoFile.class.getName() + ".getMetadata(this, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-
-		type.addMethod("setMetadata")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("key", String.class.getName())
-			.addParameter("value", String.class.getName())
-			.setSource(AVConv.class.getName() + ".newInstance(ctx, this).setMetadata(key, value);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-
-		type.addMethod("setMetadata")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("metadata", JsonInput.class.getName())
-			.setSource(VideoFile.class.getName() + ".setMetadata(this, metadata, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-	}}
-	 */
-
-	static RestMethodResult getMetadata(final VideoFile thisVideo, final SecurityContext ctx) throws FrameworkException {
-
-		final SecurityContext securityContext = thisVideo.getSecurityContext();
-		final Map<String, String> metadata    = AVConv.newInstance(securityContext, thisVideo).getMetadata();
-		final RestMethodResult result         = new RestMethodResult(200);
-		final GraphObjectMap map              = new GraphObjectMap();
-
-		if (metadata != null) {
-
-			for (final Entry<String, String> entry : metadata.entrySet()) {
-				map.setProperty(new StringProperty(entry.getKey()), entry.getValue());
-			}
-		}
-
-		result.addContent(map);
-
-		return result;
-	}
-
-	static void setMetadata(final VideoFile thisVideo, final JsonInput metadata, final SecurityContext ctx) throws FrameworkException {
-
-		final Map<String, String> map = new LinkedHashMap<>();
-
-		for (final Entry<String, Object> entry : metadata.entrySet()) {
-			map.put(entry.getKey(), entry.getValue().toString());
-		}
-
-		AVConv.newInstance(ctx, thisVideo).setMetadata(map);
-	}
-
-	static void updateVideoInfo(final VideoFile thisVideo, final SecurityContext ctx) {
+	public static void updateVideoInfo(final VideoFile thisVideo, final SecurityContext ctx) {
 
 		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
 
@@ -284,7 +210,8 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 
 							VideoFileTraitDefinition.setIfNotNull(thisVideo, traits.key(AUDIO_CODEC_NAME_PROPERTY), stream.get("codec_long_name"));
 							VideoFileTraitDefinition.setIfNotNull(thisVideo, traits.key(AUDIO_CODEC_PROPERTY),      stream.get("codec_name"));
-							VideoFileTraitDefinition.setIfNotNull(thisVideo, traits.key(SAMPLE_RATE_PROPERTY),      VideoFileTraitDefinition.toInt(stream.get("sampleRate")));
+							VideoFileTraitDefinition.setIfNotNull(thisVideo, traits.key(AUDIO_CHANNELS_PROPERTY),   VideoFileTraitDefinition.toInt(stream.get("channels")));
+							VideoFileTraitDefinition.setIfNotNull(thisVideo, traits.key(SAMPLE_RATE_PROPERTY),      VideoFileTraitDefinition.toInt(stream.get("sample_rate")));
 						}
 					}
 				}

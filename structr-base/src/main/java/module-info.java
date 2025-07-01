@@ -218,4 +218,5 @@ module structr.base {
 	exports org.structr.web.traits.wrappers;
 	exports org.structr.web.traits.definitions.dom;
 	exports org.structr.web.traits.wrappers.dom;
+	exports org.structr.web.traits.operations;
 }
