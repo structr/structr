@@ -837,21 +837,25 @@ public class DeployDataCommand extends DeployCommand {
 
 	private boolean isTypeInExportedTypes(final String type) {
 
-		final Traits traits = Traits.of(type);
+		// check if trait exists to avoid error message
+		if (Traits.exists(type)) {
 
-		for (final String exportedType : exportTypes) {
+			final Traits traits = Traits.of(type);
 
-			if (traits.contains(exportedType)) {
+			for (final String exportedType : exportTypes) {
 
-				return true;
+				if (traits.contains(exportedType)) {
+
+					return true;
+				}
 			}
-		}
 
-		for (final String exportedType : exportFileAndFolderTypes) {
+			for (final String exportedType : exportFileAndFolderTypes) {
 
-			if (traits.contains(exportedType)) {
+				if (traits.contains(exportedType)) {
 
-				return true;
+					return true;
+				}
 			}
 		}
 
