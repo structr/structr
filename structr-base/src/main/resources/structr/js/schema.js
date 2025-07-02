@@ -3721,11 +3721,13 @@ let _Schema = {
 			let isServiceClassMethod = (isTypeMethod && methodData.schemaNode.isServiceClass === true);
 			let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(methodData);
 			let isCallableViaREST    = (methodData.isPrivate !== true);
+			let isJavaScript         = ('javascript' === _Editors.getMonacoEditorModeForContent(methodData.source, methodData));
 
 			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod && !isServiceClassMethod));
 			updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
 			updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
 			updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+			updateVisibilityForAttribute('wrapJsInMain',    (!isLifecycleMethod && isJavaScript));
 
 			// completely hide 'more' button for lifecycle methods
 			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
@@ -3777,6 +3779,8 @@ let _Schema = {
 
 						_Schema.methods.rowChanged(tr, changesInInitialData);
 					}
+
+					_Schema.methods.updateUIForAllAttributes(tr, methodData);
 				}
 			};
 
@@ -4047,7 +4051,7 @@ let _Schema = {
 
 					<div>
 						<div class="method-config-element entity-method py-1">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only applies to non-lifecycle type methods.">
 								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
 							</label>
 						</div>
@@ -4055,6 +4059,12 @@ let _Schema = {
 						<div class="method-config-element entity-method py-1">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
 								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="This configures how the script (if it is JavaScript) is interpreted. If set to true, the script itself is wrapped in a main() function to enable the user to use the 'return' keyword at the end to return a value. However, that prevents the user from making use of imports. If this switch is set to false, the script is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
+								<input type="checkbox" data-property="wrapJsInMain" ${config.method.wrapJsInMain ? 'checked' : ''}> Wrap JavaScript in main()
 							</label>
 						</div>
 					</div>

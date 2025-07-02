@@ -1259,6 +1259,8 @@ let _Code = {
 			if (property.propertyType !== 'Function') {
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-type-hint-input').closest('[data-is-property-attribute-container]'));
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-cached').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
 			}
@@ -1497,6 +1499,9 @@ let _Code = {
 					isAutoscriptEnv: true,
 					changeFn: (editor, entity) => {
 						_Code.persistence.updateDirtyFlag(entity);
+
+						let updatedObj = Object.assign({}, result, { source: editor.getValue() });
+						_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
 					}
 				};
 
@@ -1829,7 +1834,12 @@ let _Code = {
 					e.stopPropagation();
 					activateTab($(this).data('name'));
 				});
-				activateTab(lastOpenTab || 'source');
+
+				if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+					activateTab(lastOpenTab || 'source');
+				} else {
+					activateTab('source');
+				}
 
 				_Editors.focusEditor(sourceEditor);
 			});
@@ -2833,7 +2843,7 @@ let _Code = {
 
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
 							<h4 class="py-2 font-semibold">Read Function</h4>
-							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="readFunction"></div>
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
@@ -2841,7 +2851,7 @@ let _Code = {
 									Write Function
 								</h4>
 							</div>
-							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="writeFunction"></div>
 						</div>
 
 					</div>
@@ -3083,7 +3093,7 @@ let _Code = {
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="mt-2 grid grid-cols-3 gap-4">
+					<div class="mt-2 grid grid-cols-4 gap-4">
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''}>Property value must be unique</label>
 						</div>
@@ -3092,6 +3102,11 @@ let _Code = {
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''}>Property value must not be null</label>
+						</div>
+						<div data-is-property-attribute-container>
+							<label data-comment="This configures how the read function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
+								<input type="checkbox" id="property-readfunction-wrap" data-property="readFunctionWrapJS" ${config.property.readFunctionWrapJS ? 'checked' : ''}> Wrap JS read function in main()
+							</label>
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
@@ -3104,6 +3119,12 @@ let _Code = {
 								<input type="checkbox" id="property-is-serialization-disabled" data-property="isSerializationDisabled" ${config.property.isSerializationDisabled ? 'checked' : ''}>Disable Property serialization (via REST)
 							</label>
 						</div>
+						<div data-is-property-attribute-container>
+							<label data-comment="This configures how the write function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used.">
+								<input type="checkbox" id="property-writefunction-wrap" data-property="writeFunctionWrapJS" ${config.property.writeFunctionWrapJS ? 'checked' : ''}> Wrap JS write function in main()
+							</label>
+						</div>
+
 					</div>
 				</div>
 			</div>
