@@ -33,13 +33,13 @@ import java.util.Map;
 
 public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {
 
-	private VideoFile videoFile = null;
+	private final String path;
 
-	public GetVideoInfoProcess(final SecurityContext securityContext, final VideoFile videoFile) {
+	public GetVideoInfoProcess(final SecurityContext securityContext, final String path) {
 
 		super(securityContext);
 
-		this.videoFile = videoFile;
+		this.path = path;
 	}
 
 	@Override
@@ -49,9 +49,8 @@ public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {
 	@Override
 	public StringBuilder getCommandLine() {
 
-		StringBuilder commandLine = new StringBuilder("if [ -x \"$(which avprobe)\" ]; then avprobe -v verbose -show_format -show_streams -of json ");
-		// ToDo: Fix for fs abstraction
-		//commandLine.append(path);
+		StringBuilder commandLine = new StringBuilder("if [ -x \"$(which ffprobe)\" ]; then ffprobe -v verbose -show_format -show_streams -of json ");
+		commandLine.append(path);
 		commandLine.append("; fi;");
 
 		return commandLine;

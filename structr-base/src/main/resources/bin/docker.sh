@@ -137,7 +137,6 @@ if [ -e $PID_FILE ]; then
 
 		exit 0
 	fi
-
 fi
 
 if [ ! -d $LOGS_DIR ]; then

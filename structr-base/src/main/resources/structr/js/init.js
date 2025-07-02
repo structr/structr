@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showAccessControlDialog(obj);
+					_Entities.showProperties(obj, 'permissions');
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -1930,10 +1930,10 @@ let Structr = {
 		mainBody: config => `
 
 			<div id="info-area">
-				<div id="close-all-button" class="my-4 mx-2 text-right">
+				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
 				</div>
-				<div id="messages"></div>
+				<div id="messages" class="py-1"></div>
 			</div>
 
 			<div id="header">
@@ -2893,7 +2893,7 @@ let UISettings = {
 					<div class="flex items-center">
 						<label class="flex items-center p-1">
 							${setting.text}
-							<select class="mr-2 ${setting.inputCssClass ?? ''}">
+							<select class="ml-2 ${setting.inputCssClass ?? ''}">
 								${Object.values(setting.possibleValues).map(option => `<option value="${option.value}">${option.text}</option>`)}
 							</select>
 						</label>

@@ -16,38 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.util.html;
+package org.structr.web.traits.operations;
 
-import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.html.attr.Context;
+import org.structr.common.SecurityContext;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.web.entity.File;
 
-/**
- *
- *
- */
-public class Attr {
+public abstract class OnUploadCompletion extends FrameworkMethod<Void> {
 
-	private String key   = null;
-	private Object value = null;
-
-	public Attr(final String key, final Object value) {
-		this.key = key;
-		this.value = value;
-	}
-
-	public String format(final Context context) {
-		return key + "=\"" + escapeAttributeValue(value.toString()) + "\"";
-	}
-
-	private String escapeAttributeValue(final String attrValue) {
-		return StringUtils.replaceEach(attrValue, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
-	}
-
-	public String getKey() {
-		return key;
-	}
-
-	public Object getValue() {
-		return value;
-	}
+	public abstract void onUploadCompletion(final File file, final SecurityContext securityContext);
 }

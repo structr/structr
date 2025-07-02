@@ -97,7 +97,7 @@ let _Security = {
 
 		if (isUser) {
 			elements.push({
-				name: 'Basic',
+				name: 'General',
 				clickHandler: () => {
 					_Entities.showProperties(entity, 'general');
 				}
@@ -105,7 +105,7 @@ let _Security = {
 		}
 
 		elements.push({
-			name: 'Properties',
+			name: 'Advanced',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
 			}

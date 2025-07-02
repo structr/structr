@@ -20,6 +20,7 @@ package org.structr.websocket.command.dom;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -173,6 +174,12 @@ public class CloneNodeCommand extends AbstractCommand {
 				}
 
 				setOwnerPageRecursively(clonedNode, clonedNode.getSecurityContext(), ownerPage);
+
+				TransactionCommand.registerNodeCallback(clonedNode, callback);
+
+				// send success
+				getWebSocket().send(webSocketData, true);
+
 
 			} catch (DOMException | FrameworkException ex) {
 

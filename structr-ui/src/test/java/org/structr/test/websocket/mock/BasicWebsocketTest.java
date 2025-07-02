@@ -19,14 +19,21 @@
 package org.structr.test.websocket.mock;
 
 import org.apache.pulsar.shade.org.apache.commons.io.IOUtils;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.testng.AssertJUnit;
@@ -372,6 +379,80 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception: " + fex.getMessage());
+		}
+	}
+
+	@Test
+	public void testCreateWithNestedObject() {
+
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonObjectType project  = schema.addType("Project");
+			final JsonObjectType task     = schema.addType("Task");
+
+			project.relate(task, "HAS", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			AssertJUnit.fail(fex.getMessage());
+		}
+
+		final String sessionId = "TESTSESSION";
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try {
+			Thread.sleep(200);
+		} catch (Throwable t) {
+		}
+
+		// create folder and store uuid
+		final String taskId = createEntityAsSuperUser("/Task", "{ name: 'Test Task' }");
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "CREATE",
+			"sessionId", sessionId,
+			"data", Map.of(
+				"name", "Test Project",
+				"type", "Project",
+				"tasks", List.of(Map.of(
+					"id", taskId
+				))
+			)
+		)));
+
+		// successful create does not send a response, so no response check here,
+		// but we can check that the object exists
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project = app.nodeQuery("Project").getFirst();
+
+			AssertJUnit.assertNotNull("Entity was not created correctly", project);
+
+
+			final PropertyKey<Iterable<NodeInterface>> tasksKey = project.getTraits().key("tasks");
+
+			final List tasks = Iterables.toList(project.getProperty(tasksKey));
+
+			AssertJUnit.assertEquals("Relationship was not created correctly", 1, tasks.size());
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			fail("Unexpected exception: " + t.getMessage());
 		}
 	}
 }

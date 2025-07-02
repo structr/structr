@@ -21,6 +21,7 @@ package org.structr.media;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
+import org.structr.storage.providers.local.LocalFSHelper;
 import org.structr.web.entity.Image;
 
 import java.io.BufferedReader;
@@ -114,7 +115,9 @@ public class AVConv implements VideoHelper {
 
 		try {
 
-			return service.submit(new GetVideoInfoProcess(securityContext, inputVideo)).get();
+			final String filePath = new LocalFSHelper(inputVideo.getStorageConfiguration()).getFileOnDisk(inputVideo).getAbsolutePath();
+
+			return service.submit(new GetVideoInfoProcess(securityContext, filePath)).get();
 
 		} catch (InterruptedException | ExecutionException ex) {
 			logger.warn("", ex);
@@ -125,7 +128,7 @@ public class AVConv implements VideoHelper {
 
 	public static boolean isAVConvInstalled() {
 
-		final String[] args = {"/bin/sh", "-c", "which avconv"};
+		final String[] args = {"/bin/sh", "-c", "which ffmpeg"};
 
 		try {
 

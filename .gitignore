@@ -2,6 +2,7 @@
 .project
 .classpath
 target
+structr-base/plugins
 structr-base/data
 structr-base/db*
 structr-base/files*

@@ -632,8 +632,9 @@ let StructrWS = {
 
 	sendObj: (obj, callback) => {
 
+		obj.callback = uuid.v4();
+
 		if (callback) {
-			obj.callback = uuid.v4();
 			StructrModel.callbacks[obj.callback] = callback;
 		}
 

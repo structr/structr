@@ -673,7 +673,7 @@ let _Dashboard = {
 					};
 
 					if (appendTimestamp) {
-						prefix = _Dashboard.tabs.deployment.helpers.appendTimeStampToPrefix(prefix);
+						prefix = _Helpers.getTimestampWithPrefix(prefix);
 					}
 
 					if (prefix === '') {
@@ -701,7 +701,7 @@ let _Dashboard = {
 					};
 
 					if (appendTimestamp) {
-						prefix = _Dashboard.tabs.deployment.helpers.appendTimeStampToPrefix(prefix);
+						prefix = _Helpers.getTimestampWithPrefix(prefix);
 					}
 
 					if (types.length === 0) {
@@ -784,18 +784,6 @@ let _Dashboard = {
 						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().show();
 					}
 					return cleaned;
-				},
-				appendTimeStampToPrefix: (prefix) => {
-
-					let date    = new Date();
-					let year    = date.getFullYear();
-					let month   = String(date.getMonth() + 1).padStart(2, '0');
-					let day     = String(date.getDate()).padStart(2, '0');
-					let hours   = String(date.getHours()).padStart(2, '0');
-					let minutes = String(date.getMinutes()).padStart(2, '0');
-					let seconds = String(date.getSeconds()).padStart(2, '0');
-
-					return `${prefix}_${year}${month}${day}_${hours}${minutes}${seconds}`;
 				},
 				getMessageMarkupIfDeploymentServletInactive: (config, message) => (config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.templates.servletMessage({ message }))
 			},
@@ -1423,18 +1411,7 @@ let _Dashboard = {
 				});
 
 				document.querySelector('#dashboard-server-log-download').addEventListener('click', async () => {
-
-					const file = new File([textarea.textContent], 'structr.log.txt', { type: 'text/plain' });
-					const link = document.createElement('a');
-					const url  = URL.createObjectURL(file);
-
-					link.href = url;
-					link.download = file.name;
-					document.body.appendChild(link);
-					link.click();
-
-					document.body.removeChild(link);
-					window.URL.revokeObjectURL(url);
+					_Helpers.downloadFile([textarea.textContent], 'structr.log.txt', 'text/plain');
 				});
 
 				_Dashboard.tabs['server-log'].getManualRefreshButton().addEventListener('click', _Dashboard.tabs['server-log'].updateLog);

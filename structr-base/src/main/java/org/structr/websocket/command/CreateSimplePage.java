@@ -55,6 +55,9 @@ public class CreateSimplePage extends AbstractCommand {
 
 			TransactionCommand.registerNodeCallback(page, callback);
 
+			// send success
+			getWebSocket().send(webSocketData, true);
+
 		} catch (FrameworkException fex) {
 
 			logger.warn("Could not create node.", fex);

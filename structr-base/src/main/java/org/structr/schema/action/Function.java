@@ -211,8 +211,25 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			if (element != null) {
 
-				if (!type.isAssignableFrom(element.getClass())) {
-					throw ArgumentTypeException.wrongTypes(array, minimum, types);
+				if (GraphObject.class.isAssignableFrom(type)) {
+
+					if (element instanceof GraphObject g) {
+
+						if (!g.is(type.getSimpleName())) {
+
+							throw ArgumentTypeException.wrongTypes(array, minimum, types);
+						}
+
+					} else {
+
+						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+					}
+
+				} else {
+
+					if (!type.isAssignableFrom(element.getClass())) {
+						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+					}
 				}
 
 			} else {
