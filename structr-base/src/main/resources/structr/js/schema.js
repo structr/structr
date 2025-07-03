@@ -3308,6 +3308,7 @@ let _Schema = {
 					isPrivate:       method.isPrivate,
 					returnRawResult: method.returnRawResult,
 					httpVerb:        method.httpVerb,
+					wrapJsInMain:    method.wrapJsInMain,
 					schemaNode:      entity,
 					parameters:      method.parameters,
 					initialData: {
@@ -3317,6 +3318,7 @@ let _Schema = {
 						isPrivate:       method.isPrivate,
 						returnRawResult: method.returnRawResult,
 						httpVerb:        method.httpVerb,
+						wrapJsInMain:    method.wrapJsInMain
 					}
 				};
 
