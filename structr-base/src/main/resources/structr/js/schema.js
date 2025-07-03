@@ -3567,6 +3567,10 @@ let _Schema = {
 				}
 			}
 		},
+		methodChangeFromInitialData: (methodData) => {
+
+			return Object.keys(methodData.initialData).some(key => methodData[key] !== methodData.initialData[key])
+		},
 		bindRowEvents: (gridBody, gridRow, entity) => {
 
 			let methodId       = gridRow.dataset['methodId'];
@@ -3580,7 +3584,8 @@ let _Schema = {
 				methodData.name = propertyNameInput.value;
 
 				if (isDatabaseNode) {
-					_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialData.name));
+					let rowChanged = _Schema.methods.methodChangeFromInitialData(methodData);
+					_Schema.methods.rowChanged(gridRow, rowChanged);
 				}
 
 				_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
@@ -3593,7 +3598,8 @@ let _Schema = {
 					methodData[key] = checkbox.checked;
 
 					if (isDatabaseNode) {
-						_Schema.methods.rowChanged(gridRow, (methodData[key] !== methodData.initialData[key]));
+						let rowChanged = _Schema.methods.methodChangeFromInitialData(methodData);
+						_Schema.methods.rowChanged(gridRow, rowChanged);
 					}
 
 					_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
