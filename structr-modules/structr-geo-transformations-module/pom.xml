@@ -11,10 +11,15 @@
 	<packaging>jar</packaging>
 
     <properties>
-        <geotools.version>19.4</geotools.version>
+        <geotools.version>28.6.1</geotools.version>
     </properties>
 
 	<repositories>
+		<repository>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
 		<repository>
 			<id>osgeo</id>
 			<name>Open Source Geospatial Foundation Repository</name>
@@ -34,9 +39,20 @@
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
+			<artifactId>gt-main</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.locationtech.jts/jts -->
+		<dependency>
+			<groupId>org.locationtech.jts</groupId>
+			<artifactId>jts</artifactId>
+			<version>1.20.0</version>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
 			<artifactId>gt-opengis</artifactId>
 			<version>${geotools.version}</version>
-			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -62,7 +78,7 @@
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-data</artifactId>
-			<version>${geotools.version}</version>
+			<version>20.5</version>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -98,6 +114,11 @@
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-wfs-ng</artifactId>
+			<version>${geotools.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools.xsd</groupId>
+			<artifactId>gt-xsd-core</artifactId>
 			<version>${geotools.version}</version>
 		</dependency>
 	</dependencies>

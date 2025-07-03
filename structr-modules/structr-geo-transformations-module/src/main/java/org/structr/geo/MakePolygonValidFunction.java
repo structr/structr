@@ -18,8 +18,8 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Polygon;
 import org.geotools.geometry.jts.JTS;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;

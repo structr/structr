@@ -18,8 +18,6 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.io.IOUtils;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
@@ -28,15 +26,17 @@ import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.coverage.processing.Operations;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.factory.Hints;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.gml3.v3_2.GMLConfiguration;
 import org.geotools.process.raster.PolygonExtractionProcess;
 import org.geotools.referencing.CRS;
-import org.geotools.xml.Parser;
+import org.geotools.util.factory.Hints;
+import org.geotools.xsd.Parser;
 import org.jaitools.numeric.Range;
 import org.json.JSONObject;
 import org.json.XML;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import org.opengis.coverage.Coverage;
 import org.opengis.feature.Feature;
 import org.opengis.feature.GeometryAttribute;
