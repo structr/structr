@@ -2492,7 +2492,7 @@ let _Crud = {
 
 				} else {
 
-					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
+					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('inexact')}=1`;
 					url = `${Structr.rootUrl}${type}${_Crud.helpers.getSortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
 				}
 
