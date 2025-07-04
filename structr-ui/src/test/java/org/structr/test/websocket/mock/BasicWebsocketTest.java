@@ -18,7 +18,7 @@
  */
 package org.structr.test.websocket.mock;
 
-import org.apache.pulsar.shade.org.apache.commons.io.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
