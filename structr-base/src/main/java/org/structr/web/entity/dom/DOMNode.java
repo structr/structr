@@ -70,15 +70,13 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	String NOT_SUPPORTED_ERR_MESSAGE_ADOPT_DOC = "Document nodes cannot be adopted by another document.";
 	String NOT_SUPPORTED_ERR_MESSAGE_RENAME = "Renaming of nodes is not supported by this implementation.";
 
-	Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[]{
-			GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
-			DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
-			DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
-			DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY, LinkSourceTraitDefinition.LINKABLE_PROPERTY, LinkSourceTraitDefinition.LINKABLE_ID_PROPERTY,
-			DOMElementTraitDefinition.PATH_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
-			DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
-			DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY
-	}));
+	Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY,
+		DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.PARENT_ID_PROPERTY,
+		DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
+		DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY, LinkSourceTraitDefinition.LINKABLE_PROPERTY, LinkSourceTraitDefinition.LINKABLE_ID_PROPERTY,
+		DOMElementTraitDefinition.PATH_PROPERTY, "relationshipId", DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY,
+		DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
+		DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY));
 
 	static void collectNodesByPredicate(final SecurityContext securityContext, DOMNode startNode, List<DOMNode> results, Predicate<DOMNode> predicate, int depth, boolean stopOnFirstHit) throws FrameworkException {
 

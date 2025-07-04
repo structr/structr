@@ -35,21 +35,21 @@ import java.util.Map;
  */
 public interface MaintenanceCommand {
 
-	final static String COMMAND_TYPE_KEY         = "type";
-	final static String COMMAND_SUBTYPE_KEY      = "subtype";
-	final static String COMMAND_TITLE_KEY        = "title";
-	final static String COMMAND_MESSAGE_KEY      = "message";
+	String COMMAND_TYPE_KEY         = "type";
+	String COMMAND_SUBTYPE_KEY      = "subtype";
+	String COMMAND_TITLE_KEY        = "title";
+	String COMMAND_MESSAGE_KEY      = "message";
 
-	final static String COMMAND_SUBTYPE_BEGIN    = "BEGIN";
-	final static String COMMAND_SUBTYPE_PROGRESS = "PROGRESS";
-	final static String COMMAND_SUBTYPE_END      = "END";
-	final static String COMMAND_SUBTYPE_WARNING  = "WARNING";
-	final static String COMMAND_SUBTYPE_INFO     = "INFO";
+	String COMMAND_SUBTYPE_BEGIN    = "BEGIN";
+	String COMMAND_SUBTYPE_PROGRESS = "PROGRESS";
+	String COMMAND_SUBTYPE_END      = "END";
+	String COMMAND_SUBTYPE_WARNING  = "WARNING";
+	String COMMAND_SUBTYPE_INFO     = "INFO";
 
-	public void execute(Map<String, Object> attributes) throws FrameworkException;
-	public boolean requiresEnclosingTransaction();
-	public boolean requiresFlushingOfCaches();
-	public Map<String, String> getCustomHeaders();
+	void execute(Map<String, Object> attributes) throws FrameworkException;
+	boolean requiresEnclosingTransaction();
+	boolean requiresFlushingOfCaches();
+	Map<String, String> getCustomHeaders();
 
 	default Object getCommandResult() {
 		return Collections.EMPTY_LIST;

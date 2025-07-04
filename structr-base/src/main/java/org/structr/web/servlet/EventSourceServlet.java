@@ -131,11 +131,11 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	public static void broadcastEvent(final String name, final String data, final boolean authenticated, final boolean anonymous) {
 
-		if (anonymous == true && authenticated == true) {
+		if (anonymous && authenticated) {
 
 			broadcastEvent(name, data);
 
-		} else if (anonymous == true) {
+		} else if (anonymous) {
 
 			// account for multiple open tabs/connections for one sessionIds and save result
 			final Map<String, Boolean> checkedSessionIds = new HashMap<>();
@@ -156,13 +156,13 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 						checkedSessionIds.put(sessionId, false);
 					}
 
-				} else if (shouldReceive == true) {
+				} else if (shouldReceive) {
 
 					es.sendEvent(name, data);
 				}
 			}
 
-		} else if (authenticated == true) {
+		} else if (authenticated) {
 
 			// account for multiple open tabs/connections for one sessionIds and save result
 			final Map<String, Boolean> checkedSessionIds = new HashMap<>();
@@ -183,7 +183,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 						checkedSessionIds.put(sessionId, false);
 					}
 
-				} else if (shouldReceive == true) {
+				} else if (shouldReceive) {
 
 					es.sendEvent(name, data);
 				}
@@ -267,11 +267,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 		final String[] ids = target.getSessionIds();
 
-		if (ids != null && Arrays.asList(ids).contains(es.getSessionId())) {
-			return true;
-		}
-
-		return false;
+		return ids != null && Arrays.asList(ids).contains(es.getSessionId());
 	}
 
 	// ---- interface Feature -----

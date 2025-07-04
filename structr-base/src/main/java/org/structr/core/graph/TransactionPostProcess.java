@@ -28,5 +28,5 @@ import org.structr.common.error.FrameworkException;
  */
 public interface TransactionPostProcess {
 	
-	public boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 }

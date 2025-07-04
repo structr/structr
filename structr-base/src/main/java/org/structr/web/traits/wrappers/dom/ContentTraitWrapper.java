@@ -149,14 +149,13 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset);
-			final StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
 
-			buf.append(leftPart);
-			buf.append(data);
-			buf.append(rightPart);
+			String buf = leftPart +
+				data +
+				rightPart;
 
 			// finally, set content to concatenated left, data and right parts
-			this.setContent(buf.toString());
+			this.setContent(buf);
 
 		} catch (FrameworkException fex) {
 
@@ -195,13 +194,12 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset + count);
-			final StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
 
-			buf.append(leftPart);
-			buf.append(data);
-			buf.append(rightPart);
+			String buf = leftPart +
+				data +
+				rightPart;
 
-			this.setContent(buf.toString());
+			this.setContent(buf);
 
 		} catch (FrameworkException fex) {
 

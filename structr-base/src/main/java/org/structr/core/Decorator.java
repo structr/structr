@@ -25,5 +25,5 @@ package org.structr.core;
  */
 public interface Decorator<NodeInterface> {
 	
-	public void decorate(NodeInterface t);
+	void decorate(NodeInterface t);
 }

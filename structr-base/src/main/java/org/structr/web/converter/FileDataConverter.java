@@ -86,9 +86,7 @@ public class FileDataConverter extends PropertyConverter {
 				logger.warn("Unable to parse file data", mex);
 			}
 
-		} else if (source instanceof String) {
-
-			String sourceString = (String) source;
+		} else if (source instanceof String sourceString) {
 
 			if (StringUtils.isNotBlank(sourceString)) {
 

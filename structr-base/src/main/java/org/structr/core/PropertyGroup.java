@@ -29,6 +29,6 @@ import org.structr.common.error.FrameworkException;
  */
 public interface PropertyGroup<T> {
 	
-	public T getGroupedProperties(SecurityContext securityContext, GraphObject source) throws FrameworkException;
-	public void setGroupedProperties(SecurityContext securityContext, T source, GraphObject destination) throws FrameworkException;
+	T getGroupedProperties(SecurityContext securityContext, GraphObject source) throws FrameworkException;
+	void setGroupedProperties(SecurityContext securityContext, T source, GraphObject destination) throws FrameworkException;
 }

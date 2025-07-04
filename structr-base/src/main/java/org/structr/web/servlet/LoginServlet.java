@@ -40,6 +40,7 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.dom.Page;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -73,7 +74,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			try {
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
@@ -183,10 +184,10 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 			final String path = errorPage.as(Page.class).getPagePath();
 			if (path != null) {
 
-				return path + "?status=" + statusCode.toString();
+				return path + "?status=" + statusCode;
 			}
 
-			return "/" + errorPage.getName() + "?status=" + statusCode.toString();
+			return "/" + errorPage.getName() + "?status=" + statusCode;
 		}
 
 		return "/";

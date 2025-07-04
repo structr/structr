@@ -48,7 +48,7 @@ import java.util.*;
 public class ServicePrincipal implements Principal {
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
-	private SecurityContext securityContext = null;
+	private final SecurityContext securityContext = null;
 	private List<String> jwksReferenceIds   = null;
 	private List<Group> groups              = null;
 	private boolean isAdmin                 = false;

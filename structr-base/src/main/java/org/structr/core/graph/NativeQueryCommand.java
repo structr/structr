@@ -164,9 +164,8 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 			return nodeFactory.instantiate((Node) value, includeHiddenAndDeleted, publicOnly);
 
-		} else if (value instanceof Relationship) {
+		} else if (value instanceof Relationship relationship) {
 
-			final Relationship relationship = (Relationship)value;
 			final GraphObject sourceNode    = nodeFactory.instantiate(relationship.getStartNode(), includeHiddenAndDeleted, publicOnly);
 			final GraphObject targetNode    = nodeFactory.instantiate(relationship.getEndNode(), includeHiddenAndDeleted, publicOnly);
 
@@ -177,10 +176,9 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 			return null;
 
-		} else if (value instanceof Path) {
+		} else if (value instanceof Path path) {
 
 			final List list = new LinkedList<>();
-			final Path path = (Path)value;
 
 			for (final PropertyContainer container : path) {
 

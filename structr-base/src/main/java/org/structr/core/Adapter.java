@@ -34,5 +34,5 @@ public interface Adapter<S, T>
 	 * @param s the source class
 	 * @return the target class
 	 */
-	public T adapt(S s) throws FrameworkException;
+	T adapt(S s) throws FrameworkException;
 }

@@ -58,7 +58,7 @@ public class TestHelper {
 		baseMap.put("public", Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY));
 
 		requiredAttributes.put(StructrTraits.DYNAMIC_RESOURCE_ACCESS, Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
-		requiredAttributes.put(StructrTraits.LOCALIZATION,            Arrays.asList(LocalizationTraitDefinition.LOCALE_PROPERTY));
+		requiredAttributes.put(StructrTraits.LOCALIZATION, List.of(LocalizationTraitDefinition.LOCALE_PROPERTY));
 		requiredAttributes.put(StructrTraits.RESOURCE_ACCESS,         Arrays.asList(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY, "i:" + ResourceAccessTraitDefinition.FLAGS_PROPERTY));
 		requiredAttributes.put(StructrTraits.SCHEMA_RELATIONSHIP_NODE, Arrays.asList(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.SOURCE_TYPE_PROPERTY, SchemaRelationshipNodeTraitDefinition.TARGET_TYPE_PROPERTY));
 

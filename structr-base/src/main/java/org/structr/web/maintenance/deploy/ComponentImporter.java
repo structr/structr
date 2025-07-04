@@ -44,6 +44,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -228,7 +229,7 @@ public class ComponentImporter extends HtmlFileImporter {
 				}
 
 				final Traits traits     = Traits.of(StructrTraits.NODE_INTERFACE);
-				final String src        = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
+				final String src        = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
 				boolean visibleToPublic = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), false);
 				boolean visibleToAuth   = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), false);
 				final Importer importer = new Importer(securityContext, src, null, componentName, visibleToPublic, visibleToAuth, false, relativeVisibility);

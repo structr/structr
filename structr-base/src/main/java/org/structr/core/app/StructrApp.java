@@ -258,7 +258,7 @@ public class StructrApp implements App {
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				relUuidMap.put(uuid, container.getId());
-				return (RelationshipInterface)entity;
+				return entity;
 			}
 
 		} else {
@@ -344,7 +344,7 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException {
-		((MaintenanceCommand)Services.getInstance().command(securityContext, commandClass)).execute(propertySet);
+		Services.getInstance().command(securityContext, commandClass).execute(propertySet);
 	}
 
 	@Override

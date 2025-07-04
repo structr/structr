@@ -53,7 +53,7 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<Iterab
 			String nodeId = securityContext.getRequest().getParameter(parameterName);
 			if (nodeId != null) {
 
-				NodeInterface node = (NodeInterface) StructrApp.getInstance(securityContext).getNodeById(nodeId);
+				NodeInterface node = StructrApp.getInstance(securityContext).getNodeById(nodeId);
 				if (node != null) {
 
 					List<GraphObject> graphData = new LinkedList<>();

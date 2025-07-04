@@ -125,7 +125,7 @@ public interface Widget extends NodeInterface {
 
 	class ReplacementInfo {
 
-		private ArrayList<String> options = new ArrayList<>();
+		private final ArrayList<String> options = new ArrayList<>();
 		private String key                = null;
 		private boolean hasOptions        = false;
 

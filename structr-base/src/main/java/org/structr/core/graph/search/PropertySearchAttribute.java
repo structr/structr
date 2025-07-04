@@ -90,16 +90,13 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 
 	private int compare(T nodeValue, T searchValue) {
 
-		if (nodeValue instanceof Comparable && searchValue instanceof Comparable) {
+		if (nodeValue instanceof Comparable n && searchValue instanceof Comparable s) {
 
 			if (nodeValue instanceof Enum && searchValue instanceof String) {
 				return nodeValue.toString().compareTo((String)searchValue);
 			} else if (searchValue instanceof Enum && nodeValue instanceof String) {
 				return ((Comparable)nodeValue).compareTo(searchValue.toString());
 			}
-
-			Comparable n = (Comparable)nodeValue;
-			Comparable s = (Comparable)searchValue;
 
 			return n.compareTo(s);
 		}

@@ -81,10 +81,7 @@ public class Parameters extends LinkedHashMap<String, String> {
 		if (name != null) {
 
 			final String value = this.get(name);
-			if (value != null) {
-
-				return value;
-			}
+			return value;
 
 		} else {
 
@@ -92,7 +89,6 @@ public class Parameters extends LinkedHashMap<String, String> {
 		}
 
 		// no named parameter found
-		return null;
 	}
 
 	// ----- public static methods -----
