@@ -1989,7 +1989,7 @@ let _Schema = {
 
 				if (overrides && overrides.editReadWriteFunction) {
 
-					overrides.editReadWriteFunction(property, targetProperty);
+					overrides.editReadWriteFunction(property);
 
 				} else {
 
@@ -2006,11 +2006,11 @@ let _Schema = {
 			};
 
 			$('.edit-read-function', gridRow).on('click', () => {
-				readWriteButtonClickHandler('readFunction');
+				readWriteButtonClickHandler('read');
 			}).prop('disabled', isProtected);
 
 			$('.edit-write-function', gridRow).on('click', () => {
-				readWriteButtonClickHandler('writeFunction');
+				readWriteButtonClickHandler('write');
 			}).prop('disabled', isProtected);
 
 			$('.edit-cypher-query', gridRow).on('click', () => {
@@ -2198,20 +2198,38 @@ let _Schema = {
 		},
 		openCodeEditorForFunctionProperty: (id, key, closeCallback) => {
 
-			Command.get(id, `id,name,contentType,${key}`, (entity) => {
+			let codeKey = `${key}Function`;
+			let wrapKey = `${key}FunctionWrapJS`;
 
-				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
-				_Dialogs.custom.showMeta();
+			Command.get(id, `id,name,contentType,${codeKey},${wrapKey}`, (entity) => {
 
-				let initialText = entity[key] || '';
-
+				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} function of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
 				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
+				_Dialogs.custom.showMeta();
 
 				let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
 				let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 				let editorInfo       = dialogMeta.querySelector('.editor-info');
 				_Editors.appendEditorOptionsElement(editorInfo);
+
+				let wrapChoice = _Helpers.createSingleDOMElementFromHTML(`<span>${ _Schema.properties.templates.functionProperty[wrapKey]({ entity }) }</span>`);
+				editorInfo.appendChild(wrapChoice);
+				_Helpers.activateCommentsInElement(wrapChoice);
+
+				let initialText     = entity[codeKey] ?? '';
+				let initialWrapFlag = entity[wrapKey];
+				let editor, flagCheckbox;
+
+				let isChanged = () => {
+					return !(editor.getValue() === initialText && flagCheckbox.checked === initialWrapFlag);
+				};
+
+				flagCheckbox = wrapChoice.querySelector('input[type="checkbox"]');
+				flagCheckbox.addEventListener('change', (e) => {
+					let disabled = !isChanged();
+					_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
+				});
 
 				let functionPropertyMonacoConfig = {
 					language: 'auto',
@@ -2219,26 +2237,27 @@ let _Schema = {
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 
-						let disabled = (initialText === editor.getValue());
+						let isJs = (_Editors.getMonacoEditorModeForContent(editor.getValue(), entity) === 'javascript');
+						wrapChoice.classList.toggle('hidden', !isJs);
+
+						let disabled = !isChanged();
 						_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
 					},
 					saveFn: (editor, entity, close = false) => {
 
-						let text1 = initialText;
-						let text2 = editor.getValue();
-
-						if (text1 === text2) {
+						if (!isChanged()) {
 							return;
 						}
 
-						Command.setProperty(entity.id, key, text2, false, () => {
+						Command.setProperties(entity.id, { [codeKey]: editor.getValue(), [wrapKey]: flagCheckbox.checked }, () => {
 
-							_Dialogs.custom.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+							_Dialogs.custom.showAndHideInfoBoxMessage('Saved successfully', 'success', 2000, 200);
 
 							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
-							Command.getProperty(entity.id, key, (newText) => {
-								initialText = newText;
+							Command.get(id, `id,${codeKey},${wrapKey}`, (entity) => {
+								initialText     = entity[codeKey];
+								initialWrapFlag = entity[wrapKey];
 							});
 
 							if (close === true) {
@@ -2246,13 +2265,13 @@ let _Schema = {
 							}
 						});
 					},
-					saveFnText: `Save ${key} Function`,
+					saveFnText: `Save ${key} function`,
 					preventRestoreModel: true,
 					isAutoscriptEnv: true
 				};
 
-				let editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
-				_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, key, editor);
+				editor = _Editors.getMonacoEditor(entity, codeKey, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
+				_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, codeKey, editor);
 
 				_Editors.resizeVisibleEditors();
 				Structr.resize();
@@ -2432,14 +2451,14 @@ let _Schema = {
 							switch (config.property.propertyType) {
 								case 'Function':
 									return `
-												<div class="flex items-center">
-													<button class="edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
-													<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
-													<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
-													<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
-													${config.typeHintOptions}
-												</div>
-											`;
+										<div class="flex items-center">
+											<button class="flex items-center edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read${(config.property.readFunctionWrapJS === true) ? _Icons.getSvgIcon(_Icons.iconScriptWrapped, 20, 20, ['ml-1'], 'This script (if JavaScript) is being wrapped in a main() function, thus enabling the usage or the return statement and not allowing import statements.') : ''}</button>
+											<button class="flex items-center edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write${(config.property.writeFunctionWrapJS === true) ? _Icons.getSvgIcon(_Icons.iconScriptWrapped, 20, 20, ['ml-1'], 'This script (if JavaScript) is being wrapped in a main() function, thus enabling the usage or the return statement and not allowing import statements.') : ''}</button>
+											<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
+											<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
+											${config.typeHintOptions}
+										</div>
+									`;
 								case 'Cypher':
 									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
 								default:
@@ -2543,6 +2562,18 @@ let _Schema = {
 					<option value="Password" data-protected="true" disabled>Password</option>
 				</select>
 			`,
+			functionProperty: {
+				readFunctionWrapJS: (config) => `
+					<label data-comment="This configures how the read function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
+						<input type="checkbox" id="property-readfunction-wrap" data-property="readFunctionWrapJS" ${config.entity.readFunctionWrapJS ? 'checked' : ''}> Wrap JS read function in main()
+					</label>
+				`,
+				writeFunctionWrapJS: (config) => `
+					<label data-comment="This configures how the write function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used.">
+						<input type="checkbox" id="property-writefunction-wrap" data-property="writeFunctionWrapJS" ${config.entity.writeFunctionWrapJS ? 'checked' : ''}> Wrap JS write function in main()
+					</label>
+				`
+			}
 		}
 	},
 	remoteProperties: {

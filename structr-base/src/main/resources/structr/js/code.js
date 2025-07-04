@@ -1152,9 +1152,20 @@ let _Code = {
 					activateTab(tabLink.dataset.name);
 				})
 			}
-			activateTab(lastOpenTab || 'source');
+			if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+				activateTab(lastOpenTab || 'source');
+			} else {
+				activateTab('source');
+			}
 
 			_Helpers.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
+
+			let updateWrapFlagVisibility = (key, text) => {
+
+				let isJs = (_Editors.getMonacoEditorModeForContent(text, property) === 'javascript');
+				let el = document.querySelector(`[data-property="${key}"]`);
+				el?.parentNode.classList.toggle('hidden', !isJs);
+			};
 
 			let functionPropertyMonacoConfig = {
 				language: 'auto',
@@ -1162,6 +1173,9 @@ let _Code = {
 				autocomplete: true,
 				changeFn: (editor, entity) => {
 					_Code.persistence.updateDirtyFlag(entity);
+
+					let key = `${editor.getModel().uri.structr_property}WrapJS`;
+					updateWrapFlagVisibility(key, editor.getValue());
 				},
 				isAutoscriptEnv: true
 			};
@@ -1183,6 +1197,9 @@ let _Code = {
 			_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
 
 			_Code.mainArea.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
+
+			updateWrapFlagVisibility('readFunctionWrapJS', property.readFunction);
+			updateWrapFlagVisibility('writeFunctionWrapJS', property.writeFunction);
 		},
 		displayCypherPropertyDetails: (property, data) => {
 
@@ -1259,7 +1276,7 @@ let _Code = {
 			if (property.propertyType !== 'Function') {
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-type-hint-input').closest('[data-is-property-attribute-container]'));
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-cached').closest('[data-is-property-attribute-container]'));
-				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-readfunction-wrap').closest('[data-is-property-attribute-container]'));
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
@@ -3104,9 +3121,7 @@ let _Code = {
 							<label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''}>Property value must not be null</label>
 						</div>
 						<div data-is-property-attribute-container>
-							<label data-comment="This configures how the read function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
-								<input type="checkbox" id="property-readfunction-wrap" data-property="readFunctionWrapJS" ${config.property.readFunctionWrapJS ? 'checked' : ''}> Wrap JS read function in main()
-							</label>
+							${_Schema.properties.templates.functionProperty.readFunctionWrapJS({ entity: config.property })}
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
@@ -3120,9 +3135,7 @@ let _Code = {
 							</label>
 						</div>
 						<div data-is-property-attribute-container>
-							<label data-comment="This configures how the write function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used.">
-								<input type="checkbox" id="property-writefunction-wrap" data-property="writeFunctionWrapJS" ${config.property.writeFunctionWrapJS ? 'checked' : ''}> Wrap JS write function in main()
-							</label>
+							${_Schema.properties.templates.functionProperty.writeFunctionWrapJS({ entity: config.property })}
 						</div>
 
 					</div>
