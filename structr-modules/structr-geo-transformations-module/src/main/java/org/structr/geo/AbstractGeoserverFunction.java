@@ -27,11 +27,12 @@ import org.geotools.coverage.processing.Operations;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
 import org.geotools.geometry.jts.JTS;
-import org.geotools.gml3.v3_2.GMLConfiguration;
 import org.geotools.process.raster.PolygonExtractionProcess;
 import org.geotools.referencing.CRS;
 import org.geotools.util.factory.Hints;
+import org.geotools.xsd.Configuration;
 import org.geotools.xsd.Parser;
+import org.geotools.xsd.XMLConfiguration;
 import org.jaitools.numeric.Range;
 import org.json.JSONObject;
 import org.json.XML;
@@ -189,10 +190,10 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 				try (final InputStream is = connection.getInputStream()) {
 
-					final GMLConfiguration config  = new GMLConfiguration();
-					final List<Feature> features   = new LinkedList<>();
-					final Parser parser            = new Parser(config);
-					final Object result            = parser.parse(is);
+					final Configuration config   = new XMLConfiguration();
+					final List<Feature> features = new LinkedList<>();
+					final Parser parser          = new Parser(config);
+					final Object result          = parser.parse(is);
 
 					if (result instanceof Map) {
 
