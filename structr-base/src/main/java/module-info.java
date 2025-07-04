@@ -88,7 +88,6 @@ module structr.base {
 	requires activation;
 	requires commons.lang;
 	requires org.json;
-	requires opencsv;
 	requires org.antlr.antlr4.runtime;
 	requires com.twelvemonkeys.common.image;
 	requires flexmark;
@@ -100,6 +99,7 @@ module structr.base {
 	requires flexmark.util.misc;
 	requires org.asciidoctor.asciidoctorj.api;
 	requires org.jruby;
+	requires com.opencsv;
 
 	exports org.structr;
 	exports org.structr.agent;

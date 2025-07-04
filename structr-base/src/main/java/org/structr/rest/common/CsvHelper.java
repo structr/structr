@@ -18,9 +18,8 @@
  */
 package org.structr.rest.common;
 
-import com.opencsv.CSVParser;
-import com.opencsv.CSVReader;
-import com.opencsv.RFC4180Parser;
+import com.opencsv.*;
+import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,18 +51,33 @@ public class CsvHelper {
 
 		if (rfc4180Mode) {
 
-			reader = new CSVReader(input, 0, new RFC4180Parser());
+			reader = new CSVReaderBuilder(input).withCSVParser(new RFC4180Parser()).build();
 
 		} else if (quoteCharacter == null) {
 
-			reader = new CSVReader(input, fieldSeparator);
+			reader = new CSVReaderBuilder(input).withCSVParser(new CSVParserBuilder().withSeparator(fieldSeparator).build()).build();
 
 		} else {
 
-			reader = new CSVReader(input, fieldSeparator, quoteCharacter, strictQuotes);
+			reader = new CSVReaderBuilder(input)
+				.withCSVParser(
+					new CSVParserBuilder()
+					.withSeparator(fieldSeparator)
+						.withQuoteChar(quoteCharacter)
+						.withStrictQuotes(strictQuotes)
+					.build()
+				).build();
 		}
 
-		final String[] propertyNames = reader.readNext();
+		final String[] propertyNames;
+		try {
+
+			propertyNames = reader.readNext();
+
+		} catch (CsvValidationException e) {
+
+			throw new FrameworkException(422, "CSS validation error: " + e.getMessage());
+		}
 
 		CsvHelper.checkPropertyNames(securityContext, propertyNames);
 
@@ -92,14 +106,30 @@ public class CsvHelper {
 
 		if (quoteCharacter == null) {
 
-			reader = new CSVReader(input, fieldSeparator);
+			reader = new CSVReaderBuilder(input).withCSVParser(new CSVParserBuilder().withSeparator(fieldSeparator).build()).build();
 
 		} else {
 
-			reader = new CSVReader(input, fieldSeparator, quoteCharacter, strictQuotes);
+			reader = new CSVReaderBuilder(input)
+				.withCSVParser(
+					new CSVParserBuilder()
+						.withSeparator(fieldSeparator)
+						.withQuoteChar(quoteCharacter)
+						.withStrictQuotes(strictQuotes)
+						.build()
+				).build();
 		}
 
-		final String[] propertyNames = reader.readNext();
+		final String[] propertyNames;
+
+		try {
+
+			propertyNames = reader.readNext();
+
+		} catch (CsvValidationException e) {
+
+			throw new FrameworkException(422, "CSS validation error: " + e.getMessage());
+		}
 
 		CsvHelper.checkPropertyNames(securityContext, propertyNames);
 
@@ -149,7 +179,7 @@ public class CsvHelper {
 	// ----- private methods -----
 	private static ArrayList<String> extractArrayContentsFromArray (final String value, final String propertyName) throws IOException {
 
-		final CSVParser arrayParser              = new CSVParser(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS, DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS);
+		final CSVParser arrayParser              = new CSVParserBuilder().withSeparator(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS).withQuoteChar(DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS).build();
 		final ArrayList<String> extractedStrings = new ArrayList();
 
 		extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(stripArrayBracketsFromString(value, propertyName))));
@@ -212,8 +242,8 @@ public class CsvHelper {
 
 				return fields != null && fields.length > 0;
 
-			} catch (IOException ioex) {
-				logger.warn("", ioex);
+			} catch (Throwable t) {
+				logger.warn("Error reading CSV data", t);
 			}
 
 			return false;
@@ -317,8 +347,8 @@ public class CsvHelper {
 
 				return fields != null && fields.length > 0;
 
-			} catch (IOException ioex) {
-				logger.warn("", ioex);
+			} catch (Throwable t) {
+				logger.warn("Error reading CSV data", t);
 			}
 
 			return false;
