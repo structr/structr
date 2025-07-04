@@ -615,8 +615,6 @@ public class PermissionResolutionTest extends StructrTest {
 	@Test
 	public void testAdminFlagWithServicePrincipal() {
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-
 		try (final Tx tx = app.tx()) {
 
 			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", null, true);
@@ -631,21 +629,55 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 	}
 
-	public static void clearResourceAccess() {
+	@Test
+	public void testCircularGroupHierarchy() {
 
-		final App app = StructrApp.getInstance();
+		Principal tester = null;
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface access : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
-				app.delete(access);
-			}
+			final Traits traits = Traits.of(StructrTraits.GROUP);
+
+			final NodeInterface group1 = app.create(StructrTraits.GROUP, "group1");
+
+			tester = app.create(StructrTraits.PRINCIPAL, "tester").as(Principal.class);
+
+			final NodeInterface group2 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group2"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group1)));
+			final NodeInterface group3 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group3"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group2)));
+			final NodeInterface group4 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group4"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group3)));
+			final NodeInterface group5 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group5"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group4)));
+			final NodeInterface group6 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group6"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group5)));
+			final NodeInterface group7 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group7"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group6)));
+
+			group1.setProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group7));
+
+			final NodeInterface test1 = app.create(StructrTraits.MAIL_TEMPLATE, "test");
+
+			test1.as(AccessControllable.class).setOwner(group5.as(Principal.class));
+
+			group7.as(Group.class).addMember(securityContext, tester);
 
 			tx.success();
 
 		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
 
-			logger.warn("Unable to clear resource access permissions", t);
+		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
+		final App userApp                 = StructrApp.getInstance(userContext);
+
+		try (final Tx tx = userApp.tx()) {
+
+			final NodeInterface node = userApp.nodeQuery(StructrTraits.MAIL_TEMPLATE).getFirst();
+
+			assertNotNull("MailTemplate should be found", node);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 

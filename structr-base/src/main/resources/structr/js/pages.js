@@ -2541,6 +2541,13 @@ let _Pages = {
 						return true;
 					}
 
+					// account for case where a child of the svg is clicked
+					let closestMenuIcon = e.target.closest('.context_menu_icon');
+					if (closestMenuIcon) {
+						_Elements.contextMenu.activateContextMenu(e, closestMenuIcon, entity);
+						return true;
+					}
+
 					const clickedEl = e.target.closest('.class-id-attrs');
 
 					if (clickedEl && clickedEl.classList.contains('_html_class')) {

@@ -24,16 +24,17 @@ import com.vladsch.flexmark.profile.pegdown.Extensions;
 import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
 import com.vladsch.flexmark.util.data.MutableDataSet;
 import net.java.textilej.parser.MarkupParser;
+import net.java.textilej.parser.builder.HtmlDocumentBuilder;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
 import net.java.textilej.parser.markup.textile.TextileDialect;
 import net.java.textilej.parser.markup.trac.TracWikiDialect;
+import org.apache.commons.io.output.StringBuilderWriter;
 import org.asciidoctor.Asciidoctor;
-import org.asciidoctor.Asciidoctor.Factory;
+import org.asciidoctor.Options;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -54,7 +55,7 @@ public class ContentConverters {
 		ContentConverters.put("text/markdown", new Adapter<String, String>() {
 
 			@Override
-			public String adapt(String s) throws FrameworkException {
+			public String adapt(final String s) throws FrameworkException {
 
 				if (s != null) {
 
@@ -64,81 +65,116 @@ public class ContentConverters {
 
 				return "";
 			}
-
 		});
 
 		ContentConverters.put("text/textile", new Adapter<String, String>() {
 
 			@Override
-			public String adapt(String s) throws FrameworkException {
+			public String adapt(final String s) throws FrameworkException {
 
 				if (s != null) {
-					return textileProcessor.get().parseToHtml(s);
+
+					final MarkupParser parser         = textileProcessor.get();
+					final StringBuilderWriter out     = new StringBuilderWriter();
+					final HtmlDocumentBuilder builder = new HtmlDocumentBuilder(out);
+
+					builder.setEmitAsDocument(false);
+					builder.setEmitDtd(false);
+
+					parser.setBuilder(new HtmlDocumentBuilder(out));
+					parser.parse(s, false);
+
+					return out.toString();
 				}
 
 				return "";
-
 			}
-
 		});
 
 		ContentConverters.put("text/mediawiki", new Adapter<String, String>() {
 
 			@Override
-			public String adapt(String s) throws FrameworkException {
+			public String adapt(final String s) throws FrameworkException {
 
 				if (s != null) {
-					return mediaWikiProcessor.get().parseToHtml(s);
+
+					final MarkupParser parser         = mediaWikiProcessor.get();
+					final StringBuilderWriter out     = new StringBuilderWriter();
+					final HtmlDocumentBuilder builder = new HtmlDocumentBuilder(out);
+
+					builder.setEmitAsDocument(false);
+					builder.setEmitDtd(false);
+
+					parser.setBuilder(new HtmlDocumentBuilder(out));
+					parser.parse(s, false);
+
+					return out.toString();
 				}
 
 				return "";
 			}
-
 		});
 
 		ContentConverters.put("text/tracwiki", new Adapter<String, String>() {
 
 			@Override
-			public String adapt(String s) throws FrameworkException {
+			public String adapt(final String s) throws FrameworkException {
 
 				if (s != null) {
-					return tracWikiProcessor.get().parseToHtml(s);
+
+					final MarkupParser parser         = tracWikiProcessor.get();
+					final StringBuilderWriter out     = new StringBuilderWriter();
+					final HtmlDocumentBuilder builder = new HtmlDocumentBuilder(out);
+
+					builder.setEmitAsDocument(false);
+					builder.setEmitDtd(false);
+
+					parser.setBuilder(new HtmlDocumentBuilder(out));
+					parser.parse(s, false);
+
+					return out.toString();
 				}
 
 				return "";
-
 			}
-
 		});
 
 		ContentConverters.put("text/confluence", new Adapter<String, String>() {
 
 			@Override
-			public String adapt(String s) throws FrameworkException {
+			public String adapt(final String s) throws FrameworkException {
 
 				if (s != null) {
-					return confluenceProcessor.get().parseToHtml(s);
+
+					final MarkupParser parser         = confluenceProcessor.get();
+					final StringBuilderWriter out     = new StringBuilderWriter();
+					final HtmlDocumentBuilder builder = new HtmlDocumentBuilder(out);
+
+					builder.setEmitAsDocument(false);
+					builder.setEmitDtd(false);
+
+					parser.setBuilder(new HtmlDocumentBuilder(out));
+					parser.parse(s, false);
+
+					return out.toString();
 				}
 
 				return "";
-
 			}
-
 		});
 
 		ContentConverters.put("text/asciidoc", new Adapter<String, String>() {
 
 			@Override
-			public String adapt(String s) throws FrameworkException {
+			public String adapt(final String s) throws FrameworkException {
 
 				if (s != null) {
-					return asciiDocProcessor.get().render(s, new HashMap<String, Object>());
+
+					return asciiDocProcessor.get().convert(s, Options.builder().build());
 				}
 
 				return "";
-
 			}
-
 		});
 	}
 
@@ -146,18 +182,14 @@ public class ContentConverters {
 		return ContentConverters.get(contentType);
 	}
 
-	//~--- inner classes --------------------------------------------------
 	private static class ThreadLocalConfluenceProcessor extends ThreadLocal<MarkupParser> {
 
 		@Override
 		protected MarkupParser initialValue() {
 
 			return new MarkupParser(new ConfluenceDialect());
-
 		}
-
 	}
-
 
 	private static class ThreadLocalMediaWikiProcessor extends ThreadLocal<MarkupParser> {
 
@@ -165,9 +197,7 @@ public class ContentConverters {
 		protected MarkupParser initialValue() {
 
 			return new MarkupParser(new MediaWikiDialect());
-
 		}
-
 	}
 
 	private static class ThreadLocalFlexMarkProcessor extends ThreadLocal<FlexMarkProcessor> {
@@ -177,15 +207,14 @@ public class ContentConverters {
 
 			final MutableDataSet options = new MutableDataSet();
 
-            options.setAll(PegdownOptionsAdapter.flexmarkOptions(Extensions.ALL));
-//			options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
+                        options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+			//options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
 
 			Parser parser = Parser.builder(options).build();
 			HtmlRenderer renderer = HtmlRenderer.builder(options).build();
 
 			return new FlexMarkProcessor(parser, renderer);
 		}
-
 	}
 
 	private static class ThreadLocalTextileProcessor extends ThreadLocal<MarkupParser> {
@@ -194,9 +223,7 @@ public class ContentConverters {
 		protected MarkupParser initialValue() {
 
 			return new MarkupParser(new TextileDialect());
-
 		}
-
 	}
 
 	private static class ThreadLocalTracWikiProcessor extends ThreadLocal<MarkupParser> {
@@ -205,7 +232,6 @@ public class ContentConverters {
 		protected MarkupParser initialValue() {
 
 			return new MarkupParser(new TracWikiDialect());
-
 		}
 	}
 
@@ -214,7 +240,7 @@ public class ContentConverters {
 		@Override
 		protected Asciidoctor initialValue() {
 
-			return Factory.create();
+			return Asciidoctor.Factory.create();
 		}
 	}
 
