@@ -530,7 +530,7 @@ let _Elements = {
 					{
 						name: 'Access Control and Visibility',
 						clickHandler: () => {
-							_Entities.showAccessControlDialog(entity);
+							_Entities.showProperties(entity, 'permissions');
 						}
 					},
 					'|'

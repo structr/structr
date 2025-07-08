@@ -154,11 +154,7 @@ public class MigrationService {
 
 	public static boolean typeShouldBeRemoved(final String name) {
 
-		if (MigrationService.StaticTypeMigrationBlacklist.contains(name)) {
-			return true;
-		}
-
-		return false;
+		return MigrationService.StaticTypeMigrationBlacklist.contains(name);
 	}
 
 	public static boolean propertyShouldBeRemoved(final SchemaProperty property) {
@@ -190,10 +186,7 @@ public class MigrationService {
 		// check if property has been blacklisted
 		if ("custom".equals(propertyType)) {
 
-			if (fqcn != null && FQCNBlacklist.contains(fqcn)) {
-
-				return true;
-			}
+			return fqcn != null && FQCNBlacklist.contains(fqcn);
 		}
 
 		return false;
@@ -217,12 +210,7 @@ public class MigrationService {
 	public static boolean methodShouldBeRemoved(final String type, final String name, final String codeType) {
 
 		// we don't support Java methods anymore
-		if ("java".equals(codeType)) {
-
-			return true;
-		}
-
-		return false;
+		return "java".equals(codeType);
 	}
 
 	// ----- private methods -----

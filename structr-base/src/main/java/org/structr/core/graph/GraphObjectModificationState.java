@@ -45,9 +45,7 @@ import java.util.*;
 public class GraphObjectModificationState implements ModificationEvent {
 
 	private static final Logger LOGGER                          = LoggerFactory.getLogger(GraphObjectModificationState.class);
-	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] {
-			GraphObjectTraitDefinition.ID_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY, "localStorage", PrincipalTraitDefinition.SALT_PROPERTY, PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY
-	}));
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY, "localStorage", PrincipalTraitDefinition.SALT_PROPERTY, PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
@@ -453,7 +451,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				obj.add("val",      toElement(newValue));
 
 				if (Settings.ChangelogEnabled.getValue()) {
-					changeLog.append(obj.toString());
+					changeLog.append(obj);
 					changeLog.append("\n");
 				}
 
@@ -488,7 +486,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("relDir",   toElement(direction));
 			obj.add("target",   toElement(object));
 
-			changeLog.append(obj.toString());
+			changeLog.append(obj);
 			changeLog.append("\n");
 		}
 	}
@@ -510,7 +508,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("target",   toElement(targetUuid));
 
 			if (Settings.ChangelogEnabled.getValue()) {
-				changeLog.append(obj.toString());
+				changeLog.append(obj);
 				changeLog.append("\n");
 			}
 
@@ -544,9 +542,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 				if (changeLog.length() > 0 && verb.equals(Verb.create)) {
 					// ensure that node creation appears first in the log
 					changeLog.insert(0, "\n");
-					changeLog.insert(0, obj.toString());
+					changeLog.insert(0, obj);
 				} else {
-					changeLog.append(obj.toString());
+					changeLog.append(obj);
 					changeLog.append("\n");
 				}
 			}

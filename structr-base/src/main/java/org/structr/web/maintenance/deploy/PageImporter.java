@@ -41,6 +41,7 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -77,7 +78,7 @@ public class PageImporter extends HtmlFileImporter {
 			createPage(file, fileName);
 
 		} catch (FrameworkException fex) {
-			logger.warn("Exception while importing page {}: {}", new Object[] { fileName, fex.toString()});
+			logger.warn("Exception while importing page {}: {}", fileName, fex.toString());
 		}
 	}
 
@@ -178,7 +179,7 @@ public class PageImporter extends HtmlFileImporter {
 					deletePage(app, name);
 				}
 
-				final String src         = new String(Files.readAllBytes(file),Charset.forName("UTF-8"));
+				final String src         = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
 				final Traits traits      = Traits.of(StructrTraits.PAGE);
 				final String contentType = get(properties, traits.key(PageTraitDefinition.CONTENT_TYPE_PROPERTY),                 "text/html");
 				boolean visibleToPublic  = get(properties, traits.key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY),        false);
@@ -200,7 +201,7 @@ public class PageImporter extends HtmlFileImporter {
 					final boolean parseOk = importer.parse();
 					if (parseOk) {
 
-						logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
+						logger.info("Importing page {} from {}..", name, fileName);
 
 						// set comment handler that can parse and apply special Structr comments in HTML source files
 						importer.setCommentHandler(new DeploymentCommentHandler());
@@ -223,7 +224,7 @@ public class PageImporter extends HtmlFileImporter {
 					final boolean parseOk = importer.parse(true);
 					if (parseOk) {
 
-						logger.info("Importing page {} from {}..", new Object[] { name, fileName } );
+						logger.info("Importing page {} from {}..", name, fileName);
 
 						// set comment handler that can parse and apply special Structr comments in HTML source files
 						importer.setCommentHandler(new DeploymentCommentHandler());

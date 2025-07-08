@@ -19,8 +19,8 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.asciidoctor.internal.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -63,6 +63,7 @@ import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -6745,20 +6746,28 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testDateConversions() {
 
-		final String src = IOUtils.readFull(ScriptingTest.class.getResourceAsStream("/test/scripting/testDateConversions.js"));
+		try {
+			final String src = IOUtils.toString(ScriptingTest.class.getResourceAsStream("/test/scripting/testDateConversions.js"));
 
-		try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx()) {
 
-			final ActionContext ctx = new ActionContext(securityContext);
+				final ActionContext ctx = new ActionContext(securityContext);
 
-			final Object result1 = Scripting.evaluate(ctx, null, src, "test1");
+				final Object result1 = Scripting.evaluate(ctx, null, src, "test1");
 
-			final ContextStore store = ctx.getContextStore();
+				final ContextStore store = ctx.getContextStore();
 
-		} catch (FrameworkException ex) {
-			ex.printStackTrace();
-			fail("Unexpected exception");
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+		} catch (IOException ioex) {
+			fail("Unexpected exception.");
 		}
+
 	}
 
 	@Test

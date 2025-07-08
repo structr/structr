@@ -69,13 +69,11 @@ public class NodeAttribute<T> {
 	@Override
 	public String toString() {
 
-		StringBuilder buf = new StringBuilder();
+		String buf = (key != null ? key.dbName() : "[null]") +
+			"=" +
+			value;
 
-		buf.append(key != null ? key.dbName() : "[null]");
-		buf.append("=");
-		buf.append(value);
-
-		return buf.toString();
+		return buf;
 	}
 
 	@Override
@@ -92,7 +90,7 @@ public class NodeAttribute<T> {
 	public boolean equals(Object obj) {
 
 		if(obj instanceof NodeAttribute) {
-			return ((NodeAttribute)obj).hashCode() == hashCode();
+			return obj.hashCode() == hashCode();
 		}
 
 		return false;

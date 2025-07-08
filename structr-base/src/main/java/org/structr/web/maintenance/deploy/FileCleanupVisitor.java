@@ -63,7 +63,7 @@ public class FileCleanupVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.warn("Exception while running cleanup at {}: {}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while running cleanup at {}: {}", file.toString(), exc.getMessage());
 		return FileVisitResult.CONTINUE;
 	}
 

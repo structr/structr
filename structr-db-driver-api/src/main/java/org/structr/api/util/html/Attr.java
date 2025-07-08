@@ -18,6 +18,7 @@
  */
 package org.structr.api.util.html;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.attr.Context;
 
 /**
@@ -35,7 +36,11 @@ public class Attr {
 	}
 
 	public String format(final Context context) {
-		return key + "=\"" + value + "\"";
+		return key + "=\"" + escapeAttributeValue(value.toString()) + "\"";
+	}
+
+	private String escapeAttributeValue(final String attrValue) {
+		return StringUtils.replaceEach(attrValue, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
 	}
 
 	public String getKey() {

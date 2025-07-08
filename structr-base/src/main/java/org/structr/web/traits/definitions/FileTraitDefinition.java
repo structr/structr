@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -34,6 +35,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
@@ -55,6 +57,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.property.FileDataProperty;
+import org.structr.web.traits.operations.OnUploadCompletion;
 import org.structr.web.traits.wrappers.FileTraitWrapper;
 
 import java.io.IOException;
@@ -195,6 +198,36 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 					FileTraitDefinition.OnSetProperty(thisFile, key, value, isCreation);
 
 					return getSuper().setProperty(graphObject, key, value, isCreation);
+				}
+			},
+
+			OnUploadCompletion.class,
+			new OnUploadCompletion() {
+				@Override
+				public void onUploadCompletion(File file, SecurityContext securityContext) {
+
+					try {
+
+						try (final Tx tx = StructrApp.getInstance().tx()) {
+
+							FileHelper.updateMetadata(file, true);
+							file.increaseVersion();
+
+							// indexing can be controlled for each file separately
+							if (file.doIndexing()) {
+
+								final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+								indexer.addToFulltextIndex(file);
+							}
+
+							tx.success();
+						}
+
+					} catch (FrameworkException fex) {
+
+						final Logger logger = LoggerFactory.getLogger(File.class);
+						logger.warn("Unable to index {}: {}", this, fex.getMessage());
+					}
 				}
 			}
 		);

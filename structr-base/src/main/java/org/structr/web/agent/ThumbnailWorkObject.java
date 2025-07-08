@@ -19,9 +19,10 @@
 package org.structr.web.agent;
 
 public class ThumbnailWorkObject {
-	private String originalImageId;
-	private int maxWidth, maxHeight;
-	private boolean cropToFit;
+	private final String originalImageId;
+	private final int maxWidth;
+	private final int maxHeight;
+	private final boolean cropToFit;
 
 	public ThumbnailWorkObject(final String originalImageId, final int maxWidth, final int maxHeight, final boolean cropToFit) {
 		this.originalImageId = originalImageId;

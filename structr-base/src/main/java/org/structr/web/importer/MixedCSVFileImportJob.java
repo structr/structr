@@ -42,6 +42,7 @@ import org.structr.web.entity.File;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -124,7 +125,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 				final Map<String, RelationProperty> relKeyCache = new LinkedHashMap<>();
 				final Character fieldSeparator                  = delimiter.charAt(0);
 				final Character quoteCharacter                  = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable              = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
+				final Iterable<JsonInput> iterable              = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, StandardCharsets.UTF_8), fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
 				final Iterator<JsonInput> iterator              = iterable.iterator();
 				int chunks                                      = 0;
 				int ignoreCount                                 = 0;

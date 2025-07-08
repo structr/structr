@@ -347,7 +347,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", new Object[] { maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time });
+			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time);
 
 			tn.setBytes(baos.toByteArray());
 
@@ -369,7 +369,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			if (in == null || in.available() <= 0) {
 
-				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1 });
+				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1);
 				return null;
 			}
 
@@ -814,7 +814,7 @@ public abstract class ImageHelper extends FileHelper {
 			}
 
 		} catch (MetadataException | JSONException | FrameworkException ex) {
-			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getUuid() });
+			logger.warn("Unable to store orientation information on image {} ({})", originalImage.getName(), originalImage.getUuid());
 		}
 
 		return 1;
@@ -943,8 +943,8 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static class Base64URIData {
 
-		private String contentType;
-		private String data;
+		private final String contentType;
+		private final String data;
 
 		public Base64URIData(final String rawData) {
 
@@ -966,7 +966,7 @@ public abstract class ImageHelper extends FileHelper {
 	public static class Thumbnail {
 
 		public enum Format {
-			png, jpg, jpeg, gif;
+			png, jpg, jpeg, gif
 		}
 
 		public static Format defaultFormat = Format.png;

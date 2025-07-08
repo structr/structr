@@ -52,7 +52,7 @@ public class DOMNodeContent {
 			final PropertyMap dataProperties = new PropertyMap();
 
 			// data-widget-elements indicates that the child elements should be preserved
-			data.putSlotElements((List<DOMNode>)source.getChildNodes());
+			data.putSlotElements(source.getChildNodes());
 
 			// store data properties for slots
 			for (final PropertyKey key : source.getDataPropertyKeys()) {

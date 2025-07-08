@@ -39,6 +39,8 @@ import org.structr.schema.SchemaHelper;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -183,7 +185,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 					}
 				}
 
-				logger.info("Query returned {} nodes and {} relationships.", new Object[] { nodes.size(), rels.size() } );
+				logger.info("Query returned {} nodes and {} relationships.", nodes.size(), rels.size());
 
 			} else {
 
@@ -459,12 +461,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 					if (filesToInclude != null) {
 
-						includeFile = false;
-
-						if  (filesToInclude.contains(fileName)) {
-
-							includeFile = true;
-						}
+						includeFile = filesToInclude.contains(fileName);
 					}
 
 					if (includeFile) {
@@ -571,10 +568,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		// finish db entry
 		zos.closeEntry();
 
-		logger.info("Exported {} nodes and {} rels", new Object[] { nodeCount, relCount } );
+		logger.info("Exported {} nodes and {} rels", nodeCount, relCount);
 	}
 
 	private static void importDirectory(ZipInputStream zis, ZipEntry entry) throws IOException {
+
+		// Fix ZIP slip security problem
+		final Path checkPath = Path.of(entry.getName());
+
+		if (!checkPath.normalize().equals(checkPath) || checkPath.isAbsolute()) {
+
+			throw new RuntimeException("Refusing to extract unsafe ZIP entry " + entry.getName());
+		}
 
 		if (entry.isDirectory()) {
 
@@ -759,7 +764,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				totalNodeCount += nodeCount;
 				totalRelCount  += relCount;
 
-				logger.info("Imported {} nodes and {} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
+				logger.info("Imported {} nodes and {} rels, committing transaction..", totalNodeCount, totalRelCount);
 
 				tx.success();
 			}
@@ -823,7 +828,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case 14:
 			case 15:
-				return new String(deserializeData(inputStream), "UTF-8");
+				return new String(deserializeData(inputStream), StandardCharsets.UTF_8);
 
 				// this doesn't work with very long strings
 				//return inputStream.readUTF();
@@ -877,7 +882,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case 14:
 			case 15:
-				serializeData(outputStream, ((String)value).getBytes("UTF-8"));
+				serializeData(outputStream, ((String)value).getBytes(StandardCharsets.UTF_8));
 
 				// this doesn't work with very long strings
 				//outputStream.writeUTF((String)value);

@@ -52,34 +52,69 @@ let _Config = {
 
 			_Config.databaseConnections.init();
 
+			// react to invalid form elements
+			let configForm = document.querySelector('form.config-form');
+			configForm.noValidate = true;
+			configForm.addEventListener('submit', (e) => {
+
+				if (!configForm.checkValidity()) {
+					e.preventDefault();
+
+					let invalidFields = [...configForm.querySelectorAll(':invalid')];
+					let anyVisible    = invalidFields.some(f => f.offsetParent);
+
+					if (!anyVisible) {
+						let tabId = invalidFields[0].closest('.tab-content').id;
+						location.hash = '#' + tabId;
+
+						window.setTimeout(() => {
+							configForm.reportValidity();
+						}, 100);
+					}
+
+					configForm.reportValidity();
+				}
+			});
+
+			let getActiveTab = () => document.querySelector('#active_section').value;
+
 			for (let resetButton of document.querySelectorAll('.reset-key')) {
 
 				resetButton.addEventListener('click', () => {
 
-					let currentTab = $('#active_section').val();
-					let key        = resetButton.dataset['key'];
+					let key = resetButton.dataset['key'];
 
-					window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reset=${key}${currentTab}`;
+					window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reset=${key}${getActiveTab()}`;
 				});
 			}
 
 			document.querySelector('#reload-config-button')?.addEventListener('click', () => {
-				window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${$('#active_section').val()}`;
+				window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${getActiveTab()}`;
 			});
 
-			$('#configTabs a').on('click', function() {
-				$('#configTabs li').removeClass('active');
-				$('.tab-content').hide();
-				let el = $(this);
-				el.parent().addClass('active');
-				$('#active_section').val(el.attr('href'));
-				$(el.attr('href')).show();
+			let activateHash = (hash) => {
+
+				document.querySelectorAll('#configTabs li').forEach(el => el.classList.remove('active'));
+				document.querySelectorAll('.tab-content').forEach(el => {
+					el.style.display = null
+				});
+				document.querySelector(`[href="${hash}"]`)?.parentNode.classList.add('active');
+				document.querySelector('#active_section').value = hash;
+				document.querySelector(hash).style.display = 'block';
+			};
+
+			window.addEventListener('hashchange', (e) => {
+				activateHash(location.hash);
 			});
 
 			_Helpers.activateCommentsInElement(document, { css: '' });
 
-			let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
-			document.querySelector(`a[href$=${anchor}]`)?.click();
+			let anchor = (new URL(window.location.href)).hash || '#general';
+			if (!document.querySelector(anchor)) {
+				// if selected anchor does not exist, activate the first tab
+				anchor = document.querySelector('.tabs-menu li a')?.getAttribute('href') ?? '#welcome';
+			}
+			activateHash(anchor);
 
 			let toggleButtonClicked = (button) => {
 
@@ -116,26 +151,58 @@ let _Config = {
 				});
 			}
 
+			_Config.addCronExpressionValidators();
 			_Search.init();
 		}
 	},
 	createNewEntry: () => {
 
-		let currentTab = $('div.tab-content:visible');
+		let currentTab = [...document.querySelectorAll('div.tab-content')].filter(tc => tc.style.display === 'block')[0];
 		if (currentTab) {
 
 			let name = window.prompt("Please enter a key for the new configuration entry.");
 			if (name && name.length) {
 
-				currentTab.append(`
+				name = name.trim();
+
+				let newEntry = _Helpers.createSingleDOMElementFromHTML(`
 					<div class="form-group">
 						<label class="font-bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
 						<input type="text" name="${name}">
 						<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
 					</div>
 				`);
+
+				currentTab.appendChild(newEntry);
+
+				if (name.endsWith('.cronExpression')) {
+
+					let cronExpressionInfoText = document.querySelector('#cron-info-text').dataset['value'];
+					newEntry.querySelector('label').dataset['comment'] = cronExpressionInfoText;
+
+					_Helpers.activateCommentsInElement(newEntry);
+
+					_Config.addCronExpressionValidator(newEntry.querySelector(`input[name="${name}"]`));
+				}
 			}
 		}
+	},
+	addCronExpressionValidators: () => {
+
+		let cronExpressionInputs = document.querySelectorAll('input[name*=".cronExpression"]');
+
+		for (let input of cronExpressionInputs) {
+			_Config.addCronExpressionValidator(input);
+		}
+	},
+	addCronExpressionValidator: (input) => {
+
+		let helpText = document.querySelector('#cron-info-text').dataset['value'].replace('<pre>', '');
+		helpText = helpText.slice(0, helpText.indexOf('</pre>'));
+
+		input.required = true;
+		input.pattern = '([^ \\\\t]+[ \\\\t]){5}[^ \\\\t]+';
+		input.title = _Helpers.unescapeTags(helpText);
 	},
 	databaseConnections: {
 		loadingMessageId: 'config-database-loading',

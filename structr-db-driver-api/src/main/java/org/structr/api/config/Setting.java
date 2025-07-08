@@ -194,15 +194,34 @@ public abstract class Setting<T> {
 		Settings.unregisterSetting(this);
 	}
 
+	// ----- private methods -----
+	private String getCalculatedComment() {
+
+		if (getComment() != null) {
+
+			return getComment();
+
+		} else if (getKey().endsWith(".cronExpression")) {
+
+			return Settings.CRON_EXPRESSION_INFO_HTML;
+		}
+
+		return null;
+	}
+
 	// ----- protected methods -----
 	protected void renderLabel(final Tag group) {
 
-		final Tag label = group.block("label");
+		final Tag label           = group.block("label");
+		final String finalComment = getCalculatedComment();
 
-		if (getComment() != null) {
+		if (finalComment != null) {
+
 			label.attr(new Attr("class", "font-bold basis-full sm:basis-auto sm:min-w-128 has-comment"));
-			label.attr(new Attr("data-comment", getComment()));
+			label.attr(new Attr("data-comment", finalComment));
+
 		} else {
+
 			label.attr(new Attr("class", "font-bold basis-full sm:basis-auto sm:min-w-128"));
 		}
 

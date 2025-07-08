@@ -160,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showAccessControlDialog(obj);
+					_Entities.showProperties(obj, 'permissions');
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -2893,7 +2893,7 @@ let UISettings = {
 					<div class="flex items-center">
 						<label class="flex items-center p-1">
 							${setting.text}
-							<select class="mr-2 ${setting.inputCssClass ?? ''}">
+							<select class="ml-2 ${setting.inputCssClass ?? ''}">
 								${Object.values(setting.possibleValues).map(option => `<option value="${option.value}">${option.text}</option>`)}
 							</select>
 						</label>

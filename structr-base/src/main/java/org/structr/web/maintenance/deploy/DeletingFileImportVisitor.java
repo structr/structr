@@ -41,10 +41,10 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 	private long totalTime = 0;
 	private int batchCount = 0;
 
-	private int batchSize;
+	private final int batchSize;
 	private long startTime;
 
-	private List<String> parents;
+	private final List<String> parents;
 
 	public DeletingFileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata, final int batchSize, final List<String> requiredParentsPaths) {
 

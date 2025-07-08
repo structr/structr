@@ -38,7 +38,7 @@ public class StructrWriteListener implements WriteListener {
 	private static final Logger logger = LoggerFactory.getLogger(StructrWriteListener.class.getName());
 
 	private static final int COPY_BUFFER_SIZE = 4096;
-	private byte[] buffer = new byte[COPY_BUFFER_SIZE];
+	private final byte[] buffer = new byte[COPY_BUFFER_SIZE];
 	
 	private final InputStream content;
 	private final AsyncContext async;

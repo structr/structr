@@ -87,7 +87,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final Content content = ((NodeInterface) obj).as(Content.class);
+					final Content content = obj.as(Content.class);
 
 					if (content.getContentType() == null) {
 						content.setContentType("text/plain");
@@ -101,7 +101,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final Content content = ((NodeInterface) obj).as(Content.class);
+					final Content content = obj.as(Content.class);
 					final DOMNode domNode = content.as(DOMNode.class);
 
 					// acknowledge all events for this node when it is modified

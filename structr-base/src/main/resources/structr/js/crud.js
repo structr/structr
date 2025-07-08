@@ -491,6 +491,11 @@ let _Crud = {
 				new SuccessMessage().text('Copied to clipboard').show();
 			});
 
+			let downLoad = _Dialogs.custom.appendCustomDialogButton('<button id="download-csv-export" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Download</button>');
+			downLoad.addEventListener('click', async () => {
+				_Helpers.downloadFile([exportArea.value], `csv-export-${_Helpers.getTimestampWithPrefix(type)}.csv`, 'text/csv');
+			});
+
 			let hiddenKeys             = _Crud.objectList.getHiddenKeys(type);
 			let acceptHeaderProperties = Object.keys(_Crud.types[type].views.all).filter(key => !hiddenKeys.includes(key)).join(',');
 
@@ -764,6 +769,9 @@ let _Crud = {
 								// all keys for current view minus the ones that are hidden
 								sortOrder = _Crud.objectList.filterKeys(type, Object.keys(_Crud.types[type].views.all));
 							}
+
+							// filter out keys that have serializationDisabled flag
+							sortOrder = sortOrder.filter(key => !_Crud.helpers.isSerializationDisabled(type, key));
 
 							let orderedColumnsSet = new Set(sortOrder);
 
@@ -1930,6 +1938,8 @@ let _Crud = {
 			// 2. remove all keys that are not in sourceArray
 			sortOrder = sortOrder.filter(key => sourceArray.includes(key));
 
+			// 3. remove alle keys that have the serializationDisabled flag active
+			sortOrder = sortOrder.filter(key => !_Crud.helpers.isSerializationDisabled(type, key));
 
 			// always have id,type,name as the first elements of the array
 			let idTypeName = ['id', 'type', 'name'];
@@ -1938,7 +1948,7 @@ let _Crud = {
 				return (idTypeName.includes(key) === false);
 			});
 
-			sortOrder.unshift(...idTypeName)
+			sortOrder.unshift(...idTypeName);
 
 			return sortOrder;
 		},
@@ -2378,7 +2388,7 @@ let _Crud = {
 
 			_Helpers.appendInfoTextToElement({
 				element: _Crud.search.searchField,
-				text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+				text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base node type to achieve the fastest results.',
 				insertAfter: true,
 				css: {
 					left: '-18px',
@@ -2482,7 +2492,7 @@ let _Crud = {
 
 				} else {
 
-					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
+					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('inexact')}=1`;
 					url = `${Structr.rootUrl}${type}${_Crud.helpers.getSortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
 				}
 
@@ -2796,6 +2806,9 @@ let _Crud = {
 		isReadOnly: (key, type) => {
 			return (key && type && (_Crud.types[type]?.views.all[key]?.readOnly === true || _Crud.helpers.isCypherProperty(key, type)));
 		},
+		isSerializationDisabled: (type, key) => {
+			return (key && type && _Crud.types[type]?.views.all[key]?.serializationDisabled === true);
+		},
 		/**
 		 * Return the related type of the given property key of the given type (or a comma-separated list of possible related types)
 		 */
@@ -2883,7 +2896,7 @@ let _Crud = {
 
 					if (!isNew || isChanged) {
 
-						let val = _Entities.basicTab.getValueFromFormElement(i);
+						let val = _Entities.generalTab.getValueFromFormElement(i);
 
 
 						if (isCollection) {

@@ -87,7 +87,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	@Override
 	public void configureServletHolder(final ServletHolder servletHolder) {
-		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", (long) MEGABYTE * Settings.UploadMaxFileSize.getValue(), (long) MEGABYTE * Settings.UploadMaxRequestSize.getValue(), MEGABYTE);
 		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
 	}
 
@@ -206,7 +206,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
-				return;
 			}
 
 		} catch (Throwable t) {

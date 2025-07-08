@@ -32,6 +32,7 @@ import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 
 public class CreateZipFunction extends UiAdvancedFunction {
@@ -85,7 +86,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		if (sources.length > 3 && sources[3] != null && sources[3] instanceof String) {
 
 			encryptionMethodString = (String) sources[3];
-			encryptionMethod       = "aes".equals(encryptionMethodString.toLowerCase()) ? EncryptionMethod.AES : EncryptionMethod.ZIP_STANDARD;
+			encryptionMethod       = "aes".equalsIgnoreCase(encryptionMethodString) ? EncryptionMethod.AES : EncryptionMethod.ZIP_STANDARD;
 		}
 
 		try {
@@ -104,7 +105,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 				zipFile = new ZipFile(name);
 			}
 
-			zipFile.setCharset(Charset.forName("UTF-8"));
+			zipFile.setCharset(StandardCharsets.UTF_8);
 
 			if (sources[1] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 

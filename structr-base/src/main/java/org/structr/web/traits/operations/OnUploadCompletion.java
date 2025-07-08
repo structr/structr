@@ -16,17 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core;
+package org.structr.web.traits.operations;
 
-/**
- * Classes implementing this interface can be decorated by one or more
- * {@link Decorator} instances in order to extend existing functionality without
- * the need to modify the code itself.
- *
- *
- */
-public interface Decorable<T> {
-	
-	void addDecorator(Decorator<T> d);
-	void removeDecorator(Decorator<T> d);
+import org.structr.common.SecurityContext;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.web.entity.File;
+
+public abstract class OnUploadCompletion extends FrameworkMethod<Void> {
+
+	public abstract void onUploadCompletion(final File file, final SecurityContext securityContext);
 }

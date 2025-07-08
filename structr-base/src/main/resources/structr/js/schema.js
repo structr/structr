@@ -323,7 +323,7 @@ let _Schema = {
 	},
 	openEditDialog: (id, targetView, callback) => {
 
-		targetView = targetView || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${id}`) || 'basic';
+		targetView = targetView || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${id}`) || 'general';
 
 		_Schema.currentNodeDialogId = id;
 
@@ -393,6 +393,7 @@ let _Schema = {
 
 				let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
 				let isDirty     = (changeCount > 0);
+				console.log(isDirty)
 				_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 			});
 
@@ -863,16 +864,11 @@ let _Schema = {
 				throw new Error("Loading of Schema nodes failed");
 			}
 		},
-		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
+		loadNode: (entity, mainTabs, contentDiv, targetView = 'general', callbackCancel) => {
 
-			if (!Structr.isModuleActive(_Code) && (targetView === 'working-sets')) {
-				targetView = 'basic';
-			}
-
-			let tabControls = {};
-
-			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity);
+			let tabControls       = {};
+			let generalTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'general', 'General', targetView === 'general');
+			tabControls.basic     = _Schema.nodes.appendBasicNodeInfo(generalTabContent, entity);
 
 			if (entity.isServiceClass === false) {
 
@@ -880,12 +876,13 @@ let _Schema = {
 				let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
 				let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
 				let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
-				let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
 
 				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
 				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
 				tabControls.schemaViews      = _Schema.views.appendViews(viewsTabContent, entity);
-				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity);
+
+				let basicTabContentContainer = generalTabContent.querySelector('.schema-details');
+				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(basicTabContentContainer, entity);
 
 				_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
 			}
@@ -894,6 +891,11 @@ let _Schema = {
 			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
+
+			// fallback: if no tab is active because the given targetView is not available, use the first tab
+			if (!mainTabs.querySelector('.active')) {
+				mainTabs.querySelector('li').click();
+			}
 
 			Structr.resize();
 
@@ -1022,11 +1024,13 @@ let _Schema = {
 
 			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
+			let basicTypeContainer = tabContent.querySelector('.basic-schema-details');
+
 			_Helpers.activateCommentsInElement(tabContent);
 
 			let updateChangeStatus = () => {
 
-				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
+				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(basicTypeContainer, entity);
 				let changedData = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
 				let hasChanges  = Object.keys(changedData).length > 0;
 
@@ -1049,7 +1053,7 @@ let _Schema = {
 			return {
 				getBulkInfo: (doValidate) => {
 
-					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
+					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(basicTypeContainer, entity);
 					let allow       = true;
 					if (doValidate) {
 						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent, entity);
@@ -1259,7 +1263,7 @@ let _Schema = {
 		},
 		loadRelationship: (entity, tabsContainer, contentDiv, sourceNode, targetNode, targetView, callbackCancel) => {
 
-			let basicTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'basic', 'Basic', targetView === 'basic');
+			let basicTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'general', 'General', targetView === 'general');
 			let localPropsTabContent = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'local', 'Direct properties', targetView === 'local');
 			let viewsTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'views', 'Views', targetView === 'views');
 			let methodsTabContent    = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
@@ -1274,6 +1278,11 @@ let _Schema = {
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(tabsContainer, callbackCancel);
 
 			Structr.resize();
+
+			// fallback: if no tab is active because the given targetView is not available, use the first tab
+			if (!tabsContainer.querySelector('.active')) {
+				tabsContainer.querySelector('li').click();
+			}
 
 			return tabControls;
 		},
@@ -1764,15 +1773,15 @@ let _Schema = {
 				class: 'local schema-props grid',
 				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
-					{ class: 'pb-1 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Type' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Format' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Idx' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Default' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
+					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Type' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Format' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default' },
 					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
 				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
@@ -2389,9 +2398,9 @@ let _Schema = {
 		templates: {
 			propertyBuiltin: config => `
 				<div class="schema-grid-row contents" data-property-name="${config.property.name}" data-property-id="${config.property.id}">
-					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</div>
-					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
-					<div class="py-1 flex items-center">${config.property.propertyType}</div>
+					<div class="py-3 px-2 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</div>
+					<div class="py-3 px-2 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
+					<div class="py-3 px-2 flex items-center">${config.property.propertyType}</div>
 					<div class="flex items-center justify-center">
 						<input class="not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')} style="margin-right: 0;">
 					</div>
@@ -2408,17 +2417,17 @@ let _Schema = {
 			`,
 			propertyLocal: config => `
 				<div class="schema-grid-row contents" data-property-id="${config.property.id}" >
-					<div class="p-1 flex items-center">
+					<div class="p-2 flex items-center">
 						<input size="15" type="text" class="property-name" value="${_Helpers.escapeForHtmlAttributes(config.property.name)}">
 					</div>
-					<div class="p-1 ${config.dbNameClass}">
+					<div class="p-2 ${config.dbNameClass}">
 						<input size="15" type="text" class="property-dbname" value="${_Helpers.escapeForHtmlAttributes(config.property.dbName)}">
 					</div>
 					<div class="flex items-center">
 						${config.typeOptions}
 						${(config.property.propertyType === 'String' && !config.property.isBuiltinProperty) ? '<input type="text" class="content-type w-12" title="Content-Type">' : ''}
 					</div>
-					<div class="p-1">
+					<div class="p-2">
 						${(() => {
 							switch (config.property.propertyType) {
 								case 'Function':
@@ -2450,7 +2459,7 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
 					</div>
-					<div class="p-1"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
+					<div class="py-3 px-2"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
 					<div class="actions-col flex items-center justify-center">
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Delete')}
@@ -3558,6 +3567,10 @@ let _Schema = {
 				}
 			}
 		},
+		methodChangeFromInitialData: (methodData) => {
+
+			return Object.keys(methodData.initialData).some(key => methodData[key] !== methodData.initialData[key])
+		},
 		bindRowEvents: (gridBody, gridRow, entity) => {
 
 			let methodId       = gridRow.dataset['methodId'];
@@ -3571,7 +3584,8 @@ let _Schema = {
 				methodData.name = propertyNameInput.value;
 
 				if (isDatabaseNode) {
-					_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialData.name));
+					let rowChanged = _Schema.methods.methodChangeFromInitialData(methodData);
+					_Schema.methods.rowChanged(gridRow, rowChanged);
 				}
 
 				_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
@@ -3584,7 +3598,8 @@ let _Schema = {
 					methodData[key] = checkbox.checked;
 
 					if (isDatabaseNode) {
-						_Schema.methods.rowChanged(gridRow, (methodData[key] !== methodData.initialData[key]));
+						let rowChanged = _Schema.methods.methodChangeFromInitialData(methodData);
+						_Schema.methods.rowChanged(gridRow, rowChanged);
 					}
 
 					_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
@@ -4237,25 +4252,30 @@ let _Schema = {
 		},
 		templates: {
 			schemaGrantsTabContent: config => `
-				<div class="relative">
-					<div class="inline-info">
-						<div class="inline-info-icon">
-							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+				<div>
+
+					<h3 class="mt-8">Permissions</h3>
+
+					<div class="relative">
+						<div class="inline-info">
+							<div class="inline-info-icon">
+								${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+							</div>
+							<div class="inline-info-text">
+								To define group permissions for access to <strong>all nodes of this type</strong>, simply check the corresponding boxes and save the changes.
+							</div>
 						</div>
-						<div class="inline-info-text">
-							To grant the corresponding permissions on <strong>all nodes of that type</strong>, simply check the corresponding boxes and save the grants.
+		
+						<div style="width: calc(100% - 4rem);" class="pt-4">
+							${config.gridMarkup}
 						</div>
+		
 					</div>
-	
-					<div style="width: calc(100% - 4rem);" class="pt-4">
-						${config.gridMarkup}
-					</div>
-	
 				</div>
 			`,
 			schemaGrantRow: config => `
 				<div class="schema-grid-row contents" data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
-					<div class="p-2">${config.name}</div>
+					<div class="py-3 px-2">${config.name}</div>
 					<div class="flex items-center justify-center">
 						<input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
@@ -5460,46 +5480,49 @@ let _Schema = {
 			</div>
 		`,
 		typeBasicTab: config => `
-			<div class="schema-details pl-2">
-				<div class="flex items-center gap-x-2 pt-4">
-
-					<input data-property="name" class="flex-grow" placeholder="Type Name...">
-
-					${!config.isServiceClass ? `
-						<div class="flex items-center gap-2">
-							has traits
-							<select multiple data-property="inheritedTraits"></select>
-						</div>
-					` : ''}
-				</div>
-
-				<h3>Options</h3>
-				<div class="property-options-group">
-					<div class="flex">
-						${config.isServiceClass ? `
-							<label class="flex items-center mr-8" data-comment="Service-classes are containers for grouped functionality and can not be instantiated">
-								<input id="serviceclass-checkbox" type="checkbox" data-property="isServiceClass" disabled checked> Is Service Class
-							</label>
-						` : ''}
+			<div class="schema-details">
+				
+				<div class="basic-schema-details">
+					<div class="flex items-center gap-x-2 pt-4">
+	
+						<input data-property="name" class="flex-grow" placeholder="Type Name...">
+	
 						${!config.isServiceClass ? `
-							<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
-								<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
-							</label>
-							<label class="flex items-center mr-8" data-comment="Makes all nodes of this type visible to public users if checked">
-								<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
-							</label>
-							<label class="flex items-center" data-comment="Makes all nodes of this type visible to authenticated users if checked">
-								<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
-							</label>
+							<div class="flex items-center gap-2">
+								has traits
+								<select multiple data-property="inheritedTraits"></select>
+							</div>
 						` : ''}
 					</div>
-				</div>
-
-				<h3>OpenAPI</h3>
-				<div class="property-options-group">
+	
+					<h3 class="mt-8">Options</h3>
+					<div class="property-options-group">
+						<div class="flex">
+							${config.isServiceClass ? `
+								<label class="flex items-center mr-8" data-comment="Service-classes are containers for grouped functionality and can not be instantiated">
+									<input id="serviceclass-checkbox" type="checkbox" data-property="isServiceClass" disabled checked> Is Service Class
+								</label>
+							` : ''}
+							${!config.isServiceClass ? `
+								<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
+									<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
+								</label>
+								<label class="flex items-center mr-8" data-comment="Makes all nodes of this type visible to public users if checked">
+									<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
+								</label>
+								<label class="flex items-center" data-comment="Makes all nodes of this type visible to authenticated users if checked">
+									<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
+								</label>
+							` : ''}
+						</div>
+					</div>
+	
+					<h3 class="mt-8">OpenAPI</h3>
+					<div class="property-options-group">
 					<div id="type-openapi">
 						${_Code.templates.openAPIBaseConfig({ type: 'SchemaNode' })}
 					</div>
+				</div>
 				</div>
 			</div>
 		`,

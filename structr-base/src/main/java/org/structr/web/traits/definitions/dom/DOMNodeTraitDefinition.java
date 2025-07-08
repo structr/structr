@@ -266,9 +266,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 											for (Object o : (Iterable) elements) {
 
-												if (o instanceof GraphObject) {
+												if (o instanceof GraphObject graphObject) {
 
-													GraphObject graphObject = (GraphObject) o;
 													renderContext.putDataObject(subKey, graphObject);
 													node.renderContent(renderContext, depth);
 
@@ -559,7 +558,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					// TODO: check hierarchy constraints imposed by the schema
 					// validation successful
-					return;
 				}
 			}
 		);

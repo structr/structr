@@ -19,6 +19,7 @@
 package org.structr.websocket.command.dom;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -104,6 +105,11 @@ public class CreateAndReplaceDOMNodeCommand extends AbstractCommand {
 
 						parentNode.replaceChild(newNode, refNode);
 					}
+
+					TransactionCommand.registerNodeCallback(newNode, callback);
+
+					// send success
+					getWebSocket().send(webSocketData, true);
 
 				} catch (DOMException dex) {
 
