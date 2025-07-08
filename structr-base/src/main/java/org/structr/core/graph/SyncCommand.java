@@ -40,6 +40,7 @@ import org.structr.schema.SchemaHelper;
 import java.io.*;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -571,6 +572,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	}
 
 	private static void importDirectory(ZipInputStream zis, ZipEntry entry) throws IOException {
+
+		// Fix ZIP slip security problem
+		final Path checkPath = Path.of(entry.getName());
+
+		if (!checkPath.normalize().equals(checkPath) || checkPath.isAbsolute()) {
+
+			throw new RuntimeException("Refusing to extract unsafe ZIP entry " + entry.getName());
+		}
 
 		if (entry.isDirectory()) {
 
