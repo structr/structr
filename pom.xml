@@ -429,7 +429,7 @@
 						<exclude>src/test/**/*.html</exclude>
 						<exclude>src/test/**/*.xml</exclude>
 						<exclude>src/test/**/selenium/**/*</exclude>
-						<exclude>src/main/deb/**</exclude>
+						<exclude>src/main/resources/deb/**</exclude>
 						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
 						<exclude>src/main/resources/structr/swagger/**/*</exclude>
 						<exclude>src/test/resources/**/*</exclude>
