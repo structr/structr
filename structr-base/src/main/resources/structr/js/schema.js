@@ -232,12 +232,15 @@ let _Schema = {
 		const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
 
 		const panzoom = Panzoom(schemaContainer, { cursor: 'default', exclude: nodeElements, handleStartEvent: (event) => {
-			if (!event.shiftKey) {
-				panzoom.setOptions({ disablePan: true, cursor: 'default' });
-			} else {
+			let shiftPressed = event.shiftKey;
+			let middleMousePressed =  (event.button === 1);
+
+			if (shiftPressed || middleMousePressed) {
 				panzoom.setOptions({ disablePan: false, cursor: 'move' });
 				event.preventDefault();
 				event.stopPropagation();
+			} else {
+				panzoom.setOptions({ disablePan: true, cursor: 'default' });
 			}
 		} });
 		document.addEventListener('keydown', (event) => {
