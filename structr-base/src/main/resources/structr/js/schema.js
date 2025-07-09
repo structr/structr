@@ -258,6 +258,11 @@ let _Schema = {
 				event.preventDefault();
 			}
 		});
+		schemaContainer.addEventListener('panzoomend', (event) => {
+			if (!event.shiftKey) {
+				schemaContainer.style.cursor = 'default';
+			}
+		});
 		schemaContainer.addEventListener('wheel', (event) => {
 			panzoom.zoomWithWheel(event);
 		});
