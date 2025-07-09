@@ -12,6 +12,11 @@
 		<version>6.0-SNAPSHOT</version>
 	</parent>
 
+	<properties>
+		<assemblies.base.path>${project.parent.basedir}/structr-base/target</assemblies.base.path>
+		<assemblies.resources.path>${project.parent.basedir}/structr-base/src/main/resources</assemblies.resources.path>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
