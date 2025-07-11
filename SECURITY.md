@@ -6,6 +6,7 @@ The following versions are currently supported:
 
 | Version | Supported          | EOL
 | ------- | ------------------ |--------------
+| 5.x     | :white_check_mark: | 31-DEC-2026
 | 4.2.x   | :white_check_mark: | 31-DEC-2025
 | 4.1.x   | :white_check_mark: | 31-DEC-2024
 | 4.0.x   | :white_check_mark: | 31-DEC-2023
