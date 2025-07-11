@@ -82,7 +82,7 @@ public class TranslateFunction extends UiFunction {
 							return "";
 						}
 
-						final Translate translate = TranslateOptions.builder().apiKey(gctAPIKey).build().service();
+						final Translate translate = TranslateOptions.newBuilder().setApiKey(gctAPIKey).build().getService();
 
 						Translation translation = translate.translate(
 							text,
@@ -90,7 +90,7 @@ public class TranslateFunction extends UiFunction {
 							TranslateOption.targetLanguage(targetLanguage)
 						);
 
-						return translation.translatedText();
+						return translation.getTranslatedText();
 					}
 					case "deepl": {
 

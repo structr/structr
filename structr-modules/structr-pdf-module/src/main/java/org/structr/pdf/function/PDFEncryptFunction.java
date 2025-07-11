@@ -18,6 +18,8 @@
  */
 package org.structr.pdf.function;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
@@ -74,7 +76,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				final File pdfFileObject  = ((NodeInterface) sources[0]).as(File.class);
 				final String userPassword = (String) sources[1];
 
-				final PDDocument pdDocument = PDDocument.load(StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream());
+				final PDDocument pdDocument = Loader.loadPDF(new RandomAccessReadBuffer(StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream()));
 
 				final AccessPermission accessPermission = new AccessPermission();
 				accessPermission.setCanPrint(false);

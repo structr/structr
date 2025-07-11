@@ -64,7 +64,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 	private static final Logger logger = LoggerFactory.getLogger(FulltextIndexingAgent.class.getName());
 	static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
-	public static final String TASK_NAME                              = "FulltextIndexing";
+	public static final String TASK_NAME                      = "FulltextIndexing";
 
 	private final Detector detector;
 

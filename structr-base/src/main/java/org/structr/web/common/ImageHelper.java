@@ -441,26 +441,6 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	public static Thumbnail createThumbnailForPdf(final File originalFile, final int page, final int maxWidth, final int maxHeight, final String formatString) {
-
-		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : Thumbnail.defaultFormat;
-
-		try {
-
-			final PDDocument pdfDocument  = PDDocument.load(StorageProviderFactory.getStorageProvider(originalFile).getInputStream());
-			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
-
-			// Create thumbnail of page
-			final BufferedImage source = pdfRenderer.renderImage(page);
-			return createThumbnailFromBufferedImage(source, null, null, null, maxWidth, maxHeight, null);
-
-		} catch (final Throwable t) {
-			logger.warn("Unable to create PDDocument from original file with ID {}.", originalFile.getUuid(), t);
-		}
-
-		return null;
-	}
-
 	private static BufferedImage getRotatedImage(final File originalImage) {
 
 		try {
