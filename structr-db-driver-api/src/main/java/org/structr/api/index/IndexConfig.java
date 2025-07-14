@@ -23,17 +23,20 @@ package org.structr.api.index;
  */
 public abstract class IndexConfig {
 
-	protected boolean createOrDropIndex = false;
-	protected boolean isNodeIndex       = false;
-	protected boolean isFulltextIndex   = false;
+	protected final boolean createOrDropIndex;
+	protected final boolean isNodeIndex;
+	protected final boolean isFulltextIndex;
+	protected final boolean isTextIndex;
 
 	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex) {
-		this(createOrDropIndex, isNodeIndex, false);
+		this(createOrDropIndex, isNodeIndex, false, false);
 	}
-	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex, final boolean isFulltextIndex) {
+
+	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex, final boolean  isTextIndex, final boolean isFulltextIndex) {
 
 		this.createOrDropIndex = createOrDropIndex;
 		this.isNodeIndex       = isNodeIndex;
+		this.isTextIndex       = isTextIndex;
 		this.isFulltextIndex   = isFulltextIndex;
 	}
 
@@ -43,6 +46,10 @@ public abstract class IndexConfig {
 
 	public boolean isNodeIndex() {
 		return this.isNodeIndex;
+	}
+
+	public boolean isTextIndex() {
+		return this.isTextIndex;
 	}
 
 	public boolean isFulltextIndex() {

@@ -23,8 +23,8 @@ package org.structr.api.index;
  */
 public class NodeIndexConfig extends IndexConfig {
 
-	public NodeIndexConfig(final boolean createOrDrop) {
-		super(createOrDrop, true);
+	public NodeIndexConfig(final boolean createOrDrop, final boolean isTextIndex) {
+		super(createOrDrop, true, isTextIndex, false);
 	}
 
 	@Override

@@ -85,7 +85,7 @@
 													<port>7689:7687</port>
 												</ports>
 												<wait>
-													<log>(.?)Bolt enabled on 0.0.0.0:7687.</log>
+													<log>(.?)Bolt enabled on(.?)</log>
 													<time>20000</time>
 												</wait>
 												<env>

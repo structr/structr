@@ -65,7 +65,7 @@ public class Neo5IndexUpdater implements IndexUpdater {
 
 					tx.prefetchHint("Neo5IndexUpdater query");
 
-					for (final Map<String, Object> row : db.execute("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE type = 'RANGE' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
+					for (final Map<String, Object> row : db.execute("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE (type = 'RANGE' OR type = 'TEXT') RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
 
 						for (final Object value : row.values()) {
 
@@ -191,6 +191,10 @@ public class Neo5IndexUpdater implements IndexUpdater {
 											if (indexConfig.isFulltextIndex()) {
 
 												db.consume("CREATE FULLTEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]");
+
+											} else if (indexConfig.isTextIndex()) {
+
+												db.consume("CREATE TEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
 
 											} else {
 

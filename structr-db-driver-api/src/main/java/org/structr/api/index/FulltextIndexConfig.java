@@ -24,7 +24,7 @@ package org.structr.api.index;
 public class FulltextIndexConfig extends IndexConfig {
 
 	public FulltextIndexConfig(final boolean createOrDrop) {
-		super(createOrDrop, false, true);
+		super(createOrDrop, false, false, true);
 	}
 
 	@Override

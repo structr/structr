@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.DatabaseService;
+import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -290,6 +291,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				throw new FrameworkException(422, dex.getMessage());
 			} catch (ConstraintViolationException qex) {
 				throw new FrameworkException(422, qex.getMessage());
+			} catch (UnknownDatabaseException udbex) {
+				throw new FrameworkException(422, udbex.getMessage());
 			}
 
 
@@ -303,6 +306,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				throw new FrameworkException(422, dex.getMessage());
 			} catch (ConstraintViolationException qex) {
 				throw new FrameworkException(422, qex.getMessage());
+			} catch (UnknownDatabaseException udbex) {
+				throw new FrameworkException(422, udbex.getMessage());
 			}
 		}
 	}

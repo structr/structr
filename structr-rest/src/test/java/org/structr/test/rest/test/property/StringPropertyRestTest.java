@@ -22,7 +22,9 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.DatabaseFeature;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
+import org.structr.schema.SchemaService;
 import org.structr.test.rest.common.IndexingTest;
 import org.testng.annotations.Test;
 
@@ -146,7 +148,14 @@ public class StringPropertyRestTest extends IndexingTest {
 
 	}
 
+	@Test
 	public void testLargeStrings() {
+
+		// we need to update the schema so the indexes are created
+		SchemaService.reloadSchema(new ErrorBuffer(), null, true, false);
+
+		// wait for index updates
+		try { Thread.sleep(10000); } catch (Throwable t) {}
 
 		// this test needs the schema index on string properties to be present
 		// it is disabled for now since index updates are disabled during test execution
@@ -156,17 +165,15 @@ public class StringPropertyRestTest extends IndexingTest {
 		final int errorStatusCode          = supportsLargeStrings ? 201 : 422;
 
 		testLargeString(4000, 201);
-		testLargeString(4032, 201);
-		testLargeString(4033, 201);
-		testLargeString(4034, 201);
-		testLargeString(4035, 201);
-		testLargeString(4036, 201);
-		testLargeString(4037, errorStatusCode);
-		testLargeString(4038, errorStatusCode);
-		testLargeString(4039, errorStatusCode);
-		testLargeString(4040, errorStatusCode);
-		testLargeString(4100, errorStatusCode);
-		testLargeString(5000, errorStatusCode);
+		testLargeString(5000, 201);
+		testLargeString(6000, 201);
+		testLargeString(7000, 201);
+		testLargeString(8000, 201);
+		testLargeString(9000, 201);
+		testLargeString(10000, 201);
+		testLargeString(20000, 201);
+		testLargeString(30000, 201);
+		testLargeString(40000, errorStatusCode);
 	}
 
 	private void testLargeString(final int length, final int expectedStatusCode) {

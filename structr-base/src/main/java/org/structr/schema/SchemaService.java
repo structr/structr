@@ -709,7 +709,6 @@ public class SchemaService implements Service {
 							schemaIndexConfig.put(typeName, typeConfig);
 						}
 
-
 						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 							boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty() || key.isFulltextIndexed();
@@ -729,9 +728,14 @@ public class SchemaService implements Service {
 								//createIndex &= (!NonIndexed.class.isAssignableFrom(type));
 
 								if (key.isFulltextIndexed()) {
+
 									typeConfig.put(key.dbName(), new FulltextIndexConfig(createIndex));
+
 								} else {
-									typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex));
+
+									final boolean isTextIndex = String.class.equals(key.valueType());
+
+									typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex, isTextIndex));
 								}
 							}
 						}
@@ -774,7 +778,9 @@ public class SchemaService implements Service {
 
 								} else {
 
-									typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex));
+									final boolean isTextIndex = String.class.equals(propertyKey.valueType());
+
+									typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex, isTextIndex));
 								}
 
 							}

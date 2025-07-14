@@ -50,7 +50,7 @@
 		<maven.compiler.target>24</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<test.neo4j.version>neo4j:5.16</test.neo4j.version>
+		<test.neo4j.version>neo4j:2025</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
