@@ -2732,6 +2732,10 @@ let _Entities = {
 				dialogConfig = registeredDialogs['User'];
 			}
 
+			if (!dialogConfig && entity.isFile) {
+				dialogConfig = registeredDialogs['File'];
+			}
+
 			return dialogConfig;
 		},
 		appendGeneralTypeTab: (entity, mainTabs, contentEl, typeInfo) => {

@@ -401,7 +401,6 @@ let _Schema = {
 
 				let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
 				let isDirty     = (changeCount > 0);
-				console.log(isDirty)
 				_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 			});
 
