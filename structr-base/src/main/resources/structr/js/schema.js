@@ -2435,7 +2435,7 @@ let _Schema = {
 						${config.typeOptions}
 						${(config.property.propertyType === 'String' && !config.property.isBuiltinProperty) ? '<input type="text" class="content-type w-12" title="Content-Type">' : ''}
 					</div>
-					<div class="p-2">
+					<div class="p-2 flex items-center">
 						${(() => {
 							switch (config.property.propertyType) {
 								case 'Function':
@@ -2476,14 +2476,14 @@ let _Schema = {
 			`,
 			propertyNew: config => `
 				<div class="schema-grid-row has-changes contents">
-					<div class="p-1">
+					<div class="p-2">
 						<input size="15" type="text" class="property-name" placeholder="JSON name" autofocus>
 					</div>
 					<div class="p-1 ${config.dbNameClass}">
 						<input size="15" type="text" class="property-dbname" placeholder="DB Name">
 					</div>
 					<div class="flex items-center">${config.typeOptions}</div>
-					<div class="p-1">
+					<div class="p-2 flex items-center">
 						<input size="15" type="text" class="property-format" placeholder="Format">
 					</div>
 					<div class="flex items-center justify-center">
@@ -2498,7 +2498,7 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" style="margin-right: 0;">
 					</div>
-					<div class="p-1">
+					<div class="p-2 flex items-center">
 						<input class="property-default" size="10" type="text" placeholder="Default Value">
 					</div>
 					<div class="actions-col flex items-center justify-center">
