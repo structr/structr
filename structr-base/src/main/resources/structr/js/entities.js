@@ -2736,6 +2736,10 @@ let _Entities = {
 				dialogConfig = registeredDialogs['File'];
 			}
 
+			if (!dialogConfig && entity.isFolder) {
+				dialogConfig = registeredDialogs['Folder'];
+			}
+
 			return dialogConfig;
 		},
 		appendGeneralTypeTab: (entity, mainTabs, contentEl, typeInfo) => {
