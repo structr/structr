@@ -2238,14 +2238,19 @@ let _Schema = {
 					_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
 				});
 
+				let updateCodeWrappingCheckboxVisibility = (source) => {
+					let isJs = (_Editors.getMonacoEditorModeForContent(source, entity) === 'javascript');
+					wrapChoice.classList.toggle('hidden', !isJs);
+				};
+				updateCodeWrappingCheckboxVisibility(initialText);
+
 				let functionPropertyMonacoConfig = {
 					language: 'auto',
 					lint: true,
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 
-						let isJs = (_Editors.getMonacoEditorModeForContent(editor.getValue(), entity) === 'javascript');
-						wrapChoice.classList.toggle('hidden', !isJs);
+						updateCodeWrappingCheckboxVisibility(editor.getValue());
 
 						let disabled = !isChanged();
 						_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
