@@ -20,14 +20,14 @@ package org.structr.core.graph.search;
 
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.search.ExactQuery;
-import org.structr.api.search.FulltextQuery;
+import org.structr.api.search.QueryPredicate;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
 /**
  * Represents an attribute for textual search, used in {@link SearchNodeCommand}.
  */
-public class PropertySearchAttribute<T> extends SearchAttribute<T> implements ExactQuery, FulltextQuery {
+public class PropertySearchAttribute<T> extends SearchAttribute<T> implements ExactQuery, QueryPredicate {
 
 	protected boolean isExactMatch = false;
 
@@ -40,7 +40,7 @@ public class PropertySearchAttribute<T> extends SearchAttribute<T> implements Ex
 
 	@Override
 	public Class getQueryType() {
-		return isExactMatch ? ExactQuery.class : FulltextQuery.class;
+		return ExactQuery.class;
 	}
 
 	@Override

@@ -36,6 +36,7 @@ public interface PropertyDefinition extends CodeSource {
 	boolean isCompound();
 	boolean isUnique();
 	boolean isIndexed();
+	boolean isFulltext();
 	boolean isReadOnly();
 	boolean isCachingEnabled();
 	boolean isAbstract();

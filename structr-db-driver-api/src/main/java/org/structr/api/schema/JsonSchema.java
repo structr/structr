@@ -101,6 +101,7 @@ public interface JsonSchema {
 	String KEY_COMPOUND                 = "compound";
 	String KEY_UNIQUE                   = "unique";
 	String KEY_INDEXED                  = "indexed";
+	String KEY_FULLTEXT                 = "fulltext";
 	String KEY_DEFAULT                  = "default";
 	String KEY_CASCADE                  = "cascade";
 	String KEY_CREATE                   = "create";

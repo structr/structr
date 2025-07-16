@@ -36,10 +36,7 @@ public class SearchNodeCommand extends SearchCommand<Node, NodeInterface> {
 	}
 
 	@Override
-	public Index<Node> getIndex(final boolean isFulltextSearch) {
-		if (isFulltextSearch) {
-			return (Index<Node>) arguments.get("fulltextIndex");
-		}
+	public Index<Node> getIndex() {
 		return  (Index<Node>) arguments.get("nodeIndex");
 	}
 

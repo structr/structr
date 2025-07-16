@@ -65,7 +65,7 @@ public class Neo4IndexUpdater implements IndexUpdater {
 
 					tx.prefetchHint("Neo4IndexUpdater query");
 
-					for (final Map<String, Object> row : db.execute("CALL db.indexes() YIELD name, type, state, labelsOrTypes, properties WHERE (type = 'BTREE' OR type = 'TEXT') RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
+					for (final Map<String, Object> row : db.execute("CALL db.indexes() YIELD name, type, state, labelsOrTypes, properties WHERE (type = 'BTREE' OR type = 'TEXT' OR type = 'FULLTEXT') RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
 
 						for (final Object value : row.values()) {
 

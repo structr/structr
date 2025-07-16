@@ -18,6 +18,7 @@
  */
 package org.structr.bolt;
 
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.structr.api.graph.Node;
@@ -25,6 +26,8 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -100,6 +103,43 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		}
 
 		return buf.toString();
+	}
+
+	@Override
+	public Map<Node, Double> fulltextQuery(final String indexName, final String searchString) {
+
+		final String tenantIdentifier        = db.getTenantIdentifier();
+		final Map<String, Object> parameters = new LinkedHashMap<>();
+		final SessionTransaction tx          = db.getCurrentTransaction();
+		final String statement;
+
+		parameters.put("indexName", indexName);
+		parameters.put("searchValue", searchString);
+
+		if (StringUtils.isNotBlank(tenantIdentifier)) {
+
+			statement = "CALL db.index.fulltext.queryNodes($indexName, $searchValue) YIELD node, score WHERE ANY (l in labels(node) WHERE l = $tenantIdentifier) RETURN node, score";
+
+			parameters.put("tenantIdentifier", tenantIdentifier);
+
+		} else {
+
+			statement = "CALL db.index.fulltext.queryNodes($indexName, $searchValue) YIELD node, score RETURN node, score";
+		}
+
+		final SimpleCypherQuery query              = new SimpleCypherQuery(statement, parameters);
+		final Iterable<Map<String, Object>> result = tx.run(query);
+		final Map<Node, Double> nodes              = new LinkedHashMap<>();
+
+		for (final Map<String, Object> entry : result) {
+
+			final Node node    = (Node) entry.get("node");
+			final Double score = (Double) entry.get("score");
+
+			nodes.put(node, score);
+		}
+
+		return nodes;
 	}
 
 	@Override

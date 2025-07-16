@@ -50,6 +50,11 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 	}
 
 	@Override
+	public Map<T, Double> fulltextQuery(final String indexName, final String searchString) {
+		return null;
+	}
+
+	@Override
 	public MemoryQuery createQuery(final QueryContext context, final int pageSize, final int page) {
 		return new MemoryQuery(context);
 	}
@@ -78,7 +83,6 @@ public abstract class AbstractMemoryIndex<T extends PropertyContainer> extends A
 	private void init() {
 
 		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
-		factories.put(FulltextQuery.class,     new KeywordQueryFactory(this));
 		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
 		factories.put(GraphQuery.class,        new GraphQueryFactory(this));
 		factories.put(GroupQuery.class,        new GroupQueryFactory(this));

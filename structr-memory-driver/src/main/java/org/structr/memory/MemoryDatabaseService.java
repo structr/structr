@@ -231,17 +231,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Index<Node> fulltextIndex() {
-
-		if (fulltextIndex == null) {
-
-			fulltextIndex = new MemoryFulltextNodeIndex(this);
-		}
-
-		return fulltextIndex;
-	}
-
-	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly) {
 	}
 

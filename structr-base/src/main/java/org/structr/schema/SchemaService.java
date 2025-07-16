@@ -25,10 +25,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
-import org.structr.api.index.FulltextIndexConfig;
 import org.structr.api.index.IndexConfig;
-import org.structr.api.index.NodeIndexConfig;
-import org.structr.api.index.RelationshipIndexConfig;
 import org.structr.api.service.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -314,289 +311,6 @@ public class SchemaService implements Service {
 				schemaIsBeingReplaced.set(false);
 			}
 		}
-		/*
-
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		boolean success                    = true;
-		int retryCount                     = 2;
-
-		// compiling must only be done once
-		if (!compiling.compareAndSet(false, true)) {
-
-			errorBuffer.add(new InvalidSchemaToken("Base", "source", "token"));
-
-		} else {
-
-			FlushCachesCommand.flushAll();
-			StructrApp.initializeSchemaIds();
-
-			final long t0 = System.currentTimeMillis();
-
-			try {
-
-				try (final Tx tx = app.tx()) {
-
-					tx.prefetchHint("Diff schema");
-
-					SchemaService.prefetchSchemaNodes(tx);
-
-					final JsonSchema databaseSchema = StructrSchema.createFromDatabase(app);
-
-					// diff and merge
-					databaseSchema.diff(dynamicSchema);
-
-					// commit changes before trying to build the schema
-					tx.success();
-
-				} catch (Throwable t) {
-					logger.error(ExceptionUtils.getStackTrace(t));
-				}
-
-				// dynamicSchema contains all classes defined in Structr, including those only available in licensed editions
-				// We need to make sure that unlicensed classes are blacklisted; this was previously done in ensureBuiltInTypesExist,
-				// but this method is not called in cluster mode, when the instance is not the cluster coordinator.
-				for (final JsonType t : dynamicSchema.getTypes()) {
-
-					final String name = t.getName();
-
-					for (final URI schemaURI : t.getImplements()) {
-
-						// remove query
-						final URI uri = URI.create(schemaURI.getScheme() + "://" + schemaURI.getHost() + schemaURI.getPath());
-
-						if (!uri.toString().startsWith("https://structr.org/v1.1/static/") && dynamicSchema.resolveURI(schemaURI) == null && StructrApp.resolveSchemaId(uri) == null) {
-
-							logger.warn("Unable to resolve built-in interface {} of type {} against Structr schema, source was {}", uri, name, schemaURI);
-
-							SchemaService.blacklist(name);
-						}
-					}
-				}
-
-				try (final Tx tx = app.tx()) {
-
-					SchemaService.prefetchSchemaNodes(tx);
-
-					tx.prefetchHint("Reload schema");
-
-					while (retryCount-- > 0) {
-
-						final Map<String, Map<String, PropertyKey>> removedClasses = translateRelationshipClassesToRelTypes(config.getTypeAndPropertyMapping());
-						final Map<String, SchemaNode> schemaNodes                  = new LinkedHashMap<>();
-						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId, fullReload);
-						final Set<String> dynamicViews                             = new LinkedHashSet<>();
-
-						// only create built-in types if we have exclusive database access
-						if (Services.getInstance().hasExclusiveDatabaseAccess()) {
-
-							// collect auto-generated schema nodes
-							SchemaService.ensureBuiltinTypesExist(app);
-						}
-
-						// collect list of schema nodes
-						app.nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> {
-							schemaNodes.put(n.getName(), n);
-						});
-
-						// check licenses prior to source code generation
-						for (final SchemaNode schemaInfo : schemaNodes.values()) {
-							blacklist.addAll(SchemaHelper.getUnlicensedTypes(schemaInfo));
-						}
-
-						// add schema nodes from database
-						for (final SchemaNode schemaInfo : schemaNodes.values()) {
-
-							final String name = schemaInfo.getName();
-							if (blacklist.contains(name)) {
-
-								continue;
-							}
-
-							schemaInfo.handleMigration(schemaNodes);
-
-							final String className      = schemaInfo.getClassName();
-							final SourceFile sourceFile = new SourceFile(className);
-
-							// generate source code
-							SchemaHelper.getSource(sourceFile, schemaInfo, schemaNodes, blacklist, errorBuffer);
-
-							// only load dynamic node if there were no errors while generating the source code (missing modules etc.)
-							// if addClass returns true, the class needs to be recompiled and cached methods must be cleared
-							if (nodeExtender.addClass(className, sourceFile)) {
-								schemaInfo.clearCachedSchemaMethodsForInstance();
-							}
-							dynamicViews.addAll(schemaInfo.getDynamicViews());
-						}
-
-						// collect relationship classes
-						for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList()) {
-
-							final String sourceType = schemaRelationship.getSchemaNodeSourceType();
-							final String targetType = schemaRelationship.getSchemaNodeTargetType();
-
-							if (!blacklist.contains(sourceType) && !blacklist.contains(targetType)) {
-
-								final SourceFile relationshipSource = new SourceFile(schemaRelationship.getClassName());
-
-								// generate source code
-								schemaRelationship.getSource(relationshipSource, schemaNodes, errorBuffer);
-
-								nodeExtender.addClass(schemaRelationship.getClassName(), relationshipSource);
-								dynamicViews.addAll(schemaRelationship.getDynamicViews());
-							}
-						}
-
-						// this is a very critical section :)
-						synchronized (SchemaService.class) {
-
-							// clear propagating relationship cache
-							Traits.of(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key("clearPropagatingRelationshipTypes")();
-
-							// compile all classes at once and register
-							final Map<String, Class> newTypes = nodeExtender.compile(errorBuffer);
-
-							if (!errorBuffer.hasError()) {
-
-								// only do this if there was no compile-time error!
-								for (final Class newType : newTypes.values()) {
-
-									// instantiate classes to execute static initializer of helpers
-									try {
-
-										// do full reload
-										config.registerEntityType(newType);
-										newType.getDeclaredConstructor().newInstance();
-
-									} catch (final Throwable t) {
-
-										// abstract classes and interfaces will throw errors here
-										if (newType.isInterface() || Modifier.isAbstract(newType.getModifiers())) {
-											// ignore
-										} else {
-
-											// everything else is a severe problem and should be not only reported but also
-											// make the schema compilation fail (otherwise bad things will happen later)
-											errorBuffer.add(new InstantiationErrorToken(newType.getName(), t));
-											logger.error("Unable to instantiate dynamic entity {}", newType.getName(), t);
-
-											t.printStackTrace();
-										}
-									}
-								}
-							}
-
-							// calculate difference between previous and new classes
-							removedClasses.keySet().removeAll(translateRelationshipClassesToRelTypes(StructrApp.getConfiguration().getTypeAndPropertyMapping()).keySet());
-
-							if (errorBuffer.hasError()) {
-
-								if (Settings.SchemaAutoMigration.getValue() && (Boolean.FALSE.equals(Services.getInstance().isInitialized()) || DeployCommand.isDeploymentActive())) {
-
-									logger.info("Attempting auto-migration of built-in schema..");
-
-									// try to handle certain errors automatically
-									handleAutomaticMigration(errorBuffer);
-
-									if (retryCount == 0) {
-
-										for (final ErrorToken token : errorBuffer.getErrorTokens()) {
-											logger.error(token.toString());
-										}
-
-										return new ServiceResult(false);
-
-									} else {
-
-										// clear errors for next try
-										errorBuffer.getErrorTokens().clear();
-
-										// back to top..
-										continue;
-									}
-
-								} else {
-
-									logger.error("Unable to compile dynamic schema, and automatic migration is not enabled. Please set application.schema.automigration = true in structr.conf to enable modification of existing schema classes.");
-								}
-
-							} else {
-
-								// no retry
-								retryCount = 0;
-							}
-
-						}
-
-						if (Services.getInstance().hasExclusiveDatabaseAccess()) {
-
-							// create properties and views etc.
-							for (final SchemaNode schemaNode : schemaNodes.values()) {
-								schemaNode.createBuiltInSchemaEntities(errorBuffer);
-							}
-						}
-
-						success = !errorBuffer.hasError();
-
-						if (success) {
-
-							// prevent inheritance map from leaking
-							SearchCommand.clearInheritanceMap();
-							AccessPathCache.invalidate();
-
-							// clear relationship instance cache
-							NodeInterface.clearRelationshipTemplateInstanceCache();
-
-							// clear permission cache
-							AccessControllableTraitDefinition.clearCaches();
-
-							// inject views in configuration provider
-							config.registerDynamicViews(dynamicViews);
-
-							updateIndexConfiguration(removedClasses);
-
-							// moved success() call for the transaction to the bottom..
-							tx.success();
-						}
-					}
-
-				} catch (FrameworkException fex) {
-
-					logger.error("Unable to compile dynamic schema: {}", fex.getMessage());
-					logger.error(ExceptionUtils.getStackTrace(fex));
-					success = false;
-
-					errorBuffer.getErrorTokens().addAll(fex.getErrorBuffer().getErrorTokens());
-
-					fex.printStackTrace();
-
-				} catch (Throwable t) {
-
-					logger.error("Unable to compile dynamic schema: {}", t.getMessage());
-					logger.error(ExceptionUtils.getStackTrace(t));
-
-					success = false;
-
-					t.printStackTrace();
-				}
-
-				if (!success) {
-
-					FlushCachesCommand.flushAll();
-				}
-
-			} finally {
-
-				logger.info("Schema build took a total of {} ms", System.currentTimeMillis() - t0);
-
-				// compiling done
-				compiling.set(false);
-
-				if (notifyCluster && Settings.ClusterModeEnabled.getValue(false) == true) {
-					Services.getInstance().broadcastSchemaChange();
-				}
-			}
-		}
-		*/
 
 		return new ServiceResult(true);
 	}
@@ -711,32 +425,24 @@ public class SchemaService implements Service {
 
 						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-							boolean createIndex = key.isIndexed() || key.isIndexedWhenEmpty() || key.isFulltextIndexed();
-							final Trait trait   = key.getDeclaringTrait();
+							boolean createIndex           = key.isIndexed() || key.isIndexedWhenEmpty() || key.isFulltextIndexed();
+							final boolean isFulltextIndex = key.isFulltextIndexed();
+							final boolean isTextIndex     = !isFulltextIndex && String.class.equals(key.valueType());
+							final Trait trait             = key.getDeclaringTrait();
 
 							if (isRelationship) {
 
 								// prevent creation of node property indexes on relationships
 								if (!key.isNodeIndexOnly()) {
 
-									typeConfig.put(key.dbName(), new RelationshipIndexConfig(createIndex));
+									typeConfig.put(key.dbName(), new IndexConfig(createIndex, false, isTextIndex, isFulltextIndex));
 								}
 
 							} else {
 
 								createIndex &= (trait == null || whitelist.contains(type) || type.equals(trait.getLabel()));
-								//createIndex &= (!NonIndexed.class.isAssignableFrom(type));
 
-								if (key.isFulltextIndexed()) {
-
-									typeConfig.put(key.dbName(), new FulltextIndexConfig(createIndex));
-
-								} else {
-
-									final boolean isTextIndex = String.class.equals(key.valueType());
-
-									typeConfig.put(key.dbName(), new NodeIndexConfig(createIndex, isTextIndex));
-								}
+								typeConfig.put(key.dbName(), new IndexConfig(createIndex, true, isTextIndex, isFulltextIndex));
 							}
 						}
 					}
@@ -758,32 +464,13 @@ public class SchemaService implements Service {
 
 						for (final PropertyKey propertyKey : entry.getValue().values()) {
 
-							final boolean wasIndexed = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty() || propertyKey.isFulltextIndexed();
+							final boolean wasIndexed      = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty() || propertyKey.isFulltextIndexed();
+							final boolean wasIdIndex      = "id".equals(propertyKey.jsonName());
+							final boolean dropIndex       = wasIndexed && !wasIdIndex;
+							final boolean isFulltextIndex = propertyKey.isFulltextIndexed();
+							final boolean isTextIndex     = !isFulltextIndex && String.class.equals(propertyKey.valueType());
 
-							if (isRelationship) {
-
-								final boolean dropIndex = wasIndexed;
-
-								typeConfig.put(propertyKey.dbName(), new RelationshipIndexConfig(dropIndex));
-
-							} else {
-
-								final boolean wasIdIndex = "id".equals(propertyKey.jsonName());
-								final boolean dropIndex  = wasIndexed && !wasIdIndex;
-
-								// Fulltext indexing for nodes only at the moment
-								if (propertyKey.isFulltextIndexed()) {
-
-									typeConfig.put(propertyKey.dbName(), new FulltextIndexConfig(dropIndex));
-
-								} else {
-
-									final boolean isTextIndex = String.class.equals(propertyKey.valueType());
-
-									typeConfig.put(propertyKey.dbName(), new NodeIndexConfig(dropIndex, isTextIndex));
-								}
-
-							}
+							typeConfig.put(propertyKey.dbName(), new IndexConfig(dropIndex, !isRelationship, isTextIndex, isFulltextIndex));
 						}
 					}
 

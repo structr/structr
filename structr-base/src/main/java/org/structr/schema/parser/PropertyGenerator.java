@@ -173,6 +173,11 @@ public abstract class PropertyGenerator<T> {
 
 			} else {
 
+				if (source.isFulltext()) {
+
+					propertyKey.fulltextIndexed();
+				}
+
 				propertyKey.indexed();
 			}
 		}
