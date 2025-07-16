@@ -105,7 +105,7 @@ public class IncludeChildFunction extends IncludeFunction {
 				} else if (children.size() > 1) {
 
 					// More than one child node found => error
-					logger.warn("Error: Found more than one child node with name \"" + ((String) sources[0]) + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")");
+					logger.warn("Error: Found more than one child node with name \"" + sources[0] + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")");
 					return "";
 				}
 			}

@@ -71,6 +71,7 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -94,7 +95,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 	// non-static fields
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	private java.io.File filesDir                 = null;
+	private final java.io.File filesDir                 = null;
 
 	public UploadServlet() {
 	}
@@ -130,7 +131,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			try {
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
@@ -146,7 +147,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			if (!request.getContentType().startsWith("multipart/form-data") || request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -168,7 +169,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			} catch (AuthenticationException ae) {
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -195,7 +196,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				if (securityContext.getUser(false) == null && !Settings.UploadAllowAnonymous.getValue()) {
 
 					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-					response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+					response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes(StandardCharsets.UTF_8));
 
 					return;
 				}
@@ -434,9 +435,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			final String content;
 
-			if (t instanceof FrameworkException) {
+			if (t instanceof FrameworkException fex) {
 
-				final FrameworkException fex = (FrameworkException) t;
 				logger.error(fex.toString());
 				content = errorPage(fex);
 
@@ -479,7 +479,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			try {
 
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
@@ -498,14 +498,14 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			if (uuid == null) {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
 			if (!Settings.isValidUuid(uuid)) {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -533,7 +533,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					if (node == null) {
 
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
+						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes(StandardCharsets.UTF_8));
 					}
 
 					if (node instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
@@ -553,7 +553,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						} else {
 
 							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes("UTF-8"));
+							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes(StandardCharsets.UTF_8));
 						}
 					}
 

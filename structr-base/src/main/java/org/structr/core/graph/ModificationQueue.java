@@ -450,10 +450,7 @@ public class ModificationQueue {
 
 			for (final PropertyKey key : state.getModifiedProperties().keySet()) {
 
-				if (!modifiedKeys.contains(key)) {
-
-					modifiedKeys.add(key);
-				}
+				modifiedKeys.add(key);
 			}
 		}
 

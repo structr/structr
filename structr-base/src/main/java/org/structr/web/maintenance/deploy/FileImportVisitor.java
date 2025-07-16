@@ -243,7 +243,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					final Long checksumOfExistingFile = FileHelper.getChecksum(file.as(File.class));
 					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
-					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {
+					if (checksumOfExistingFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {
 
 						skipFile = true;
 
@@ -343,7 +343,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			logger.error("Error occured while reading file properties " + fileName, ex);
 		}
 
-		if (wasIgnored == false) {
+		if (!wasIgnored) {
 
 			checkIfFileOrFolderWasRenamed(traits, fullPath, fileName);
 		}

@@ -49,7 +49,7 @@ public class Tx implements AutoCloseable, Prefetcher {
 	}
 
 	public Tx(final SecurityContext securityContext, final boolean doValidation, final boolean doCallbacks) {
-		this(securityContext, doValidation, doCallbacks, ((securityContext == null) ? false : securityContext.doTransactionNotifications()));
+		this(securityContext, doValidation, doCallbacks, (securityContext != null && securityContext.doTransactionNotifications()));
 	}
 
 	public Tx(final SecurityContext securityContext, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {

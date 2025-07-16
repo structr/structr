@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Ctrl-Alt-f
 		if ((code === 'KeyF' || keyCode === 70) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			_Favorites.toggleFavorites();
+			_Favorites.showFavorites();
 		}
 
 		// Ctrl-Alt-p
@@ -359,8 +359,6 @@ let Structr = {
 			_Console.initConsole();
 
 			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
-
-			_Favorites.initFavorites();
 		});
 	},
 	updateUsername: (name) => {
@@ -387,7 +385,6 @@ let Structr = {
 	},
 	doLogout: () => {
 
-		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
 
@@ -1980,7 +1977,6 @@ let Structr = {
 			</div>
 
 			<div class="hidden" id="structr-console"></div>
-			<div class="hidden" id="structr-favorites"></div>
 
 			<div id="function-bar"></div>
 			<div id="main"></div>

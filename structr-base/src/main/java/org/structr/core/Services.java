@@ -53,6 +53,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -67,7 +68,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private static final Logger logger                 = LoggerFactory.getLogger(Services.class.getName());
 
 	// singleton instance
-	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
+	private static final String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
@@ -380,7 +381,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			final StopServiceForMaintenanceMode stopAnnotation  = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
 			final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
 
-			if (maintenanceEnabled == false || (stopAnnotation == null && startAnnotation == null) || (stopAnnotation != null && startAnnotation != null)) {
+			if (!maintenanceEnabled || (stopAnnotation == null && startAnnotation == null) || (stopAnnotation != null && startAnnotation != null)) {
 
 				try {
 
@@ -430,7 +431,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private void joinCluster() {
 
 		// Connect to cluster if enabled
-		if (Settings.ClusterModeEnabled.getValue(false) == true) {
+		if (Settings.ClusterModeEnabled.getValue(false)) {
 
 			logger.info("Cluster mode enabled");
 
@@ -633,7 +634,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 								final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
 
-								if (maintenanceEnabled == false || startAnnotation != null) {
+								if (!maintenanceEnabled || startAnnotation != null) {
 
 									try {
 
@@ -786,9 +787,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 				final ServiceResult result = service.initialize(this, serviceName);
 				if (result.isSuccess()) {
 
-					if (service instanceof RunnableService) {
-
-						RunnableService runnableService = (RunnableService) service;
+					if (service instanceof RunnableService runnableService) {
 
 						if (runnableService.runOnStartup()) {
 
@@ -829,7 +828,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 					if (retryCount > 0) {
 
 						logger.warn("Retrying in {} seconds..", retryDelay);
-						Thread.sleep(retryDelay * 1000);
+						Thread.sleep(retryDelay * 1000L);
 
 					} else {
 
@@ -887,9 +886,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		try {
 
-			if (service instanceof RunnableService) {
-
-				RunnableService runnableService = (RunnableService) service;
+			if (service instanceof RunnableService runnableService) {
 
 				if (runnableService.isRunning()) {
 					logger.info("Stopping {}..", service.getName());
@@ -1484,15 +1481,14 @@ public class Services implements StructrServices, BroadcastReceiver {
 				if (input != null) {
 
 					// consume response
-					final String responseText          = IOUtils.toString(input, "utf-8");
+					final String responseText          = IOUtils.toString(input, StandardCharsets.UTF_8);
 					final Map<String, Object> response = gson.fromJson(responseText, Map.class);
 
 					if (response != null) {
 
 						final Object result = response.get("result");
-						if (result instanceof List) {
+						if (result instanceof List list) {
 
-							final List list = (List)result;
 							if (!list.isEmpty()) {
 
 								final Object entry = list.get(0);
@@ -1509,7 +1505,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 				if (error != null) {
 
 					// consume error stream
-					IOUtils.toString(error, "utf-8");
+					IOUtils.toString(error, StandardCharsets.UTF_8);
 				}
 
 				http.disconnect();
@@ -1564,14 +1560,14 @@ public class Services implements StructrServices, BroadcastReceiver {
 				if (input != null) {
 
 					// consume response
-					IOUtils.toString(input, "utf-8");
+					IOUtils.toString(input, StandardCharsets.UTF_8);
 				}
 
 				final InputStream error = http.getErrorStream();
 				if (error != null) {
 
 					// consume error stream
-					IOUtils.toString(error, "utf-8");
+					IOUtils.toString(error, StandardCharsets.UTF_8);
 				}
 
 				http.disconnect();

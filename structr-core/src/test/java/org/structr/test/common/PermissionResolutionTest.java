@@ -639,30 +639,47 @@ public class PermissionResolutionTest extends StructrTest {
 			final Traits traits = Traits.of(StructrTraits.GROUP);
 
 			final NodeInterface group1 = app.create(StructrTraits.GROUP, "group1");
+			final NodeInterface group2 = app.create(StructrTraits.GROUP, "group2");
+
+			final PropertyKey<Iterable<NodeInterface>> key = traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY);
 
 			tester = app.create(StructrTraits.PRINCIPAL, "tester").as(Principal.class);
 
-			final NodeInterface group2 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group2"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group1)));
-			final NodeInterface group3 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group3"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group2)));
-			final NodeInterface group4 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group4"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group3)));
-			final NodeInterface group5 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group5"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group4)));
-			final NodeInterface group6 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group6"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group5)));
-			final NodeInterface group7 = app.create(StructrTraits.GROUP, new NodeAttribute<>(traits.key("name"), "group7"), new NodeAttribute<>(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group6)));
+			// make to groups contain each other
+			group1.setProperty(key, List.of(group2));
+			group2.setProperty(key, List.of(group1));
 
-			group1.setProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY), List.of(group7));
+			/*
+			alternative test case: if circular groups are allowed, make sure there is no stack overflow when resolving the permissions
 
 			final NodeInterface test1 = app.create(StructrTraits.MAIL_TEMPLATE, "test");
 
-			test1.as(AccessControllable.class).setOwner(group5.as(Principal.class));
+			// create schema grant from group1 to type MailTemplate
+			app.create(StructrTraits.SCHEMA_GRANT,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), "MailTemplate"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true)
+			);
 
-			group7.as(Group.class).addMember(securityContext, tester);
+			group2.as(Group.class).addMember(securityContext, tester);
+			group1.as(Group.class).addMember(securityContext, tester);
+			*/
 
 			tx.success();
 
-		} catch (Throwable t) {
-			t.printStackTrace();
-			fail("Unexpected exception.");
+			fail("Creating circular group hierarchies should cause an exception.");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("Wrong error message for circular group hierarchy", "Unable to commit transaction, validation failed", fex.getMessage());
+			assertEquals("Wrong error type for circular group hierarchy", "Group", fex.getErrorBuffer().getErrorTokens().get(0).getType());
+			assertEquals("Wrong error property for circular group hierarchy", "groups", fex.getErrorBuffer().getErrorTokens().get(0).getProperty());
+			assertEquals("Wrong error token for circular group hierarchy", "circular_reference", fex.getErrorBuffer().getErrorTokens().get(0).getToken());
 		}
+
+		/*
+
+		alternative test case: if circular groups are allowed, make sure there is no stack overflow when resolving the permissions
 
 		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 		final App userApp                 = StructrApp.getInstance(userContext);
@@ -679,6 +696,7 @@ public class PermissionResolutionTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
+		*/
 	}
 
 	// ----- private methods -----

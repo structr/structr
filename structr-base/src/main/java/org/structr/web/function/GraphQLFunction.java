@@ -58,7 +58,7 @@ public class GraphQLFunction extends UiAdvancedFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			final String query  = sources[0].toString();
-			final boolean parse = (sources.length > 1) ? Boolean.TRUE.equals(sources[1]) : false;
+			final boolean parse = sources.length > 1 && Boolean.TRUE.equals(sources[1]);
 			final SecurityContext securityContext = ctx.getSecurityContext();
 
 			if (query != null && securityContext != null) {

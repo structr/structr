@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
@@ -79,6 +80,9 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 					valid &= ValidationHelper.isValidPropertyNotNull(obj, nameProperty, errorBuffer);
 					valid &= ValidationHelper.isValidUniqueProperty(obj,  nameProperty, errorBuffer);
 					valid &= ValidationHelper.isValidUniqueProperty(obj,  jwksReferenceIdProperty, errorBuffer);
+
+					// check for circular group hierarchy
+					valid &= GroupTraitDefinition.doesNotContainCircles( (NodeInterface) obj, errorBuffer);
 
 					return valid;
 				}
@@ -219,4 +223,64 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 		return isAdmin();
 	}
 	*/
+
+	// ----- public static methods -----
+	public static boolean doesNotContainCircles(final NodeInterface group, final ErrorBuffer errorBuffer) {
+
+		try {
+			recursiveCollectParentUuids(group, new LinkedHashSet<>(), errorBuffer);
+			recursiveCollectChildrenUuids(group, new LinkedHashSet<>(), errorBuffer);
+
+		} catch (RuntimeException r) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	private static void recursiveCollectParentUuids(final NodeInterface node, final Set<String> uuids, final ErrorBuffer errorBuffer) {
+
+		final Principal principal = node.as(Principal.class);
+		final String uuid         = principal.getUuid();
+
+		// only recurse if the set did not already contain the current node
+		if (uuids.add(uuid)) {
+
+			for (final Group parent : principal.getParentsPrivileged()) {
+
+				recursiveCollectParentUuids(parent, uuids, errorBuffer);
+			}
+
+		} else {
+
+			errorBuffer.getErrorTokens().add(new SemanticErrorToken(StructrTraits.GROUP, PrincipalTraitDefinition.GROUPS_PROPERTY, "circular_reference"));
+
+			throw new RuntimeException("Abort");
+		}
+	}
+
+	private static void recursiveCollectChildrenUuids(final NodeInterface node, final Set<String> uuids, final ErrorBuffer errorBuffer) {
+
+		final Group group = node.as(Group.class);
+		final String uuid = group.getUuid();
+
+		// only recurse if the set did not already contain the current node
+		if (uuids.add(uuid)) {
+
+			for (final Principal member : group.getMembers()) {
+
+				if (member.is(StructrTraits.GROUP)) {
+
+					recursiveCollectChildrenUuids(member.as(Group.class), uuids, errorBuffer);
+				}
+			}
+
+		} else {
+
+			errorBuffer.getErrorTokens().add(new SemanticErrorToken(StructrTraits.GROUP, GroupTraitDefinition.MEMBERS_PROPERTY, "circular_reference"));
+
+			throw new RuntimeException("Abort");
+		}
+	}
 }

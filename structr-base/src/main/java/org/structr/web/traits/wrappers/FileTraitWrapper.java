@@ -69,6 +69,7 @@ import javax.xml.stream.XMLStreamException;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -240,7 +241,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 				if (!editModeActive) {
 
-					final String content = IOUtils.toString(is, "UTF-8");
+					final String content = IOUtils.toString(is, StandardCharsets.UTF_8);
 
 					// close input stream here
 					is.close();
@@ -603,10 +604,10 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	private LineAndSeparator getFirstLines(final int num) {
 
 		final StringBuilder lines = new StringBuilder();
-		int separator[]           = new int[10];
+		int[] separator = new int[10];
 		int separatorLength       = 0;
 
-		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), StandardCharsets.UTF_8))) {
 
 			int[] buf = new int[10010];
 

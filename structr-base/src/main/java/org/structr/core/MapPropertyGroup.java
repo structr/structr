@@ -56,12 +56,9 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 					
 				} catch(FrameworkException fex) {
 					
-					logger.warn("Unable to convert grouped property {} on type {}: {}", new Object[] {
-						key.dbName(),
+					logger.warn("Unable to convert grouped property {} on type {}: {}", key.dbName(),
 						source.getClass().getSimpleName(),
-						fex.getMessage()
-						
-					});
+						fex.getMessage());
 				}
 				
 				

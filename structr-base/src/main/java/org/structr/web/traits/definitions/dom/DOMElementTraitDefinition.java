@@ -370,12 +370,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							}
 
 							final String renderingMode = elem.getRenderingMode();
-							boolean lazyRendering = false;
+							boolean lazyRendering = renderContext.getPage() != null && renderingMode != null;
 
 							// lazy rendering can only work if this node is not requested as a partial
-							if (renderContext.getPage() != null && renderingMode != null) {
-								lazyRendering = true;
-							}
 
 							// disable lazy rendering in deployment mode
 							if (EditMode.DEPLOYMENT.equals(editMode)) {

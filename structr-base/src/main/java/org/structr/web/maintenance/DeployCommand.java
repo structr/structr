@@ -75,6 +75,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.text.DecimalFormat;
@@ -93,7 +94,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private Object customResult = null;
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
-	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
+	private final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
 
 	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
 	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
@@ -200,7 +201,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (Files.exists(metadataFile)) {
 
-			try (final Reader reader = Files.newBufferedReader(metadataFile, Charset.forName("utf-8"))) {
+			try (final Reader reader = Files.newBufferedReader(metadataFile, StandardCharsets.UTF_8)) {
 
 				return new HashMap<>(getGson().fromJson(reader, Map.class));
 
@@ -307,7 +308,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				throw new ImportPreconditionFailedException("Source path " + path + " is not a directory.");
 			}
 
-			if (source.isAbsolute() != true) {
+			if (!source.isAbsolute()) {
 
 				throw new ImportPreconditionFailedException("Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			}
@@ -480,7 +481,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			customHeaders.put("end", new Date(endTime).toString());
 			customHeaders.put("duration", duration);
 
-			logger.info("Import from {} done. (Took {})", source.toString(), duration);
+			logger.info("Import from {} done. (Took {})", source, duration);
 
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
@@ -497,7 +498,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			final String title          = "Fatal Error";
-			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex.toString();
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex;
 
 			publishWarningMessage(title, warningMessage);
 
@@ -543,7 +544,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Path target  = Paths.get(path);
 
-		if (target.isAbsolute() != true) {
+		if (!target.isAbsolute()) {
 
 			publishWarningMessage("Export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
 
@@ -703,7 +704,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			customHeaders.put("end", new Date(endTime).toString());
 			customHeaders.put("duration", duration);
 
-			logger.info("Export to {} done. (Took {})", target.toString(), duration);
+			logger.info("Export to {} done. (Took {})", target, duration);
 
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
@@ -714,9 +715,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final String deploymentTargetIsAFileError = "A file already exists at given path - this should be a directory or not exist at all!";
 
-			logger.warn(deploymentTargetIsAFileError + "" + target.toString());
+			logger.warn(deploymentTargetIsAFileError + target);
 
-			publishWarningMessage("Fatal Error", deploymentTargetIsAFileError + "<br>" + target.toString());
+			publishWarningMessage("Fatal Error", deploymentTargetIsAFileError + "<br>" + target);
 
 		} catch (IOException ex) {
 
@@ -839,7 +840,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final List<Folder> folders    = Iterables.toList(folder.getFolders());
 		final PropertyKey<String> key = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		final Comparator comp         = (Comparator) key.sorted(false);
+		final Comparator comp         = key.sorted(false);
 
 		Collections.sort(folders, comp);
 
@@ -882,7 +883,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (IOException ioex) {
 
-				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
+				logger.warn("Unable to write file {}: {}", targetPath, ioex.getMessage());
 			}
 		}
 
@@ -1207,7 +1208,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final List grantees = (List)grant.get(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY);
 
-				if (res.getProperty(flagsKey) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
+				if (res.getProperty(flagsKey) > 0 && !res.isVisibleToPublicUsers() && !res.isVisibleToAuthenticatedUsers() && grantees.isEmpty()) {
 					unreachableGrants.add(res.getProperty(signatureKey));
 				}
 			}
@@ -1961,7 +1962,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected List<Map<String, Object>> readConfigList(final Path conf) {
 
-		try (final Reader reader = Files.newBufferedReader(conf, Charset.forName("utf-8"))) {
+		try (final Reader reader = Files.newBufferedReader(conf, StandardCharsets.UTF_8)) {
 
 			return getGson().fromJson(reader, List.class);
 
@@ -1982,7 +1983,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				tx.disableChangelog();
 
-				String confSource = new String(Files.readAllBytes(confFile), Charset.forName("utf-8")).trim();
+				String confSource = new String(Files.readAllBytes(confFile), StandardCharsets.UTF_8).trim();
 
 				if (confSource.length() > 0) {
 
@@ -2775,9 +2776,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 										for (final Object propDef : typeDef.getProperties()) {
 
-											if (propDef instanceof StructrFunctionProperty) {
-
-												final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
+											if (propDef instanceof StructrFunctionProperty fp) {
 
 												if (fp.getReadFunction() != null) {
 

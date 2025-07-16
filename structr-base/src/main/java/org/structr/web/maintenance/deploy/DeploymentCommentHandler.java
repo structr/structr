@@ -48,7 +48,7 @@ import java.util.*;
  */
 public class DeploymentCommentHandler implements CommentHandler {
 
-	private static final Set<Character> separators     = new LinkedHashSet<>(Arrays.asList(new Character[] { ',', ';', '(', ')', ' ', '\t', '\n', '\r' } ));
+	private static final Set<Character> separators     = new LinkedHashSet<>(Arrays.asList(',', ';', '(', ')', ' ', '\t', '\n', '\r'));
 	private static final Logger logger                 = LoggerFactory.getLogger(DeploymentCommentHandler.class.getName());
 	private static final Map<String, Handler> handlers = new LinkedHashMap<>();
 
@@ -275,7 +275,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 				} else {
 
-					logger.warn("Unknown token {}, expected one of {}.", new Object[] { token, handlers.keySet() });
+					logger.warn("Unknown token {}, expected one of {}.", token, handlers.keySet());
 					break;
 				}
 			}

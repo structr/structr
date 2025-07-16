@@ -202,7 +202,7 @@ public class UiAuthenticator implements Authenticator {
 		response.setHeader("X-Structr-Edition", Services.getInstance().getEdition());
 
 		// expose cluster node replica number
-		if (Settings.ClusterModeEnabled.getValue(false) == true) {
+		if (Settings.ClusterModeEnabled.getValue(false)) {
 
 			response.setHeader("X-Structr-Cluster-Node", Services.getInstance().getNodeName());
 		}
@@ -810,7 +810,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} catch (IOException ex) {
 
-			logger.error("Could not redirect to {}: {}", new Object[]{ oAuth2Client.getErrorURI(), ex });
+			logger.error("Could not redirect to {}: {}", oAuth2Client.getErrorURI(), ex);
 		}
 
 

@@ -190,7 +190,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					final Object value    = entry.getValue();
 
 					if (!key.isUnvalidated()) {
-						TransactionCommand.nodeModified(securityContext.getCachedUser(), (NodeInterface)node, key, null, value);
+						TransactionCommand.nodeModified(securityContext.getCachedUser(), node, key, null, value);
 					}
 				}
 
@@ -236,7 +236,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		final Map<String, Object> securityProperties              = new HashMap<>();
 		final String newUuid                                      = (String)properties.get("id");
 
-		if (user != null && user.shouldSkipSecurityRelationships() == false) {
+		if (user != null && !user.shouldSkipSecurityRelationships()) {
 
 			final Traits securityTraits                       = Traits.of(StructrTraits.SECURITY);
 			final PropertyKey<String> internalTimestampKey    = securityTraits.key(RelationshipInterfaceTraitDefinition.INTERNAL_TIMESTAMP_PROPERTY);

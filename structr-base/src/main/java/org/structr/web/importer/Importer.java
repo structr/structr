@@ -83,9 +83,9 @@ public class Importer {
 
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class.getName());
 
-	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList(new String[]{"link"}));
-	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList(new String[]{"#declaration", "#doctype"}));
-	private static final Set<String> srcElements        = new LinkedHashSet<>(Arrays.asList(new String[]{"img", "script", "audio", "video", "input", "source", "track"}));
+	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList("link"));
+	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList("#declaration", "#doctype"));
+	private static final Set<String> srcElements        = new LinkedHashSet<>(Arrays.asList("img", "script", "audio", "video", "input", "source", "track"));
 
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
@@ -118,7 +118,7 @@ public class Importer {
 	private String code;
 	private String tableChildElement;
 
-	private Map<String, Linkable> alreadyDownloaded = new HashMap<>();
+	private final Map<String, Linkable> alreadyDownloaded = new HashMap<>();
 
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new HashMap<>();
 
@@ -264,7 +264,7 @@ public class Importer {
 		} else {
 
 			if (!isDeployment) {
-				logger.info("##### Start fetching {} for page {} #####", new Object[]{address, name});
+				logger.info("##### Start fetching {} for page {} #####", address, name);
 			}
 
 			final Map<String, Object> responseData = HttpHelper.get(address);
@@ -296,7 +296,7 @@ public class Importer {
 			createChildNodes(parsedDocument, page, page);
 
 			if (!isDeployment) {
-				logger.info("##### Finished fetching {} for page {} #####", new Object[]{address, name});
+				logger.info("##### Finished fetching {} for page {} #####", address, name);
 			}
 		}
 
@@ -514,9 +514,8 @@ public class Importer {
 				continue;
 			}
 
-			if (node instanceof Element) {
+			if (node instanceof Element el) {
 
-				final Element el          = ((Element) node);
 				final Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
@@ -874,7 +873,7 @@ public class Importer {
 
 								int l = DATA_META_PREFIX.length();
 
-								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[]{'-'}).replaceAll("-", "");
+								String upperCaseKey = WordUtils.capitalize(key.substring(l), '-').replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
 
 								if (value != null) {
@@ -1200,20 +1199,20 @@ public class Importer {
 
 			}
 
-			logger.warn("Unable to download from {} {}", new Object[]{originalUrl, downloadAddress});
+			logger.warn("Unable to download from {} {}", originalUrl, downloadAddress);
 
 			try {
 				// Try alternative baseUrl with trailing "/"
 				if (address.endsWith("/")) {
 
 					// don't append a second slash!
-					logger.info("Starting download from alternative URL {} {} {}", new Object[]{originalUrl, address, downloadAddress});
+					logger.info("Starting download from alternative URL {} {} {}", originalUrl, address, downloadAddress);
 					downloadUrl = new URL(new URL(originalUrl, address), downloadAddress);
 
 				} else {
 
 					// append a slash
-					logger.info("Starting download from alternative URL {} {} {}", new Object[]{originalUrl, address.concat("/"), downloadAddress});
+					logger.info("Starting download from alternative URL {} {} {}", originalUrl, address.concat("/"), downloadAddress);
 					downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				}
 
@@ -1258,7 +1257,7 @@ public class Importer {
 
 
 		logger.info("Download URL: {}, address: {}, cleaned address: {}, filename: {}",
-			new Object[]{downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName});
+			downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName);
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
@@ -1574,9 +1573,7 @@ public class Importer {
 
 			return ((TextNode) node).getWholeText();
 
-		} else if (node instanceof Element) {
-
-			final Element el = (Element) node;
+		} else if (node instanceof Element el) {
 
 			final boolean prettyPrintBackup = el.ownerDocument().outputSettings().prettyPrint();
 

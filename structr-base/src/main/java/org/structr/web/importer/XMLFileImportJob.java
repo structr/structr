@@ -47,7 +47,7 @@ public class XMLFileImportJob extends FileImportJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(XMLFileImportJob.class.getName());
 
-	private String contentType;
+	private final String contentType;
 
 	public XMLFileImportJob(final File file, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
 		super(file, user, configuration, ctxStore);

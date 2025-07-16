@@ -86,7 +86,7 @@ public class TokenResource extends ExactMatchEndpoint {
 
 				if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
-					if (isFromRefreshToken == false) {
+					if (!isFromRefreshToken) {
 
 						AuthHelper.updateLastLoginDate(user);
 						AuthHelper.sendLoginNotification(user, securityContext.getRequest());
