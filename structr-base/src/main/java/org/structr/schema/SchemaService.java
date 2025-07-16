@@ -25,6 +25,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.Predicate;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.service.*;
 import org.structr.common.error.ErrorBuffer;
@@ -36,6 +37,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.NodeService;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
@@ -307,6 +309,8 @@ public class SchemaService implements Service {
 			} finally {
 
 				logger.info("Schema reload took a total of {} ms", System.currentTimeMillis() - t0);
+
+				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", Map.of("success", true), Predicate.allExcept(initiatedBySessionId));
 
 				schemaIsBeingReplaced.set(false);
 			}
