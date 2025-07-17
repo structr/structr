@@ -136,7 +136,6 @@ let _Dialogs = {
 
 				Structr.getActiveModule()?.unload?.();
 
-				_Favorites.logoutAction();
 				_Console.logoutAction();
 
 				Structr.clearMain();

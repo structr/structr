@@ -1150,218 +1150,69 @@ let _Favorites = new (function () {
 
 	// private variables
 	let _favsVisible = false;
-	let container;
-	let menu;
-	let favoritesTabKey;
-	let text = '';
+	let favoritesDataKey     = 'structr_favorites_' + location.port;
+	let favoritesLastUsedKey = 'structrFavoritesLastUsed_' + location.port;
 
-	this.initFavorites = () => {
-		favoritesTabKey = 'structrFavoritesTab_' + location.port;
-	};
+	this.showFavorites = function() {
 
-	this.refreshFavorites = async () => {
+		if (_favsVisible !== true && StructrWS.user !== null) {
 
-		let favs = document.getElementById('structr-favorites');
-
-		_Helpers.fastRemoveAllChildren(favs);
-
-		favs.insertAdjacentHTML('beforeend', `
-			<div id="favs-tabs" class="favs-tabs flex-grow flex flex-col">
-				<ul id="fav-menu"></ul>
-			</div>
-		`);
-
-		_Favorites.menu      = document.querySelector('#favs-tabs > #fav-menu');
-		_Favorites.container = document.querySelector('#favs-tabs');
-
-		let response = await fetch(`${Structr.rootUrl}me/favorites/fav`);
-
-		if (response.ok) {
-
-			let data = await response.json();
-
-			if (data && data.result && data.result.length) {
-
-				let allFavoriteIds = data.result.map(favorite => favorite.id);
-
-				// first "forget" editors for those elements - otherwise we do not get updates
-				for (let favoriteId of allFavoriteIds) {
-					_Editors.disposeEditor(favoriteId, 'favoriteContent');
-					_Editors.disposeEditorModel(favoriteId, 'favoriteContent');
-				}
-
-				for (let favorite of data.result) {
-
-					let id = favorite.id;
-					_Favorites.menu.insertAdjacentHTML('beforeend',`
-						<li id="tab-${id}" data-id="${id}" class="button">${favorite.favoriteContext}&nbsp;&nbsp;
-							${_Icons.getSvgIconWithID(`button-close-${id}`, _Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-grey']), 'Close')}
-						</li>
-					`);
-
-					_Favorites.container.insertAdjacentHTML('beforeend',`
-						<div class="fav-content hidden flex-col flex-grow" id="content-tab-${id}">
-							<div class="fav-editor flex-grow" id="editor-${id}"></div>
-							<div class="fav-buttons" id="buttons-${id}">
-								<span class="editor-info"></span>
-								<button id="saveFile-${id}" disabled="disabled" class="disabled">Save</button>
-							</div>
-						</div>
-					`);
-
-					let editorInfo = _Favorites.container.querySelector(`#buttons-${id} .editor-info`);
-					_Editors.appendEditorOptionsElement(editorInfo);
-
-					let dialogSaveButton = document.getElementById('saveFile-' + id);
-
-					let initialText = favorite.favoriteContent || '';
-
-					let favoriteEditorMonacoConfig = {
-						preventDisposeForIds: allFavoriteIds,
-						value: initialText,
-						language: (favorite.type === 'File' ? _Files.getLanguageForFile(favorite) : favorite.favoriteContentType || 'text/plain'),
-						lint: true,
-						autocomplete: true,
-						changeFn: (editor, entity) => {
-
-							let disabled = (initialText === editor.getValue());
-							_Helpers.disableElements(disabled, dialogSaveButton);
-						},
-						saveFn: (editor, entity) => {
-
-							let newText = editor.getValue();
-							if (initialText === newText) {
-								return;
-							}
-
-							Command.setProperty(id, 'favoriteContent', newText, false, () => {
-
-								let tabLink = _Favorites.menu.querySelector(`#tab-${id}`);
-								_Helpers.blinkGreen(tabLink);
-							});
-
-							initialText = newText;
-							_Helpers.disableElements(true, dialogSaveButton);
-						}
-					};
-
-					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', document.getElementById(`editor-${id}`), favoriteEditorMonacoConfig);
-
-					dialogSaveButton.addEventListener('click', (e) => {
-						e.preventDefault();
-						e.stopPropagation();
-
-						favoriteEditorMonacoConfig.saveFn(editor, favorite);
-					});
-
-					// prevent DELETE ajax call without relationship ID
-					if (favorite.relationshipId && favorite.relationshipId.length === 32) {
-
-						// close button
-						document.getElementById(`button-close-${id}`).addEventListener('click', async (e) => {
-
-							e.preventDefault();
-							e.stopPropagation();
-
-							let deleteResponse = await fetch(Structr.rootUrl + favorite.relationshipId, { method: 'DELETE' });
-
-							if (deleteResponse.ok) {
-
-								let tabLink = document.getElementById('tab-' + id);
-
-								if (tabLink.classList.contains('active')) {
-
-									if (tabLink.previousElementSibling) {
-										tabLink.previousElementSibling.click();
-									} else if (tabLink.nextElementSibling) {
-										tabLink.nextElementSibling.click();
-									}
-								}
-
-								tabLink.remove();
-								document.getElementById('content-tab-' + id).remove();
-							}
-
-							return false;
-						});
-					}
-				}
-
-
-				let activeTabId = LSWrapper.getItem(_Favorites.favoritesTabKey);
-
-				if (!activeTabId || !($('#tab-' + activeTabId)).length) {
-					activeTabId = Structr.getIdFromPrefixIdString($('li:first-child', _Favorites.menu).prop('id'), 'tab-');
-				}
-
-				let activateTab = (tabId) => {
-
-					for (let tabLink of _Favorites.menu.querySelectorAll('li')) {
-						tabLink.classList.remove('active');
-					}
-
-					for (let contentTab of _Favorites.container.querySelectorAll('.fav-content')) {
-						contentTab.classList.remove('flex');
-						contentTab.classList.add('hidden');
-					}
-
-					_Favorites.menu.querySelector('li#tab-' + tabId).classList.add('active');
-
-					let contentTab = _Favorites.container.querySelector('#content-tab-' + tabId);
-					contentTab.classList.remove('hidden');
-					contentTab.classList.add('flex');
-
-					LSWrapper.setItem(_Favorites.favoritesTabKey, tabId);
-
-					window.setTimeout(() => {
-						_Editors.resizeVisibleEditors();
-					}, 250);
-				};
-
-				for (let tab of _Favorites.menu.querySelectorAll('li')) {
-					tab.addEventListener('click', (e) => {
-						e.stopPropagation();
-
-						activateTab(tab.dataset.id);
-					});
-				}
-
-				activateTab(activeTabId);
-
-			} else {
-				_Favorites.container.append(' No favorites found');
-			}
-		}
-	};
-
-	// public methods
-	this.logoutAction = function() {
-		_Helpers.fastRemoveAllChildren(document.getElementById('structr-favorites'));
-		_hideFavorites();
-	};
-
-	this.toggleFavorites = function() {
-		if (_favsVisible === true) {
-			_hideFavorites();
-		} else {
-			_showFavorites();
-		}
-	};
-
-	let _showFavorites = function() {
-		if (StructrWS.user !== null) {
 			_favsVisible = true;
-			$('#structr-favorites').slideDown('fast', () => {
-				$('#structr-favorites').css('display', 'flex');
-				_Favorites.refreshFavorites();
+
+			let favoritesIds = this.getFavoritesIds();
+			let activeFileId = LSWrapper.getItem(favoritesLastUsedKey, favoritesIds[0]);
+
+			_Files.editFiles(this.getFavoritesIds(), activeFileId, (id) => {
+				LSWrapper.setItem(favoritesLastUsedKey, id);
+			}, () => {
+				_favsVisible = false;
 			});
 		}
 	};
 
-	let _hideFavorites = function() {
-		_favsVisible = false;
-		$('#structr-favorites').slideUp('fast');
-		_Helpers.fastRemoveAllChildren($('#structr-favorites')[0]);
+	this.getFavoritesIds = function() {
+		return LSWrapper.getItem(favoritesDataKey, []);
+	}
+
+	this.getFavoritesList = async function() {
+
+		let ids = this.getFavoritesIds();
+
+		let res = await fetch(Structr.rootUrl + 'File?id=' + ids.join(';'), {
+			headers: _Helpers.getHeadersForCustomView(_Files.defaultFileAttributes.split(','))
+		});
+
+		if (res.ok) {
+
+			let data = await res.json();
+			return data;
+		}
+
+		return [];
+	};
+
+	this.addToFavorites = function(idsToAdd) {
+
+		let idSet = new Set(this.getFavoritesIds());
+
+		for (let id of idsToAdd) {
+
+			idSet.add(id);
+		}
+
+		LSWrapper.setItem(favoritesDataKey, [...idSet]);
+	};
+	this.removeFromFavorites = function(idsToRemove) {
+
+		let ids = LSWrapper.getItem(favoritesDataKey, []);
+		let idSet = new Set(ids);
+
+		for (let id of idsToRemove) {
+
+			idSet.delete(id);
+		}
+
+		LSWrapper.setItem(favoritesDataKey, [...idSet]);
 	};
 });
 

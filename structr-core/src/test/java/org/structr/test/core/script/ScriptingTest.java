@@ -7262,6 +7262,52 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testFileContentGettingSettingAndAppending() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file); }}", "test_1a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.setContent(file, 'test'); $.getContent(file); }}", "test_1b"), "test");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.appendContent(file, '123'); $.getContent(file); }}", "test_1c"), "test123");
+
+			tx.success();
+
+		} catch (FrameworkException fxe) {
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.getContent(file); }}", "test_2a"), "");
+			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.appendContent(file, new Date()); }}", "test_2b");
+
+			fail("Providing a Date object (anything other than String or byte[]) to appendContent should throw an exception.");
+
+			tx.success();
+
+		} catch (FrameworkException expected) {
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file); }}", "test_3a"), "");
+			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.setContent(file, new Date()); }}", "test_3b");
+
+			fail("Providing a Date object (anything other than String or byte[]) to setContent should throw an exception.");
+
+			tx.success();
+
+		} catch (FrameworkException expected) {
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

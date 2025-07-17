@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Files = {
 	_moduleName: 'files',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate',
-	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
+	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
 	currentWorkingDir: undefined,
@@ -345,40 +345,33 @@ let _Files = {
 		if (isFile) {
 
 			if (_Files.displayingFavorites) {
+
 				elements.push({
 					icon: _Icons.getMenuSvgIcon(_Icons.iconRemoveFromFavorites),
 					name: 'Remove from Favorites',
 					clickHandler: () => {
 
-						for (let el of selectedElements) {
+						let prefix = _Files.isViewModeActive('list') ? '#row' : '#tile';
+						let ids    = [...selectedElements].map(el => Structr.getId(el));
 
-							let id = Structr.getId(el);
+						_Favorites.removeFromFavorites(ids);
 
-							Command.favorites('remove', id, () => {
-
-								let prefix = _Files.isViewModeActive('list') ? '#row' : '#tile';
-								_Helpers.fastRemoveElement(Structr.node(id, prefix)[0]);
-							});
+						for (let id of ids) {
+							_Helpers.fastRemoveElement(Structr.node(id, prefix)[0]);
 						}
 					}
 				});
 
-			} else if (entity.isFavoritable) {
+			} else if (entity.isFile) {
 
 				elements.push({
 					icon: _Icons.getMenuSvgIcon(_Icons.iconAddToFavorites),
 					name: 'Add to Favorites',
 					clickHandler: () => {
 
-						for (let el of selectedElements) {
+						let fileIds = [...selectedElements].map(el => StructrModel.obj(Structr.getId(el))).filter(obj => obj.isFile).map(obj => obj.id);
 
-							let obj = StructrModel.obj(Structr.getId(el));
-
-							if (obj.isFavoritable) {
-
-								Command.favorites('add', obj.id, () => {});
-							}
-						}
+						_Favorites.addToFavorites(fileIds);
 					}
 				});
 			}
@@ -788,13 +781,8 @@ let _Files = {
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton() : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
-			fetch(`${Structr.rootUrl}me/favorites`, {
-				headers: _Helpers.getHeadersForCustomView(_Files.defaultFileAttributes)
-			}).then(async response => {
-				if (response.ok) {
-					let data = await response.json();
-					handleFileChildren(data.result);
-				}
+			_Favorites.getFavoritesList().then(data => {
+				handleFileChildren(data.result);
 			});
 
 		} else {
@@ -1410,72 +1398,76 @@ let _Files = {
 
 		} else {
 
-			let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor']);
-			_Dialogs.custom.showMeta();
+			_Files.editFiles(filteredFileModels.map(m => m.id), file.id);
+		}
+	},
+	editFiles:(ids, activeFileId, onTabSelect, onDialogClose) => {
 
-			dialogText.insertAdjacentHTML('beforeend', '<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
+		let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor']);
+		_Dialogs.custom.showMeta();
 
-			let filesTabs     = document.getElementById('files-tabs');
-			let filesTabsUl   = filesTabs.querySelector('ul');
-			let loadedEditors = 0;
+		dialogText.insertAdjacentHTML('beforeend', '<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
 
-			for (let fileModel of filteredFileModels) {
+		let filesTabs     = document.getElementById('files-tabs');
+		let filesTabsUl   = filesTabs.querySelector('ul');
+		let loadedEditors = 0;
 
-				let uuid = fileModel.id;
+		for (let fileId of ids) {
 
-				Command.get(uuid, 'id,type,name,contentType,isTemplate', (entity) => {
+			Command.get(fileId, 'id,type,name,contentType,isTemplate', (entity) => {
 
-					loadedEditors++;
+				loadedEditors++;
 
-					let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
-					let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
+				let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
+				let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
 
-					filesTabsUl.appendChild(tab);
-					filesTabs.appendChild(editorContainer);
+				filesTabsUl.appendChild(tab);
+				filesTabs.appendChild(editorContainer);
 
-					_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id]);
+				_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id] ?? false);
 
-					tab.addEventListener('click', (e) => {
-						e.stopPropagation();
+				tab.addEventListener('click', (e) => {
+					e.stopPropagation();
 
-						// prevent activating the current tab
-						if (!tab.classList.contains('active')) {
+					// prevent activating the current tab
+					if (!tab.classList.contains('active')) {
 
-							// set all other tabs inactive and this one active
-							for (let tab of filesTabsUl.querySelectorAll('li')) {
-								tab.classList.remove('active');
-							}
-							tab.classList.add('active');
+						// set all other tabs inactive and this one active
+						for (let tab of filesTabsUl.querySelectorAll('li')) {
+							tab.classList.remove('active');
+						}
+						tab.classList.add('active');
 
-							// hide all editors and show this one
-							for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
-								otherEditorContainer.style.display = 'none';
-							}
-							editorContainer.style.display = 'block';
+						// hide all editors and show this one
+						for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
+							otherEditorContainer.style.display = 'none';
+						}
+						editorContainer.style.display = 'block';
 
-							// clear all other tabs before editing this one to ensure correct height
-							for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
-								_Helpers.fastRemoveAllChildren(editor);
-							}
-
-							_Files.editFileWithMonaco(entity, editorContainer);
+						// clear all other tabs before editing this one to ensure correct height
+						for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
+							_Helpers.fastRemoveAllChildren(editor);
 						}
 
-						return false;
-					});
+						onTabSelect?.(entity.id);
 
-					if (file.id === entity.id) {
-						tab.click();
+						_Files.editFileWithMonaco(entity, editorContainer, onDialogClose);
 					}
+
+					return false;
 				});
-			}
+
+				if (activeFileId === entity.id) {
+					tab.click();
+				}
+			});
 		}
 	},
 	markFileEditorTabAsChanged: (id, hasChanges) => {
 		let tab = document.querySelector(`#tab-${id}`);
 		_Schema.markElementAsChanged(tab, hasChanges);
 	},
-	editFileWithMonaco: async (file, editorContainer) => {
+	editFileWithMonaco: async (file, editorContainer, onCloseCallback) => {
 
 		let saveButton         = _Dialogs.custom.updateOrCreateDialogSaveButton();
 		let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
@@ -1581,6 +1573,10 @@ let _Files = {
 			if (closeWithoutAsking) {
 
 				_Dialogs.custom.dialogCancelBaseAction();
+
+				if (onCloseCallback) {
+					window.setTimeout(onCloseCallback, 100);
+				}
 			}
 		});
 
@@ -1648,7 +1644,7 @@ let _Files = {
 	},
 	getLanguageForFile: (file) => {
 
-		let language = file.contentType ?? file.favoriteContentType;
+		let language = file.contentType;
 
 		if (language && (language.startsWith('application/javascript') || language.startsWith('text/javascript'))) {
 			language = 'javascript';

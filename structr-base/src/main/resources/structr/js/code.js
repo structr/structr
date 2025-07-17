@@ -1152,9 +1152,20 @@ let _Code = {
 					activateTab(tabLink.dataset.name);
 				})
 			}
-			activateTab(lastOpenTab || 'source');
+			if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+				activateTab(lastOpenTab || 'source');
+			} else {
+				activateTab('source');
+			}
 
 			_Helpers.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
+
+			let updateWrapFlagVisibility = (key, text) => {
+
+				let isJs = (_Editors.getMonacoEditorModeForContent(text, property) === 'javascript');
+				let el = document.querySelector(`[data-property="${key}"]`);
+				el?.parentNode.classList.toggle('hidden', !isJs);
+			};
 
 			let functionPropertyMonacoConfig = {
 				language: 'auto',
@@ -1162,6 +1173,9 @@ let _Code = {
 				autocomplete: true,
 				changeFn: (editor, entity) => {
 					_Code.persistence.updateDirtyFlag(entity);
+
+					let key = `${editor.getModel().uri.structr_property}WrapJS`;
+					updateWrapFlagVisibility(key, editor.getValue());
 				},
 				isAutoscriptEnv: true
 			};
@@ -1183,6 +1197,9 @@ let _Code = {
 			_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
 
 			_Code.mainArea.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
+
+			updateWrapFlagVisibility('readFunctionWrapJS', property.readFunction);
+			updateWrapFlagVisibility('writeFunctionWrapJS', property.writeFunction);
 		},
 		displayCypherPropertyDetails: (property, data) => {
 
@@ -1259,6 +1276,8 @@ let _Code = {
 			if (property.propertyType !== 'Function') {
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-type-hint-input').closest('[data-is-property-attribute-container]'));
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-cached').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-readfunction-wrap').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
 			}
@@ -1497,6 +1516,9 @@ let _Code = {
 					isAutoscriptEnv: true,
 					changeFn: (editor, entity) => {
 						_Code.persistence.updateDirtyFlag(entity);
+
+						let updatedObj = Object.assign({}, result, { source: editor.getValue() });
+						_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
 					}
 				};
 
@@ -1829,7 +1851,12 @@ let _Code = {
 					e.stopPropagation();
 					activateTab($(this).data('name'));
 				});
-				activateTab(lastOpenTab || 'source');
+
+				if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+					activateTab(lastOpenTab || 'source');
+				} else {
+					activateTab('source');
+				}
 
 				_Editors.focusEditor(sourceEditor);
 			});
@@ -2833,7 +2860,7 @@ let _Code = {
 
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
 							<h4 class="py-2 font-semibold">Read Function</h4>
-							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="readFunction"></div>
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
@@ -2841,7 +2868,7 @@ let _Code = {
 									Write Function
 								</h4>
 							</div>
-							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="writeFunction"></div>
 						</div>
 
 					</div>
@@ -3083,7 +3110,7 @@ let _Code = {
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="mt-2 grid grid-cols-3 gap-4">
+					<div class="mt-2 grid grid-cols-4 gap-4">
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''}>Property value must be unique</label>
 						</div>
@@ -3092,6 +3119,9 @@ let _Code = {
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''}>Property value must not be null</label>
+						</div>
+						<div data-is-property-attribute-container>
+							${_Schema.properties.templates.functionProperty.readFunctionWrapJS({ entity: config.property })}
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
@@ -3104,6 +3134,10 @@ let _Code = {
 								<input type="checkbox" id="property-is-serialization-disabled" data-property="isSerializationDisabled" ${config.property.isSerializationDisabled ? 'checked' : ''}>Disable Property serialization (via REST)
 							</label>
 						</div>
+						<div data-is-property-attribute-container>
+							${_Schema.properties.templates.functionProperty.writeFunctionWrapJS({ entity: config.property })}
+						</div>
+
 					</div>
 				</div>
 			</div>

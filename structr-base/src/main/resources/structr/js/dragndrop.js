@@ -75,9 +75,8 @@ let _Dragndrop = {
 						let obj = StructrModel.obj(sourceId);
 						if (obj.isFile) {
 
-							Command.favorites('add', sourceId, function() {
-								_Helpers.blinkGreen(Structr.node(sourceId));
-							});
+							_Favorites.addToFavorites([sourceId]);
+							_Helpers.blinkGreen(Structr.node(sourceId));
 
 						} else {
 
@@ -918,9 +917,8 @@ let _Dragndrop = {
 					let obj = StructrModel.obj(dragId);
 					if (obj.isFile) {
 
-						Command.favorites('add', obj.id, () => {
-							_Helpers.blinkGreen(Structr.node(obj.id));
-						});
+						_Favorites.addToFavorites([obj.id]);
+						_Helpers.blinkGreen(Structr.node(obj.id));
 
 					} else {
 

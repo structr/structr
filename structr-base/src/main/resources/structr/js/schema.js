@@ -232,12 +232,15 @@ let _Schema = {
 		const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
 
 		const panzoom = Panzoom(schemaContainer, { cursor: 'default', exclude: nodeElements, handleStartEvent: (event) => {
-			if (!event.shiftKey) {
-				panzoom.setOptions({ disablePan: true, cursor: 'default' });
-			} else {
+			let shiftPressed = event.shiftKey;
+			let middleMousePressed =  (event.button === 1);
+
+			if (shiftPressed || middleMousePressed) {
 				panzoom.setOptions({ disablePan: false, cursor: 'move' });
 				event.preventDefault();
 				event.stopPropagation();
+			} else {
+				panzoom.setOptions({ disablePan: true, cursor: 'default' });
 			}
 		} });
 		document.addEventListener('keydown', (event) => {
@@ -253,6 +256,11 @@ let _Schema = {
 		schemaContainer.addEventListener('panzoomstart', (event) => {
 			if (!event.shiftKey) {
 				event.preventDefault();
+			}
+		});
+		schemaContainer.addEventListener('panzoomend', (event) => {
+			if (!event.shiftKey) {
+				schemaContainer.style.cursor = 'default';
 			}
 		});
 		schemaContainer.addEventListener('wheel', (event) => {
@@ -393,7 +401,6 @@ let _Schema = {
 
 				let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
 				let isDirty     = (changeCount > 0);
-				console.log(isDirty)
 				_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 			});
 
@@ -1989,7 +1996,7 @@ let _Schema = {
 
 				if (overrides && overrides.editReadWriteFunction) {
 
-					overrides.editReadWriteFunction(property, targetProperty);
+					overrides.editReadWriteFunction(property);
 
 				} else {
 
@@ -2006,11 +2013,11 @@ let _Schema = {
 			};
 
 			$('.edit-read-function', gridRow).on('click', () => {
-				readWriteButtonClickHandler('readFunction');
+				readWriteButtonClickHandler('read');
 			}).prop('disabled', isProtected);
 
 			$('.edit-write-function', gridRow).on('click', () => {
-				readWriteButtonClickHandler('writeFunction');
+				readWriteButtonClickHandler('write');
 			}).prop('disabled', isProtected);
 
 			$('.edit-cypher-query', gridRow).on('click', () => {
@@ -2198,20 +2205,44 @@ let _Schema = {
 		},
 		openCodeEditorForFunctionProperty: (id, key, closeCallback) => {
 
-			Command.get(id, `id,name,contentType,${key}`, (entity) => {
+			let codeKey = `${key}Function`;
+			let wrapKey = `${key}FunctionWrapJS`;
 
-				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
-				_Dialogs.custom.showMeta();
+			Command.get(id, `id,name,contentType,${codeKey},${wrapKey}`, (entity) => {
 
-				let initialText = entity[key] || '';
-
+				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} function of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
 				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
+				_Dialogs.custom.showMeta();
 
 				let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
 				let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 				let editorInfo       = dialogMeta.querySelector('.editor-info');
 				_Editors.appendEditorOptionsElement(editorInfo);
+
+				let wrapChoice = _Helpers.createSingleDOMElementFromHTML(`<span>${ _Schema.properties.templates.functionProperty[wrapKey]({ entity }) }</span>`);
+				editorInfo.appendChild(wrapChoice);
+				_Helpers.activateCommentsInElement(wrapChoice);
+
+				let initialText     = entity[codeKey] ?? '';
+				let initialWrapFlag = entity[wrapKey];
+				let editor, flagCheckbox;
+
+				let isChanged = () => {
+					return !(editor.getValue() === initialText && flagCheckbox.checked === initialWrapFlag);
+				};
+
+				flagCheckbox = wrapChoice.querySelector('input[type="checkbox"]');
+				flagCheckbox.addEventListener('change', (e) => {
+					let disabled = !isChanged();
+					_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
+				});
+
+				let updateCodeWrappingCheckboxVisibility = (source) => {
+					let isJs = (_Editors.getMonacoEditorModeForContent(source, entity) === 'javascript');
+					wrapChoice.classList.toggle('hidden', !isJs);
+				};
+				updateCodeWrappingCheckboxVisibility(initialText);
 
 				let functionPropertyMonacoConfig = {
 					language: 'auto',
@@ -2219,26 +2250,26 @@ let _Schema = {
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 
-						let disabled = (initialText === editor.getValue());
+						updateCodeWrappingCheckboxVisibility(editor.getValue());
+
+						let disabled = !isChanged();
 						_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
 					},
 					saveFn: (editor, entity, close = false) => {
 
-						let text1 = initialText;
-						let text2 = editor.getValue();
-
-						if (text1 === text2) {
+						if (!isChanged()) {
 							return;
 						}
 
-						Command.setProperty(entity.id, key, text2, false, () => {
+						Command.setProperties(entity.id, { [codeKey]: editor.getValue(), [wrapKey]: flagCheckbox.checked }, () => {
 
-							_Dialogs.custom.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+							_Dialogs.custom.showAndHideInfoBoxMessage('Saved successfully', 'success', 2000, 200);
 
 							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
-							Command.getProperty(entity.id, key, (newText) => {
-								initialText = newText;
+							Command.get(id, `id,${codeKey},${wrapKey}`, (entity) => {
+								initialText     = entity[codeKey];
+								initialWrapFlag = entity[wrapKey];
 							});
 
 							if (close === true) {
@@ -2246,13 +2277,13 @@ let _Schema = {
 							}
 						});
 					},
-					saveFnText: `Save ${key} Function`,
+					saveFnText: `Save ${key} function`,
 					preventRestoreModel: true,
 					isAutoscriptEnv: true
 				};
 
-				let editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
-				_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, key, editor);
+				editor = _Editors.getMonacoEditor(entity, codeKey, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
+				_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, codeKey, editor);
 
 				_Editors.resizeVisibleEditors();
 				Structr.resize();
@@ -2427,19 +2458,19 @@ let _Schema = {
 						${config.typeOptions}
 						${(config.property.propertyType === 'String' && !config.property.isBuiltinProperty) ? '<input type="text" class="content-type w-12" title="Content-Type">' : ''}
 					</div>
-					<div class="p-2">
+					<div class="p-2 flex items-center">
 						${(() => {
 							switch (config.property.propertyType) {
 								case 'Function':
 									return `
-												<div class="flex items-center">
-													<button class="edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
-													<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
-													<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
-													<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
-													${config.typeHintOptions}
-												</div>
-											`;
+										<div class="flex items-center">
+											<button class="flex items-center edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read${(config.property.readFunctionWrapJS === true) ? _Icons.getSvgIcon(_Icons.iconScriptWrapped, 20, 20, ['ml-1'], 'This script (if JavaScript) is being wrapped in a main() function, thus enabling the usage or the return statement and not allowing import statements.') : ''}</button>
+											<button class="flex items-center edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write${(config.property.writeFunctionWrapJS === true) ? _Icons.getSvgIcon(_Icons.iconScriptWrapped, 20, 20, ['ml-1'], 'This script (if JavaScript) is being wrapped in a main() function, thus enabling the usage or the return statement and not allowing import statements.') : ''}</button>
+											<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
+											<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
+											${config.typeHintOptions}
+										</div>
+									`;
 								case 'Cypher':
 									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
 								default:
@@ -2468,14 +2499,14 @@ let _Schema = {
 			`,
 			propertyNew: config => `
 				<div class="schema-grid-row has-changes contents">
-					<div class="p-1">
+					<div class="p-2">
 						<input size="15" type="text" class="property-name" placeholder="JSON name" autofocus>
 					</div>
 					<div class="p-1 ${config.dbNameClass}">
 						<input size="15" type="text" class="property-dbname" placeholder="DB Name">
 					</div>
 					<div class="flex items-center">${config.typeOptions}</div>
-					<div class="p-1">
+					<div class="p-2 flex items-center">
 						<input size="15" type="text" class="property-format" placeholder="Format">
 					</div>
 					<div class="flex items-center justify-center">
@@ -2490,7 +2521,7 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" style="margin-right: 0;">
 					</div>
-					<div class="p-1">
+					<div class="p-2 flex items-center">
 						<input class="property-default" size="10" type="text" placeholder="Default Value">
 					</div>
 					<div class="actions-col flex items-center justify-center">
@@ -2543,6 +2574,18 @@ let _Schema = {
 					<option value="Password" data-protected="true" disabled>Password</option>
 				</select>
 			`,
+			functionProperty: {
+				readFunctionWrapJS: (config) => `
+					<label data-comment="This configures how the read function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
+						<input type="checkbox" id="property-readfunction-wrap" data-property="readFunctionWrapJS" ${config.entity.readFunctionWrapJS ? 'checked' : ''}> Wrap JS read function in main()
+					</label>
+				`,
+				writeFunctionWrapJS: (config) => `
+					<label data-comment="This configures how the write function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used.">
+						<input type="checkbox" id="property-writefunction-wrap" data-property="writeFunctionWrapJS" ${config.entity.writeFunctionWrapJS ? 'checked' : ''}> Wrap JS write function in main()
+					</label>
+				`
+			}
 		}
 	},
 	remoteProperties: {
@@ -3308,6 +3351,7 @@ let _Schema = {
 					isPrivate:       method.isPrivate,
 					returnRawResult: method.returnRawResult,
 					httpVerb:        method.httpVerb,
+					wrapJsInMain:    method.wrapJsInMain,
 					schemaNode:      entity,
 					parameters:      method.parameters,
 					initialData: {
@@ -3317,6 +3361,7 @@ let _Schema = {
 						isPrivate:       method.isPrivate,
 						returnRawResult: method.returnRawResult,
 						httpVerb:        method.httpVerb,
+						wrapJsInMain:    method.wrapJsInMain
 					}
 				};
 
@@ -3727,11 +3772,13 @@ let _Schema = {
 			let isServiceClassMethod = (isTypeMethod && methodData.schemaNode.isServiceClass === true);
 			let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(methodData);
 			let isCallableViaREST    = (methodData.isPrivate !== true);
+			let isJavaScript         = ('javascript' === _Editors.getMonacoEditorModeForContent(methodData.source, methodData));
 
 			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod && !isServiceClassMethod));
 			updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
 			updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
 			updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+			updateVisibilityForAttribute('wrapJsInMain',    (!isLifecycleMethod && isJavaScript));
 
 			// completely hide 'more' button for lifecycle methods
 			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
@@ -3783,6 +3830,8 @@ let _Schema = {
 
 						_Schema.methods.rowChanged(tr, changesInInitialData);
 					}
+
+					_Schema.methods.updateUIForAllAttributes(tr, methodData);
 				}
 			};
 
@@ -4053,7 +4102,7 @@ let _Schema = {
 
 					<div>
 						<div class="method-config-element entity-method py-1">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only applies to non-lifecycle type methods.">
 								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
 							</label>
 						</div>
@@ -4061,6 +4110,12 @@ let _Schema = {
 						<div class="method-config-element entity-method py-1">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
 								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="This configures how the script (if it is JavaScript) is interpreted. If set to true, the script itself is wrapped in a main() function to enable the user to use the 'return' keyword at the end to return a value. However, that prevents the user from making use of imports. If this switch is set to false, the script is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
+								<input type="checkbox" data-property="wrapJsInMain" ${config.method.wrapJsInMain ? 'checked' : ''}> Wrap JavaScript in main()
 							</label>
 						</div>
 					</div>

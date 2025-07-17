@@ -32,7 +32,7 @@ import java.io.OutputStream;
 public class AppendContentFunction extends UiAdvancedFunction {
 
 	public static final String ERROR_MESSAGE_APPEND_CONTENT    = "Usage: ${append_content(file, content[, encoding = \"UTF-8\"])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}";
-	public static final String ERROR_MESSAGE_APPEND_CONTENT_JS = "Usage: ${{Structr.appendContent(file, content[, encoding = \"UTF-8\"])}}. Example: ${{Structr.appendContent(fileNode, 'additional content')}}";
+	public static final String ERROR_MESSAGE_APPEND_CONTENT_JS = "Usage: ${{ $.appendContent(file, content[, encoding = \"UTF-8\"]) }}. Example: ${{ $.appendContent(fileNode, 'additional content') }}";
 
 	@Override
 	public String getName() {
@@ -54,7 +54,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 				final File file       = n.as(File.class);
-				final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
+				final String encoding = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
 
 				if (sources[1] instanceof byte[]) {
 
@@ -66,7 +66,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 						logger.warn("append_content(): Unable to append binary data to file '{}'", file.getPath(), ioex);
 					}
 
-				} else {
+				} else if (sources[1] instanceof String) {
 
 					final String content = (String)sources[1];
 
@@ -77,6 +77,10 @@ public class AppendContentFunction extends UiAdvancedFunction {
 					} catch (IOException ioex) {
 						logger.warn("append_content(): Unable to append to file '{}'", file.getPath(), ioex);
 					}
+
+				} else {
+
+					throw new FrameworkException(422, getName() + "(): Content must be of type String or byte[]. Found: " + sources[1].getClass().getSimpleName());
 				}
 			}
 
@@ -99,7 +103,5 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Appends the content to the given file";
-	}
+	public String shortDescription() { return "Appends the content to the given file. Content can either be of type String or byte[]."; }
 }

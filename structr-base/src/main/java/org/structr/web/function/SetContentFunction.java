@@ -28,6 +28,7 @@ import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import org.tuckey.web.filters.urlrewrite.Run;
 
 public class SetContentFunction extends UiAdvancedFunction {
 
@@ -54,7 +55,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 				final File file       = n.as(File.class);
-				final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
+				final String encoding = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
 
 				if (sources[1] instanceof byte[]) {
 
@@ -66,7 +67,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 						logger.warn("set_content(): Unable to write binary data to file '{}'", file.getPath(), ioex);
 					}
 
-				} else {
+				} else if (sources[1] instanceof String) {
 
 					final String content = (String)sources[1];
 
@@ -77,6 +78,10 @@ public class SetContentFunction extends UiAdvancedFunction {
 					} catch (IOException ioex) {
 						logger.warn("set_content(): Unable to write content to file '{}'", file.getPath(), ioex);
 					}
+
+				} else {
+
+					throw new FrameworkException(422, getName() + "(): Content must be of type String or byte[]. Found: " + sources[1].getClass().getSimpleName());
 				}
 			}
 
@@ -100,6 +105,6 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Sets the content of the given file";
+		return "Sets the content of the given file. Content can either be of type String or byte[].";
 	}
 }
