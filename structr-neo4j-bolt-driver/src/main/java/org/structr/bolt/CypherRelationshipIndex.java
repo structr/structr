@@ -18,10 +18,14 @@
  */
 package org.structr.bolt;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Relationship;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -35,7 +39,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	@Override
 	public String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query) {
 
-		final StringBuilder buf       = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
 		final String tenantIdentifier = db.getTenantIdentifier();
 
 		buf.append("MATCH (");
@@ -104,6 +108,42 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 		}
 
 		return buf.toString();
+	}
+
+	@Override
+	public Map<Relationship, Double> fulltextQuery(final String indexName, final String searchString) {
+
+		final String tenantIdentifier        = db.getTenantIdentifier();
+		final Map<String, Object> parameters = new LinkedHashMap<>();
+		final SessionTransaction tx          = db.getCurrentTransaction();
+
+		parameters.put("indexName", indexName);
+		parameters.put("searchValue", searchString);
+
+		final String statement;
+
+		if (StringUtils.isNotBlank(tenantIdentifier)) {
+
+			statement = "CALL db.index.fulltext.queryRelationships($indexName, $searchValue) YIELD relationship, score MATCH (:" + tenantIdentifier + ")-[relationship]-(:" + tenantIdentifier + ") RETURN relationship, score";
+
+		} else {
+
+			statement = "CALL db.index.fulltext.queryRelationships($indexName, $searchValue) YIELD relationship, score RETURN relationship, score";
+		}
+
+		final SimpleCypherQuery query              = new SimpleCypherQuery(statement, parameters);
+		final Iterable<Map<String, Object>> result = tx.run(query);
+		final Map<Relationship, Double> nodes      = new LinkedHashMap<>();
+
+		for (final Map<String, Object> entry : result) {
+
+			final Relationship relationship = (Relationship) entry.get("relationship");
+			final Double score              = (Double) entry.get("score");
+
+			nodes.put(relationship, score);
+		}
+
+		return nodes;
 	}
 
 	@Override

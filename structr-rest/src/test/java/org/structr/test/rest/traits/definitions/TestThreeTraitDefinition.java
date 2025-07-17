@@ -39,7 +39,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<String>        stringProperty          = new StringProperty("stringProperty").fulltextIndexed();
+		final Property<String>        stringProperty          = new StringProperty("stringProperty").indexed();
 		final Property<String[]>      stringArrayProperty     = new ArrayProperty<>("stringArrayProperty", String.class).indexedWhenEmpty();
 		final Property<Boolean>       booleanProperty         = new BooleanProperty("booleanProperty").indexed();
 		final Property<Boolean[]>     booleanArrayProperty    = new BooleanArrayProperty("booleanArrayProperty").indexedWhenEmpty();

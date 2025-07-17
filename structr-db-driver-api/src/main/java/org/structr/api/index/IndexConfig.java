@@ -21,19 +21,18 @@ package org.structr.api.index;
 /**
  * Combines entity type and create / drop flag for database index configurations.
  */
-public abstract class IndexConfig {
+public class IndexConfig {
 
-	protected boolean createOrDropIndex = false;
-	protected boolean isNodeIndex       = false;
-	protected boolean isFulltextIndex   = false;
+	protected final boolean createOrDropIndex;
+	protected final boolean isNodeIndex;
+	protected final boolean isFulltextIndex;
+	protected final boolean isTextIndex;
 
-	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex) {
-		this(createOrDropIndex, isNodeIndex, false);
-	}
-	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex, final boolean isFulltextIndex) {
+	public IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex, final boolean  isTextIndex, final boolean isFulltextIndex) {
 
 		this.createOrDropIndex = createOrDropIndex;
 		this.isNodeIndex       = isNodeIndex;
+		this.isTextIndex       = isTextIndex;
 		this.isFulltextIndex   = isFulltextIndex;
 	}
 
@@ -45,13 +44,17 @@ public abstract class IndexConfig {
 		return this.isNodeIndex;
 	}
 
+	public boolean isTextIndex() {
+		return this.isTextIndex;
+	}
+
 	public boolean isFulltextIndex() {
 		return this.isFulltextIndex;
 	}
 
 	public String getIndexDescriptionForStatement(final String typeName) {
 
-		if (this.isNodeIndex || this.isFulltextIndex) {
+		if (this.isNodeIndex) {
 
 			return "(n:" + typeName + ")";
 		}

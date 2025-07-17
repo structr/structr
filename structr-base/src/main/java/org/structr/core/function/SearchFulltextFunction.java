@@ -20,29 +20,32 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
-import org.structr.core.traits.Traits;
+import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 
-public class SearchFunction extends AbstractQueryFunction {
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
-	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
-	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";
+public class SearchFulltextFunction extends CoreFunction implements QueryFunction {
+
+	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search_fulltext(indexName, searchString)}. Example: ${search_fulltext(\"User_name\", \"abc\")}";
+	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.searchFulltext(indexName, value)}}. Example: ${{Structr.searchFulltext(\"User_name\", \"abc\")}}";
 
 	@Override
 	public String getName() {
-		return "search";
+		return "search_fulltext";
 	}
 
 	@Override
 	public String getSignature() {
-		return "type, options...";
+		return "indexName, searchString";
 	}
 
 	@Override
 	public String getNamespaceIdentifier() {
-		return "find";
+		return "searchFulltext";
 	}
 
 	@Override
@@ -57,48 +60,24 @@ public class SearchFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
+			assertArrayHasLengthAndTypes(sources, 2, String.class, String.class);
 
-			applyQueryParameters(securityContext, query);
+			final String indexName                  = sources[0].toString();
+			final String searchString               = sources[1].toString();
+			final Map<NodeInterface, Double> result = StructrApp.getInstance(securityContext).getNodesFromFulltextIndex(indexName, searchString, 10, 1);
+			final List<Map<String, Object>> list    = new LinkedList<>();
 
-			Traits type = null;
+			for (final Map.Entry<NodeInterface, Double> entry : result.entrySet()) {
 
-			if (sources.length >= 1 && sources[0] != null) {
-
-				final String typeString = sources[0].toString();
-				if (Traits.exists(typeString)) {
-
-					type = Traits.of(typeString);
-
-					query.types(type);
-
-				} else {
-
-					logger.warn("Error in search(): type '{}' not found.", typeString);
-					return "Error in search(): type " + typeString + " not found.";
-				}
+				list.add(Map.of("node", entry.getKey(), "score", entry.getValue()));
 			}
 
-			// exit gracefully instead of crashing..
-			if (type == null) {
-
-				logger.warn("Error in search(): no type specified. Parameters: {}", getParametersAsString(sources));
-				return "Error in search(): no type specified.";
-			}
-
-			// apply sorting and pagination by surrounding sort() and slice() expressions
-			applyQueryParameters(securityContext, query);
-
-			return handleQuerySources(securityContext, type, query, sources, false, usage(ctx.isJavaScriptContext()));
+			return list;
 
 		} catch (final IllegalArgumentException e) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
-
-		} finally {
-
-			resetQueryParameters(securityContext);
 		}
 	}
 
@@ -109,6 +88,6 @@ public class SearchFunction extends AbstractQueryFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
+		return "Returns a map of entities and search scores matching the given search string from the given fulltext index. Searches case-insensitve / inexact.";
 	}
 }

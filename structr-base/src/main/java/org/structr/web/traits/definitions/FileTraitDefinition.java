@@ -276,6 +276,18 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					return entity.as(File.class).getXMLStructure(securityContext);
 				}
+			},
+
+			new JavaMethod("getSearchContext", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final Number contextLength = (Number)arguments.get("contextLength");
+					final String searchString  = (String)arguments.get("searchString");
+
+					return entity.as(File.class).getSearchContext(securityContext, searchString, contextLength.intValue());
+				}
 			}
 		);
 	}

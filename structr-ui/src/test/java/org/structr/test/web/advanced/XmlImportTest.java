@@ -88,7 +88,7 @@ public class XmlImportTest extends StructrUiTest {
 			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
-			newType.addIntegerProperty("originId").isIndexed();
+			newType.addIntegerProperty("originId").setIndexed(true);
 			newType.addStringProperty("typeName");
 			newType.addIntegerProperty("test1");
 			newType.addIntegerProperty("test2");

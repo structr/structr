@@ -198,6 +198,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			}
 		}
 	}
+
 	protected void assertArrayHasMinLengthAndTypes(final Object[] array, final int minimum, final Class... types) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length < minimum) {
@@ -235,6 +236,47 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			} else {
 
 				throw ArgumentTypeException.wrongTypes(array, minimum, types);
+			}
+		}
+	}
+
+	protected void assertArrayHasLengthAndTypes(final Object[] array, final int length, final Class... types) throws ArgumentCountException, ArgumentNullException {
+
+		if (array.length != length) {
+			throw ArgumentTypeException.wrongTypes(array, length, types);
+		}
+
+		for (int i=0; (i<array.length && i < types.length); i++) {
+
+			final Object element = array[i];
+			final Class type     = types[i];
+
+			if (element != null) {
+
+				if (GraphObject.class.isAssignableFrom(type)) {
+
+					if (element instanceof GraphObject g) {
+
+						if (!g.is(type.getSimpleName())) {
+
+							throw ArgumentTypeException.wrongTypes(array, length, types);
+						}
+
+					} else {
+
+						throw ArgumentTypeException.wrongTypes(array, length, types);
+					}
+
+				} else {
+
+					if (!type.isAssignableFrom(element.getClass())) {
+						throw ArgumentTypeException.wrongTypes(array, length, types);
+					}
+				}
+
+			} else {
+
+				throw ArgumentTypeException.wrongTypes(array, length, types);
 			}
 		}
 	}

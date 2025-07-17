@@ -47,16 +47,34 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String typeName       = sources[0].toString();
-			final Traits type           = Traits.of(typeName);
-			final ArrayList inheritants = new ArrayList();
+			final String typeName        = sources[0].toString();
+			final Traits type            = Traits.of(typeName);
+			final ArrayList inheritants  = new ArrayList();
+			final List<String> blackList = new ArrayList();
+			blackList.add(typeName);
+
+			if (sources.length == 2) {
+
+				if (sources[1] instanceof List) {
+
+					blackList.addAll((List)sources[1]);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List").toString());
+				}
+			}
 
 			if (type != null) {
 
-				inheritants.addAll(type.getAllTraits());
+				if (type.isServiceClass() == false) {
 
-				if (sources.length == 2) {
-					inheritants.removeAll((List)sources[1]);
+					inheritants.addAll(Traits.getAllTypes(value -> value.getAllTraits().contains(typeName)));
+					inheritants.removeAll(blackList);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class ").append(type.getName()).toString());
 				}
 
 			} else {
@@ -80,6 +98,6 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the names of the child classes of the given type";
+		return "Returns the names of the child types of the given type and filters out all entries of the blacklist collection.";
 	}
 }

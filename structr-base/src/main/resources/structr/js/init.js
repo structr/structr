@@ -492,6 +492,7 @@ let Structr = {
 	getErrorMessageFromResponse: (response, useHtml = true, url) => {
 
 		let errorText = '';
+		let lineJoin  = (useHtml ? '<br>' : '\n');
 
 		if (response.errors && response.errors.length) {
 
@@ -501,7 +502,7 @@ let Structr = {
 
 			for (let error of uniqueErrors) {
 
-				let errorMsg = (error.type ? error.type : '');
+				let errorMsg = error.type ?? '';
 				if (error.property) {
 					errorMsg += `.${error.property}`;
 				}
@@ -521,7 +522,7 @@ let Structr = {
 				errorLines.push(errorMsg);
 			}
 
-			errorText = errorLines.join((useHtml ? '<br>' : '\n'));
+			errorText = errorLines.join(lineJoin);
 
 		} else {
 
@@ -529,17 +530,8 @@ let Structr = {
 				errorText = url + ': ';
 			}
 
-			errorText += response.code + (useHtml ? '<br>' : '\n');
-
-			for (let key in response) {
-				if (key !== 'code') {
-					if (useHtml) {
-						errorText += `<b>${key}</b>: ${response[key]}<br>`;
-					} else {
-						errorText += `${key}: ${response[key]}`;
-					}
-				}
-			}
+			errorText += response.code + lineJoin;
+			errorText += Object.entries(response).filter(([k, v]) => (k !== 'code' && v && v.length > 0)).map(([k, v]) => (useHtml) ? `<b>${k}</b>: ${v}` : `${k}: ${v}`).join(lineJoin);
 		}
 
 		return errorText;

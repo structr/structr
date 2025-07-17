@@ -43,6 +43,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	boolean isRequired();
 	boolean isUnique();
 	boolean isIndexed();
+	boolean isFulltext();
 	boolean isReadOnly();
 	boolean isAbstract();
 	boolean isSerializationDisabled();
@@ -58,6 +59,7 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	JsonProperty setCompound(final boolean isCompoundUnique);
 	JsonProperty setUnique(final boolean isUnique);
 	JsonProperty setIndexed(final boolean isIndexed);
+	JsonProperty setIndexed(final boolean isIndexed, final boolean isFulltext);
 	JsonProperty setReadOnly(final boolean isReadOnly);
 	JsonProperty setSerializationDisabled(final boolean serializationDisabled);
 	JsonProperty setDefaultValue(final String defaultValue);

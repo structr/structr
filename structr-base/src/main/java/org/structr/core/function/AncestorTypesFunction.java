@@ -18,13 +18,18 @@
  */
 package org.structr.core.function;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_ANCESTOR_TYPES    = "Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User')}";
-	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User')}";
+	public static final String ERROR_MESSAGE_ANCESTOR_TYPES    = "Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User', ['Principal'])}";
+	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User', ['Principal'])}";
 
 	@Override
 	public String getName() {
@@ -39,34 +44,43 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		throw new UnsupportedOperationException("Not suppported yet.");
-
-		/*
-
 		try {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String typeName = sources[0].toString();
+			final String typeName                 = sources[0].toString();
+			final Traits type                     = Traits.of(typeName);
 			final ArrayList<String> ancestorTypes = new ArrayList();
+			final List<String> blackList          = new ArrayList(Arrays.asList(typeName, StructrTraits.NODE_INTERFACE, StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE));
 
-			Traits type = Traits.of(typeName);
+			if (sources.length == 2) {
+
+				if (sources[1] instanceof List) {
+
+					blackList.addAll((List)sources[1]);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List").toString());
+				}
+			}
 
 			if (type != null) {
 
-				while (type != null) {
+				if (type.isServiceClass() == false) {
 
-					ancestorTypes.add(type.getName());
-					type = type.getSuperclass();
+					ancestorTypes.addAll(type.getAllTraits());
+					ancestorTypes.removeAll(blackList);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class ").append(type.getName()).toString());
 				}
 
 			} else {
 
 				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
-
-			final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList(StructrTraits.NODE_INTERFACE);
-			ancestorTypes.removeAll(blackList);
 
 			return ancestorTypes;
 
@@ -75,7 +89,6 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
-		*/
 	}
 
 	@Override
@@ -85,6 +98,6 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the names of the parent classes of the given type";
+		return "Returns the names of the parent types of the given type and filters out all entries of the blacklist collection.";
 	}
 }

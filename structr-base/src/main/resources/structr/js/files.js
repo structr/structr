@@ -1714,9 +1714,8 @@ let _Files = {
 
 					tbody.insertAdjacentHTML('beforeend', `<tr><td>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.type}${d.isFile && d.contentType ? ` (${d.contentType})` : ''}</td><td>${d.name}</td><td>${d.size}</td></tr>`);
 
-					/*
 					// this is currently not possible -> commented out
-					let contextResponse = await fetch(`${Structr.rootUrl}files/${d.id}/getSearchContext`, {
+					let contextResponse = await fetch(`${Structr.rootUrl}File/${d.id}/getSearchContext`, {
 						method: 'POST',
 						body: JSON.stringify({
 							searchString: searchString,
@@ -1763,8 +1762,6 @@ let _Files = {
 							div.append('<div style="clear: both;"></div>');
 						}
 					}
-
-					 */
 				}
 			}
 		}

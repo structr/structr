@@ -41,7 +41,7 @@
 	</developers>
 
 	<prerequisites>
-		<maven>3.6.1</maven>
+		<maven>3.8.7</maven>
 	</prerequisites>
 
 	<properties>
@@ -50,13 +50,13 @@
 		<maven.compiler.target>24</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<test.neo4j.version>neo4j:5.16</test.neo4j.version>
+		<test.neo4j.version>neo4j:2025</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
-		<tika.version>2.9.1</tika.version>
+		<tika.version>3.2.0</tika.version>
 		<pulsar.version>4.0.5</pulsar.version>
 	</properties>
 
@@ -162,6 +162,12 @@
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-text</artifactId>
+				<version>1.13.1</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-compress</artifactId>
 				<version>1.27.1</version>
 				<optional>true</optional>
@@ -175,7 +181,7 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
-				<version>3.17.0</version>
+				<version>3.18.0</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -294,7 +300,12 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.4.12</version>
+				<version>1.5.13</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>1.5.13</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
