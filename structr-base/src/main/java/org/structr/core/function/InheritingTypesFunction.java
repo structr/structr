@@ -23,6 +23,7 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class InheritingTypesFunction extends AdvancedScriptingFunction {
@@ -47,11 +48,15 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String typeName        = sources[0].toString();
-			final Traits type            = Traits.of(typeName);
-			final ArrayList inheritants  = new ArrayList();
-			final List<String> blackList = new ArrayList();
-			blackList.add(typeName);
+			final String typeName = sources[0].toString();
+			if (!Traits.exists(typeName)) {
+
+				throw new FrameworkException(422, new StringBuilder(getName()).append("(): Type '").append(typeName).append("' not found.").toString());
+			}
+
+			final Traits type               = Traits.of(typeName);
+			final ArrayList inheritingTypes = new ArrayList();
+			final List<String> blackList    = new ArrayList(Arrays.asList(typeName));
 
 			if (sources.length == 2) {
 
@@ -61,7 +66,7 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 				} else {
 
-					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List").toString());
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List.").toString());
 				}
 			}
 
@@ -69,12 +74,12 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 				if (type.isServiceClass() == false) {
 
-					inheritants.addAll(Traits.getAllTypes(value -> value.getAllTraits().contains(typeName)));
-					inheritants.removeAll(blackList);
+					inheritingTypes.addAll(Traits.getAllTypes(value -> value.getAllTraits().contains(typeName)));
+					inheritingTypes.removeAll(blackList);
 
 				} else {
 
-					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class ").append(type.getName()).toString());
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class '").append(type.getName()).append("'.").toString());
 				}
 
 			} else {
@@ -82,7 +87,7 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
 
-			return inheritants;
+			return inheritingTypes;
 
 		} catch (IllegalArgumentException e) {
 
