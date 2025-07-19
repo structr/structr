@@ -652,10 +652,9 @@ let Structr = {
 
 		return childNodes.length;
 	},
-	node: (id, prefix) => {
+	node: (id, prefix = '#id_', container = document) => {
 
-		let p    = prefix || '#id_';
-		let node = $($(p + id)[0]);
+		let node = $($(prefix + id, $(container))[0]);
 
 		return (node.length ? node : undefined);
 	},

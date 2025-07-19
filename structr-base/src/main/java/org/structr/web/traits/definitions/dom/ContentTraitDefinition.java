@@ -405,8 +405,11 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 			final int length                 = source.length();
 			boolean ignoreNext               = false;
 			boolean inComment                = false;
+			boolean inFrontendScript         = false;
+			boolean inFrontendComment        = false;
 			boolean inSingleQuotes           = false;
 			boolean inDoubleQuotes           = false;
+			boolean inTemplateQuotes         = false;
 			boolean inTemplate               = false;
 			boolean hasSlash                 = false;
 			boolean hasBackslash             = false;
@@ -442,6 +445,14 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						hasBackslash = false;
 						break;
 
+					case '`':
+						if ((!inTemplate && inFrontendScript) && !hasBackslash && (!inComment && !inFrontendComment)) {
+							inTemplateQuotes = !inTemplateQuotes;
+						}
+						hasDollar = false;
+						hasBackslash = false;
+						break;
+
 					case '$':
 						if (!inComment) {
 
@@ -451,7 +462,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						break;
 
 					case '{':
-						if (!inTemplate && hasDollar && !inComment) {
+						if (!inTemplate && hasDollar && !inComment && !inTemplateQuotes) {
 
 							startRow   = row;
 							inTemplate = true;
@@ -504,11 +515,15 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 					case '/':
 
-						if (inTemplate && !inComment && !inSingleQuotes && !inDoubleQuotes) {
+						if (!inComment && !inSingleQuotes && !inDoubleQuotes) {
 
 							if (hasSlash) {
 
-								inComment = true;
+								if (inTemplate) {
+									inComment = true;
+								} else {
+									inFrontendComment = true;
+								}
 								hasSlash  = false;
 
 							} else {
@@ -518,9 +533,22 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						}
 						break;
 
+					case '>':
+
+						if (!inTemplate) {
+
+							final String text = textBuffer.toString();
+							int lastScriptOpenIndex  = text.lastIndexOf("<script");
+							int lastScriptCloseIndex = text.lastIndexOf("</script");
+
+							inFrontendScript = (lastScriptOpenIndex > -1 && lastScriptOpenIndex > lastScriptCloseIndex);
+						}
+						break;
+
 					case '\r':
 					case '\n':
 						inComment = false;
+						inFrontendComment = false;
 						column = 0;
 						row++;
 						break;
