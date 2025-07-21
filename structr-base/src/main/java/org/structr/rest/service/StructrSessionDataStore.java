@@ -18,10 +18,9 @@
  */
 package org.structr.rest.service;
 
-import java.util.Collections;
 import org.apache.commons.collections.map.LRUMap;
-import org.eclipse.jetty.server.session.AbstractSessionDataStore;
-import org.eclipse.jetty.server.session.SessionData;
+import org.eclipse.jetty.session.AbstractSessionDataStore;
+import org.eclipse.jetty.session.SessionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -38,11 +37,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.SessionDataNodeTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  */

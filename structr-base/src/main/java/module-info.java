@@ -36,7 +36,7 @@ module structr.base {
 	requires dom4j;
 	requires java.jwt;
 	requires javax.mail;
-	requires jetty.servlet.api;
+	requires jakarta.servlet;
 	requires jgroups.kubernetes;
 	requires jgroups;
 	requires jmimemagic;
@@ -54,11 +54,7 @@ module structr.base {
 	requires org.eclipse.jetty.http2.server;
 	requires org.eclipse.jetty.io;
 	requires org.eclipse.jetty.rewrite;
-	requires org.eclipse.jetty.servlet;
-	requires org.eclipse.jetty.servlets;
 	requires org.eclipse.jetty.util;
-	requires org.eclipse.jetty.websocket.jetty.api;
-	requires org.eclipse.jetty.websocket.jetty.server;
 	requires org.graalvm.polyglot;
 	requires org.jsoup;
 	requires org.mongodb.bson;
@@ -100,6 +96,10 @@ module structr.base {
 	requires org.asciidoctor.asciidoctorj.api;
 	requires org.jruby;
 	requires com.opencsv;
+	requires org.eclipse.jetty.session;
+	requires org.eclipse.jetty.ee10.servlet;
+	requires org.eclipse.jetty.ee10.servlets;
+	requires org.eclipse.jetty.ee10.websocket.jakarta.server;
 
 	exports org.structr;
 	exports org.structr.agent;

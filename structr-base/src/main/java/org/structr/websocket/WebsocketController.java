@@ -129,7 +129,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				try {
 
-					session.getRemote().sendString(message);
+					session.sendText(message, null);
 
 				} catch (Throwable t) {
 

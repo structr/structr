@@ -20,8 +20,6 @@ package org.structr.websocket.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.eclipse.jetty.websocket.server.JettyWebSocketServlet;
-import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
 import org.structr.api.config.Settings;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.rest.common.StatsCallback;
@@ -38,7 +36,7 @@ import java.time.Duration;
 /**
  *
  */
-public class WebSocketServlet extends JettyWebSocketServlet implements HttpServiceServlet {
+public class WebSocketServlet extends JakartaWebSocketServlet implements HttpServiceServlet {
 
 	private static final int MAX_TEXT_MESSAGE_SIZE = 1024 * 1024;
 
