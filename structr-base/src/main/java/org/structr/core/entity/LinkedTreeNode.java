@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  */
-public interface LinkedTreeNode extends LinkedListNode {
+public interface LinkedTreeNode {
 
 	String getChildLinkType();
 	PropertyKey<Integer> getPositionProperty();

@@ -82,25 +82,18 @@ public class SaveNodeCommand extends AbstractCommand {
 						final List<DOMNode> bodyList = importedPage.getElementsByTagName("body");
 						if (!bodyList.isEmpty()) {
 
-							final Page hostPage = sourceNode.getOwnerDocument();
-							DOMNode child       = bodyList.get(0);
-
-							child = child.getFirstChild();
+							final Page hostPage  = sourceNode.getOwnerDocument();
+							final DOMNode parent = bodyList.get(0).getFirstChild();
 
 							// skip first div (why is it there?)
-							if (child != null) {
-								child = child.getFirstChild();
+							if (parent != null) {
+
+								for (final DOMNode child : parent.getChildren()) {
+
+									hostPage.adoptNode(child);
+									sourceNode.appendChild(child);
+								}
 							}
-
-							while (child != null) {
-
-								hostPage.adoptNode(child);
-								sourceNode.appendChild(child);
-
-								// next sibling
-								child = child.getNextSibling();
-							}
-
 						}
 
 					} finally {

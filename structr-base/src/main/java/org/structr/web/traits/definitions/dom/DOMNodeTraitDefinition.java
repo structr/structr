@@ -68,8 +68,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PARENT_PROPERTY                         = "parent";
 	public static final String CHILDREN_PROPERTY                       = "children";
-	public static final String PREVIOUS_SIBLING_PROPERTY               = "previousSibling";
-	public static final String NEXT_SIBLING_PROPERTY                   = "nextSibling";
 	public static final String SHARED_COMPONENT_PROPERTY               = "sharedComponent";
 	public static final String SYNCED_NODES_PROPERTY                   = "syncedNodes";
 	public static final String OWNER_DOCUMENT_PROPERTY                 = "ownerDocument";
@@ -79,7 +77,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FAILURE_NOTIFICATION_ACTIONS_PROPERTY   = "failureNotificationActions";
 	public static final String SORTED_CHILDREN_PROPERTY                = "sortedChildren";
 	public static final String CHILDREN_IDS_PROPERTY                   = "childrenIds";
-	public static final String NEXT_SIBLING_ID_PROPERTY                = "nextSiblingId";
 	public static final String PAGE_ID_PROPERTY                        = "pageId";
 	public static final String PARENT_ID_PROPERTY                      = "parentId";
 	public static final String SHARED_COMPONENT_ID_PROPERTY            = "sharedComponentId";
@@ -695,8 +692,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> parentProperty                               = new StartNode(PARENT_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes(CHILDREN_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> previousSiblingProperty                      = new StartNode(PREVIOUS_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> nextSiblingProperty                          = new EndNode(NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<NodeInterface> sharedComponentProperty                      = new StartNode(SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes(SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode(OWNER_DOCUMENT_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
@@ -706,7 +701,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty(SORTED_CHILDREN_PROPERTY).typeHint("DOMNode[]");
 		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty(CHILDREN_IDS_PROPERTY, StructrTraits.DOM_NODE, DOMNodeTraitDefinition.CHILDREN_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
-		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty(NEXT_SIBLING_ID_PROPERTY, StructrTraits.DOM_NODE, NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> pageIdProperty                                      = new EntityIdProperty(PAGE_ID_PROPERTY, StructrTraits.DOM_NODE, OWNER_DOCUMENT_PROPERTY, StructrTraits.PAGE).category("Page Structure");
 		final Property<String> parentIdProperty                                    = new EntityIdProperty(PARENT_ID_PROPERTY, StructrTraits.DOM_NODE, PARENT_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> sharedComponentIdProperty                           = new EntityIdProperty(SHARED_COMPONENT_ID_PROPERTY, StructrTraits.DOM_NODE, SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE).format("sharedComponent, {},");
@@ -730,8 +724,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return newSet(
 			parentProperty,
 			childrenProperty,
-			previousSiblingProperty,
-			nextSiblingProperty,
 			sharedComponentProperty,
 			syncedNodesProperty,
 			ownerDocumentProperty,
@@ -741,7 +733,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			failureNotificationActionsProperty,
 			sortedChildrenProperty,
 			childrenIdsProperty,
-			nextSiblingIdProperty,
 			pageIdProperty,
 			parentIdProperty,
 			sharedComponentIdProperty,

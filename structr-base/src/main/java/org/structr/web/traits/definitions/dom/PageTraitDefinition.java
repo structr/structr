@@ -85,24 +85,21 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Page page = node.as(Page.class);
 
+					DOMNode.prefetchDOMNodes(page.getUuid());
+
 					renderContext.setPage(page);
 
-					DOMNode subNode = node.getFirstChild();
+					for (final DOMNode subNode : node.getChildren()) {
 
-					// output doctype definition only if first child is not a template
-					if (subNode != null && subNode.is(StructrTraits.HTML)) {
-						renderContext.getBuffer().append("<!DOCTYPE html>\n");
-					}
-
-					while (subNode != null) {
+						// output doctype definition only if first child is not a template
+						if (subNode.is(StructrTraits.HTML)) {
+							renderContext.getBuffer().append("<!DOCTYPE html>\n");
+						}
 
 						if (renderContext.getSecurityContext().isVisible(subNode)) {
 
 							subNode.render(renderContext, depth);
 						}
-
-						subNode = subNode.getNextSibling();
-
 					}
 				}
 			},

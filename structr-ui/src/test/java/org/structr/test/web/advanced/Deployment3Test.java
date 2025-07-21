@@ -20,6 +20,7 @@ package org.structr.test.web.advanced;
 
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -332,7 +333,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			DOMNode clonedNode = obj;
 
-			assertEquals(0, clonedNode.getChildNodes().size());
+			assertEquals(0, Iterables.toList(clonedNode.getChildren()).size());
 			assertEquals(3, app.nodeQuery("Div").name("TestComponent").getAsList().size());
 
 			tx.success();

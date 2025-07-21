@@ -40,7 +40,6 @@ import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -266,7 +265,7 @@ public class PageImporter extends HtmlFileImporter {
 			if (h1 && h2) {
 
 				// merge
-				for (DOMNode child = head2.getFirstChild(); child != null; child = child.getNextSibling()) {
+				for (final DOMNode child : head2.getChildren()) {
 
 					head2.removeChild(child);
 					head1.appendChild(child);
