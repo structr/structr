@@ -1191,6 +1191,10 @@ let _Favorites = new (function () {
 		return [];
 	};
 
+	this.blinkFavoritesTreeItem = () => {
+		_Helpers.blinkGreen(document.querySelector('li#favorites.jstree-node'))
+	};
+
 	this.addToFavorites = function(idsToAdd) {
 
 		let idSet = new Set(this.getFavoritesIds());
@@ -1201,7 +1205,10 @@ let _Favorites = new (function () {
 		}
 
 		LSWrapper.setItem(favoritesDataKey, [...idSet]);
+
+		this.blinkFavoritesTreeItem();
 	};
+
 	this.removeFromFavorites = function(idsToRemove) {
 
 		let ids = LSWrapper.getItem(favoritesDataKey, []);
@@ -1213,6 +1220,14 @@ let _Favorites = new (function () {
 		}
 
 		LSWrapper.setItem(favoritesDataKey, [...idSet]);
+
+		this.blinkFavoritesTreeItem();
+	};
+
+	this.isFavoriteFile = function(id) {
+
+		let ids = LSWrapper.getItem(favoritesDataKey, []);
+		return ids.includes(id);
 	};
 });
 

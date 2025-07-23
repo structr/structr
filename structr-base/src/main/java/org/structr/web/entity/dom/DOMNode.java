@@ -95,16 +95,9 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 			}
 		}
 
-		List<DOMNode> _children = startNode.getChildNodes();
-		if (_children != null) {
+		for (final DOMNode child : startNode.getChildren()) {
 
-			int len = _children.size();
-			for (int i = 0; i < len; i++) {
-
-				DOMNode child = _children.get(i);
-
-				collectNodesByPredicate(securityContext, child, results, predicate, depth + 1, stopOnFirstHit);
-			}
+			collectNodesByPredicate(securityContext, child, results, predicate, depth + 1, stopOnFirstHit);
 		}
 	}
 
@@ -113,7 +106,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void increasePageVersion() throws FrameworkException;
 	void checkName(final ErrorBuffer errorBuffer);
 	void syncName(final ErrorBuffer errorBuffer) throws FrameworkException;
-	void normalize() throws FrameworkException;
+	//void normalize() throws FrameworkException;
 	void setHidden(final boolean hidden) throws FrameworkException;
 	void setIdAttribute(final String id) throws FrameworkException;
 
@@ -163,9 +156,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	DOMNode getParent();
 	DOMNode getSharedComponent();
 	DOMNode getNextSibling();
-	DOMNode getPreviousSibling();
 	DOMNode getFirstChild() throws FrameworkException;
-	DOMNode getLastChild() throws FrameworkException;
 	Iterable<DOMNode> getChildren();
 	Iterable<DOMNode> getSyncedNodes();
 
@@ -211,7 +202,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void renderSharedComponentConfiguration(final AsyncBuffer out, final RenderContext.EditMode editMode);
 
 	List<RelationshipInterface> getChildRelationships();
-	List<DOMNode> getChildNodes() throws FrameworkException;
 
 	void doAppendChild(final DOMNode node) throws FrameworkException;
 	void doRemoveChild(final DOMNode node) throws FrameworkException;
@@ -265,6 +255,7 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 
 		TransactionCommand.getCurrentTransaction().prefetch2(
 
+			//"MATCH (n:NodeInterface { id: $id })-[r:LINK|RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY*]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
 			"MATCH (n:NodeInterface { id: $id })-[r:RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY*]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
 
 			Set.of(

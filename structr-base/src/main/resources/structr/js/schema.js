@@ -5342,8 +5342,10 @@ let _Schema = {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
 
-			<div id="schema-container">
-				<div class="canvas noselect" id="schema-graph"></div>
+			<div>
+				<div id="schema-container">
+					<div class="canvas noselect" id="schema-graph"></div>
+				</div>
 			</div>
 		`,
 		functions: config => `

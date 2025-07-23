@@ -48,7 +48,12 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String typeName                 = sources[0].toString();
+			final String typeName = sources[0].toString();
+			if (!Traits.exists(typeName)) {
+
+				throw new FrameworkException(422, new StringBuilder(getName()).append("(): Type '").append(typeName).append("' not found.").toString());
+			}
+
 			final Traits type                     = Traits.of(typeName);
 			final ArrayList<String> ancestorTypes = new ArrayList();
 			final List<String> blackList          = new ArrayList(Arrays.asList(typeName, StructrTraits.NODE_INTERFACE, StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE));
@@ -61,7 +66,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 				} else {
 
-					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List").toString());
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List.").toString());
 				}
 			}
 
@@ -74,7 +79,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 				} else {
 
-					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class ").append(type.getName()).toString());
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class '").append(type.getName()).append("'.").toString());
 				}
 
 			} else {

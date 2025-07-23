@@ -97,7 +97,7 @@ public class FromCsvFunction extends CsvFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
+				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[] { getName(), t.getMessage(), getParametersAsString(sources) });
 			}
 
 			return "";

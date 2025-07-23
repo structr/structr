@@ -254,15 +254,9 @@ public abstract class AbstractCommand {
 	 */
 	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) throws FrameworkException {
 
-		DOMNode child = sourceNode.getFirstChild();
-
-		while (child != null) {
-
-			DOMNode next = child.getNextSibling();
+		for (final DOMNode child : sourceNode.getChildren()) {
 
 			targetNode.appendChild(child);
-
-			child = next;
 		}
 	}
 

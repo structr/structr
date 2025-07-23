@@ -24,8 +24,6 @@ let _Files = {
 	_moduleName: 'files',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate',
 	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
-	searchField: undefined,
-	searchFieldClearIcon: undefined,
 	currentWorkingDir: undefined,
 	fileUploadList: undefined,
 	chunkSize: 1024 * 64,
@@ -34,7 +32,6 @@ let _Files = {
 	currentEditor: undefined,
 	fileContents: {},
 	fileHasUnsavedChanges: {},
-	displayingFavorites: false,
 	folderPageSize: 10000,
 	folderPage: 1,
 	filesViewModeKey: 'structrFilesViewMode_' + location.port,
@@ -121,31 +118,7 @@ let _Files = {
 
 			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
 
-			_Files.searchField = Structr.functionBar.querySelector('#files-search-box');
-
-			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
-				_Files.clearSearch();
-			});
-
-			_Files.searchField.focus();
-
-			_Files.searchField.addEventListener('keyup', (e) => {
-
-				let searchString = _Files.searchField.value;
-
-				if (searchString && searchString.length) {
-					_Files.searchFieldClearIcon.style.display = 'block';
-				}
-
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					_Files.fulltextSearch(searchString);
-
-				} else if (e.keyCode === 27 || searchString === '') {
-					_Files.clearSearch();
-				}
-			});
+			_Files.search.initSearch();
 		};
 		initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
@@ -323,6 +296,24 @@ let _Files = {
 				});
 			}
 
+			if (_Files.helpers.isDisplayingSearchResults()) {
+
+				elements.push({
+					icon: _Icons.getMenuSvgIcon(_Icons.iconEyeOpen),
+					name: 'Show search result context',
+					clickHandler: () => {
+
+						let searchTerm = _Files.search.getCurrentSearchTerm();
+						let fileIds = [...selectedElements].map(el => StructrModel.obj(Structr.getId(el))).filter(obj => obj.isFile).map(obj => obj.id);
+
+						for (let fileId of fileIds) {
+							_Files.search.getAndAppendSearchContext(fileId, searchTerm);
+						}
+					}
+				});
+			}
+
+
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
@@ -344,7 +335,9 @@ let _Files = {
 
 		if (isFile) {
 
-			if (_Files.displayingFavorites) {
+			let clickedFileIsFavorite = _Favorites.isFavoriteFile(entity.id);
+
+			if (_Files.helpers.isDisplayingFavorites() || clickedFileIsFavorite) {
 
 				elements.push({
 					icon: _Icons.getMenuSvgIcon(_Icons.iconRemoveFromFavorites),
@@ -356,8 +349,11 @@ let _Files = {
 
 						_Favorites.removeFromFavorites(ids);
 
-						for (let id of ids) {
-							_Helpers.fastRemoveElement(Structr.node(id, prefix)[0]);
+						if (_Files.helpers.isDisplayingFavorites()) {
+
+							for (let id of ids) {
+								_Helpers.fastRemoveElement(Structr.node(id, prefix)[0]);
+							}
 						}
 					}
 				});
@@ -526,9 +522,6 @@ let _Files = {
 		}
 	},
 	unload: () => {
-
-		_Helpers.fastRemoveAllChildren(Structr.mainContainer);
-		_Helpers.fastRemoveAllChildren(Structr.functionBar);
 	},
 	activateUpload: () => {
 
@@ -548,7 +541,7 @@ let _Files = {
 					return;
 				}
 
-				if (_Files.displayingFavorites === true) {
+				if (_Files.helpers.isDisplayingFavorites() === true) {
 					new WarningMessage().text("Can't upload to virtual folder Favorites - please first upload file to destination folder and then drag to favorites.").show();
 					return;
 				}
@@ -640,30 +633,6 @@ let _Files = {
 			}
 		}
 	},
-	fulltextSearch: (searchString) => {
-
-		[..._Files.getFolderContentsElement().children].map(el => el.style.display = 'none');
-
-		let url = Structr.rootUrl + 'File/ui?' + Structr.getRequestParameterName('inexact') + '=1';
-
-		for (let str of searchString.split(' ')) {
-			url = url + '&extractedContent=' + str;
-		}
-
-		_Files.displaySearchResultsForURL(url, searchString);
-	},
-	clearSearch: () => {
-
-		_Files.searchField.value = '';
-		_Files.searchFieldClearIcon.style.display = 'none';
-
-		_Files.removeSearchResults();
-		[..._Files.getFolderContentsElement().children].map(el => el.style.display = null);
-	},
-	removeSearchResults: () => {
-
-		_Files.getFolderContentsElement().querySelector('#search-results')?.remove();
-	},
 	loadAndSetWorkingDir: (callback) => {
 
 		Command.rest("/me/ui", (result) => {
@@ -743,7 +712,7 @@ let _Files = {
 		let addFileButton     = document.getElementById('add-file-button');
 		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
 
-		_Helpers.disableElements(_Files.displayingFavorites === true, addFolderButton, addFileButton, mountDialogButton);
+		_Helpers.disableElements((_Files.helpers.isDisplayingFavorites() === true), addFolderButton, addFileButton, mountDialogButton);
 	},
 	displayFolderContents: (id, parentId, nodePath, parents) => {
 
@@ -751,7 +720,6 @@ let _Files = {
 
 		LSWrapper.setItem(_Files.filesLastOpenFolderKey, id);
 
-		_Files.displayingFavorites = (id === 'favorites');
 		let isRootFolder           = (id === 'root');
 		let parentIsRoot           = (parentId === '#');
 		let listModeActive         = _Files.isViewModeActive('list');
@@ -768,13 +736,15 @@ let _Files = {
 
 			if (currentFolder === id) {
 
-				children.map(_Files.appendFileOrFolder);
+				for (let c of children) {
+					_Files.appendFileOrFolder(c);
+				}
 
 				Structr.resize();
 			}
 		};
 
-		if (_Files.displayingFavorites === true) {
+		if (_Files.helpers.isDisplayingFavorites() === true) {
 
 			_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
 				<div class="folder-path truncate">${_Icons.getSvgIcon(_Icons.iconAddToFavorites)} Favorite Files</div>
@@ -851,7 +821,14 @@ let _Files = {
 			} else {
 
 				_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', _Files.templates.folderContentsTileContainerSkeleton({
-					tilesContent: (isRootFolder ? '' : `<div id="parent-folder-link" class="tile${_Files.isViewModeActive('img') ? ' img-tile' : ''} cursor-pointer"><div class="node folder flex flex-col"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 40, 40)}</div><b title=".." class="text-center">..</b></div></div>`)
+					tilesContent: (isRootFolder ? '' : `
+						<div id="parent-folder-link" class="tile${_Files.isViewModeActive('img') ? ' img-tile' : ''} cursor-pointer">
+							<div class="node folder flex flex-col">
+								<div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 40, 40)}</div>
+								<b title=".." class="text-center">..</b>
+							</div>
+						</div>
+					`)
 				}));
 			}
 
@@ -970,7 +947,7 @@ let _Files = {
 	getFormattedDate: (date) => {
 		return _Files.dateFormat.format(new Date(date));
 	},
-	appendFileOrFolder: (d) => {
+	appendFileOrFolder: (d, container = _Files.getFolderContentsElement()) => {
 
 		if (!d.isFile && !d.isFolder) return;
 
@@ -1023,7 +1000,7 @@ let _Files = {
 			`;
 
 			let row       = _Helpers.createSingleDOMElementFromHTML(rowHTML);
-			let tableBody = document.querySelector('#files-table-body');
+			let tableBody = container.querySelector('#files-table-body');
 
 			_Helpers.fastRemoveElement(tableBody.querySelector(`#${rowId}`));
 
@@ -1080,7 +1057,7 @@ let _Files = {
 			`;
 
 			let tile           = _Helpers.createSingleDOMElementFromHTML(tileHTML);
-			let tilesContainer = document.querySelector('#tiles-container');
+			let tilesContainer = container.querySelector('#tiles-container');
 
 			_Helpers.fastRemoveElement(tilesContainer.querySelector(`#${tileId}`));
 
@@ -1104,7 +1081,7 @@ let _Files = {
 			_Elements.contextMenu.enableContextMenuOnElement(tile, d);
 		}
 
-		let div = Structr.node(d.id);
+		let div = Structr.node(d.id, '#id_', container);
 
 		if (!div || !div.length) {
 			return;
@@ -1644,127 +1621,31 @@ let _Files = {
 	},
 	getLanguageForFile: (file) => {
 
-		let language = file.contentType;
+		let language    = 'text';
+		let contentType = file.contentType ?? '';
+		let fileName    = file.name;
 
-		if (language && (language.startsWith('application/javascript') || language.startsWith('text/javascript'))) {
+		if (file.isTemplate || (contentType.startsWith('application/javascript') || contentType.startsWith('text/javascript'))) {
+
 			language = 'javascript';
-		}
 
-		if (!language) {
-			if (file.name.endsWith('.css')) {
+		} else {
+
+			if (fileName.endsWith('.css')) {
 				language = 'css';
-			} else if (file.name.endsWith('.js') || file.name.endsWith('.mjs')) {
+			} else if (fileName.endsWith('.js') || fileName.endsWith('.mjs')) {
 				language = 'javascript';
-			} else {
-				language = 'text';
+			} else if (fileName.endsWith('.svg')) {
+				language = 'xml';
+			} else if (fileName.endsWith('.sql')) {
+				language = 'sql';
 			}
-		}
-
-		if (file.isTemplate) {
-			language = 'javascript';
 		}
 
 		return language;
 	},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
-	},
-	displaySearchResultsForURL: async (url, searchString) => {
-
-		_Files.removeSearchResults();
-
-		let container = _Helpers.createSingleDOMElementFromHTML('<div id="search-results"></div>');
-
-		_Files.getFolderContentsElement().appendChild(container);
-
-		let response = await fetch(url);
-
-		if (response.ok) {
-
-			let data = await response.json();
-
-			if (!data.result || data.result.length === 0) {
-
-				container.insertAdjacentHTML('beforeend', `
-					<h1>No results for "${searchString}"</h1>
-					<h2>Press ESC or click <a href="javascript:_Files.clearSearch();" class="clear-results">here to clear</a> empty result list.</h2>
-				`);
-
-			} else {
-
-				container.insertAdjacentHTML('beforeend', `
-					<h1>${data.result.length} result${data.result.length > 1 ? 's' : ''}:</h1>
-					<table class="props">
-						<thead>
-							<tr>
-								<th class="_type">Type</th>
-								<th>Name</th>
-								<th>Size</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>`);
-
-				let tbody            = container.querySelector('tbody');
-				let detailsContainer = _Helpers.createSingleDOMElementFromHTML('<div id="search-results-details"></div>');
-
-				container.appendChild(detailsContainer);
-
-				for (let d of data.result) {
-
-					tbody.insertAdjacentHTML('beforeend', `<tr><td>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.type}${d.isFile && d.contentType ? ` (${d.contentType})` : ''}</td><td>${d.name}</td><td>${d.size}</td></tr>`);
-
-					// this is currently not possible -> commented out
-					let contextResponse = await fetch(`${Structr.rootUrl}File/${d.id}/getSearchContext`, {
-						method: 'POST',
-						body: JSON.stringify({
-							searchString: searchString,
-							contextLength: 30
-						})
-					});
-
-					if (contextResponse.ok) {
-
-						let data = await contextResponse.json();
-
-						if (data.result) {
-
-							detailsContainer.insertAdjacentHTML('beforeend', `<div class="search-result collapsed" id="results${d.id}"></div>`);
-
-							let div = $('#results' + d.id);
-
-							div.append(`
-								<h2>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.name}</h2>
-								<i class="toggle-height fa fa-expand"></i>
-								<i class="go-to-top fa fa-chevron-up"></i>
-							`);
-
-							$('.toggle-height', div).on('click', function() {
-								let icon = $(this);
-								div.toggleClass('collapsed');
-								icon.toggleClass('fa-expand');
-								icon.toggleClass('fa-compress');
-							});
-
-							$('.go-to-top', div).on('click', function() {
-								_Files.getFolderContentsElement().scrollTo(0,0)
-							});
-
-							for (let contextString of data.result.context) {
-
-								for (let str of searchString.split(/[\s,;]/)) {
-									contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
-								}
-
-								div.append(`<div class="part">${contextString}</div>`);
-							}
-
-							div.append('<div style="clear: both;"></div>');
-						}
-					}
-				}
-			}
-		}
 	},
 	updateTemplatePreview: async (element, url) => {
 
@@ -1880,6 +1761,160 @@ let _Files = {
 				}
 			});
 		});
+	},
+	search: {
+		searchField: undefined,
+		searchFieldClearIcon: undefined,
+
+		initSearch: () => {
+
+			_Files.search.searchField = Structr.functionBar.querySelector('#files-search-box');
+
+			_Files.search.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+			_Files.search.searchFieldClearIcon.addEventListener('click', (e) => {
+				_Files.search.clearSearch();
+			});
+
+			_Files.search.searchField.focus();
+
+			_Files.search.searchField.addEventListener('keyup', async (e) => {
+
+				let searchString = _Files.search.searchField.value;
+
+				if (searchString && searchString.length) {
+					_Files.search.searchFieldClearIcon.style.display = 'block';
+				}
+
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					await _Files.search.fulltextSearch(searchString);
+
+				} else if (e.keyCode === 27 || searchString === '') {
+					_Files.search.clearSearch();
+				}
+			});
+
+		},
+		getCurrentSearchTerm: () => {
+			return _Files.getFolderContentsElement().querySelector('#search-results').dataset['for'];
+		},
+		fulltextSearch: async (searchString) => {
+
+			for (let el of _Files.getFolderContentsElement().children) {
+				el.style.display = 'none';
+			}
+
+			_Files.search.removeSearchResults();
+
+			let container = _Helpers.createSingleDOMElementFromHTML('<div id="search-results"></div>');
+			_Files.getFolderContentsElement().appendChild(container);
+
+			container.dataset['for'] = searchString;
+
+			let response = await fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1${searchString.split(' ').map(str => '&extractedContent=' + str).join('')}`);
+
+			if (response.ok) {
+
+				let data = await response.json();
+
+				if (!data.result || data.result.length === 0) {
+
+					container.insertAdjacentHTML('beforeend', `
+						<h1>No results for "${searchString}"</h1>
+						<h2>Press ESC or click <a href="javascript:_Files.search.clearSearch();" class="clear-results">here to clear</a> empty result list.</h2>
+					`);
+
+				} else {
+
+					container.insertAdjacentHTML('beforeend', `
+						<div class="font-bold mb-4 text-3xl">${data.result.length} result${data.result.length > 1 ? 's' : ''}:</div>
+						${_Files.templates.folderContentsTableSkeleton({})}
+					`);
+
+					for (let fileHit of data.result) {
+
+						_Files.appendFileOrFolder(fileHit, container);
+					}
+				}
+			}
+		},
+		getAndAppendSearchContext: async (fileId, searchString) => {
+
+			let searchResultContextRowId = `searchContext_${fileId}`;
+			let contextAlreadyShown      = !!_Files.getFolderContentsElement().querySelector(`#${searchResultContextRowId}`);
+			let searchResultRow          = _Files.getFolderContentsElement().querySelector(`#search-results #row${fileId}`);
+
+			if (!searchResultRow || contextAlreadyShown) {
+				return;
+			}
+
+			let contextResponse = await fetch(`${Structr.rootUrl}File/${fileId}/getSearchContext`, {
+				method: 'POST',
+				body: JSON.stringify({
+					searchString: searchString,
+					contextLength: 30
+				})
+			});
+
+			if (contextResponse.ok) {
+
+				let data = await contextResponse.json();
+
+				if (data.result) {
+
+					let maxHClassname = 'max-h-24';
+					let numCols        = searchResultRow.querySelectorAll('td').length;
+					let newContextRow  = _Helpers.createSingleDOMElementFromHTML(`<div id="${searchResultContextRowId}" style="display: table-row;"></div>`);
+					let newContextCell = _Helpers.createSingleDOMElementFromHTML(`
+						<td colspan="${numCols}">
+							<div class="flex items-start gap-2 p-4 mb-2 bg-gray ${maxHClassname} overflow-y-auto">
+								<div class="flex-shrink-0">
+									<i class="toggle-height fa fa-expand cursor-pointer"></i>
+								</div>
+								<div context-container class="grid grid-cols-3 gap-8 items-start"></div>
+							</div>
+						</td>
+					`);
+					searchResultRow.insertAdjacentElement('afterend', newContextRow);
+					newContextRow.appendChild(newContextCell);
+
+					let contextsContainer = newContextCell.querySelector('[context-container]');
+
+					newContextCell.querySelector('.toggle-height').addEventListener('click', e => {
+						newContextCell.firstElementChild.classList.toggle(maxHClassname);
+						e.target.classList.toggle('fa-expand');
+						e.target.classList.toggle('fa-compress');
+					});
+
+					let splitSearchStringRegex    = new RegExp('(' + searchString.split(/[\s,;]/).join('|') + ')', 'gi');
+					let highlightedContextStrings = data.result.context.map(contextString => `<div class="bg-white px-2 py-1">${contextString.replace(splitSearchStringRegex, '<span class="highlight">$1</span>')}</div>`);
+
+					contextsContainer.insertAdjacentHTML('beforeend', highlightedContextStrings.join(''));
+				}
+			}
+		},
+		clearSearch: () => {
+
+			_Files.search.searchField.value = '';
+			_Files.search.searchFieldClearIcon.style.display = 'none';
+
+			_Files.search.removeSearchResults();
+			for (let el of _Files.getFolderContentsElement().children) {
+				el.style.display = null;
+			}
+		},
+		removeSearchResults: () => {
+
+			_Files.getFolderContentsElement().querySelector('#search-results')?.remove();
+		},
+	},
+	helpers: {
+		isDisplayingFavorites: () => {
+			return _Files.getFolderContentsElement().dataset.currentFolder === 'favorites';
+		},
+		isDisplayingSearchResults: () => {
+			return !!_Files.getFolderContentsElement().querySelector('#search-results');
+		}
 	},
 
 	templates: {

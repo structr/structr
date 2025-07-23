@@ -332,7 +332,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					}
 
 					if (!forbiddenProperties.isEmpty()) {
-						throw new FrameworkException(422, "The following properties may not be set during upload: " + forbiddenProperties);
+						throw new FrameworkException(422, "Additional file properties found which are not allowed to be set during upload: '" + forbiddenProperties + "'. All file upload parameters that are not  Only the following properties may be set: '" + AllowedProperties + "'");
 					}
 
 					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");

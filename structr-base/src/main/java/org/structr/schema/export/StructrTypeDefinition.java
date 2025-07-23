@@ -1035,8 +1035,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return isServiceClass;
 	}
 
-	public void setIsServiceClass() {
+	public JsonType setIsServiceClass() {
 		this.isServiceClass = true;
+		return this;
 	}
 
 	void initializeReferenceProperties() {

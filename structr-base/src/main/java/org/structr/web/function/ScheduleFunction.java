@@ -45,6 +45,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
+
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
 			final String jobName           = (sources.length >= 2) ? sources[1].toString() : "Untitled script job";
@@ -53,11 +54,12 @@ public class ScheduleFunction extends UiAdvancedFunction {
 			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0], ctx.getSecurityContext().getContextStore(), jobName);
 			job.setOnFinishScript(jobFinishedScript);
 
-
 			TransactionCommand.queuePostProcessProcedure(() -> {
+
 				try {
 
 					JobQueueManager.getInstance().addJob(job);
+
 				} catch (FrameworkException ex) {
 
 					logException(ex, ex.getMessage(), null);

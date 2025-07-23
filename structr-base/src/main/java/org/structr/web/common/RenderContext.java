@@ -28,6 +28,7 @@ import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -50,7 +51,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -489,7 +489,7 @@ public class RenderContext extends ActionContext {
 						if (entity.is(StructrTraits.DOM_NODE)) {
 
 							hints.reportExistingKey(key);
-							return entity.as(DOMNode.class).getChildNodes();
+							return Iterables.toList(entity.as(DOMNode.class).getChildren());
 
 						}
 						break;

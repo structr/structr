@@ -7308,6 +7308,125 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testInheritingAndAncestorTypesFunctions() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonType subUser    = schema.addType("SubUser").addTrait(StructrTraits.USER);
+			final JsonType subSubUser = schema.addType("SubSubUser").addTrait("SubUser");
+
+			final JsonType serviceClass = schema.addType("SomeServiceClass").setIsServiceClass();
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			logger.error("", t);
+			fail("Unexpected exception during test setup.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// happy path
+			{
+				final String result1 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal').sort()); }}", "test1");
+				final String result2 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal', ['SubUser', 'SubSubUser']).sort()); }}", "test1");
+				final String result3 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser').sort()); }}", "test1");
+				final String result4 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser', ['SubUser', 'User']).sort()); }}", "test1");
+
+				assertEquals("Invalid result for inheriting_types() function.", "[\"Group\",\"SubSubUser\",\"SubUser\",\"User\"]", result1);
+				assertEquals("Invalid result for inheriting_types() function.", "[\"Group\",\"User\"]", result2);
+				assertEquals("Invalid result for ancestor_types() function.", "[\"Principal\",\"SubUser\",\"User\"]", result3);
+				assertEquals("Invalid result for ancestor_types() function.", "[\"Principal\"]", result4);
+			}
+
+			// test wrong type name
+			{
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when querying type that does not exist!", "inheriting_types(): Type 'DoesNotExist' not found.", expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when querying type that does not exist!", "ancestor_types(): Type 'DoesNotExist' not found.", expected.getMessage());
+				}
+			}
+
+			// test service class
+			{
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when querying type that is a service class!", "inheriting_types(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when querying type that is a service class!", "ancestor_types(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
+				}
+			}
+
+			// test wrong parameter type for blacklist parameter
+			{
+				final String expectedErrorNonListParameterInheriting = "inheriting_types(): Expected 'blacklist' parameter to be of type List.";
+				final String expectedErrorNonListParameterAncestor   = "ancestor_types(): Expected 'blacklist' parameter to be of type List.";
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

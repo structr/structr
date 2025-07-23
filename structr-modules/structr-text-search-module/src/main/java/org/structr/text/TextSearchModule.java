@@ -84,7 +84,7 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 
 				// find next occurrence
 				pos = lowerCaseText.indexOf(lowerCaseSearchString, pos + 1);
-				if (pos > 0) {
+				if (pos >= 0) {
 
 					lineBuffer.setLength(0);
 					wordBuffer.setLength(0);
