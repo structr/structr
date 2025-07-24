@@ -294,12 +294,11 @@ public class HttpService implements RunnableService, StatsCallback {
 		// create resource collection from base path & source JAR
 		try {
 
-			final ResourceHandler handler = new ResourceHandler();
+			final ResourceHandler handler = new ResourceHandler(servletContext);
 			final ResourceFactory factory = ResourceFactory.of(handler);
-			final Resource baseResource   = factory.newResource(basePath);
-			final Resource jarResource    = factory.newJarFileResource(URI.create(sourceJarName));
+			final Resource baseResource   = factory.newResource(URI.create(basePath).normalize());
 
-			servletContext.setBaseResource(ResourceFactory.combine(baseResource, jarResource));
+			servletContext.setBaseResource(baseResource);
 
 			handler.setDirAllowed(false);
 			handler.setWelcomeFiles("index.html");
@@ -372,13 +371,6 @@ public class HttpService implements RunnableService, StatsCallback {
 			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
 			server.setRequestLog(requestLog);
 		}
-
-		/*
-		final List<ContextHandler> resourceHandler = collectResourceHandlers();
-		for (ContextHandler contextHandler : resourceHandler) {
-			contexts.addHandler(contextHandler);
-		}
-		*/
 
 		final Map<String, ServletHolder> servlets = collectServlets(licenseManager);
 
@@ -830,62 +822,6 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers() {
-
-		final List<ContextHandler> resourceHandlers = new LinkedList<>();
-		final String resourceHandlerList            = Settings.ResourceHandlers.getValue();
-
-		if (resourceHandlerList != null) {
-
-			for (String resourceHandlerName : resourceHandlerList.split("[ \\t]+")) {
-
-				if (StringUtils.isNotBlank(resourceHandlerName)) {
-
-					final String contextPath = Settings.getOrCreateStringSetting(resourceHandlerName, "contextPath").getValue();
-					if (contextPath != null) {
-
-						final String resourceBase = Settings.getOrCreateStringSetting(resourceHandlerName, "resourceBase").getValue();
-						if (resourceBase != null) {
-
-							final ResourceHandler resourceHandler = new RedirectingResourceHandler();
-							resourceHandler.setDirAllowed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
-
-							final String welcomeFiles = Settings.getOrCreateStringSetting(resourceHandlerName, "welcomeFiles").getValue();
-							if (welcomeFiles != null) {
-
-								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
-							}
-
-							resourceHandler.setBaseResourceAsString(resourceBase);
-							resourceHandler.setCacheControl("max-age=0");
-							//resourceHandler.setEtags(true);
-
-							final ContextHandler staticResourceHandler = new ContextHandler();
-							staticResourceHandler.setContextPath(contextPath);
-							staticResourceHandler.setHandler(resourceHandler);
-
-							resourceHandlers.add(staticResourceHandler);
-
-						} else {
-
-							logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName, resourceHandlerName);
-						}
-
-					} else {
-
-						logger.warn("Unable to register resource handler {}, missing {}.contextPath", resourceHandlerName, resourceHandlerName);
-					}
-				}
-			}
-
-		} else {
-
-			logger.warn("No resource handlers configured for HttpService.");
-		}
-
-		return resourceHandlers;
-	}
-
 	private Map<String, ServletHolder> collectServlets(final LicenseManager licenseManager) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
