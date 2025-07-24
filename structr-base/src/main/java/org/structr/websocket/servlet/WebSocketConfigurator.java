@@ -20,43 +20,39 @@ package org.structr.websocket.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.eclipse.jetty.websocket.server.JettyWebSocketServlet;
-import org.eclipse.jetty.websocket.server.JettyWebSocketServletFactory;
+import org.eclipse.jetty.websocket.server.ServerWebSocketContainer;
 import org.structr.api.config.Settings;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.rest.common.StatsCallback;
-import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
-import org.structr.websocket.StructrWebSocket;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.websocket.StructrWebSocketCreator;
 import org.structr.websocket.WebSocketDataGSONAdapter;
 import org.structr.websocket.WebsocketController;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.time.Duration;
+import java.util.function.Consumer;
 
 /**
  *
  */
-public class WebSocketServlet extends JettyWebSocketServlet implements HttpServiceServlet {
+public class WebSocketConfigurator implements Consumer<ServerWebSocketContainer> {
 
 	private static final int MAX_TEXT_MESSAGE_SIZE = 1024 * 1024;
-
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	protected StatsCallback stats                 = null;
 
-	@Override
-	public StructrHttpServiceConfig getConfig() {
-		return config;
+	public WebSocketConfigurator(final String oldServletName) {
+
+		try {
+			config.initializeFromSettings(oldServletName);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 	}
 
 	@Override
-	public String getModuleName() {
-		return "ui";
-	}
-
-	@Override
-	public void configure(final JettyWebSocketServletFactory factory) {
+	public void accept(final ServerWebSocketContainer container) {
 
 		// create GSON serializer
 		final GsonBuilder gsonBuilder = new GsonBuilder()
@@ -81,22 +77,12 @@ public class WebSocketServlet extends JettyWebSocketServlet implements HttpServi
 		// register (Structr) transaction listener
 		TransactionCommand.registerTransactionListener(syncController);
 
-		factory.setIdleTimeout(Duration.ofSeconds(60));
-		factory.setCreator(new StructrWebSocketCreator(syncController, gson, config.getAuthenticator()));
-		factory.register(StructrWebSocket.class);
+		// Configure the ServerContainer.
+		container.setMaxTextMessageSize(MAX_TEXT_MESSAGE_SIZE);
+		container.setIdleTimeout(Duration.ofSeconds(60));
 
-		// Disable compression (experimental features)
-		// TODO: Check if these are available in Jetty 10
-		//factory.getExtensionFactory().unregister("x-webkit-deflate-frame");
-		//factory.getExtensionFactory().unregister("permessage-deflate");
-
-		factory.setMaxTextMessageSize(MAX_TEXT_MESSAGE_SIZE);
-
-
-	}
-
-	@Override
-	public void registerStatsCallback(final StatsCallback stats) {
-		this.stats = stats;
+		container.addMapping("/structr/ws", new StructrWebSocketCreator(syncController, gson, new UiAuthenticator()));
+		container.addMapping("/ws", new StructrWebSocketCreator(syncController, gson, new UiAuthenticator()));
+		container.addMapping("/ws/*", new StructrWebSocketCreator(syncController, gson, new UiAuthenticator()));
 	}
 }

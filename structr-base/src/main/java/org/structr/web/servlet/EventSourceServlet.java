@@ -22,7 +22,7 @@ package org.structr.web.servlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.servlets.EventSource;
+import org.eclipse.jetty.ee10.servlets.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -47,7 +47,7 @@ import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
 
-public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceServlet implements HttpServiceServlet {
+public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSourceServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventSourceServlet.class.getName());
 
