@@ -429,6 +429,31 @@ public class FlowTest extends StructrUiTest {
 
 	}
 
+	@Test
+	public void testFlowStartNode() {
+
+		try (final Tx tx = app.tx()) {
+
+			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowStartNode").as(FlowContainer.class);
+
+			FlowLog flowLog = app.create(StructrTraits.FLOW_LOG).as(FlowLog.class);
+			flowLog.setFlowContainer(container);
+			flowLog.setScript("'FlowLog start node is working.'");
+			container.setStartNode(flowLog);
+
+			container.evaluate(securityContext, new HashMap<>());
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+	}
+
 	private DOMNode createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
 		final DOMNode child = page.createElement(tag);
