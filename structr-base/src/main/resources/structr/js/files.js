@@ -154,13 +154,17 @@ let _Files = {
 
 		_Files.getFilesTree().on('select_node.jstree', function (evt, data) {
 
+			let isUserClickEvent = (data.event?.type === 'click');
+
 			if (data.node.id === 'favorites') {
 
 				_Files.displayFolderContents('favorites');
 
 			} else {
 
-				_Files.setWorkingDirectory(data.node.id);
+				if (isUserClickEvent) {
+					_Files.setWorkingDirectory(data.node.id);
+				}
 				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 			}
 		});
