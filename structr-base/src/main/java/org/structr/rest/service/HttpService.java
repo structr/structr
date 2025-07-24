@@ -297,11 +297,15 @@ public class HttpService implements RunnableService, StatsCallback {
 			final ResourceHandler handler = new ResourceHandler(servletContext);
 			final ResourceFactory factory = ResourceFactory.of(handler);
 			final Resource baseResource   = factory.newResource(URI.create(basePath).normalize());
+			final Resource jarResource    = factory.newJarFileResource(URI.create(sourceJarName));
+			final Resource combined       = ResourceFactory.combine(baseResource, jarResource);
 
-			servletContext.setBaseResource(baseResource);
+			servletContext.setBaseResource(combined);
 
 			handler.setDirAllowed(false);
 			handler.setWelcomeFiles("index.html");
+
+
 
 		} catch (Throwable t) {
 
@@ -309,7 +313,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		// this is needed for the filters to work on the root context "/"
-		servletContext.addServlet("org.eclipse.jetty.ee10.servlet.DefaultServlet", "/");
+		servletContext.addServlet("org.eclipse.jetty.ee10.servlet.DefaultServlet", "/").setAsyncSupported(false);
 		servletContext.setInitParameter("org.eclipse.jetty.ee10.servlet.DefaultServlet.dirAllowed", "false");
 
 		if (Settings.ConfigServletEnabled.getValue()) {
@@ -419,7 +423,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		httpConfig.setSendServerVersion(false);
 		httpConfig.setSecureScheme("https");
 		httpConfig.setSecurePort(httpsPort);
-		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
+		httpConfig.setOutputBufferSize(1024 * 1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 		switch(Settings.UriCompliance.getValue()) {
@@ -842,9 +846,8 @@ public class HttpService implements RunnableService, StatsCallback {
 							try {
 
 								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).getDeclaredConstructor().newInstance();
-								if (servlet instanceof HttpServiceServlet) {
+								if (servlet instanceof HttpServiceServlet httpServiceServlet) {
 
-									final HttpServiceServlet httpServiceServlet = (HttpServiceServlet)servlet;
 									final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();
 									if (cfg != null) {
 
