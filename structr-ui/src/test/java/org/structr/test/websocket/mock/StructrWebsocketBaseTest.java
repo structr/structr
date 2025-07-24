@@ -71,7 +71,7 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 		final MockWebsocketSession session   = new MockWebsocketSession(gson);
 
 		websocket.setRequest(request);
-		websocket.onWebSocketConnect(session);
+		websocket.onWebSocketOpen(session);
 
 		return new MockedWebsocketSetup(session, websocket);
 	}

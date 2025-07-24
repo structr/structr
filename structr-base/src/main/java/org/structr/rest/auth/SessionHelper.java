@@ -23,7 +23,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
-import org.eclipse.jetty.server.Session;
 import org.eclipse.jetty.session.ManagedSession;
 import org.eclipse.jetty.session.SessionCache;
 import org.slf4j.Logger;
@@ -83,7 +82,7 @@ public class SessionHelper {
 		}
 	}
 
-	public static Session getSessionBySessionId(final String sessionId) throws FrameworkException {
+	public static ManagedSession getSessionBySessionId(final String sessionId) throws FrameworkException {
 
 		return getSessionFromCache(sessionId);
 	}

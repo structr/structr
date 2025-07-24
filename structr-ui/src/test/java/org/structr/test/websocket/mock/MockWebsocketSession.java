@@ -19,16 +19,21 @@
 package org.structr.test.websocket.mock;
 
 import com.google.gson.Gson;
-import org.eclipse.jetty.websocket.api.*;
+import org.eclipse.jetty.websocket.api.Callback;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.UpgradeRequest;
+import org.eclipse.jetty.websocket.api.UpgradeResponse;
 
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
 public class MockWebsocketSession implements Session {
 
-	private final MockRemoteEndpoint endpoint = new MockRemoteEndpoint();
+	private final List<String> messages = new LinkedList<>();
 	private final Gson gson;
 
 	public MockWebsocketSession(final Gson gson) {
@@ -37,7 +42,6 @@ public class MockWebsocketSession implements Session {
 
 	public Map<String, Object> getLastWebsocketResponse() {
 
-		final List<String> messages = endpoint.getSentStrings();
 		if (!messages.isEmpty()) {
 
 			final String last = messages.get(messages.size() - 1);
@@ -49,16 +53,41 @@ public class MockWebsocketSession implements Session {
 	}
 
 	@Override
-	public void close() {
+	public void demand() {
 	}
 
 	@Override
-	public void close(final CloseStatus closeStatus) {
+	public void sendBinary(ByteBuffer buffer, Callback callback) {
 
 	}
 
 	@Override
-	public void close(int i, String s) {
+	public void sendPartialBinary(ByteBuffer buffer, boolean last, Callback callback) {
+
+	}
+
+	@Override
+	public void sendText(String text, Callback callback) {
+		messages.add(text);
+	}
+
+	@Override
+	public void sendPartialText(String text, boolean last, Callback callback) {
+
+	}
+
+	@Override
+	public void sendPing(ByteBuffer applicationData, Callback callback) {
+
+	}
+
+	@Override
+	public void sendPong(ByteBuffer applicationData, Callback callback) {
+
+	}
+
+	@Override
+	public void close(int statusCode, String reason, Callback callback) {
 
 	}
 
@@ -68,23 +97,18 @@ public class MockWebsocketSession implements Session {
 	}
 
 	@Override
-	public SocketAddress getLocalAddress() {
+	public SocketAddress getLocalSocketAddress() {
+		return null;
+	}
+
+	@Override
+	public SocketAddress getRemoteSocketAddress() {
 		return null;
 	}
 
 	@Override
 	public String getProtocolVersion() {
 		return "";
-	}
-
-	@Override
-	public RemoteEndpoint getRemote() {
-		return endpoint;
-	}
-
-	@Override
-	public SocketAddress getRemoteAddress() {
-		return null;
 	}
 
 	@Override
@@ -108,48 +132,8 @@ public class MockWebsocketSession implements Session {
 	}
 
 	@Override
-	public SuspendToken suspend() {
-		return null;
-	}
-
-	@Override
-	public WebSocketBehavior getBehavior() {
-		return null;
-	}
-
-	@Override
 	public Duration getIdleTimeout() {
 		return null;
-	}
-
-	@Override
-	public int getInputBufferSize() {
-		return 0;
-	}
-
-	@Override
-	public int getOutputBufferSize() {
-		return 0;
-	}
-
-	@Override
-	public long getMaxBinaryMessageSize() {
-		return 0;
-	}
-
-	@Override
-	public long getMaxTextMessageSize() {
-		return 0;
-	}
-
-	@Override
-	public long getMaxFrameSize() {
-		return 0;
-	}
-
-	@Override
-	public boolean isAutoFragment() {
-		return false;
 	}
 
 	@Override
@@ -158,32 +142,72 @@ public class MockWebsocketSession implements Session {
 	}
 
 	@Override
-	public void setInputBufferSize(int i) {
+	public int getInputBufferSize() {
+		return 0;
+	}
+
+	@Override
+	public void setInputBufferSize(int size) {
 
 	}
 
 	@Override
-	public void setOutputBufferSize(int i) {
+	public int getOutputBufferSize() {
+		return 0;
+	}
+
+	@Override
+	public void setOutputBufferSize(int size) {
 
 	}
 
 	@Override
-	public void setMaxBinaryMessageSize(long l) {
+	public long getMaxBinaryMessageSize() {
+		return 0;
+	}
+
+	@Override
+	public void setMaxBinaryMessageSize(long size) {
 
 	}
 
 	@Override
-	public void setMaxTextMessageSize(long l) {
+	public long getMaxTextMessageSize() {
+		return 0;
+	}
+
+	@Override
+	public void setMaxTextMessageSize(long size) {
 
 	}
 
 	@Override
-	public void setMaxFrameSize(long l) {
+	public long getMaxFrameSize() {
+		return 0;
+	}
+
+	@Override
+	public void setMaxFrameSize(long maxFrameSize) {
 
 	}
 
 	@Override
-	public void setAutoFragment(boolean b) {
+	public boolean isAutoFragment() {
+		return false;
+	}
+
+	@Override
+	public void setAutoFragment(boolean autoFragment) {
+
+	}
+
+	@Override
+	public int getMaxOutgoingFrames() {
+		return 0;
+	}
+
+	@Override
+	public void setMaxOutgoingFrames(int maxOutgoingFrames) {
 
 	}
 }

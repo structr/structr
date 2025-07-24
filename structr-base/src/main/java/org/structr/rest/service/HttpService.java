@@ -29,7 +29,6 @@ import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
 import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
-import org.eclipse.jetty.ee10.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.eclipse.jetty.http.*;
 import org.eclipse.jetty.http2.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
@@ -46,6 +45,7 @@ import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -57,11 +57,13 @@ import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
+import org.structr.websocket.servlet.WebSocketConfigurator;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -266,8 +268,13 @@ public class HttpService implements RunnableService, StatsCallback {
 		final ServletContextHandler servletContext = new ServletContextHandler(contextPath, true, true);
 		final ErrorHandler errorHandler = new ErrorHandler();
 
+
 		errorHandler.setShowStacks(false);
 		servletContext.setErrorHandler(errorHandler);
+		servletContext.getServletHandler().setDecodeAmbiguousURIs(true);
+
+		// websockets (new)
+		servletContext.insertHandler(WebSocketUpgradeHandler.from(server, servletContext, new WebSocketConfigurator("WebSocketServlet")));
 
 		if (enableGzipCompression) {
 			gzipHandler = new GzipHandler();
@@ -287,20 +294,24 @@ public class HttpService implements RunnableService, StatsCallback {
 		// create resource collection from base path & source JAR
 		try {
 
-			final ResourceFactory factory = ResourceFactory.of(server);
+			final ResourceHandler handler = new ResourceHandler();
+			final ResourceFactory factory = ResourceFactory.of(handler);
 			final Resource baseResource   = factory.newResource(basePath);
-			final Resource jarResource    = factory.newResource(sourceJarName);
+			final Resource jarResource    = factory.newJarFileResource(URI.create(sourceJarName));
 
 			servletContext.setBaseResource(ResourceFactory.combine(baseResource, jarResource));
 
+			handler.setDirAllowed(false);
+			handler.setWelcomeFiles("index.html");
+
 		} catch (Throwable t) {
 
-			logger.warn("Base resource {} not usable: {}", new Object[]{basePath, t.getMessage()});
+			logger.warn("Base resource {} not usable: {}", basePath, t.getMessage());
 		}
 
 		// this is needed for the filters to work on the root context "/"
-		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
-		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+		servletContext.addServlet("org.eclipse.jetty.ee10.servlet.DefaultServlet", "/");
+		servletContext.setInitParameter("org.eclipse.jetty.ee10.servlet.DefaultServlet.dirAllowed", "false");
 
 		if (Settings.ConfigServletEnabled.getValue()) {
 
@@ -362,10 +373,12 @@ public class HttpService implements RunnableService, StatsCallback {
 			server.setRequestLog(requestLog);
 		}
 
+		/*
 		final List<ContextHandler> resourceHandler = collectResourceHandlers();
 		for (ContextHandler contextHandler : resourceHandler) {
 			contexts.addHandler(contextHandler);
 		}
+		*/
 
 		final Map<String, ServletHolder> servlets = collectServlets(licenseManager);
 
@@ -381,8 +394,6 @@ public class HttpService implements RunnableService, StatsCallback {
 			logger.info("Adding servlet {} for {}", new Object[]{servletHolder, path});
 
 			servletContext.addServlet(servletHolder, path);
-
-			JakartaWebSocketServletContainerInitializer.configure(servletContext, null);
 		}
 
 		// only add metrics filter if metrics servlet is enabled
@@ -442,6 +453,8 @@ public class HttpService implements RunnableService, StatsCallback {
 				httpConfig.setUriCompliance(UriCompliance.UNSAFE);
 				break;
 		}
+
+		httpConfig.setUriCompliance(UriCompliance.from("RFC3986,AMBIGUOUS_PATH_SEPARATOR"));
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
@@ -817,7 +830,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	private List<ContextHandler> collectResourceHandlers() {
 
 		final List<ContextHandler> resourceHandlers = new LinkedList<>();
 		final String resourceHandlerList            = Settings.ResourceHandlers.getValue();

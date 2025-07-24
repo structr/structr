@@ -99,7 +99,8 @@ module structr.base {
 	requires org.eclipse.jetty.session;
 	requires org.eclipse.jetty.ee10.servlet;
 	requires org.eclipse.jetty.ee10.servlets;
-	requires org.eclipse.jetty.ee10.websocket.jakarta.server;
+	requires org.eclipse.jetty.websocket.api;
+	requires org.eclipse.jetty.websocket.server;
 
 	exports org.structr;
 	exports org.structr.agent;

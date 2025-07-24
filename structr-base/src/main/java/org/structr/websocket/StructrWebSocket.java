@@ -20,7 +20,9 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.io.QuietException;
+import org.eclipse.jetty.session.ManagedSession;
 import org.eclipse.jetty.util.StaticException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
@@ -59,7 +61,7 @@ import java.util.concurrent.TimeoutException;
 /**
  *
  */
-public class StructrWebSocket implements WebSocketListener {
+public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
@@ -75,8 +77,6 @@ public class StructrWebSocket implements WebSocketListener {
 	private Console console                        = null;
 	private Boolean timedOut                       = false;
 
-	public StructrWebSocket() {}
-
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
 		this.uploads        = new LinkedHashMap<>();
@@ -86,11 +86,14 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	public void setRequest(final HttpServletRequest request) {
-		this.request = request;
+
+		if (this.request == null) {
+			this.request = request;
+		}
 	}
 
 	@Override
-	public void onWebSocketConnect(final Session session) {
+	public void onWebSocketOpen(final Session session) {
 
 		logger.debug("New connection with protocol {}", session.getProtocolVersion());
 
@@ -470,8 +473,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 				synchronized (this) {
 
-					final org.eclipse.jetty.server.Session session  = SessionHelper.getSessionBySessionId(sessionId);
-					final boolean sessionValid = session == null || !SessionHelper.isSessionTimedOut(session);
+					final ManagedSession session  = SessionHelper.getSessionBySessionId(sessionId);
+					final boolean sessionValid = session == null || !SessionHelper.isSessionTimedOut(SessionHandler.ServletSessionApi.wrapSession(session));
 
 					//logger.info("[{}]: session from cache: {}, valid? {}", nodeName, session, sessionValid);
 

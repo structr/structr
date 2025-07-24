@@ -63,13 +63,13 @@
             <version>${jetty.version}</version>
         </dependency>
         <dependency>
-            <groupId>jakarta.websocket</groupId>
-            <artifactId>jakarta.websocket-api</artifactId>
-            <version>2.1.0</version>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>jetty-websocket-jetty-api</artifactId>
+            <version>${jetty.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.eclipse.jetty.ee10.websocket</groupId>
-            <artifactId>jetty-ee10-websocket-jakarta-server</artifactId>
+            <groupId>org.eclipse.jetty.websocket</groupId>
+            <artifactId>jetty-websocket-jetty-server</artifactId>
             <version>${jetty.version}</version>
         </dependency>
         <dependency>
