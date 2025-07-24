@@ -103,32 +103,11 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 	@Override
 	public void doImport(final Path source, final Gson gson) throws FrameworkException {
 
+		cleanupFlows();
+
 		final Path flowFolder = source.resolve(FLOW_DEPLOYMENT_TREE_BASE_FOLDER);
 
 		try (final Tx tx = app.tx()) {
-
-			// Cleanup old flow data
-			for (final String c : classesToExport) {
-
-				for (final NodeInterface toDelete : app.nodeQuery(c).getAsList()) {
-
-					app.delete(toDelete);
-				}
-			}
-
-			for (final String c : relsToExport) {
-
-				for (final RelationshipInterface toDelete : app.relationshipQuery(c).getAsList()) {
-
-					app.delete(toDelete);
-				}
-			}
-
-
-			for (final RelationshipInterface toDelete : app.relationshipQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW).getAsList()) {
-
-				app.delete(toDelete);
-			}
 
 			// Import new flow data
 			visitFlowFolders(flowFolder, null);

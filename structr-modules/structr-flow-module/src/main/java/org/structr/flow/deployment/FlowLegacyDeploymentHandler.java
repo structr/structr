@@ -137,6 +137,10 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 
 	@Override
 	public void doImport(final Path source, final Gson gson) throws FrameworkException {
+
+		// Cleanup old flows before proceeding with import
+		cleanupFlows();
+
 		final Path flowPath = source.resolve("flow-engine.json");
 		if (Files.exists(flowPath)) {
 
