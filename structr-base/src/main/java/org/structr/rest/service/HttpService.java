@@ -652,9 +652,32 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			} else {
 
-				final ServletContextHandler servletContext = new ServletContextHandler(contextPath, true, true);
+				final ResourceHandler resourceHandler = new ResourceHandler() {
 
-				final ResourceHandler resourceHandler = new ResourceHandler(servletContext);
+					@Override
+					public boolean handle(final Request request, final Response response, final Callback callback) throws Exception {
+
+						final String target     = Request.getPathInContext(request);
+						final Resource resolved = getBaseResource().resolve(target);
+
+						if (!target.equals("/") && (resolved == null || !resolved.exists())) {
+
+							// redirect and don't cache
+							final HttpFields.Mutable headers = response.getHeaders();
+							headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+							headers.add("Expires", (String) null);
+							headers.add("Location", "/");
+
+							response.setStatus(HttpServletResponse.SC_FOUND);
+
+							callback.succeeded();
+
+							return true;
+						}
+
+						return super.handle(request, response, callback);
+					}
+				};
 				resourceHandler.setDirAllowed(false);
 
 				final ResourceFactory factory = ResourceFactory.of(resourceHandler);
