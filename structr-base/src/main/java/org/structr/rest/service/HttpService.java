@@ -241,7 +241,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		final boolean enableGzipCompression = Settings.GzipCompression.getValue();
 		final boolean logRequests           = Settings.RequestLogging.getValue();
 		final String host                   = Settings.ApplicationHost.getValue();
-		final boolean mainteanceModeActive  = Settings.MaintenanceModeEnabled.getValue();
+		final boolean maintenanceModeActive = Settings.MaintenanceModeEnabled.getValue();
 		final int httpPort                  = Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue();
 		final int httpsPort                 = Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue();
 		boolean forceHttps                  = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
@@ -268,7 +268,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		final ServletContextHandler servletContext = new ServletContextHandler(contextPath, true, true);
 		final ErrorHandler errorHandler = new ErrorHandler();
 
-
 		errorHandler.setShowStacks(false);
 		servletContext.setErrorHandler(errorHandler);
 		servletContext.getServletHandler().setDecodeAmbiguousURIs(true);
@@ -284,37 +283,40 @@ public class HttpService implements RunnableService, StatsCallback {
 			gzipHandler.setIncludedMethods("GET", "POST", "PUT", "HEAD", "DELETE");
 			gzipHandler.addIncludedPaths("/*");
 			//gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
-
 		}
 
 		servletContext.insertHandler(gzipHandler);
 
 		final List<Connector> connectors = new LinkedList<>();
 
-		// create resource collection from base path & source JAR
-		try {
+		// Enable serving static resources for structr-ui
+		{
+			final String uiContextPath = "/structr";
 
-			final ResourceHandler handler = new ResourceHandler(servletContext);
-			final ResourceFactory factory = ResourceFactory.of(handler);
-			final Resource baseResource   = factory.newResource(URI.create(basePath).normalize());
-			final Resource jarResource    = factory.newJarFileResource(URI.create(sourceJarName));
-			final Resource combined       = ResourceFactory.combine(baseResource, jarResource);
+			// fallback (local vs. deb)
+			final String resourceBase = Paths.get("src/main/resources/structr").toFile().exists() ? "src/main/resources/structr" : "structr";
 
-			servletContext.setBaseResource(combined);
+			final ResourceHandler resourceHandler = new ResourceHandler(servletContext);
+			final ResourceFactory factory         = ResourceFactory.of(resourceHandler);
+			final Resource baseResource           = factory.newResource(URI.create(resourceBase).normalize());
 
-			handler.setDirAllowed(false);
-			handler.setWelcomeFiles("index.html");
+			resourceHandler.setDirAllowed(false);
+			resourceHandler.setWelcomeFiles("index.html");
 
+			resourceHandler.setBaseResource(baseResource);
+			resourceHandler.setCacheControl("max-age=0");
+			//resourceHandler.setEtags(true);
 
+			final ContextHandler context = new ContextHandler(uiContextPath);
+			context.setHandler(resourceHandler);
 
-		} catch (Throwable t) {
-
-			logger.warn("Base resource {} not usable: {}", basePath, t.getMessage());
+			contexts.addHandler(context);
 		}
 
-		// this is needed for the filters to work on the root context "/"
-		servletContext.addServlet("org.eclipse.jetty.ee10.servlet.DefaultServlet", "/").setAsyncSupported(false);
-		servletContext.setInitParameter("org.eclipse.jetty.ee10.servlet.DefaultServlet.dirAllowed", "false");
+		// deactivated... still works
+//		// this is needed for the filters to work on the root context "/"
+//		final ServletHolder defaultServletHolder = servletContext.addServlet("org.eclipse.jetty.ee10.servlet.DefaultServlet", "/");
+//		defaultServletHolder.setAsyncSupported(false);
 
 		if (Settings.ConfigServletEnabled.getValue()) {
 
@@ -359,14 +361,13 @@ public class HttpService implements RunnableService, StatsCallback {
 		// enable request logging
 		if (logRequests) {
 
-			final String logPath                      = basePath + "/logs";
-			final File logDir                         = new File(logPath);
+			final String logPath = basePath + "/logs";
+			final File logDir    = new File(logPath);
 
 			// Create logs directory if not existing
 			if (!logDir.exists()) {
 
 				logDir.mkdir();
-
 			}
 
 			Slf4jRequestLogWriter requestLogWriter = new Slf4jRequestLogWriter();
@@ -387,7 +388,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			servletHolder.setInitOrder(position++);
 
-			logger.info("Adding servlet {} for {}", new Object[]{servletHolder, path});
+			logger.info("Adding servlet {} for {}", servletHolder, path);
 
 			servletContext.addServlet(servletHolder, path);
 		}
@@ -567,14 +568,14 @@ public class HttpService implements RunnableService, StatsCallback {
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 
-		setupMaintenanceServer(mainteanceModeActive);
+		setupMaintenanceServer(maintenanceModeActive);
 
 		return new ServiceResult(true);
 	}
 
-	private void setupMaintenanceServer(final boolean mainteanceModeActive) {
+	private void setupMaintenanceServer(final boolean maintenanceModeActive) {
 
-		if (mainteanceModeActive) {
+		if (maintenanceModeActive) {
 
 			final String keyStorePath           = Settings.KeystorePath.getValue();
 			final String keyStorePassword       = Settings.KeystorePassword.getValue();
@@ -651,17 +652,26 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			} else {
 
-				final ResourceHandler resourceHandler = new RedirectingResourceHandler();
+				final ServletContextHandler servletContext = new ServletContextHandler(contextPath, true, true);
+
+				final ResourceHandler resourceHandler = new ResourceHandler(servletContext);
 				resourceHandler.setDirAllowed(false);
 
-				resourceHandler.setBaseResourceAsString(resourceBase);
+				final ResourceFactory factory = ResourceFactory.of(resourceHandler);
+				final Resource baseResource   = factory.newResource(URI.create(resourceBase).normalize());
+				resourceHandler.setWelcomeFiles("index.html");
+				resourceHandler.setDirAllowed(false);
+
+				resourceHandler.setBaseResource(baseResource);
 				resourceHandler.setCacheControl("max-age=0");
 
-				final ContextHandler staticResourceHandler = new ContextHandler();
-				staticResourceHandler.setContextPath(contextPath);
-				staticResourceHandler.setHandler(resourceHandler);
+				final ContextHandler contextHandler = new ContextHandler(contextPath);
+				contextHandler.setHandler(resourceHandler);
 
-				maintenanceServer.setHandler(staticResourceHandler);
+				final RewriteHandler rewriteHandler = new RewriteHandler();
+				rewriteHandler.setHandler(contextHandler);
+
+				maintenanceServer.setHandler(rewriteHandler);
 			}
 
 			final List<Connector> connectors = new LinkedList<>();
