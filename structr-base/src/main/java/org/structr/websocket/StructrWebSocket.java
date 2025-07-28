@@ -98,10 +98,19 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		logger.debug("New connection with protocol {}", session.getProtocolVersion());
 
 		final Services services = Services.getInstance();
-		if (!services.isInitialized()) {
+		int count = 0;
 
-			logger.warn("Ignoring new websocket connection: {}", services.getUnavailableMessage());
-			return;
+		while (!services.isInitialized()) {
+
+			try { Thread.sleep(1000); } catch (Throwable t) { }
+
+			if (count++ > 10) {
+
+				logger.warn("Ignoring new websocket connection: {}", services.getUnavailableMessage());
+
+				session.close();
+				return;
+			}
 		}
 
 		this.session = session;
@@ -115,7 +124,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	@Override
 	public void onWebSocketClose(final int closeCode, final String message) {
 
-		logger.debug("Connection closed with closeCode {} and message {}", new Object[]{closeCode, message});
+		logger.debug("Connection closed with closeCode {} and message {}", closeCode, message);
 
 		final Services services = Services.getInstance();
 		if (!services.isInitialized()) {
@@ -146,9 +155,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		} catch (FrameworkException fex) {
 
 			logger.error("Error while closing connection: {}", fex.getMessage());
-
 		}
-
 	}
 
 	@Override
@@ -216,7 +223,6 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			} catch (FrameworkException t) {
 
 				logger.warn("Unable to parse message.", t);
-
 			}
 
 			// process message
