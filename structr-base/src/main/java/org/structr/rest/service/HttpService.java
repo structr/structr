@@ -309,14 +309,11 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			final ContextHandler context = new ContextHandler(uiContextPath);
 			context.setHandler(resourceHandler);
+			context.clearAliasChecks();
+			context.addAliasCheck((pathInContext, resource) -> resource.exists());
 
 			contexts.addHandler(context);
 		}
-
-		// deactivated... still works
-//		// this is needed for the filters to work on the root context "/"
-//		final ServletHolder defaultServletHolder = servletContext.addServlet("org.eclipse.jetty.ee10.servlet.DefaultServlet", "/");
-//		defaultServletHolder.setAsyncSupported(false);
 
 		if (Settings.ConfigServletEnabled.getValue()) {
 
