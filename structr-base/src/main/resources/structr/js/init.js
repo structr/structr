@@ -1583,7 +1583,7 @@ let Structr = {
 					} else {
 
 						if (data.isServicePrincipal === false) {
-							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) });
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: ['read'] }] }) });
 						}
 
 						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) });
