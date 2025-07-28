@@ -63,7 +63,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 		try {
 
 			final File archiveFile = ((NodeInterface)sources[0]).as(File.class);
-			Folder parentFolder;
+			Folder parentFolder = null;
 
 			if (sources.length == 2 && sources[1] != null) {
 
@@ -76,7 +76,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 				props.put(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
-				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
+				//parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
 			}
 
 			FileHelper.unarchive(ctx.getSecurityContext(), archiveFile, parentFolder == null ? null : parentFolder.getUuid());
