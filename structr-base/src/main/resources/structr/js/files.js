@@ -300,24 +300,6 @@ let _Files = {
 				});
 			}
 
-			if (_Files.helpers.isDisplayingSearchResults()) {
-
-				elements.push({
-					icon: _Icons.getMenuSvgIcon(_Icons.iconEyeOpen),
-					name: 'Show search result context',
-					clickHandler: () => {
-
-						let searchTerm = _Files.search.getCurrentSearchTerm();
-						let fileIds = [...selectedElements].map(el => StructrModel.obj(Structr.getId(el))).filter(obj => obj.isFile).map(obj => obj.id);
-
-						for (let fileId of fileIds) {
-							_Files.search.getAndAppendSearchContext(fileId, searchTerm);
-						}
-					}
-				});
-			}
-
-
 			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
@@ -810,9 +792,10 @@ let _Files = {
 							<td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td>
 							<td>
 								<div class="node folder flex items-center justify-between">
-									<b class="name_ leading-8 truncate">..</b>
+									<b class="name_ leading-8 truncate  pl-4">..</b>
 								</div>
 							</td>
+							<td></td>
 							<td></td>
 							<td></td>
 							<td></td>
@@ -989,7 +972,7 @@ let _Files = {
 					${getIconColumnHTML()}
 					<td>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
-							<b class="name_ leading-8 truncate" data-key="name"></b>
+							<b class="name_ leading-8 truncate pl-4" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
@@ -1815,11 +1798,23 @@ let _Files = {
 
 			container.dataset['for'] = searchString;
 
+			let timeoutIt = window.setTimeout(() => {
+				container.appendChild(_Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
+						<span>Running fulltext search for "${searchString}" - please stand by</span>
+					</div>`)
+				);
+			}, 250);
+
 			let response = await fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1${searchString.split(' ').map(str => '&extractedContent=' + str).join('')}`);
 
 			if (response.ok) {
 
 				let data = await response.json();
+
+				window.clearTimeout(timeoutIt);
+				_Helpers.fastRemoveAllChildren(container);
 
 				if (!data.result || data.result.length === 0) {
 
@@ -1835,9 +1830,20 @@ let _Files = {
 						${_Files.templates.folderContentsTableSkeleton({})}
 					`);
 
+					container.querySelector('th.icon').insertAdjacentHTML('beforebegin', '<th class="icon">&nbsp;</th>');
+
 					for (let fileHit of data.result) {
 
 						_Files.appendFileOrFolder(fileHit, container);
+
+						let row  = container.querySelector('#row' + fileHit.id);
+						let icon = row.querySelector('td.file-icon');
+						icon.insertAdjacentHTML('beforebegin', `<td class="search-context-icon">${_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context')}</td>`);
+
+						row.querySelector('.search-context-icon svg').addEventListener('click', (e) => {
+
+							_Files.search.getAndAppendSearchContext(fileHit.id, searchString);
+						});
 					}
 				}
 			}
@@ -1845,10 +1851,15 @@ let _Files = {
 		getAndAppendSearchContext: async (fileId, searchString) => {
 
 			let searchResultContextRowId = `searchContext_${fileId}`;
-			let contextAlreadyShown      = !!_Files.getFolderContentsElement().querySelector(`#${searchResultContextRowId}`);
+			let contextElement           = _Files.getFolderContentsElement().querySelector(`#${searchResultContextRowId}`);
 			let searchResultRow          = _Files.getFolderContentsElement().querySelector(`#search-results #row${fileId}`);
 
-			if (!searchResultRow || contextAlreadyShown) {
+			if (!searchResultRow) {
+				return;
+			}
+
+			if (contextElement) {
+				contextElement.style.display = (contextElement.style.display === 'none') ? 'table-row' : 'none';
 				return;
 			}
 
@@ -1984,13 +1995,13 @@ let _Files = {
 				<thead>
 					<tr>
 						<th class="icon">&nbsp;</th>
-						<th>Name</th>
-						<th>ID</th>
-						<th>Created</th>
-						<th>Modified</th>
-						<th>Size</th>
-						<th>Type</th>
-						<th>Owner</th>
+						<th name class="pl-4">Name</th>
+						<th uuid>ID</th>
+						<th created>Created</th>
+						<th modified>Modified</th>
+						<th size>Size</th>
+						<th type>Type</th>
+						<th owner>Owner</th>
 					</tr>
 				</thead>
 				<tbody id="files-table-body">

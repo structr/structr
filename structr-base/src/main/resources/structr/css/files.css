@@ -91,9 +91,13 @@
 	max-height: 220px;
 }
 
-#folder-contents table th, #contents-contents table th {
+#folder-contents table th {
 	text-align: left;
 	padding-left: 1rem;
+}
+
+#folder-contents table th[name] {
+	padding-left: 2rem;
 }
 
 #folder-contents .thumbnail {
@@ -137,41 +141,14 @@
 	table-layout: fixed;
 }
 
-#folder-contents table th:nth-child(1) {
-	width: 24px;
-}
-
-#folder-contents table th:nth-child(2) {
-	width: 30%;
-}
-
-#folder-contents table th:nth-child(3) {
-	width: 10%;
-}
-
-#folder-contents table th:nth-child(4) {
-	width: 15%;
-}
-
-#folder-contents table th:nth-child(5) {
-	width: 15%;
-}
-
-#folder-contents table th:nth-child(6) {
-	width: 5%;
-}
-
-#folder-contents table th:nth-child(7) {
-	width: 10%;
-}
-
-#folder-contents table th:nth-child(8) {
-	width: calc(20% - 24px);
-}
-
-#folder-contents table th:nth-child(9) {
-	width: 20%;
-}
+#folder-contents table th.icon      { width: 24px; }
+#folder-contents table th[name]     { width: 30%; }
+#folder-contents table th[uuid]     { width: 5%; }
+#folder-contents table th[created]  { width: 15%; }
+#folder-contents table th[modified] { width: 15%; }
+#folder-contents table th[size]     { width: 5%; }
+#folder-contents table th[type]     { width: 10%; }
+#folder-contents table th[owner]    { width: calc(20% - 24px); }
 
 /*
  * Files table
@@ -261,10 +238,6 @@
 	position: absolute;
 	right: .6rem;
 	top: .6rem;
-}
-
-#files-table .node .name_ {
-	padding-left: 1rem;
 }
 
 .file .progress .indicator {
@@ -362,10 +335,6 @@ div#types-container div.type-mapping {
 	width: 100px;
 	float: left;
 }
-
-/*div#xml-import h2, div#xml-import h3 {*/
-/*	margin-bottom: 0;*/
-/*}*/
 
 div.xml-mapping, div#config {
 	padding: .5rem 1rem;
