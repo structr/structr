@@ -94,7 +94,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 	// non-static fields
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	private final java.io.File filesDir                 = null;
+	private final java.io.File filesDir           = null;
 
 	public UploadServlet() {
 	}
