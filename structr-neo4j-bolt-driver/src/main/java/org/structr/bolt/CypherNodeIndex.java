@@ -21,9 +21,11 @@ package org.structr.bolt;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
+import org.structr.api.UnknownClientException;
 import org.structr.api.graph.Node;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
+import org.structr.api.util.Iterables;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -112,6 +114,12 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		final Map<String, Object> parameters = new LinkedHashMap<>();
 		final SessionTransaction tx          = db.getCurrentTransaction();
 		final String statement;
+
+		// check if index exists first
+		if (Iterables.toList(tx.run(new SimpleCypherQuery("SHOW FULLTEXT INDEXES WHERE name = $indexName", Map.of("indexName", indexName)))).isEmpty()) {
+
+			throw new UnknownClientException(null, null, "Index \"" + indexName + "\" does not exist.");
+		}
 
 		parameters.put("indexName", indexName);
 		parameters.put("searchValue", searchString);
