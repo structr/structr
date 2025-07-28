@@ -393,6 +393,8 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			} else {
 
 				logger.warn("Unable to send websocket message - either no session or no remote.");
+
+				syncController.unregisterClient(this);
 			}
 
 			tx.success();

@@ -224,10 +224,22 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 			} else if (source instanceof GraphObject g) {
 
 				final Traits traits = g.getTraits();
+				if (traits != null) {
 
-				if (traits != null && traits.contains(type)) {
+					if (traits.contains(type)) {
 
-					return (T) source;
+						return (T) source;
+
+					} else {
+
+						String propertyName = null;
+
+						if (relationProperty instanceof PropertyKey propertyKey) {
+							propertyName = propertyKey.jsonName();
+						}
+
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(g.getClass().getSimpleName(), propertyName, type));
+					}
 
 				} else {
 

@@ -48,8 +48,9 @@
 		</dependency>
 		<dependency>
 			<groupId>org.odftoolkit</groupId>
-			<artifactId>simple-odf</artifactId>
-			<version>0.9.0</version>
+			<artifactId>odftoolkit</artifactId>
+			<version>0.12.0</version>
+			<type>pom</type>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
