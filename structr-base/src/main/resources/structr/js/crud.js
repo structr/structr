@@ -3223,26 +3223,23 @@ let _Crud = {
 
 				<div class="column-resizer"></div>
 
-				<div id="crud-left" class="resourceBox">
+				<div id="crud-left" class="resourceBox gap-y-12 pt-4 flex flex-col mr-8">
 
-					<div id="crud-types">
+					<div id="crud-types" class="h-1/2 flex flex-col">
 					
 						<div class="flex">
-
 							<h2 class="flex-grow">Types</h2>
-
 							${_Crud.typeList.filtering.templates.filterBox(config)}
 						</div>
 						
 						${_Crud.typeList.filtering.templates.filterInput(config)}
 
-						<div id="crud-types-list"></div>
+						<div id="crud-types-list" class="flex-grow"></div>
 					</div>
 
-					<div id="crud-recent-types">
+					<div id="crud-recent-types" class="h-1/2 flex flex-col">
 						<h2>Recent</h2>
-
-						<div id="crud-recent-types-list"></div>
+						<div id="crud-recent-types-list" class="flex-grow"></div>
 					</div>
 
 				</div>
