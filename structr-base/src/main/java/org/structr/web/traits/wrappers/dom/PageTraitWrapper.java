@@ -280,17 +280,15 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		// step 2: do recursive import?
 		if (deep && domNode.hasChildNodes()) {
 
+			final Logger logger = LoggerFactory.getLogger(Page.class);
+
 			// FIXME: is it really a good idea to do the
 			// recursion inside of a transaction?
-			DOMNode child = domNode.getFirstChild();
-
-			while (child != null) {
+			for (final DOMNode child : domNode.getChildren()) {
 
 				// do not remove parent for child nodes
-				importNode(child, deep, false);
-				child = child.getNextSibling();
+				importNode(child, true, false);
 
-				final Logger logger = LoggerFactory.getLogger(Page.class);
 				logger.info("sibling is {}", child);
 			}
 
@@ -315,16 +313,10 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	public DOMNode adoptNode(final DOMNode domNode, final boolean removeParentFromSourceNode) throws FrameworkException {
 
-		if (domNode.hasChildNodes()) {
+		for (final DOMNode child : domNode.getChildren()) {
 
-			DOMNode child = domNode.getFirstChild();
-			while (child != null) {
-
-				// do not remove parent for child nodes
-				adoptNode(child, false);
-				child = child.getNextSibling();
-			}
-
+			// do not remove parent for child nodes
+			adoptNode(child, false);
 		}
 
 		// (Note that this step needs to be done last in

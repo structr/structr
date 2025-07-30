@@ -206,11 +206,11 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 			if (valid) {
 
-				logger.warn("File {} already exists, renaming to {}", new Object[] { originalPath, newName });
+				logger.warn("File {} already exists, renaming to {}", originalPath, newName);
 
 			} else {
 
-				logger.warn("File {} already existed. Tried renaming to {} and failed. Aborting.", new Object[] { originalPath, newName });
+				logger.warn("File {} already existed. Tried renaming to {} and failed. Aborting.", originalPath, newName);
 			}
 		}
 

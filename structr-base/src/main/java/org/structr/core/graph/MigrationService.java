@@ -115,6 +115,7 @@ public class MigrationService {
 		"MQTTClient.port",
 		"MQTTClient.protocol",
 		"MQTTClient.url",
+		"PaymentNode.state",
 		"Person.twitterName",
 		"Principal.customPermissionQueryAccessControl",
 		"Principal.customPermissionQueryDelete",
@@ -153,11 +154,7 @@ public class MigrationService {
 
 	public static boolean typeShouldBeRemoved(final String name) {
 
-		if (MigrationService.StaticTypeMigrationBlacklist.contains(name)) {
-			return true;
-		}
-
-		return false;
+		return MigrationService.StaticTypeMigrationBlacklist.contains(name);
 	}
 
 	public static boolean propertyShouldBeRemoved(final SchemaProperty property) {
@@ -189,10 +186,7 @@ public class MigrationService {
 		// check if property has been blacklisted
 		if ("custom".equals(propertyType)) {
 
-			if (fqcn != null && FQCNBlacklist.contains(fqcn)) {
-
-				return true;
-			}
+			return fqcn != null && FQCNBlacklist.contains(fqcn);
 		}
 
 		return false;
@@ -216,12 +210,7 @@ public class MigrationService {
 	public static boolean methodShouldBeRemoved(final String type, final String name, final String codeType) {
 
 		// we don't support Java methods anymore
-		if ("java".equals(codeType)) {
-
-			return true;
-		}
-
-		return false;
+		return "java".equals(codeType);
 	}
 
 	// ----- private methods -----
@@ -639,17 +628,21 @@ public class MigrationService {
 
 			if (keyName.startsWith("data-structr-")) {
 
-				final String value = node.getProperty(key);
+				Object value       = node.getProperty(key);
 				final String name  = CaseHelper.dashesToCamelCase(keyName.substring(13));
 
-				if ("options".equals(name)) {
+				// convert on the fly
+				if (value != null) {
 
-					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), value);
+					if ("options".equals(name)) {
 
-				} else {
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), value.toString());
 
-					// map to configuration option
-					settings.put(name, value);
+					} else {
+
+						// map to configuration option
+						settings.put(name, value.toString());
+					}
 				}
 
 				// remove old key

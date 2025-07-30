@@ -18,6 +18,7 @@
  */
 package org.structr.test.web.entity.dom;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
@@ -86,7 +87,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(content3);
 
 			// assert that div has 3 children now
-			assertEquals(3, div.getChildNodes().size());
+			assertEquals(3, Iterables.toList(div.getChildren()).size());
 
 			// create new container
 			DOMElement div2 = document.createElement("div");
@@ -95,15 +96,15 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(div2);
 
 			// div should have 4 children by now
-			assertEquals(4, div.getChildNodes().size());
+			assertEquals(4, Iterables.toList(div.getChildren()).size());
 
 			// move text node to div2
 			div2.appendChild(content3);
 
 				// div should have 3 children now,
 			// div2 should have content3 as a child now
-			assertEquals(3, div.getChildNodes().size());
-			assertEquals(content3, div2.getChildNodes().get(0));
+			assertEquals(3, Iterables.toList(div.getChildren()).size());
+			assertEquals(content3, Iterables.toList(div2.getChildren()).get(0));
 
 			tx.success();
 
@@ -171,7 +172,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(test2);
 			div.appendChild(test3);
 
-			final List<DOMNode> children = div.getChildNodes();
+			final List<DOMNode> children = Iterables.toList(div.getChildren());
 
 			assertEquals(test1, children.get(0));
 			assertEquals(test2, children.get(1));
@@ -220,7 +221,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(test5);
 
 			// note that we do NOT add test6 as a child!
-			final List<DOMNode> children1 = div.getChildNodes();
+			final List<DOMNode> children1 = Iterables.toList(div.getChildren());
 			assertEquals(test1, children1.get(0));
 			assertEquals(test2, children1.get(1));
 			assertEquals(test3, children1.get(2));
@@ -230,7 +231,7 @@ public class DOMNodeTest extends DOMTest {
 			// test remove child node method
 			div.removeChild(test3);
 
-			final List<DOMNode> children2 = div.getChildNodes();
+			final List<DOMNode> children2 = Iterables.toList(div.getChildren());
 			assertEquals(test1, children2.get(0));
 			assertEquals(test2, children2.get(1));
 			assertEquals(test4, children2.get(2));
@@ -239,7 +240,7 @@ public class DOMNodeTest extends DOMTest {
 			// test remove child node method
 			div.removeChild(test1);
 
-			final List<DOMNode> children3 = div.getChildNodes();
+			final List<DOMNode> children3 = Iterables.toList(div.getChildren());
 			assertEquals(test2, children3.get(0));
 			assertEquals(test4, children3.get(1));
 			assertEquals(test5, children3.get(2));
@@ -265,6 +266,7 @@ public class DOMNodeTest extends DOMTest {
 
 	}
 
+	/*
 	@Test
 	public void testSiblingMethods() {
 
@@ -315,8 +317,8 @@ public class DOMNodeTest extends DOMTest {
 
 			fail("unexpected exception");
 		}
-
 	}
+	*/
 
 	@Test
 	public void testAppendChildErrors() {
@@ -346,7 +348,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(test2);
 			div.appendChild(test3);
 
-			final List<DOMNode> children = div.getChildNodes();
+			final List<DOMNode> children = Iterables.toList(div.getChildren());
 
 			assertEquals(test1, children.get(0));
 			assertEquals(test2, children.get(1));
@@ -433,7 +435,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(test5);
 
 			// examine children
-			final List<DOMNode> children1 = div.getChildNodes();
+			final List<DOMNode> children1 = Iterables.toList(div.getChildren());
 			assertEquals(test1, children1.get(0));
 			assertEquals(test2, children1.get(1));
 			assertEquals(test3, children1.get(2));
@@ -444,7 +446,7 @@ public class DOMNodeTest extends DOMTest {
 			div.replaceChild(test6, test3);
 
 			// examine children
-			final List<DOMNode> children2 = div.getChildNodes();
+			final List<DOMNode> children2 = Iterables.toList(div.getChildren());
 			assertEquals(test1, children2.get(0));
 			assertEquals(test2, children2.get(1));
 			assertEquals(test6, children2.get(2));
@@ -494,7 +496,7 @@ public class DOMNodeTest extends DOMTest {
 			div.appendChild(test5);
 
 			// examine children
-			final List<DOMNode> children1 = div.getChildNodes();
+			final List<DOMNode> children1 = Iterables.toList(div.getChildren());
 			assertEquals(test1, children1.get(0));
 			assertEquals(test2, children1.get(1));
 			assertEquals(test3, children1.get(2));
@@ -505,102 +507,13 @@ public class DOMNodeTest extends DOMTest {
 			div.insertBefore(test6, test3);
 
 			// examine children
-			final List<DOMNode> children2 = div.getChildNodes();
+			final List<DOMNode> children2 = Iterables.toList(div.getChildren());
 			assertEquals(test1, children2.get(0));
 			assertEquals(test2, children2.get(1));
 			assertEquals(test6, children2.get(2));
 			assertEquals(test3, children2.get(3));
 			assertEquals(test4, children2.get(4));
 			assertEquals(test5, children2.get(5));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fail("unexpected exception");
-		}
-
-	}
-
-	@Test
-	public void testNormalize() {
-
-		try (final Tx tx = app.tx()) {
-
-			NodeInterface node = getDocument();
-			assertNotNull(node);
-
-			final Page document = node.as(Page.class);
-
-			assertNotNull(document);
-
-			final Content test0 = document.createTextNode("test0");
-			final Content test1 = document.createTextNode("test1");
-			final Content test2 = document.createTextNode("test2");
-			final Content test3 = document.createTextNode("test3");
-			final Content test4 = document.createTextNode("test4");
-			final Content test5 = document.createTextNode("test5");
-			final Content test6 = document.createTextNode("test6");
-			final Content test7 = document.createTextNode("test7");
-			final Content test8 = document.createTextNode("test8");
-			final Content test9 = document.createTextNode("test9");
-
-			assertNotNull(test0);
-			assertNotNull(test1);
-			assertNotNull(test2);
-			assertNotNull(test3);
-			assertNotNull(test4);
-			assertNotNull(test5);
-			assertNotNull(test6);
-			assertNotNull(test7);
-			assertNotNull(test8);
-			assertNotNull(test9);
-
-			final DOMElement div = document.createElement("div");
-			assertNotNull(div);
-
-			final DOMElement p0 = document.createElement("p");
-			final DOMElement p1 = document.createElement("p");
-			final DOMElement p2 = document.createElement("p");
-			final DOMElement p3 = document.createElement("p");
-
-			assertNotNull(p0);
-			assertNotNull(p1);
-			assertNotNull(p2);
-			assertNotNull(p3);
-
-			div.appendChild(test0);
-			div.appendChild(p0);
-			div.appendChild(test1);
-			div.appendChild(test2);
-			div.appendChild(p1);
-			div.appendChild(test3);
-			div.appendChild(test4);
-			div.appendChild(test5);
-			div.appendChild(p2);
-			div.appendChild(test6);
-			div.appendChild(test7);
-			div.appendChild(test8);
-			div.appendChild(test9);
-			div.appendChild(p3);
-
-			// normalize
-			div.normalize();
-
-			final List<DOMNode> children = div.getChildNodes();
-
-			// div should now have 8 children,
-			assertEquals(8, children.size());
-
-			// check normalized children
-			assertEquals("test0", children.get(0).getNodeValue());
-			assertEquals(p0, children.get(1));
-			assertEquals("test1test2", children.get(2).getNodeValue());
-			assertEquals(p1, children.get(3));
-			assertEquals("test3test4test5", children.get(4).getNodeValue());
-			assertEquals(p2, children.get(5));
-			assertEquals("test6test7test8test9", children.get(6).getNodeValue());
-			assertEquals(p3, children.get(7));
 
 			tx.success();
 

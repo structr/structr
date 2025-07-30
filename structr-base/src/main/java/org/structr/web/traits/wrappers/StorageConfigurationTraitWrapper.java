@@ -28,6 +28,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
@@ -81,7 +82,14 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 
 		try {
 
-			Class<?> foundClass = Class.forName(this.getProvider());
+			Class<?> foundClass = this.getProvider() != null ? Class.forName(this.getProvider()) : null;
+
+
+			if (foundClass == null) {
+
+				return StorageProviderFactory.getDefaultStorageProviderClass();
+			}
+
 			if (StorageProvider.class.isAssignableFrom(foundClass)) {
 
 				return foundClass.asSubclass(StorageProvider.class);

@@ -56,6 +56,7 @@ public interface SchemaMethod extends NodeInterface {
 	boolean includeInOpenAPI();
 	boolean isLifecycleMethod();
 	boolean isJava();
+	boolean wrapJsInMain();
 
 	Class<LifecycleMethod> getMethodType();
 	LifecycleMethod asLifecycleMethod();

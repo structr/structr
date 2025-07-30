@@ -356,7 +356,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		data.put(KEY_NAME,        cleaned);
 
 		// connection cannot be named "default"
-		if ("default".equals((String) data.get(KEY_NAME))) {
+		if ("default".equals(data.get(KEY_NAME))) {
 			errorBuffer.add(new UniqueToken("Connection", "name", "default", null, null));
 		}
 

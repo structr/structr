@@ -298,6 +298,7 @@ public class SchemaHelper {
 		map.put("notNull", property.isNotNull());
 		map.put("dynamic", property.isDynamic());
 		map.put("category", property.category());
+		map.put("serializationDisabled", property.serializationDisabled());
 
 		final String relatedType = property.relatedType();
 		if (relatedType != null) {

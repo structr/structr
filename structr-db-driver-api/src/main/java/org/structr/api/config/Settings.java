@@ -57,6 +57,8 @@ public class Settings {
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
+	public static final String CRON_EXPRESSION_INFO_HTML      = "A cron expression is defined as <pre>&lt;s&gt; &lt;m&gt; &lt;h&gt; &lt;dom&gt; &lt;m&gt; &lt;dow&gt;</pre> It is similar to a normal cron expression but with a \"seconds\" field at the beginning. Search for \"cron\" or \"periodic task scheduler\" in the documentation to find more info and examples.";
+
 	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
 
 	public enum POSSIBLE_UUID_V4_FORMATS {
@@ -166,7 +168,6 @@ public class Settings {
 	public static final Setting<Boolean> MaintenanceModeEnabled       = new BooleanSetting(serverGroup, "hidden", MAINTENANCE_PREFIX + ".enabled",                           false, "Enables maintenance mode where all ports can be changed to prevent users from accessing the application during maintenance.");
 
 	// HTTP service settings
-	public static final Setting<String> ResourceHandlers         = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",         "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
 	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
 	public static final Setting<Boolean> GzipCompression         = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",             true,  "Use GZIP compression for HTTP transfers");
 	public static final Setting<Integer> HttpConnectionRateLimit = new IntegerSetting(serverGroup, "HTTP Settings", "httpservice.connection.ratelimit", 100, "Defines the rate limit of HTTP/2 frames per connection for the HTTP Service.");
@@ -220,11 +221,6 @@ public class Settings {
 	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "", "Sets the value of the <code>Access-Control-Expose-Headers</code> header.");
 
 
-	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "structruihandler.contextpath",       "/structr", "Static resource handling configuration.");
-	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "structruihandler.directorieslisted", false);
-	public static final Setting<String> UiHandlerResourceBase       = new StringSetting(serverGroup,  "hidden", "structruihandler.resourcebase",      "src/main/resources/structr");
-	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "structruihandler.welcomefiles",      "index.html");
-
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                  "database.available.connections",   null);
 	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "hidden",                  "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
@@ -263,7 +259,7 @@ public class Settings {
 	public static final Setting<Boolean> IndexingEnabled             = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.enabled",         true,  "Whether indexing is enabled globally (can be controlled separately for each file)");
 	public static final Setting<Integer> IndexingMaxFileSize         = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",         10,    "Maximum size (MB) of a file to be indexed");
 	public static final Setting<Boolean> FollowSymlinks              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followsymlinks",     true);
-	public static final Setting<String> DefaultUploadFolder          = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                      "", "The default path for files uploaded via the UploadServlet (available from Structr 2.1+)");
+	public static final Setting<String> DefaultUploadFolder          = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                      "/._structr_uploads", "The default upload folder for files uploaded via the UploadServlet. This must be a valid folder path and can not be empty (uploads to the root directory are not allowed).");
 
 	public static final Setting<Boolean> FeedItemIndexRemoteDocument        = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.remote",             true,  "Whether indexing for type FeedItem will index the target URL of the FeedItem or the description");
 	public static final Setting<Boolean> FeedItemContentIndexingEnabled     = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.enabled",     true,  "Whether indexing is enabled for type FeedItemContent");
@@ -331,8 +327,8 @@ public class Settings {
 
 	// servlets
 	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
-		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
-		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet", "MetricsServlet"),
+		"JsonRestServlet HtmlServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
+		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet", "MetricsServlet"),
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
@@ -495,7 +491,7 @@ public class Settings {
 	public static final Setting<String> MetricsServletWhitelist         = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/metrics.");
 
 	// cron settings
-	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations or method names");
+	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations or method names. This only configures the list of tasks. For each task, there needs to be another configuration entry named '<taskname>.cronExpression' with the appropriate cron schedule configuration.");
 	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.");
 
 	//security settings

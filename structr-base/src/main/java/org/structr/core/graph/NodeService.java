@@ -47,14 +47,13 @@ import java.io.File;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger      = LoggerFactory.getLogger(NodeService.class.getName());
-	private StructrServices servicesParent  = null;
-	private DatabaseService databaseService = null;
-	private Index<Node> nodeIndex           = null;
-	private Index<Relationship> relIndex    = null;
-	private Index<Node> fulltextIndex       = null;
-	private String filesPath                = null;
-	private boolean isInitialized           = false;
+	private static final Logger logger                            = LoggerFactory.getLogger(NodeService.class.getName());
+	private StructrServices servicesParent                        = null;
+	private DatabaseService databaseService                       = null;
+	private Index<Node> nodeIndex                                 = null;
+	private Index<Relationship> relIndex                          = null;
+	private String filesPath                                      = null;
+	private boolean isInitialized                                 = false;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -64,7 +63,6 @@ public class NodeService implements SingletonService {
 			command.setArgument("graphDb",           databaseService);
 			command.setArgument("nodeIndex",         nodeIndex);
 			command.setArgument("relationshipIndex", relIndex);
-			command.setArgument("fulltextIndex",     fulltextIndex);
 			command.setArgument("filesPath",         filesPath);
 		}
 	}
@@ -98,7 +96,6 @@ public class NodeService implements SingletonService {
 
 					nodeIndex     = databaseService.nodeIndex();
 					relIndex      = databaseService.relationshipIndex();
-					fulltextIndex = databaseService.fulltextIndex();
 
 					tx.success();
 

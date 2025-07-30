@@ -370,12 +370,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							}
 
 							final String renderingMode = elem.getRenderingMode();
-							boolean lazyRendering = false;
+							boolean lazyRendering = renderContext.getPage() != null && renderingMode != null;
 
 							// lazy rendering can only work if this node is not requested as a partial
-							if (renderContext.getPage() != null && renderingMode != null) {
-								lazyRendering = true;
-							}
 
 							// disable lazy rendering in deployment mode
 							if (EditMode.DEPLOYMENT.equals(editMode)) {
@@ -801,7 +798,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 								final Iterable<ParameterMapping> parameterMappings = thisElementWithSuperuserContext.getParameterMappings();
 
-								outputStructrId |= (thisElementWithSuperuserContext.is("TemplateElement") || parameterMappings.iterator().hasNext());
+								outputStructrId |= (thisElementWithSuperuserContext.is(StructrTraits.TEMPLATE_ELEMENT) || parameterMappings.iterator().hasNext());
 
 								// output data-structr-id only once
 								if (outputStructrId) {
@@ -876,7 +873,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
 					final DOMElement domElement                = domElementNode.as(DOMElement.class);
 
-					action = getActionMapping(entity.as(DOMElement.class)).getAction();
+					action = getActionMapping(domElement).getAction();
 
 					// store event context in object
 					renderContext.setConstant("eventContext", eventContext);

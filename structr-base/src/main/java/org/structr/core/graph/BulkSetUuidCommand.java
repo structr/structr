@@ -131,7 +131,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					} catch (FrameworkException fex) {
 
-						logger.warn("Unable to set UUID of relationship {}: {}", new Object[] { rel, fex.getMessage() });
+						logger.warn("Unable to set UUID of relationship {}: {}", rel, fex.getMessage());
 					}
 
 					return true;

@@ -19,8 +19,8 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.asciidoctor.internal.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -37,9 +37,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.*;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.FunctionInfoFunction;
@@ -55,6 +53,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
+import org.structr.core.traits.relationships.SchemaNodePropertyDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -64,6 +63,7 @@ import org.structr.web.entity.User;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -6746,20 +6746,28 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testDateConversions() {
 
-		final String src = IOUtils.readFull(ScriptingTest.class.getResourceAsStream("/test/scripting/testDateConversions.js"));
+		try {
+			final String src = IOUtils.toString(ScriptingTest.class.getResourceAsStream("/test/scripting/testDateConversions.js"));
 
-		try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx()) {
 
-			final ActionContext ctx = new ActionContext(securityContext);
+				final ActionContext ctx = new ActionContext(securityContext);
 
-			final Object result1 = Scripting.evaluate(ctx, null, src, "test1");
+				final Object result1 = Scripting.evaluate(ctx, null, src, "test1");
 
-			final ContextStore store = ctx.getContextStore();
+				final ContextStore store = ctx.getContextStore();
 
-		} catch (FrameworkException ex) {
-			ex.printStackTrace();
-			fail("Unexpected exception");
+				tx.success();
+
+			} catch (FrameworkException ex) {
+				ex.printStackTrace();
+				fail("Unexpected exception");
+			}
+
+		} catch (IOException ioex) {
+			fail("Unexpected exception.");
 		}
+
 	}
 
 	@Test
@@ -7131,6 +7139,291 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException expected) {
+		}
+	}
+
+	@Test
+	public void testScriptingJSModes() {
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_METHOD,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   "testJSScriptModesMethod"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ return true; }")
+			);
+
+			app.create(StructrTraits.SCHEMA_PROPERTY,
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   app.create(StructrTraits.SCHEMA_NODE, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test"))),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),         "returnTest"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{ return true }")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			final Object result     = Scripting.evaluate(ctx, null, "${{Structr.call('testJSScriptModesMethod')}}", "test");
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (UnlicensedScriptException |FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface obj = app.create(type, "test1");
+			final Object result     = obj.getProperty(Traits.of(type).key("returnTest"));
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// Switch scripting modes and try again
+		try (final Tx tx = app.tx()) {
+
+			final SchemaMethod method = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name("testJSScriptModesMethod").getFirst().as(SchemaMethod.class);
+
+			final SchemaNode testSchemaNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Test").getFirst().as(SchemaNode.class);
+
+			final SchemaProperty functionProp = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY)
+					.key(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), testSchemaNode)
+					.key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "returnTest")
+					.getFirst()
+					.as(SchemaProperty.class);
+
+			// disable wrapping for both methods
+			method.setProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY), false);
+			method.setSource("{true;}");
+
+			functionProp.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_WRAP_JS_PROPERTY), false);
+			functionProp.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), "{true;}");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			final Object result     = Scripting.evaluate(ctx, null, "${{Structr.call('testJSScriptModesMethod')}}", "test");
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (UnlicensedScriptException |FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface obj = app.create(type, "test1");
+			final Object result     = obj.getProperty(Traits.of(type).key("returnTest"));
+
+			assertNotNull(result);
+			assertTrue((Boolean)result);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+	}
+
+	@Test
+	public void testFileContentGettingSettingAndAppending() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file); }}", "test_1a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.setContent(file, 'test'); $.getContent(file); }}", "test_1b"), "test");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.appendContent(file, '123'); $.getContent(file); }}", "test_1c"), "test123");
+
+			tx.success();
+
+		} catch (FrameworkException fxe) {
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.getContent(file); }}", "test_2a"), "");
+			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile2.txt' }); $.appendContent(file, new Date()); }}", "test_2b");
+
+			fail("Providing a Date object (anything other than String or byte[]) to appendContent should throw an exception.");
+
+			tx.success();
+
+		} catch (FrameworkException expected) {
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext actionContext = new ActionContext(securityContext);
+
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file); }}", "test_3a"), "");
+			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.setContent(file, new Date()); }}", "test_3b");
+
+			fail("Providing a Date object (anything other than String or byte[]) to setContent should throw an exception.");
+
+			tx.success();
+
+		} catch (FrameworkException expected) {
+		}
+	}
+
+	@Test
+	public void testInheritingAndAncestorTypesFunctions() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonType subUser    = schema.addType("SubUser").addTrait(StructrTraits.USER);
+			final JsonType subSubUser = schema.addType("SubSubUser").addTrait("SubUser");
+
+			final JsonType serviceClass = schema.addType("SomeServiceClass").setIsServiceClass();
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			logger.error("", t);
+			fail("Unexpected exception during test setup.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// happy path
+			{
+				final String result1 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal').sort()); }}", "test1");
+				final String result2 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.inheritingTypes('Principal', ['SubUser', 'SubSubUser']).sort()); }}", "test1");
+				final String result3 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser').sort()); }}", "test1");
+				final String result4 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser', ['SubUser', 'User']).sort()); }}", "test1");
+
+				assertEquals("Invalid result for inheriting_types() function.", "[\"Group\",\"SubSubUser\",\"SubUser\",\"User\"]", result1);
+				assertEquals("Invalid result for inheriting_types() function.", "[\"Group\",\"User\"]", result2);
+				assertEquals("Invalid result for ancestor_types() function.", "[\"Principal\",\"SubUser\",\"User\"]", result3);
+				assertEquals("Invalid result for ancestor_types() function.", "[\"Principal\"]", result4);
+			}
+
+			// test wrong type name
+			{
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when querying type that does not exist!", "inheriting_types(): Type 'DoesNotExist' not found.", expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when querying type that does not exist!", "ancestor_types(): Type 'DoesNotExist' not found.", expected.getMessage());
+				}
+			}
+
+			// test service class
+			{
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when querying type that is a service class!", "inheriting_types(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when querying type that is a service class!", "ancestor_types(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
+				}
+			}
+
+			// test wrong parameter type for blacklist parameter
+			{
+				final String expectedErrorNonListParameterInheriting = "inheriting_types(): Expected 'blacklist' parameter to be of type List.";
+				final String expectedErrorNonListParameterAncestor   = "ancestor_types(): Expected 'blacklist' parameter to be of type List.";
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+				}
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
+				} catch (FrameworkException expected) {
+					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 

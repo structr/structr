@@ -23,6 +23,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
@@ -191,8 +192,8 @@ public class PageTest extends StructrUiTest {
 				// srcPage should not have a document element any more
 				//assertNull(srcPage.getDocumentElement());
 
-				final List<DOMNode> srcChildren = srcPage.getChildNodes();
-				final List<DOMNode> dstChildren = dstPage.getChildNodes();
+				final List<DOMNode> srcChildren = Iterables.toList(srcPage.getChildren());
+				final List<DOMNode> dstChildren = Iterables.toList(dstPage.getChildren());
 
 				// srcPage should have no children any more
 				assertEquals(0, srcChildren.size());

@@ -615,8 +615,6 @@ public class PermissionResolutionTest extends StructrTest {
 	@Test
 	public void testAdminFlagWithServicePrincipal() {
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-
 		try (final Tx tx = app.tx()) {
 
 			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", null, true);
@@ -631,22 +629,74 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 	}
 
-	public static void clearResourceAccess() {
+	@Test
+	public void testCircularGroupHierarchy() {
 
-		final App app = StructrApp.getInstance();
+		Principal tester = null;
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface access : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
-				app.delete(access);
-			}
+			final Traits traits = Traits.of(StructrTraits.GROUP);
+
+			final NodeInterface group1 = app.create(StructrTraits.GROUP, "group1");
+			final NodeInterface group2 = app.create(StructrTraits.GROUP, "group2");
+
+			final PropertyKey<Iterable<NodeInterface>> key = traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY);
+
+			tester = app.create(StructrTraits.PRINCIPAL, "tester").as(Principal.class);
+
+			// make to groups contain each other
+			group1.setProperty(key, List.of(group2));
+			group2.setProperty(key, List.of(group1));
+
+			/*
+			alternative test case: if circular groups are allowed, make sure there is no stack overflow when resolving the permissions
+
+			final NodeInterface test1 = app.create(StructrTraits.MAIL_TEMPLATE, "test");
+
+			// create schema grant from group1 to type MailTemplate
+			app.create(StructrTraits.SCHEMA_GRANT,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), "MailTemplate"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true)
+			);
+
+			group2.as(Group.class).addMember(securityContext, tester);
+			group1.as(Group.class).addMember(securityContext, tester);
+			*/
 
 			tx.success();
 
-		} catch (Throwable t) {
+			fail("Creating circular group hierarchies should cause an exception.");
 
-			logger.warn("Unable to clear resource access permissions", t);
+		} catch (FrameworkException fex) {
+
+			assertEquals("Wrong error message for circular group hierarchy", "Unable to commit transaction, validation failed", fex.getMessage());
+			assertEquals("Wrong error type for circular group hierarchy", "Group", fex.getErrorBuffer().getErrorTokens().get(0).getType());
+			assertEquals("Wrong error property for circular group hierarchy", "groups", fex.getErrorBuffer().getErrorTokens().get(0).getProperty());
+			assertEquals("Wrong error token for circular group hierarchy", "circular_reference", fex.getErrorBuffer().getErrorTokens().get(0).getToken());
 		}
+
+		/*
+
+		alternative test case: if circular groups are allowed, make sure there is no stack overflow when resolving the permissions
+
+		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
+		final App userApp                 = StructrApp.getInstance(userContext);
+
+		try (final Tx tx = userApp.tx()) {
+
+			final NodeInterface node = userApp.nodeQuery(StructrTraits.MAIL_TEMPLATE).getFirst();
+
+			assertNotNull("MailTemplate should be found", node);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+		*/
 	}
 
 	// ----- private methods -----

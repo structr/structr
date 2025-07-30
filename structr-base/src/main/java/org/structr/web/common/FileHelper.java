@@ -850,7 +850,7 @@ public class FileHelper {
 
 			NodeInterface potentialFolder = FileHelper.getFileByAbsolutePath(securityContext, partialPath);
 
-			folder = potentialFolder != null ? potentialFolder : null;
+			folder = potentialFolder;
 
 			if (folder == null) {
 
@@ -907,7 +907,7 @@ public class FileHelper {
 					msgString += " into existing folder {}.";
 				}
 
-				logger.info(msgString, new Object[]{fileName, parentFolderName});
+				logger.info(msgString, fileName, parentFolderName);
 
 				tx.success();
 			}

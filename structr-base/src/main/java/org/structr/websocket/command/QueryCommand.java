@@ -98,6 +98,7 @@ public class QueryCommand extends AbstractCommand {
 		if (andProperties != null) {
 
 			try {
+
 				final Gson gson                          = new GsonBuilder().create();
 
 				final Map<String, Object> andQuerySource = gson.fromJson(andProperties, new TypeToken<Map<String, Object>>() {}.getType());
@@ -120,7 +121,7 @@ public class QueryCommand extends AbstractCommand {
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("Exception occured", fex);
+				logger.warn("Exception occurred", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 				return;
@@ -137,7 +138,7 @@ public class QueryCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Exception occured", fex);
+			logger.warn("Exception occurred", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 		}
 	}

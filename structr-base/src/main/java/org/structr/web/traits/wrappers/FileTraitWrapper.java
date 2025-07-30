@@ -50,6 +50,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.providers.local.LocalFSHelper;
 import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -62,11 +63,13 @@ import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.operations.OnUploadCompletion;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -96,29 +99,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public void notifyUploadCompletion() {
-
-		try {
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				FileHelper.updateMetadata(this, true);
-				increaseVersion();
-
-				// indexing can be controlled for each file separately
-				if (doIndexing()) {
-
-					final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
-					indexer.addToFulltextIndex(wrappedObject);
-				}
-
-				tx.success();
-			}
-
-		} catch (FrameworkException fex) {
-
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("Unable to index {}: {}", this, fex.getMessage());
-		}
+		traits.getMethod(OnUploadCompletion.class).onUploadCompletion(this, getSecurityContext());
 	}
 
 	@Override
@@ -221,6 +202,20 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
+	public String getDiskFilePath(final SecurityContext securityContext) {
+
+		final LocalFSHelper helper    = new LocalFSHelper(getStorageConfiguration());
+		final java.io.File fileOnDisk = helper.getFileOnDisk(this);
+
+		if (fileOnDisk != null) {
+
+			return fileOnDisk.getAbsolutePath();
+		}
+
+		return null;
+	}
+
+	@Override
 	public InputStream getInputStream() {
 
 		final Logger logger = LoggerFactory.getLogger(File.class);
@@ -246,7 +241,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 				if (!editModeActive) {
 
-					final String content = IOUtils.toString(is, "UTF-8");
+					final String content = IOUtils.toString(is, StandardCharsets.UTF_8);
 
 					// close input stream here
 					is.close();
@@ -305,7 +300,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));			// FIXME: extractedContent... this used to extend "Indexable"
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override
@@ -609,10 +604,10 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	private LineAndSeparator getFirstLines(final int num) {
 
 		final StringBuilder lines = new StringBuilder();
-		int separator[]           = new int[10];
+		int[] separator = new int[10];
 		int separatorLength       = 0;
 
-		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), StandardCharsets.UTF_8))) {
 
 			int[] buf = new int[10010];
 

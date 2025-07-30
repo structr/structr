@@ -202,7 +202,7 @@ public class UiAuthenticator implements Authenticator {
 		response.setHeader("X-Structr-Edition", Services.getInstance().getEdition());
 
 		// expose cluster node replica number
-		if (Settings.ClusterModeEnabled.getValue(false) == true) {
+		if (Settings.ClusterModeEnabled.getValue(false)) {
 
 			response.setHeader("X-Structr-Cluster-Node", Services.getInstance().getNodeName());
 		}
@@ -472,7 +472,7 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws FrameworkException {
+	public Principal doLogin(final HttpServletRequest reqt, final String emailOrUsername, final String password) throws FrameworkException {
 
 		final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
@@ -810,7 +810,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} catch (IOException ex) {
 
-			logger.error("Could not redirect to {}: {}", new Object[]{ oAuth2Client.getErrorURI(), ex });
+			logger.error("Could not redirect to {}: {}", oAuth2Client.getErrorURI(), ex);
 		}
 
 

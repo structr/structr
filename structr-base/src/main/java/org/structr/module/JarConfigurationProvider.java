@@ -152,9 +152,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				
 				modules.add(loadResource(resourcePath));
 				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			} catch (IOException ignore) {}
 		}
 
 		logger.info("{} JARs scanned", resourcePaths.size());
@@ -293,55 +291,59 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private ClasspathResource loadResource(String resource) throws IOException {
 
 		// create module
-		final ClasspathResource ret   = new ClasspathResource(resource);
-		final Set<String> classes = ret.getClasses();
+		final ClasspathResource ret = new ClasspathResource(resource);
+		final Set<String> classes   = ret.getClasses();
+		final File file             = new File(resource);
 
-		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
+		if (file.exists()) {
 
-			try (final JarFile jarFile   = new JarFile(new File(resource), true)) {
+			if (resource.endsWith(".jar") || resource.endsWith(".war")) {
 
-				final Manifest manifest = jarFile.getManifest();
-				if (manifest != null) {
+				try (final JarFile jarFile = new JarFile(file, true)) {
 
-					final Attributes attrs  = manifest.getAttributes("Structr");
-					if (attrs != null) {
+					final Manifest manifest = jarFile.getManifest();
+					if (manifest != null) {
 
-						final String name = attrs.getValue("Structr-Module-Name");
+						final Attributes attrs = manifest.getAttributes("Structr");
+						if (attrs != null) {
 
-						// only scan and load modules that are licensed
-						if (name != null) {
+							final String name = attrs.getValue("Structr-Module-Name");
 
-							for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+							// only scan and load modules that are licensed
+							if (name != null) {
 
-								final JarEntry entry = entries.nextElement();
-								final String entryName = entry.getName();
+								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements(); ) {
 
-								if (entryName.endsWith(".class")) {
+									final JarEntry entry = entries.nextElement();
+									final String entryName = entry.getName();
 
-									// cat entry > /dev/null (necessary to get signers below)
-									IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
+									if (entryName.endsWith(".class")) {
 
-									final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-									final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
+										// cat entry > /dev/null (necessary to get signers below)
+										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
 
-									// add class entry to Module
-									classes.add(fqcn);
+										final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+										final String fqcn = fileEntry.substring(0, fileEntry.length() - 6);
+
+										// add class entry to Module
+										classes.add(fqcn);
+									}
 								}
 							}
 						}
 					}
 				}
+
+			} else if (resource.endsWith(classesDir)) {
+
+				// this is for testing only!
+				addClassesRecursively(file, classesDir, classes);
+
+			} else if (resource.endsWith(testClassesDir)) {
+
+				// this is for testing only!
+				addClassesRecursively(file, testClassesDir, classes);
 			}
-
-		} else if (resource.endsWith(classesDir)) {
-
-			// this is for testing only!
-			addClassesRecursively(new File(resource), classesDir, classes);
-
-		} else if (resource.endsWith(testClassesDir)) {
-
-			// this is for testing only!
-			addClassesRecursively(new File(resource), testClassesDir, classes);
 		}
 
 		return ret;

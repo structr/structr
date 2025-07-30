@@ -58,16 +58,12 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 		prefetch(webSocketData.getId());
 
 		final List<GraphObject> result = new LinkedList<>();
-		DOMNode currentNode            = node.getFirstChild();
 
-		while (currentNode != null) {
+		for (final DOMNode currentNode : node.getChildren()) {
 
 			prefetch(currentNode.getUuid());
 
 			result.add(currentNode);
-
-			currentNode = (DOMNode) currentNode.getNextSibling();
-
 		}
 
 		webSocketData.setView(PropertyView.All);
@@ -75,7 +71,6 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		// send only over local connection
 		getWebSocket().send(webSocketData, true);
-
 	}
 
 	@Override

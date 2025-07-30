@@ -194,6 +194,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		String newFileUuid    = null;
 		final Traits traits   = Traits.of(StructrTraits.FILE);
 		final String fullPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
+		boolean wasIgnored    = false;
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -209,6 +210,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 				logger.info("Ignoring {} (not in files.json)", fullPath);
 
 				encounteredButNotConfiguredFilePaths.add(path.toString());
+				wasIgnored = true;
 
 			} else {
 
@@ -241,7 +243,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					final Long checksumOfExistingFile = FileHelper.getChecksum(file.as(File.class));
 					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
-					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {
+					if (checksumOfExistingFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {
 
 						skipFile = true;
 
@@ -341,7 +343,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			logger.error("Error occured while reading file properties " + fileName, ex);
 		}
 
-		checkIfFileOrFolderWasRenamed(traits, fullPath, fileName);
+		if (!wasIgnored) {
+
+			checkIfFileOrFolderWasRenamed(traits, fullPath, fileName);
+		}
 	}
 
 	protected void checkIfFileOrFolderWasRenamed(final Traits traits, final String fullPath, final String targetName) {
@@ -465,8 +470,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			if (configuredButNotEncountered.size() > 0) {
 
 				problems.add(
-						"The following entries were configured in files.json, but the <b>expected files were not found</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
-						+ "<ul><li>" + String.join("</li><li>", configuredButNotEncountered) + "</li></ul>"
+						"The following entries were configured in files.json, but the <b>expected files/folders were not found</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
+						+ "<ul><li>" + String.join("</li><li>", configuredButNotEncountered.stream().sorted().collect(Collectors.toList())) + "</li></ul>"
 				);
 			}
 
@@ -474,7 +479,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				problems.add(
 						"The following files were found, but <b>are missing in files.json</b>. The most common cause is that files.json was not correctly committed."
-						+ "<ul><li>" + String.join("</li><li>", encounteredButNotConfigured) + "</li></ul>"
+						+ "<ul><li>" + String.join("</li><li>", encounteredButNotConfigured.stream().sorted().collect(Collectors.toList())) + "</li></ul>"
 				);
 			}
 
@@ -495,12 +500,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			if (configuredButNotEncountered.size() > 0) {
 
-				problems.add("\tThe following entries were configured in files.json, but the expected files were not found. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository.\n\t\t" + String.join("\n\t\t", configuredButNotEncountered));
+				problems.add("\tThe following entries were configured in files.json, but the expected files/folders were not found. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository.\n\t\t" + String.join("\n\t\t", configuredButNotEncountered.stream().sorted().collect(Collectors.toList())));
 			}
 
 			if (encounteredButNotConfigured.size() > 0) {
 
-				problems.add("\tThe following files were found, but are missing in files.json. The most common cause is that files.json was not correctly committed.\n\t\t" + String.join("\n\t\t", encounteredButNotConfigured));
+				problems.add("\tThe following files were found, but are missing in files.json. The most common cause is that files.json was not correctly committed.\n\t\t" + String.join("\n\t\t", encounteredButNotConfigured.stream().sorted().collect(Collectors.toList())));
 			}
 
 			if (forceRenamedFilesAndFolders.size() > 0) {

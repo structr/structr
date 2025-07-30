@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -162,6 +163,11 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					}
 
 					tx.success();
+
+					TransactionCommand.registerNodeCallback(newNode, callback);
+
+					// send success
+					getWebSocket().send(webSocketData, true);
 
 				} catch (FrameworkException fex) {
 

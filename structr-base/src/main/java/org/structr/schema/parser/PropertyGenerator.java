@@ -137,6 +137,10 @@ public abstract class PropertyGenerator<T> {
 			propertyKey.writeFunction(source.getWriteFunction());
 		}
 
+		propertyKey.readFunctionWrapJS(source.getReadFunctionWrapJS());
+
+		propertyKey.writeFunctionWrapJS(source.getWriteFunctionWrapJS());
+
 		if (source.isSerializationDisabled()) {
 			propertyKey.disableSerialization(source.isSerializationDisabled());
 		}
@@ -172,6 +176,11 @@ public abstract class PropertyGenerator<T> {
 				propertyKey.indexedWhenEmpty();
 
 			} else {
+
+				if (source.isFulltext()) {
+
+					propertyKey.fulltextIndexed();
+				}
 
 				propertyKey.indexed();
 			}

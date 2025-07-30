@@ -1338,7 +1338,7 @@ button.action.disabled:hover {
 }
 
 .non-block-ui-blocker-content {
-	position: relative;
+	position: fixed;
 	display: flex;
 	width: 100%;
 	height: calc(100vh - 8rem);
@@ -2220,7 +2220,7 @@ th.center {
 	position: absolute;
 	left: 60%;
 	right: 4px;
-	top: 4px;
+	top: 0;
 	overflow-y: auto;
 	max-height: 100vh;
 }
@@ -2547,7 +2547,7 @@ input.tree-search-input {
 	vertical-align: top;
 	background-color: var(--solid-white);
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
-	padding: 1rem;
+	padding: 1.5rem 2rem;
 	margin-top: 0;
 	overflow: auto;
 }
@@ -2687,57 +2687,9 @@ i.fa-sitemap {
 	width: 50%;
 }
 
-#search-results h1, #search-results table.props {
-	margin-bottom: 12px;
-}
-
-#search-results table.props {
-	margin-bottom: 24px;
-}
-
-#search-results table.props th._type {
-	width: 120px;
-}
-
-.search-result {
-	position: relative;
-	padding: 0 12px 12px 12px;
-	margin-top: 12px;
-	margin-bottom: 12px;
-	background-color: var(--light-gray-bg-f7);
-	overflow: auto;
-}
-
-.search-result.collapsed {
-	max-height: 120px;
-}
-
-.search-result .part {
-	background-color: var(--solid-white);
-	margin-right: 20px;
-	margin-bottom: 12px;
-	min-width: 240px;
-	width: 30%;
-	float: left;
-}
-
-.search-result .highlight {
+#search-results .highlight {
 	background-color: var(--structr-light-green-2);
 	color: var(--solid-black);
-}
-
-.search-result .toggle-height {
-	cursor: pointer;
-	position: absolute;
-	top: 12px;
-	right: 12px;
-}
-
-.search-result .go-to-top {
-	cursor: pointer;
-	position: absolute;
-	top: 12px;
-	right: 36px;
 }
 
 .breadcrumb-entry {
@@ -2937,7 +2889,7 @@ i.fa-sitemap {
 	text-align: center;
 }
 
-#structr-console, #structr-favorites {
+#structr-console {
 	position: absolute;
 	top: 53px;
 	right: 0;
@@ -2945,12 +2897,6 @@ i.fa-sitemap {
 	left: 0;
 	z-index: 1012;
 	opacity: .9;
-}
-
-#structr-favorites {
-	background-color: var(--gray-eee);
-	width: 100%;
-	opacity: 1;
 }
 
 /**
@@ -4129,6 +4075,10 @@ ul.combined-input-select-field li:hover {
 	margin-top: .5rem;
 	margin-bottom: .5rem;
 }
+.my-3 {
+	margin-top: .75rem;
+	margin-bottom: .75rem;
+}
 .my-4 {
 	margin-top: 1rem;
 	margin-bottom: 1rem;
@@ -4268,6 +4218,9 @@ ul.combined-input-select-field li:hover {
 .pl-2 {
 	padding-left: .5rem;
 }
+.pl-4 {
+	padding-left: 1rem;
+}
 .pl-5 {
 	padding-left: 1.25rem;
 }
@@ -4348,6 +4301,10 @@ ul.combined-input-select-field li:hover {
 	padding-top: .5rem;
 	padding-bottom: .5rem;
 }
+.py-3 {
+	padding-top: .75rem;
+	padding-bottom: .75rem;
+}
 .py-4 {
 	padding-top: 1rem;
 	padding-bottom: 1rem;
@@ -4413,6 +4370,9 @@ ul.combined-input-select-field li:hover {
 }
 .gap-y-4 {
 	row-gap: 1rem;
+}
+.gap-y-12 {
+	row-gap: 3rem;
 }
 .gap-x-2 {
 	column-gap: .5rem;
@@ -4482,6 +4442,9 @@ ul.combined-input-select-field li:hover {
 }
 .max-h-5 {
 	max-height: 1.25rem;
+}
+.max-h-24 {
+	max-height: 6rem;
 }
 .min-h-5 {
 	min-height: 1.25rem;

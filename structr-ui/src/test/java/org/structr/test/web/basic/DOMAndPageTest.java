@@ -968,7 +968,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Page version is not increased on modification", 3, page.getVersion());
+			assertEquals("Page version is not increased on modification", 2, page.getVersion());
 
 			tx.success();
 

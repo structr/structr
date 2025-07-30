@@ -21,6 +21,7 @@ package org.structr.websocket.command.dom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -116,6 +117,11 @@ public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 							copyGrantees(parentNode, newNode);
 						}
 					}
+
+					TransactionCommand.registerNodeCallback(newNode, callback);
+
+					// send success
+					getWebSocket().send(webSocketData, true);
 
 				} catch (DOMException dex) {
 

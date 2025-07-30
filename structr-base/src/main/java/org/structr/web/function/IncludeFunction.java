@@ -123,7 +123,7 @@ public class IncludeFunction extends UiCommunityFunction {
 					} else {
 
 						// ERROR: we have found multiple DOMNodes with the same name
-						logger.warn("Ambiguous node name \"" + ((String)sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")");
+						logger.warn("Ambiguous node name \"" + sources[0] + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")");
 						return "";
 					}
 				}
@@ -159,10 +159,9 @@ public class IncludeFunction extends UiCommunityFunction {
 
 			DOMNode.prefetchDOMNodes(node.getUuid());
 
-			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
+			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String dataKey) {
 
 				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);
-				final String dataKey                 = (String)sources[2];
 
 				innerCtx.setListSource(iterable);
 				node.renderNodeList(securityContext, innerCtx, 0, dataKey);
@@ -189,7 +188,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				if (contentType == null || StringUtils.isBlank(extension)) {
 
-					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", name, getParametersAsString(sources));
 					return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
 
 				}
@@ -225,7 +224,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				} else {
 
-					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", name, getParametersAsString(sources));
 					return "Don't know how to render content type or extension of  " + name + ".";
 
 				}

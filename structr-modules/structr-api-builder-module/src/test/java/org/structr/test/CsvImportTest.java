@@ -80,7 +80,7 @@ public class CsvImportTest extends CsvTestBase {
 			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
-			newType.addIntegerProperty("originId").isIndexed();
+			newType.addIntegerProperty("originId").setIndexed(true);
 			newType.addStringProperty("typeName");
 			newType.addIntegerProperty("test1");
 			newType.addIntegerProperty("test2");
@@ -202,7 +202,7 @@ public class CsvImportTest extends CsvTestBase {
 			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
-			newType.addIntegerProperty("originId").isIndexed();
+			newType.addIntegerProperty("originId").setIndexed(true);
 			newType.addStringProperty("typeName");
 			newType.addIntegerProperty("test1");
 			newType.addIntegerProperty("test2");
@@ -325,7 +325,7 @@ public class CsvImportTest extends CsvTestBase {
 			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
-			newType.addIntegerProperty("originId").isIndexed();
+			newType.addIntegerProperty("originId").setIndexed(true);
 			newType.addStringProperty("typeName");
 			newType.addIntegerProperty("test1");
 			newType.addIntegerProperty("test2");
@@ -448,7 +448,7 @@ public class CsvImportTest extends CsvTestBase {
 			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
-			newType.addIntegerProperty("originId").isIndexed();
+			newType.addIntegerProperty("originId").setIndexed(true);
 			newType.addStringProperty("typeName");
 			newType.addIntegerProperty("test1");
 			newType.addIntegerProperty("test2");

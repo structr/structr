@@ -36,7 +36,6 @@ public abstract class FlowDeploymentHandler {
 		new FlowTreeDeploymentHandler().doExport(target, gson);
 	}
 
-
 	public static void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
 
 		final File flowDir = new File(source.resolve(FlowTreeDeploymentHandler.FLOW_DEPLOYMENT_TREE_BASE_FOLDER).toAbsolutePath().toString());

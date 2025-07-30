@@ -18,9 +18,6 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.Point;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.data.DataUtilities;
@@ -32,6 +29,9 @@ import org.geotools.map.FeatureLayer;
 import org.geotools.map.MapContent;
 import org.geotools.styling.SLD;
 import org.geotools.swing.JMapFrame;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.Point;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
 import org.structr.schema.action.Function;

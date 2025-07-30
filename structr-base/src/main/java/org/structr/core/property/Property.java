@@ -67,6 +67,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean nodeOnly                  = false;
 	protected boolean isAbstract                = false;
 	protected boolean serializationDisabled     = false;
+	protected boolean writeFunctionWrapJS       = true;
+	protected boolean readFunctionWrapJS        = true;
 	protected String dbName                     = null;
 	protected String jsonName                   = null;
 	protected String format                     = null;
@@ -385,6 +387,28 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Property<T> writeFunction(final String writeFunction) {
 		this.writeFunction = writeFunction;
+		return this;
+	}
+
+	@Override
+	public Boolean readFunctionWrapJS() {
+		return this.readFunctionWrapJS;
+	}
+
+	@Override
+	public Boolean writeFunctionWrapJS() {
+		return this.writeFunctionWrapJS;
+	}
+
+	@Override
+	public Property<T> readFunctionWrapJS(final boolean wrap) {
+		this.readFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
+	public Property<T> writeFunctionWrapJS(final boolean wrap) {
+		this.writeFunctionWrapJS = wrap;
 		return this;
 	}
 

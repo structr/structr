@@ -617,6 +617,8 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag body = doc.block("body");
 		final Tag header = body.block("div").id("header");
 
+		body.block("div").id("cron-info-text").css("hidden").attr(new Attr("data-value", Settings.CRON_EXPRESSION_INFO_HTML));
+
 		header.block("svg").attr(new Attr("title", "Structr Logo")).css("logo").block("use").attr(new Attr("href", "#structr-logo"));
 		final Tag links = header.block("div").id("menu").css("menu").block("ul");
 

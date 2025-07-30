@@ -21,11 +21,14 @@ package org.structr.api.index;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.QueryPredicate;
 
+import java.util.Map;
+
 /**
  *
  */
 public interface Index<T> {
 
 	Iterable<T> query(final QueryContext context, final QueryPredicate predicate, final int requestedPageSize, final int requestedPage);
+	Map<T, Double> fulltextQuery(final String indexName, final String searchString);
 	boolean supports(final Class type);
 }

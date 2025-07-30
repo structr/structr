@@ -128,9 +128,7 @@ public class MicroformatParser {
 			@Override
 			public void head(Node node, int depth) {
 
-				if (node instanceof Element) {
-
-					final Element element = (Element)node;
+				if (node instanceof Element element) {
 
 					if (element.isBlock()) {
 						final Set<String> classes = element.classNames();
@@ -163,9 +161,8 @@ public class MicroformatParser {
 			@Override
 			public void head(Node node, int depth) {
 
-				if (node instanceof Element) {
+				if (node instanceof Element element) {
 
-					final Element element     = (Element)node;
 					final Set<String> classes = element.classNames();
 
 					removeEmpty(classes);

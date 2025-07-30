@@ -81,7 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	StructrWS.init();
 
-	document.body.addEventListener('keyup', (event) => {
+	document.body.addEventListener('keyup', async (event) => {
 
 		let keyCode = event.keyCode;
 		let code    = event.code;
@@ -93,8 +93,9 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			_Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
+			await _Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
 		}
+
 		return false;
 	});
 
@@ -118,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Ctrl-Alt-f
 		if ((code === 'KeyF' || keyCode === 70) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			_Favorites.toggleFavorites();
+			_Favorites.showFavorites();
 		}
 
 		// Ctrl-Alt-p
@@ -159,7 +160,7 @@ document.addEventListener("DOMContentLoaded", () => {
 				// ESC or Cancel
 			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
-					_Entities.showAccessControlDialog(obj);
+					_Entities.showProperties(obj, 'permissions');
 				});
 			} else {
 				new WarningMessage().text('Given string does not validate as a UUID').show();
@@ -358,8 +359,6 @@ let Structr = {
 			_Console.initConsole();
 
 			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
-
-			_Favorites.initFavorites();
 		});
 	},
 	updateUsername: (name) => {
@@ -386,7 +385,6 @@ let Structr = {
 	},
 	doLogout: () => {
 
-		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
 
@@ -494,6 +492,7 @@ let Structr = {
 	getErrorMessageFromResponse: (response, useHtml = true, url) => {
 
 		let errorText = '';
+		let lineJoin  = (useHtml ? '<br>' : '\n');
 
 		if (response.errors && response.errors.length) {
 
@@ -503,7 +502,7 @@ let Structr = {
 
 			for (let error of uniqueErrors) {
 
-				let errorMsg = (error.type ? error.type : '');
+				let errorMsg = error.type ?? '';
 				if (error.property) {
 					errorMsg += `.${error.property}`;
 				}
@@ -523,7 +522,7 @@ let Structr = {
 				errorLines.push(errorMsg);
 			}
 
-			errorText = errorLines.join((useHtml ? '<br>' : '\n'));
+			errorText = errorLines.join(lineJoin);
 
 		} else {
 
@@ -531,17 +530,8 @@ let Structr = {
 				errorText = url + ': ';
 			}
 
-			errorText += response.code + (useHtml ? '<br>' : '\n');
-
-			for (let key in response) {
-				if (key !== 'code') {
-					if (useHtml) {
-						errorText += `<b>${key}</b>: ${response[key]}<br>`;
-					} else {
-						errorText += `${key}: ${response[key]}`;
-					}
-				}
-			}
+			errorText += response.code + lineJoin;
+			errorText += Object.entries(response).filter(([k, v]) => (k !== 'code' && v && v.length > 0)).map(([k, v]) => (useHtml) ? `<b>${k}</b>: ${v}` : `${k}: ${v}`).join(lineJoin);
 		}
 
 		return errorText;
@@ -662,10 +652,9 @@ let Structr = {
 
 		return childNodes.length;
 	},
-	node: (id, prefix) => {
+	node: (id, prefix = '#id_', container = document) => {
 
-		let p    = prefix || '#id_';
-		let node = $($(p + id)[0]);
+		let node = $($(prefix + id, $(container))[0]);
 
 		return (node.length ? node : undefined);
 	},
@@ -1594,7 +1583,7 @@ let Structr = {
 					} else {
 
 						if (data.isServicePrincipal === false) {
-							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) });
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: ['read'] }] }) });
 						}
 
 						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) });
@@ -1929,10 +1918,10 @@ let Structr = {
 		mainBody: config => `
 
 			<div id="info-area">
-				<div id="close-all-button" class="my-4 mx-2 text-right">
+				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
 				</div>
-				<div id="messages"></div>
+				<div id="messages" class="py-1"></div>
 			</div>
 
 			<div id="header">
@@ -1979,7 +1968,6 @@ let Structr = {
 			</div>
 
 			<div class="hidden" id="structr-console"></div>
-			<div class="hidden" id="structr-favorites"></div>
 
 			<div id="function-bar"></div>
 			<div id="main"></div>
@@ -2892,7 +2880,7 @@ let UISettings = {
 					<div class="flex items-center">
 						<label class="flex items-center p-1">
 							${setting.text}
-							<select class="mr-2 ${setting.inputCssClass ?? ''}">
+							<select class="ml-2 ${setting.inputCssClass ?? ''}">
 								${Object.values(setting.possibleValues).map(option => `<option value="${option.value}">${option.text}</option>`)}
 							</select>
 						</label>

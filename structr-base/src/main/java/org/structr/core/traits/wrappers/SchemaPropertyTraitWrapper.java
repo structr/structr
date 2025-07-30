@@ -134,6 +134,14 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public boolean isFulltext() {
+
+		final Boolean isFulltext = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY));
+
+		return Boolean.TRUE.equals(isFulltext);
+	}
+
+	@Override
 	public boolean isReadOnly() {
 
 		final Boolean isReadOnly = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY));
@@ -232,6 +240,18 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 		}
 
 		return _writeFunction;
+	}
+
+	@Override
+	public boolean getWriteFunctionWrapJS() {
+
+        return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_WRAP_JS_PROPERTY));
+	}
+
+	@Override
+	public boolean getReadFunctionWrapJS() {
+
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_WRAP_JS_PROPERTY));
 	}
 
 	@Override

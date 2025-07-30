@@ -66,7 +66,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 					} catch (FrameworkException fex) {
 
-						logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
+						logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage());
 					}
 				}
 

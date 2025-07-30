@@ -27,6 +27,6 @@ package org.structr.core;
  */
 public interface Decorable<T> {
 	
-	public void addDecorator(Decorator<T> d);
-	public void removeDecorator(Decorator<T> d);
+	void addDecorator(Decorator<T> d);
+	void removeDecorator(Decorator<T> d);
 }

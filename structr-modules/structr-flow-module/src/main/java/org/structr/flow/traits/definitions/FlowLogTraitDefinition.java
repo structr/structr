@@ -33,13 +33,12 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.FlowAction;
-import org.structr.flow.impl.FlowContainer;
-import org.structr.flow.impl.FlowDataSource;
-import org.structr.flow.impl.FlowKeyValue;
+import org.structr.flow.impl.*;
 import org.structr.flow.traits.operations.ActionOperations;
+import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
@@ -60,6 +59,15 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
+
+			GetFlowType.class,
+			new GetFlowType() {
+
+				@Override
+				public FlowType getFlowType(final FlowNode flowNode) {
+					return FlowType.Action;
+				}
+			},
 
 			ActionOperations.class,
 			new ActionOperations() {
@@ -85,7 +93,7 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 						}
 
 						// Evaluate script and write result to context
-						final Object result = Scripting.evaluate(context.getActionContext(action.getSecurityContext(), action), action, "${" + _script.trim() + "}", "FlowAction(" + uuid + ")");
+						final Object result = Scripting.evaluate(context.getActionContext(action.getSecurityContext(), action), action, "${" + _script.trim() + "}", "FlowLog(" + uuid + ")");
 
 						final FlowContainer container = action.getFlowContainer();
 
@@ -104,7 +112,8 @@ public class FlowLogTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowKeyValue.class, (traits, node) -> new FlowKeyValue(traits, node)
+			FlowLog.class, (traits, node) -> new FlowLog(traits, node),
+			FlowAction.class, (traits, node) -> new FlowLog(traits, node)
 		);
 	}
 

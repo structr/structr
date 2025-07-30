@@ -1202,22 +1202,6 @@ let Command = {
 		return StructrWS.sendObj(obj, callback);
 	},
 	/**
-	 * Send a FAVORITES command to the server.
-	 *
-	 * Depending on the mode the server will either add/remove the file to/from
-	 * the users favorite files.
-	 */
-	favorites: function(mode, fileId, callback) {
-		let obj  = {
-			command: 'FAVORITES',
-			data: {
-				mode: mode,
-				id: fileId
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
 	 * Send a CONVERT_IMAGE command to the server.
 	 *
 	 * Depending on the mode the server will either add/remove the file to/from

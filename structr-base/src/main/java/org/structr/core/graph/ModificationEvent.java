@@ -32,24 +32,24 @@ import java.util.Map;
  */
 public interface ModificationEvent {
 
-	public boolean isNode();
+	boolean isNode();
 
-	public int getStatus();
-	public String getChangeLog();
-	public Map<String, StringBuilder> getUserChangeLogs();
-	public String getCallbackId();
+	int getStatus();
+	String getChangeLog();
+	Map<String, StringBuilder> getUserChangeLogs();
+	String getCallbackId();
 
-	public boolean isDeleted();
-	public boolean isModified();
-	public boolean isCreated();
+	boolean isDeleted();
+	boolean isModified();
+	boolean isCreated();
 
-	public GraphObject getGraphObject();
-	public RelationshipType getRelationshipType();
-	public String getUuid();
+	GraphObject getGraphObject();
+	RelationshipType getRelationshipType();
+	String getUuid();
 
-	public PropertyMap getNewProperties();
-	public PropertyMap getModifiedProperties();
-	public PropertyMap getRemovedProperties();
+	PropertyMap getNewProperties();
+	PropertyMap getModifiedProperties();
+	PropertyMap getRemovedProperties();
 
-	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException;
+	Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException;
 }

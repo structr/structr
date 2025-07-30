@@ -64,7 +64,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 	private static final Logger logger = LoggerFactory.getLogger(FulltextIndexingAgent.class.getName());
 	static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
-	public static final String TASK_NAME                              = "FulltextIndexing";
+	public static final String TASK_NAME                      = "FulltextIndexing";
 
 	private final Detector detector;
 
@@ -158,21 +158,29 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 					try (final FulltextTokenizer tokenizer = new FulltextTokenizer()) {
 
-						try (final InputStream is = inputStream) {
+						if (indexable.getSize() == 0) {
 
-							final AutoDetectParser parser = new AutoDetectParser(detector);
-
-							parser.parse(is, new BodyContentHandler(tokenizer), metadata);
-
-							parsingSuccessful = !EmptyParser.class.getName().equals(metadata.get("X-Parsed-By"));
-						}
-
-						// only do indexing when parsing was successful
-						if (parsingSuccessful) {
-
-							// save raw extracted text
+							// empty out possibly previously extracted text (prevent warning in log)
 							indexable.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), tokenizer.getRawText());
-							return true;
+
+						} else {
+
+							try (final InputStream is = inputStream) {
+
+								final AutoDetectParser parser = new AutoDetectParser(detector);
+
+								parser.parse(is, new BodyContentHandler(tokenizer), metadata);
+
+								parsingSuccessful = !EmptyParser.class.getName().equals(metadata.get("X-Parsed-By"));
+							}
+
+							// only do indexing when parsing was successful
+							if (parsingSuccessful) {
+
+								// save raw extracted text
+								indexable.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), tokenizer.getRawText());
+								return true;
+							}
 						}
 					}
 				}

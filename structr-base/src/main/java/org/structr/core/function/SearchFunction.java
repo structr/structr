@@ -66,9 +66,9 @@ public class SearchFunction extends AbstractQueryFunction {
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = Traits.of(typeString);
+				if (Traits.exists(typeString)) {
 
-				if (type != null) {
+					type = Traits.of(typeString);
 
 					query.types(type);
 

@@ -167,15 +167,8 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 					} else {
 
-						/*
-						if (traits.contains(StructrTraits.FILE)) {
-							query.fulltext(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), sources[1].toString());
-							return query.getAsList();
-						}
-						*/
-
 						// probably an error case where migration to predicates was forgotten
-						throw new FrameworkException(422, getReplacement() + ": Invalid parameter '" + uuid + "', returning null. If a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
+						throw new FrameworkException(422, getReplacement() + ": Invalid parameter '" + uuid + "'. If a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
 					}
 				}
 			}
@@ -185,7 +178,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 			final int parameter_count = sources.length;
 
 			// the below loop must work for both simple parameters (key, value, key, value, key, value, ...)
-			// as well as advanced ones (predicate, predicate, predicate, ...) so we increment the value
+			// and advanced ones (predicate, predicate, predicate, ...) so we increment the value
 			// of c inside the loop if a non-advanced parameter is encountered.
 
 			for (int c = 1; c < parameter_count; c++) {

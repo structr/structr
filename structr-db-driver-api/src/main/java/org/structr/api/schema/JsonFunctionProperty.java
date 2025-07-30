@@ -30,6 +30,12 @@ public interface JsonFunctionProperty extends JsonDynamicProperty {
 	public JsonFunctionProperty setWriteFunction(final String writeFunction);
 	public String getWriteFunction();
 
+	public JsonFunctionProperty setWriteFunctionWrapJS(final boolean wrap);
+	public Boolean getWriteFunctionWrapJS();
+
+	public JsonFunctionProperty setReadFunctionWrapJS(final boolean wrap);
+	public Boolean getReadFunctionWrapJS();
+
 	public JsonFunctionProperty setIsCachingEnabled(final boolean enabled);
 	public Boolean getIsCachingEnabled();
 

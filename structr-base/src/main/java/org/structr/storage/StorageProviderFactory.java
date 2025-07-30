@@ -113,6 +113,10 @@ public abstract class StorageProviderFactory {
 		return getDefaultStorageProvider(file);
 	}
 
+	public static Class<? extends StorageProvider> getDefaultStorageProviderClass() {
+		return LocalFSStorageProvider.class;
+	}
+
 	public static StorageProvider getDefaultStorageProvider(final AbstractFile file) {
 		return new LocalFSStorageProvider(file);
 	}

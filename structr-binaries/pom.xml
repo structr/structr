@@ -12,6 +12,11 @@
 		<version>6.0-SNAPSHOT</version>
 	</parent>
 
+	<properties>
+		<assemblies.base.path>${project.parent.basedir}/structr-base/target</assemblies.base.path>
+		<assemblies.resources.path>${project.parent.basedir}/structr-base/src/main/resources</assemblies.resources.path>
+	</properties>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -27,7 +32,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<file>src/main/deb/bin/config</file>
+					<file>src/main/resources/deb/bin/config</file>
 					<outputFile>target/deb/config</outputFile>
 					<replacements>
 						<replacement>
@@ -50,7 +55,7 @@
 						<configuration>
 							<deb>${project.build.directory}/${project.parent.build.finalName}.deb</deb>
 							<skip>${skipDeb}</skip>
-							<controlDir>${basedir}/src/main/deb/control</controlDir>
+							<controlDir>${basedir}/src/main/resources/deb/control</controlDir>
 							<dataSet>
 								<data>
 									<src>${project.build.directory}/${project.build.finalName}.jar</src>
@@ -93,7 +98,7 @@
 								</data>
 
 								<data>
-									<src>${basedir}/src/main/deb/bin/start</src>
+									<src>${basedir}/src/main/resources/deb/bin/start</src>
 									<type>file</type>
 									<mapper>
 										<type>perm</type>
@@ -103,7 +108,7 @@
 								</data>
 
 								<data>
-									<src>${basedir}/src/main/deb/bin/stop</src>
+									<src>${basedir}/src/main/resources/deb/bin/stop</src>
 									<type>file</type>
 									<mapper>
 										<type>perm</type>
@@ -113,7 +118,7 @@
 								</data>
 
 								<data>
-									<src>${basedir}/src/main/deb/init.d</src>
+									<src>${basedir}/src/main/resources/deb/init.d</src>
 									<type>directory</type>
 									<mapper>
 										<type>perm</type>
@@ -123,7 +128,7 @@
 								</data>
 
 								<data>
-									<src>${basedir}/src/main/deb/systemd</src>
+									<src>${basedir}/src/main/resources/deb/systemd</src>
 									<type>directory</type>
 									<mapper>
 										<type>perm</type>
@@ -133,7 +138,7 @@
 								</data>
 
 								<data>
-									<src>${basedir}/src/main/deb/logrotate.d</src>
+									<src>${basedir}/src/main/resources/deb/logrotate.d</src>
 									<type>directory</type>
 									<mapper>
 										<type>perm</type>

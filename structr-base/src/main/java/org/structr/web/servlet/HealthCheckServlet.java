@@ -292,10 +292,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 		final List<Map<String, Object>> list = new LinkedList<>();
 
-		for (final Map<String, Object> entry : data) {
-
-			list.add(entry);
-		}
+		Collections.addAll(list, data);
 
 		dest.put(name, list);
 	}

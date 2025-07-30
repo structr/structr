@@ -77,7 +77,7 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		app             = StructrApp.getInstance(securityContext);
 
 		// wait some more... (?)
-		try { Thread.sleep(10000); } catch (Throwable t) {}
+		try { Thread.sleep(30000); } catch (Throwable t) {}
 
 		// configure RestAssured
 		RestAssured.basePath = "/structr/rest";

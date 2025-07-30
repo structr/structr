@@ -40,7 +40,7 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (Settings.CallbacksOnLogout.getValue() == false) {
+		if (!Settings.CallbacksOnLogout.getValue()) {
 			securityContext.disableInnerCallbacks();
 		}
 

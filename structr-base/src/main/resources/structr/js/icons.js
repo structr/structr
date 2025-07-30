@@ -104,6 +104,7 @@ let _Icons = {
 	iconSchemaPropertyFunction:  'function-property',
 	iconSchemaPropertyString:    'string-property',
 	iconSchemaPropertyEncrypted: 'encrypted-property',
+	iconScriptWrapped:           'curly-braces-wrap-js',
 	iconRecentlyUsed:            'folder_clock',
 
 	iconFlowSymbol:              'circle-empty',

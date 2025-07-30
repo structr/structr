@@ -21,8 +21,6 @@ package org.structr.bolt;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.exceptions.*;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Mono;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
@@ -33,6 +31,8 @@ import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 

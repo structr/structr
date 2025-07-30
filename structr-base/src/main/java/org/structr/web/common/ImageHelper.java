@@ -347,7 +347,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", new Object[] { maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time });
+			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time);
 
 			tn.setBytes(baos.toByteArray());
 
@@ -369,7 +369,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			if (in == null || in.available() <= 0) {
 
-				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1 });
+				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1);
 				return null;
 			}
 
@@ -436,26 +436,6 @@ public abstract class ImageHelper extends FileHelper {
 		} else {
 
 			logger.warn("Cropped image could not be created for '{}'", originalImage.getPath());
-		}
-
-		return null;
-	}
-
-	public static Thumbnail createThumbnailForPdf(final File originalFile, final int page, final int maxWidth, final int maxHeight, final String formatString) {
-
-		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : Thumbnail.defaultFormat;
-
-		try {
-
-			final PDDocument pdfDocument  = PDDocument.load(StorageProviderFactory.getStorageProvider(originalFile).getInputStream());
-			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
-
-			// Create thumbnail of page
-			final BufferedImage source = pdfRenderer.renderImage(page);
-			return createThumbnailFromBufferedImage(source, null, null, null, maxWidth, maxHeight, null);
-
-		} catch (final Throwable t) {
-			logger.warn("Unable to create PDDocument from original file with ID {}.", originalFile.getUuid(), t);
 		}
 
 		return null;
@@ -814,7 +794,7 @@ public abstract class ImageHelper extends FileHelper {
 			}
 
 		} catch (MetadataException | JSONException | FrameworkException ex) {
-			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getUuid() });
+			logger.warn("Unable to store orientation information on image {} ({})", originalImage.getName(), originalImage.getUuid());
 		}
 
 		return 1;
@@ -943,8 +923,8 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static class Base64URIData {
 
-		private String contentType;
-		private String data;
+		private final String contentType;
+		private final String data;
 
 		public Base64URIData(final String rawData) {
 
@@ -966,7 +946,7 @@ public abstract class ImageHelper extends FileHelper {
 	public static class Thumbnail {
 
 		public enum Format {
-			png, jpg, jpeg, gif;
+			png, jpg, jpeg, gif
 		}
 
 		public static Format defaultFormat = Format.png;

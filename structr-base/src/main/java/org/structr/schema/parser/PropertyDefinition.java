@@ -36,6 +36,7 @@ public interface PropertyDefinition extends CodeSource {
 	boolean isCompound();
 	boolean isUnique();
 	boolean isIndexed();
+	boolean isFulltext();
 	boolean isReadOnly();
 	boolean isCachingEnabled();
 	boolean isAbstract();
@@ -43,6 +44,8 @@ public interface PropertyDefinition extends CodeSource {
 	String getContentType();
 	String getReadFunction();
 	String getWriteFunction();
+	boolean getReadFunctionWrapJS();
+	boolean getWriteFunctionWrapJS();
 
 	boolean isSerializationDisabled();
 	String getOpenAPIReturnType();

@@ -18,7 +18,7 @@
  */
 package org.structr.odf.traits.definitions;
 
-import org.odftoolkit.simple.TextDocument;
+import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -114,7 +114,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);
 
-			TextDocument text = TextDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
+			OdfDocument text = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 
 			NodeList nodes = text.getContentRoot().getElementsByTagName(ODT_FIELD_TAG_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {

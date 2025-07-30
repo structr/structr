@@ -169,6 +169,9 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
 			TransactionCommand.registerNodeCallback(newNode, callback);
 
+			// send success
+			getWebSocket().send(webSocketData, true);
+
 		} catch (Exception ex) {
 
 			// send DOM exception

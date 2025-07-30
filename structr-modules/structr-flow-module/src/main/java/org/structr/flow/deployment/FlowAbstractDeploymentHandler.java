@@ -18,6 +18,12 @@
  */
 package org.structr.flow.deployment;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 
 public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInterface {
@@ -85,5 +91,35 @@ public abstract class FlowAbstractDeploymentHandler implements FlowDeploymentInt
 			StructrTraits.FLOW_FORK_BODY,
 			StructrTraits.FLOW_SWITCH_CASES
 	};
+
+	protected static void cleanupFlows() throws FrameworkException {
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
+
+			// Cleanup old flow data
+			for (final String c : classesToExport) {
+
+				for (final NodeInterface toDelete : app.nodeQuery(c).getAsList()) {
+
+					app.delete(toDelete);
+				}
+			}
+
+			for (final String c : relsToExport) {
+
+				for (final RelationshipInterface toDelete : app.relationshipQuery(c).getAsList()) {
+
+					app.delete(toDelete);
+				}
+			}
+
+			for (final RelationshipInterface toDelete : app.relationshipQuery(StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW).getAsList()) {
+
+				app.delete(toDelete);
+			}
+
+			tx.success();
+		}
+	}
 
 }

@@ -91,6 +91,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -973,7 +974,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
 
-		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+		response.getOutputStream().write(buffer.getBuffer().toString().getBytes(StandardCharsets.UTF_8));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();
 	}
@@ -1489,7 +1490,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + "");
+			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds);
 			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
@@ -1793,12 +1794,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					} else {
 
-						logger.warn("Unable to find property key {} of type {} defined in key {} used for object resolution.", new Object[] { keyName, className, possiblePropertyName } );
+						logger.warn("Unable to find property key {} of type {} defined in key {} used for object resolution.", keyName, className, possiblePropertyName);
 					}
 
 				} else {
 
-					logger.warn("Unable to find type {} defined in key {} used for object resolution.", new Object[] { className, possiblePropertyName } );
+					logger.warn("Unable to find type {} defined in key {} used for object resolution.", className, possiblePropertyName);
 				}
 			}
 		}
@@ -1893,7 +1894,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if ("Basic".equals(authType)) {
 
-					final String value   = new String(Base64.decode(authValue), Charset.forName("utf-8"));
+					final String value   = new String(Base64.decode(authValue), StandardCharsets.UTF_8);
 					final String[] parts = value.split(":");
 
 					if (parts.length == 2) {
@@ -1951,7 +1952,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					final URI rel = uri.relativize(uri);
 
 					// concatenate path and query part
-					return URI.create(uri.getPath() + rel.toString()).toString();
+					return URI.create(uri.getPath() + rel).toString();
 
 				} else {
 

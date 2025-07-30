@@ -44,6 +44,7 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 
 	public abstract String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query);
 	public abstract String getQuerySuffix(final AdvancedCypherQuery query);
+	public abstract Map<T, Double> fulltextQuery(final String indexName, final String searchString);
 
 	public AbstractCypherIndex(final BoltDatabaseService db) {
 
@@ -81,7 +82,6 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	private void init() {
 
 		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
-		factories.put(FulltextQuery.class,     new KeywordQueryFactory(this));
 		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
 		factories.put(GraphQuery.class,        new GraphQueryFactory(this));
 		factories.put(GroupQuery.class,        new GroupQueryFactory(this));

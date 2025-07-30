@@ -23,9 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Files = {
 	_moduleName: 'files',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate',
-	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
-	searchField: undefined,
-	searchFieldClearIcon: undefined,
+	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
 	currentWorkingDir: undefined,
 	fileUploadList: undefined,
 	chunkSize: 1024 * 64,
@@ -34,7 +32,6 @@ let _Files = {
 	currentEditor: undefined,
 	fileContents: {},
 	fileHasUnsavedChanges: {},
-	displayingFavorites: false,
 	folderPageSize: 10000,
 	folderPage: 1,
 	filesViewModeKey: 'structrFilesViewMode_' + location.port,
@@ -121,31 +118,7 @@ let _Files = {
 
 			Structr.functionBar.querySelector('.mount_folder').addEventListener('click', _Files.openMountDialog);
 
-			_Files.searchField = Structr.functionBar.querySelector('#files-search-box');
-
-			_Files.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-			_Files.searchFieldClearIcon.addEventListener('click', (e) => {
-				_Files.clearSearch();
-			});
-
-			_Files.searchField.focus();
-
-			_Files.searchField.addEventListener('keyup', (e) => {
-
-				let searchString = _Files.searchField.value;
-
-				if (searchString && searchString.length) {
-					_Files.searchFieldClearIcon.style.display = 'block';
-				}
-
-				if (searchString && searchString.length && e.keyCode === 13) {
-
-					_Files.fulltextSearch(searchString);
-
-				} else if (e.keyCode === 27 || searchString === '') {
-					_Files.clearSearch();
-				}
-			});
+			_Files.search.initSearch();
 		};
 		initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
@@ -181,13 +154,17 @@ let _Files = {
 
 		_Files.getFilesTree().on('select_node.jstree', function (evt, data) {
 
+			let isUserClickEvent = (data.event?.type === 'click');
+
 			if (data.node.id === 'favorites') {
 
 				_Files.displayFolderContents('favorites');
 
 			} else {
 
-				_Files.setWorkingDirectory(data.node.id);
+				if (isUserClickEvent) {
+					_Files.setWorkingDirectory(data.node.id);
+				}
 				_Files.displayFolderContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 			}
 		});
@@ -327,14 +304,14 @@ let _Files = {
 		}
 
 		elements.push({
-			name: 'Basic',
+			name: 'General',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'general');
 			}
 		});
 
 		elements.push({
-			name: 'Properties',
+			name: 'Advanced',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
 			}
@@ -344,41 +321,39 @@ let _Files = {
 
 		if (isFile) {
 
-			if (_Files.displayingFavorites) {
+			let clickedFileIsFavorite = _Favorites.isFavoriteFile(entity.id);
+
+			if (_Files.helpers.isDisplayingFavorites() || clickedFileIsFavorite) {
+
 				elements.push({
 					icon: _Icons.getMenuSvgIcon(_Icons.iconRemoveFromFavorites),
 					name: 'Remove from Favorites',
 					clickHandler: () => {
 
-						for (let el of selectedElements) {
+						let prefix = _Files.isViewModeActive('list') ? '#row' : '#tile';
+						let ids    = [...selectedElements].map(el => Structr.getId(el));
 
-							let id = Structr.getId(el);
+						_Favorites.removeFromFavorites(ids);
 
-							Command.favorites('remove', id, () => {
+						if (_Files.helpers.isDisplayingFavorites()) {
 
-								let prefix = _Files.isViewModeActive('list') ? '#row' : '#tile';
+							for (let id of ids) {
 								_Helpers.fastRemoveElement(Structr.node(id, prefix)[0]);
-							});
+							}
 						}
 					}
 				});
 
-			} else if (entity.isFavoritable) {
+			} else if (entity.isFile) {
 
 				elements.push({
 					icon: _Icons.getMenuSvgIcon(_Icons.iconAddToFavorites),
 					name: 'Add to Favorites',
 					clickHandler: () => {
 
-						for (let el of selectedElements) {
+						let fileIds = [...selectedElements].map(el => StructrModel.obj(Structr.getId(el))).filter(obj => obj.isFile).map(obj => obj.id);
 
-							let obj = StructrModel.obj(Structr.getId(el));
-
-							if (obj.isFavoritable) {
-
-								Command.favorites('add', obj.id, () => {});
-							}
-						}
+						_Favorites.addToFavorites(fileIds);
 					}
 				});
 			}
@@ -533,9 +508,6 @@ let _Files = {
 		}
 	},
 	unload: () => {
-
-		_Helpers.fastRemoveAllChildren(Structr.mainContainer);
-		_Helpers.fastRemoveAllChildren(Structr.functionBar);
 	},
 	activateUpload: () => {
 
@@ -555,7 +527,7 @@ let _Files = {
 					return;
 				}
 
-				if (_Files.displayingFavorites === true) {
+				if (_Files.helpers.isDisplayingFavorites() === true) {
 					new WarningMessage().text("Can't upload to virtual folder Favorites - please first upload file to destination folder and then drag to favorites.").show();
 					return;
 				}
@@ -647,30 +619,6 @@ let _Files = {
 			}
 		}
 	},
-	fulltextSearch: (searchString) => {
-
-		[..._Files.getFolderContentsElement().children].map(el => el.style.display = 'none');
-
-		let url = Structr.rootUrl + 'File/ui?' + Structr.getRequestParameterName('inexact') + '=1';
-
-		for (let str of searchString.split(' ')) {
-			url = url + '&extractedContent=' + str;
-		}
-
-		_Files.displaySearchResultsForURL(url, searchString);
-	},
-	clearSearch: () => {
-
-		_Files.searchField.value = '';
-		_Files.searchFieldClearIcon.style.display = 'none';
-
-		_Files.removeSearchResults();
-		[..._Files.getFolderContentsElement().children].map(el => el.style.display = null);
-	},
-	removeSearchResults: () => {
-
-		_Files.getFolderContentsElement().querySelector('#search-results')?.remove();
-	},
 	loadAndSetWorkingDir: (callback) => {
 
 		Command.rest("/me/ui", (result) => {
@@ -717,13 +665,13 @@ let _Files = {
 		fetch(`${Structr.rootUrl}me`, {
 			method: 'PUT',
 			body: JSON.stringify({ workingDirectory: _Files.currentWorkingDir })
-		})
+		});
 	},
 	registerFolderLinks: () => {
 
-		let openTargetNode = (targetId) => {
+		let openTargetNode = (targetId, e) => {
 			_Files.getFilesTree().jstree('open_node', targetId, () => {
-				_Files.getFilesTree().jstree('activate_node', targetId);
+				_Files.getFilesTree().jstree('activate_node', targetId, e);
 			});
 		};
 
@@ -737,9 +685,11 @@ let _Files = {
 				let parentId = folderLink.dataset['parentId'];
 
 				if (!parentId || _Files.getFilesTree().jstree('is_open', parentId)) {
-					openTargetNode(targetId);
+					openTargetNode(targetId,e );
 				} else {
-					_Files.getFilesTree().jstree('open_node', parentId, openTargetNode);
+					_Files.getFilesTree().jstree('open_node', parentId, () => {
+						openTargetNode(parentId, e);
+					});
 				}
 			});
 		}
@@ -750,7 +700,7 @@ let _Files = {
 		let addFileButton     = document.getElementById('add-file-button');
 		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
 
-		_Helpers.disableElements(_Files.displayingFavorites === true, addFolderButton, addFileButton, mountDialogButton);
+		_Helpers.disableElements((_Files.helpers.isDisplayingFavorites() === true), addFolderButton, addFileButton, mountDialogButton);
 	},
 	displayFolderContents: (id, parentId, nodePath, parents) => {
 
@@ -758,7 +708,6 @@ let _Files = {
 
 		LSWrapper.setItem(_Files.filesLastOpenFolderKey, id);
 
-		_Files.displayingFavorites = (id === 'favorites');
 		let isRootFolder           = (id === 'root');
 		let parentIsRoot           = (parentId === '#');
 		let listModeActive         = _Files.isViewModeActive('list');
@@ -775,26 +724,23 @@ let _Files = {
 
 			if (currentFolder === id) {
 
-				children.map(_Files.appendFileOrFolder);
+				for (let c of children) {
+					_Files.appendFileOrFolder(c);
+				}
 
 				Structr.resize();
 			}
 		};
 
-		if (_Files.displayingFavorites === true) {
+		if (_Files.helpers.isDisplayingFavorites() === true) {
 
 			_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
 				<div class="folder-path truncate">${_Icons.getSvgIcon(_Icons.iconAddToFavorites)} Favorite Files</div>
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton() : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
-			fetch(`${Structr.rootUrl}me/favorites`, {
-				headers: _Helpers.getHeadersForCustomView(_Files.defaultFileAttributes)
-			}).then(async response => {
-				if (response.ok) {
-					let data = await response.json();
-					handleFileChildren(data.result);
-				}
+			_Favorites.getFavoritesList().then(data => {
+				handleFileChildren(data.result);
 			});
 
 		} else {
@@ -848,9 +794,10 @@ let _Files = {
 							<td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td>
 							<td>
 								<div class="node folder flex items-center justify-between">
-									<b class="name_ leading-8 truncate">..</b>
+									<b class="name_ leading-8 truncate  pl-4">..</b>
 								</div>
 							</td>
+							<td></td>
 							<td></td>
 							<td></td>
 							<td></td>
@@ -863,7 +810,14 @@ let _Files = {
 			} else {
 
 				_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', _Files.templates.folderContentsTileContainerSkeleton({
-					tilesContent: (isRootFolder ? '' : `<div id="parent-folder-link" class="tile${_Files.isViewModeActive('img') ? ' img-tile' : ''} cursor-pointer"><div class="node folder flex flex-col"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 40, 40)}</div><b title=".." class="text-center">..</b></div></div>`)
+					tilesContent: (isRootFolder ? '' : `
+						<div id="parent-folder-link" class="tile${_Files.isViewModeActive('img') ? ' img-tile' : ''} cursor-pointer">
+							<div class="node folder flex flex-col">
+								<div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 40, 40)}</div>
+								<b title=".." class="text-center">..</b>
+							</div>
+						</div>
+					`)
 				}));
 			}
 
@@ -982,7 +936,7 @@ let _Files = {
 	getFormattedDate: (date) => {
 		return _Files.dateFormat.format(new Date(date));
 	},
-	appendFileOrFolder: (d) => {
+	appendFileOrFolder: (d, container = _Files.getFolderContentsElement()) => {
 
 		if (!d.isFile && !d.isFolder) return;
 
@@ -1020,7 +974,7 @@ let _Files = {
 					${getIconColumnHTML()}
 					<td>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
-							<b class="name_ leading-8 truncate" data-key="name"></b>
+							<b class="name_ leading-8 truncate pl-4" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
@@ -1035,7 +989,7 @@ let _Files = {
 			`;
 
 			let row       = _Helpers.createSingleDOMElementFromHTML(rowHTML);
-			let tableBody = document.querySelector('#files-table-body');
+			let tableBody = container.querySelector('#files-table-body');
 
 			_Helpers.fastRemoveElement(tableBody.querySelector(`#${rowId}`));
 
@@ -1092,7 +1046,7 @@ let _Files = {
 			`;
 
 			let tile           = _Helpers.createSingleDOMElementFromHTML(tileHTML);
-			let tilesContainer = document.querySelector('#tiles-container');
+			let tilesContainer = container.querySelector('#tiles-container');
 
 			_Helpers.fastRemoveElement(tilesContainer.querySelector(`#${tileId}`));
 
@@ -1116,7 +1070,7 @@ let _Files = {
 			_Elements.contextMenu.enableContextMenuOnElement(tile, d);
 		}
 
-		let div = Structr.node(d.id);
+		let div = Structr.node(d.id, '#id_', container);
 
 		if (!div || !div.length) {
 			return;
@@ -1410,72 +1364,76 @@ let _Files = {
 
 		} else {
 
-			let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor']);
-			_Dialogs.custom.showMeta();
+			_Files.editFiles(filteredFileModels.map(m => m.id), file.id);
+		}
+	},
+	editFiles:(ids, activeFileId, onTabSelect, onDialogClose) => {
 
-			dialogText.insertAdjacentHTML('beforeend', '<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
+		let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor']);
+		_Dialogs.custom.showMeta();
 
-			let filesTabs     = document.getElementById('files-tabs');
-			let filesTabsUl   = filesTabs.querySelector('ul');
-			let loadedEditors = 0;
+		dialogText.insertAdjacentHTML('beforeend', '<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
 
-			for (let fileModel of filteredFileModels) {
+		let filesTabs     = document.getElementById('files-tabs');
+		let filesTabsUl   = filesTabs.querySelector('ul');
+		let loadedEditors = 0;
 
-				let uuid = fileModel.id;
+		for (let fileId of ids) {
 
-				Command.get(uuid, 'id,type,name,contentType,isTemplate', (entity) => {
+			Command.get(fileId, 'id,type,name,contentType,isTemplate', (entity) => {
 
-					loadedEditors++;
+				loadedEditors++;
 
-					let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
-					let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
+				let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
+				let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
 
-					filesTabsUl.appendChild(tab);
-					filesTabs.appendChild(editorContainer);
+				filesTabsUl.appendChild(tab);
+				filesTabs.appendChild(editorContainer);
 
-					_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id]);
+				_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id] ?? false);
 
-					tab.addEventListener('click', (e) => {
-						e.stopPropagation();
+				tab.addEventListener('click', (e) => {
+					e.stopPropagation();
 
-						// prevent activating the current tab
-						if (!tab.classList.contains('active')) {
+					// prevent activating the current tab
+					if (!tab.classList.contains('active')) {
 
-							// set all other tabs inactive and this one active
-							for (let tab of filesTabsUl.querySelectorAll('li')) {
-								tab.classList.remove('active');
-							}
-							tab.classList.add('active');
+						// set all other tabs inactive and this one active
+						for (let tab of filesTabsUl.querySelectorAll('li')) {
+							tab.classList.remove('active');
+						}
+						tab.classList.add('active');
 
-							// hide all editors and show this one
-							for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
-								otherEditorContainer.style.display = 'none';
-							}
-							editorContainer.style.display = 'block';
+						// hide all editors and show this one
+						for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
+							otherEditorContainer.style.display = 'none';
+						}
+						editorContainer.style.display = 'block';
 
-							// clear all other tabs before editing this one to ensure correct height
-							for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
-								_Helpers.fastRemoveAllChildren(editor);
-							}
-
-							_Files.editFileWithMonaco(entity, editorContainer);
+						// clear all other tabs before editing this one to ensure correct height
+						for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
+							_Helpers.fastRemoveAllChildren(editor);
 						}
 
-						return false;
-					});
+						onTabSelect?.(entity.id);
 
-					if (file.id === entity.id) {
-						tab.click();
+						_Files.editFileWithMonaco(entity, editorContainer, onDialogClose);
 					}
+
+					return false;
 				});
-			}
+
+				if (activeFileId === entity.id) {
+					tab.click();
+				}
+			});
 		}
 	},
 	markFileEditorTabAsChanged: (id, hasChanges) => {
 		let tab = document.querySelector(`#tab-${id}`);
 		_Schema.markElementAsChanged(tab, hasChanges);
 	},
-	editFileWithMonaco: async (file, editorContainer) => {
+	editFileWithMonaco: async (file, editorContainer, onCloseCallback) => {
 
 		let saveButton         = _Dialogs.custom.updateOrCreateDialogSaveButton();
 		let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
@@ -1565,23 +1523,26 @@ let _Files = {
 			}
 		});
 
-		let checkForUnsaved = () => {
-			if (document.querySelectorAll('.file-tab.has-changes').length > 0) {
-				return confirm('You have unsaved changes, really close without saving?');
-			} else {
-				return true;
-			}
-		};
+		let hasUnsavedChanges = () => {
+			return (document.querySelectorAll('.file-tab.has-changes').length > 0);
+		}
 
 		let newCancelButton = _Dialogs.custom.updateOrCreateDialogCloseButton();
+		_Dialogs.custom.setHasCustomCloseHandler();
 
 		newCancelButton.addEventListener('click', async (e) => {
 
-			if (checkForUnsaved()) {
+			e.stopPropagation();
 
-				e.stopPropagation();
+			let closeWithoutAsking = (hasUnsavedChanges() === false) || (true === await _Dialogs.confirmation.showPromise('You have unsaved changes, really close without saving?'));
+
+			if (closeWithoutAsking) {
 
 				_Dialogs.custom.dialogCancelBaseAction();
+
+				if (onCloseCallback) {
+					window.setTimeout(onCloseCallback, 100);
+				}
 			}
 		});
 
@@ -1589,7 +1550,7 @@ let _Files = {
 			e.stopPropagation();
 			saveButton.click();
 
-			if (checkForUnsaved()) {
+			if (!hasUnsavedChanges()) {
 				window.setTimeout(() => {
 					newCancelButton.click();
 				}, 250);
@@ -1649,130 +1610,31 @@ let _Files = {
 	},
 	getLanguageForFile: (file) => {
 
-		let language = file.contentType ?? file.favoriteContentType;
+		let language    = 'text';
+		let contentType = file.contentType ?? '';
+		let fileName    = file.name;
 
-		if (language && (language.startsWith('application/javascript') || language.startsWith('text/javascript'))) {
+		if (file.isTemplate || (contentType.startsWith('application/javascript') || contentType.startsWith('text/javascript'))) {
+
 			language = 'javascript';
-		}
 
-		if (!language) {
-			if (file.name.endsWith('.css')) {
+		} else {
+
+			if (fileName.endsWith('.css')) {
 				language = 'css';
-			} else if (file.name.endsWith('.js') || file.name.endsWith('.mjs')) {
+			} else if (fileName.endsWith('.js') || fileName.endsWith('.mjs')) {
 				language = 'javascript';
-			} else {
-				language = 'text';
+			} else if (fileName.endsWith('.svg')) {
+				language = 'xml';
+			} else if (fileName.endsWith('.sql')) {
+				language = 'sql';
 			}
-		}
-
-		if (file.isTemplate) {
-			language = 'javascript';
 		}
 
 		return language;
 	},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
-	},
-	displaySearchResultsForURL: async (url, searchString) => {
-
-		_Files.removeSearchResults();
-
-		let container = _Helpers.createSingleDOMElementFromHTML('<div id="search-results"></div>');
-
-		_Files.getFolderContentsElement().appendChild(container);
-
-		let response = await fetch(url);
-
-		if (response.ok) {
-
-			let data = await response.json();
-
-			if (!data.result || data.result.length === 0) {
-
-				container.insertAdjacentHTML('beforeend', `
-					<h1>No results for "${searchString}"</h1>
-					<h2>Press ESC or click <a href="javascript:_Files.clearSearch();" class="clear-results">here to clear</a> empty result list.</h2>
-				`);
-
-			} else {
-
-				container.insertAdjacentHTML('beforeend', `
-					<h1>${data.result.length} result${data.result.length > 1 ? 's' : ''}:</h1>
-					<table class="props">
-						<thead>
-							<tr>
-								<th class="_type">Type</th>
-								<th>Name</th>
-								<th>Size</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>`);
-
-				let tbody            = container.querySelector('tbody');
-				let detailsContainer = _Helpers.createSingleDOMElementFromHTML('<div id="search-results-details"></div>');
-
-				container.appendChild(detailsContainer);
-
-				for (let d of data.result) {
-
-					tbody.insertAdjacentHTML('beforeend', `<tr><td>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.type}${d.isFile && d.contentType ? ` (${d.contentType})` : ''}</td><td>${d.name}</td><td>${d.size}</td></tr>`);
-
-					/*
-					// this is currently not possible -> commented out
-					let contextResponse = await fetch(`${Structr.rootUrl}files/${d.id}/getSearchContext`, {
-						method: 'POST',
-						body: JSON.stringify({
-							searchString: searchString,
-							contextLength: 30
-						})
-					});
-
-					if (contextResponse.ok) {
-
-						let data = await contextResponse.json();
-
-						if (data.result) {
-
-							detailsContainer.insertAdjacentHTML('beforeend', `<div class="search-result collapsed" id="results${d.id}"></div>`);
-
-							let div = $('#results' + d.id);
-
-							div.append(`
-								<h2>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.name}</h2>
-								<i class="toggle-height fa fa-expand"></i>
-								<i class="go-to-top fa fa-chevron-up"></i>
-							`);
-
-							$('.toggle-height', div).on('click', function() {
-								let icon = $(this);
-								div.toggleClass('collapsed');
-								icon.toggleClass('fa-expand');
-								icon.toggleClass('fa-compress');
-							});
-
-							$('.go-to-top', div).on('click', function() {
-								_Files.getFolderContentsElement().scrollTo(0,0)
-							});
-
-							for (let contextString of data.result.context) {
-
-								for (let str of searchString.split(/[\s,;]/)) {
-									contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
-								}
-
-								div.append(`<div class="part">${contextString}</div>`);
-							}
-
-							div.append('<div style="clear: both;"></div>');
-						}
-					}
-
-					 */
-				}
-			}
-		}
 	},
 	updateTemplatePreview: async (element, url) => {
 
@@ -1889,6 +1751,188 @@ let _Files = {
 			});
 		});
 	},
+	search: {
+		searchField: undefined,
+		searchFieldClearIcon: undefined,
+
+		initSearch: () => {
+
+			_Files.search.searchField = Structr.functionBar.querySelector('#files-search-box');
+
+			_Files.search.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
+			_Files.search.searchFieldClearIcon.addEventListener('click', (e) => {
+				_Files.search.clearSearch();
+			});
+
+			_Files.search.searchField.focus();
+
+			_Files.search.searchField.addEventListener('keyup', async (e) => {
+
+				let searchString = _Files.search.searchField.value;
+
+				if (searchString && searchString.length) {
+					_Files.search.searchFieldClearIcon.style.display = 'block';
+				}
+
+				if (searchString && searchString.length && e.keyCode === 13) {
+
+					await _Files.search.fulltextSearch(searchString);
+
+				} else if (e.keyCode === 27 || searchString === '') {
+					_Files.search.clearSearch();
+				}
+			});
+
+		},
+		getCurrentSearchTerm: () => {
+			return _Files.getFolderContentsElement().querySelector('#search-results').dataset['for'];
+		},
+		fulltextSearch: async (searchString) => {
+
+			for (let el of _Files.getFolderContentsElement().children) {
+				el.style.display = 'none';
+			}
+
+			_Files.search.removeSearchResults();
+
+			let container = _Helpers.createSingleDOMElementFromHTML('<div id="search-results"></div>');
+			_Files.getFolderContentsElement().appendChild(container);
+
+			container.dataset['for'] = searchString;
+
+			let timeoutIt = window.setTimeout(() => {
+				container.appendChild(_Helpers.createSingleDOMElementFromHTML(`
+					<div class="flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
+						<span>Running fulltext search for "${searchString}" - please stand by</span>
+					</div>`)
+				);
+			}, 250);
+
+			let response = await fetch(`${Structr.rootUrl}File/ui?${Structr.getRequestParameterName('inexact')}=1${searchString.split(' ').map(str => '&extractedContent=' + str).join('')}`);
+
+			if (response.ok) {
+
+				let data = await response.json();
+
+				window.clearTimeout(timeoutIt);
+				_Helpers.fastRemoveAllChildren(container);
+
+				if (!data.result || data.result.length === 0) {
+
+					container.insertAdjacentHTML('beforeend', `
+						<h1>No results for "${searchString}"</h1>
+						<h2>Press ESC or click <a href="javascript:_Files.search.clearSearch();" class="clear-results">here to clear</a> empty result list.</h2>
+					`);
+
+				} else {
+
+					container.insertAdjacentHTML('beforeend', `
+						<div class="font-bold mb-4 text-3xl">${data.result.length} result${data.result.length > 1 ? 's' : ''}:</div>
+						${_Files.templates.folderContentsTableSkeleton({})}
+					`);
+
+					container.querySelector('th.icon').insertAdjacentHTML('beforebegin', '<th class="icon">&nbsp;</th>');
+
+					for (let fileHit of data.result) {
+
+						_Files.appendFileOrFolder(fileHit, container);
+
+						let row  = container.querySelector('#row' + fileHit.id);
+						let icon = row.querySelector('td.file-icon');
+						icon.insertAdjacentHTML('beforebegin', `<td class="search-context-icon">${_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context')}</td>`);
+
+						row.querySelector('.search-context-icon svg').addEventListener('click', (e) => {
+
+							_Files.search.getAndAppendSearchContext(fileHit.id, searchString);
+						});
+					}
+				}
+			}
+		},
+		getAndAppendSearchContext: async (fileId, searchString) => {
+
+			let searchResultContextRowId = `searchContext_${fileId}`;
+			let contextElement           = _Files.getFolderContentsElement().querySelector(`#${searchResultContextRowId}`);
+			let searchResultRow          = _Files.getFolderContentsElement().querySelector(`#search-results #row${fileId}`);
+
+			if (!searchResultRow) {
+				return;
+			}
+
+			if (contextElement) {
+				contextElement.style.display = (contextElement.style.display === 'none') ? 'table-row' : 'none';
+				return;
+			}
+
+			let contextResponse = await fetch(`${Structr.rootUrl}File/${fileId}/getSearchContext`, {
+				method: 'POST',
+				body: JSON.stringify({
+					searchString: searchString,
+					contextLength: 30
+				})
+			});
+
+			if (contextResponse.ok) {
+
+				let data = await contextResponse.json();
+
+				if (data.result) {
+
+					let maxHClassname = 'max-h-24';
+					let numCols        = searchResultRow.querySelectorAll('td').length;
+					let newContextRow  = _Helpers.createSingleDOMElementFromHTML(`<div id="${searchResultContextRowId}" style="display: table-row;"></div>`);
+					let newContextCell = _Helpers.createSingleDOMElementFromHTML(`
+						<td colspan="${numCols}">
+							<div class="flex items-start gap-2 p-4 mb-2 bg-gray ${maxHClassname} overflow-y-auto">
+								<div class="flex-shrink-0">
+									<i class="toggle-height fa fa-expand cursor-pointer"></i>
+								</div>
+								<div context-container class="grid grid-cols-3 gap-8 items-start"></div>
+							</div>
+						</td>
+					`);
+					searchResultRow.insertAdjacentElement('afterend', newContextRow);
+					newContextRow.appendChild(newContextCell);
+
+					let contextsContainer = newContextCell.querySelector('[context-container]');
+
+					newContextCell.querySelector('.toggle-height').addEventListener('click', e => {
+						newContextCell.firstElementChild.classList.toggle(maxHClassname);
+						e.target.classList.toggle('fa-expand');
+						e.target.classList.toggle('fa-compress');
+					});
+
+					let splitSearchStringRegex    = new RegExp('(' + searchString.split(/[\s,;]/).join('|') + ')', 'gi');
+					let highlightedContextStrings = data.result.context.map(contextString => `<div class="bg-white px-2 py-1">${contextString.replace(splitSearchStringRegex, '<span class="highlight">$1</span>')}</div>`);
+
+					contextsContainer.insertAdjacentHTML('beforeend', highlightedContextStrings.join(''));
+				}
+			}
+		},
+		clearSearch: () => {
+
+			_Files.search.searchField.value = '';
+			_Files.search.searchFieldClearIcon.style.display = 'none';
+
+			_Files.search.removeSearchResults();
+			for (let el of _Files.getFolderContentsElement().children) {
+				el.style.display = null;
+			}
+		},
+		removeSearchResults: () => {
+
+			_Files.getFolderContentsElement().querySelector('#search-results')?.remove();
+		},
+	},
+	helpers: {
+		isDisplayingFavorites: () => {
+			return _Files.getFolderContentsElement().dataset.currentFolder === 'favorites';
+		},
+		isDisplayingSearchResults: () => {
+			return !!_Files.getFolderContentsElement().querySelector('#search-results');
+		}
+	},
 
 	templates: {
 		main: config => `
@@ -1953,13 +1997,13 @@ let _Files = {
 				<thead>
 					<tr>
 						<th class="icon">&nbsp;</th>
-						<th>Name</th>
-						<th>ID</th>
-						<th>Created</th>
-						<th>Modified</th>
-						<th>Size</th>
-						<th>Type</th>
-						<th>Owner</th>
+						<th name class="pl-4">Name</th>
+						<th uuid>ID</th>
+						<th created>Created</th>
+						<th modified>Modified</th>
+						<th size>Size</th>
+						<th type>Type</th>
+						<th owner>Owner</th>
 					</tr>
 				</thead>
 				<tbody id="files-table-body">

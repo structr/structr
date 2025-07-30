@@ -100,11 +100,9 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 				if (commandType != null) {
 
 					final Command command = app.command(commandType);
-					if (command instanceof MaintenanceCommand) {
+					if (command instanceof MaintenanceCommand cmd) {
 
 						RuntimeEventLog.maintenance(commandName, params);
-
-						final MaintenanceCommand cmd = (MaintenanceCommand)command;
 
 						// flush caches if required
 						if (cmd.requiresFlushingOfCaches()) {

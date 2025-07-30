@@ -28,6 +28,7 @@ import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -50,7 +51,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -488,7 +489,7 @@ public class RenderContext extends ActionContext {
 						if (entity.is(StructrTraits.DOM_NODE)) {
 
 							hints.reportExistingKey(key);
-							return entity.as(DOMNode.class).getChildNodes();
+							return Iterables.toList(entity.as(DOMNode.class).getChildren());
 
 						}
 						break;
@@ -562,7 +563,7 @@ public class RenderContext extends ActionContext {
 				ioex.printStackTrace();
 			}
 
-			return output.toString(Charset.forName("utf-8")).trim();
+			return output.toString(StandardCharsets.UTF_8).trim();
 		}
 
 		return null;
@@ -570,7 +571,7 @@ public class RenderContext extends ActionContext {
 
 	public void initializeFromEncodedRenderState(final String encoded) {
 
-		final ByteArrayInputStream input = new ByteArrayInputStream(encoded.getBytes(Charset.forName("utf-8")));
+		final ByteArrayInputStream input = new ByteArrayInputStream(encoded.getBytes(StandardCharsets.UTF_8));
 		final App app                    = StructrApp.getInstance(getSecurityContext());
 		final Gson gson                  = new GsonBuilder().create();
 

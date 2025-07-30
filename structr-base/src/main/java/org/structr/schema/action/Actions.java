@@ -189,7 +189,7 @@ public class Actions {
 						final String source = method.getSource();
 						if (source != null) {
 
-							cachedSource = new CachedMethod(source, method.getName(), method.getUuid(), method.returnRawResult());
+							cachedSource = new CachedMethod(source, method.getName(), method.getUuid(), method.returnRawResult(), method.wrapJsInMain());
 
 							// store in cache
 							methodCache.put(key, cachedSource);
@@ -211,7 +211,7 @@ public class Actions {
 		if (cachedSource != null) {
 
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
-					.wrapJsInMain(true)
+					.wrapJsInMain(cachedSource.wrapJsInMain)
 					.build();
 
 			if (cachedSource.shouldReturnRawResult) {
@@ -237,14 +237,16 @@ public class Actions {
 		public final String sourceCode;
 		public final String uuidOfSource;
 		public final String name;
+		public final boolean wrapJsInMain;
 		public final boolean shouldReturnRawResult;
 
-		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource, final boolean shouldReturnRawResult) {
+		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource, final boolean shouldReturnRawResult, final boolean  wrapJsInMain) {
 
 			this.sourceCode            = sourceCode;
 			this.uuidOfSource          = uuidOfSource;
 			this.name                  = name;
 			this.shouldReturnRawResult = shouldReturnRawResult;
+			this.wrapJsInMain          = wrapJsInMain;
 		}
 	}
 }

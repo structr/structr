@@ -940,7 +940,7 @@ let _Code = {
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
-				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'basic');
+				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'general');
 				let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView);
 
 				// remove bulk edit save/discard buttons
@@ -1152,9 +1152,20 @@ let _Code = {
 					activateTab(tabLink.dataset.name);
 				})
 			}
-			activateTab(lastOpenTab || 'source');
+			if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+				activateTab(lastOpenTab || 'source');
+			} else {
+				activateTab('source');
+			}
 
 			_Helpers.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
+
+			let updateWrapFlagVisibility = (key, text) => {
+
+				let isJs = (_Editors.getMonacoEditorModeForContent(text, property) === 'javascript');
+				let el = document.querySelector(`[data-property="${key}"]`);
+				el?.parentNode.classList.toggle('hidden', !isJs);
+			};
 
 			let functionPropertyMonacoConfig = {
 				language: 'auto',
@@ -1162,6 +1173,9 @@ let _Code = {
 				autocomplete: true,
 				changeFn: (editor, entity) => {
 					_Code.persistence.updateDirtyFlag(entity);
+
+					let key = `${editor.getModel().uri.structr_property}WrapJS`;
+					updateWrapFlagVisibility(key, editor.getValue());
 				},
 				isAutoscriptEnv: true
 			};
@@ -1183,6 +1197,9 @@ let _Code = {
 			_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
 
 			_Code.mainArea.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
+
+			updateWrapFlagVisibility('readFunctionWrapJS', property.readFunction);
+			updateWrapFlagVisibility('writeFunctionWrapJS', property.writeFunction);
 		},
 		displayCypherPropertyDetails: (property, data) => {
 
@@ -1259,6 +1276,8 @@ let _Code = {
 			if (property.propertyType !== 'Function') {
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-type-hint-input').closest('[data-is-property-attribute-container]'));
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-cached').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-readfunction-wrap').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
 			}
@@ -1497,6 +1516,9 @@ let _Code = {
 					isAutoscriptEnv: true,
 					changeFn: (editor, entity) => {
 						_Code.persistence.updateDirtyFlag(entity);
+
+						let updatedObj = Object.assign({}, result, { source: editor.getValue() });
+						_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
 					}
 				};
 
@@ -1829,7 +1851,12 @@ let _Code = {
 					e.stopPropagation();
 					activateTab($(this).data('name'));
 				});
-				activateTab(lastOpenTab || 'source');
+
+				if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+					activateTab(lastOpenTab || 'source');
+				} else {
+					activateTab('source');
+				}
 
 				_Editors.focusEditor(sourceEditor);
 			});
@@ -1899,7 +1926,7 @@ let _Code = {
 						_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 						_Code.codeContents.append(_Code.templates.propertyRemote({ data, entity, sourceNode, targetNode }));
 
-						let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
+						let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'general');
 						let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents)[0], $('.tabs-content-container', _Code.codeContents)[0], sourceNode, targetNode, targetView);
 
 						// remove bulk edit save/discard buttons
@@ -2786,14 +2813,17 @@ let _Code = {
 			<h2>System Types</h2>
 		`,
 		createNewType: config => `
-			<h2>Create New ${config?.text ?? 'Type'}</h2>
-			<div id="method-buttons">
-				<div class="flex flex-wrap gap-x-4">
-					<div class="mb-2">
-						<div id="create-type-actions"></div>
+			<div class="flex flex-wrap justify-between gap-2 mb-2">
+				<h2>Create New ${config?.text ?? 'Type'}</h2>
+				<div id="method-buttons">
+					<div class="flex flex-wrap gap-x-4">
+						<div class="mb-2">
+							<div id="create-type-actions"></div>
+						</div>
 					</div>
 				</div>
 			</div>
+				
 			<div id="create-type-container"></div>
 		`,
 		cypherProperty: config => `
@@ -2830,7 +2860,7 @@ let _Code = {
 
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
 							<h4 class="py-2 font-semibold">Read Function</h4>
-							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="readFunction"></div>
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
@@ -2838,7 +2868,7 @@ let _Code = {
 									Write Function
 								</h4>
 							</div>
-							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="writeFunction"></div>
 						</div>
 
 					</div>
@@ -2904,7 +2934,7 @@ let _Code = {
 				<div class="flex flex-wrap gap-8">
 
 					<div class="min-w-48">
-						<label class="block mb-5">Enabled</label>
+						<label class="block mb-5">Enable/include this type</label>
 						<label class="flex"><input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output</label>
 					</div>
 
@@ -3080,7 +3110,7 @@ let _Code = {
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="mt-2 grid grid-cols-3 gap-4">
+					<div class="mt-2 grid grid-cols-4 gap-4">
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''}>Property value must be unique</label>
 						</div>
@@ -3091,16 +3121,23 @@ let _Code = {
 							<label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''}>Property value must not be null</label>
 						</div>
 						<div data-is-property-attribute-container>
+							${_Schema.properties.templates.functionProperty.readFunctionWrapJS({ entity: config.property })}
+						</div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''}>Property value can be cached</label>
 						</div>
 						<div data-is-property-attribute-container>
-							<label data-comment="If active, the property will not be serialized via REST but can be used otherwise. Adding it to a view does not do anything, this setting overrides view configurations.">
+							<label data-comment="If active, the property will not be serialized (REST/CSV etc) but can be used otherwise (e.g. scripting). It will not be shown in the backend UI in the data area and dialogs. This setting overrides view configurations. Such attributes will still not be serialized even if they are in a view.">
 								<input type="checkbox" id="property-is-serialization-disabled" data-property="isSerializationDisabled" ${config.property.isSerializationDisabled ? 'checked' : ''}>Disable Property serialization (via REST)
 							</label>
 						</div>
+						<div data-is-property-attribute-container>
+							${_Schema.properties.templates.functionProperty.writeFunctionWrapJS({ entity: config.property })}
+						</div>
+
 					</div>
 				</div>
 			</div>
@@ -3122,9 +3159,11 @@ let _Code = {
 			<div id="property-buttons"></div>
 		`,
 		type: config => `
-			<h2>Type ${config.type.name}</h2>
-			<div id="type-actions"></div>
-
+			<div class="flex flex-wrap justify-between gap-2 mb-2">
+				<h2>Type ${config.type.name}</h2>
+				<div id="type-actions"></div>
+			</div>
+			
 			<div class="tabs-container code-tabs">
 				<ul></ul>
 			</div>

@@ -90,7 +90,7 @@ public interface AbstractFile extends NodeInterface {
 	static String getDirectoryPath(final String uuid) {
 
 		return (uuid != null)
-			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			? uuid.charAt(0) + "/" + uuid.charAt(1) + "/" + uuid.charAt(2) + "/" + uuid.charAt(3)
 			: null;
 
 	}

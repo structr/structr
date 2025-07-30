@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.DatabaseService;
+import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -190,7 +191,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					final Object value    = entry.getValue();
 
 					if (!key.isUnvalidated()) {
-						TransactionCommand.nodeModified(securityContext.getCachedUser(), (NodeInterface)node, key, null, value);
+						TransactionCommand.nodeModified(securityContext.getCachedUser(), node, key, null, value);
 					}
 				}
 
@@ -236,7 +237,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		final Map<String, Object> securityProperties              = new HashMap<>();
 		final String newUuid                                      = (String)properties.get("id");
 
-		if (user != null && user.shouldSkipSecurityRelationships() == false) {
+		if (user != null && !user.shouldSkipSecurityRelationships()) {
 
 			final Traits securityTraits                       = Traits.of(StructrTraits.SECURITY);
 			final PropertyKey<String> internalTimestampKey    = securityTraits.key(RelationshipInterfaceTraitDefinition.INTERNAL_TIMESTAMP_PROPERTY);
@@ -290,6 +291,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				throw new FrameworkException(422, dex.getMessage());
 			} catch (ConstraintViolationException qex) {
 				throw new FrameworkException(422, qex.getMessage());
+			} catch (UnknownDatabaseException udbex) {
+				throw new FrameworkException(422, udbex.getMessage());
 			}
 
 
@@ -303,6 +306,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				throw new FrameworkException(422, dex.getMessage());
 			} catch (ConstraintViolationException qex) {
 				throw new FrameworkException(422, qex.getMessage());
+			} catch (UnknownDatabaseException udbex) {
+				throw new FrameworkException(422, udbex.getMessage());
 			}
 		}
 	}

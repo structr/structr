@@ -24,43 +24,20 @@
 			</exclusions>
 		</dependency>
 		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.neo4j.driver</groupId>
 			<artifactId>neo4j-java-driver</artifactId>
-			<version>4.4.11</version>
+			<version>5.28.7</version>
 		</dependency>
-        <dependency>
-            <groupId>org.apache.pulsar</groupId>
-            <artifactId>pulsar-client</artifactId>
-            <version>${pulsar.version}</version>
-            <scope>compile</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcpkix-jdk18on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk18on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcutil-jdk18on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-ext-jdk18on</artifactId>
-				</exclusion>
-			</exclusions>
-        </dependency>
-    </dependencies>
+		<dependency>
+			<groupId>io.projectreactor</groupId>
+			<artifactId>reactor-core</artifactId>
+			<version>3.5.8</version>
+			<scope>compile</scope>
+		</dependency>
+	</dependencies>
 
 </project>

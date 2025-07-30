@@ -59,6 +59,9 @@ public interface App extends Closeable {
 	RelationshipInterface getRelationshipById(final String type, final String uuid) throws FrameworkException;
 	RelationshipInterface getRelationshipById(final String uuid) throws FrameworkException;
 
+	Map<RelationshipInterface, Double> getRelationshipsFromFulltextIndex(final String indexName, final String searchString, int pageSize, int page) throws FrameworkException;
+	Map<NodeInterface, Double> getNodesFromFulltextIndex(final String indexName, final String searchString, int page, int pageSize) throws FrameworkException;
+
 	Query<NodeInterface> nodeQuery();
 	QueryGroup<NodeInterface> nodeQuery(final String type);
 

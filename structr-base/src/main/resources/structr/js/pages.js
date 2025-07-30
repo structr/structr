@@ -752,7 +752,7 @@ let _Pages = {
 			if (categories.size > 0) {
 				helpText += 'Available categories: \n\n' + [...categories].join('\n');
 			} else {
-				helpText += '\nNo categories available - these can be set in the "Basic" tab of a page.';
+				helpText += '\nNo categories available - these can be set in the "General" tab of a page.';
 			}
 
 			filerEl.querySelector('input.category-filter').title = helpText;
@@ -1059,7 +1059,7 @@ let _Pages = {
 				case 'Content':
 					urlHash = '#pages:editor';
 				default:
-					urlHash = '#pages:basic';
+					urlHash = '#pages:general';
 			}
 		}
 
@@ -1073,18 +1073,18 @@ let _Pages = {
 				_Pages.routingDialog(obj, routingContainer);
 				break;
 
-			case '#pages:basic':
+			case '#pages:general':
 
-				let dialogConfig = _Entities.basicTab.getBasicTabConfig(obj);
+				let dialogConfig = _Entities.generalTab.getGeneralTabConfig(obj);
 
-				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.basic());
-				let basicContainer = document.querySelector('#center-pane .basic-container');
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.general());
+				let generalContainer = document.querySelector('#center-pane .general-container');
 
 				_Schema.getTypeInfo(obj.type, (typeInfo) => {
 
 					if (dialogConfig) {
-						dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj, typeInfo).then(() => {
-							_Helpers.activateCommentsInElement(basicContainer);
+						dialogConfig.appendDialogForEntityToContainer($(generalContainer), obj, typeInfo).then(() => {
+							_Helpers.activateCommentsInElement(generalContainer);
 						});
 					}
 				});
@@ -1695,7 +1695,7 @@ let _Pages = {
 
 			methodNameInput.value                  = actionMapping.method;
 			dataTypeSelect.value                   = actionMapping.dataType;
-			dataTypeInput.value                    = actionMapping.dataType;
+			dataTypeInput.value                    = actionMapping.dataType ?? '';
 
 			idExpressionInput.value                = actionMapping.idExpression;
 
@@ -2547,6 +2547,13 @@ let _Pages = {
 
 					if (e.target.classList.contains('context_menu_icon')) {
 						_Elements.contextMenu.activateContextMenu(e, e.target, entity);
+						return true;
+					}
+
+					// account for case where a child of the svg is clicked
+					let closestMenuIcon = e.target.closest('.context_menu_icon');
+					if (closestMenuIcon) {
+						_Elements.contextMenu.activateContextMenu(e, closestMenuIcon, entity);
 						return true;
 					}
 
@@ -3904,8 +3911,8 @@ let _Pages = {
 		functions: config => `
 			<div class="flex-grow">
 				<ul class="tabs-menu hidden">
-					<li id="tabs-menu-basic">
-						<a href="#pages:basic">Basic</a>
+					<li id="tabs-menu-general">
+						<a href="#pages:general">General</a>
 					</li>
 					<li id="tabs-menu-html">
 						<a href="#pages:html">HTML</a>
@@ -3934,14 +3941,14 @@ let _Pages = {
 					<li id="tabs-menu-active">
 						<a href="#pages:active">Active Elements</a>
 					</li>
-					<li id="tabs-menu-basic">
+					<li id="tabs-menu-routing">
 						<a href="#pages:routing">URL Routing</a>
 					</li>
 				</ul>
 			</div>
 		`,
-		basic: config => `
-			<div class="content-container basic-container"></div>
+		general: config => `
+			<div class="content-container general-container"></div>
 		`,
 		routing: config => `
 			<div class="content-container routing-container">

@@ -345,3 +345,9 @@ div.warning-message {
 	padding: 5px 5px 5px 30px;
 	margin: 8px 0 0 0;
 }
+
+input[type=text]:invalid {
+	background-color: var(--config-servlet-lightred);
+	color: var(--config-servlet-red);
+	border: 1px solid var(--config-servlet-red);
+}
