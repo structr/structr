@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.ExactQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.core.GraphObject;

@@ -80,12 +80,11 @@ module structr.base {
 	requires org.apache.commons.collections4;
 	requires org.apache.commons.codec;
 	requires org.apache.commons.text;
-	requires org.apache.commons.lang3;
 	requires java.desktop;
 	requires ch.qos.logback.classic;
 	requires org.neo4j.driver;
 	requires activation;
-	requires commons.lang;
+	requires org.apache.commons.lang3;
 	requires org.json;
 	requires org.antlr.antlr4.runtime;
 	requires com.twelvemonkeys.common.image;
