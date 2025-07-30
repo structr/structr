@@ -35,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.PathHelper;
 import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
@@ -365,6 +366,22 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		Settings.LogLevel.setChangeHandler((setting, oldValue, newValue) -> {
 			SetLogLevelFunction.setLogLevel(newValue.toString());
+		});
+
+		Settings.DefaultUploadFolder.setChangeHandler((setting, oldValue, newValue) -> {
+
+			final String cleanedNewValue = PathHelper.removeRelativeParts(newValue.toString());
+
+			if (cleanedNewValue.equals("")) {
+
+				logger.info("{}: Unable to save value '{}'. Default upload folder path requires a folder or folder path. Uploading to the root folder is not allowed. Resetting to default.", setting.getKey(), newValue);
+
+				setting.setValue(setting.getDefaultValue());
+
+			} else {
+
+				setting.setValue(cleanedNewValue);
+			}
 		});
 	}
 
