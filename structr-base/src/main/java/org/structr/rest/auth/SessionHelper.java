@@ -235,7 +235,6 @@ public class SessionHelper {
 			try {
 
 				getDefaultSessionCache().get(sessionId).invalidate();
-				//getDefaultSessionCache().delete(sessionId);
 
 			} catch (final Exception ex) {
 
