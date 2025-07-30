@@ -665,13 +665,13 @@ let _Files = {
 		fetch(`${Structr.rootUrl}me`, {
 			method: 'PUT',
 			body: JSON.stringify({ workingDirectory: _Files.currentWorkingDir })
-		})
+		});
 	},
 	registerFolderLinks: () => {
 
-		let openTargetNode = (targetId) => {
+		let openTargetNode = (targetId, e) => {
 			_Files.getFilesTree().jstree('open_node', targetId, () => {
-				_Files.getFilesTree().jstree('activate_node', targetId);
+				_Files.getFilesTree().jstree('activate_node', targetId, e);
 			});
 		};
 
@@ -685,9 +685,11 @@ let _Files = {
 				let parentId = folderLink.dataset['parentId'];
 
 				if (!parentId || _Files.getFilesTree().jstree('is_open', parentId)) {
-					openTargetNode(targetId);
+					openTargetNode(targetId,e );
 				} else {
-					_Files.getFilesTree().jstree('open_node', parentId, openTargetNode);
+					_Files.getFilesTree().jstree('open_node', parentId, () => {
+						openTargetNode(parentId, e);
+					});
 				}
 			});
 		}
