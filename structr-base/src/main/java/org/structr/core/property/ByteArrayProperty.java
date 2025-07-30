@@ -18,8 +18,8 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SerializationUtils;
 import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
