@@ -4061,7 +4061,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden option-success option-success-navigate-to-url">
-									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
+									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code>">Success URL</label>
 									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 								</div>
 
