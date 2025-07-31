@@ -37,12 +37,13 @@ class SchemaNodesFormatter {
 
 			label.setAttribute('text-anchor', 'middle');
 			label.setAttribute('dominant-baseline', 'middle');
-			label.setAttribute('font-size', '11pt');
+			label.setAttribute('font-size', '10pt');
+			label.setAttribute('font-weight', '500');
 			label.setAttribute('text-rendering', 'optimizeLegibility');
 			label.setAttribute('x', child.x + offset.x + (child.width / 2));
 			label.setAttribute('y', child.y + offset.y + (child.height / 2) + 1);
 			label.setAttribute('stroke', 'none');
-			label.setAttribute('fill', '#000000');
+			label.setAttribute('fill', '#333333');
 			label.setAttribute('pointer-events', 'none');
 
 			label.appendChild(text);

@@ -603,6 +603,10 @@ let _Schema = {
 		},
 		loadNodes: async () => {
 
+			_Schema.newAutoLayout();
+
+			/*
+
 			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
 
 			let schemaLayout = await _Schema.getFirstSchemaLayoutOrFalse();
@@ -862,6 +866,7 @@ let _Schema = {
 
 				throw new Error("Loading of Schema nodes failed");
 			}
+			*/
 		},
 		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
 
@@ -5260,7 +5265,153 @@ let _Schema = {
 
 		element.classList.toggle('has-changes', hasClass);
 	},
+	newAutoLayout: async () => {
 
+		let index    = {};
+		let relCount = {};
+
+		let input = {
+			id: 'root',
+			children: [],
+			edges: [],
+			layoutOptions: {
+				'elk.algorithm':                                       'layered',
+				'elk.direction':                                       'DOWN',
+				'elk.edgeWidth':                                       4,
+				'elk.edgeLabels.inline':                               true,
+				'elk.edgeLabels.placement':                            'CENTER',
+				'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
+				'elk.layered.edgeLabels.sideSelection':                'ALWAYS_UP',
+				'elk.layered.spacing.edgeNodeBetweenLayers':           40,
+			}
+		};
+
+		let nodeResponse = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
+		let nodes = await nodeResponse.json();
+
+		for (let n of nodes.result) {
+
+			_Schema.nodeData['id_' + n.id] = n;
+
+			let width  = (n.name.length * 12) + 20; // n.clientWidth;
+			let height = 20; // n.clientHeight;
+
+			index[n.id] = true;
+
+			let item = {
+				id: 'id_' + n.id,
+				width: width,
+				height: height + 10,
+				labels: [
+					{ text: n.name }
+				],
+				ports: [
+					{
+						id: 'id_' + n.id + '_NORTH',
+						layoutOptions: { 'port.side': 'NORTH' }
+					},
+					{
+						id: 'id_' + n.id + '_SOUTH',
+						layoutOptions: { 'port.side': 'SOUTH' }
+					},
+				],
+				layoutOptions: {
+					portConstraints: 'FIXED_SIDE'
+				}
+			};
+
+			input.children.push(item);
+		}
+
+		// rels
+		let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
+		let data     = await response.json();
+
+		// inheritance
+		let includeInheritance = false;
+		let inheritanceRels    = [];
+
+		if (includeInheritance) {
+
+			for (let node of input.children) {
+
+				let data = _Schema.nodeData[node.id.substring(3)];
+				if (data) {
+
+					if (data?.extendsClass?.id) {
+
+						let id = data.extendsClass.id;
+
+						if (index[id]) {
+
+/*
+							inheritanceRels.push({
+								source: 'id_' + id,
+								target: node.id
+							});
+							 *
+ */
+
+							input.edges.push({
+								id:      node.id + 'extends' + id,
+								sources: [ 'id_' + id + '_SOUTH' ],
+								targets: [ node.id + '_NORTH' ],
+								//sources: [ 'id_' + id ],
+								//targets: [ node.id ]
+								labels: [
+									{ text: 'EXTENDS' }
+								]
+							});
+						}
+					}
+				}
+			}
+
+		} else {
+
+			for (let res of data.result) {
+
+				if (index[res.sourceId] === true && index[res.targetId] === true) {
+
+					let s = 'id_' + res.sourceId;
+					let t = 'id_' + res.targetId;
+
+					if (!relCount[s]) { relCount[s] = 0; }
+					if (!relCount[t]) { relCount[t] = 0; }
+
+					relCount[s]++;
+					relCount[t]++;
+
+					input.edges.push({
+						id:      res.id,
+						//sources: [ 'id_' + res.sourceId + '_SOUTH' ],
+						//targets: [ 'id_' + res.targetId + '_NORTH' ],
+						sources: [ s ],
+						targets: [ t ],
+						labels: [
+							{ text: res.relationshipType, width: (res.relationshipType.length * 12) + 20, height: 23 }
+						]
+					});
+				}
+			}
+
+		}
+
+		let container = document.querySelector('#schema-graph');
+
+		container.innerText = '';
+
+		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels));
+
+		/*
+		// todo: implement click handler for nodes
+		nodes[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
+			_Schema.openEditDialog(entity.id);
+		});
+		*/
+
+
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
