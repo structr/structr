@@ -85,10 +85,7 @@ public class StringSetting extends Setting<String> {
 
 		// display value if non-empty
 		if (value != null) {
-
-			final String escapedValue = StringUtils.replaceEach(value, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
-
-			input.attr(new Attr("value", escapedValue));
+			input.attr(new Attr("value", value));
 		}
 
 		renderResetButton(group);
