@@ -24,11 +24,27 @@ export class Handler {
 		this.frontendModule = frontendModule;
 	}
 
+	getValue(obj, path) {
+
+		let components = path
+			.replace(/\["(\w+)"]/g, '.$1')   // convert ["index"] to .index
+			.replace(/\['(\w+)']/g, '.$1')   // convert ['index'] to .index
+			.replace(/\[(\d+)]/g, '.$1')     // convert numeric indexes [0] to .0
+			.split('.');
+
+		return components.reduce((acc, key) => acc && acc[key], obj);
+	}
+
 	handleReloadTarget(reloadTarget, element, parameters, status, options) {
 
-		// remove prefix "toast:"
-		let selector = reloadTarget.substring(6);
+		let data = {
+			result: parameters
+		};
 
-		bootstrap.Toast.getOrCreateInstance(document.querySelector(selector)).show();
+		// Evaluate and replace each {} expression
+		let value = reloadTarget.replace(/{([^}]+)}/g, (match, cg1) => this.getValue(data, cg1));
+
+		// go to URL
+		window.location.href = value;
 	}
 }

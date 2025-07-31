@@ -368,7 +368,56 @@ export class Frontend {
 			default:
 				// Default is do nothing
 		}
+	}
 
+	async handleReloadTargetString(targetString, element, parameters, status, options) {
+
+		let colonPosition = targetString.indexOf(':');
+		if (colonPosition !== -1) {
+
+			let moduleName = targetString.substring(0, colonPosition);
+			let module     = await import(`/structr/js/frontend/modules/reload-target-handlers/${moduleName}.js`);
+			if (module) {
+
+				if (module.Handler) {
+
+					let handler = new module.Handler(this);
+
+					if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
+
+						handler.handleReloadTarget(targetString.substring(colonPosition + 1), element, parameters, status, options);
+
+					} else {
+
+						throw `Handler class for behaviour "${moduleName}" has no method "handleReloadTarget".`;
+					}
+
+				} else {
+
+					throw `Module for behaviour "${moduleName}" has no class "Handler".`;
+				}
+
+			} else {
+
+				throw `No module found for behaviour "${moduleName}".`;
+			}
+
+		} else if (targetString === 'none') {
+
+			// do nothing
+			return;
+
+		} else if (targetString === 'sign-out') {
+
+			// sign-out and reload
+			fetch('/structr/logout', { method: 'POST' }).then((response) => {
+				location.reload();
+			});
+
+		} else {
+
+			this.reloadPartial(targetString, parameters, element);
+		}
 	}
 
 	async processFollowUpActions(element, parameters, status, options) {
@@ -379,53 +428,9 @@ export class Frontend {
 
 			let successTargets = element.dataset.structrSuccessTarget;
 
-			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+			for (let successTarget of successTargets.split(',').map(t => t.trim() ).filter(t => t.length > 0 )) {
 
-				if (successTarget.indexOf(':') !== -1) {
-
-					let moduleName = successTarget.substring(0, successTarget.indexOf(':'));
-					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
-					if (module) {
-
-						if (module.Handler) {
-
-							let handler = new module.Handler(this);
-
-							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
-
-								handler.handleReloadTarget(successTarget, element, parameters, status, options);
-
-							} else {
-
-								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
-							}
-
-						} else {
-
-							throw `Module for behaviour ${moduleName} has no class "Handler".`;
-						}
-
-					} else {
-
-						throw `No module found for behaviour ${moduleName}.`;
-					}
-
-				} else if (successTarget === 'none') {
-
-					// do nothing
-					return;
-
-				} else if (successTarget === 'sign-out') {
-
-					// sign-out and reload
-					fetch('/structr/logout', { method: 'POST' }).then((response) => {
-						location.reload();
-					});
-
-				} else {
-
-					this.reloadPartial(successTarget, parameters, element);
-				}
+				this.handleReloadTargetString(successTarget, element, parameters, status, options);
 			}
 
 		} else if (!success && element.dataset.structrFailureTarget) {
@@ -434,51 +439,7 @@ export class Frontend {
 
 			for (let failureTarget of failureTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
 
-				if (failureTarget.indexOf(':') !== -1) {
-
-					let moduleName = failureTarget.substring(0, failureTarget.indexOf(':'));
-					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
-					if (module) {
-
-						if (module.Handler) {
-
-							let handler = new module.Handler(this);
-
-							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
-
-								handler.handleReloadTarget(failureTarget, element, parameters, status, options);
-
-							} else {
-
-								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
-							}
-
-						} else {
-
-							throw `Module for behaviour ${moduleName} has no class "Handler".`;
-						}
-
-					} else {
-
-						throw `No module found for behaviour ${moduleName}.`;
-					}
-
-				} else if (failureTarget === 'sign-out') {
-
-					// sign-out and reload
-					fetch('/structr/logout', { method: 'POST' }).then((response) => {
-						location.reload();
-					});
-
-				} else if (failureTarget === 'none') {
-
-					// do nothing
-					return;
-
-				} else {
-
-					this.reloadPartial(failureTarget, parameters, element);
-				}
+				this.handleReloadTargetString(failureTarget, element, parameters, status, options);
 			}
 
 		} else {
@@ -486,7 +447,6 @@ export class Frontend {
 			// Default is do nothing
 			//window.location.reload();
 		}
-
 	}
 
 	isSuccess = status => status < 300;

@@ -26,9 +26,6 @@ export class Handler {
 
 	handleReloadTarget(reloadTarget, element, parameters, status, options) {
 
-		// remove prefix "event:"
-		let event = reloadTarget.substring(6);
-
-		element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: parameters, status: status, element: element } }));
+		this.frontendModule.instantiateTemplate(reloadTarget, parameters, status, options);
 	}
 }
