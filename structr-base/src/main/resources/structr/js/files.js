@@ -386,10 +386,18 @@ let _Files = {
 			}
 
 			if (fileCount === 1 && _Files.isArchive(entity)) {
+
 				elements.push({
-					name: 'Unpack archive',
+					name: 'Extract archive here',
 					clickHandler: () => {
-						_Files.unpackArchive(entity);
+						_Files.extractArchive(entity, false);
+					}
+				});
+
+				elements.push({
+					name: 'Extract archive to new folder',
+					clickHandler: () => {
+						_Files.extractArchive(entity, true);
 					}
 				});
 			}
@@ -1211,12 +1219,12 @@ let _Files = {
 			};
 		});
 	},
-	unpackArchive: (d) => {
+	extractArchive: (file, createFolder = false) => {
 
 		let message = `
 			<div class="flex items-center justify-center">
 				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
-				<div>Unpacking Archive - please stand by...</div>
+				<div>Extracting archive - please stand by...</div>
 			</div>
 			<p>
 				Extraction will run in the background.<br>
@@ -1225,7 +1233,7 @@ let _Files = {
 			</p>
 		`;
 
-		let { headingEl, messageEl, closeButton } = _Dialogs.tempInfoBox.show(message);
+		let { messageEl, closeButton } = _Dialogs.tempInfoBox.show(message);
 
 		closeButton.style.display = 'none';
 
@@ -1233,17 +1241,19 @@ let _Files = {
 			closeButton.style.display = null;
 		}, 500);
 
-		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, (data) => {
+		let parentFolder = (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined);
+
+		Command.unarchive(file.id, parentFolder, createFolder, (data) => {
+
+			let dialogClosed = (messageEl.offsetParent === null);
 
 			if (data.success === true) {
 
 				_Files.refreshTree();
 
-				let closed = (messageEl.offsetParent === null);
+				if (dialogClosed) {
 
-				if (closed) {
-
-					new SuccessMessage().text(message).requiresConfirmation().show();
+					new SuccessMessage().text("Extracting '" + file.name + "' finished.").show();
 
 				} else {
 
@@ -1253,8 +1263,15 @@ let _Files = {
 
 			} else {
 
-				_Helpers.fastRemoveAllChildren(messageEl);
-				messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed.</div>`);
+				if (dialogClosed) {
+
+					new ErrorMessage().text("Extracting '" + file.name + "' failed - please see the log for more details.").requiresConfirmation().show();
+
+				} else {
+
+					_Helpers.fastRemoveAllChildren(messageEl);
+					messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed.</div>`);
+				}
 			}
 
 			_Dialogs.basic.centerAll();
