@@ -4807,6 +4807,7 @@ let _Schema = {
 
 		document.getElementById('new-auto-layout').addEventListener('click', (e) => {
 			_Schema.newAutoLayout();
+			Structr.hideOpenDropdownsExcept();
 		});
 	},
 	updateGroupedLayoutSelector: async (layoutSelector) => {
