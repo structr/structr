@@ -25,8 +25,6 @@ class SchemaNodesFormatter {
 				portShape.setAttribute('fill', '#999999');
 
 				svg.appendChild(portShape);
-
-				console.log(child);
 			}
 		}
 
@@ -101,6 +99,7 @@ class SchemaNodesFormatter {
 		shape.setAttribute('rx', 0);
 		shape.setAttribute('width', child.width);
 		shape.setAttribute('height', child.height);
+		shape.setAttribute('data-type', child.labels[0].text);
 
 		return shape;
 	}

@@ -78,6 +78,7 @@ let _Schema = {
 
 			_Schema.init(null,() => {
 				Structr.resize();
+				_Schema.initPanZoom();
 			});
 
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
@@ -102,12 +103,16 @@ let _Schema = {
 		Structr.resize();
 	},
 	storePositions: () => {
-		for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
-			let node = $(n);
-			let type = node.children('b').text();
-			let obj = node.offset();
-			obj.left = (obj.left) / _Schema.ui.zoomLevel;
-			obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
+		for (let n of document.querySelectorAll('rect.node')) {
+
+			let type = n.dataset.type;
+			let obj = {
+				left: n.x.baseVal.value,
+				top: n.y.baseVal.value
+			};
+
+			//obj.left = (obj.left) / _Schema.ui.zoomLevel;
+			//obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
 			_Schema.nodePositions[type] = obj;
 		}
 		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
@@ -256,6 +261,11 @@ let _Schema = {
 				event.preventDefault();
 			}
 		});
+		schemaContainer.addEventListener('panzoomend', (event) => {
+			if (!event.shiftKey) {
+				schemaContainer.style.cursor = 'default';
+			}
+		});
 		schemaContainer.addEventListener('wheel', (event) => {
 			panzoom.zoomWithWheel(event);
 		});
@@ -324,7 +334,7 @@ let _Schema = {
 	},
 	openEditDialog: (id, targetView, callback) => {
 
-		targetView = targetView || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${id}`) || 'basic';
+		targetView = targetView || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${id}`) || 'general';
 
 		_Schema.currentNodeDialogId = id;
 
@@ -409,6 +419,7 @@ let _Schema = {
 			if (Structr.isModuleActive(_Schema)) {
 
 				let newCancelButton = _Dialogs.custom.updateOrCreateDialogCloseButton();
+				_Dialogs.custom.setHasCustomCloseHandler();
 
 				newCancelButton.addEventListener('click', async (e) => {
 
@@ -602,10 +613,6 @@ let _Schema = {
 			}));
 		},
 		loadNodes: async () => {
-
-			_Schema.newAutoLayout();
-
-			/*
 
 			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
 
@@ -866,18 +873,12 @@ let _Schema = {
 
 				throw new Error("Loading of Schema nodes failed");
 			}
-			*/
 		},
-		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
+		loadNode: (entity, mainTabs, contentDiv, targetView = 'general', callbackCancel) => {
 
-			if (!Structr.isModuleActive(_Code) && (targetView === 'working-sets')) {
-				targetView = 'basic';
-			}
-
-			let tabControls = {};
-
-			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
-			tabControls.basic          = _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity);
+			let tabControls       = {};
+			let generalTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'general', 'General', targetView === 'general');
+			tabControls.basic     = _Schema.nodes.appendBasicNodeInfo(generalTabContent, entity);
 
 			if (entity.isServiceClass === false) {
 
@@ -890,7 +891,9 @@ let _Schema = {
 				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
 				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
 				tabControls.schemaViews      = _Schema.views.appendViews(viewsTabContent, entity);
-				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity);
+
+				let basicTabContentContainer = generalTabContent.querySelector('.schema-details');
+				tabControls.schemaGrants     = _Schema.schemaGrants.appendSchemaGrants(basicTabContentContainer, entity);
 
 				_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
 			}
@@ -899,6 +902,11 @@ let _Schema = {
 			tabControls.schemaMethods = _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods);
 
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
+
+			// fallback: if no tab is active because the given targetView is not available, use the first tab
+			if (!mainTabs.querySelector('.active')) {
+				mainTabs.querySelector('li').click();
+			}
 
 			Structr.resize();
 
@@ -1027,11 +1035,13 @@ let _Schema = {
 
 			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab({ isServiceClass: entity?.isServiceClass, isCreate: !entity })));
 
+			let basicTypeContainer = tabContent.querySelector('.basic-schema-details');
+
 			_Helpers.activateCommentsInElement(tabContent);
 
 			let updateChangeStatus = () => {
 
-				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
+				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(basicTypeContainer, entity);
 				let changedData = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
 				let hasChanges  = Object.keys(changedData).length > 0;
 
@@ -1054,7 +1064,7 @@ let _Schema = {
 			return {
 				getBulkInfo: (doValidate) => {
 
-					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
+					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(basicTypeContainer, entity);
 					let allow       = true;
 					if (doValidate) {
 						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent, entity);
@@ -1264,7 +1274,7 @@ let _Schema = {
 		},
 		loadRelationship: (entity, tabsContainer, contentDiv, sourceNode, targetNode, targetView, callbackCancel) => {
 
-			let basicTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'basic', 'Basic', targetView === 'basic');
+			let basicTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'general', 'General', targetView === 'general');
 			let localPropsTabContent = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'local', 'Direct properties', targetView === 'local');
 			let viewsTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'views', 'Views', targetView === 'views');
 			let methodsTabContent    = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
@@ -1279,6 +1289,11 @@ let _Schema = {
 			_Schema.bulkDialogsGeneral.overrideDialogCancel(tabsContainer, callbackCancel);
 
 			Structr.resize();
+
+			// fallback: if no tab is active because the given targetView is not available, use the first tab
+			if (!tabsContainer.querySelector('.active')) {
+				tabsContainer.querySelector('li').click();
+			}
 
 			return tabControls;
 		},
@@ -1769,15 +1784,15 @@ let _Schema = {
 				class: 'local schema-props grid',
 				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
-					{ class: 'pb-1 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Type' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Format' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Idx' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Default' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
+					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Type' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Format' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default' },
 					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
 				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
@@ -1981,17 +1996,17 @@ let _Schema = {
 			$('.indexed',          gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.property-default', gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 
-			let readWriteButtonClickHandler = (targetProperty) => {
+			let readWriteButtonClickHandler = async (targetProperty) => {
 
 				if (overrides && overrides.editReadWriteFunction) {
 
-					overrides.editReadWriteFunction(property, targetProperty);
+					overrides.editReadWriteFunction(property);
 
 				} else {
 
 					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInGrid(gridRow[0].closest('.schema-grid'));
 
-					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
+					if (!unsavedChanges || (true === await _Dialogs.confirmation.showPromise("Really switch to code editing? There are unsaved changes which will be lost!"))) {
 						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, () => {
 							if (Structr.isModuleActive(_Schema)) {
 								_Schema.openEditDialog(property.schemaNode.id, 'local');
@@ -2002,11 +2017,11 @@ let _Schema = {
 			};
 
 			$('.edit-read-function', gridRow).on('click', () => {
-				readWriteButtonClickHandler('readFunction');
+				readWriteButtonClickHandler('read');
 			}).prop('disabled', isProtected);
 
 			$('.edit-write-function', gridRow).on('click', () => {
-				readWriteButtonClickHandler('writeFunction');
+				readWriteButtonClickHandler('write');
 			}).prop('disabled', isProtected);
 
 			$('.edit-cypher-query', gridRow).on('click', () => {
@@ -2194,20 +2209,44 @@ let _Schema = {
 		},
 		openCodeEditorForFunctionProperty: (id, key, closeCallback) => {
 
-			Command.get(id, `id,name,contentType,${key}`, (entity) => {
+			let codeKey = `${key}Function`;
+			let wrapKey = `${key}FunctionWrapJS`;
 
-				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
-				_Dialogs.custom.showMeta();
+			Command.get(id, `id,name,contentType,${codeKey},${wrapKey}`, (entity) => {
 
-				let initialText = entity[key] || '';
-
+				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} function of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
 				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
+				_Dialogs.custom.showMeta();
 
 				let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
 				let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 				let editorInfo       = dialogMeta.querySelector('.editor-info');
 				_Editors.appendEditorOptionsElement(editorInfo);
+
+				let wrapChoice = _Helpers.createSingleDOMElementFromHTML(`<span>${ _Schema.properties.templates.functionProperty[wrapKey]({ entity }) }</span>`);
+				editorInfo.appendChild(wrapChoice);
+				_Helpers.activateCommentsInElement(wrapChoice);
+
+				let initialText     = entity[codeKey] ?? '';
+				let initialWrapFlag = entity[wrapKey];
+				let editor, flagCheckbox;
+
+				let isChanged = () => {
+					return !(editor.getValue() === initialText && flagCheckbox.checked === initialWrapFlag);
+				};
+
+				flagCheckbox = wrapChoice.querySelector('input[type="checkbox"]');
+				flagCheckbox.addEventListener('change', (e) => {
+					let disabled = !isChanged();
+					_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
+				});
+
+				let updateCodeWrappingCheckboxVisibility = (source) => {
+					let isJs = (_Editors.getMonacoEditorModeForContent(source, entity) === 'javascript');
+					wrapChoice.classList.toggle('hidden', !isJs);
+				};
+				updateCodeWrappingCheckboxVisibility(initialText);
 
 				let functionPropertyMonacoConfig = {
 					language: 'auto',
@@ -2215,26 +2254,26 @@ let _Schema = {
 					autocomplete: true,
 					changeFn: (editor, entity) => {
 
-						let disabled = (initialText === editor.getValue());
+						updateCodeWrappingCheckboxVisibility(editor.getValue());
+
+						let disabled = !isChanged();
 						_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
 					},
 					saveFn: (editor, entity, close = false) => {
 
-						let text1 = initialText;
-						let text2 = editor.getValue();
-
-						if (text1 === text2) {
+						if (!isChanged()) {
 							return;
 						}
 
-						Command.setProperty(entity.id, key, text2, false, () => {
+						Command.setProperties(entity.id, { [codeKey]: editor.getValue(), [wrapKey]: flagCheckbox.checked }, () => {
 
-							_Dialogs.custom.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+							_Dialogs.custom.showAndHideInfoBoxMessage('Saved successfully', 'success', 2000, 200);
 
 							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
-							Command.getProperty(entity.id, key, (newText) => {
-								initialText = newText;
+							Command.get(id, `id,${codeKey},${wrapKey}`, (entity) => {
+								initialText     = entity[codeKey];
+								initialWrapFlag = entity[wrapKey];
 							});
 
 							if (close === true) {
@@ -2242,12 +2281,13 @@ let _Schema = {
 							}
 						});
 					},
-					saveFnText: `Save ${key} Function`,
+					saveFnText: `Save ${key} function`,
 					preventRestoreModel: true,
 					isAutoscriptEnv: true
 				};
 
-				let editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
+				editor = _Editors.getMonacoEditor(entity, codeKey, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
+				_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, codeKey, editor);
 
 				_Editors.resizeVisibleEditors();
 				Structr.resize();
@@ -2393,9 +2433,9 @@ let _Schema = {
 		templates: {
 			propertyBuiltin: config => `
 				<div class="schema-grid-row contents" data-property-name="${config.property.name}" data-property-id="${config.property.id}">
-					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</div>
-					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
-					<div class="py-1 flex items-center">${config.property.propertyType}</div>
+					<div class="py-3 px-2 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</div>
+					<div class="py-3 px-2 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
+					<div class="py-3 px-2 flex items-center">${config.property.propertyType}</div>
 					<div class="flex items-center justify-center">
 						<input class="not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')} style="margin-right: 0;">
 					</div>
@@ -2412,29 +2452,29 @@ let _Schema = {
 			`,
 			propertyLocal: config => `
 				<div class="schema-grid-row contents" data-property-id="${config.property.id}" >
-					<div class="p-1 flex items-center">
+					<div class="p-2 flex items-center">
 						<input size="15" type="text" class="property-name" value="${_Helpers.escapeForHtmlAttributes(config.property.name)}">
 					</div>
-					<div class="p-1 ${config.dbNameClass}">
+					<div class="p-2 ${config.dbNameClass}">
 						<input size="15" type="text" class="property-dbname" value="${_Helpers.escapeForHtmlAttributes(config.property.dbName)}">
 					</div>
 					<div class="flex items-center">
 						${config.typeOptions}
 						${(config.property.propertyType === 'String' && !config.property.isBuiltinProperty) ? '<input type="text" class="content-type w-12" title="Content-Type">' : ''}
 					</div>
-					<div class="p-1">
+					<div class="p-2 flex items-center">
 						${(() => {
 							switch (config.property.propertyType) {
 								case 'Function':
 									return `
-												<div class="flex items-center">
-													<button class="edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
-													<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
-													<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
-													<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
-													${config.typeHintOptions}
-												</div>
-											`;
+										<div class="flex items-center">
+											<button class="flex items-center edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read${(config.property.readFunctionWrapJS === true) ? _Icons.getSvgIcon(_Icons.iconScriptWrapped, 20, 20, ['ml-1'], 'This script (if JavaScript) is being wrapped in a main() function, thus enabling the usage or the return statement and not allowing import statements.') : ''}</button>
+											<button class="flex items-center edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write${(config.property.writeFunctionWrapJS === true) ? _Icons.getSvgIcon(_Icons.iconScriptWrapped, 20, 20, ['ml-1'], 'This script (if JavaScript) is being wrapped in a main() function, thus enabling the usage or the return statement and not allowing import statements.') : ''}</button>
+											<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
+											<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
+											${config.typeHintOptions}
+										</div>
+									`;
 								case 'Cypher':
 									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
 								default:
@@ -2454,7 +2494,7 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
 					</div>
-					<div class="p-1"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
+					<div class="py-3 px-2"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
 					<div class="actions-col flex items-center justify-center">
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Delete')}
@@ -2463,14 +2503,14 @@ let _Schema = {
 			`,
 			propertyNew: config => `
 				<div class="schema-grid-row has-changes contents">
-					<div class="p-1">
+					<div class="p-2">
 						<input size="15" type="text" class="property-name" placeholder="JSON name" autofocus>
 					</div>
 					<div class="p-1 ${config.dbNameClass}">
 						<input size="15" type="text" class="property-dbname" placeholder="DB Name">
 					</div>
 					<div class="flex items-center">${config.typeOptions}</div>
-					<div class="p-1">
+					<div class="p-2 flex items-center">
 						<input size="15" type="text" class="property-format" placeholder="Format">
 					</div>
 					<div class="flex items-center justify-center">
@@ -2485,7 +2525,7 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" style="margin-right: 0;">
 					</div>
-					<div class="p-1">
+					<div class="p-2 flex items-center">
 						<input class="property-default" size="10" type="text" placeholder="Default Value">
 					</div>
 					<div class="actions-col flex items-center justify-center">
@@ -2538,6 +2578,18 @@ let _Schema = {
 					<option value="Password" data-protected="true" disabled>Password</option>
 				</select>
 			`,
+			functionProperty: {
+				readFunctionWrapJS: (config) => `
+					<label data-comment="This configures how the read function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
+						<input type="checkbox" id="property-readfunction-wrap" data-property="readFunctionWrapJS" ${config.entity.readFunctionWrapJS ? 'checked' : ''}> Wrap JS read function in main()
+					</label>
+				`,
+				writeFunctionWrapJS: (config) => `
+					<label data-comment="This configures how the write function script (if it is JavaScript) is interpreted. If set to false, the script itself is not wrapped in a main() function and thus import statements can be used.">
+						<input type="checkbox" id="property-writefunction-wrap" data-property="writeFunctionWrapJS" ${config.entity.writeFunctionWrapJS ? 'checked' : ''}> Wrap JS write function in main()
+					</label>
+				`
+			}
 		}
 	},
 	remoteProperties: {
@@ -3303,6 +3355,7 @@ let _Schema = {
 					isPrivate:       method.isPrivate,
 					returnRawResult: method.returnRawResult,
 					httpVerb:        method.httpVerb,
+					wrapJsInMain:    method.wrapJsInMain,
 					schemaNode:      entity,
 					parameters:      method.parameters,
 					initialData: {
@@ -3312,6 +3365,7 @@ let _Schema = {
 						isPrivate:       method.isPrivate,
 						returnRawResult: method.returnRawResult,
 						httpVerb:        method.httpVerb,
+						wrapJsInMain:    method.wrapJsInMain
 					}
 				};
 
@@ -3562,6 +3616,10 @@ let _Schema = {
 				}
 			}
 		},
+		methodChangeFromInitialData: (methodData) => {
+
+			return Object.keys(methodData.initialData).some(key => methodData[key] !== methodData.initialData[key])
+		},
 		bindRowEvents: (gridBody, gridRow, entity) => {
 
 			let methodId       = gridRow.dataset['methodId'];
@@ -3575,7 +3633,8 @@ let _Schema = {
 				methodData.name = propertyNameInput.value;
 
 				if (isDatabaseNode) {
-					_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialData.name));
+					let rowChanged = _Schema.methods.methodChangeFromInitialData(methodData);
+					_Schema.methods.rowChanged(gridRow, rowChanged);
 				}
 
 				_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
@@ -3588,7 +3647,8 @@ let _Schema = {
 					methodData[key] = checkbox.checked;
 
 					if (isDatabaseNode) {
-						_Schema.methods.rowChanged(gridRow, (methodData[key] !== methodData.initialData[key]));
+						let rowChanged = _Schema.methods.methodChangeFromInitialData(methodData);
+						_Schema.methods.rowChanged(gridRow, rowChanged);
 					}
 
 					_Schema.methods.updateUIForAllAttributes(gridRow, methodData);
@@ -3716,11 +3776,13 @@ let _Schema = {
 			let isServiceClassMethod = (isTypeMethod && methodData.schemaNode.isServiceClass === true);
 			let isLifecycleMethod    = LifecycleMethods.isLifecycleMethod(methodData);
 			let isCallableViaREST    = (methodData.isPrivate !== true);
+			let isJavaScript         = ('javascript' === _Editors.getMonacoEditorModeForContent(methodData.source, methodData));
 
 			updateVisibilityForAttribute('isStatic',        (!isLifecycleMethod && isTypeMethod && !isServiceClassMethod));
 			updateVisibilityForAttribute('isPrivate',       (!isLifecycleMethod));
 			updateVisibilityForAttribute('returnRawResult', (!isLifecycleMethod && isCallableViaREST));
 			updateVisibilityForAttribute('httpVerb',        (!isLifecycleMethod && isCallableViaREST));
+			updateVisibilityForAttribute('wrapJsInMain',    (!isLifecycleMethod && isJavaScript));
 
 			// completely hide 'more' button for lifecycle methods
 			container.querySelector('.toggle-more-method-settings')?.classList.toggle('hidden', isLifecycleMethod);
@@ -3772,10 +3834,13 @@ let _Schema = {
 
 						_Schema.methods.rowChanged(tr, changesInInitialData);
 					}
+
+					_Schema.methods.updateUIForAllAttributes(tr, methodData);
 				}
 			};
 
 			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', document.querySelector('#methods-content .editor'), sourceMonacoConfig);
+			_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, 'source', sourceEditor);
 			_Editors.focusEditor(sourceEditor);
 
 			sourceMonacoConfig.changeFn(sourceEditor);
@@ -4041,7 +4106,7 @@ let _Schema = {
 
 					<div>
 						<div class="method-config-element entity-method py-1">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only possible for non-lifecycle type methods.">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context). Only applies to non-lifecycle type methods.">
 								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
 							</label>
 						</div>
@@ -4049,6 +4114,12 @@ let _Schema = {
 						<div class="method-config-element entity-method py-1">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can <strong>not be called via HTTP</strong>.<br>Lifecycle methods can never be called via HTTP.">
 								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Not callable via HTTP
+							</label>
+						</div>
+
+						<div class="method-config-element entity-method py-1">
+							<label class="block whitespace-nowrap" data-comment="This configures how the script (if it is JavaScript) is interpreted. If set to true, the script itself is wrapped in a main() function to enable the user to use the 'return' keyword at the end to return a value. However, that prevents the user from making use of imports. If this switch is set to false, the script is not wrapped in a main() function and thus import statements can be used. The return value of the script is the last evaluated instruction, just like in a REPL.">
+								<input type="checkbox" data-property="wrapJsInMain" ${config.method.wrapJsInMain ? 'checked' : ''}> Wrap JavaScript in main()
 							</label>
 						</div>
 					</div>
@@ -4240,25 +4311,30 @@ let _Schema = {
 		},
 		templates: {
 			schemaGrantsTabContent: config => `
-				<div class="relative">
-					<div class="inline-info">
-						<div class="inline-info-icon">
-							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+				<div>
+
+					<h3 class="mt-8">Permissions</h3>
+
+					<div class="relative">
+						<div class="inline-info">
+							<div class="inline-info-icon">
+								${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+							</div>
+							<div class="inline-info-text">
+								To define group permissions for access to <strong>all nodes of this type</strong>, simply check the corresponding boxes and save the changes.
+							</div>
 						</div>
-						<div class="inline-info-text">
-							To grant the corresponding permissions on <strong>all nodes of that type</strong>, simply check the corresponding boxes and save the grants.
+		
+						<div style="width: calc(100% - 4rem);" class="pt-4">
+							${config.gridMarkup}
 						</div>
+		
 					</div>
-	
-					<div style="width: calc(100% - 4rem);" class="pt-4">
-						${config.gridMarkup}
-					</div>
-	
 				</div>
 			`,
 			schemaGrantRow: config => `
 				<div class="schema-grid-row contents" data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
-					<div class="p-2">${config.name}</div>
+					<div class="py-3 px-2">${config.name}</div>
 					<div class="flex items-center justify-center">
 						<input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
@@ -4727,6 +4803,10 @@ let _Schema = {
 
 		document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
 			_Schema.clearPositions();
+		});
+
+		document.getElementById('new-auto-layout').addEventListener('click', (e) => {
+			_Schema.newAutoLayout();
 		});
 	},
 	updateGroupedLayoutSelector: async (layoutSelector) => {
@@ -5401,7 +5481,7 @@ let _Schema = {
 
 		container.innerText = '';
 
-		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels));
+		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), _Schema.storePositions);
 
 		/*
 		// todo: implement click handler for nodes
@@ -5416,8 +5496,10 @@ let _Schema = {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
 
-			<div id="schema-container">
-				<div class="canvas noselect" id="schema-graph"></div>
+			<div>
+				<div id="schema-container">
+					<div class="canvas noselect" id="schema-graph"></div>
+				</div>
 			</div>
 		`,
 		functions: config => `
@@ -5498,8 +5580,16 @@ let _Schema = {
 							<div class="separator"></div>
 
 							<div class="row">
-								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
-									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
+								<a title="Reset the stored node positions." id="reset-schema-positions" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout
+								</a>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="row">
+								<a title="Apply an experimental new automatic layouting algorithm." id="new-auto-layout" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconMagicWand, 16, 16, 'mr-2')} Experimental: Apply Automatic Layout
 								</a>
 							</div>
 						</div>
@@ -5609,43 +5699,45 @@ let _Schema = {
 			</div>
 		`,
 		typeBasicTab: config => `
-			<div class="schema-details pl-2">
-				<div class="flex items-center gap-x-2 pt-4">
-
-					<input data-property="name" class="flex-grow" placeholder="Type Name...">
-
-					${!config.isServiceClass ? `
-						<div class="flex items-center gap-2">
-							has traits
-							<select multiple data-property="inheritedTraits"></select>
-						</div>
-					` : ''}
-				</div>
-
-				<h3>Options</h3>
-				<div class="property-options-group">
-					<div class="flex">
-						${config.isServiceClass ? `
-							<label class="flex items-center mr-8" data-comment="Service-classes are containers for grouped functionality and can not be instantiated">
-								<input id="serviceclass-checkbox" type="checkbox" data-property="isServiceClass" disabled checked> Is Service Class
-							</label>
-						` : ''}
+			<div class="schema-details">
+				
+				<div class="basic-schema-details">
+					<div class="flex items-center gap-x-2 pt-4">
+	
+						<input data-property="name" class="flex-grow" placeholder="Type Name...">
+	
 						${!config.isServiceClass ? `
-							<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
-								<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
-							</label>
-							<label class="flex items-center mr-8" data-comment="Makes all nodes of this type visible to public users if checked">
-								<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
-							</label>
-							<label class="flex items-center" data-comment="Makes all nodes of this type visible to authenticated users if checked">
-								<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
-							</label>
+							<div class="flex items-center gap-2">
+								has traits
+								<select multiple data-property="inheritedTraits"></select>
+							</div>
 						` : ''}
 					</div>
-				</div>
-
-				<h3>OpenAPI</h3>
-				<div class="property-options-group">
+	
+					<h3 class="mt-8">Options</h3>
+					<div class="property-options-group">
+						<div class="flex">
+							${config.isServiceClass ? `
+								<label class="flex items-center mr-8" data-comment="Service-classes are containers for grouped functionality and can not be instantiated">
+									<input id="serviceclass-checkbox" type="checkbox" data-property="isServiceClass" disabled checked> Is Service Class
+								</label>
+							` : ''}
+							${!config.isServiceClass ? `
+								<label class="flex items-center mr-8" data-comment="Only takes effect if the changelog is active">
+									<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
+								</label>
+								<label class="flex items-center mr-8" data-comment="Makes all nodes of this type visible to public users if checked">
+									<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
+								</label>
+								<label class="flex items-center" data-comment="Makes all nodes of this type visible to authenticated users if checked">
+									<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
+								</label>
+							` : ''}
+						</div>
+					</div>
+	
+					<h3 class="mt-8">OpenAPI</h3>
+					<div class="property-options-group">
 					<div id="type-openapi">
 						${_Code.templates.openAPIBaseConfig({ type: 'SchemaNode' })}
 					</div>

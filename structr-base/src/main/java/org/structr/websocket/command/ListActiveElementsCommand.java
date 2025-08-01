@@ -20,6 +20,7 @@ package org.structr.websocket.command;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -37,13 +38,11 @@ import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.event.ActionMapping;
+import org.structr.web.entity.event.ParameterMapping;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent element.
@@ -81,13 +80,6 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
-			/*
-		} catch (FrameworkException fex) {
-
-			logger.warn("Exception occured", fex);
-			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
-		}
-		*/
 	}
 
 	@Override
@@ -205,7 +197,9 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			map.put("children", new LinkedList<>());
 			map.put("edges",    new LinkedList<>());
 
-			if (node instanceof DOMElement elem) {
+			if (node.is("DOMElement")) {
+
+				final DOMElement elem = node.as(DOMElement.class);
 
 				final String tag  = "<" + elem.getTag() + "/>";
 
@@ -307,7 +301,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		switch (type) {
 
 			case "Template"           -> { return 120; }
-			case "ActionMapping"      -> { return  80; }
+			case "ActionMapping"      -> { return 120; }
 			case "Table"              -> { return  80; }
 			default                   -> { return  70; }
 		}
@@ -327,19 +321,15 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			return 180;
 		}
 
-		if (name != null && name.length() > 10) {
+		if (!"ActionMapping".equals(type) && name != null && name.length() > 10) {
 			return 80;
 		}
 
 		switch (type) {
 
-			case "Page"               -> { return 180; }
 			case "Table"              -> { return 100; }
 			case "Template"           -> { return  80; }
 			case "ActionMapping"      -> { return  40; }
-			case "Condition"          -> { return  40; }
-			case "PropertyDataSource" -> { return  30; }
-			case "ListDataSource"     -> { return  30; }
 			default                   -> { return  20; }
 		}
 	}
@@ -575,6 +565,54 @@ public class ListActiveElementsCommand extends AbstractCommand {
 	}
 
 	private String getNameOrText(final NodeInterface node) {
+
+		if (node.is("ActionMapping")) {
+
+			final ActionMapping actionMapping = node.as(ActionMapping.class);
+			final String action               = actionMapping.getAction();
+
+			if ("method".equals(action)) {
+
+				return actionMapping.getMethod();
+			}
+
+			if ("create".equals(action)) {
+
+				return action + ": " + actionMapping.getDataType();
+			}
+
+			if ("delete".equals(action)) {
+
+				return action + ": " + actionMapping.getIdExpression();
+			}
+
+			final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
+			if (!triggerElements.isEmpty()) {
+
+				final DOMElement triggerElement = triggerElements.get(0);
+
+				if (Set.of("input", "select").contains(triggerElement.getTag()) && StringUtils.isNotBlank(triggerElement.getHtmlName())) {
+
+					return action + ": " + triggerElement.getHtmlName();
+
+				} else if ("button".equals(triggerElement.getTag())) {
+
+					final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
+					if (!parameterMappings.isEmpty()) {
+
+						final ParameterMapping param = parameterMappings.get(0);
+
+						if (StringUtils.isNotBlank(param.getParameterName())) {
+
+							return action + ": " + param.getParameterName();
+						}
+					}
+				}
+			}
+
+			return action;
+		}
+
 		return node.getName();
 	}
 }

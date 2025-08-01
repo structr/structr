@@ -3625,17 +3625,20 @@ let _Pages = {
 			_Pages.layout.createSVGDiagram(container, input, new ActiveElementsFormatter());
 		},
 
-		createSVGDiagram: function(container, input, formatter) {
+		createSVGDiagram: function(container, input, formatter, callback) {
 
 			Command.layout(input, layout => {
 
-				_Pages.layout.createSVGFromLayout(container, layout, formatter);
+				_Pages.layout.createSVGFromLayout(container, layout, formatter).then(() => {
+
+					if (callback && typeof callback == 'function') {
+						callback();
+					}
+				});
 			});
 		},
 
 		createSVGFromLayout: async function(container, layout, formatter) {
-
-			console.log(layout)
 
 			if (layout && layout.children) {
 

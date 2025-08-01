@@ -4712,3 +4712,14 @@ ul.combined-input-select-field li:hover {
 .http-statistics-HEAD {
 	fill: #94c9fe;
 }
+
+/**
+ Active Elements
+ */
+svg g.diagram-element[data-type="ActionMapping"] rect {
+	fill: #ff8800;
+}
+
+svg *[data-type="ListDataSource"] {
+	fill: #2222aa;
+}

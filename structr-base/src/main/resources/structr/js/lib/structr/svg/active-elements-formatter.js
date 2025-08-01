@@ -14,7 +14,7 @@ class ActiveElementsFormatter {
 		if (child?.labels[1]?.text === 'PropertyDataSource') { text = false; }
 		if (child?.labels[1]?.text === 'ListDataSource') { text = false; }
 		if (child?.labels[1]?.text === 'Condition') { text = false; }
-		if (child?.labels[1]?.text === 'ActionMapping') { text = false; }
+		//if (child?.labels[1]?.text === 'ActionMapping') { text = false; }
 
 		svg.appendChild(shape);
 
@@ -89,6 +89,9 @@ class ActiveElementsFormatter {
 					shape = this.createDefaultRect(child, offset, '#f8f8f8', '#999999');
 					break;
 			}
+
+			// add data-type attribute to allow styling
+			shape.dataset.type = type;
 		}
 
 		let nodeData = this.data[child.id];
@@ -228,7 +231,6 @@ class ActiveElementsFormatter {
 		let group  = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 		let shape1 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 		let shape2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-		let shape3 = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
 		shape1.setAttribute('fill', fillColor);
 		shape1.setAttribute('stroke', strokeColor);
