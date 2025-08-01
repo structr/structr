@@ -103,14 +103,23 @@ let _Schema = {
 		Structr.resize();
 	},
 	storePositions: () => {
+		for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
+			let node = $(n);
+			let type = node.children('b').text();
+			let obj = node.offset();
+			obj.left = (obj.left) / _Schema.ui.zoomLevel;
+			obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
+			_Schema.nodePositions[type] = obj;
+		}
+		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
+	},
+	storePositionsNewLayout: () => {
 		for (let n of document.querySelectorAll('rect.node')) {
-
 			let type = n.dataset.type;
 			let obj = {
 				left: n.x.baseVal.value,
 				top: n.y.baseVal.value
 			};
-
 			//obj.left = (obj.left) / _Schema.ui.zoomLevel;
 			//obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
 			_Schema.nodePositions[type] = obj;
@@ -5482,7 +5491,7 @@ let _Schema = {
 
 		container.innerText = '';
 
-		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), _Schema.storePositions);
+		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), _Schema.storePositionsNewLayout);
 
 		/*
 		// todo: implement click handler for nodes
