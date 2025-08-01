@@ -2983,7 +2983,7 @@ let _Crud = {
 
 			if (e.shiftKey === true) {
 
-				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowCreateDialog(type, initialData, onSuccess);
+				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowRequestedCreateDialog(type, initialData, onSuccess);
 
 			} else {
 
@@ -3069,11 +3069,15 @@ let _Crud = {
 				}
 			}, 100);
 		},
-		loadTypeInfoAndShowCreateDialog: (type, initialData = {}, onSuccess) => {
+		loadTypeInfoAndShowRequestedCreateDialog: (type, initialData = {}, onSuccess) => {
 
 			_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
 
-				_Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+				let dialog = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+
+				// when displaying the on-demand create dialog, focus the first element
+				let firstInputOrTextarea = dialog.dialogText.querySelector('input, textarea');
+				firstInputOrTextarea.focus();
 			});
 		},
 		showCreateDialog: (type, initialData = {}, onSuccess, errors = []) => {

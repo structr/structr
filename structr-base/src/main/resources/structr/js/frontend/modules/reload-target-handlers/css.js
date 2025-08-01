@@ -26,10 +26,7 @@ export class Handler {
 
 	handleReloadTarget(reloadTarget, element, parameters, status, options) {
 
-		// remove prefix "css:"
-		let css = reloadTarget.substring(4);
-
-		element.classList.add(css);
+		element.classList.add(reloadTarget);
 
 		window.setTimeout(() => {
 			element.classList.remove(css);
