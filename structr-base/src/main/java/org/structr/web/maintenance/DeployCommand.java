@@ -36,6 +36,7 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -1815,12 +1816,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		});
 	}
 
+	private boolean shouldExportActionMapping(final ActionMapping actionMapping) {
+
+		final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements()).stream().filter(domElement -> !domElement.inTrash()).toList();
+
+		return (!triggerElements.isEmpty());
+	}
+
 	private void exportActionMapping(final Path target) throws FrameworkException {
 
 		logger.info("Exporting action mapping");
 
 		final List<Map<String, Object>> actionMappings    = new LinkedList<>();
-
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -1830,76 +1837,50 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final Map<String, Object> entry   = new TreeMap<>();
 				final ActionMapping actionMapping = node.as(ActionMapping.class);
 
-				actionMappings.add(entry);
+				if (shouldExportActionMapping(actionMapping)) {
 
-				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             actionMapping.getUuid());
-				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        actionMapping.getName());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, actionMapping.isVisibleToAuthenticatedUsers());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        actionMapping.isVisibleToPublicUsers());
+					actionMappings.add(entry);
 
-				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
-				if (!triggerElements.isEmpty()) {
+					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             actionMapping.getUuid());
+					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        actionMapping.getName());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, actionMapping.isVisibleToAuthenticatedUsers());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        actionMapping.isVisibleToPublicUsers());
 
-					putData(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY, triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY,              Iterables.toList(actionMapping.getTriggerElements()).stream().filter(domElement -> !domElement.inTrash()).map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY,               Iterables.toList(actionMapping.getSuccessTargets()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, Iterables.toList(actionMapping.getSuccessNotificationElements()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY,               Iterables.toList(actionMapping.getFailureTargets()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, Iterables.toList(actionMapping.getFailureNotificationElements()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY,            Iterables.toList(actionMapping.getParameterMappings()).stream().map(GraphObject::getUuid).toList());
+
+					putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,                         actionMapping.getEvent());
+					putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,                        actionMapping.getAction());
+					putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,                        actionMapping.getMethod());
+					putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,                     actionMapping.getDataType());
+					putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY,                 actionMapping.getIdExpression());
+
+					putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,                   actionMapping.getDialogType());
+					putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY,                  actionMapping.getDialogTitle());
+					putData(entry, ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY,                   actionMapping.getDialogText());
+
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY,             actionMapping.getSuccessBehaviour());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY,                 actionMapping.getSuccessEvent());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY,         actionMapping.getSuccessNotifications());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
+
+					putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY,         actionMapping.getFailureNotifications());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 				}
-
-				final List<DOMNode> successTargets = Iterables.toList(actionMapping.getSuccessTargets());
-				if (!successTargets.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY, successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getSuccessNotificationElements());
-				if (!successNotificationElements.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				final List<DOMNode> failureTargets = Iterables.toList(actionMapping.getFailureTargets());
-				if (!failureTargets.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY, failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getFailureNotificationElements());
-				if (!failureNotificationElements.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
-				if (!parameterMappings.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY, parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
-				}
-
-				putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,         actionMapping.getEvent());
-				putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,        actionMapping.getAction());
-				putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,        actionMapping.getMethod());
-				putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,     actionMapping.getDataType());
-				putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, actionMapping.getIdExpression());
-
-				putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,  actionMapping.getDialogType());
-				putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY, actionMapping.getDialogTitle());
-				putData(entry, ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY,  actionMapping.getDialogText());
-
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY,             actionMapping.getSuccessBehaviour());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY,                 actionMapping.getSuccessEvent());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY,         actionMapping.getSuccessNotifications());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
-
-				putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY,         actionMapping.getFailureNotifications());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 			}
 
 			tx.success();
@@ -1921,24 +1902,28 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final NodeInterface node : app.nodeQuery(StructrTraits.PARAMETER_MAPPING).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final ParameterMapping parameterMapping = node.as(ParameterMapping.class);
-				final Map<String, Object> entry = new TreeMap<>();
-				parameterMappings.add(entry);
+				final ActionMapping actionMapping       = parameterMapping.getActionMapping();
 
+				if (actionMapping != null && shouldExportActionMapping(actionMapping)) {
 
-				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             parameterMapping.getUuid());
-				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        parameterMapping.getName());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, parameterMapping.isVisibleToAuthenticatedUsers());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        parameterMapping.isVisibleToPublicUsers());
+					final Map<String, Object> entry = new TreeMap<>();
+					parameterMappings.add(entry);
 
-				putData(entry, ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY,    parameterMapping.getParameterType());
-				putData(entry, ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY,    parameterMapping.getParameterName());
-				putData(entry, ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY,    parameterMapping.getConstantValue());
-				putData(entry, ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY, parameterMapping.getScriptExpression());
+					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             parameterMapping.getUuid());
+					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        parameterMapping.getName());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, parameterMapping.isVisibleToAuthenticatedUsers());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        parameterMapping.isVisibleToPublicUsers());
 
-				DOMElement inputElement = parameterMapping.getInputElement();
-				if (inputElement != null) {
+					putData(entry, ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY,    parameterMapping.getParameterType());
+					putData(entry, ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY,    parameterMapping.getParameterName());
+					putData(entry, ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY,    parameterMapping.getConstantValue());
+					putData(entry, ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY, parameterMapping.getScriptExpression());
 
-					putData(entry, ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY, inputElement.getUuid());
+					DOMElement inputElement = parameterMapping.getInputElement();
+					if (inputElement != null) {
+
+						putData(entry, ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY, inputElement.getUuid());
+					}
 				}
 			}
 
@@ -1957,6 +1942,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} else {
 
 			target.put(key, value);
+		}
+	}
+
+	protected void putDataIfListNotEmpty(final Map<String, Object> target, final String key, final List list) {
+
+		if (!list.isEmpty()) {
+
+			target.put(key, list);
 		}
 	}
 
