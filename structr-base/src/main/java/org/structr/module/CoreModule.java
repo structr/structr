@@ -19,13 +19,10 @@
 package org.structr.module;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.*;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
@@ -225,23 +222,6 @@ public class CoreModule implements StructrModule {
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

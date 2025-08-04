@@ -21,7 +21,6 @@ module structr.base {
 	requires java.management;
 	requires jdk.httpserver;
 	requires jdk.xml.dom;
-	requires transitive java.compiler;
 
 	requires transitive structr.db.driver.api;
 	requires com.google.common;
@@ -166,7 +165,6 @@ module structr.base {
 	exports org.structr.rest.servlet;
 	exports org.structr.schema;
 	exports org.structr.schema.action;
-	exports org.structr.schema.compiler;
 	exports org.structr.schema.export;
 	exports org.structr.schema.importer;
 	exports org.structr.schema.openapi.common;

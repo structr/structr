@@ -356,12 +356,14 @@ let _Code = {
 
 						case 'SchemaNode': {
 
+							let doHighlight = false;  //entity?.schemaMethods?.length > 0;
+
 							list.push({
 								id:       path + '/' + entity.id,
 								text:     entity.name,
 								children: _Code.tree.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
 								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': entity.id },
+								li_attr:  { 'data-id': entity.id, class: doHighlight ? 'highlight-name' : '' },
 								data: {
 									svgIcon: icon,
 									key:     entity.type,
