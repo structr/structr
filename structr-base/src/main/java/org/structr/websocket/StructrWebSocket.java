@@ -338,7 +338,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			logger.warn("Unknown command {}", command);
 
 			// send 400 Bad Request
-			send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
+			send(MessageBuilder.status().code(400).message("Unknown command '" + command + "'").build(), true);
 		}
 	}
 

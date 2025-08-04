@@ -47,7 +47,6 @@ let _Schema = {
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
-	timeoutBecauseSnapshotsCommandReturnsTooEarly: 1000,
 	onload: () => {
 
 		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
@@ -142,7 +141,6 @@ let _Schema = {
 		UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
 		_Schema.activateDisplayDropdownTools();
-		_Schema.activateSnapshotsDialog();
 		_Schema.activateAdminTools();
 
 		document.getElementById('create-type').addEventListener('click', _Schema.nodes.showCreateTypeDialog);
@@ -4423,154 +4421,6 @@ let _Schema = {
 			Structr.errorFromResponse(data);
 		}
 	},
-	activateSnapshotsDialog: () => {
-
-		let snapshotsContainer = document.querySelector('#snapshots');
-		let dropdownContainer  = snapshotsContainer.closest('.dropdown-menu-container');
-
-		let createSnapshotButton             = dropdownContainer.querySelector('#create-snapshot');
-		let createSnapshotFromSelectedButton = dropdownContainer.querySelector('#create-snapshot-selected-nodes');
-
-		let refreshAvailableSnapshots = () => {
-
-			_Helpers.fastRemoveAllChildren(snapshotsContainer);
-
-			Command.snapshots('list', '', null, (result) => {
-
-				for (let data of result) {
-
-					for (let snapshotName of data.snapshots) {
-
-						let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.snapshotEntry({ snapshotName }));
-
-						snapshotsContainer.appendChild(tr);
-
-						tr.querySelector(`.snapshot-link.name a`).addEventListener('click', (e) => {
-
-							e.preventDefault();
-
-							Command.snapshots("get", snapshotName, null, (snapshotData) => {
-
-								let element = document.createElement('a');
-								element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(snapshotData.schemaJson)}`);
-								element.setAttribute('download', snapshotName);
-
-								element.style.display = 'none';
-								document.body.appendChild(element);
-
-								element.click();
-								document.body.removeChild(element);
-							});
-						});
-
-						tr.querySelector('.restore-snapshot').addEventListener('click', () => {
-							_Schema.performSnapshotAction('restore', snapshotName);
-						});
-						tr.querySelector('.add-snapshot').addEventListener('click', () => {
-							_Schema.performSnapshotAction('add', snapshotName);
-						});
-						tr.querySelector('.delete-snapshot').addEventListener('click', () => {
-							Command.snapshots('delete', snapshotName, null, refreshAvailableSnapshots);
-						});
-					}
-				}
-			});
-		};
-
-		let refreshUi = () => {
-
-			let hasSelectedNodes = (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length);
-
-			createSnapshotFromSelectedButton.classList.toggle('disabled', !hasSelectedNodes)
-			createSnapshotFromSelectedButton.disabled = !hasSelectedNodes;
-
-			let text = (hasSelectedNodes ? _Schema.ui.selectedNodes.length : 'from');
-
-			createSnapshotFromSelectedButton.querySelector('.context').textContent = text;
-		};
-
-		dropdownContainer.addEventListener(Structr.dropdownOpenEventName, () => {
-			refreshAvailableSnapshots();
-
-			refreshUi();
-		});
-
-		createSnapshotButton.addEventListener('click', () => {
-
-			let suffix = document.querySelector('#snapshot-suffix').value;
-			let types  = [];
-
-			Command.snapshots('export', suffix, types, (data) => {
-
-				let status = data[0].status;
-				if (status !== 'success') {
-					new ErrorMessage().text('Snapshot creation failed').show();
-				}
-
-				refreshAvailableSnapshots();
-			});
-		});
-
-		createSnapshotFromSelectedButton.addEventListener('click', () => {
-
-			let suffix = document.querySelector('#snapshot-suffix').value;
-			let types  = [];
-
-			for (let selectedNode of _Schema.ui.selectedNodes) {
-				types.push(selectedNode.name);
-			}
-
-			for (let el of _Schema.ui.canvas[0].querySelectorAll('.label.rel-type')) {
-
-				let sourceType = el.children[0].dataset['sourceType'];
-				let targetType = el.children[0].dataset['targetType'];
-
-				// include schema relationship if both source and target type are selected
-				if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
-					types.push(el.children[0].dataset['name']);
-				}
-			}
-
-			Command.snapshots('export', suffix, types, (data) => {
-
-				let status = data[0].status;
-				if (status !== 'success') {
-					new ErrorMessage().text('Snapshot creation failed').show();
-				}
-
-				refreshAvailableSnapshots();
-			});
-		});
-
-		document.querySelector('#refresh-snapshots').addEventListener('click', refreshAvailableSnapshots);
-		refreshAvailableSnapshots();
-	},
-	performSnapshotAction: (action, snapshot) => {
-
-		_Schema.showUpdatingSchemaMessage();
-
-		Command.snapshots(action, snapshot, null, (data) => {
-
-			let status = data[0].status;
-
-			if (status === 'success') {
-
-				setTimeout(() => {
-
-					_Schema.hideUpdatingSchemaMessage();
-					_Schema.reload();
-
-				}, _Schema.timeoutBecauseSnapshotsCommandReturnsTooEarly);
-
-			} else {
-
-				if (_Dialogs.custom.isDialogOpen()) {
-					_Dialogs.custom.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
-				}
-			}
-		});
-
-	},
 	activateAdminTools: () => {
 
 		let registerSchemaToolButtonAction = (btn, target, connectedSelectElement, getPayloadFunction) => {
@@ -4612,22 +4462,26 @@ let _Schema = {
 		registerSchemaToolButtonAction($('#rebuild-index'), 'rebuildIndex');
 		registerSchemaToolButtonAction($('#flush-caches'), 'flushCaches');
 
-		$('#clear-schema').on('click', async (e) => {
+		document.querySelector('#clear-schema').addEventListener('click', async (e) => {
 
-			let confirm = await _Dialogs.confirmation.showPromise('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>');
+			let confirm = await _Dialogs.confirmation.showPromise('<h3>Delete dynamic schema?</h3><p>This will remove all dynamic schema information, but leave the corresponding data intact.</p><p>&nbsp;</p>');
 
 			if (confirm === true) {
 
 				_Schema.showUpdatingSchemaMessage();
 
-				Command.snapshots("purge", undefined, undefined, () => {
+				Command.clearSchema((data) => {
+
+					if (data.success !== true) {
+						new WarningMessage().text("Clearing schema failed - see log for details.").show();
+					}
+
+					let timeoutBecauseClearCommandReturnsTooEarly = 1000;
 
 					setTimeout(() => {
-
 						_Schema.hideUpdatingSchemaMessage();
 						_Schema.reload();
-
-					}, _Schema.timeoutBecauseSnapshotsCommandReturnsTooEarly);
+					}, timeoutBecauseClearCommandReturnsTooEarly);
 				});
 			}
 		});
@@ -5607,37 +5461,6 @@ let _Schema = {
 
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconSnapshots, 16, 16, ['mr-2'])} Snapshots
-						</button>
-
-						<div class="dropdown-menu-container">
-							<div class="heading-row">
-								<h3>Create snapshot</h3>
-							</div>
-							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
-
-							<div class="row">
-								<input id="snapshot-suffix" class="mr-2" type="text" name="suffix" placeholder="Enter a suffix" length="20">
-								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-2">Create snapshot</button>
-								<button id="create-snapshot-selected-nodes" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">Create snapshot (<span class="context">from</span> selected nodes)</button>
-							</div>
-
-							<div class="heading-row">
-								<h3>Available Snapshots</h3>
-							</div>
-
-							<div class="props" id="snapshots"></div>
-
-							<div class="separator"></div>
-
-							<div class="row">
-								<a id="refresh-snapshots" class="block">Reload stored snapshots</a>
-							</div>
-						</div>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])} Admin
 						</button>
 
@@ -5695,18 +5518,6 @@ let _Schema = {
 			</div>
 
 			<div id="zoom-slider" class="mr-8"></div>
-		`,
-		snapshotEntry: config => `
-			<div class="flex items-center justify-between p-2">
-				<div class="snapshot-link name">
-					<a href="#">${config.snapshotName}</a>
-				</div>
-				<div>
-					<button class="restore-snapshot hover:bg-gray-100 focus:border-gray-666 active:border-green">Restore</button>
-					<button class="add-snapshot     hover:bg-gray-100 focus:border-gray-666 active:border-green">Add</button>
-					<button class="delete-snapshot  hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
-				</div>
-			</div>
 		`,
 		typeBasicTab: config => `
 			<div class="schema-details">

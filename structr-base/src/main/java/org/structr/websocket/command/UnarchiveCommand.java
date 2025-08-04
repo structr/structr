@@ -75,9 +75,9 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		try {
 
-			final String id             = webSocketData.getId();
-			String parentFolderId = webSocketData.getNodeDataStringValue("parentFolderId");
-			final boolean createFolder  = webSocketData.getNodeDataBooleanValue("createFolder");
+			final String id            = webSocketData.getId();
+			String parentFolderId      = webSocketData.getNodeDataStringValue("parentFolderId");
+			final boolean createFolder = webSocketData.getNodeDataBooleanValue("createFolder");
 
 			final File file;
 			final InputStream is;

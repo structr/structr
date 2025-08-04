@@ -1157,22 +1157,10 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj, callback);
 	},
-	/**
-	 * Send a SNAPSHOTS command to the server.
-	 *
-	 * The server will return a status object.
-	 */
-	snapshots: function(mode, name, types, callback) {
+	clearSchema: (callback) => {
 		let obj  = {
-			command: 'SNAPSHOTS',
-			data: {
-				mode: mode,
-				name: name
-			}
+			command: 'CLEAR_SCHEMA',
 		};
-		if (types && types.length) {
-			obj.data.types = types.join(',');
-		}
 		return StructrWS.sendObj(obj, callback);
 	},
 	/**

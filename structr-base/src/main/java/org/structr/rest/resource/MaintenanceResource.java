@@ -41,7 +41,6 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.*;
-import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaAnalyzer;
@@ -81,13 +80,11 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		maintenanceCommandMap.put("updateLicense",              StructrLicenseManager.UpdateLicenseCommand.class);
 		maintenanceCommandMap.put("setUuid",                    BulkSetUuidCommand.class);
 		maintenanceCommandMap.put("sync",                       SyncCommand.class);
-		maintenanceCommandMap.put("snapshot",                   SnapshotCommand.class);
 		maintenanceCommandMap.put("flushCaches",                FlushCachesCommand.class);
 		maintenanceCommandMap.put("analyzeSchema",              SchemaAnalyzer.class);
 		maintenanceCommandMap.put("migrateChangelog",           BulkMigrateChangelogCommand.class);
 		maintenanceCommandMap.put("manageDatabases",            ManageDatabasesCommand.class);
 		maintenanceCommandMap.put("manageThreads",              ManageThreadsCommand.class);
-
 	}
 
 	public MaintenanceResource() {
