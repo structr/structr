@@ -133,7 +133,7 @@ public class OpenAPITest extends StructrUiTest {
 		assertNotNull("Missing security scheme for x-password",  HttpFunctionsTest.getMapPathValue(response, "components.securitySchemes.XPassAuth"));
 
 		// check number of paths!
-		HttpFunctionsTest.assertMapPathValueIs(response, "paths.#",  21);
+		HttpFunctionsTest.assertMapPathValueIs(response, "paths.#",  20);
 
 		// check paths
 		final List<Map<String, Map<String, List<String>>>> paths = List.of(
