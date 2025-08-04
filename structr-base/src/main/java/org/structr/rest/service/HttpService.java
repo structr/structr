@@ -289,16 +289,41 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		final List<Connector> connectors = new LinkedList<>();
 
-		// Enable serving static resources for structr-ui
+		// Enable serving static resources for structr-ui (and redirect to config servlet if the system is not configured yet)
 		{
-			final String uiContextPath = "/structr";
+			final ResourceHandler resourceHandler = new ResourceHandler(servletContext) {
 
-			// fallback (local vs. deb)
-			final String resourceBase = Paths.get("src/main/resources/structr").toFile().exists() ? "src/main/resources/structr" : "structr";
+				@Override
+				public boolean handle(final Request request, final Response response, final Callback callback) throws Exception {
 
-			final ResourceHandler resourceHandler = new ResourceHandler(servletContext);
-			final ResourceFactory factory         = ResourceFactory.of(resourceHandler);
-			final Resource baseResource           = factory.newResource(URI.create(resourceBase).normalize());
+					final String target = Request.getPathInContext(request);
+
+					if (Settings.SetupWizardCompleted.getValue() == false && Settings.ConfigServletEnabled.getValue() == true && ("/".equals(target) || "/index.html".equals(target))) {
+
+						final HttpFields.Mutable headers = response.getHeaders();
+
+						// please don't cache this redirect
+						headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+						headers.add("Expires", (String) null);
+						headers.add("Location", Settings.ApplicationRootPath.getValue() + "/structr/config");
+
+						response.setStatus(HttpServletResponse.SC_FOUND);
+
+						callback.succeeded();
+
+						return true;
+
+					} else {
+
+						return super.handle(request, response, callback);
+					}
+				}
+			};
+
+			// locate static resources (local vs. deb fallback)
+			final String resourceBasePath = (Paths.get("src/main/resources/structr").toFile().exists() ? "src/main/resources/structr" : "structr");
+			final ResourceFactory factory = ResourceFactory.of(resourceHandler);
+			final Resource baseResource   = factory.newResource(URI.create(resourceBasePath).normalize());
 
 			resourceHandler.setDirAllowed(false);
 			resourceHandler.setWelcomeFiles("index.html");
@@ -307,7 +332,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			resourceHandler.setCacheControl("max-age=0");
 			//resourceHandler.setEtags(true);
 
-			final ContextHandler context = new ContextHandler(uiContextPath);
+			final ContextHandler context = new ContextHandler("/structr");
 			context.setHandler(resourceHandler);
 			context.clearAliasChecks();
 			context.addAliasCheck((pathInContext, resource) -> resource.exists());
@@ -976,37 +1001,6 @@ public class HttpService implements RunnableService, StatsCallback {
 					}
 				}
 			}
-		}
-	}
-
-	/**
-	 * A resource handler that redirects all requests to the config
-	 * servlet if the system is not configured yet.
-	 */
-	private class RedirectingResourceHandler extends ResourceHandler {
-
-		@Override
-		public boolean handle(final Request request, final Response response, final Callback callback) {
-
-			final String target = Request.getPathInContext(request);
-
-			if (Settings.SetupWizardCompleted.getValue() == false && ("/".equals(target) || "/index.html".equals(target))) {
-
-				final HttpFields.Mutable headers = response.getHeaders();
-
-				// please don't cache this redirect
-				headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
-				headers.add("Expires", (String) null);
-				headers.add("Location", Settings.ApplicationRootPath.getValue() + "/structr/config");
-
-				response.setStatus(HttpServletResponse.SC_FOUND);
-
-				callback.succeeded();
-
-				return true;
-			}
-
-			return false;
 		}
 	}
 }
