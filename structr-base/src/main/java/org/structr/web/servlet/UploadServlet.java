@@ -84,7 +84,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		GraphObjectTraitDefinition.TYPE_PROPERTY,
 		NodeInterfaceTraitDefinition.NAME_PROPERTY,
 		AbstractFileTraitDefinition.PARENT_ID_PROPERTY,
-		AbstractFileTraitDefinition.PARENT_PROPERTY
+		AbstractFileTraitDefinition.PARENT_PROPERTY,
+		GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,
+		GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 	);
 
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
