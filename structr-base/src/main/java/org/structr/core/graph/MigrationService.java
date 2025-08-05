@@ -164,10 +164,10 @@ public class MigrationService {
 		final String propertyType        = property.getPropertyType().toString().toLowerCase();
 		final String fqcn                = property.getFqcn();
 
-		return propertyShouldBeRemoved(parent.getClassName(), propertyName, propertyType, fqcn);
+		return propertyShouldBeRemoved(property, parent.getClassName(), propertyName, propertyType, fqcn);
 	}
 
-	public static boolean propertyShouldBeRemoved(final String type, final String name, final String propertyType, final String fqcn) {
+	public static boolean propertyShouldBeRemoved(final SchemaProperty property, final String type, final String name, final String propertyType, final String fqcn) {
 
 		if (MigrationService.SchemaPropertyMigrationBlacklist.contains(type + "." + name)) {
 			return true;
@@ -178,6 +178,35 @@ public class MigrationService {
 
 			final Traits traits = Traits.of(type);
 			if (traits.hasKey(name) && !traits.key(name).isDynamic()) {
+
+				if (property != null) {
+
+					final PropertyKey key = traits.key(name);
+
+					if (property.isIndexed() != key.isIndexed()) {
+
+						logger.info("Allowing {} to override {} property to change indexing flag.", type, name);
+						return false;
+					}
+
+					if (property.isFulltext() != key.isFulltextIndexed()) {
+
+						logger.info("Allowing {} to override {} property to change fulltext indexing flag.", type, name);
+						return false;
+					}
+
+					if (property.isUnique() != key.isUnique()) {
+
+						logger.info("Allowing {} to override {} property to change uniqueness constraint flag.", type, name);
+						return false;
+					}
+
+					if (property.getFormat() != null && !property.getFormat().equals(key.format())) {
+
+						logger.info("Allowing {} to override {} property to change format constraint.", type, name);
+						return false;
+					}
+				}
 
 				return true;
 			}
