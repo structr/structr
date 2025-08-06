@@ -1118,7 +1118,7 @@ let Command = {
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
-	listUnattachedNodes: function(pageSize, page, sort, order, callback) {
+	listUnattachedNodes: (pageSize, page, sort, order, callback) => {
 		let obj = {
 			command: 'LIST_UNATTACHED_NODES',
 			pageSize: pageSize,
@@ -1136,7 +1136,7 @@ let Command = {
 	 *
 	 * No broadcast.
 	 */
-	deleteUnattachedNodes: function() {
+	deleteUnattachedNodes: () => {
 		let obj = {
 			command: 'DELETE_UNATTACHED_NODES'
 		};
@@ -1147,12 +1147,12 @@ let Command = {
 	 *
 	 * No broadcast.
 	 */
-	listSchemaProperties: function(id, view, callback) {
+	listSchemaProperties: (id, view, callback) => {
 		let obj  = {
 			command: 'LIST_SCHEMA_PROPERTIES',
 			id: id,
 			data: {
-				view: view
+				view: view		// view only influences the "isSelected" attribute in the response for each property (is included in the given view)
 			}
 		};
 		return StructrWS.sendObj(obj, callback);

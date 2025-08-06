@@ -3129,6 +3129,9 @@ let _Code = {
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
 						</div>
 						<div data-is-property-attribute-container>
+							<label><input type="checkbox" id="property-fulltext-indexed" data-property="fulltext" ${config.property.fulltext ? 'checked' : ''}>Property value is fulltext indexed</label>
+						</div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''}>Property value can be cached</label>
 						</div>
 						<div data-is-property-attribute-container>
