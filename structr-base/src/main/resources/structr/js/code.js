@@ -1266,13 +1266,10 @@ let _Code = {
 
 				_Code.persistence.updateDirtyFlag(property);
 
-				if (property.propertyType === 'Function') {
+				let propertyInfoUI = Object.assign({ propertyType: property.propertyType }, _Code.persistence.collectPropertyData(property));
+				let container      = propertyUIContainer[0].querySelector('#property-indexed').closest('div');
 
-					let propertyInfoUI = _Code.persistence.collectPropertyData(property);
-					let container      = propertyUIContainer[0].querySelector('#property-indexed').closest('div');
-
-					_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
-				}
+				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 			};
 
 			if (property.propertyType !== 'Function') {
@@ -1282,6 +1279,10 @@ let _Code = {
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
+			}
+
+			if (property.propertyType !== 'String' && property.propertyType !== 'StringArray') {
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-fulltext-indexed').closest('[data-is-property-attribute-container]'));
 			}
 
 			if (property.propertyType === 'Cypher') {
@@ -2438,7 +2439,9 @@ let _Code = {
 						if (isArray) {
 							option.selected = entity[p.dataset.property].includes(option.value);
 						} else {
-							option.selected = (entity[p.dataset.property].id === option.value);
+							// only use id for nodes - otherwise use value directly
+							let valueInEntity = (entity[p.dataset.property]?.id ?? entity[p.dataset.property]);
+							option.selected = (valueInEntity === option.value);
 						}
 					}
 				}

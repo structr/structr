@@ -1862,9 +1862,15 @@ let _Schema = {
 
 						indexedCb.checked = shouldIndex;
 
-						_Helpers.blink(indexedCb.closest('td'), '#fff', '#bde5f8');
-						_Dialogs.custom.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
+						_Helpers.blink(indexedCb.parentNode, '#fff', '#bde5f8');
+						_Dialogs.custom.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 500);
 					}
+
+					let allowFulltext   = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+					let fulltextCb      = gridRow.querySelector('.fulltext-indexed');
+					let checked         = (allowFulltext && !fulltextCb.disabled && fulltextCb.checked);
+					fulltextCb.disabled = !allowFulltext;
+					fulltextCb.checked  = checked;
 				});
 
 				gridRow.querySelector('.discard-changes').addEventListener('click', () => {
@@ -2005,6 +2011,24 @@ let _Schema = {
 			$('.fulltext-indexed', gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.property-default', gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 
+			let propertyTypeSelect = gridRow[0].querySelector('.property-type');
+
+			let handlePropertyTypeChange = () => {
+
+				let selectedOption = propertyTypeSelect.querySelector('option:checked');
+
+				let allowFulltext = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+
+				let fulltextCb = gridRow[0].querySelector('.fulltext-indexed');
+				fulltextCb.disabled = (!allowFulltext || isProtected);
+				fulltextCb.checked = allowFulltext && property.fulltext === true;
+
+				propertyInfoChangeHandler();
+			};
+
+			propertyTypeSelect.addEventListener('change', handlePropertyTypeChange);
+			handlePropertyTypeChange();
+
 			let readWriteButtonClickHandler = async (targetProperty) => {
 
 				if (overrides && overrides.editReadWriteFunction) {
@@ -2129,20 +2153,16 @@ let _Schema = {
 		checkProperty: (gridRow) => {
 
 			let propertyInfoUI = _Schema.properties.getDataFromRow(gridRow);
+			let container      = gridRow.querySelector('.indexed').closest('div');
 
-			if (propertyInfoUI.propertyType === 'Function') {
-
-				let container = gridRow.querySelector('.indexed').closest('div');
-
-				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
-			}
+			_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 		},
 		checkFunctionProperty: (propertyInfoUI, containerForWarning) => {
 
 			let warningClassName = 'indexed-function-property-warning';
 			let existingWarning  = containerForWarning.querySelector(`.${warningClassName}`);
 
-			if (propertyInfoUI.indexed === true && (!propertyInfoUI.typeHint || propertyInfoUI.typeHint === '')) {
+			if (propertyInfoUI.propertyType === 'Function' && propertyInfoUI.indexed === true && (!propertyInfoUI.typeHint || propertyInfoUI.typeHint === '')) {
 
 				if (!existingWarning) {
 
@@ -2545,7 +2565,7 @@ let _Schema = {
 						<input class="indexed" type="checkbox" style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
-						<input class="fulltext-indexed" type="checkbox" style="margin-right: 0;">
+						<input class="fulltext-indexed" type="checkbox" style="margin-right: 0;" disabled>
 					</div>
 					<div class="p-2 flex items-center">
 						<input class="property-default" size="10" type="text" placeholder="Default Value">
