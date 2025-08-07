@@ -438,6 +438,10 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 	private boolean isActiveNode(final NodeInterface n) {
 
+		return true;
+
+		/*
+
 		final DOMNode node = n.as(DOMNode.class);
 
 		if (node.getDataKey() != null) {
@@ -465,6 +469,8 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		}
 		*/
 
+		/*
+
 		if (node.getShowConditions() != null) {
 
 			return true;
@@ -476,6 +482,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		}
 
 		return false;
+		*/
 	}
 
 	private void addAndLinkDataSourceIfPresent(final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode node) {
