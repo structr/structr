@@ -78,23 +78,22 @@ public class IncludeChildFunction extends IncludeFunction {
 
 				final Template templateNode                = n.as(Template.class);
 				final List<NodeInterface> childrenWithName = templateNode.treeGetChildren().stream().filter(ni -> ni.as(DOMNode.class).getName().equals(sources[0])).toList();
+				final int childrenWithNameCount            = childrenWithName.size();
 
-				if (childrenWithName.size() == 1) {
+				if (childrenWithNameCount == 1) {
 
 					// Exactly one child found => use this node
-
 					return renderNode(securityContext, ctx, innerCtx, sources, app, childrenWithName.getFirst().as(DOMNode.class), true);
 
-				} else if (childrenWithName.size() > 1) {
+				} else if (childrenWithNameCount > 1) {
 
 					// More than one child node found => error
-					logger.warn(getName() + "(): Error: Found more than one child node with name \"" + sources[0] + "\" (total child nodes found by this name: " + StringUtils.join(childrenWithName, ", ") + ")");
-					return "";
+					logger.warn(getName() + "(): Ambiguous child node name '" + sources[0] + "' (" + StringUtils.join(childrenWithName, ", ") + ")");
 				}
 
 			} else {
 
-				logger.warn(getName() + "(): Error: Can only be used in a template context.");
+				logger.warn(getName() + "(): Can only be used in a template context.");
 			}
 
 			return "";
@@ -120,5 +119,4 @@ public class IncludeChildFunction extends IncludeFunction {
 	public String shortDescription() {
 		return "Includes the content of the child node with the given name (optionally as a repeater element)";
 	}
-
 }

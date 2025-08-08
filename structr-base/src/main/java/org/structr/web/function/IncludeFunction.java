@@ -80,7 +80,6 @@ public class IncludeFunction extends UiCommunityFunction {
 			final App app                            = StructrApp.getInstance(securityContext);
 			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name((String)sources[0]).getAsList();
 
-
 			RenderContext innerCtx = null;
 			boolean useBuffer      = false;
 			DOMNode node           = null;
@@ -112,7 +111,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				final DOMNode domNode = n.as(DOMNode.class);
 
-				// IGNORE everything that REFERENCES a shared component!
+				// IGNORE everything that REFERENCES a shared component! (or is in the trash)
 				if (n.getProperty(sharedCompKey) == null && !domNode.inTrash()) {
 
 					// the DOMNode is either a shared component OR a named node in the pages tree
@@ -123,7 +122,7 @@ public class IncludeFunction extends UiCommunityFunction {
 					} else {
 
 						// ERROR: we have found multiple DOMNodes with the same name
-						logger.warn("Ambiguous node name \"" + sources[0] + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")");
+						logger.warn(getName() + "(): Ambiguous node name '" + sources[0] + "' (" + StringUtils.join(nodeList, ", ") + ")");
 						return "";
 					}
 				}
@@ -190,7 +189,6 @@ public class IncludeFunction extends UiCommunityFunction {
 
 					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", name, getParametersAsString(sources));
 					return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
-
 				}
 
 				if (contentType.startsWith("text/css")) {
@@ -228,9 +226,7 @@ public class IncludeFunction extends UiCommunityFunction {
 					return "Don't know how to render content type or extension of  " + name + ".";
 
 				}
-
 			}
-
 		}
 
 		if (useBuffer) {
@@ -243,9 +239,5 @@ public class IncludeFunction extends UiCommunityFunction {
 			// output needs to be returned as a function result
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 		}
-	}
-
-	public static boolean isRenderContext (final ActionContext ctx) {
-		return (ctx instanceof RenderContext);
 	}
 }
