@@ -56,7 +56,6 @@ let _Schema = {
 
 			_Schema.ui.canvas               = $('#schema-graph');
 
-			/*
 			_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
 				if (e.which === 1) {
 					_Schema.ui.clearSelection();
@@ -73,7 +72,6 @@ let _Schema = {
 			_Schema.ui.canvas[0].addEventListener('mouseup', (e) => {
 				_Schema.ui.selectionStop();
 			});
-			*/
 
 			_Schema.init(null,() => {
 				Structr.resize();
@@ -245,12 +243,15 @@ let _Schema = {
 		const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
 
 		const panzoom = Panzoom(schemaContainer, { cursor: 'default', exclude: nodeElements, handleStartEvent: (event) => {
-			if (!event.shiftKey) {
-				panzoom.setOptions({ disablePan: true, cursor: 'default' });
-			} else {
+			let shiftPressed       = event.shiftKey;
+			let middleMousePressed = (event.button === 1);
+
+			if (shiftPressed || middleMousePressed) {
 				panzoom.setOptions({ disablePan: false, cursor: 'move' });
 				event.preventDefault();
 				event.stopPropagation();
+			} else {
+				panzoom.setOptions({ disablePan: true, cursor: 'default' });
 			}
 		} });
 		document.addEventListener('keydown', (event) => {
@@ -893,7 +894,6 @@ let _Schema = {
 				let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
 				let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
 				let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
-				let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
 
 				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(localPropsTabContent, entity);
 				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); });
