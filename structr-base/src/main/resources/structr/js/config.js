@@ -30,10 +30,6 @@ let _Editors = {
 
 let _Config = {
 	resize: () => {
-		$('.tab-content').css({
-			height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 124
-		});
-
 		_Dialogs.basic.centerAll();
 	},
 	init: () => {
@@ -60,7 +56,19 @@ let _Config = {
 				if (!configForm.checkValidity()) {
 					e.preventDefault();
 
+					for (let formGroup of document.querySelectorAll('.form-group')) {
+						formGroup.classList.remove('invalid');
+					}
+
 					let invalidFields = [...configForm.querySelectorAll(':invalid')];
+
+					for (let invalidField of invalidFields) {
+
+						invalidField.closest('.form-group').classList.add('invalid');
+						invalidField.closest('.config-group').classList.add('invalid');
+						invalidField.closest('.tab-content').classList.add('invalid');
+					}
+
 					let anyVisible    = invalidFields.some(f => f.offsetParent);
 
 					if (!anyVisible) {
