@@ -23,7 +23,9 @@ import com.google.gson.GsonBuilder;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -299,7 +301,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 		final String uuid = getUuidFromLocation(locationHeader);
 
-		final Gson gson                 = new GsonBuilder().create();
+		final Gson gson = new GsonBuilder().serializeNulls().create();
 
 		for (final String keyNotInSchema : keysNotInSchema) {
 
@@ -388,6 +390,35 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 					final Object propertyValue = app.getNodeById(uuid).getPropertyContainer().getProperty(keyNotInSchema);
 
 					assertEquals("Unknown key should have the value that was sent.", "test", propertyValue);
+
+					tx.success();
+
+				} catch (Throwable t) {
+					logger.warn("Unexpected exception: ", t);
+					fail("Unexpected exception");
+				}
+
+				// ensure that setting the key to null removes it
+				final Map<String, Object> mapWithNull = new HashMap<>();
+				mapWithNull.put(keyNotInSchema, null);
+				final String jsonToClear = gson.toJson(mapWithNull);
+
+				RestAssured
+					.given()
+						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+						.contentType("application/json; charset=UTF-8")
+						.body(jsonToClear)
+					.expect()
+						.statusCode(200)
+					.when()
+						.put("/TestObject/" + uuid)
+						.getHeader("Location");
+
+				try (final Tx tx = app.tx()) {
+
+					final boolean hasProperty = app.getNodeById(uuid).getPropertyContainer().hasProperty(keyNotInSchema);
+
+					assertFalse("Unknown key should have been removed when setting it to null", hasProperty);
 
 					tx.success();
 
