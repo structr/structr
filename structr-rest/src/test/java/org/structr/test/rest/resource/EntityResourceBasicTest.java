@@ -18,10 +18,15 @@
  */
 package org.structr.test.rest.resource;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -32,10 +37,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.lessThan;
 import static org.testng.AssertJUnit.*;
 
-/**
- *
- *
- */
 public class EntityResourceBasicTest extends StructrRestTestBase {
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityResourceBasicTest.class.getName());
@@ -274,5 +275,127 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.when()
 				.get("/TestObject/" + uuid);
 
+	}
+
+	@Test
+	public void test040PutWithExistingUuidAndKeyNotInSchema() {
+
+		final List<String> keysNotInSchema = Arrays.asList(
+				"doesNotExist",
+				"malicious looking \" quote, right?",
+				"malicious looking ` quote, right?",
+				"malicious looking ' quote, right?"
+		);
+
+		final String locationHeader = RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body(" { \"name\" : \"test\" } ")
+			.expect()
+				.statusCode(201)
+			.when()
+				.post("/TestObject")
+				.getHeader("Location");
+
+		final String uuid = getUuidFromLocation(locationHeader);
+
+		final Gson gson                 = new GsonBuilder().create();
+
+		for (final String keyNotInSchema : keysNotInSchema) {
+
+			final String json = gson.toJson(toMap(keyNotInSchema, "test"));
+
+			// reject unknown key / make sure the complete request is rejected
+			{
+				Settings.InputValidationMode.setValue("reject_warn");
+
+				RestAssured
+					.given()
+						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+						.contentType("application/json; charset=UTF-8")
+						.body(json)
+					.expect()
+						.statusCode(422)
+					.when()
+						.put("/TestObject/" + uuid)
+						.getHeader("Location");
+
+				// should be unnecessary because the request failed... but let's be thorough
+				try (final Tx tx = app.tx()) {
+
+					final boolean hasProperty = app.getNodeById(uuid).getPropertyContainer().hasProperty(keyNotInSchema);
+
+					assertFalse("Unknown key should not have been written to database node!", hasProperty);
+
+					tx.success();
+
+				} catch (Throwable t) {
+					logger.warn("Unexpected exception: ", t);
+					fail("Unexpected exception");
+				}
+			}
+
+			// ignore unknown key / make sure it is not written to the database node
+			{
+				Settings.InputValidationMode.setValue("ignore_warn");
+
+				RestAssured
+					.given()
+						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+						.contentType("application/json; charset=UTF-8")
+						.body(json)
+					.expect()
+						.statusCode(200)
+					.when()
+						.put("/TestObject/" + uuid)
+						.getHeader("Location");
+
+				try (final Tx tx = app.tx()) {
+
+					final boolean hasProperty = app.getNodeById(uuid).getPropertyContainer().hasProperty(keyNotInSchema);
+
+					assertFalse("Unknown key should not have been written to database node!", hasProperty);
+
+					tx.success();
+
+				} catch (Throwable t) {
+					logger.warn("Unexpected exception: ", t);
+					fail("Unexpected exception");
+				}
+			}
+
+			// accept unknown key / make sure it is written to the database node
+			{
+				Settings.InputValidationMode.setValue("accept_warn");
+
+				RestAssured
+					.given()
+						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+						.contentType("application/json; charset=UTF-8")
+						.body(json)
+					.expect()
+						.statusCode(200)
+					.when()
+						.put("/TestObject/" + uuid)
+						.getHeader("Location");
+
+				try (final Tx tx = app.tx()) {
+
+					final boolean hasProperty = app.getNodeById(uuid).getPropertyContainer().hasProperty(keyNotInSchema);
+
+					assertTrue("Unknown key should have been written to database node!", hasProperty);
+
+					final Object propertyValue = app.getNodeById(uuid).getPropertyContainer().getProperty(keyNotInSchema);
+
+					assertEquals("Unknown key should have the value that was sent.", "test", propertyValue);
+
+					tx.success();
+
+				} catch (Throwable t) {
+					logger.warn("Unexpected exception: ", t);
+					fail("Unexpected exception");
+				}
+			}
+		}
 	}
 }
