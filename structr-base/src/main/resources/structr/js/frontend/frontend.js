@@ -62,9 +62,9 @@ export class Frontend {
 				continue;
 			}
 
-            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
-				continue;
-            }
+//            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
+//				continue;
+//            }
 
 			resolved[key] = this.resolveValue(key, value, data, event, target);
 
