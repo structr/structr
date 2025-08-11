@@ -3381,7 +3381,7 @@ let _Entities = {
 
 						<div>
 							<label class="block mb-2" for="_request-parameters" data-comment="Request parameters to append to preview URL">Preview Request Parameters</label>
-							<div class="flex items-baseline">
+							<div class="flex items-center">
 								<code>?</code>
 								<input id="_request-parameters" type="text" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
 							</div>
