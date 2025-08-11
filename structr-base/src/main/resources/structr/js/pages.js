@@ -1987,7 +1987,7 @@ let _Pages = {
 
 		const getAndAppendParameterMapping = (id) => {
 
-			Command.get(id, 'id,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', parameterMapping => {
+			Command.get(id, 'id,type,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', parameterMapping => {
 
 				//console.log('Append parameter mapping element for', parameterMapping);
 
