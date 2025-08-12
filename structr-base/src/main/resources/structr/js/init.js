@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	Structr.functionBarOffscreen     = document.createElement('div');
 	Structr.dialogContainerOffscreen = document.createElement('div');
 
+	Structr.determineNotificationAreaVisibility();
+
 	/* Message-area: Hook up "Close All" button */
 	document.querySelector('#info-area #close-all-button').addEventListener('click', () => {
 		for (let confirmButton of document.querySelectorAll(`#info-area .${MessageBuilder.closeButtonClass}`)) {
@@ -180,12 +182,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			event.preventDefault();
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
-		}
-
-		// Ctrl-Alt-e
-		if ((code === 'KeyQ' || keyCode === 69) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			document.querySelector('#info-area').classList.toggle('hidden');
 		}
 	});
 
@@ -1900,6 +1896,11 @@ let Structr = {
 		container.style.bottom       = null;
 		container.style.top          = null;
 	},
+	determineNotificationAreaVisibility: () => {
+
+		document.querySelector('#info-area').classList.toggle('hidden', UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+	},
+
 
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
 	internalKeys: {
@@ -2912,20 +2913,30 @@ let UISettings = {
 		global: {
 			title: 'Global',
 			settings: {
+				hideAllPopupMessagesKey: {
+					text: 'Hide notifications area',
+					storageKey: 'hideNotificationMessages' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					infoText: 'Controls visibility of the notification area. Messages will still be appended and can be shown by changing this.',
+					onUpdate: () => {
+						Structr.determineNotificationAreaVisibility();
+					}
+				},
 				showScriptingErrorPopupsKey: {
-					text: 'Show popups for scripting errors',
+					text: 'Show notifications for scripting errors',
 					storageKey: 'showScriptingErrorPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				showResourceAccessPermissionWarningPopupsKey: {
-					text: 'Show popups for resource access permission warnings',
+					text: 'Show notifications for resource access permission warnings',
 					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				showDeprecationWarningPopupsKey: {
-					text: 'Show popups for deprecation warnings',
+					text: 'Show notifications for deprecation warnings',
 					storageKey: 'showDeprecationWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
