@@ -171,13 +171,15 @@ require(['vs/editor/editor.main'], () => {
 
 	monaco.editor.onDidCreateEditor(newEditor => {
 
+		let editorReadOnly = newEditor.getRawOptions().readOnly;
+
 		newEditor.onDidChangeModel(e => {
 
 			// we currently never change models, this only serves as a helper for definition peek window to keep display-only models from being written to
 			let allowWrite = (e.oldModelUrl === null);
 
 			newEditor.updateOptions({
-				readOnly: !allowWrite
+				readOnly: (!allowWrite && !editorReadOnly)
 			});
 		});
 	});
