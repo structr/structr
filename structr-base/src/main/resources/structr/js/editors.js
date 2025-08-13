@@ -1046,6 +1046,16 @@ let _Editors = {
 					</div>
 
 					<div class="editor-setting flex items-center p-1">
+						<label class="flex-grow">Auto-Closing Brackets</label>
+						<select name="autoClosingBrackets" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>always</option>
+							<option>languageDefined</option>
+							<option>beforeWhitespace</option>
+							<option>never</option>
+						</select>
+					</div>
+
+					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Auto-Closing Quotes</label>
 						<select name="autoClosingQuotes" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							<option>always</option>
