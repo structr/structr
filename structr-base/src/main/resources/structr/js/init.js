@@ -1981,7 +1981,12 @@ let Structr = {
 					<div class="structr-version flex gap-1 items-center justify-end"></div>
 				</div>
 
-				${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 24,24,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mr-6', 'ml-2']), 'Show notifications')}
+				<div class="relative flex ml-2 mr-6">
+					${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Show notifications')}
+					<div class="absolute flex items-center rounded-full h-4 -top-3 -right-3 text-white bg-red">
+						<div data-notification-count class="px-2 text-xs hidden"></div>
+					</div>
+				</div>
 
 				<div id="main-help">
 					<a target="_blank" href="https://support.structr.com/knowledge-graph"></a>
@@ -2668,16 +2673,12 @@ class MessageBuilder {
 
 		let messageArea  = document.querySelector('#info-area #messages');
 		let messageCount = messageArea.querySelectorAll('.message').length;
+		let notificationCountElement = document.querySelector('[data-notification-count]');
 
 		let hasMessages = (messageCount > 0);
 
-		let notificationIcon = document.querySelector('#' + Structr.notificationIconId);
-		if (hasMessages) {
-			_Icons.updateSvgIconInElement(notificationIcon, _Icons.iconNotificationBell, _Icons.iconNotificationBellWithCircle);
-		} else {
-			_Icons.updateSvgIconInElement(notificationIcon, _Icons.iconNotificationBellWithCircle, _Icons.iconNotificationBell);
-		}
-		notificationIcon.classList.toggle('ml-5', hasMessages);
+		notificationCountElement.textContent = (hasMessages ? messageCount : '');
+		notificationCountElement.classList.toggle('hidden', !hasMessages);
 
 		if (!hasMessages) {
 			Structr.setForceShowNotificationAreaState(false);

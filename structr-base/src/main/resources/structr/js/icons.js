@@ -44,9 +44,8 @@ let _Icons = {
 	iconEditionBasic:         'edition-basic',
 	iconEditionCommunity:     'edition-community',
 
-	iconTerminal:                   'terminal',
-	iconNotificationBell:           'notification-bell',
-	iconNotificationBellWithCircle: 'notification-bell-with-circle',
+	iconTerminal:             'terminal',
+	iconNotificationBell:     'notification-bell',
 
 
 	iconDOMTreePage:          'dom-page',

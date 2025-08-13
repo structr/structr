@@ -3707,6 +3707,9 @@ ul.combined-input-select-field li:hover {
 .right-8 {
 	right: 2rem;
 }
+.-right-3 {
+	right: -.75rem;
+}
 .left-0 {
 	left: 0;
 }
@@ -3832,6 +3835,9 @@ ul.combined-input-select-field li:hover {
 }
 .top-16 {
 	top: 4rem;
+}
+.-top-3 {
+	top: -.75rem;
 }
 .flex-none {
 	flex: none;
@@ -4581,6 +4587,9 @@ ul.combined-input-select-field li:hover {
 }
 .bg-gray {
 	background-color: var(--light-gray-bg-f7);
+}
+.bg-red {
+	background-color: var(--red);
 }
 .text-white {
 	color: var(--solid-white);
