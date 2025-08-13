@@ -580,13 +580,13 @@ let _Search = {
     	if (!isLogin && !isWelcome) {
 
 			let searchUiHTML = _Helpers.createSingleDOMElementFromHTML(`
-				<div id="search-container">
-					<input id="search-box" placeholder="Search config...">
+				<div id="search-container" class="w-1/3">
+					<input id="search-box" placeholder="Search config..." class="w-full box-border">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 			`);
 
-			document.getElementById('header').appendChild(searchUiHTML);
+			document.querySelector('#header svg').insertAdjacentElement('afterend', searchUiHTML);
 
 			let searchBox       = searchUiHTML.querySelector('input#search-box');
 			let clearSearchIcon = searchUiHTML.querySelector('.clearSearchIcon');

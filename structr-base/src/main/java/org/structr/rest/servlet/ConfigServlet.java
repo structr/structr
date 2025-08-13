@@ -615,19 +615,19 @@ public class ConfigServlet extends AbstractServletBase {
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
-		final Tag header = body.block("div").id("header");
+		final Tag header = body.block("div").id("header").css("flex gap-x-4 items-center justify-between");
 
 		body.block("div").id("cron-info-text").css("hidden").attr(new Attr("data-value", Settings.CRON_EXPRESSION_INFO_HTML));
 
-		header.block("svg").attr(new Attr("title", "Structr Logo")).css("logo").block("use").attr(new Attr("href", "#structr-logo"));
-		final Tag links = header.block("div").id("menu").css("menu").block("ul");
+		header.block("svg").attr(new Attr("title", "Structr Logo"), new Attr("width", "90"), new Attr("height", "24")).css("logo ml-8 mb-1").block("use").attr(new Attr("href", "#structr-logo"));
+		final Tag menu = header.block("div").css("menu mr-6");
 
 		if (isAuthenticated(request)) {
 
-			final Tag form = links.block("li").block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"), new Style("display: none")).id("logout-form");
+			final Tag form = menu.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"), new Style("display: none")).id("logout-form");
 
 			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
-			links.block("a").text("Logout").attr(new Style("cursor: pointer"), new OnClick("$('#logout-form').submit();"));
+			menu.block("a").text("Logout").attr(new Attr("href", "javascript:$('#logout-form').submit();"));
 		}
 
 		return body;

@@ -3362,7 +3362,7 @@ let _Schema = {
 
 			let scrollContainer = container.querySelector('#methods-container-left');
 
-			methodsGrid.addEventListener(Structr.dropdownOpenEventName, () => {
+			methodsGrid.addEventListener(Structr.dropdowns.openEventName, () => {
 
 				// scroll container to end to show all options
 				scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -4705,7 +4705,7 @@ let _Schema = {
 
 		document.getElementById('new-auto-layout').addEventListener('click', (e) => {
 			_Schema.newAutoLayout();
-			Structr.hideOpenDropdownsExcept();
+			Structr.dropdowns.hideOpenDropdownsExcept();
 		});
 	},
 	updateGroupedLayoutSelector: async (layoutSelector) => {

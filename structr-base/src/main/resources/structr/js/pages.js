@@ -3024,8 +3024,6 @@ let _Pages = {
 				_Dragndrop.pages.enableNewSharedComponentDropzone();
 
 				_Elements.appendEntitiesToDOMElement(result, $('#componentsArea', _Pages.componentsSlideout));
-
-				Structr.refreshPositionsForCurrentlyActiveSortable();
 			});
 		},
 		createNew: (sourceId) => {

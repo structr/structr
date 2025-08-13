@@ -187,25 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	window.addEventListener('resize', Structr.resize);
 
-	live('.dropdown-select', 'click', (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-
-		Structr.handleDropdownClick(e);
-
-		return false;
-	});
-
-	window.addEventListener('click', (e) => {
-		e.stopPropagation();
-
-		const menu           = e.target.closest('.dropdown-menu');
-		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
-
-		Structr.hideOpenDropdownsExcept(menuContainer);
-
-		return false;
-	});
+	Structr.dropdowns.initEventHandlers();
 });
 
 let Structr = {
@@ -217,6 +199,7 @@ let Structr = {
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
 	dynamicClassPrefix: 'org.structr.dynamic.',
 	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
+	notificationIconId: 'notifications-icon',
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
 	modules: {},
@@ -354,7 +337,13 @@ let Structr = {
 
 			_Console.initConsole();
 
-			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
+			document.querySelector('#header #terminal-icon').addEventListener('click', _Console.toggleConsole);
+			document.querySelector('#header #' + Structr.notificationIconId).addEventListener('click', () => {
+
+				Structr.setForceShowNotificationAreaState(true);
+				Structr.determineNotificationAreaVisibility();
+			});
+
 		});
 	},
 	updateUsername: (name) => {
@@ -363,11 +352,18 @@ let Structr = {
 			$('#logout_').html(`Logout <span class="username">${name}</span>`);
 		}
 	},
+	getInstanceDisplayName: () => {
+
+		let name        = (Structr.instanceName === '')  ? '' : `${Structr.instanceName} `;
+		let stageString = (Structr.instanceStage === '') ? '' : `(${Structr.instanceStage})`;
+
+		return `${name}${stageString}${Structr.maintenance ? ' [MAINTENANCE]' : ''}`;
+	},
 	updateDocumentTitle: () => {
 
 		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
-
-		let instance = (Structr.instanceName === '' && Structr.instanceStage === '') ? '' : ` - ${Structr.instanceName} (${Structr.instanceStage})`;
+		let displayName     = Structr.getInstanceDisplayName();
+		let instance        = (displayName === '') ? '' : ` - ${displayName})`;
 
 		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
@@ -829,13 +825,11 @@ let Structr = {
 
 				if (!Structr.isInMemoryDatabase) {
 
-					dbInfoEl.html(`<span>${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}</span>`);
+					dbInfoEl.html(`${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}`);
 
 				} else {
 
-					dbInfoEl.html('<span></span>');
-
-					Structr.appendInMemoryInfoToElement($('span', dbInfoEl));
+					Structr.appendInMemoryInfoToElement(dbInfoEl);
 
 					if (isLogin) {
 						new WarningMessage().text(Structr.inMemoryWarningText).requiresConfirmation().show();
@@ -851,18 +845,15 @@ let Structr = {
 				});
 			}
 
-			$('#header .structr-instance-name').text(envInfo.instanceName);
-			$('#header .structr-instance-stage').text(envInfo.instanceStage);
-
 			Structr.instanceName  = envInfo.instanceName;
 			Structr.instanceStage = envInfo.instanceStage;
+			Structr.maintenance   = (true === envInfo.maintenanceModeActive);
 			Structr.updateDocumentTitle();
 
-			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
+			let displayName = Structr.getInstanceDisplayName();
+			$('#header .structr-instance-name').text(displayName);
 
-			if (true === envInfo.maintenanceModeActive) {
-				$('#header .structr-instance-maintenance').text("MAINTENANCE");
-			}
+			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
 
 			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
 
@@ -872,11 +863,9 @@ let Structr = {
 				let build       = ui.build;
 				let date        = ui.date;
 				let versionInfo = `
-					<div>
-						<span>${ui.version}</span>
-						${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
-						${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
-					</div>
+					<span>${ui.version}</span>
+					${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
+					${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
 				`;
 
 				$('.structr-version').html(versionInfo);
@@ -965,25 +954,24 @@ let Structr = {
 		},
 		block: () => {
 
-			Structr.mainMenu.isBlocked = true;
-
-			for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
-				menuEntry.disabled = true;
-				menuEntry.classList.add('disabled');
-			}
+			Structr.mainMenu.setMenuBlockedState(true);
 		},
 		unblock: (timeoutInMs = 0) => {
 
 			window.setTimeout(() => {
 
-				Structr.mainMenu.isBlocked = false;
-
-				for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
-					menuEntry.disabled = false;
-					menuEntry.classList.remove('disabled');
-				}
+				Structr.mainMenu.setMenuBlockedState(false);
 
 			}, timeoutInMs);
+		},
+		setMenuBlockedState: (blocked) => {
+
+			Structr.mainMenu.isBlocked = blocked;
+
+			for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
+				menuEntry.disabled = blocked;
+				menuEntry.classList.toggle('disabled', blocked);
+			}
 		},
 		reset: () => {
 
@@ -1029,9 +1017,9 @@ let Structr = {
 			element: el,
 			text: Structr.inMemoryWarningText,
 			customToggleIcon: 'database-warning-sign-icon',
-			customToggleIconClasses: ['ml-2'],
-			width: 20,
-			height: 20,
+			customToggleIconClasses: [],
+			width: 16,
+			height: 16,
 			noSpan: true,
 			helpElementCss: {
 				'border': '2px solid red',
@@ -1123,7 +1111,7 @@ let Structr = {
 				return ['Basic', 'Community'].indexOf(requiredEdition) !== -1;
 			case 'Community':
 				return ['Community'].indexOf(requiredEdition) !== -1;
-		};
+		}
 	},
 	updateMainHelpLink: (newUrl) => {
 		let helpLink = document.querySelector('#main-help a');
@@ -1220,20 +1208,6 @@ let Structr = {
 
 		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
 		return val;
-	},
-
-	// is only populated while sorting is active - needs to be clear afterwards
-	currentlyActiveSortable: undefined,
-	refreshPositionsForCurrentlyActiveSortable: () => {
-
-		if (Structr.currentlyActiveSortable) {
-
-			Structr.currentlyActiveSortable.sortable({ refreshPositions: true });
-
-			window.setTimeout(() => {
-				Structr.currentlyActiveSortable.sortable({ refreshPositions: false });
-			}, 500);
-		}
 	},
 	handleGenericMessage: (data) => {
 
@@ -1728,7 +1702,7 @@ let Structr = {
 										break;
 								}
 
-								if (title != '') {
+								if (title !== '') {
 									builder.text(`${data.message}<br><br>Source: ${title}`);
 								}
 
@@ -1809,98 +1783,140 @@ let Structr = {
 		let reconnectMessage = Structr.getReconnectDialogElement();
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
-	dropdownOpenEventName: 'dropdown-opened',
-	handleDropdownClick: (e) => {
 
-		let menu = e.target.closest('.dropdown-menu');
+	dropdowns: {
+		openEventName: 'dropdown-opened',
+		initEventHandlers: () => {
 
-		if (menu) {
+			live('.dropdown-select', 'click', (e) => {
+				e.stopPropagation();
+				e.preventDefault();
 
-			let container = menu.querySelector('.dropdown-menu-container');
+				Structr.dropdowns.handleDropdownClick(e);
 
-			Structr.showDropdownContainer(container);
-		}
-	},
-	showDropdownContainer: (container) => {
+				return false;
+			});
 
-		if (container) {
+			window.addEventListener('click', (e) => {
+				e.stopPropagation();
 
-			let isVisible = (container.dataset['visible'] === 'true');
+				const menu          = e.target.closest('.dropdown-menu');
+				const menuContainer = menu && menu.querySelector('.dropdown-menu-container');
 
-			if (isVisible) {
+				Structr.dropdowns.hideOpenDropdownsExcept(menuContainer);
 
-				Structr.hideDropdownContainer(container);
+				return false;
+			});
+		},
+		handleDropdownClick: (e) => {
 
-			} else {
+			let menu = e.target.closest('.dropdown-menu');
 
-				Structr.hideOpenDropdownsExcept(container);
+			if (menu) {
 
-				let btn           = container.closest('.dropdown-menu').querySelector('.dropdown-select');
-				let btnRect       = btn.getBoundingClientRect();
+				let container = menu.querySelector('.dropdown-menu-container');
 
-				// apply "fixed" first to prevent container overflow
-				if (btn.dataset['wantsFixed'] === 'true') {
-					/*
-                        this is important for the editor tools in a popup which need to break free from the popup dialog
-                    */
-					container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
-				}
+				Structr.dropdowns.showDropdownContainer(container);
+			}
+		},
+		showDropdownContainer: (container) => {
 
-				container.dataset['visible'] = 'true';
-				container.style.display      = 'block';
+			if (container) {
 
-				if (btn.dataset['preferredPositionX'] === 'left') {
+				let isVisible = (container.dataset['visible'] === 'true');
 
-					// position dropdown left of button
-					let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
-					container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
+				if (isVisible) {
+
+					Structr.dropdowns.hideDropdownContainer(container);
 
 				} else {
 
-					// allow positioning to change between openings
-					container.style.right = null;
+					Structr.dropdowns.hideOpenDropdownsExcept(container);
+
+					let btn     = container.closest('.dropdown-menu').querySelector('.dropdown-select');
+					let btnRect = btn.getBoundingClientRect();
+
+					// apply "fixed" first to prevent container overflow
+					if (btn.dataset['wantsFixed'] === 'true') {
+						/*
+							this is important for the editor tools in a popup which need to break free from the popup dialog
+						*/
+						container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
+					}
+
+					container.dataset['visible'] = 'true';
+					container.style.display      = 'block';
+
+					if (btn.dataset['preferredPositionX'] === 'left') {
+
+						// position dropdown left of button
+						let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
+						container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
+
+					} else {
+
+						// allow positioning to change between openings
+						container.style.right = null;
+					}
+
+					if (btn.dataset['preferredPositionY'] === 'top') {
+
+						// position dropdown over activator button
+						container.style.bottom = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+
+					} else {
+
+						// allow positioning to change between openings
+						container.style.bottom = null;
+					}
+
+					container.dispatchEvent(new CustomEvent(Structr.dropdowns.openEventName, {
+						bubbles: true,
+						detail: container
+					}));
 				}
+			}
+		},
+		hideOpenDropdownsExcept: (exception) => {
 
-				if (btn.dataset['preferredPositionY'] === 'top') {
+			for (let container of document.querySelectorAll('.dropdown-menu-container')) {
 
-					// position dropdown over activator button
-					container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
-
-				} else {
-
-					// allow positioning to change between openings
-					container.style.bottom = null;
+				if (container !== exception) {
+					Structr.dropdowns.hideDropdownContainer(container);
 				}
-
-				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
-					bubbles: true,
-					detail: container
-				}));
 			}
-		}
-	},
-	hideOpenDropdownsExcept: (exception) => {
+		},
+		hideDropdownContainer: (container) => {
 
-		for (let container of document.querySelectorAll('.dropdown-menu-container')) {
-
-			if (container != exception) {
-				Structr.hideDropdownContainer(container);
-			}
-		}
-	},
-	hideDropdownContainer: (container) => {
-
-		container.dataset['visible'] = null;
-		container.style.display      = 'none';
-		container.style.position     = null;
-		container.style.bottom       = null;
-		container.style.top          = null;
+			container.dataset['visible'] = null;
+			container.style.display      = 'none';
+			container.style.position     = null;
+			container.style.bottom       = null;
+			container.style.top          = null;
+		},
 	},
 	determineNotificationAreaVisibility: () => {
 
-		document.querySelector('#info-area').classList.toggle('hidden', UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+		let shouldHide = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+		let infoArea = document.querySelector('#info-area');
+		infoArea.classList.toggle('hidden', shouldHide);
 	},
+	setForceShowNotificationAreaState: (forceShowState = false) => {
 
+		if (forceShowState) {
+
+			// double check if there are messages to show
+			let messageArea  = document.querySelector('#info-area #messages');
+			let messageCount = messageArea.querySelectorAll('.message').length;
+
+			let hasMessages = (messageCount > 0);
+
+			forceShowState = forceShowState && hasMessages;
+		}
+
+		let infoArea = document.querySelector('#info-area');
+		infoArea.classList.toggle('force-show', forceShowState);
+	},
 
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
 	internalKeys: {
@@ -1925,11 +1941,13 @@ let Structr = {
 				<div id="messages" class="py-1"></div>
 			</div>
 
-			<div id="header">
+			<div id="header" class="flex gap-x-4 items-center">
 
-				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo'])}
+				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo', 'mb-1', 'ml-8'])}
 
-				<div id="menu" class="menu">
+				${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mx-2', 'mt-1']), 'Toggle Console')}
+
+				<div id="menu" class="menu mt-1">
 					<ul>
 						<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
 
@@ -1954,15 +1972,17 @@ let Structr = {
 						</li>
 					</ul>
 				</div>
-				<div class="structr-instance-info">
-					<div class="structr-instance">
-						<span class="structr-instance-db"></span>
+
+				<div class="structr-instance-info ml-auto">
+					<div class="structr-instance flex gap-2 items-center">
+						<span class="structr-instance-db flex"></span>
 						<span class="structr-instance-name"></span>
-						<span class="structr-instance-stage"></span>
-						<span class="structr-instance-maintenance"></span>
 					</div>
-					<div class="structr-version flex items-center h-4"></div>
+					<div class="structr-version flex gap-1 items-center justify-end"></div>
 				</div>
+
+				${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 24,24,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mr-6', 'ml-2']), 'Show notifications')}
+
 				<div id="main-help">
 					<a target="_blank" href="https://support.structr.com/knowledge-graph"></a>
 				</div>
@@ -1975,7 +1995,6 @@ let Structr = {
 
 			<div id="custom-context-menu-container"></div>
 		`,
-		defaultDialogMarkup: config => ``,
 		loginDialogMarkup: `
 			<div id="login" class="dialog p-6 text-left">
 
@@ -2015,7 +2034,7 @@ let Structr = {
 					<div class="mb-4 w-full text-center">Or continue with:</div>
 
 					${_Dialogs.loginDialog.getOauthProviders().map(({ name, uriPart, iconId })  => `
-						<button id="sso-login-${uriPart}" onclick="javascript:document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
+						<button id="sso-login-${uriPart}" onclick="document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
 							${_Icons.getSvgIcon(iconId)}
 							${name}
 						</button>
@@ -2029,7 +2048,7 @@ let Structr = {
 
 						<div id="two-factor-qr-code" class="col-span-2 text-center" style="display: none;">
 							<div>
-								<img>
+								<img alt="Two-Factor-Authentication QR Code">
 							</div>
 							<div class="mt-2 mb-3">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
 						</div>
@@ -2062,7 +2081,7 @@ let Structr = {
 		autoScriptTextArea: config => `
 			<div id="${config.wrapperId ?? ''}" class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
-				<textarea id="${config.textareaId ?? ''}" type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<textarea id="${config.textareaId ?? ''}" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
 			</div>
 		`
@@ -2475,7 +2494,12 @@ class MessageBuilder {
 
 	appendButtons(buttonElement) {
 
-		if (this.params.requiresConfirmation === true) {
+		// message should not automatically be removed if:
+		// - it is not configured as such
+		// - the whole area is not shown
+		let shouldStayOpen = (this.params.requiresConfirmation === true) || (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+
+		if (shouldStayOpen === true) {
 
 			let closeButton = buttonElement.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
 
@@ -2620,6 +2644,8 @@ class MessageBuilder {
 
 			document.querySelector('#info-area #messages').appendChild(message);
 		}
+
+		this.updateNotificationIcon();
 	};
 
 	dismiss() {
@@ -2627,13 +2653,36 @@ class MessageBuilder {
 		let msgElement = document.querySelector(`#${this.params.msgId}`);
 
 		if (msgElement) {
+
 			msgElement.addEventListener('animationend', () => {
 				_Helpers.fastRemoveElement(msgElement);
+
+				this.updateNotificationIcon();
 			});
 
 			msgElement.classList.add('dismissed');
 		}
 	};
+
+	updateNotificationIcon() {
+
+		let messageArea  = document.querySelector('#info-area #messages');
+		let messageCount = messageArea.querySelectorAll('.message').length;
+
+		let hasMessages = (messageCount > 0);
+
+		let notificationIcon = document.querySelector('#' + Structr.notificationIconId);
+		if (hasMessages) {
+			_Icons.updateSvgIconInElement(notificationIcon, _Icons.iconNotificationBell, _Icons.iconNotificationBellWithCircle);
+		} else {
+			_Icons.updateSvgIconInElement(notificationIcon, _Icons.iconNotificationBellWithCircle, _Icons.iconNotificationBell);
+		}
+		notificationIcon.classList.toggle('ml-5', hasMessages);
+
+		if (!hasMessages) {
+			Structr.setForceShowNotificationAreaState(false);
+		}
+	}
 
 	specialInteractionButton(buttonText, callback) {
 
@@ -2918,7 +2967,7 @@ let UISettings = {
 					storageKey: 'hideNotificationMessages' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
-					infoText: 'Controls visibility of the notification area. Messages will still be appended and can be shown by changing this.',
+					infoText: 'Controls visibility of the notification area. Messages will still be appended and can be shown by changing this or by clicking the bell icon in the menu bar.',
 					onUpdate: () => {
 						Structr.determineNotificationAreaVisibility();
 					}
