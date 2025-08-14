@@ -4853,6 +4853,8 @@ let _Schema = {
 			schemaContainer.addEventListener('wheel', (event) => {
 				panzoom.zoomWithWheel(event);
 				_Schema.ui.zoomLevel = panzoom.getScale();
+
+				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
 			});
 		},
 		nodeDrag: {
