@@ -4806,7 +4806,6 @@ let _Schema = {
 			const schemaContainer = document.getElementById('schema-container');
 			const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
 
-			console.log(_Schema.ui.zoomLevel);
 			const panzoom = Panzoom(schemaContainer, {
 				cursor: 'default',
 				exclude: nodeElements,

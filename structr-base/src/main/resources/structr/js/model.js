@@ -1105,15 +1105,3 @@ StructrSearchResult.prototype.append = function() {
 		}
 	}
 };
-
-function removeFromArray(array, obj) {
-	var newArray = [];
-	if (array && array.length) {
-		$.each(array, function(i, el) {
-			if (el.id !== obj.id && el !== obj.id) {
-				newArray.push(el);
-			}
-		});
-	}
-	return newArray;
-}
