@@ -1269,7 +1269,7 @@ let _Crud = {
 
 							if (nodeSelected) {
 
-								_Crud.objectList.getAndAppendNode(type, id, key, node, cell, node, true);
+								_Crud.objectList.addRelatedObject(type, id, key, node, () => {});
 
 								if (!isCollection) {
 
