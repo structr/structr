@@ -254,7 +254,12 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 						String encoding = "UTF-8";
 
-						final String cType = getContentType();
+						// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
+						final String cType = Optional.ofNullable(getSecurityContext())
+								.map(SecurityContext::getResponse)
+								.map(ServletResponse::getContentType)
+								.orElse(getContentType());
+
 						if (cType != null) {
 
 							final String charset = StringUtils.substringAfterLast(cType, "charset=").trim().toUpperCase();
@@ -307,12 +312,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getContentType() {
-
-		// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
-		return Optional.ofNullable(getSecurityContext())
-				.map(SecurityContext::getResponse)
-				.map(ServletResponse::getContentType)
-				.orElse(wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY)));
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
 	@Override

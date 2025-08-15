@@ -21,6 +21,7 @@ package org.structr.web.servlet;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -1601,7 +1602,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// 2b: stream file to response
 				final InputStream in = file.getInputStream();
-				final String contentType = file.getContentType();
+				// if the file is a dynamic file and we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
+				final String contentType = file.isTemplate() ? Optional.of(securityContext)
+						.map(SecurityContext::getResponse)
+						.map(ServletResponse::getContentType)
+						.orElse(file.getContentType()) : file.getContentType();;
 
 				if (contentType != null) {
 
