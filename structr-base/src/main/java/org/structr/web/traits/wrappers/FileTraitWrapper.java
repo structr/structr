@@ -20,6 +20,8 @@ package org.structr.web.traits.wrappers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.servlet.ServletResponse;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -307,12 +309,10 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	public String getContentType() {
 
 		// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
-		final String contentTypeFromScripting = getSecurityContext().getResponse().getContentType();
-		if (contentTypeFromScripting != null) {
-			return contentTypeFromScripting;
-		}
-
-		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
+		return Optional.ofNullable(getSecurityContext())
+				.map(SecurityContext::getResponse)
+				.map(ServletResponse::getContentType)
+				.orElse(wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY)));
 	}
 
 	@Override
