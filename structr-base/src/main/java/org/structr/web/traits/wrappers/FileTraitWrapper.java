@@ -305,6 +305,13 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getContentType() {
+
+		// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
+		final String contentTypeFromScripting = getSecurityContext().getResponse().getContentType();
+		if (contentTypeFromScripting != null) {
+			return contentTypeFromScripting;
+		}
+
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
 	}
 
