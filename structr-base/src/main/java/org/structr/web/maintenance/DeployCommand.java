@@ -650,10 +650,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
 
-			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema Grants");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema Permissions");
 			exportSchemaGrants(schemaGrantsConf);
 
-			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Permissions");
 			exportResourceAccessGrants(grantsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting CORS Settings");
@@ -1144,7 +1144,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportSchemaGrants(final Path target) throws FrameworkException {
 
-		logger.info("Exporting schema grants");
+		logger.info("Exporting schema permissions");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final Traits traits                    = Traits.of(StructrTraits.SCHEMA_GRANT);
@@ -1182,7 +1182,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
-		logger.info("Exporting resource access grants");
+		logger.info("Exporting resource access permissions");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final Traits traits                    = Traits.of(StructrTraits.RESOURCE_ACCESS);
@@ -1219,16 +1219,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!unreachableGrants.isEmpty()) {
 
-			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility.\n\n  The following grants are inaccessible for any non-admin users:\n\n"
+			final String text = "Found configured but unreachable permission(s)! The ability to use group/user rights to permissions has been added to improve flexibility.\n\n  The following permissions are inaccessible for any non-admin users:\n\n"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("  - ").concat(signature).concat("\n"))
 					+ "\n  You can edit the visibility in the 'Security' area.\n";
 
-			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility. The following grants are inaccessible for any non-admin users:<br><br>"
+			final String htmlText = "The ability to use group/user rights to permissions has been added to improve flexibility. The following permissions are inaccessible for any non-admin users:<br><br>"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("&nbsp;- ").concat(signature).concat("<br>"))
 					+ "<br>You can edit the visibility in the <a href=\"#security\">Security</a> area.";
 
 			deferredLogTexts.add(text);
-			publishWarningMessage("Found configured but unreachable grant(s)", htmlText);
+			publishWarningMessage("Found configured but unreachable permission(s)", htmlText);
 		}
 
 		writeSortedCompactJsonToFile(target, grants, null);
@@ -2058,7 +2058,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(schemaGrantsMetadataFile)) {
 
 			logger.info("Reading {}", schemaGrantsMetadataFile);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema grants");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema permissions");
 
 			importSchemaGrants(readConfigList(schemaGrantsMetadataFile));
 		}
@@ -2089,7 +2089,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import schema grant, aborting with {}", fex.getMessage(), fex);
+			logger.error("Unable to import schema permission, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 		}
@@ -2100,7 +2100,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(grantsMetadataFile)) {
 
 			logger.info("Reading {}", grantsMetadataFile);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access permissions");
 
 			importResourceAccessGrants(readConfigList(grantsMetadataFile));
 		}
@@ -2162,8 +2162,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						}
 
 						if (hasAnyNonAuthFlags && hasAnyAuthFlags) {
-							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two grants</u></b>.<br>");
-							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two grants**.\n");
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two permissions</u></b>.<br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two permissions**.\n");
 						}
 
 						entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, hasAnyAuthFlags);
@@ -2183,7 +2183,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+			logger.error("Unable to import resouce access permission, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 
@@ -2195,12 +2195,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "    Configuration was auto-updated using this simple heuristic:\n"
 						+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
 						+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
-						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to permissions has been added to improve flexibility.";
 
 				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
 						+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
 						+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
-						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to permissions has been added to improve flexibility.";
 
 				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
 				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
