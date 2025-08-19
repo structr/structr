@@ -2001,7 +2001,9 @@ let _Schema = {
 				} else if (propertyInfoUI[key] !== property[key]) {
 
 					if (property.propertyType === 'Cypher' && key === 'format') {
-						// ignore "changes" in format... it is not display and collected
+						// ignore changes in format (if the property is Cypher)... it is not displayed and collected
+					} else if (propertyInfoUI.propertyType !== 'Function' && (key === 'isCachingEnabled' || key === 'typeHint')) {
+						// ignore changes in isCachingEnabled and typeHint if the property is currently not configured as a Function
 					} else {
 						hasChanges = true;
 					}
