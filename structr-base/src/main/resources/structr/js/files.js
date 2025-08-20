@@ -1273,8 +1273,6 @@ let _Files = {
 					messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed.</div>`);
 				}
 			}
-
-			_Dialogs.basic.centerAll();
 		});
 	},
 	editImage: (image) => {

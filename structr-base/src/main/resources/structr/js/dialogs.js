@@ -60,21 +60,8 @@ let _Dialogs = {
 
 			document.body.appendChild(overlay);
 
-			// if no message is provided, or more content is added in the caller, then the caller must handle this
-			_Dialogs.basic.centerAll();
-
 			// inner element is returned to allow adding elements there
 			return contentElement;
-		},
-		centerAll: () => {
-			// do nothing
-			return;
-
-			for (let messageDiv of document.querySelectorAll(`.${_Dialogs.basic.contentClass}`)) {
-
-				messageDiv.style.top  = `${(window.innerHeight - messageDiv.offsetHeight) / 2}px`;
-				messageDiv.style.left = `${(window.innerWidth - messageDiv.offsetWidth) / 2}px`;
-			}
 		},
 		removeBlockerAround: (element) => {
 
@@ -151,8 +138,6 @@ let _Dialogs = {
 
 				document.querySelector('#usernameField').focus();
 
-				_Dialogs.basic.centerAll();
-
 				document.querySelector('form#login-username-password').addEventListener('submit', (e) => {
 					e.stopPropagation();
 					e.preventDefault();
@@ -225,7 +210,6 @@ let _Dialogs = {
 				if (ssoAvailable) {
 					ssoElement.classList.remove('hidden');
 				}
-				_Dialogs.basic.centerAll(); // or too jumpy?
 			});
 		},
 		showTwoFactor: (data) => {
@@ -246,8 +230,6 @@ let _Dialogs = {
 			}
 
 			$('#twoFactorTokenField').val(data.token);
-
-			window.setTimeout(_Dialogs.basic.centerAll, 0);
 		},
 		hideTwoFactor: () => {
 			document.querySelector('#login-username-password').style.display = 'block';
@@ -266,8 +248,6 @@ let _Dialogs = {
 			});
 
 			document.querySelector('#passwordField').focus();
-
-			_Dialogs.basic.centerAll();
 		}
 	},
 	tempInfoBox: {
@@ -642,8 +622,6 @@ let _Dialogs = {
 					}
 				}
 			}
-
-			_Dialogs.basic.centerAll();
 		},
 		openDialog: (dialogTitleText = '', callbackCancel, customClasses = []) => {
 
