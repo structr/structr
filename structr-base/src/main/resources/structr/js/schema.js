@@ -4805,11 +4805,13 @@ let _Schema = {
 		maxZ: 0,
 		initPanZoom: () => {
 
-			const schemaContainer = document.getElementById('schema-container');
-			const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
+			const schemaContainer     = document.getElementById('schema-container');
+			let schemaContainerParent = schemaContainer.parentNode;
+			const nodeElements        = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
 
 			const panzoom = Panzoom(schemaContainer, {
 				cursor: 'default',
+				canvas: true,
 				exclude: nodeElements,
 				startScale: _Schema.ui.zoomLevel,
 				handleStartEvent: (event) => {
@@ -4831,27 +4833,24 @@ let _Schema = {
 			});
 			_Schema.ui.panzoomInstance = panzoom;
 
+			// TODO: these two listeners are never removed and thus duplicated when re-opening the schema
 			document.addEventListener('keydown', (event) => {
 				if (event.shiftKey) {
-					schemaContainer.style.cursor = 'move';
+					schemaContainerParent.style.cursor = 'move';
 				}
 			});
 			document.addEventListener('keyup', (event) => {
 				if (!event.shiftKey) {
-					schemaContainer.style.cursor = 'default';
+					schemaContainerParent.style.cursor = 'default';
 				}
 			});
-			schemaContainer.addEventListener('panzoomstart', (event) => {
-				if (!event.shiftKey) {
-					event.preventDefault();
-				}
-			});
+
 			schemaContainer.addEventListener('panzoomend', (event) => {
-				if (!event.shiftKey) {
-					schemaContainer.style.cursor = 'default';
+				if (!event.detail.originalEvent.shiftKey) {
+					schemaContainerParent.style.cursor = 'default';
 				}
 			});
-			schemaContainer.addEventListener('wheel', (event) => {
+			schemaContainerParent.addEventListener('wheel', (event) => {
 				panzoom.zoomWithWheel(event);
 				_Schema.ui.zoomLevel = panzoom.getScale();
 
