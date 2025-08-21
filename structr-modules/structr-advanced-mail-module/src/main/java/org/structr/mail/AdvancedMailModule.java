@@ -80,6 +80,9 @@ public class AdvancedMailModule implements StructrModule {
 		Functions.put(licenseManager, new MailResetManualConfigFunction(this));
 		Functions.put(licenseManager, new MailGetErrorFunction(this));
 		Functions.put(licenseManager, new MailHasErrorFunction(this));
+
+		Functions.put(licenseManager, new ValidateEmailFunction(this));
+		Functions.put(licenseManager, new IsValidEmailFunction(this));
 	}
 
 	@Override
