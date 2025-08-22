@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.session.ManagedSession;
 import org.eclipse.jetty.session.SessionCache;
+import org.eclipse.jetty.websocket.core.server.ServerUpgradeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -91,12 +92,10 @@ public class SessionHelper {
 
 		if (request.getSession(true) == null) {
 
-			/*
-			if (request instanceof JettyServerUpgradeRequest) {
+			if (request instanceof ServerUpgradeRequest) {
 				logger.debug("Requested to create a new session on a Websocket request, aborting");
 				return;
 			}
-			*/
 
 			request.changeSessionId();
 		}
@@ -153,6 +152,14 @@ public class SessionHelper {
 	 * @param user
 	 */
 	public static void clearInvalidSessions(final Principal user) {
+
+		if (user == null) {
+
+			logger.warn("Trying to clear session for null user, dumping stack.");
+			Thread.dumpStack();
+
+			return;
+		}
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
@@ -227,7 +234,7 @@ public class SessionHelper {
 
 			try {
 
-				getDefaultSessionCache().delete(sessionId);
+				getDefaultSessionCache().get(sessionId).invalidate();
 
 			} catch (final Exception ex) {
 

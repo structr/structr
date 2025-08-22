@@ -47,7 +47,6 @@ let _Schema = {
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
-	timeoutBecauseSnapshotsCommandReturnsTooEarly: 1000,
 	onload: () => {
 
 		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
@@ -55,28 +54,14 @@ let _Schema = {
 			Structr.setMainContainerHTML(_Schema.templates.main());
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
-			_Schema.ui.canvas               = $('#schema-graph');
+			_Schema.ui.canvas = $('#schema-graph');
 
-			_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
-				if (e.which === 1) {
-					_Schema.ui.clearSelection();
-					_Schema.ui.selectionStart(e);
-				}
-			});
+			_Schema.ui.nodeDrag.init();
+			_Schema.ui.selection.init();
 
-			_Schema.ui.canvas[0].addEventListener('mousemove', (e) => {
-				if (e.which === 1) {
-					_Schema.ui.selectionDrag(e);
-				}
-			});
-
-			_Schema.ui.canvas[0].addEventListener('mouseup', (e) => {
-				_Schema.ui.selectionStop();
-			});
-
-			_Schema.init(null,() => {
+			_Schema.init(() => {
 				Structr.resize();
-				_Schema.initPanZoom();
+				_Schema.ui.initPanZoom();
 			});
 
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
@@ -97,16 +82,42 @@ let _Schema = {
 		//_Schema.storePositions();	/* CHM: don't store positions on every reload, let automatic positioning do its job.. */
 
 		_Helpers.fastRemoveAllChildren(_Schema.ui.canvas[0]);
-		_Schema.init({ x: window.scrollX, y: window.scrollY }, callback);
+		_Schema.init(callback);
 		Structr.resize();
 	},
 	storePositions: () => {
-		for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
-			let node = $(n);
-			let type = node.children('b').text();
-			let obj = node.offset();
-			obj.left = (obj.left) / _Schema.ui.zoomLevel;
-			obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
+
+		let min = {
+			left: null,
+			top: null
+		};
+
+		let rawPositions = [..._Schema.ui.canvas[0].querySelectorAll('.node')].map(n => {
+
+			let type = n.dataset.type;
+			let left = parseFloat(n.style.left);
+			let top  = parseFloat(n.style.top)
+
+			min.left = Math.min((min.left ?? left), left);
+			min.top  = Math.min((min.top ?? top), top);
+
+			return [type, { top, left }];
+		});
+
+		// because of panzoom, we can move nodes anywhere... find the minimum top/left and subtract it everywhere
+		_Schema.nodePositions = Object.fromEntries(rawPositions.map(([k, v]) => [k, { top: v.top - min.top, left: v.left - min.left}]));
+
+		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
+	},
+	storePositionsNewLayout: () => {
+		for (let n of document.querySelectorAll('rect.node')) {
+			let type = n.dataset.type;
+			let obj = {
+				left: n.x.baseVal.value,
+				top: n.y.baseVal.value
+			};
+			//obj.left = (obj.left) / _Schema.ui.zoomLevel;
+			//obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
 			_Schema.nodePositions[type] = obj;
 		}
 		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
@@ -115,7 +126,7 @@ let _Schema = {
 		LSWrapper.removeItem(_Schema.schemaPositionsKey);
 		_Schema.reload();
 	},
-	init: (scrollPosition, callback) => {
+	init: (callback) => {
 
 		_Schema.schemaLoading            = false;
 		_Schema.ui.connectorStyle        = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
@@ -127,27 +138,10 @@ let _Schema = {
 		UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
 		_Schema.activateDisplayDropdownTools();
-		_Schema.activateSnapshotsDialog();
 		_Schema.activateAdminTools();
 
 		document.getElementById('create-type').addEventListener('click', _Schema.nodes.showCreateTypeDialog);
 		document.getElementById('user-defined-functions').addEventListener('click', _Schema.methods.showUserDefinedMethods);
-
-		$('#zoom-slider').slider({
-			min: 0.25,
-			max: 1,
-			step: 0.05,
-			value: _Schema.ui.zoomLevel,
-			slide: (e, ui) => {
-				_Schema.ui.zoomLevel = ui.value;
-				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
-				_Schema.ui.setZoom(_Schema.ui.zoomLevel, _Schema.ui.jsPlumbInstance, [0,0], _Schema.ui.canvas[0]);
-				if (_Schema.ui.selectedNodes.length > 0) {
-					_Schema.ui.updateSelectedNodes();
-				}
-				Structr.resize();
-			}
-		});
 
 		jsPlumb.ready(async () => {
 
@@ -199,11 +193,9 @@ let _Schema = {
 			});
 			_Schema.isReloading = false;
 
-			_Schema.ui.setZoom(_Schema.ui.zoomLevel, _Schema.ui.jsPlumbInstance, [0,0], _Schema.ui.canvas[0]);
-
 			$('._jsPlumb_connector').click(function(e) {
 				e.stopPropagation();
-				_Schema.ui.selectRel($(this));
+				_Schema.ui.selection.selectRel($(this));
 			});
 
 			Structr.resize();
@@ -216,56 +208,12 @@ let _Schema = {
 			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true);
 			_Schema.ui.updateInheritanceArrowsVisibility(showSchemaInheritance);
 
-			if (scrollPosition) {
-				window.scrollTo(scrollPosition.x, scrollPosition.y);
-			}
-
 			if (typeof callback === "function") {
 				callback();
 			}
 		});
 
 		Structr.adaptUiToAvailableFeatures();
-	},
-	initPanZoom: () => {
-		const schemaContainer = document.getElementById('schema-container');
-		const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
-
-		const panzoom = Panzoom(schemaContainer, { cursor: 'default', exclude: nodeElements, handleStartEvent: (event) => {
-			let shiftPressed = event.shiftKey;
-			let middleMousePressed =  (event.button === 1);
-
-			if (shiftPressed || middleMousePressed) {
-				panzoom.setOptions({ disablePan: false, cursor: 'move' });
-				event.preventDefault();
-				event.stopPropagation();
-			} else {
-				panzoom.setOptions({ disablePan: true, cursor: 'default' });
-			}
-		} });
-		document.addEventListener('keydown', (event) => {
-			if (event.shiftKey) {
-				schemaContainer.style.cursor = 'move';
-			}
-		});
-		document.addEventListener('keyup', (event) => {
-			if (!event.shiftKey) {
-				schemaContainer.style.cursor = 'default';
-			}
-		});
-		schemaContainer.addEventListener('panzoomstart', (event) => {
-			if (!event.shiftKey) {
-				event.preventDefault();
-			}
-		});
-		schemaContainer.addEventListener('panzoomend', (event) => {
-			if (!event.shiftKey) {
-				schemaContainer.style.cursor = 'default';
-			}
-		});
-		schemaContainer.addEventListener('wheel', (event) => {
-			panzoom.zoomWithWheel(event);
-		});
 	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');
@@ -404,7 +352,7 @@ let _Schema = {
 				_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 			});
 
-			_Schema.ui.clearSelection();
+			_Schema.ui.selection.clearSelection();
 
 		}, 'schema');
 
@@ -597,7 +545,6 @@ let _Schema = {
 			return false;
 		}
 	},
-	prevAnimFrameReqId_dragNode: undefined,
 	nodes: {
 		populateInheritancePairMap: (list) => {
 
@@ -681,7 +628,7 @@ let _Schema = {
 
 							let id = 'id_' + entity.id;
 							_Schema.ui.canvas.append(`
-								<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
+								<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}" data-type="${entity.name}">
 									<b>${entity.name}</b>
 									<div class="icons-container flex items-center">
 										${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']), 'Edit type')}
@@ -729,20 +676,8 @@ let _Schema = {
 								}
 							}
 
-							let canvasOffsetTop = _Schema.ui.canvas.offset().top;
-
-							if (nodePosition.top < canvasOffsetTop) {
-								nodePosition.top = canvasOffsetTop;
-
-								let count = 0;
-
-								while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-									x++;
-									nodePosition = _Schema.ui.calculateNodePosition(x, y);
-								}
-							}
-
-							node.offset(nodePosition);
+							node[0].style.top  = nodePosition.top + 'px';
+							node[0].style.left = nodePosition.left + 'px';
 
 							_Schema.nodeData[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
 								anchor: "Top",
@@ -757,76 +692,6 @@ let _Schema = {
 								deleteEndpointsOnDetach: false
 							});
 
-							let currentCanvasOffset;
-							let dragElement;
-							let dragElementId;
-							let dragElementIsSelected = false;
-							let nodeDragStartpoint    = {};
-							let dragStopped           = false;
-
-							_Schema.ui.jsPlumbInstance.draggable(id, {
-								containment: true,
-								start: (ui) => {
-
-									_Schema.ui.updateSelectedNodes();
-
-									dragElement         = $(ui.el);
-									dragElementId       = dragElement.attr('id');
-									currentCanvasOffset = _Schema.ui.canvas.offset();
-									dragStopped         = false;
-									let nodeOffset      = dragElement.offset();
-
-									dragElementIsSelected = dragElement.hasClass('selected');
-									if (!dragElementIsSelected) {
-										_Schema.ui.clearSelection();
-									}
-
-									nodeDragStartpoint = {
-										top: (nodeOffset.top - currentCanvasOffset.top),
-										left: (nodeOffset.left - currentCanvasOffset.left)
-									};
-								},
-								drag: () => {
-
-									if (dragElementIsSelected) {
-
-										_Helpers.requestAnimationFrameWrapper(_Schema.prevAnimFrameReqId_dragNode, () => {
-											if (!dragStopped) {
-												let nodeOffset = dragElement.offset();
-
-												let deltaTop  = (nodeDragStartpoint.top - nodeOffset.top);
-												let deltaLeft = (nodeDragStartpoint.left - nodeOffset.left);
-
-												for (let selectedNode of _Schema.ui.selectedNodes) {
-
-													if (selectedNode.nodeId !== dragElementId) {
-														let newTop  = selectedNode.pos.top - deltaTop;
-														if (newTop < currentCanvasOffset.top) {
-															newTop = currentCanvasOffset.top;
-														}
-														let newLeft = selectedNode.pos.left - deltaLeft;
-														if (newLeft < currentCanvasOffset.left) {
-															newLeft = currentCanvasOffset.left;
-														}
-
-														$('#' + selectedNode.nodeId).offset({ top: newTop, left: newLeft });
-													}
-												}
-
-												_Schema.ui.jsPlumbInstance.repaintEverything();
-											}
-										});
-									}
-
-								},
-								stop: () => {
-									dragStopped = true;
-
-									_Schema.storePositions();
-									_Schema.ui.updateSelectedNodes();
-									Structr.resize();
-								}
-							});
 							x++;
 						}
 					}
@@ -1692,54 +1557,6 @@ let _Schema = {
 			}
 
 		},
-		updateRelationship: async (entity, newData) => {
-
-			let getResponse = await fetch(`${Structr.rootUrl}SchemaRelationshipNode/${entity.id}`);
-
-			if (getResponse.ok) {
-
-				let existingData = await getResponse.json();
-
-				let hasChanges = Object.keys(newData).some((key) => {
-					return (existingData.result[key] !== newData[key]);
-				});
-
-				if (hasChanges) {
-
-					let putResponse = await fetch(`${Structr.rootUrl}SchemaRelationshipNode/${entity.id}`, {
-						method: 'PUT',
-						body: JSON.stringify(newData)
-					});
-
-					let responseData = await putResponse.json();
-
-					if (putResponse.ok) {
-
-						for (let attribute in newData) {
-							_Helpers.blinkGreen($(`#relationship-options [data-attr-name=${attribute}]`));
-							entity[attribute] = newData[attribute];
-						}
-
-						return true;
-
-					} else {
-
-						_Schema.relationships.reportRelationshipError(existingData.result, newData, responseData);
-
-						for (let attribute in newData) {
-							_Helpers.blinkRed($(`#relationship-options [data-attr-name=${attribute}]`));
-						}
-
-						return false;
-					}
-
-				} else {
-
-					// force a schema-reload so that we dont break the relationships
-					_Schema.reload();
-				}
-			}
-		},
 		reportRelationshipError: (relData, newData, responseData) => {
 
 			for (let error of responseData.errors) {
@@ -1778,7 +1595,7 @@ let _Schema = {
 
 			let gridConfig = {
 				class: 'local schema-props grid',
-				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
 					{ class: 'py-2 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
@@ -1788,6 +1605,7 @@ let _Schema = {
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Idx' },
+					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Fulltext' },
 					{ class: 'py-2 px-1 font-bold flex items-center justify-center', title: 'Default' },
 					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
@@ -1850,9 +1668,15 @@ let _Schema = {
 
 						indexedCb.checked = shouldIndex;
 
-						_Helpers.blink(indexedCb.closest('td'), '#fff', '#bde5f8');
-						_Dialogs.custom.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
+						_Helpers.blink(indexedCb.parentNode, '#fff', '#bde5f8');
+						_Dialogs.custom.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 500);
 					}
+
+					let allowFulltext   = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+					let fulltextCb      = gridRow.querySelector('.fulltext-indexed');
+					let checked         = (allowFulltext && !fulltextCb.disabled && fulltextCb.checked);
+					fulltextCb.disabled = !allowFulltext;
+					fulltextCb.checked  = checked;
 				});
 
 				gridRow.querySelector('.discard-changes').addEventListener('click', () => {
@@ -1990,7 +1814,26 @@ let _Schema = {
 			$('.compound',         gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.unique',           gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.indexed',          gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.fulltext-indexed', gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
 			$('.property-default', gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+
+			let propertyTypeSelect = gridRow[0].querySelector('.property-type');
+
+			let handlePropertyTypeChange = () => {
+
+				let selectedOption = propertyTypeSelect.querySelector('option:checked');
+
+				let allowFulltext = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
+
+				let fulltextCb = gridRow[0].querySelector('.fulltext-indexed');
+				fulltextCb.disabled = (!allowFulltext || isProtected);
+				fulltextCb.checked = allowFulltext && property.fulltext === true;
+
+				propertyInfoChangeHandler();
+			};
+
+			propertyTypeSelect.addEventListener('change', handlePropertyTypeChange);
+			handlePropertyTypeChange();
 
 			let readWriteButtonClickHandler = async (targetProperty) => {
 
@@ -2075,6 +1918,7 @@ let _Schema = {
 				compound:         gridRow.querySelector('.compound').checked,
 				unique:           gridRow.querySelector('.unique').checked,
 				indexed:          gridRow.querySelector('.indexed').checked,
+				fulltext:         gridRow.querySelector('.fulltext-indexed').checked,
 				defaultValue:     gridRow.querySelector('.property-default').value,
 				isCachingEnabled: gridRow.querySelector('.caching-enabled')?.checked ?? false,
 				typeHint:         gridRow.querySelector('.type-hint')?.value ?? null
@@ -2097,6 +1941,7 @@ let _Schema = {
 			$('.compound', gridRow).prop('checked', property.compound);
 			$('.unique', gridRow).prop('checked', property.unique);
 			$('.indexed', gridRow).prop('checked', property.indexed);
+			$('.fulltext-indexed', gridRow).prop('checked', property.fulltext);
 			$('.property-default', gridRow).val(property.defaultValue);
 			$('.caching-enabled', gridRow).prop('checked', property.isCachingEnabled);
 			$('.type-hint', gridRow).val(property.typeHint ?? "null");
@@ -2114,20 +1959,16 @@ let _Schema = {
 		checkProperty: (gridRow) => {
 
 			let propertyInfoUI = _Schema.properties.getDataFromRow(gridRow);
+			let container      = gridRow.querySelector('.indexed').closest('div');
 
-			if (propertyInfoUI.propertyType === 'Function') {
-
-				let container = gridRow.querySelector('.indexed').closest('div');
-
-				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
-			}
+			_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 		},
 		checkFunctionProperty: (propertyInfoUI, containerForWarning) => {
 
 			let warningClassName = 'indexed-function-property-warning';
 			let existingWarning  = containerForWarning.querySelector(`.${warningClassName}`);
 
-			if (propertyInfoUI.indexed === true && (!propertyInfoUI.typeHint || propertyInfoUI.typeHint === '')) {
+			if (propertyInfoUI.propertyType === 'Function' && propertyInfoUI.indexed === true && (!propertyInfoUI.typeHint || propertyInfoUI.typeHint === '')) {
 
 				if (!existingWarning) {
 
@@ -2160,7 +2001,9 @@ let _Schema = {
 				} else if (propertyInfoUI[key] !== property[key]) {
 
 					if (property.propertyType === 'Cypher' && key === 'format') {
-						// ignore "changes" in format... it is not display and collected
+						// ignore changes in format (if the property is Cypher)... it is not displayed and collected
+					} else if (propertyInfoUI.propertyType !== 'Function' && (key === 'isCachingEnabled' || key === 'typeHint')) {
+						// ignore changes in isCachingEnabled and typeHint if the property is currently not configured as a Function
 					} else {
 						hasChanges = true;
 					}
@@ -2382,7 +2225,7 @@ let _Schema = {
 
 			let tableConfig = {
 				class: 'builtin schema-props grid',
-				style: 'grid-template-columns: [ declaringClass ] minmax(0, 1fr) [ jsonName ] minmax(0, 1fr) [ type ] minmax(0, 1fr) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content);',
+				style: 'grid-template-columns: [ declaringClass ] minmax(0, 1fr) [ jsonName ] minmax(0, 1fr) [ type ] minmax(0, 1fr) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content);',
 				cols: [
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Declaring Class' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'JSON Name' },
@@ -2390,7 +2233,8 @@ let _Schema = {
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Notnull' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Comp.' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Uniq.' },
-					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Idx' }
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Idx' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Fulltext' }
 				],
 				noButtons: true
 			};
@@ -2403,7 +2247,7 @@ let _Schema = {
 
 			Command.listSchemaProperties(entity.id, 'ui', (data) => {
 
-				_Helpers.sort(data, "declaringClass", "name");
+				_Helpers.sort(data, 'declaringClass', 'name');
 
 				for (let prop of data) {
 
@@ -2418,6 +2262,7 @@ let _Schema = {
 							compound: prop.compound,
 							unique: prop.unique,
 							indexed: prop.indexed,
+							fulltext: prop.fulltext,
 							declaringClass: prop.declaringClass
 						};
 
@@ -2443,6 +2288,9 @@ let _Schema = {
 					</div>
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" disabled="disabled" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="fulltext-indexed" type="checkbox" disabled="disabled" ${(config.property.fulltext ? 'checked' : '')} style="margin-right: 0;">
 					</div>
 				</div>
 			`,
@@ -2490,6 +2338,9 @@ let _Schema = {
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
 					</div>
+					<div class="flex items-center justify-center">
+						<input class="fulltext-indexed" type="checkbox" ${(config.property.fulltext ? 'checked' : '')} style="margin-right: 0;">
+					</div>
 					<div class="py-3 px-2"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
 					<div class="actions-col flex items-center justify-center">
 						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
@@ -2520,6 +2371,9 @@ let _Schema = {
 					</div>
 					<div class="flex items-center justify-center">
 						<input class="indexed" type="checkbox" style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="fulltext-indexed" type="checkbox" style="margin-right: 0;" disabled>
 					</div>
 					<div class="p-2 flex items-center">
 						<input class="property-default" size="10" type="text" placeholder="Default Value">
@@ -3316,7 +3170,7 @@ let _Schema = {
 
 			let scrollContainer = container.querySelector('#methods-container-left');
 
-			methodsGrid.addEventListener(Structr.dropdownOpenEventName, () => {
+			methodsGrid.addEventListener(Structr.dropdowns.openEventName, () => {
 
 				// scroll container to end to show all options
 				scrollContainer.scrollTop = scrollContainer.scrollHeight;
@@ -4350,47 +4204,7 @@ let _Schema = {
 			`,
 		}
 	},
-	resize: () => {
-
-		if (_Schema.ui.canvas) {
-
-			let zoom           = (_Schema.ui.jsPlumbInstance ? _Schema.ui.jsPlumbInstance.getZoom() : 1);
-			let canvasPosition = _Schema.ui.canvas.offset();
-			let padding        = 100;
-			let windowHeight   = window.innerHeight;
-			let windowWidth    = window.innerWidth;
-
-			let maxElementPosition = {
-				right:  0,
-				bottom: 0
-			};
-
-			// do not include ._jsPlumb_connector because that has huge containers for bezier
-			for (let elem of _Schema.ui.canvas[0].querySelectorAll('.node, .label, ._jsPlumb_endpoint_anchor')) {
-				let rect = elem.getBoundingClientRect();
-				maxElementPosition.right  = Math.max(maxElementPosition.right,  Math.ceil((rect.right  + window.scrollX - canvasPosition.left) / zoom));
-				maxElementPosition.bottom = Math.max(maxElementPosition.bottom, Math.ceil((rect.bottom + window.scrollY - canvasPosition.top)  / zoom));
-			}
-
-			let canvasSize = {
-				width:  (windowWidth  - canvasPosition.left) / zoom,
-				height: (windowHeight - canvasPosition.top)  / zoom
-			};
-
-			if (maxElementPosition.right >= canvasSize.width) {
-				canvasSize.width = maxElementPosition.right + padding;
-			}
-
-			if (maxElementPosition.bottom >= canvasSize.height) {
-				canvasSize.height = maxElementPosition.bottom + padding;
-			}
-
-			_Schema.ui.canvas.css({
-				width:  canvasSize.width + 'px',
-				height: canvasSize.height + 'px'
-			});
-		}
-	},
+	resize: () => {},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
 	},
@@ -4409,154 +4223,6 @@ let _Schema = {
 
 			Structr.errorFromResponse(data);
 		}
-	},
-	activateSnapshotsDialog: () => {
-
-		let snapshotsContainer = document.querySelector('#snapshots');
-		let dropdownContainer  = snapshotsContainer.closest('.dropdown-menu-container');
-
-		let createSnapshotButton             = dropdownContainer.querySelector('#create-snapshot');
-		let createSnapshotFromSelectedButton = dropdownContainer.querySelector('#create-snapshot-selected-nodes');
-
-		let refreshAvailableSnapshots = () => {
-
-			_Helpers.fastRemoveAllChildren(snapshotsContainer);
-
-			Command.snapshots('list', '', null, (result) => {
-
-				for (let data of result) {
-
-					for (let snapshotName of data.snapshots) {
-
-						let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.snapshotEntry({ snapshotName }));
-
-						snapshotsContainer.appendChild(tr);
-
-						tr.querySelector(`.snapshot-link.name a`).addEventListener('click', (e) => {
-
-							e.preventDefault();
-
-							Command.snapshots("get", snapshotName, null, (snapshotData) => {
-
-								let element = document.createElement('a');
-								element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(snapshotData.schemaJson)}`);
-								element.setAttribute('download', snapshotName);
-
-								element.style.display = 'none';
-								document.body.appendChild(element);
-
-								element.click();
-								document.body.removeChild(element);
-							});
-						});
-
-						tr.querySelector('.restore-snapshot').addEventListener('click', () => {
-							_Schema.performSnapshotAction('restore', snapshotName);
-						});
-						tr.querySelector('.add-snapshot').addEventListener('click', () => {
-							_Schema.performSnapshotAction('add', snapshotName);
-						});
-						tr.querySelector('.delete-snapshot').addEventListener('click', () => {
-							Command.snapshots('delete', snapshotName, null, refreshAvailableSnapshots);
-						});
-					}
-				}
-			});
-		};
-
-		let refreshUi = () => {
-
-			let hasSelectedNodes = (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length);
-
-			createSnapshotFromSelectedButton.classList.toggle('disabled', !hasSelectedNodes)
-			createSnapshotFromSelectedButton.disabled = !hasSelectedNodes;
-
-			let text = (hasSelectedNodes ? _Schema.ui.selectedNodes.length : 'from');
-
-			createSnapshotFromSelectedButton.querySelector('.context').textContent = text;
-		};
-
-		dropdownContainer.addEventListener(Structr.dropdownOpenEventName, () => {
-			refreshAvailableSnapshots();
-
-			refreshUi();
-		});
-
-		createSnapshotButton.addEventListener('click', () => {
-
-			let suffix = document.querySelector('#snapshot-suffix').value;
-			let types  = [];
-
-			Command.snapshots('export', suffix, types, (data) => {
-
-				let status = data[0].status;
-				if (status !== 'success') {
-					new ErrorMessage().text('Snapshot creation failed').show();
-				}
-
-				refreshAvailableSnapshots();
-			});
-		});
-
-		createSnapshotFromSelectedButton.addEventListener('click', () => {
-
-			let suffix = document.querySelector('#snapshot-suffix').value;
-			let types  = [];
-
-			for (let selectedNode of _Schema.ui.selectedNodes) {
-				types.push(selectedNode.name);
-			}
-
-			for (let el of _Schema.ui.canvas[0].querySelectorAll('.label.rel-type')) {
-
-				let sourceType = el.children[0].dataset['sourceType'];
-				let targetType = el.children[0].dataset['targetType'];
-
-				// include schema relationship if both source and target type are selected
-				if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
-					types.push(el.children[0].dataset['name']);
-				}
-			}
-
-			Command.snapshots('export', suffix, types, (data) => {
-
-				let status = data[0].status;
-				if (status !== 'success') {
-					new ErrorMessage().text('Snapshot creation failed').show();
-				}
-
-				refreshAvailableSnapshots();
-			});
-		});
-
-		document.querySelector('#refresh-snapshots').addEventListener('click', refreshAvailableSnapshots);
-		refreshAvailableSnapshots();
-	},
-	performSnapshotAction: (action, snapshot) => {
-
-		_Schema.showUpdatingSchemaMessage();
-
-		Command.snapshots(action, snapshot, null, (data) => {
-
-			let status = data[0].status;
-
-			if (status === 'success') {
-
-				setTimeout(() => {
-
-					_Schema.hideUpdatingSchemaMessage();
-					_Schema.reload();
-
-				}, _Schema.timeoutBecauseSnapshotsCommandReturnsTooEarly);
-
-			} else {
-
-				if (_Dialogs.custom.isDialogOpen()) {
-					_Dialogs.custom.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
-				}
-			}
-		});
-
 	},
 	activateAdminTools: () => {
 
@@ -4599,22 +4265,26 @@ let _Schema = {
 		registerSchemaToolButtonAction($('#rebuild-index'), 'rebuildIndex');
 		registerSchemaToolButtonAction($('#flush-caches'), 'flushCaches');
 
-		$('#clear-schema').on('click', async (e) => {
+		document.querySelector('#clear-schema').addEventListener('click', async (e) => {
 
-			let confirm = await _Dialogs.confirmation.showPromise('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>');
+			let confirm = await _Dialogs.confirmation.showPromise('<h3>Delete dynamic schema?</h3><p>This will remove all dynamic schema information, but leave the corresponding data intact.</p><p>&nbsp;</p>');
 
 			if (confirm === true) {
 
 				_Schema.showUpdatingSchemaMessage();
 
-				Command.snapshots("purge", undefined, undefined, () => {
+				Command.clearSchema((data) => {
+
+					if (data.success !== true) {
+						new WarningMessage().text("Clearing schema failed - see log for details.").show();
+					}
+
+					let timeoutBecauseClearCommandReturnsTooEarly = 1000;
 
 					setTimeout(() => {
-
 						_Schema.hideUpdatingSchemaMessage();
 						_Schema.reload();
-
-					}, _Schema.timeoutBecauseSnapshotsCommandReturnsTooEarly);
+					}, timeoutBecauseClearCommandReturnsTooEarly);
 				});
 			}
 		});
@@ -4800,6 +4470,11 @@ let _Schema = {
 		document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
 			_Schema.clearPositions();
 		});
+
+		document.getElementById('new-auto-layout').addEventListener('click', (e) => {
+			_Schema.newAutoLayout();
+			Structr.dropdowns.hideOpenDropdownsExcept();
+		});
 	},
 	updateGroupedLayoutSelector: async (layoutSelector) => {
 
@@ -4852,8 +4527,7 @@ let _Schema = {
 
 						_Schema.ui.zoomLevel = loadedConfig.zoom;
 						LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
-						_Schema.ui.setZoom(_Schema.ui.zoomLevel, _Schema.ui.jsPlumbInstance, [0,0], _Schema.ui.canvas[0]);
-						$( "#zoom-slider" ).slider('value', _Schema.ui.zoomLevel);
+						_Schema.ui.panzoomInstance.zoom(_Schema.ui.zoomLevel);
 
 						_Schema.ui.updateOverlayVisibility(loadedConfig.showRelLabels);
 
@@ -4883,27 +4557,11 @@ let _Schema = {
 						LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
 						_Schema.applyNodePositions(positions);
 					}
-						break;
+					break;
 
 					default:
 						Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
 				}
-
-			} else {
-
-				if (loadedConfig[Object.keys(loadedConfig)[0]].position) {
-					// convert old file type
-					let schemaPositions = {};
-					for (let type in loadedConfig) {
-						schemaPositions[type] = loadedConfig[type].position;
-					}
-					loadedConfig = schemaPositions;
-				}
-
-				LSWrapper.setItem(_Schema.schemaPositionsKey, loadedConfig);
-				_Schema.applyNodePositions(loadedConfig);
-
-				new InfoMessage().text("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
 			}
 
 			LSWrapper.save();
@@ -4922,12 +4580,12 @@ let _Schema = {
 	applyNodePositions: (positions) => {
 
 		for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
-			let node = $(n);
-			let type = node.text().trim();
+
+			let type = n.dataset.type;
 
 			if (positions[type]) {
-				node.css('top', positions[type].top);
-				node.css('left', positions[type].left);
+				n.style.top = positions[type].top + 'px';
+				n.style.left = positions[type].left + 'px';
 			}
 		}
 	},
@@ -5041,9 +4699,9 @@ let _Schema = {
 	},
 	hideSelectedSchemaTypes: () => {
 
-		if (_Schema.ui.selectedNodes.length > 0) {
+		if (_Schema.ui.selection.selectedNodes.length > 0) {
 
-			for (let n of _Schema.ui.selectedNodes) {
+			for (let n of _Schema.ui.selection.selectedNodes) {
 				_Schema.hiddenSchemaNodes.push(n.name);
 			}
 
@@ -5138,161 +4796,300 @@ let _Schema = {
 	ui: {
 		canvas: undefined,
 		jsPlumbInstance: undefined,
+		panzoomInstance: undefined,
 		showInheritanceArrows: true,
 		showSchemaOverlays: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
-		selectedRel: undefined,
 		relHighlightColor: 'red',
 		maxZ: 0,
-		selectionInProgress: false,
-		mouseDownCoords: { x: 0, y: 0 },
-		mouseUpCoords: { x: 0, y: 0 },
-		selectBox: undefined,
-		selectedNodes: [],
-		selectRel: (rel) => {
-			_Schema.ui.clearSelection();
+		initPanZoom: () => {
 
-			_Schema.ui.selectedRel = rel;
-			_Schema.ui.selectedRel.css({zIndex: ++_Schema.ui.maxZ});
+			const schemaContainer     = document.getElementById('schema-container');
+			let schemaContainerParent = schemaContainer.parentNode;
+			const nodeElements        = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
 
-			if (!rel.hasClass('dashed-inheritance-relationship')) {
-				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
-			}
+			const panzoom = Panzoom(schemaContainer, {
+				cursor: 'default',
+				canvas: true,
+				exclude: nodeElements,
+				startScale: _Schema.ui.zoomLevel,
+				handleStartEvent: (event) => {
 
-			let pathElements = _Schema.ui.selectedRel.find('path');
-			pathElements.css({stroke: _Schema.ui.relHighlightColor});
-			$(pathElements[1]).css({fill: _Schema.ui.relHighlightColor});
+					let shiftPressed       = event.shiftKey;
+					let middleMousePressed = (event.button === 1);
+
+					if (shiftPressed || middleMousePressed) {
+
+						panzoom.setOptions({ disablePan: false, cursor: 'move' });
+						event.preventDefault();
+						event.stopPropagation();
+
+					} else {
+
+						panzoom.setOptions({ disablePan: true, cursor: 'default' });
+					}
+				}
+			});
+			_Schema.ui.panzoomInstance = panzoom;
+
+			// TODO: these two listeners are never removed and thus duplicated when re-opening the schema
+			document.addEventListener('keydown', (event) => {
+				if (event.shiftKey) {
+					schemaContainerParent.style.cursor = 'move';
+				}
+			});
+			document.addEventListener('keyup', (event) => {
+				if (!event.shiftKey) {
+					schemaContainerParent.style.cursor = 'default';
+				}
+			});
+
+			schemaContainer.addEventListener('panzoomend', (event) => {
+				if (!event.detail.originalEvent.shiftKey) {
+					schemaContainerParent.style.cursor = 'default';
+				}
+			});
+			schemaContainerParent.addEventListener('wheel', (event) => {
+				panzoom.zoomWithWheel(event);
+				_Schema.ui.zoomLevel = panzoom.getScale();
+
+				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
+			});
 		},
-		clearSelection: () => {
-			// deselect selected node
-			$('.node', _Schema.ui.canvas).removeClass('selected');
-			_Schema.ui.selectionStop();
+		nodeDrag: {
+			init: () => {
 
-			// deselect selected Relationship
-			if (_Schema.ui.selectedRel) {
-				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({ border: '', borderRadius: '', background: 'rgba(255, 255, 255, .8)' });
+				let eventTarget        = _Schema.ui.canvas.parent().parent()[0];
+				let prevAnimFrameReqId = undefined;
+				let eventStartPoint    = {};
+				let nodeStartPositions = {};
+				let domElementsToDrag  = [];
+				let dragElement        = undefined;
 
-				let pathElements = _Schema.ui.selectedRel.find('path');
-				pathElements.css({stroke: '', fill: ''});
-				$(pathElements[1]).css('fill', '');
+				eventTarget.addEventListener('mousedown', (e) => {
 
-				_Schema.ui.selectedRel = undefined;
-			}
-		},
-		selectionStart: (e) => {
-			_Schema.ui.selectionInProgress = true;
+					dragElement = e.target.closest('.node');
 
-			let schemaOffset = _Schema.ui.canvas.offset();
-			_Schema.ui.mouseDownCoords.x = e.pageX - schemaOffset.left;
-			_Schema.ui.mouseDownCoords.y = e.pageY - schemaOffset.top;
-		},
-		prevAnimFrameReqId_selectionDrag: undefined,
-		selectionDrag: (e) => {
+					if (dragElement && e.which === 1) {
 
-			if (_Schema.ui.selectionInProgress === true) {
+						e.stopImmediatePropagation();
+						e.preventDefault();
+						e.stopPropagation();
 
-				_Helpers.requestAnimationFrameWrapper(_Schema.ui.prevAnimFrameReqId_selectionDrag, () => {
+						domElementsToDrag = _Schema.ui.selection.selectedNodes.map(selectedNode => document.getElementById(selectedNode.nodeId));
+						if (!dragElement.classList.contains('selected')) {
+							domElementsToDrag.push(dragElement);
+						}
 
-					let schemaOffset = _Schema.ui.canvas.offset();
-					_Schema.ui.mouseUpCoords.x = e.pageX - schemaOffset.left;
-					_Schema.ui.mouseUpCoords.y = e.pageY - schemaOffset.top;
+						eventStartPoint.x = e.clientX;
+						eventStartPoint.y = e.clientY;
 
-					_Schema.ui.drawSelectElem();
+						for (let selectedEl of domElementsToDrag) {
+
+							nodeStartPositions[selectedEl.id] = {
+								top  : parseFloat(selectedEl.style.top),
+								left : parseFloat(selectedEl.style.left)
+							}
+						}
+					}
 				});
-			}
-		},
-		selectionStop: () => {
-			_Schema.ui.selectionInProgress = false;
-			if (_Schema.ui.selectBox) {
-				_Schema.ui.selectBox.remove();
-				_Schema.ui.selectBox = undefined;
-			}
-			_Schema.ui.updateSelectedNodes();
-		},
-		updateSelectedNodes: () => {
-			_Schema.ui.selectedNodes = [];
-			let canvasOffset = _Schema.ui.canvas.offset();
 
-			for (let el of _Schema.ui.canvas[0].querySelectorAll('.node.selected')) {
-				let $el = $(el);
-				let elementOffset = $el.offset();
+				eventTarget.addEventListener('mousemove', (e) => {
 
-				_Schema.ui.selectedNodes.push({
-					nodeId: $el.attr('id'),
-					name: $el.children('b').text(),
-					pos: {
-						top:  (elementOffset.top  - canvasOffset.top ),
-						left: (elementOffset.left - canvasOffset.left)
+					if (dragElement && e.which === 1) {
+
+						_Helpers.requestAnimationFrameWrapper(prevAnimFrameReqId, () => {
+
+							let distance = {
+								left: (e.clientX - eventStartPoint.x) / _Schema.ui.zoomLevel,
+								top: (e.clientY - eventStartPoint.y) / _Schema.ui.zoomLevel,
+							};
+
+							for (let selectedEl of domElementsToDrag) {
+								selectedEl.style.top  = (nodeStartPositions[selectedEl.id].top + distance.top) + 'px';
+								selectedEl.style.left = (nodeStartPositions[selectedEl.id].left + distance.left) + 'px';
+							}
+
+							_Schema.ui.jsPlumbInstance.repaintEverything();
+						});
+					}
+				});
+
+				eventTarget.addEventListener('mouseup', (e) => {
+
+					if (dragElement && e.which === 1) {
+
+						dragElement = undefined;
+
+						_Schema.storePositions();
+						_Schema.ui.selection.updateSelectedNodes();
+						Structr.resize();
 					}
 				});
 			}
 		},
-		drawSelectElem: () => {
+		selection: {
+			selectionInProgress: false,
+			selectedRel: undefined,
+			selectedNodes: [],
+			selectBox: undefined,
+			mouseDownCoords: { x: 0, y: 0 },
+			mouseUpCoords: { x: 0, y: 0 },
+			init: () => {
 
-			if (!_Schema.ui.selectBox || !_Schema.ui.selectBox.length) {
-				_Schema.ui.canvas.append('<svg id="schema-graph-select-box"><path version="1.1" xmlns="http://www.w3.org/1999/xhtml" fill="none" stroke="#aaa" stroke-width="5"></path></svg>');
-				_Schema.ui.selectBox = $('#schema-graph-select-box');
-			}
+				let selectionElement = _Schema.ui.canvas.parent().parent()[0];
 
-			let cssRect = {
-				position: 'absolute',
-				top:    Math.min(_Schema.ui.mouseDownCoords.y, _Schema.ui.mouseUpCoords.y)  / _Schema.ui.zoomLevel,
-				left:   Math.min(_Schema.ui.mouseDownCoords.x, _Schema.ui.mouseUpCoords.x)  / _Schema.ui.zoomLevel,
-				width:  Math.abs(_Schema.ui.mouseDownCoords.x - _Schema.ui.mouseUpCoords.x) / _Schema.ui.zoomLevel,
-				height: Math.abs(_Schema.ui.mouseDownCoords.y - _Schema.ui.mouseUpCoords.y) / _Schema.ui.zoomLevel
-			};
+				selectionElement.addEventListener('mousedown', (e) => {
+					if (e.which === 1) {
+						_Schema.ui.selection.clearSelection();
+						_Schema.ui.selection.selectionStart(e);
+					}
+				});
 
-			_Schema.ui.selectBox.css(cssRect);
-			_Schema.ui.selectBox.find('path').attr('d', `m 0 0 h ${cssRect.width} v ${cssRect.height} h ${(-cssRect.width)} v ${(-cssRect.height)} z`);
-			_Schema.ui.selectNodesInRect(cssRect);
-		},
-		selectNodesInRect: (selectionRect) => {
-			_Schema.ui.selectedNodes = [];
+				selectionElement.addEventListener('mousemove', (e) => {
+					if (e.which === 1) {
+						_Schema.ui.selection.selectionDrag(e);
+					}
+				});
 
-			for (let el of _Schema.ui.canvas[0].querySelectorAll('.node')) {
-				let $el = $(el);
-				if (_Schema.ui.isElemInSelection($el, selectionRect)) {
-					_Schema.ui.selectedNodes.push($el);
-					$el.addClass('selected');
-				} else {
-					$el.removeClass('selected');
+				selectionElement.addEventListener('mouseup', (e) => {
+					_Schema.ui.selection.selectionStop();
+				});
+			},
+			clearSelection: () => {
+
+				// deselect selected node
+				$('.node', _Schema.ui.canvas).removeClass('selected');
+				_Schema.ui.selection.selectionStop();
+
+				_Schema.ui.selection.deselectRel();
+			},
+			selectionStart: (e) => {
+
+				_Schema.ui.selection.selectionInProgress = true;
+
+				let schemaOffset = _Schema.ui.canvas.offset();
+				_Schema.ui.selection.mouseDownCoords.x = e.pageX - schemaOffset.left;
+				_Schema.ui.selection.mouseDownCoords.y = e.pageY - schemaOffset.top;
+			},
+			prevAnimFrameReqId_selectionDrag: undefined,
+			selectionDrag: (e) => {
+
+				if (_Schema.ui.selection.selectionInProgress === true) {
+
+					_Helpers.requestAnimationFrameWrapper(_Schema.ui.selection.prevAnimFrameReqId_selectionDrag, () => {
+
+						let schemaOffset = _Schema.ui.canvas.offset();
+						_Schema.ui.selection.mouseUpCoords.x = e.pageX - schemaOffset.left;
+						_Schema.ui.selection.mouseUpCoords.y = e.pageY - schemaOffset.top;
+
+						_Schema.ui.selection.drawSelectElem();
+					});
 				}
-			}
-		},
-		isElemInSelection: ($el, selectionRect) => {
-			let elPos = $el.offset();
-			elPos.top /= _Schema.ui.zoomLevel;
-			elPos.left /= _Schema.ui.zoomLevel;
+			},
+			selectionStop: () => {
+				_Schema.ui.selection.selectionInProgress = false;
+				if (_Schema.ui.selection.selectBox) {
+					_Schema.ui.selection.selectBox.remove();
+					_Schema.ui.selection.selectBox = undefined;
+				}
+				_Schema.ui.selection.updateSelectedNodes();
+			},
+			drawSelectElem: () => {
 
-			let schemaOffset = _Schema.ui.canvas.offset();
-			return !(
-				(elPos.top) > (selectionRect.top + schemaOffset.top / _Schema.ui.zoomLevel + selectionRect.height) ||
-				elPos.left > (selectionRect.left + schemaOffset.left / _Schema.ui.zoomLevel + selectionRect.width) ||
-				(elPos.top + $el.innerHeight()) < (selectionRect.top + schemaOffset.top / _Schema.ui.zoomLevel) ||
-				(elPos.left + $el.innerWidth()) < (selectionRect.left + schemaOffset.left / _Schema.ui.zoomLevel)
-			);
-		},
-		setZoom: (zoom, instance, transformOrigin, el) => {
-			transformOrigin = transformOrigin || [ 0.5, 0.5 ];
+				if (!_Schema.ui.selection.selectBox || !_Schema.ui.selection.selectBox.length) {
+					_Schema.ui.canvas.append('<svg id="schema-graph-select-box"><path d="" fill="none" stroke="#aaa" stroke-width="5"/></svg>');
+					_Schema.ui.selection.selectBox = $('#schema-graph-select-box');
+				}
 
-			el = el || instance.getContainer();
-			let p = [ "webkit", "moz", "ms", "o" ];
-			let s = _Schema.ui.getSchemaCSSTransform();
-			let oString = (transformOrigin[0] * 100) + "% " + (transformOrigin[1] * 100) + "%";
+				let cssRect = {
+					position: 'absolute',
+					top:    Math.min(_Schema.ui.selection.mouseDownCoords.y, _Schema.ui.selection.mouseUpCoords.y)  / _Schema.ui.zoomLevel,
+					left:   Math.min(_Schema.ui.selection.mouseDownCoords.x, _Schema.ui.selection.mouseUpCoords.x)  / _Schema.ui.zoomLevel,
+					width:  Math.abs(_Schema.ui.selection.mouseDownCoords.x - _Schema.ui.selection.mouseUpCoords.x) / _Schema.ui.zoomLevel,
+					height: Math.abs(_Schema.ui.selection.mouseDownCoords.y - _Schema.ui.selection.mouseUpCoords.y) / _Schema.ui.zoomLevel
+				};
 
-			for (let vendorPrefix of p) {
-				el.style[vendorPrefix + "Transform"] = s;
-				el.style[vendorPrefix + "TransformOrigin"] = oString;
-			}
-			el.style["transform"] = s;
-			el.style["transformOrigin"] = oString;
+				_Schema.ui.selection.selectBox.css(cssRect);
+				_Schema.ui.selection.selectBox.find('path').attr('d', `m 0 0 h ${cssRect.width} v ${cssRect.height} h ${(-cssRect.width)} v ${(-cssRect.height)} z`);
+				_Schema.ui.selection.selectNodesInRect(cssRect);
+			},
+			selectNodesInRect: (selectionRect) => {
 
-			instance.setZoom(zoom);
-			Structr.resize();
-		},
-		getSchemaCSSTransform: () => {
-			return `scale(${_Schema.ui.zoomLevel})`;
+				_Schema.ui.selection.selectedNodes = [];
+
+				for (let el of _Schema.ui.canvas[0].querySelectorAll('.node')) {
+					let $el = $(el);
+					if (_Schema.ui.selection.isNodeInSelection($el, selectionRect)) {
+						_Schema.ui.selection.selectedNodes.push($el);
+						$el.addClass('selected');
+					} else {
+						$el.removeClass('selected');
+					}
+				}
+			},
+			isNodeInSelection: ($el, selectionRect) => {
+
+				let elPos = $el.offset();
+				elPos.top /= _Schema.ui.zoomLevel;
+				elPos.left /= _Schema.ui.zoomLevel;
+
+				let schemaOffset = _Schema.ui.canvas.offset();
+				return !(
+					(elPos.top) > (selectionRect.top + schemaOffset.top / _Schema.ui.zoomLevel + selectionRect.height) ||
+					elPos.left > (selectionRect.left + schemaOffset.left / _Schema.ui.zoomLevel + selectionRect.width) ||
+					(elPos.top + $el.innerHeight()) < (selectionRect.top + schemaOffset.top / _Schema.ui.zoomLevel) ||
+					(elPos.left + $el.innerWidth()) < (selectionRect.left + schemaOffset.left / _Schema.ui.zoomLevel)
+				);
+			},
+			updateSelectedNodes: () => {
+
+				_Schema.ui.selection.selectedNodes = [];
+				let canvasOffset = _Schema.ui.canvas.offset();
+
+				for (let el of _Schema.ui.canvas[0].querySelectorAll('.node.selected')) {
+					let $el = $(el);
+					let elementOffset = $el.offset();
+
+					_Schema.ui.selection.selectedNodes.push({
+						nodeId: $el.attr('id'),
+						name: $el.children('b').text(),
+						pos: {
+							top:  (elementOffset.top  - canvasOffset.top ),
+							left: (elementOffset.left - canvasOffset.left)
+						}
+					});
+				}
+			},
+			selectRel: (rel) => {
+
+				_Schema.ui.selection.clearSelection();
+
+				_Schema.ui.selection.selectedRel = rel;
+				_Schema.ui.selection.selectedRel.css({zIndex: ++_Schema.ui.maxZ});
+
+				if (!rel.hasClass('dashed-inheritance-relationship')) {
+					_Schema.ui.selection.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({zIndex: ++_Schema.ui.maxZ, border: '1px solid ' + _Schema.ui.relHighlightColor, borderRadius:'2px', background: 'rgba(255, 255, 255, 1)'});
+				}
+
+				let pathElements = _Schema.ui.selection.selectedRel.find('path');
+				pathElements.css({stroke: _Schema.ui.relHighlightColor});
+				$(pathElements[1]).css({fill: _Schema.ui.relHighlightColor});
+			},
+			deselectRel: () => {
+
+				if (_Schema.ui.selection.selectedRel) {
+
+					_Schema.ui.selection.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({ border: '', borderRadius: '', background: 'rgba(255, 255, 255, .8)' });
+
+					let pathElements = _Schema.ui.selection.selectedRel.find('path');
+					pathElements.css({stroke: '', fill: ''});
+					$(pathElements[1]).css('fill', '');
+
+					_Schema.ui.selection.selectedRel = undefined;
+				}
+			},
 		},
 		updateOverlayVisibility: (show) => {
 			_Schema.ui.showSchemaOverlays = show;
@@ -5337,7 +5134,153 @@ let _Schema = {
 
 		element.classList.toggle('has-changes', hasClass);
 	},
+	newAutoLayout: async () => {
 
+		let index    = {};
+		let relCount = {};
+
+		let input = {
+			id: 'root',
+			children: [],
+			edges: [],
+			layoutOptions: {
+				'elk.algorithm':                                       'layered',
+				'elk.direction':                                       'DOWN',
+				'elk.edgeWidth':                                       4,
+				'elk.edgeLabels.inline':                               true,
+				'elk.edgeLabels.placement':                            'CENTER',
+				'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
+				'elk.layered.edgeLabels.sideSelection':                'ALWAYS_UP',
+				'elk.layered.spacing.edgeNodeBetweenLayers':           40,
+			}
+		};
+
+		let nodeResponse = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
+		let nodes = await nodeResponse.json();
+
+		for (let n of nodes.result) {
+
+			_Schema.nodeData['id_' + n.id] = n;
+
+			let width  = (n.name.length * 12) + 20; // n.clientWidth;
+			let height = 20; // n.clientHeight;
+
+			index[n.id] = true;
+
+			let item = {
+				id: 'id_' + n.id,
+				width: width,
+				height: height + 10,
+				labels: [
+					{ text: n.name }
+				],
+				ports: [
+					{
+						id: 'id_' + n.id + '_NORTH',
+						layoutOptions: { 'port.side': 'NORTH' }
+					},
+					{
+						id: 'id_' + n.id + '_SOUTH',
+						layoutOptions: { 'port.side': 'SOUTH' }
+					},
+				],
+				layoutOptions: {
+					portConstraints: 'FIXED_SIDE'
+				}
+			};
+
+			input.children.push(item);
+		}
+
+		// rels
+		let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
+		let data     = await response.json();
+
+		// inheritance
+		let includeInheritance = false;
+		let inheritanceRels    = [];
+
+		if (includeInheritance) {
+
+			for (let node of input.children) {
+
+				let data = _Schema.nodeData[node.id.substring(3)];
+				if (data) {
+
+					if (data?.extendsClass?.id) {
+
+						let id = data.extendsClass.id;
+
+						if (index[id]) {
+
+/*
+							inheritanceRels.push({
+								source: 'id_' + id,
+								target: node.id
+							});
+							 *
+ */
+
+							input.edges.push({
+								id:      node.id + 'extends' + id,
+								sources: [ 'id_' + id + '_SOUTH' ],
+								targets: [ node.id + '_NORTH' ],
+								//sources: [ 'id_' + id ],
+								//targets: [ node.id ]
+								labels: [
+									{ text: 'EXTENDS' }
+								]
+							});
+						}
+					}
+				}
+			}
+
+		} else {
+
+			for (let res of data.result) {
+
+				if (index[res.sourceId] === true && index[res.targetId] === true) {
+
+					let s = 'id_' + res.sourceId;
+					let t = 'id_' + res.targetId;
+
+					if (!relCount[s]) { relCount[s] = 0; }
+					if (!relCount[t]) { relCount[t] = 0; }
+
+					relCount[s]++;
+					relCount[t]++;
+
+					input.edges.push({
+						id:      res.id,
+						//sources: [ 'id_' + res.sourceId + '_SOUTH' ],
+						//targets: [ 'id_' + res.targetId + '_NORTH' ],
+						sources: [ s ],
+						targets: [ t ],
+						labels: [
+							{ text: res.relationshipType, width: (res.relationshipType.length * 12) + 20, height: 23 }
+						]
+					});
+				}
+			}
+
+		}
+
+		let container = document.querySelector('#schema-graph');
+
+		container.innerText = '';
+
+		_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), _Schema.storePositionsNewLayout);
+
+		/*
+		// todo: implement click handler for nodes
+		nodes[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
+			_Schema.openEditDialog(entity.id);
+		});
+		*/
+
+
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
@@ -5426,40 +5369,17 @@ let _Schema = {
 							<div class="separator"></div>
 
 							<div class="row">
-								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
-									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
+								<a title="Reset the stored node positions." id="reset-schema-positions" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout
 								</a>
 							</div>
-						</div>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconSnapshots, 16, 16, ['mr-2'])} Snapshots
-						</button>
-
-						<div class="dropdown-menu-container">
-							<div class="heading-row">
-								<h3>Create snapshot</h3>
-							</div>
-							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
-
-							<div class="row">
-								<input id="snapshot-suffix" class="mr-2" type="text" name="suffix" placeholder="Enter a suffix" length="20">
-								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-2">Create snapshot</button>
-								<button id="create-snapshot-selected-nodes" class="hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">Create snapshot (<span class="context">from</span> selected nodes)</button>
-							</div>
-
-							<div class="heading-row">
-								<h3>Available Snapshots</h3>
-							</div>
-
-							<div class="props" id="snapshots"></div>
 
 							<div class="separator"></div>
 
 							<div class="row">
-								<a id="refresh-snapshots" class="block">Reload stored snapshots</a>
+								<a title="Apply an experimental new automatic layouting algorithm." id="new-auto-layout" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconMagicWand, 16, 16, 'mr-2')} Experimental: Apply Automatic Layout
+								</a>
 							</div>
 						</div>
 					</div>
@@ -5521,20 +5441,6 @@ let _Schema = {
 					</div>
 				</div>
 			</div>
-
-			<div id="zoom-slider" class="mr-8"></div>
-		`,
-		snapshotEntry: config => `
-			<div class="flex items-center justify-between p-2">
-				<div class="snapshot-link name">
-					<a href="#">${config.snapshotName}</a>
-				</div>
-				<div>
-					<button class="restore-snapshot hover:bg-gray-100 focus:border-gray-666 active:border-green">Restore</button>
-					<button class="add-snapshot     hover:bg-gray-100 focus:border-gray-666 active:border-green">Add</button>
-					<button class="delete-snapshot  hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
-				</div>
-			</div>
 		`,
 		typeBasicTab: config => `
 			<div class="schema-details">
@@ -5579,7 +5485,6 @@ let _Schema = {
 					<div id="type-openapi">
 						${_Code.templates.openAPIBaseConfig({ type: 'SchemaNode' })}
 					</div>
-				</div>
 				</div>
 			</div>
 		`,

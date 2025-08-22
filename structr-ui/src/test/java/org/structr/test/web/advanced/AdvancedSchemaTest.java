@@ -23,7 +23,6 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
@@ -1562,16 +1561,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			fex.printStackTrace();
 			fail(fex.getMessage());
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 
 		try (final Tx tx = app.tx()) {
-
-			Settings.CypherDebugLogging.setValue(true);
 
 			final PropertyKey<Boolean> key = Traits.of("TestBoolean").key("testB");
 
@@ -1590,10 +1583,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			fex.printStackTrace();
 			fail(fex.getMessage());
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 	}
@@ -1616,16 +1605,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			fex.printStackTrace();
 			fail(fex.getMessage());
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 
 		try (final Tx tx = app.tx()) {
-
-			Settings.CypherDebugLogging.setValue(true);
 
 			final PropertyKey<Boolean> key = Traits.of("TestBoolean").key("testB");
 
@@ -1644,10 +1627,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			fex.printStackTrace();
 			fail(fex.getMessage());
-
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 
 	}

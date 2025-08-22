@@ -455,6 +455,7 @@ public abstract class ImageHelper extends FileHelper {
 				final AffineTransform affineTransform = new AffineTransform();
 				final int sourceWidth                 = source.getWidth();
 				final int sourceHeight                = source.getHeight();
+				boolean swapWidthAndHeight            = false;
 
 				switch (orientation) {
 
@@ -475,30 +476,34 @@ public abstract class ImageHelper extends FileHelper {
 					case 5: // - PI/2 and Flip X
 						affineTransform.rotate(-Math.PI / 2);
 						affineTransform.scale(-1.0, 1.0);
+						swapWidthAndHeight = true;
 						break;
 					case 6: // -PI/2 and -width
 						affineTransform.translate(sourceHeight, 0);
 						affineTransform.rotate(Math.PI / 2);
+						swapWidthAndHeight = true;
 						break;
 					case 7: // PI/2 and Flip
 						affineTransform.scale(-1.0, 1.0);
 						affineTransform.translate(-sourceHeight, 0);
 						affineTransform.translate(0, sourceWidth);
 						affineTransform.rotate(3 * Math.PI / 2);
+						swapWidthAndHeight = true;
 						break;
 					case 8: // PI / 2
 						affineTransform.translate(0, sourceWidth);
 						affineTransform.rotate(3 * Math.PI / 2);
+						swapWidthAndHeight = true;
 						break;
 					default:
 						break;
 				}
 
 				final AffineTransformOp op     = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
-				BufferedImage destinationImage = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+				BufferedImage destinationImage = new BufferedImage(swapWidthAndHeight ? source.getHeight() : source.getWidth(), swapWidthAndHeight ? source.getWidth() : source.getHeight(), source.getType());
 
 				final Graphics2D g = destinationImage.createGraphics();
-				g.setBackground(Color.WHITE);
+				//g.setBackground(Color.WHITE);
 				g.clearRect(0, 0, destinationImage.getWidth(), destinationImage.getHeight());
 
 				destinationImage = op.filter(source, destinationImage);

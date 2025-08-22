@@ -197,12 +197,24 @@
 	top: .5rem;
 }
 
+#schema-graph .node {
+	cursor: pointer;
+}
+
 #schema-graph .node h2 {
 	margin: 6px 0;
 }
 
+#schema-graph .node:hover {
+	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.4));
+}
+
 #schema-graph ._jsPlumb_endpoint_anchor {
 	z-index: 9999;
+}
+
+#schema-graph rect {
+	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.1));
 }
 
 .schema b,

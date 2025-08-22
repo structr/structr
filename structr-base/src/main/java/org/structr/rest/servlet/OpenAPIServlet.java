@@ -380,7 +380,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			paths.putAll(new OpenAPIMaintenanceOperationSetNodeProperties());
 			paths.putAll(new OpenAPIMaintenanceOperationSetRelationshipProperties());
 			paths.putAll(new OpenAPIMaintenanceOperationSetUuid());
-			paths.putAll(new OpenAPIMaintenanceOperationSnapshot());
 			paths.putAll(new OpenAPIMaintenanceOperationSync());
 
 			// Note: if you change / add something here, please also update the docs online!

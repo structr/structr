@@ -41,7 +41,7 @@ public class ChoiceSetting extends StringSetting {
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices, final String comment) {
 		super(group, categoryName, key, value, comment);
 
-		this.choices.putAll(choices.stream().collect(Collectors.toMap(Function.identity(), Function.identity())));
+		this.choices.putAll(choices.stream().collect(Collectors.toMap(Function.identity(), Function.identity(), (a, b) -> a, LinkedHashMap::new)));
 	}
 
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Map<String, String> choicesMap, final String comment) {

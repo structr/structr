@@ -31,39 +31,51 @@ public class FulltextSearchCommand extends NodeServiceCommand {
 
 	public Map<NodeInterface, Double> getNodes(final String indexName, final String searchString, final int pageSize, final int page) throws FrameworkException {
 
-		final NodeFactory factory                     = new NodeFactory(securityContext, true, false, pageSize, page);
-		final Index<Node> index                       = (Index<Node>) arguments.get("nodeIndex");
-		final Map<Node, Double> result                = index.fulltextQuery(indexName, searchString);
-		final Map<NodeInterface, Double> mappedResult = new LinkedHashMap<>();
+		try {
 
-		for (final Map.Entry<Node, Double> entry : result.entrySet()) {
+			final NodeFactory factory = new NodeFactory(securityContext, true, false, pageSize, page);
+			final Index<Node> index = (Index<Node>) arguments.get("nodeIndex");
+			final Map<Node, Double> result = index.fulltextQuery(indexName, searchString);
+			final Map<NodeInterface, Double> mappedResult = new LinkedHashMap<>();
 
-			final NodeInterface node = factory.instantiateWithType(entry.getKey(), null, false);
-			if (node != null) {
+			for (final Map.Entry<Node, Double> entry : result.entrySet()) {
 
-				mappedResult.put(node, entry.getValue());
+				final NodeInterface node = factory.instantiateWithType(entry.getKey(), null, false);
+				if (node != null) {
+
+					mappedResult.put(node, entry.getValue());
+				}
 			}
-		}
 
-		return mappedResult;
+			return mappedResult;
+
+		} catch (Throwable t) {
+			throw new FrameworkException(422, t.getMessage());
+		}
 	}
 
 	public Map<RelationshipInterface, Double> getRelationships(final String indexName, final String searchString, final int pageSize, final int page) throws FrameworkException {
 
-		final RelationshipFactory factory                     = new RelationshipFactory(securityContext, true, false, pageSize, page);
-		final Index<Relationship> index                       = (Index<Relationship>) arguments.get("relationshipIndex");
-		final Map<Relationship, Double> result                = index.fulltextQuery(indexName, searchString);
-		final Map<RelationshipInterface, Double> mappedResult = new LinkedHashMap<>();
+		try {
 
-		for (final Map.Entry<Relationship, Double> entry : result.entrySet()) {
+			final RelationshipFactory factory                     = new RelationshipFactory(securityContext, true, false, pageSize, page);
+			final Index<Relationship> index                       = (Index<Relationship>) arguments.get("relationshipIndex");
+			final Map<Relationship, Double> result                = index.fulltextQuery(indexName, searchString);
+			final Map<RelationshipInterface, Double> mappedResult = new LinkedHashMap<>();
 
-			final RelationshipInterface node = factory.instantiateWithType(entry.getKey(), null, false);
-			if (node != null) {
+			for (final Map.Entry<Relationship, Double> entry : result.entrySet()) {
 
-				mappedResult.put(node, entry.getValue());
+				final RelationshipInterface node = factory.instantiateWithType(entry.getKey(), null, false);
+				if (node != null) {
+
+					mappedResult.put(node, entry.getValue());
+				}
 			}
-		}
 
-		return mappedResult;
+			return mappedResult;
+
+		} catch (Throwable t) {
+			throw new FrameworkException(422, t.getMessage());
+		}
 	}
 }

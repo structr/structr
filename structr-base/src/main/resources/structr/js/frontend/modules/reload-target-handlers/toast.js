@@ -26,9 +26,6 @@ export class Handler {
 
 	handleReloadTarget(reloadTarget, element, parameters, status, options) {
 
-		// remove prefix "toast:"
-		let selector = reloadTarget.substring(6);
-
-		bootstrap.Toast.getOrCreateInstance(document.querySelector(selector)).show();
+		bootstrap.Toast.getOrCreateInstance(document.querySelector(reloadTarget)).show();
 	}
 }

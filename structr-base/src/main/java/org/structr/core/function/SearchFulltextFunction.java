@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.apache.tika.utils.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -64,6 +65,15 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 			final String indexName                  = sources[0].toString();
 			final String searchString               = sources[1].toString();
+
+			if (StringUtils.isBlank(indexName)) {
+				throw new FrameworkException(422, "Argument indexName must not be empty.");
+			}
+
+			if (StringUtils.isBlank(searchString)) {
+				throw new FrameworkException(422, "Argument searchString must not be empty.");
+			}
+
 			final Map<NodeInterface, Double> result = StructrApp.getInstance(securityContext).getNodesFromFulltextIndex(indexName, searchString, 10, 1);
 			final List<Map<String, Object>> list    = new LinkedList<>();
 

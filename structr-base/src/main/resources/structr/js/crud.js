@@ -1269,7 +1269,7 @@ let _Crud = {
 
 							if (nodeSelected) {
 
-								_Crud.objectList.getAndAppendNode(type, id, key, node, cell, node, true);
+								_Crud.objectList.addRelatedObject(type, id, key, node, () => {});
 
 								if (!isCollection) {
 
@@ -2983,7 +2983,7 @@ let _Crud = {
 
 			if (e.shiftKey === true) {
 
-				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowCreateDialog(type, initialData, onSuccess);
+				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowRequestedCreateDialog(type, initialData, onSuccess);
 
 			} else {
 
@@ -3069,11 +3069,15 @@ let _Crud = {
 				}
 			}, 100);
 		},
-		loadTypeInfoAndShowCreateDialog: (type, initialData = {}, onSuccess) => {
+		loadTypeInfoAndShowRequestedCreateDialog: (type, initialData = {}, onSuccess) => {
 
 			_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
 
-				_Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+				let dialog = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+
+				// when displaying the on-demand create dialog, focus the first element
+				let firstInputOrTextarea = dialog.dialogText.querySelector('input, textarea');
+				firstInputOrTextarea.focus();
 			});
 		},
 		showCreateDialog: (type, initialData = {}, onSuccess, errors = []) => {
@@ -3223,26 +3227,23 @@ let _Crud = {
 
 				<div class="column-resizer"></div>
 
-				<div id="crud-left" class="resourceBox">
+				<div id="crud-left" class="resourceBox gap-y-12 pt-4 flex flex-col mr-8">
 
-					<div id="crud-types">
+					<div id="crud-types" class="h-1/2 flex flex-col">
 					
 						<div class="flex">
-
 							<h2 class="flex-grow">Types</h2>
-
 							${_Crud.typeList.filtering.templates.filterBox(config)}
 						</div>
 						
 						${_Crud.typeList.filtering.templates.filterInput(config)}
 
-						<div id="crud-types-list"></div>
+						<div id="crud-types-list" class="flex-grow"></div>
 					</div>
 
-					<div id="crud-recent-types">
+					<div id="crud-recent-types" class="h-1/2 flex flex-col">
 						<h2>Recent</h2>
-
-						<div id="crud-recent-types-list"></div>
+						<div id="crud-recent-types-list" class="flex-grow"></div>
 					</div>
 
 				</div>

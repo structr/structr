@@ -19,7 +19,6 @@
 package org.structr.rest.common;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
 import org.structr.rest.traits.definitions.LogEventTraitDefinition;
@@ -27,8 +26,6 @@ import org.structr.rest.traits.definitions.LogObjectTraitDefinition;
 import org.structr.rest.traits.definitions.LogSubjectTraitDefinition;
 import org.structr.rest.traits.relationships.ObjectEventRelationship;
 import org.structr.rest.traits.relationships.SubjectEventRelationship;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
@@ -63,23 +60,6 @@ public class RestModule implements StructrModule {
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

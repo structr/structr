@@ -1194,6 +1194,15 @@ let _Pages = {
 				_Pages.linkableDialog.show(obj, _Pages.centerPane.querySelector('.linkable-container'));
 				break;
 
+			case '#pages:active':
+
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.activeElements());
+				let container = document.querySelector('#center-pane .active-elements-container');
+
+				_Pages.activeElements.init(obj.id, container);
+
+				break;
+
 			default:
 				console.log('do something else, urlHash:', urlHash);
 		}
@@ -1978,7 +1987,7 @@ let _Pages = {
 
 		const getAndAppendParameterMapping = (id) => {
 
-			Command.get(id, 'id,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', parameterMapping => {
+			Command.get(id, 'id,type,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', parameterMapping => {
 
 				//console.log('Append parameter mapping element for', parameterMapping);
 
@@ -3015,8 +3024,6 @@ let _Pages = {
 				_Dragndrop.pages.enableNewSharedComponentDropzone();
 
 				_Elements.appendEntitiesToDOMElement(result, $('#componentsArea', _Pages.componentsSlideout));
-
-				Structr.refreshPositionsForCurrentlyActiveSortable();
 			});
 		},
 		createNew: (sourceId) => {
@@ -3544,6 +3551,225 @@ let _Pages = {
 
 		_Pages.ensureShadowPageExists();
 	},
+	activeElements: {
+
+		init: async function(id, container) {
+
+			Command.listActiveElements(id, input => {
+
+				input.layoutOptions = {
+					'elk.algorithm': 'layered',
+					'elk.direction': 'RIGHT',
+				};
+
+				let data = Object.assign({}, input.nodeData);
+				delete input.nodeData;
+
+				Command.layout(input, async (layout) => {
+
+					await _Pages.layout.createSVGFromLayout(container, layout, new ActiveElementsFormatter(data));
+
+					container.querySelectorAll('.diagram-element').forEach(e => {
+						if (e.dataset.nodeId) {
+							let id = e.dataset.nodeId;
+							e.addEventListener('mouseover', m => {
+								let elem = document.querySelector('#id_' + id);
+								if (elem) {
+									elem.classList.add('nodeHover');
+								}
+							});
+							e.addEventListener('mouseout', m => {
+								let elem = document.querySelector('#id_' + id);
+								if (elem) {
+									elem.classList.remove('nodeHover');
+								}
+							});
+							e.addEventListener('click', m => {
+								console.log(id);
+								//_Pages.openAndSelectTreeObjectById(e.dataset.nodeId);
+								_Pages.expandTreeNode(id);
+							});
+
+						}
+					});
+				});
+
+			});
+		},
+	},
+
+	layout: {
+
+		createExampleDiagram: function(container) {
+
+			let input = {
+				id: 'root',
+				children: [
+					{ id: 'abc', labels: [ { text: 'abc' } ], width: 200, height: 60 },
+					{ id: 'def', labels: [ { text: 'def' } ], width: 200, height: 50 },
+					{ id: 'ghi', labels: [ { text: 'ghi' } ], width: 200, height: 40 },
+					{ id: 'jkl', labels: [ { text: 'jkl' } ], width: 200, height: 30 }
+				],
+				edges: [
+					{ id: 'hij', sources: [ 'abc' ], targets: [ 'def' ] },
+					{ id: 'klm', sources: [ 'def' ], targets: [ 'ghi' ] },
+					{ id: 'hij', sources: [ 'def' ], targets: [ 'jkl' ] }
+				],
+				layoutOptions: {
+					'elk.algorithm': 'layered'
+				}
+			};
+
+			_Pages.layout.createSVGDiagram(container, input, new ActiveElementsFormatter());
+		},
+
+		createSVGDiagram: function(container, input, formatter, callback) {
+
+			Command.layout(input, layout => {
+
+				_Pages.layout.createSVGFromLayout(container, layout, formatter).then(() => {
+
+					if (callback && typeof callback == 'function') {
+						callback();
+					}
+				});
+			});
+		},
+
+		createSVGFromLayout: async function(container, layout, formatter) {
+
+			if (layout && layout.children) {
+
+				let svg       = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+				let defs      = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+				let marker    = document.createElementNS('http://www.w3.org/2000/svg', 'marker');
+
+				marker.setAttribute('id', 'arrow');
+				marker.setAttribute('viewBox', '0 0 10 10');
+				marker.setAttribute('refX', 9);
+				marker.setAttribute('refY', 5);
+				marker.setAttribute('markerWidth', 4);
+				marker.setAttribute('markerHeight', 4);
+				marker.setAttribute('orient', 'auto-start-reverse');
+				marker.setAttribute('stroke', '#333333');
+				marker.setAttribute('fill', '#333333');
+
+				let p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+				p.setAttribute('d', 'M 0 0 L 10 5 L 0 10 z');
+
+				marker.appendChild(p);
+				defs.appendChild(marker);
+				svg.appendChild(defs);
+
+				//svg.classList.add('mt-4', 'w-full', 'h-full');
+				svg.setAttribute('width', '100%');
+				svg.setAttribute('height', '100%');
+				svg.setAttribute('viewbox', '0 0 ' + layout.width + ' ' + layout.height);
+				//svg.setAttribute('shape-rendering', 'geometricPrecision');
+
+				let group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+				svg.appendChild(group);
+
+				for (let child of layout.children) {
+
+					await formatter.createAndAddDiagramNode(group, child, { x: 0, y: 0 }, 248);
+				}
+
+				if (layout.edges) {
+					for (let edge of layout.edges) {
+						await formatter.createAndAddDiagramEdge(group, edge, { x: 0, y: 0 });
+					}
+				}
+
+				container.appendChild(svg);
+
+				let instance = panzoom(group, {
+					bounds: true,
+					boundsPadding: 0.1,
+					smoothScroll: true,
+					maxZoom: 2,
+					minZoom: 0.5
+				});
+
+				window.panZoomTest = instance;
+
+				let searchElement = document.querySelector('#schema-graph-search-status');
+				let buffer        = '';
+				let timeout       = -1;
+
+				container.addEventListener('keyup', k => {
+
+					// only numbers and letters allowed
+					if ((k.keyCode >= 49 && k.keyCode <= 57) || (k.keyCode >= 65 && k.keyCode <= 90)) {
+
+						buffer += k.key;
+
+						if (searchElement) {
+							searchElement.classList.remove('hidden');
+							searchElement.innerHTML = 'Go to <b>' + buffer + '</b>';
+						}
+
+						window.clearTimeout(timeout);
+
+						timeout = window.setTimeout(() => {
+
+							let buf = buffer.toLowerCase();
+							let found;
+
+							container.querySelectorAll('text').forEach(t => {
+								t.previousElementSibling.classList.remove('selected');
+								let text = t.innerHTML.toLowerCase();
+								if (!found && text === buf) {
+									found = t;
+								}
+							});
+
+							if (!found) {
+
+								container.querySelectorAll('text').forEach(t => {
+									let text = t.innerHTML.toLowerCase();
+									if (!found && text.indexOf(buf) === 0) {
+										found = t;
+									}
+								});
+							}
+
+							if (found) {
+
+								found.previousElementSibling.classList.add('selected');
+
+								let offset = { x: 0, y: 0 };
+
+								offset.x = (window.innerWidth / 2) - container.offsetLeft;
+								offset.y = (window.innerHeight / 2) - container.offsetTop;
+
+
+								let w = new Number(found.previousElementSibling.getAttribute('width'));
+								let h = new Number(found.previousElementSibling.getAttribute('height'));
+
+								let x = new Number(found.getAttribute('x')) - offset.x + w;
+								let y = new Number(found.getAttribute('y')) - offset.y + h;
+
+								instance.zoomAbs(0, 0, 1.0);
+								instance.smoothMoveTo(-x, -y);
+							}
+
+							buffer = '';
+
+							if (searchElement) {
+								searchElement.classList.add('hidden');
+							}
+
+						}, 500);
+					}
+				});
+
+				return svg;
+			}
+		}
+	},
+
 	templates: {
 		pagesActions: config => `
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
@@ -3712,6 +3938,9 @@ let _Pages = {
 					</li>
 					<li id="tabs-menu-security">
 						<a href="#pages:security">Security</a>
+					</li>
+					<li id="tabs-menu-active">
+						<a href="#pages:active">Active Elements</a>
 					</li>
 					<li id="tabs-menu-routing">
 						<a href="#pages:routing">URL Routing</a>
@@ -4061,7 +4290,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden option-success option-success-navigate-to-url">
-									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
+									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success.<br><br>If the response contains data, this data can be accessed and used here.<br><br><span class=&quot;font-bold&quot;>Example</span>: If a project was created, the redirect could point to its details page using <code>/project/{result.id}</code>">Success URL</label>
 									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 								</div>
 
@@ -4208,6 +4437,9 @@ let _Pages = {
 				</div>
 			</div>
 		`,
+		activeElements: config => `
+			<div class="content-container active-elements-container"></div>
+		`,
 		properties: config => `
 			<div class="content-container properties-container"></div>
 		`,
@@ -4269,199 +4501,3 @@ let _Pages = {
 		`,
 	}
 };
-
-// function findDiff(str1, str2){
-// 	let diff= "";
-// 	str2.split('').forEach(function(val, i){
-// 		if (val != str1.charAt(i))
-// 			diff += val ;
-// 	});
-// 	return diff;
-// }
-
-// polyfill for RegExp.escape
-if (!RegExp.escape) {
-	RegExp.escape = function(s) {
-		return String(s).replace(/[\\^$*+?.()|[\]{}]/g, '\\$&');
-	};
-}
-
-var TopLevelObject = {}
-TopLevelObject.DOMNodePathStep = function(value, optimized)
-{
-	this.value = value;
-	this.optimized = optimized || false;
-}
-TopLevelObject.DOMNodePathStep.prototype = {
-	/**
-	 * @override
-	 * @return {string}
-	 */
-	toString: function()
-	{
-		return this.value;
-	}
-}
-TopLevelObject.DOMPresentationUtils = {}
-
-TopLevelObject.DOMPresentationUtils.cssPath = function(node, optimized)
-{
-	if (node.nodeType !== Node.ELEMENT_NODE)
-		return "";
-	var steps = [];
-	var contextNode = node;
-	while (contextNode) {
-		var step = TopLevelObject.DOMPresentationUtils._cssPathStep(contextNode, !!optimized, contextNode === node);
-		if (!step)
-			break; // Error - bail out early.
-		steps.push(step);
-		if (step.optimized)
-			break;
-		contextNode = contextNode.parentNode;
-	}
-	steps.reverse();
-	return steps.join(" > ");
-}
-
-TopLevelObject.DOMPresentationUtils._cssPathStep = function(node, optimized, isTargetNode)
-{
-	if (node.nodeType !== Node.ELEMENT_NODE)
-		return null;
-	var id = node.getAttribute("id");
-	if (optimized) {
-		if (id)
-			return new TopLevelObject.DOMNodePathStep(idSelector(id), true);
-		var nodeNameLower = node.nodeName.toLowerCase();
-		if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html")
-			return new TopLevelObject.DOMNodePathStep(node.tagName.toLowerCase(), true);
-	}
-	var nodeName = node.tagName.toLowerCase();
-	if (id)
-		return new TopLevelObject.DOMNodePathStep(nodeName + idSelector(id), true);
-	var parent = node.parentNode;
-	if (!parent || parent.nodeType === Node.DOCUMENT_NODE)
-		return new TopLevelObject.DOMNodePathStep(nodeName, true);
-	/**
-	 * @param {!TopLevelObject.DOMNode} node
-	 * @return {!Array.<string>}
-	 */
-	function prefixedElementClassNames(node)
-	{
-		var classAttribute = node.getAttribute("class");
-		if (!classAttribute)
-			return [];
-		return classAttribute.split(/\s+/g).filter(Boolean).map(function(name) {
-			// The prefix is required to store "__proto__" in a object-based map.
-			return "$" + name;
-		});
-	}
-	/**
-	 * @param {string} id
-	 * @return {string}
-	 */
-	function idSelector(id)
-	{
-		return "#" + escapeIdentifierIfNeeded(id);
-	}
-	/**
-	 * @param {string} ident
-	 * @return {string}
-	 */
-	function escapeIdentifierIfNeeded(ident)
-	{
-		if (isCSSIdentifier(ident))
-			return ident;
-		var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);
-		var lastIndex = ident.length - 1;
-		return ident.replace(/./g, function(c, i) {
-			return ((shouldEscapeFirst && i === 0) || !isCSSIdentChar(c)) ? escapeAsciiChar(c, i === lastIndex) : c;
-		});
-	}
-	/**
-	 * @param {string} c
-	 * @param {boolean} isLast
-	 * @return {string}
-	 */
-	function escapeAsciiChar(c, isLast)
-	{
-		return "\\" + toHexByte(c) + (isLast ? "" : " ");
-	}
-	/**
-	 * @param {string} c
-	 */
-	function toHexByte(c)
-	{
-		var hexByte = c.charCodeAt(0).toString(16);
-		if (hexByte.length === 1)
-			hexByte = "0" + hexByte;
-		return hexByte;
-	}
-	/**
-	 * @param {string} c
-	 * @return {boolean}
-	 */
-	function isCSSIdentChar(c)
-	{
-		if (/[a-zA-Z0-9_-]/.test(c))
-			return true;
-		return c.charCodeAt(0) >= 0xA0;
-	}
-	/**
-	 * @param {string} value
-	 * @return {boolean}
-	 */
-	function isCSSIdentifier(value)
-	{
-		return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);
-	}
-	var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
-	var needsClassNames = false;
-	var needsNthChild = false;
-	var ownIndex = -1;
-	var elementIndex = -1;
-	var siblings = parent.children;
-	for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
-		var sibling = siblings[i];
-		if (sibling.nodeType !== Node.ELEMENT_NODE)
-			continue;
-		elementIndex += 1;
-		if (sibling === node) {
-			ownIndex = elementIndex;
-			continue;
-		}
-		if (needsNthChild)
-			continue;
-		if (sibling.tagName.toLowerCase() !== nodeName)
-			continue;
-		needsClassNames = true;
-		var ownClassNames = prefixedOwnClassNamesArray.values();
-		var ownClassNameCount = 0;
-		for (var name in ownClassNames)
-			++ownClassNameCount;
-		if (ownClassNameCount === 0) {
-			needsNthChild = true;
-			continue;
-		}
-		var siblingClassNamesArray = prefixedElementClassNames(sibling);
-		for (var j = 0; j < siblingClassNamesArray.length; ++j) {
-			var siblingClass = siblingClassNamesArray[j];
-			if (!ownClassNames.hasOwnProperty(siblingClass))
-				continue;
-			delete ownClassNames[siblingClass];
-			if (!-ownClassNameCount) {
-				needsNthChild = true;
-				break;
-			}
-		}
-	}
-	var result = nodeName;
-	if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
-		result += "[type=\"" + node.getAttribute("type") + "\"]";
-	if (needsNthChild) {
-		result += ":nth-child(" + (ownIndex + 1) + ")";
-	} else if (needsClassNames) {
-		for (var prefixedName in prefixedOwnClassNamesArray.values())
-			result += "." + escapeIdentifierIfNeeded(prefixedName.substr(1));
-	}
-	return new TopLevelObject.DOMNodePathStep(result, false);
-}

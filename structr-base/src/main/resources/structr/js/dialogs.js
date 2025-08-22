@@ -45,7 +45,7 @@ let _Dialogs = {
 						cursor: initial;
 						background-color: var(--solid-black);
 						opacity: 0.6;
-			"></div>
+					"></div>
 					<div class="${_Dialogs.basic.contentClass}" style="
 						z-index: ${content_max_zIndex};
 					">
@@ -60,21 +60,8 @@ let _Dialogs = {
 
 			document.body.appendChild(overlay);
 
-			// if no message is provided, or more content is added in the caller, then the caller must handle this
-			_Dialogs.basic.centerAll();
-
 			// inner element is returned to allow adding elements there
 			return contentElement;
-		},
-		centerAll: () => {
-			// do nothing
-			return;
-
-			for (let messageDiv of document.querySelectorAll(`.${_Dialogs.basic.contentClass}`)) {
-
-				messageDiv.style.top  = `${(window.innerHeight - messageDiv.offsetHeight) / 2}px`;
-				messageDiv.style.left = `${(window.innerWidth - messageDiv.offsetWidth) / 2}px`;
-			}
 		},
 		removeBlockerAround: (element) => {
 
@@ -151,8 +138,6 @@ let _Dialogs = {
 
 				document.querySelector('#usernameField').focus();
 
-				_Dialogs.basic.centerAll();
-
 				document.querySelector('form#login-username-password').addEventListener('submit', (e) => {
 					e.stopPropagation();
 					e.preventDefault();
@@ -225,7 +210,6 @@ let _Dialogs = {
 				if (ssoAvailable) {
 					ssoElement.classList.remove('hidden');
 				}
-				_Dialogs.basic.centerAll(); // or too jumpy?
 			});
 		},
 		showTwoFactor: (data) => {
@@ -246,8 +230,6 @@ let _Dialogs = {
 			}
 
 			$('#twoFactorTokenField').val(data.token);
-
-			window.setTimeout(_Dialogs.basic.centerAll, 0);
 		},
 		hideTwoFactor: () => {
 			document.querySelector('#login-username-password').style.display = 'block';
@@ -266,8 +248,6 @@ let _Dialogs = {
 			});
 
 			document.querySelector('#passwordField').focus();
-
-			_Dialogs.basic.centerAll();
 		}
 	},
 	tempInfoBox: {
@@ -379,6 +359,99 @@ let _Dialogs = {
 				messageDiv.addEventListener('keyup', (e) => {
 					if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
 						answerFunction(e, cancelOption);
+					}
+				});
+			});
+		},
+	},
+	readUUIDFromUser: {
+		defaultUUIDValidationPromise: async (uuid) => {
+
+			let isValidUUID = _Helpers.isUUID(uuid);
+			return {
+				allow: isValidUUID,
+				value: uuid,
+				invalidMessage: 'Given value is not a valid UUID'
+			};
+		},
+		showPromise: (text, validationPromise = _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise) => {
+
+			return new Promise((resolve, reject) => {
+
+				let dialogMessage = `
+					<div class="confirmationText text-center">
+						<div class="mb-6">
+							<div class="mb-4">${text}</div>
+
+							<input data-uuid type="text" placeholder="UUID" class="w-full box-border">
+						</div>
+
+						<div data-button-container class="flex items-center justify-center gap-4"></div>
+					</div>
+				`;
+
+				let messageDiv      = _Dialogs.basic.append(dialogMessage);
+				let buttonContainer = messageDiv.querySelector('[data-button-container]');
+				let uuidInput       = messageDiv.querySelector('input[data-uuid]');
+				uuidInput.focus();
+
+				let runActionOption = true;
+				let cancelOption    = false;
+				let choices = [
+					{ buttonText: `OK`,     result: runActionOption, classes: []                },
+					{ buttonText: `Cancel`, result: cancelOption,    classes: ['cancel-button'] }
+				];
+
+				let answerFunction = (e, response) => {
+					e.stopPropagation();
+
+					if (response === runActionOption) {
+
+						let uuid = uuidInput.value;
+
+						validationPromise(uuid).then(validationResult => {
+
+							if (validationResult.allow === true) {
+
+								resolve(validationResult.value);
+								_Dialogs.basic.removeBlockerAround(messageDiv);
+
+							} else {
+
+								uuidInput.setCustomValidity(validationResult.invalidMessage);
+								uuidInput.reportValidity();
+							}
+						});
+
+					} else {
+
+						reject('User aborted');
+						_Dialogs.basic.removeBlockerAround(messageDiv);
+					}
+				};
+
+				for (let choice of choices) {
+
+					let button = _Helpers.createSingleDOMElementFromHTML(`
+						<button class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">
+							${choice.buttonText}
+						</button>
+					`);
+
+					button.addEventListener('click', (e) => answerFunction(e, choice.result));
+					button.classList.add(...choice.classes);
+
+					buttonContainer.appendChild(button);
+				}
+
+				// hacky way to use global ESC handler...
+				_Dialogs.custom.elements.dialogCancelButton = messageDiv.querySelector('.cancel-button');
+
+				_Helpers.activateCommentsInElement(messageDiv);
+
+				uuidInput.addEventListener('keyup', (e) => {
+					if (e.key === 'Enter' || e.code === 'Enter' || e.keyCode === 13) {
+						answerFunction(e, runActionOption);
 					}
 				});
 			});
@@ -549,8 +622,6 @@ let _Dialogs = {
 					}
 				}
 			}
-
-			_Dialogs.basic.centerAll();
 		},
 		openDialog: (dialogTitleText = '', callbackCancel, customClasses = []) => {
 

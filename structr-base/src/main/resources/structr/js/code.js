@@ -356,12 +356,14 @@ let _Code = {
 
 						case 'SchemaNode': {
 
+							let doHighlight = false;  //entity?.schemaMethods?.length > 0;
+
 							list.push({
 								id:       path + '/' + entity.id,
 								text:     entity.name,
 								children: _Code.tree.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
 								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': entity.id },
+								li_attr:  { 'data-id': entity.id, class: doHighlight ? 'highlight-name' : '' },
 								data: {
 									svgIcon: icon,
 									key:     entity.type,
@@ -1264,13 +1266,10 @@ let _Code = {
 
 				_Code.persistence.updateDirtyFlag(property);
 
-				if (property.propertyType === 'Function') {
+				let propertyInfoUI = Object.assign({ propertyType: property.propertyType }, _Code.persistence.collectPropertyData(property));
+				let container      = propertyUIContainer[0].querySelector('#property-indexed').closest('div');
 
-					let propertyInfoUI = _Code.persistence.collectPropertyData(property);
-					let container      = propertyUIContainer[0].querySelector('#property-indexed').closest('div');
-
-					_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
-				}
+				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 			};
 
 			if (property.propertyType !== 'Function') {
@@ -1280,6 +1279,10 @@ let _Code = {
 				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
+			}
+
+			if (property.propertyType !== 'String' && property.propertyType !== 'StringArray') {
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-fulltext-indexed').closest('[data-is-property-attribute-container]'));
 			}
 
 			if (property.propertyType === 'Cypher') {
@@ -2436,7 +2439,9 @@ let _Code = {
 						if (isArray) {
 							option.selected = entity[p.dataset.property].includes(option.value);
 						} else {
-							option.selected = (entity[p.dataset.property].id === option.value);
+							// only use id for nodes - otherwise use value directly
+							let valueInEntity = (entity[p.dataset.property]?.id ?? entity[p.dataset.property]);
+							option.selected = (valueInEntity === option.value);
 						}
 					}
 				}
@@ -3125,6 +3130,9 @@ let _Code = {
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
+						</div>
+						<div data-is-property-attribute-container>
+							<label><input type="checkbox" id="property-fulltext-indexed" data-property="fulltext" ${config.property.fulltext ? 'checked' : ''}>Property value is fulltext indexed</label>
 						</div>
 						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''}>Property value can be cached</label>

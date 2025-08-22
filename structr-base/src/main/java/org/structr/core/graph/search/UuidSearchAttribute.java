@@ -18,7 +18,7 @@
  */
 package org.structr.core.graph.search;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.UuidQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
