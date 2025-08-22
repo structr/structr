@@ -77,7 +77,7 @@ public class IncludeChildFunction extends IncludeFunction {
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.TEMPLATE)) {
 
 				final Template templateNode                = n.as(Template.class);
-				final List<NodeInterface> childrenWithName = templateNode.treeGetChildren().stream().filter(ni -> ni.as(DOMNode.class).getName().equals(sources[0])).toList();
+				final List<NodeInterface> childrenWithName = templateNode.treeGetChildren().stream().filter(ni -> (sources[0]).equals(ni.as(DOMNode.class).getName())).toList();
 				final int childrenWithNameCount            = childrenWithName.size();
 
 				if (childrenWithNameCount == 1) {
