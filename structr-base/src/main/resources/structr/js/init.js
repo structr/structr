@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
 	Structr.functionBarOffscreen     = document.createElement('div');
 	Structr.dialogContainerOffscreen = document.createElement('div');
 
+	Structr.determineNotificationAreaVisibility();
+
 	/* Message-area: Hook up "Close All" button */
 	document.querySelector('#info-area #close-all-button').addEventListener('click', () => {
 		for (let confirmButton of document.querySelectorAll(`#info-area .${MessageBuilder.closeButtonClass}`)) {
@@ -125,46 +127,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Ctrl-Alt-p
 		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj, null, true);
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
+
+			Structr.openPropertiesDialogForUserProvidedUUID();
 		}
 
 		// Ctrl-Alt-m
 		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Elements.openEditContentDialog(obj);
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
-		}
 
-		// Ctrl-Alt-g
-		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj, 'permissions');
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
+			Structr.openEditorDialogForUserProvidedUUID();
 		}
 
 		// Ctrl-Alt-h
@@ -181,35 +152,11 @@ document.addEventListener("DOMContentLoaded", () => {
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
 		}
-
-		// Ctrl-Alt-e
-		if ((code === 'KeyQ' || keyCode === 69) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			document.querySelector('#info-area').classList.toggle('hidden');
-		}
 	});
 
 	window.addEventListener('resize', Structr.resize);
 
-	live('.dropdown-select', 'click', (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-
-		Structr.handleDropdownClick(e);
-
-		return false;
-	});
-
-	window.addEventListener('click', (e) => {
-		e.stopPropagation();
-
-		const menu           = e.target.closest('.dropdown-menu');
-		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
-
-		Structr.hideOpenDropdownsExcept(menuContainer);
-
-		return false;
-	});
+	Structr.dropdowns.initEventHandlers();
 });
 
 let Structr = {
@@ -221,6 +168,7 @@ let Structr = {
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
 	dynamicClassPrefix: 'org.structr.dynamic.',
 	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
+	notificationIconId: 'notifications-icon',
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
 	modules: {},
@@ -358,7 +306,13 @@ let Structr = {
 
 			_Console.initConsole();
 
-			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
+			document.querySelector('#header #terminal-icon').addEventListener('click', _Console.toggleConsole);
+			document.querySelector('#header #' + Structr.notificationIconId).addEventListener('click', () => {
+
+				Structr.setForceShowNotificationAreaState(true);
+				Structr.determineNotificationAreaVisibility();
+			});
+
 		});
 	},
 	updateUsername: (name) => {
@@ -367,11 +321,18 @@ let Structr = {
 			$('#logout_').html(`Logout <span class="username">${name}</span>`);
 		}
 	},
+	getInstanceDisplayName: () => {
+
+		let name        = (Structr.instanceName === '')  ? '' : `${Structr.instanceName} `;
+		let stageString = (Structr.instanceStage === '') ? '' : `(${Structr.instanceStage})`;
+
+		return `${name}${stageString}${Structr.maintenance ? ' [MAINTENANCE]' : ''}`;
+	},
 	updateDocumentTitle: () => {
 
 		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
-
-		let instance = (Structr.instanceName === '' && Structr.instanceStage === '') ? '' : ` - ${Structr.instanceName} (${Structr.instanceStage})`;
+		let displayName     = Structr.getInstanceDisplayName();
+		let instance        = (displayName === '') ? '' : ` - ${displayName})`;
 
 		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
@@ -833,13 +794,11 @@ let Structr = {
 
 				if (!Structr.isInMemoryDatabase) {
 
-					dbInfoEl.html(`<span>${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}</span>`);
+					dbInfoEl.html(`${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}`);
 
 				} else {
 
-					dbInfoEl.html('<span></span>');
-
-					Structr.appendInMemoryInfoToElement($('span', dbInfoEl));
+					Structr.appendInMemoryInfoToElement(dbInfoEl);
 
 					if (isLogin) {
 						new WarningMessage().text(Structr.inMemoryWarningText).requiresConfirmation().show();
@@ -855,18 +814,15 @@ let Structr = {
 				});
 			}
 
-			$('#header .structr-instance-name').text(envInfo.instanceName);
-			$('#header .structr-instance-stage').text(envInfo.instanceStage);
-
 			Structr.instanceName  = envInfo.instanceName;
 			Structr.instanceStage = envInfo.instanceStage;
+			Structr.maintenance   = (true === envInfo.maintenanceModeActive);
 			Structr.updateDocumentTitle();
 
-			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
+			let displayName = Structr.getInstanceDisplayName();
+			$('#header .structr-instance-name').text(displayName);
 
-			if (true === envInfo.maintenanceModeActive) {
-				$('#header .structr-instance-maintenance').text("MAINTENANCE");
-			}
+			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
 
 			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
 
@@ -876,11 +832,9 @@ let Structr = {
 				let build       = ui.build;
 				let date        = ui.date;
 				let versionInfo = `
-					<div>
-						<span>${ui.version}</span>
-						${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
-						${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
-					</div>
+					<span>${ui.version}</span>
+					${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
+					${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
 				`;
 
 				$('.structr-version').html(versionInfo);
@@ -969,25 +923,24 @@ let Structr = {
 		},
 		block: () => {
 
-			Structr.mainMenu.isBlocked = true;
-
-			for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
-				menuEntry.disabled = true;
-				menuEntry.classList.add('disabled');
-			}
+			Structr.mainMenu.setMenuBlockedState(true);
 		},
 		unblock: (timeoutInMs = 0) => {
 
 			window.setTimeout(() => {
 
-				Structr.mainMenu.isBlocked = false;
-
-				for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
-					menuEntry.disabled = false;
-					menuEntry.classList.remove('disabled');
-				}
+				Structr.mainMenu.setMenuBlockedState(false);
 
 			}, timeoutInMs);
+		},
+		setMenuBlockedState: (blocked) => {
+
+			Structr.mainMenu.isBlocked = blocked;
+
+			for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
+				menuEntry.disabled = blocked;
+				menuEntry.classList.toggle('disabled', blocked);
+			}
 		},
 		reset: () => {
 
@@ -1033,9 +986,9 @@ let Structr = {
 			element: el,
 			text: Structr.inMemoryWarningText,
 			customToggleIcon: 'database-warning-sign-icon',
-			customToggleIconClasses: ['ml-2'],
-			width: 20,
-			height: 20,
+			customToggleIconClasses: [],
+			width: 16,
+			height: 16,
 			noSpan: true,
 			helpElementCss: {
 				'border': '2px solid red',
@@ -1127,7 +1080,7 @@ let Structr = {
 				return ['Basic', 'Community'].indexOf(requiredEdition) !== -1;
 			case 'Community':
 				return ['Community'].indexOf(requiredEdition) !== -1;
-		};
+		}
 	},
 	updateMainHelpLink: (newUrl) => {
 		let helpLink = document.querySelector('#main-help a');
@@ -1224,20 +1177,6 @@ let Structr = {
 
 		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
 		return val;
-	},
-
-	// is only populated while sorting is active - needs to be clear afterwards
-	currentlyActiveSortable: undefined,
-	refreshPositionsForCurrentlyActiveSortable: () => {
-
-		if (Structr.currentlyActiveSortable) {
-
-			Structr.currentlyActiveSortable.sortable({ refreshPositions: true });
-
-			window.setTimeout(() => {
-				Structr.currentlyActiveSortable.sortable({ refreshPositions: false });
-			}, 500);
-		}
 	},
 	handleGenericMessage: (data) => {
 
@@ -1583,7 +1522,7 @@ let Structr = {
 					} else {
 
 						if (data.isServicePrincipal === false) {
-							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) });
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: ['read'] }] }) });
 						}
 
 						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) });
@@ -1732,7 +1671,7 @@ let Structr = {
 										break;
 								}
 
-								if (title != '') {
+								if (title !== '') {
 									builder.text(`${data.message}<br><br>Source: ${title}`);
 								}
 
@@ -1813,92 +1752,185 @@ let Structr = {
 		let reconnectMessage = Structr.getReconnectDialogElement();
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
-	dropdownOpenEventName: 'dropdown-opened',
-	handleDropdownClick: (e) => {
 
-		let menu = e.target.closest('.dropdown-menu');
+	dropdowns: {
+		openEventName: 'dropdown-opened',
+		initEventHandlers: () => {
 
-		if (menu) {
+			live('.dropdown-select', 'click', (e) => {
+				e.stopPropagation();
+				e.preventDefault();
 
-			let container = menu.querySelector('.dropdown-menu-container');
+				Structr.dropdowns.handleDropdownClick(e);
 
-			Structr.showDropdownContainer(container);
-		}
-	},
-	showDropdownContainer: (container) => {
+				return false;
+			});
 
-		if (container) {
+			window.addEventListener('click', (e) => {
+				e.stopPropagation();
 
-			let isVisible = (container.dataset['visible'] === 'true');
+				const menu          = e.target.closest('.dropdown-menu');
+				const menuContainer = menu && menu.querySelector('.dropdown-menu-container');
 
-			if (isVisible) {
+				Structr.dropdowns.hideOpenDropdownsExcept(menuContainer);
 
-				Structr.hideDropdownContainer(container);
+				return false;
+			});
+		},
+		handleDropdownClick: (e) => {
 
-			} else {
+			let menu = e.target.closest('.dropdown-menu');
 
-				Structr.hideOpenDropdownsExcept(container);
+			if (menu) {
 
-				let btn           = container.closest('.dropdown-menu').querySelector('.dropdown-select');
-				let btnRect       = btn.getBoundingClientRect();
+				let container = menu.querySelector('.dropdown-menu-container');
 
-				// apply "fixed" first to prevent container overflow
-				if (btn.dataset['wantsFixed'] === 'true') {
-					/*
-                        this is important for the editor tools in a popup which need to break free from the popup dialog
-                    */
-					container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
-				}
+				Structr.dropdowns.showDropdownContainer(container);
+			}
+		},
+		showDropdownContainer: (container) => {
 
-				container.dataset['visible'] = 'true';
-				container.style.display      = 'block';
+			if (container) {
 
-				if (btn.dataset['preferredPositionX'] === 'left') {
+				let isVisible = (container.dataset['visible'] === 'true');
 
-					// position dropdown left of button
-					let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
-					container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
+				if (isVisible) {
+
+					Structr.dropdowns.hideDropdownContainer(container);
 
 				} else {
 
-					// allow positioning to change between openings
-					container.style.right = null;
+					Structr.dropdowns.hideOpenDropdownsExcept(container);
+
+					let btn     = container.closest('.dropdown-menu').querySelector('.dropdown-select');
+					let btnRect = btn.getBoundingClientRect();
+
+					// apply "fixed" first to prevent container overflow
+					if (btn.dataset['wantsFixed'] === 'true') {
+						/*
+							this is important for the editor tools in a popup which need to break free from the popup dialog
+						*/
+						container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
+					}
+
+					container.dataset['visible'] = 'true';
+					container.style.display      = 'block';
+
+					if (btn.dataset['preferredPositionX'] === 'left') {
+
+						// position dropdown left of button
+						let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
+						container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
+
+					} else {
+
+						// allow positioning to change between openings
+						container.style.right = null;
+					}
+
+					if (btn.dataset['preferredPositionY'] === 'top') {
+
+						// position dropdown over activator button
+						container.style.bottom = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+
+					} else {
+
+						// allow positioning to change between openings
+						container.style.bottom = null;
+					}
+
+					container.dispatchEvent(new CustomEvent(Structr.dropdowns.openEventName, {
+						bubbles: true,
+						detail: container
+					}));
 				}
+			}
+		},
+		hideOpenDropdownsExcept: (exception) => {
 
-				if (btn.dataset['preferredPositionY'] === 'top') {
+			for (let container of document.querySelectorAll('.dropdown-menu-container')) {
 
-					// position dropdown over activator button
-					container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+				if (container !== exception) {
+					Structr.dropdowns.hideDropdownContainer(container);
+				}
+			}
+		},
+		hideDropdownContainer: (container) => {
+
+			container.dataset['visible'] = null;
+			container.style.display      = 'none';
+			container.style.position     = null;
+			container.style.bottom       = null;
+			container.style.top          = null;
+		},
+	},
+	determineNotificationAreaVisibility: () => {
+
+		let shouldHide = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+		let infoArea = document.querySelector('#info-area');
+		infoArea.classList.toggle('hidden', shouldHide);
+	},
+	setForceShowNotificationAreaState: (forceShowState = false) => {
+
+		if (forceShowState) {
+
+			// double check if there are messages to show
+			let messageArea  = document.querySelector('#info-area #messages');
+			let messageCount = messageArea.querySelectorAll('.message').length;
+
+			let hasMessages = (messageCount > 0);
+
+			forceShowState = forceShowState && hasMessages;
+		}
+
+		let infoArea = document.querySelector('#info-area');
+		infoArea.classList.toggle('force-show', forceShowState);
+	},
+	openPropertiesDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(uuid => {
+			Command.get(uuid, null, (obj) => {
+				_Entities.showProperties(obj, null, true);
+			});
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
+			}
+		});
+	},
+	openEditorDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
+
+			let validationResult = await _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise(uuid);
+
+			if (validationResult.allow) {
+
+				// basic UUID validation passed, validate further
+				let obj = await Command.getPromise(uuid, null);
+
+				if (obj.isContent === true) {
+
+					validationResult.value = obj;
 
 				} else {
 
-					// allow positioning to change between openings
-					container.style.bottom = null;
+					validationResult.allow = false;
+					validationResult.invalidMessage = 'Given UUID does not resolve to a content element. It is of type: ' + obj.type;
 				}
-
-				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
-					bubbles: true,
-					detail: container
-				}));
 			}
-		}
-	},
-	hideOpenDropdownsExcept: (exception) => {
 
-		for (let container of document.querySelectorAll('.dropdown-menu-container')) {
+			return validationResult;
 
-			if (container != exception) {
-				Structr.hideDropdownContainer(container);
+		}).then(obj => {
+
+			_Elements.openEditContentDialog(obj);
+
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
 			}
-		}
-	},
-	hideDropdownContainer: (container) => {
-
-		container.dataset['visible'] = null;
-		container.style.display      = 'none';
-		container.style.position     = null;
-		container.style.bottom       = null;
-		container.style.top          = null;
+		});
 	},
 
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
@@ -1924,11 +1956,13 @@ let Structr = {
 				<div id="messages" class="py-1"></div>
 			</div>
 
-			<div id="header">
+			<div id="header" class="flex gap-x-4 items-center">
 
-				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo'])}
+				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo', 'mb-1', 'ml-8'])}
 
-				<div id="menu" class="menu">
+				${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mx-2', 'mt-1']), 'Toggle Console')}
+
+				<div id="menu" class="menu mt-1">
 					<ul>
 						<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
 
@@ -1953,15 +1987,22 @@ let Structr = {
 						</li>
 					</ul>
 				</div>
-				<div class="structr-instance-info">
-					<div class="structr-instance">
-						<span class="structr-instance-db"></span>
+
+				<div class="structr-instance-info ml-auto">
+					<div class="structr-instance flex gap-2 items-center">
+						<span class="structr-instance-db flex"></span>
 						<span class="structr-instance-name"></span>
-						<span class="structr-instance-stage"></span>
-						<span class="structr-instance-maintenance"></span>
 					</div>
-					<div class="structr-version flex items-center h-4"></div>
+					<div class="structr-version flex gap-1 items-center justify-end"></div>
 				</div>
+
+				<div class="relative flex ml-2 mr-6">
+					${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Show notifications')}
+					<div class="absolute flex items-center rounded-full h-4 -top-3 -right-3 text-white bg-red">
+						<div data-notification-count class="px-2 text-xs hidden"></div>
+					</div>
+				</div>
+
 				<div id="main-help">
 					<a target="_blank" href="https://support.structr.com/knowledge-graph"></a>
 				</div>
@@ -1974,7 +2015,6 @@ let Structr = {
 
 			<div id="custom-context-menu-container"></div>
 		`,
-		defaultDialogMarkup: config => ``,
 		loginDialogMarkup: `
 			<div id="login" class="dialog p-6 text-left">
 
@@ -2014,7 +2054,7 @@ let Structr = {
 					<div class="mb-4 w-full text-center">Or continue with:</div>
 
 					${_Dialogs.loginDialog.getOauthProviders().map(({ name, uriPart, iconId })  => `
-						<button id="sso-login-${uriPart}" onclick="javascript:document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
+						<button id="sso-login-${uriPart}" onclick="document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
 							${_Icons.getSvgIcon(iconId)}
 							${name}
 						</button>
@@ -2028,7 +2068,7 @@ let Structr = {
 
 						<div id="two-factor-qr-code" class="col-span-2 text-center" style="display: none;">
 							<div>
-								<img>
+								<img alt="Two-Factor-Authentication QR Code">
 							</div>
 							<div class="mt-2 mb-3">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
 						</div>
@@ -2061,7 +2101,7 @@ let Structr = {
 		autoScriptTextArea: config => `
 			<div id="${config.wrapperId ?? ''}" class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
-				<textarea id="${config.textareaId ?? ''}" type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<textarea id="${config.textareaId ?? ''}" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
 			</div>
 		`
@@ -2474,7 +2514,12 @@ class MessageBuilder {
 
 	appendButtons(buttonElement) {
 
-		if (this.params.requiresConfirmation === true) {
+		// message should not automatically be removed if:
+		// - it is not configured as such
+		// - the whole area is not shown
+		let shouldStayOpen = (this.params.requiresConfirmation === true) || (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+
+		if (shouldStayOpen === true) {
 
 			let closeButton = buttonElement.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
 
@@ -2619,6 +2664,8 @@ class MessageBuilder {
 
 			document.querySelector('#info-area #messages').appendChild(message);
 		}
+
+		this.updateNotificationIcon();
 	};
 
 	dismiss() {
@@ -2626,13 +2673,32 @@ class MessageBuilder {
 		let msgElement = document.querySelector(`#${this.params.msgId}`);
 
 		if (msgElement) {
+
 			msgElement.addEventListener('animationend', () => {
 				_Helpers.fastRemoveElement(msgElement);
+
+				this.updateNotificationIcon();
 			});
 
 			msgElement.classList.add('dismissed');
 		}
 	};
+
+	updateNotificationIcon() {
+
+		let messageArea  = document.querySelector('#info-area #messages');
+		let messageCount = messageArea.querySelectorAll('.message').length;
+		let notificationCountElement = document.querySelector('[data-notification-count]');
+
+		let hasMessages = (messageCount > 0);
+
+		notificationCountElement.textContent = (hasMessages ? messageCount : '');
+		notificationCountElement.classList.toggle('hidden', !hasMessages);
+
+		if (!hasMessages) {
+			Structr.setForceShowNotificationAreaState(false);
+		}
+	}
 
 	specialInteractionButton(buttonText, callback) {
 
@@ -2912,20 +2978,30 @@ let UISettings = {
 		global: {
 			title: 'Global',
 			settings: {
+				hideAllPopupMessagesKey: {
+					text: 'Hide notifications area',
+					storageKey: 'hideNotificationMessages' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					infoText: 'Controls visibility of the notification area. Messages will still be appended and can be shown by changing this or by clicking the bell icon in the menu bar.',
+					onUpdate: () => {
+						Structr.determineNotificationAreaVisibility();
+					}
+				},
 				showScriptingErrorPopupsKey: {
-					text: 'Show popups for scripting errors',
+					text: 'Show notifications for scripting errors',
 					storageKey: 'showScriptingErrorPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				showResourceAccessPermissionWarningPopupsKey: {
-					text: 'Show popups for resource access permission warnings',
+					text: 'Show notifications for resource access permission warnings',
 					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				showDeprecationWarningPopupsKey: {
-					text: 'Show popups for deprecation warnings',
+					text: 'Show notifications for deprecation warnings',
 					storageKey: 'showDeprecationWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'

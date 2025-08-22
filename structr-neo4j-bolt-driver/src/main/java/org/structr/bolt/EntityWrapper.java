@@ -123,11 +123,15 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 		// only update values if actually different from what is stored
 		if (needsUpdate(key, value)) {
 
-			final Map<String, Object> map = new HashMap<>();
-			final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n.`" + key + "` = $value RETURN n";
+			final String query = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";
 
-			map.put("id", id);
-			map.put("value", value);
+			final Map<String, Object> properties = new HashMap<>();
+			properties.put(key, value);
+
+			final Map<String, Object> map = Map.of(
+					"id", id,
+					"properties", properties
+			);
 
 			updateEntity(tx, query, map);
 		}
@@ -142,13 +146,13 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 		// only update values if actually different from what is stored
 		if (!values.isEmpty()) {
 
-			final Map<String, Object> map = new HashMap<>();
 			final SessionTransaction tx   = db.getCurrentTransaction();
 			final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";
 
-			// overwrite a potential "id" property
-			map.put("id", id);
-			map.put("properties", values);
+			final Map<String, Object> map = Map.of(
+					"id", id,
+					"properties", values
+			);
 
 			tx.queryResultCache.clear();
 
@@ -160,10 +164,15 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer {
 	public void removeProperty(String key) {
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
-		final Map<String, Object> map = new HashMap<>();
-		final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n.`" + key + "` = Null RETURN n";
+		final String query            = getQueryPrefix() + " WHERE ID(n) = $id SET n += $properties RETURN n";
 
-		map.put("id", id);
+		final Map<String, Object> properties = new HashMap<>();
+		properties.put(key, null);
+
+		final Map<String, Object> map = Map.of(
+				"id", id,
+				"properties", properties
+		);
 
 		tx.queryResultCache.clear();
 

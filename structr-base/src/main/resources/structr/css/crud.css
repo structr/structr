@@ -30,13 +30,6 @@
 	flex-direction: column;
 }
 
-#crud-types, #crud-recent-types {
-	height: 50%;
-	display: flex;
-	flex-direction: column;
-	padding: 1rem 0;
-}
-
 #crudTypesSearch {
 	margin: 0 1rem .75rem .5rem;
 }
@@ -44,7 +37,6 @@
 #crud-types-list, #crud-recent-types-list {
 	padding: 1px 0 0 0;
 	margin: 0;
-	height: calc(100% - 70px);
 	overflow-y: scroll;
 }
 

@@ -18,7 +18,6 @@
  */
 package org.structr.test;
 
-import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
@@ -154,8 +153,6 @@ public class FulltextIndexingTest extends IndexingTest {
 			ex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
-		Settings.CypherDebugLogging.setValue(true);
 
 		waitForIndex(60);
 

@@ -16,19 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema;
+'use strict';
 
-import java.util.LinkedHashSet;
+export class Handler {
 
-public class CodeSourceViewSet extends LinkedHashSet<String> {
-
-	private CodeSource source = null;
-
-	public CodeSourceViewSet(final CodeSource source) {
-		this.source = source;
+	constructor(frontendModule) {
+		this.frontendModule = frontendModule;
 	}
 
-	public CodeSource getSource() {
-		return source;
+	getValue(obj, path) {
+
+		let components = path
+			.replace(/\["(\w+)"]/g, '.$1')   // convert ["index"] to .index
+			.replace(/\['(\w+)']/g, '.$1')   // convert ['index'] to .index
+			.replace(/\[(\d+)]/g, '.$1')     // convert numeric indexes [0] to .0
+			.split('.');
+
+		return components.reduce((acc, key) => acc && acc[key], obj);
+	}
+
+	handleReloadTarget(reloadTarget, element, parameters, status, options) {
+
+		let data = {
+			result: parameters
+		};
+
+		// Evaluate and replace each {} expression
+		let value = reloadTarget.replace(/{([^}]+)}/g, (match, cg1) => this.getValue(data, cg1));
+
+		// go to URL
+		window.location.href = value;
 	}
 }

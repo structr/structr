@@ -314,7 +314,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);
 		final Property<String> extractedContentProperty   = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
 		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
-		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY);
+		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly();
 		final Property<Integer> cacheForSecondsProperty   = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 		final Property<Integer> positionProperty          = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> versionProperty           = new IntProperty(VERSION_PROPERTY).indexed();

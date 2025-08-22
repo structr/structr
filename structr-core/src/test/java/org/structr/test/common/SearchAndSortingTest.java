@@ -1989,8 +1989,6 @@ public class SearchAndSortingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			List<NodeInterface> list = app.nodeQuery(groupType)
 					.or()
 						.name("aaa")
@@ -2015,9 +2013,6 @@ public class SearchAndSortingTest extends StructrTest {
 			fex.printStackTrace();
 			System.out.println(fex.getMessage());
 			fail("Unexpected exception.");
-		} finally {
-
-			Settings.CypherDebugLogging.setValue(false);
 		}
 	}
 

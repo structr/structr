@@ -48,7 +48,6 @@ import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
-import org.structr.schema.compiler.*;
 
 import java.net.URI;
 import java.util.*;
@@ -64,25 +63,10 @@ public class SchemaService implements Service {
 
 	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final List<MigrationHandler> migrationHandlers = new LinkedList<>();
 	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
 	private static final AtomicBoolean schemaIsBeingReplaced      = new AtomicBoolean(false);
 	private static final Set<String> blacklist                    = new LinkedHashSet<>();
 	private static GraphQLSchema graphQLSchema                    = null;
-
-	static {
-
-		migrationHandlers.add(new BlacklistSchemaNodeWhenMissingPackage());
-		migrationHandlers.add(new RemoveMethodsWithUnusedSignature());
-		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
-		migrationHandlers.add(new BlacklistUnlicensedTypes());
-		migrationHandlers.add(new RemoveDuplicateClasses());
-		migrationHandlers.add(new RemoveClassesWithUnknownSymbols());
-		migrationHandlers.add(new RemoveExportedMethodsWithoutSecurityContext());
-		migrationHandlers.add(new RemoveFileSetPropertiesMethodWithoutParameters());
-		migrationHandlers.add(new RemoveIncompatibleTypes());
-		migrationHandlers.add(new RemoveTypesWithNonExistentPackages());
-	}
 
 	@Override
 	public void injectArguments(final Command command) {

@@ -144,6 +144,10 @@ public class WebsocketController implements StructrTransactionListener {
 
 					logger.debug("Error sending message to client.", t);
 				}
+
+			} else {
+
+				clientsToRemove.add(socket);
 			}
 		}
 

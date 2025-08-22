@@ -1532,6 +1532,35 @@ public class SchemaTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testOverrideNameAttribute() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+			final JsonType type           = sourceSchema.addType("User");
+
+			// add properties
+			type.addStringProperty("name").setIndexed(true, true);
+
+			// apply schema changes
+			StructrSchema.extendDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			fail("Unexpected exception.");
+		}
+
+		final PropertyKey key = Traits.of("User").key("name");
+
+		assertEquals("Unable to overwrite name attribute in existing type.", "User", key.getDeclaringTrait().getLabel());
+
+	}
+
 	// ----- private methods -----
 	private void checkSchemaString(final String source) {
 

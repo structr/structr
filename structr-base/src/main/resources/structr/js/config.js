@@ -29,13 +29,7 @@ let _Editors = {
 };
 
 let _Config = {
-	resize: () => {
-		$('.tab-content').css({
-			height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 124
-		});
-
-		_Dialogs.basic.centerAll();
-	},
+	resize: () => {},
 	init: () => {
 
 		_Icons.preloadSVGIcons();
@@ -60,7 +54,19 @@ let _Config = {
 				if (!configForm.checkValidity()) {
 					e.preventDefault();
 
+					for (let formGroup of document.querySelectorAll('.form-group')) {
+						formGroup.classList.remove('invalid');
+					}
+
 					let invalidFields = [...configForm.querySelectorAll(':invalid')];
+
+					for (let invalidField of invalidFields) {
+
+						invalidField.closest('.form-group').classList.add('invalid');
+						invalidField.closest('.config-group').classList.add('invalid');
+						invalidField.closest('.tab-content').classList.add('invalid');
+					}
+
 					let anyVisible    = invalidFields.some(f => f.offsetParent);
 
 					if (!anyVisible) {
@@ -151,7 +157,7 @@ let _Config = {
 				});
 			}
 
-			_Config.addCronExpressionValidators();
+			_Config.cron.initExistingCronExpressionSettings();
 			_Search.init();
 		}
 	},
@@ -175,34 +181,58 @@ let _Config = {
 
 				currentTab.appendChild(newEntry);
 
-				if (name.endsWith('.cronExpression')) {
-
-					let cronExpressionInfoText = document.querySelector('#cron-info-text').dataset['value'];
-					newEntry.querySelector('label').dataset['comment'] = cronExpressionInfoText;
-
-					_Helpers.activateCommentsInElement(newEntry);
-
-					_Config.addCronExpressionValidator(newEntry.querySelector(`input[name="${name}"]`));
-				}
+				_Config.cron.initPotentialNewCronExpressionSetting(newEntry, name);
 			}
 		}
 	},
-	addCronExpressionValidators: () => {
+	cron: {
+		cronSuffix: '.cronExpression',
+		isCronExpressionSetting: (name) => name.endsWith(_Config.cron.cronSuffix),
+		getCronInfoText: () => document.querySelector('#cron-info-text').dataset['value'],
+		getValidationMessage: () => {
 
-		let cronExpressionInputs = document.querySelectorAll('input[name*=".cronExpression"]');
+			let validationMessage = _Config.cron.getCronInfoText().replace('<pre>', '');
+			validationMessage     = _Helpers.unescapeTags(validationMessage.slice(0, validationMessage.indexOf('</pre>')));
 
-		for (let input of cronExpressionInputs) {
-			_Config.addCronExpressionValidator(input);
+			return validationMessage;
+		},
+		initExistingCronExpressionSettings: () => {
+
+			let cronExpressionInputs = document.querySelectorAll(`input[name*="${_Config.cron.cronSuffix}"]`);
+
+			for (let input of cronExpressionInputs) {
+				_Config.cron.addFormValidationToInput(input);
+			}
+		},
+		initPotentialNewCronExpressionSetting: (container, name) => {
+
+			if (_Config.cron.isCronExpressionSetting(name)) {
+
+				container.querySelector('label').dataset['comment'] = _Config.cron.getCronInfoText();
+
+				_Helpers.activateCommentsInElement(container);
+
+				let input = container.querySelector(`input[name="${name}"]`);
+				_Config.cron.addFormValidationToInput(input);
+
+				input.reportValidity();
+			}
+		},
+		addFormValidationToInput: (input) => {
+
+			input.required = true;
+			input.pattern  = '([^ \\\\t]+[ \\\\t]){5}[^ \\\\t]+';
+
+			let validationMessage = _Config.cron.getValidationMessage();
+
+			input.addEventListener('invalid', () => {
+				input.setCustomValidity(validationMessage);
+			});
+
+			input.addEventListener('input', () => {
+				input.setCustomValidity('');
+			});
 		}
-	},
-	addCronExpressionValidator: (input) => {
-
-		let helpText = document.querySelector('#cron-info-text').dataset['value'].replace('<pre>', '');
-		helpText = helpText.slice(0, helpText.indexOf('</pre>'));
-
-		input.required = true;
-		input.pattern = '([^ \\\\t]+[ \\\\t]){5}[^ \\\\t]+';
-		input.title = _Helpers.unescapeTags(helpText);
 	},
 	databaseConnections: {
 		loadingMessageId: 'config-database-loading',
@@ -548,13 +578,13 @@ let _Search = {
     	if (!isLogin && !isWelcome) {
 
 			let searchUiHTML = _Helpers.createSingleDOMElementFromHTML(`
-				<div id="search-container">
-					<input id="search-box" placeholder="Search config...">
+				<div id="search-container" class="w-1/3">
+					<input id="search-box" placeholder="Search config..." class="w-full box-border">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 			`);
 
-			document.getElementById('header').appendChild(searchUiHTML);
+			document.querySelector('#header svg').insertAdjacentElement('afterend', searchUiHTML);
 
 			let searchBox       = searchUiHTML.querySelector('input#search-box');
 			let clearSearchIcon = searchUiHTML.querySelector('.clearSearchIcon');
