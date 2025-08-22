@@ -203,7 +203,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			logger.error("Error occurred while importing folder " + path, ex);
 		}
 
-		checkIfFileOrFolderWasRenamed(traits, fullPath, path.getFileName().toString());
+		checkIfFileOrFolderWasForceRenamed(traits, fullPath, path.getFileName().toString());
 
 		return true;
 	}
@@ -241,15 +241,18 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (!basePath.equals(path.getParent())) {
 
-					final String parentPath  = harmonizeFileSeparators("/", basePath.relativize(path.getParent()).toString());
+					final String parentPath = harmonizeFileSeparators("/", basePath.relativize(path.getParent()).toString());
 					parent = getExistingFolder(parentPath);
+
+					// add parent to fileProperties so a file gets moved if appropriate
+					fileProperties.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent);
 				}
 
 				if (traits.hasKey(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY)) {
 
-					final PropertyKey isThumbnailKey = traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY);
+					final PropertyKey<Boolean> isThumbnailKey = traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY);
 
-					if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
+					if (fileProperties.containsKey(isThumbnailKey) && fileProperties.get(isThumbnailKey)) {
 
 						logger.info("Thumbnail image found: {}, ignoring. Please delete file in files directory and entry in files.json.", fullPath);
 						skipFile = true;
@@ -345,10 +348,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					if (isImage) {
 
 						try {
+
 							ImageHelper.updateMetadata(createdFile.as(File.class));
 							handleThumbnails(createdFile.as(Image.class));
 
 						} catch (Throwable t) {
+
 							logger.warn("Unable to update metadata: {}", t.getMessage());
 						}
 					}
@@ -364,11 +369,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		if (!wasIgnored) {
 
-			checkIfFileOrFolderWasRenamed(traits, fullPath, fileName);
+			checkIfFileOrFolderWasForceRenamed(traits, fullPath, fileName);
 		}
 	}
 
-	protected void checkIfFileOrFolderWasRenamed(final Traits traits, final String fullPath, final String targetName) {
+	protected void checkIfFileOrFolderWasForceRenamed(final Traits traits, final String fullPath, final String targetName) {
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
