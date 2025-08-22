@@ -16,24 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.compiler;
+'use strict';
 
-import org.structr.common.error.ErrorToken;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedToken;
-import org.structr.schema.SchemaService;
+export class Handler {
 
-/**
- *
- */
-public class BlacklistUnlicensedTypes implements MigrationHandler {
+	constructor(frontendModule) {
+		this.frontendModule = frontendModule;
+	}
 
-	@Override
-	public void handleMigration(final ErrorToken errorToken) throws FrameworkException {
+	handleReloadTarget(reloadTarget, element, parameters, status, options) {
 
-		if (errorToken instanceof UnlicensedToken) {
-
-			SchemaService.blacklist(errorToken.getType());
-		}
+		this.frontendModule.instantiateTemplate(reloadTarget, parameters, status, options);
 	}
 }

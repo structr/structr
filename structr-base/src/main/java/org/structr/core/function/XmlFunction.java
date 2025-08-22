@@ -34,7 +34,7 @@ import java.io.StringReader;
 
 public class XmlFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xml(xml(this.xmlSource), \"/test/testValue\")}";
+	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
 
 	@Override
 	public String getName() {

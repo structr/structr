@@ -874,7 +874,7 @@ let _Dashboard = {
 
 					_Helpers.fastRemoveAllChildren(container);
 
-					if (historyEntries.length == 0) {
+					if (historyEntries.length === 0) {
 
 						container.append(_Helpers.createSingleDOMElementFromHTML('<div class="p-2">No history entries</div>'));
 
@@ -892,7 +892,7 @@ let _Dashboard = {
 
 							element.addEventListener('click', () => {
 								_Dashboard.tabs.deployment.history.modes[entry.mode].apply(entry);
-								Structr.hideDropdownContainer(container);
+								Structr.dropdowns.hideDropdownContainer(container);
 							});
 
 							container.append(element);
@@ -1089,7 +1089,7 @@ let _Dashboard = {
 
 								<fieldset class="border-0 p-0">
 									<h3>Action / Mode<span data-comment="If <b>Export</b> is selected, no data is changed in this instance, but an older export data record may be overwritten.<br><br>If <b>Import</b> is selected, data in this Structr instance will be overwritten."></span></h3>
-									<div class="w-1/3 mb-4">
+									<div class="mb-4">
 										<p>Specify if data is to be exported from or imported into Structr.</p>
 										
 									</div>
@@ -1103,7 +1103,7 @@ let _Dashboard = {
 
 								<fieldset class="border-0 p-0">
 									<h3>Type<span data-comment="<b>Application</b> is equivalent to the source code of an application in a classic development environment.<br><br>Select <b>Data</b> for handling user-created and domain-specific data of a Structr instance."></span></h3>
-									<div class="w-1/3 mb-4">
+									<div class="mb-4">
 										<p>Choose the type of data to be exported or imported.</p>
 									</div>
 									<div class="options-switch">
@@ -1116,7 +1116,7 @@ let _Dashboard = {
 
 								<fieldset class="border-0 p-0">
 									<h3>Target / Source<span data-comment="<b>Server directory</b> means a local directory on the server on which Structr is running.<br><br><b>ZIP</b> means downloading the export as a ZIP file or upload a ZIP file to import app or user data."></span></h3>
-									<div class="w-1/3 mb-4">
+									<div class="mb-4">
 										<p>Select where to/from it should be written/read.</p>
 									</div>
 									<div class="options-switch">
@@ -1979,7 +1979,7 @@ let _Dashboard = {
 
 						<div class="flex menu-order-container">
 							<div class="text-center font-bold w-40 p-4">Main Menu</div>
-							<div class="text-center font-bold w-40 p-4">Custom Menu (${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 8, 8)})</div>
+							<div class="text-center font-bold w-40 p-4">Submenu (${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 8, 8)})</div>
 						</div>
 
 						<div class="flex menu-order-container">

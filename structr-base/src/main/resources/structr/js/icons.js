@@ -44,6 +44,10 @@ let _Icons = {
 	iconEditionBasic:         'edition-basic',
 	iconEditionCommunity:     'edition-community',
 
+	iconTerminal:             'terminal',
+	iconNotificationBell:     'notification-bell',
+
+
 	iconDOMTreePage:          'dom-page',
 	iconDOMTreeElement:       'dom-block',
 	iconDOMContentElement:    'dom-content',

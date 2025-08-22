@@ -303,32 +303,11 @@ input[type="checkbox"] {
 }
 
 #header .logo {
-	position: absolute;
-	width: 90px;
-	height: 24px;
-	top: 1rem;
-	left: 2rem;
-	color: white;
+	color: var(--solid-white);
 }
 
 #header .structr-instance-info {
-	float: right;
 	color: var(--solid-white);
-	margin-right: 2rem;
-}
-
-#header .structr-instance {
-	height: 1.75rem;
-	margin-top: .75rem;
-	text-align: right;
-}
-
-#header .structr-instance-db span {
-	vertical-align: middle;
-}
-
-#header .structr-instance-stage:not(:empty) {
-	margin-left:10px;
 }
 
 #header .structr-instance-stage:not(:empty)::before {
@@ -341,8 +320,6 @@ input[type="checkbox"] {
 
 #header .structr-version {
 	font-size: .75rem;
-	text-align: right;
-	line-height: 1.25rem;
 }
 
 #header .structr-version:empty:before {
@@ -413,16 +390,6 @@ input[type="checkbox"] {
 	opacity: .6;
 }
 
-#log {
-	margin: 0 4px;
-}
-
-#menu {
-	position: absolute;
-	top: 1rem;
-	left: 10rem;
-}
-
 .main-app-box {
 	margin: 0 2rem;
 }
@@ -463,22 +430,17 @@ input[type="checkbox"] {
 }
 
 .menu ul li a.disabled {
-	cursor: default;
-}
-
-.menu .submenu-trigger i {
-	height: 13px;
+	pointer-events: none; /* this prevents the location hash from changing at all when the menu is disabled and this link is clicked. it prevents us from using cursor styles, though */
 }
 
 ul#submenu {
 	z-index: 1013;
 	display: none;
 	list-style: none;
-	position: relative;
-	float: right;
+	position: absolute;
 	min-width: 20rem;
-	padding: 2.75rem 0 0 0;
-	margin-left: -2.25rem;
+	padding: 1rem 0 0 0;
+	margin-left: -2rem;
 	line-height: 2em;
 }
 
@@ -642,6 +604,10 @@ img.disabled {
 	top: 19rem;
 }
 
+#activeElementsTab {
+	top: 33rem;
+}
+
 
 /*
  * Pages: Right slideout activators
@@ -650,7 +616,8 @@ img.disabled {
 #paletteTab,
 #componentsTab,
 #elementsTab,
-#previewTab {
+#previewTab,
+#activeElementsTab {
 	right: 0;
 }
 
@@ -745,7 +712,7 @@ img.disabled {
 }
 
 .props.show-all tr:nth-child(2n),
-.props:not(.show-all) tr:nth-child(2n of :not(.hidden)) {
+.props:not(.show-all) tr:nth-child(2n+0 of :not(.hidden)) {
 	background-color: var(--solid-white);
 }
 .props.show-all tr:nth-child(2n+1),
@@ -2220,6 +2187,10 @@ th.center {
 	max-height: 100vh;
 }
 
+#info-area.force-show {
+	display: initial;
+}
+
 #info-area #close-all-button {
 	display: none;
 }
@@ -3669,6 +3640,14 @@ ul.combined-input-select-field li:hover {
 }
 
 /**
+ * Active Elements
+ **/
+.active-elements-container svg *:hover,
+.active-elements-container svg * text:hover {
+	stroke: #000000;
+}
+
+/**
  * Tailwind classes
  */
 .box-border {
@@ -3727,6 +3706,9 @@ ul.combined-input-select-field li:hover {
 }
 .right-8 {
 	right: 2rem;
+}
+.-right-3 {
+	right: -.75rem;
 }
 .left-0 {
 	left: 0;
@@ -3854,6 +3836,9 @@ ul.combined-input-select-field li:hover {
 .top-16 {
 	top: 4rem;
 }
+.-top-3 {
+	top: -.75rem;
+}
 .flex-none {
 	flex: none;
 }
@@ -3976,6 +3961,9 @@ ul.combined-input-select-field li:hover {
 }
 .mr-12 {
 	margin-right: 3rem;
+}
+.ml-auto {
+	margin-left: auto;
 }
 .ml-px {
 	margin-left: 1px;
@@ -4119,6 +4107,12 @@ ul.combined-input-select-field li:hover {
 .w-full {
 	width: 100%;
 }
+.w-1\/3 {
+	width: 33.333333%;
+}
+.w-1\/2 {
+	width: 50%;
+}
 .h-full {
 	height: 100%;
 }
@@ -4204,6 +4198,9 @@ ul.combined-input-select-field li:hover {
 }
 .pl-2 {
 	padding-left: .5rem;
+}
+.pl-4 {
+	padding-left: 1rem;
 }
 .pl-5 {
 	padding-left: 1.25rem;
@@ -4354,6 +4351,9 @@ ul.combined-input-select-field li:hover {
 }
 .gap-y-4 {
 	row-gap: 1rem;
+}
+.gap-y-12 {
+	row-gap: 3rem;
 }
 .gap-x-2 {
 	column-gap: .5rem;
@@ -4588,6 +4588,12 @@ ul.combined-input-select-field li:hover {
 .bg-gray {
 	background-color: var(--light-gray-bg-f7);
 }
+.bg-red {
+	background-color: var(--red);
+}
+.text-white {
+	color: var(--solid-white);
+}
 .odd\:bg-white:nth-child(even) {
 	background-color: var(--solid-white);
 }
@@ -4692,4 +4698,15 @@ ul.combined-input-select-field li:hover {
 
 .http-statistics-HEAD {
 	fill: #94c9fe;
+}
+
+/**
+ Active Elements
+ */
+svg g.diagram-element[data-type="ActionMapping"] rect {
+	fill: #ff8800;
+}
+
+svg *[data-type="ListDataSource"] {
+	fill: #2222aa;
 }

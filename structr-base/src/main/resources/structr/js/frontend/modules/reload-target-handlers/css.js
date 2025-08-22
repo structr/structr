@@ -26,9 +26,11 @@ export class Handler {
 
 	handleReloadTarget(reloadTarget, element, parameters, status, options) {
 
-		// remove prefix "event:"
-		let event = reloadTarget.substring(6);
+		element.classList.add(reloadTarget);
 
-		element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: parameters, status: status, element: element } }));
+		window.setTimeout(() => {
+			element.classList.remove(css);
+		}, 2000);
+
 	}
 }

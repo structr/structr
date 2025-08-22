@@ -18,10 +18,9 @@
  */
 package org.structr.schema.parser;
 
-import org.structr.schema.CodeSource;
 import org.structr.schema.SchemaHelper.Type;
 
-public interface PropertyDefinition extends CodeSource {
+public interface PropertyDefinition {
 
 	String getClassName();
 	String getPropertyName();

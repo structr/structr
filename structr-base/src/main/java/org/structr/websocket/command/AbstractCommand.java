@@ -78,7 +78,7 @@ public abstract class AbstractCommand {
 
 		if (node != null && node.is(traitName)) {
 
-			return (T)node.as(type);
+			return node.as(type);
 		}
 
 		return null;

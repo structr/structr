@@ -26,18 +26,20 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.io.InputStream;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -57,24 +59,25 @@ public class UnarchiveCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final Set<String> supportedByArchiveStreamFactory = new HashSet<>(Arrays.asList(new String[] {
-			ArchiveStreamFactory.AR,
-			ArchiveStreamFactory.ARJ,
-			ArchiveStreamFactory.CPIO,
-			ArchiveStreamFactory.DUMP,
-			ArchiveStreamFactory.JAR,
-			ArchiveStreamFactory.TAR,
-			ArchiveStreamFactory.SEVEN_Z,
-			ArchiveStreamFactory.ZIP
-		}));
+		final Set<String> supportedByArchiveStreamFactory = Set.of(
+				ArchiveStreamFactory.AR,
+				ArchiveStreamFactory.ARJ,
+				ArchiveStreamFactory.CPIO,
+				ArchiveStreamFactory.DUMP,
+				ArchiveStreamFactory.JAR,
+				ArchiveStreamFactory.TAR,
+				ArchiveStreamFactory.SEVEN_Z,
+				ArchiveStreamFactory.ZIP
+		);
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
-			final String id = (String) webSocketData.getId();
-			final String parentFolderId = webSocketData.getNodeDataStringValue("parentFolderId");
+			final String id            = webSocketData.getId();
+			String parentFolderId      = webSocketData.getNodeDataStringValue("parentFolderId");
+			final boolean createFolder = webSocketData.getNodeDataBooleanValue("createFolder");
 
 			final File file;
 			final InputStream is;
@@ -89,17 +92,17 @@ public class UnarchiveCommand extends AbstractCommand {
 					return;
 				}
 
-				file = fileNode.as(File.class);
+				file     = fileNode.as(File.class);
+				fileName = file.getName();
 
-				final String fileExtension = StringUtils.substringAfterLast(file.getName(), ".");
+				final String fileExtension = StringUtils.substringAfterLast(fileName, ".");
 				if (!supportedByArchiveStreamFactory.contains(fileExtension)) {
 
 					getWebSocket().send(MessageBuilder.status().code(400).message("Unsupported archive format: ".concat(fileExtension)).build(), true);
 					return;
 				}
 
-				fileName = file.getName();
-				is       = file.getInputStream();
+				is = file.getInputStream();
 
 				if (is == null) {
 
@@ -107,6 +110,17 @@ public class UnarchiveCommand extends AbstractCommand {
 					return;
 				}
 
+				if (createFolder) {
+
+					final String folderName = StringUtils.substringBeforeLast(fileName, ".");
+
+					final NodeInterface newParentFolder = app.create(StructrTraits.FOLDER,
+							new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folderName),
+							new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_ID_PROPERTY), parentFolderId)
+					);
+
+					parentFolderId = newParentFolder.getUuid();
+				}
 
 				tx.success();
 			}
@@ -116,24 +130,22 @@ public class UnarchiveCommand extends AbstractCommand {
 
 			getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
 
-
 		} catch (Throwable t) {
 
 			logger.warn("", t);
 
-			String msg = t.toString();
+			final String msg = t.toString();
 
 			try (final Tx tx = app.tx()) {
 
 				// return error message
-				getWebSocket().send(MessageBuilder.status().code(400).message("Could not unarchive file: ".concat((msg != null) ? msg : "")).build(), true);
+				getWebSocket().send(MessageBuilder.status().code(400).message("Could not extract archive: ".concat((msg != null) ? msg : "")).build(), true);
 				getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", false).build(), true);
 
 				tx.success();
 
 			} catch (FrameworkException ignore) {
 			}
-
 		}
 	}
 

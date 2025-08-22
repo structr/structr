@@ -21,9 +21,6 @@ package org.structr.module;
 import com.google.gson.Gson;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -66,13 +63,6 @@ public interface StructrModule {
 	 * @return a set of feature names or null
 	 */
 	Set<String> getFeatures();
-
-
-	void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf);
-	void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf);
-	void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type);
-	Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode);
-
 
 	// ---- Deployment-specific methods
 	default public boolean hasDeploymentData () {

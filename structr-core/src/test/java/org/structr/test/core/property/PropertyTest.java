@@ -266,8 +266,6 @@ public class PropertyTest extends StructrTest {
 
 			final PropertyKey<Boolean> key = Traits.of("TestFour").key("booleanProperty");
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			createTestNode("TestFour", new PropertyMap(key, true));
 			createTestNode("TestFour", new PropertyMap(key, false));
 			createTestNode("TestFour", new PropertyMap(key, null));
@@ -280,10 +278,6 @@ public class PropertyTest extends StructrTest {
 				assertEquals("Invalid search result for boolean null value",0, app.nodeQuery("TestFour").key(key, null).getAsList().size());
 
 				tx.success();
-
-			} finally {
-
-				Settings.CypherDebugLogging.setValue(false);
 			}
 
 		} catch (FrameworkException fex) {

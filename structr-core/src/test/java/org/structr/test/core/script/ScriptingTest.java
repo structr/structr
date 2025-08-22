@@ -2443,8 +2443,19 @@ public class ScriptingTest extends StructrTest {
 			func.append("    });\n");
 			func.append("}}");
 
-
 			final Object result = Scripting.evaluate(ctx, null, func.toString(), "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("After deleting all nodes of type TestOne in batches via doInNewTransaction, there should be none left.", 0, app.nodeQuery("TestOne").getAsList().size());
 
 			tx.success();
 
@@ -2474,6 +2485,18 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext ctx  = new ActionContext(securityContext, null);
 			Scripting.evaluate(ctx, null, "${delete(find('TestOne'))}", "test");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			assertEquals("After deleting all nodes of type TestOne, there should be none left.", 0, app.nodeQuery("TestOne").getAsList().size());
 
 			tx.success();
 

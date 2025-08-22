@@ -22,7 +22,6 @@ import com.google.gson.Gson;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.datasources.DataSources;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.property.EndNode;
 import org.structr.core.traits.StructrTraits;
@@ -32,8 +31,6 @@ import org.structr.flow.impl.FlowFunction;
 import org.structr.flow.impl.rels.*;
 import org.structr.flow.traits.definitions.*;
 import org.structr.module.StructrModule;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -138,23 +135,6 @@ public class FlowModule implements StructrModule {
 	@Override
 	public Set<String> getFeatures() {
 		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
-		return null;
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 
 	@Override

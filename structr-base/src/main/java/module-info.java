@@ -21,7 +21,6 @@ module structr.base {
 	requires java.management;
 	requires jdk.httpserver;
 	requires jdk.xml.dom;
-	requires transitive java.compiler;
 
 	requires transitive structr.db.driver.api;
 	requires com.google.common;
@@ -49,6 +48,9 @@ module structr.base {
 	requires org.apache.httpcomponents.httpcore;
 	requires org.apache.httpcomponents.httpmime;
 	requires org.apache.tika.core;
+	requires org.eclipse.elk.core;
+	requires org.eclipse.elk.graph;
+	requires org.eclipse.elk.graph.json;
 	requires org.eclipse.jetty.alpn.server;
 	requires org.eclipse.jetty.http2.common;
 	requires org.eclipse.jetty.http2.server;
@@ -77,12 +79,11 @@ module structr.base {
 	requires org.apache.commons.collections4;
 	requires org.apache.commons.codec;
 	requires org.apache.commons.text;
-	requires org.apache.commons.lang3;
 	requires java.desktop;
 	requires ch.qos.logback.classic;
 	requires org.neo4j.driver;
 	requires activation;
-	requires commons.lang;
+	requires org.apache.commons.lang3;
 	requires org.json;
 	requires org.antlr.antlr4.runtime;
 	requires com.twelvemonkeys.common.image;
@@ -101,6 +102,7 @@ module structr.base {
 	requires org.eclipse.jetty.ee10.servlets;
 	requires org.eclipse.jetty.websocket.api;
 	requires org.eclipse.jetty.websocket.server;
+	requires org.eclipse.jetty.websocket.core.server;
 
 	exports org.structr;
 	exports org.structr.agent;
@@ -163,7 +165,6 @@ module structr.base {
 	exports org.structr.rest.servlet;
 	exports org.structr.schema;
 	exports org.structr.schema.action;
-	exports org.structr.schema.compiler;
 	exports org.structr.schema.export;
 	exports org.structr.schema.importer;
 	exports org.structr.schema.openapi.common;

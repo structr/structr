@@ -171,13 +171,15 @@ require(['vs/editor/editor.main'], () => {
 
 	monaco.editor.onDidCreateEditor(newEditor => {
 
+		let editorReadOnly = newEditor.getRawOptions().readOnly;
+
 		newEditor.onDidChangeModel(e => {
 
 			// we currently never change models, this only serves as a helper for definition peek window to keep display-only models from being written to
 			let allowWrite = (e.oldModelUrl === null);
 
 			newEditor.updateOptions({
-				readOnly: !allowWrite
+				readOnly: (!allowWrite && !editorReadOnly)
 			});
 		});
 	});
@@ -1040,6 +1042,16 @@ let _Editors = {
 							<option>never</option>
 							<option>quotes</option>
 							<option>brackets</option>
+						</select>
+					</div>
+
+					<div class="editor-setting flex items-center p-1">
+						<label class="flex-grow">Auto-Closing Brackets</label>
+						<select name="autoClosingBrackets" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>always</option>
+							<option>languageDefined</option>
+							<option>beforeWhitespace</option>
+							<option>never</option>
 						</select>
 					</div>
 

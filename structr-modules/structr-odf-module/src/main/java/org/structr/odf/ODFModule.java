@@ -19,7 +19,6 @@
 package org.structr.odf;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
 import org.structr.odf.entity.relationship.ODFExporterEXPORTS_TOFile;
@@ -28,8 +27,6 @@ import org.structr.odf.entity.relationship.ODFExporterUSES_TEMPLATEFile;
 import org.structr.odf.traits.definitions.ODFExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODSExporterTraitDefinition;
 import org.structr.odf.traits.definitions.ODTExporterTraitDefinition;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
@@ -66,23 +63,6 @@ public class ODFModule implements StructrModule{
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(AbstractSchemaNode schemaNode, SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(AbstractSchemaNode schemaNode, SourceFile buf) {
-	}
-
-	@Override
-	public void insertSaveAction(AbstractSchemaNode schemaNode, SourceFile buf, Actions.Type type) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

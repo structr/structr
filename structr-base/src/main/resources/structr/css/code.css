@@ -186,3 +186,7 @@ h2.has-changes::after {
 #type-actions, #create-type-actions {
 	background-color: white;
 }
+
+li.highlight-name > a {
+	font-weight: bold;
+}

@@ -32,7 +32,6 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -73,44 +72,31 @@ public class IncludeChildFunction extends IncludeFunction {
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
-			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name((String)sources[0]).getAsList();
-
-			DOMNode node = null;
 
 			// Are we are in a Template node?
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.TEMPLATE)) {
 
-				final Template templateNode = n.as(Template.class);
+				final Template templateNode                = n.as(Template.class);
+				final List<NodeInterface> childrenWithName = templateNode.treeGetChildren().stream().filter(ni -> ni.as(DOMNode.class).getName().equals(sources[0])).toList();
+				final int childrenWithNameCount            = childrenWithName.size();
 
-				// Retrieve direct children and other nodes
-
-				final List<DOMNode> children = new ArrayList<>();
-
-				for (final NodeInterface ni : nodeList) {
-
-					final DOMNode domNode    = ni.as(DOMNode.class);
-					final DOMNode parentNode = domNode.getParent();
-
-					if (parentNode != null && parentNode.equals(templateNode) && !domNode.inTrash()) {
-						children.add(domNode);
-					}
-				}
-
-				if (children.size() == 1) {
+				if (childrenWithNameCount == 1) {
 
 					// Exactly one child found => use this node
+					return renderNode(securityContext, ctx, innerCtx, sources, app, childrenWithName.getFirst().as(DOMNode.class), true);
 
-					node = children.get(0);
-
-				} else if (children.size() > 1) {
+				} else if (childrenWithNameCount > 1) {
 
 					// More than one child node found => error
-					logger.warn("Error: Found more than one child node with name \"" + sources[0] + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")");
-					return "";
+					logger.warn(getName() + "(): Ambiguous child node name '" + sources[0] + "' (" + StringUtils.join(childrenWithName, ", ") + ")");
 				}
+
+			} else {
+
+				logger.warn(getName() + "(): Can only be used in a template context.");
 			}
 
-			return renderNode(securityContext, ctx, innerCtx, sources, app, node, true);
+			return "";
 
 		} catch (ArgumentNullException pe) {
 
@@ -131,7 +117,6 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Includes the content of the node with the given name (optionally as a repeater element)";
+		return "Includes the content of the child node with the given name (optionally as a repeater element)";
 	}
-
 }
