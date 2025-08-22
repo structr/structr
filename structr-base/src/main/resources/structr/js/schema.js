@@ -166,6 +166,7 @@ let _Schema = {
 			});
 
 			await _Schema.loadSchema();
+			_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
 
 			$('.node').css({ zIndex: ++_Schema.ui.maxZ });
 
@@ -4528,6 +4529,7 @@ let _Schema = {
 						_Schema.ui.zoomLevel = loadedConfig.zoom;
 						LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
 						_Schema.ui.panzoomInstance.zoom(_Schema.ui.zoomLevel);
+						_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
 
 						_Schema.ui.updateOverlayVisibility(loadedConfig.showRelLabels);
 
@@ -4853,6 +4855,7 @@ let _Schema = {
 			schemaContainerParent.addEventListener('wheel', (event) => {
 				panzoom.zoomWithWheel(event);
 				_Schema.ui.zoomLevel = panzoom.getScale();
+				_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
 
 				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
 			});
