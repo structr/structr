@@ -1086,6 +1086,12 @@ let _Schema = {
 								id: "sourceMultiplicity"
 							}],
 							["Label", {
+								cssClass: "label multiplicity",
+								label: res.targetMultiplicity ? res.targetMultiplicity : '*',
+								location: Math.max(.8 - offset, .6),
+								id: "targetMultiplicity"
+							}],
+							["Label", {
 								cssClass: "label rel-type",
 								label: `<div id="rel_${res.id}" class="flex items-center" data-name="${res.name}" data-source-type="${_Schema.nodeData[res.sourceId].name}" data-target-type="${_Schema.nodeData[res.targetId].name}">
 											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
@@ -1094,12 +1100,6 @@ let _Schema = {
 										</div>`,
 								location: .5,
 								id: "label"
-							}],
-							["Label", {
-								cssClass: "label multiplicity",
-								label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-								location: Math.max(.8 - offset, .6),
-								id: "targetMultiplicity"
 							}]
 						]
 					});
