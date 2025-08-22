@@ -58,9 +58,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	protected App app                                = null;
 	protected Map<String, NodeInterface> folderCache = null;
 
-	private final ArrayList<String> encounteredPaths               = new ArrayList<>();
-	private final Set<String> encounteredButNotConfiguredFilePaths = new HashSet<>();
-	private final Map<String, String> forceRenamedFilesAndFolders  = new HashMap<>();
+	private final ArrayList<String> encounteredPaths              = new ArrayList<>();
+	private final Set<String> encounteredButNotConfiguredPaths    = new HashSet<>();
+	private final Map<String, String> forceRenamedFilesAndFolders = new HashMap<>();
 
 	public FileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata) {
 
@@ -74,12 +74,21 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
 
+		boolean processSubtree = true;
+
 		if (!basePath.equals(dir)) {
 
-			createFolder(dir);
+			processSubtree = createFolder(dir);
 		}
 
-		return FileVisitResult.CONTINUE;
+		if (processSubtree) {
+
+			return FileVisitResult.CONTINUE;
+
+		} else {
+
+			return FileVisitResult.SKIP_SUBTREE;
+		}
 	}
 
 	@Override
@@ -108,10 +117,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	public FileImportProblems getFileImportProblems() {
 
 		// this is basically "remaining metadata after import" because for encountered files, this metadata is removed
-		final Set configuredButNotEncounteredPaths = new HashSet(metadata.keySet());
-		configuredButNotEncounteredPaths.removeAll(encounteredPaths);
+		final Set<String> configuredButNotEncounteredPaths = new HashSet<>(metadata.keySet());
+		encounteredPaths.forEach(configuredButNotEncounteredPaths::remove);
 
-		return new FileImportProblems(configuredButNotEncounteredPaths, encounteredButNotConfiguredFilePaths, forceRenamedFilesAndFolders);
+		return new FileImportProblems(configuredButNotEncounteredPaths, encounteredButNotConfiguredPaths, forceRenamedFilesAndFolders);
 	}
 
 	// ----- private methods -----
@@ -140,38 +149,46 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		return null;
 	}
 
-	protected void createFolder(final Path folderObj) {
+	protected boolean createFolder(final Path path) {
 
-		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
+		final String fullPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 		final Traits traits     = Traits.of(StructrTraits.FOLDER);
 
-		encounteredPaths.add(folderPath);
+		encounteredPaths.add(fullPath);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			tx.disableChangelog();
 
-			final NodeInterface existingFolder = getExistingFolder(folderPath);
-			final PropertyMap folderProperties = new PropertyMap(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), folderObj.getFileName().toString());
+			final NodeInterface existingFolder = getExistingFolder(fullPath);
+			final PropertyMap folderProperties = new PropertyMap(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString());
 
-			if (!basePath.equals(folderObj.getParent())) {
+			if (!basePath.equals(path.getParent())) {
 
-				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(folderObj.getParent()).toString());
+				final String parentPath = harmonizeFileSeparators("/", basePath.relativize(path.getParent()).toString());
 				folderProperties.put(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), getExistingFolder(parentPath));
 			}
 
 			// load properties from files.json
-			final PropertyMap properties = getConvertedPropertiesForFileOrFolder(folderPath);
+			final PropertyMap properties = getConvertedPropertiesForFileOrFolder(fullPath);
 			if (properties != null) {
 
 				folderProperties.putAll(properties);
+
+			} else {
+
+				logger.info("Ignoring folder and subtree: {} (not in files.json)", fullPath);
+
+				encounteredButNotConfiguredPaths.add(path.toString());
+
+				return false;
 			}
 
 			if (existingFolder == null) {
 
 				final NodeInterface newFolder = app.create(StructrTraits.FOLDER, folderProperties);
 
-				this.folderCache.put(folderPath, newFolder);
+				this.folderCache.put(fullPath, newFolder);
 
 			} else {
 
@@ -183,10 +200,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		} catch (Exception ex) {
 
-			logger.error("Error occurred while importing folder " + folderObj, ex);
+			logger.error("Error occurred while importing folder " + path, ex);
 		}
 
-		checkIfFileOrFolderWasRenamed(traits, folderPath, folderObj.getFileName().toString());
+		checkIfFileOrFolderWasRenamed(traits, fullPath, path.getFileName().toString());
+
+		return true;
 	}
 
 	protected void createFile(final Path path, final String fileName) throws IOException {
@@ -207,9 +226,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			if (rawProperties == null) {
 
-				logger.info("Ignoring {} (not in files.json)", fullPath);
+				logger.info("Ignoring file: {} (not in files.json)", fullPath);
 
-				encounteredButNotConfiguredFilePaths.add(path.toString());
+				encounteredButNotConfiguredPaths.add(path.toString());
 				wasIgnored = true;
 
 			} else {
@@ -460,30 +479,30 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		public boolean hasAnyProblems() {
 
-			return (configuredButNotEncountered.size() > 0 || encounteredButNotConfigured.size() > 0 || forceRenamedFilesAndFolders.size() > 0);
+			return !(configuredButNotEncountered.isEmpty() && encounteredButNotConfigured.isEmpty() && forceRenamedFilesAndFolders.isEmpty());
 		}
 
 		public String getProblemsHtml() {
 
-			final ArrayList<String> problems = new ArrayList();
+			final ArrayList<String> problems = new ArrayList<>();
 
-			if (configuredButNotEncountered.size() > 0) {
+			if (!configuredButNotEncountered.isEmpty()) {
 
 				problems.add(
 						"The following entries were configured in files.json, but the <b>expected files/folders were not found</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
-						+ "<ul><li>" + String.join("</li><li>", configuredButNotEncountered.stream().sorted().collect(Collectors.toList())) + "</li></ul>"
+						+ "<ul><li>" + configuredButNotEncountered.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 				);
 			}
 
-			if (encounteredButNotConfigured.size() > 0) {
+			if (!encounteredButNotConfigured.isEmpty()) {
 
 				problems.add(
-						"The following files were found, but <b>are missing in files.json</b>. The most common cause is that files.json was not correctly committed."
-						+ "<ul><li>" + String.join("</li><li>", encounteredButNotConfigured.stream().sorted().collect(Collectors.toList())) + "</li></ul>"
+						"The following files/folders were ignored because they <b>are missing in files.json</b>. For folders the complete subtree is ignored. The most common cause is that files.json was not correctly committed."
+						+ "<ul><li>" + encounteredButNotConfigured.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
 				);
 			}
 
-			if (forceRenamedFilesAndFolders.size() > 0) {
+			if (!forceRenamedFilesAndFolders.isEmpty()) {
 
 				problems.add(
 						"The following files/folders were auto-renamed to prevent name clashes. The most common cause is that a previously installed app was not removed completely. If files/folders are linked in the application, this link will not be restored and thus the app will not work as expected. Removing the clashing file/folder and re-importing is recommended."
@@ -496,19 +515,19 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		public String getProblemsText() {
 
-			final ArrayList<String> problems = new ArrayList();
+			final ArrayList<String> problems = new ArrayList<>();
 
-			if (configuredButNotEncountered.size() > 0) {
+			if (!configuredButNotEncountered.isEmpty()) {
 
-				problems.add("\tThe following entries were configured in files.json, but the expected files/folders were not found. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository.\n\t\t" + String.join("\n\t\t", configuredButNotEncountered.stream().sorted().collect(Collectors.toList())));
+				problems.add("\tThe following entries were configured in files.json, but the expected files/folders were not found. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository.\n\t\t" + configuredButNotEncountered.stream().sorted().collect(Collectors.joining("\n\t\t")));
 			}
 
-			if (encounteredButNotConfigured.size() > 0) {
+			if (!encounteredButNotConfigured.isEmpty()) {
 
-				problems.add("\tThe following files were found, but are missing in files.json. The most common cause is that files.json was not correctly committed.\n\t\t" + String.join("\n\t\t", encounteredButNotConfigured.stream().sorted().collect(Collectors.toList())));
+				problems.add("\tThe following files/folders were ignored because they are missing in files.json. For folders the complete subtree is ignored. The most common cause is that files.json was not correctly committed.\n\t\t" + encounteredButNotConfigured.stream().sorted().collect(Collectors.joining("\n\t\t")));
 			}
 
-			if (forceRenamedFilesAndFolders.size() > 0) {
+			if (!forceRenamedFilesAndFolders.isEmpty()) {
 
 				problems.add("\tThe following files/folders were auto-renamed to prevent name clashes. The most common cause is that a previously installed app was not removed completely. If files/folders are linked in the application, this link will not be restored and thus the app will not work as expected. Removing the clashing file/folder and re-importing is recommended.\n\t\t" + forceRenamedFilesAndFolders.entrySet().stream().map(entry -> entry.getKey() + " renamed to " + entry.getValue()).collect(Collectors.joining("\n\t\t")));
 			}
