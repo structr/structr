@@ -317,11 +317,6 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		}
 
 		@Override
-		public String getResourceSignature() {
-			return call.get("type") + "/_" + CaseHelper.toUpperCamelCase(propertyKey.jsonName());
-		}
-
-		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {
 			return Set.of("DELETE", "GET", "OPTIONS", "PUT", "POST");
 		}
