@@ -71,7 +71,7 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY, URL_PROPERTY, CONTENT_TYPE_PROPERTY
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY, URL_PROPERTY, CONTENT_TYPE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

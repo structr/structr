@@ -54,6 +54,11 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 
 	public static final String SCHEMA_NODE_PROPERTY                = "schemaNode";
 	public static final String STATIC_SCHEMA_NODE_NAME_PROPERTY    = "staticSchemaNodeName";
+	public static final String PRINCIPAL_PROPERTY                  = "principal";
+	public static final String ALLOW_READ_PROPERTY                 = "allowRead";
+	public static final String ALLOW_WRITE_PROPERTY                = "allowWrite";
+	public static final String ALLOW_DELETE_PROPERTY               = "allowDelete";
+	public static final String ALLOW_ACCESS_CONTROL_PROPERTY       = "allowAccessControl";
 
 	private static final Logger logger = LoggerFactory.getLogger(SchemaGrantTraitDefinition.class);
 
@@ -76,7 +81,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 					final Traits traits         = obj.getTraits();
 
 					// preserve order (for testing)
-					keys.add(traits.key("principal"));
+					keys.add(traits.key(PRINCIPAL_PROPERTY));
 					keys.add(traits.key(SCHEMA_NODE_PROPERTY));
 					keys.add(traits.key(STATIC_SCHEMA_NODE_NAME_PROPERTY));
 
@@ -100,13 +105,13 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<NodeInterface>  principal    = new StartNode("principal", StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
+		final Property<NodeInterface>  principal    = new StartNode(PRINCIPAL_PROPERTY, StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
 		final Property<NodeInterface> schemaNode    = new EndNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
 		final Property<String> staticSchemaNodeName = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
-		final Property<Boolean> allowRead           = new BooleanProperty("allowRead");
-		final Property<Boolean> allowWrite          = new BooleanProperty("allowWrite");
-		final Property<Boolean> allowDelete         = new BooleanProperty("allowDelete");
-		final Property<Boolean> allowAccessControl  = new BooleanProperty("allowAccessControl");
+		final Property<Boolean> allowRead           = new BooleanProperty(ALLOW_READ_PROPERTY);
+		final Property<Boolean> allowWrite          = new BooleanProperty(ALLOW_WRITE_PROPERTY);
+		final Property<Boolean> allowDelete         = new BooleanProperty(ALLOW_DELETE_PROPERTY);
+		final Property<Boolean> allowAccessControl  = new BooleanProperty(ALLOW_ACCESS_CONTROL_PROPERTY);
 
 		return newSet(
 			principal,
@@ -125,15 +130,18 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				"principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+					PRINCIPAL_PROPERTY, SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, ALLOW_READ_PROPERTY, ALLOW_WRITE_PROPERTY, ALLOW_DELETE_PROPERTY, ALLOW_ACCESS_CONTROL_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-				"principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+					PRINCIPAL_PROPERTY, SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, ALLOW_READ_PROPERTY, ALLOW_WRITE_PROPERTY, ALLOW_DELETE_PROPERTY, ALLOW_ACCESS_CONTROL_PROPERTY
 			),
+
 			PropertyView.Schema,
 			newSet(
-				"id", "principal", SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, "allowRead", "allowWrite", "allowDelete", "allowAccessControl"
+					GraphObjectTraitDefinition.ID_PROPERTY,
+					PRINCIPAL_PROPERTY, SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, ALLOW_READ_PROPERTY, ALLOW_WRITE_PROPERTY, ALLOW_DELETE_PROPERTY, ALLOW_ACCESS_CONTROL_PROPERTY
 			)
 		);
 	}

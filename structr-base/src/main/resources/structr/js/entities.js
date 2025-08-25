@@ -100,14 +100,11 @@ let _Entities = {
 	repeaterConfig: (entity, el) => {
 
 		let queryTypes = [
+			{ title: 'Flow', propertyName: 'flow' },
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
-
-		if (Structr.isModulePresent('flows')) {
-			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
-		}
 
 		let queryTypeButtonsContainer = el.querySelector('.query-type-buttons');
 
@@ -288,26 +285,16 @@ let _Entities = {
 			});
 		};
 
-		if (Structr.isModulePresent('flows')) {
+		flowSelector.insertAdjacentHTML('beforeend', '<option>--- Select Flow ---</option>');
 
-			flowSelector.insertAdjacentHTML('beforeend', '<option>--- Select Flow ---</option>');
+		Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, (flows) => {
 
-			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, (flows) => {
-
-				flowSelector.insertAdjacentHTML('beforeend', flows.map(flow => '<option value="' + flow.id + '">' + flow.effectiveName + '</option>').join());
-
-				initRepeaterInputs();
-
-				_Editors.resizeVisibleEditors();
-			});
-
-		} else {
-
-			flowSelector?.remove();
+			flowSelector.insertAdjacentHTML('beforeend', flows.map(flow => '<option value="' + flow.id + '">' + flow.effectiveName + '</option>').join());
 
 			initRepeaterInputs();
+
 			_Editors.resizeVisibleEditors();
-		}
+		});
 	},
 	editEmptyDiv: (entity) => {
 
@@ -2596,24 +2583,6 @@ let _Entities = {
 
 				el.html(_Entities.generalTab.templates.fileOptions({ file: entity }));
 
-				if (Structr.isModulePresent('text-search')) {
-
-					$('#content-extraction').removeClass('hidden');
-
-					$('button#extract-structure-button').on('click', async () => {
-
-						_Dialogs.custom.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
-
-						let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/extractStructure`, {
-							method: 'POST'
-						});
-
-						if (response.ok) {
-							_Dialogs.custom.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
-						}
-					});
-				}
-
 				_Entities.generalTab.populateInputFields(el, entity);
 				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
@@ -2715,7 +2684,7 @@ let _Entities = {
 				'Image':            { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.file },
 				'Folder':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.folder },
 				'Input':            { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.input },
-				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.generalTab.dialogs.ldapGroup, condition: () => { return Structr.isModulePresent('ldap-client'); } },
+				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.generalTab.dialogs.ldapGroup },
 				'Option':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.option },
 				'Page':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.page },
 				'Template':         { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.content },
@@ -3178,14 +3147,6 @@ let _Entities = {
 							</div>
 
 							${_Entities.generalTab.templates.includeInFrontendExport(config)}
-						</div>
-					</div>
-
-					<div id="content-extraction" class="hidden">
-						<h3>Content Extraction</h3>
-						<div>
-							<p>Extract text content from this document or image and store it in a StructuredDocument node with StructuredTextNode children.</p>
-							<button type="button" class="action" id="extract-structure-button">Extract document content</button>
 						</div>
 					</div>
 				</div>

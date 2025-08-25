@@ -136,9 +136,6 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			PropertyView.Public,
-			newSet(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY),
-
 			PropertyView.Ui,
 			newSet(HOST_PROPERTY, USER_PROPERTY, OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY, PASSWORD_PROPERTY, FOLDERS_PROPERTY, MAIL_PROTOCOL_PROPERTY, PORT_PROPERTY, AVAILABLE_FOLDERS_ON_SERVER_PROPERTY)
 		);

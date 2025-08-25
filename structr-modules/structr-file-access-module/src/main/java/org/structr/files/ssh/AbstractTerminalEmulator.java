@@ -20,6 +20,7 @@ package org.structr.files.ssh;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.sshd.common.channel.exception.SshChannelClosedException;
 
 import java.io.*;
 import java.util.List;
@@ -276,10 +277,15 @@ public abstract class AbstractTerminalEmulator extends Thread implements Termina
 						}
 						break;
 				}
-
 				writer.flush();
 
 			} catch (Throwable t) {
+
+				if (t instanceof SshChannelClosedException) {
+					logger.warn("SSH Channel closed unexpectedly");
+					terminalHandler.handleExit();
+					return;
+				}
 
 				logger.warn("Exception", t);
 

@@ -203,7 +203,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				NodeInterfaceTraitDefinition.NAME_PROPERTY, IS_GROUP_PROPERTY, MEMBERS_PROPERTY, PrincipalTraitDefinition.BLOCKED_PROPERTY
+					IS_GROUP_PROPERTY, MEMBERS_PROPERTY, PrincipalTraitDefinition.BLOCKED_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

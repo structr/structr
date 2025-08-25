@@ -83,13 +83,11 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 
 				PropertyView.Public,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
 				),
 
 				PropertyView.Ui,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
 				),
 
