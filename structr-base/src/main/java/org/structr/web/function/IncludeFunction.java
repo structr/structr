@@ -170,10 +170,6 @@ public class IncludeFunction extends UiCommunityFunction {
 				node.render(innerCtx, 0);
 			}
 
-			if (innerCtx.appLibRendered()) {
-				((RenderContext)ctx).setAppLibRendered(true);
-			}
-
 		} else {
 
 			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).name((String)sources[0]).getFirst();
