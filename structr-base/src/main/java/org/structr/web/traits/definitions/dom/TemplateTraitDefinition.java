@@ -163,7 +163,8 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					ContentTraitDefinition.CONTENT_PROPERTY, ContentTraitDefinition.CONTENT_TYPE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY
+					ContentTraitDefinition.CONTENT_PROPERTY, ContentTraitDefinition.CONTENT_TYPE_PROPERTY,
+					DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

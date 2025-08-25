@@ -1159,12 +1159,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				grants.add(grant);
 
 				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          schemaGrant.getUuid());
-				grant.put("principal",                   Map.of("name", schemaGrant.getPrincipalName()));
-				grant.put(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY,        schemaGrant.getStaticSchemaNodeName());
-				grant.put("allowRead",                   schemaGrant.allowRead());
-				grant.put("allowWrite",                  schemaGrant.allowWrite());
-				grant.put("allowDelete",                 schemaGrant.allowDelete());
-				grant.put("allowAccessControl",          schemaGrant.allowAccessControl());
+				grant.put(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY,                   Map.of("name", schemaGrant.getPrincipalName()));
+				grant.put(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY,     schemaGrant.getStaticSchemaNodeName());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY,                  schemaGrant.allowRead());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY,                 schemaGrant.allowWrite());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY,                schemaGrant.allowDelete());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY,        schemaGrant.allowAccessControl());
 
 				// schema node can be null
 				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();

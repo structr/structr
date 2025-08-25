@@ -175,10 +175,10 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 			grant = app.create(StructrTraits.SCHEMA_GRANT, getOrCreateProperties);
 		}
 
-		updateProperties.put(traits.key("allowRead"),          getAllowRead());
-		updateProperties.put(traits.key("allowWrite"),         getAllowWrite());
-		updateProperties.put(traits.key("allowDelete"),        getAllowDelete());
-		updateProperties.put(traits.key("allowAccessControl"), getAllowAccessControl());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY),           getAllowRead());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY),          getAllowWrite());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY),         getAllowDelete());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), getAllowAccessControl());
 
 		grant.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 

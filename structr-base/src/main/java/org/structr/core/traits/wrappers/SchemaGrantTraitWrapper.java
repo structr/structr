@@ -50,7 +50,7 @@ public class SchemaGrantTraitWrapper extends AbstractNodeTraitWrapper implements
 	@Override
 	public Principal getPrincipal() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key("principal"));
+		final NodeInterface node = wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY));
 		if (node != null) {
 
 			return node.as(Principal.class);
@@ -78,21 +78,21 @@ public class SchemaGrantTraitWrapper extends AbstractNodeTraitWrapper implements
 
 	@Override
 	public boolean allowRead() {
-		return wrappedObject.getProperty(traits.key("allowRead"));
+		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY));
 	}
 
 	@Override
 	public boolean allowWrite() {
-		return wrappedObject.getProperty(traits.key("allowWrite"));
+		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY));
 	}
 
 	@Override
 	public boolean allowDelete() {
-		return wrappedObject.getProperty(traits.key("allowDelete"));
+		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY));
 	}
 
 	@Override
 	public boolean allowAccessControl() {
-		return wrappedObject.getProperty(traits.key("allowAccessControl"));
+		return wrappedObject.getProperty(traits.key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY));
 	}
 }
