@@ -213,8 +213,6 @@ let _Schema = {
 				callback();
 			}
 		});
-
-		Structr.adaptUiToAvailableFeatures();
 	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');

@@ -54,8 +54,6 @@ let _Files = {
 		});
 
 		_Files.setViewMode(_Files.getViewMode());
-
-		Structr.adaptUiToAvailableFeatures();
 	},
 	resize: () => {
 		_Files.moveResizer();
@@ -184,7 +182,6 @@ let _Files = {
 		Structr.mainMenu.unblock(100);
 
 		Structr.resize();
-		Structr.adaptUiToAvailableFeatures();
 	},
 	handleNodeRefresh: (node) => {
 
@@ -2002,7 +1999,7 @@ let _Files = {
 				</div>
 			</div>
 
-			<div class="searchBox module-dependent" data-structr-module="text-search">
+			<div class="searchBox">
 				<input id="files-search-box" class="search" name="search" placeholder="Search...">
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>

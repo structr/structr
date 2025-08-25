@@ -39,8 +39,6 @@ let _Code = {
 	defaultPage: 1,
 
 	init: () => {
-
-		Structr.adaptUiToAvailableFeatures();
 	},
 	beforeunloadHandler: () => {
 		if (_Code.persistence.isDirty()) {
@@ -138,7 +136,6 @@ let _Code = {
 			Structr.mainMenu.unblock(100);
 
 			Structr.resize();
-			Structr.adaptUiToAvailableFeatures();
 		});
 	},
 	tree: {

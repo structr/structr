@@ -861,8 +861,6 @@ let _Pages = {
 			}
 		});
 
-		Structr.adaptUiToAvailableFeatures();
-
 		let selectedObjectId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
 		if (selectedObjectId) {
 

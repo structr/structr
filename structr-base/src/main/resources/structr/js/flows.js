@@ -34,8 +34,6 @@ let _Flows = {
 	_moduleName: 'flows',
 	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + location.port,
 	init: () => {
-
-		Structr.adaptUiToAvailableFeatures();
 	},
 	resize: () => {
 		_Flows.moveResizer();
