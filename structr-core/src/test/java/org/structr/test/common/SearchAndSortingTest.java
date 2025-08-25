@@ -36,6 +36,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
@@ -2644,6 +2645,81 @@ public class SearchAndSortingTest extends StructrTest {
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 
+		}
+	}
+
+	@Test
+	public void testFindWithALotOfPredicates() {
+
+		try (final Tx tx = app.tx()) {
+
+			final QueryGroup<NodeInterface> query          = app.nodeQuery(StructrTraits.USER).or();
+			final PropertyKey<Iterable<NodeInterface>> key = Traits.of(StructrTraits.USER).key("ownedNodes");
+			final NodeInterface dummy                      = app.create(StructrTraits.MAIL_TEMPLATE);
+			final List<NodeInterface> nodes                = List.of(dummy);
+
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+			query.key(key, nodes, false);
+
+			query.getAsList();
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
 		}
 	}
 
