@@ -68,10 +68,9 @@ public class HttpPostFunction extends UiAdvancedFunction {
 			Map<String, Object> config = null;
 
 			if (sources.length >= 7 && sources[6] != null && sources[6] instanceof Map) {
-				config = (Map) sources[4];
+				config = (Map) sources[6];
 			}
 
-			//, config, ctx.getSecurityContext()
 			// Extract character set from contentType if given
 			if (StringUtils.isNotBlank(contentType)) {
 
@@ -106,6 +105,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 				response.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
 
 			} else {
+
 				responseData = HttpHelper.post(address, body, username, password, ctx.getHeaders(),charset, ctx.isValidateCertificates(), config);
 				response     = processResponseData(ctx, caller, responseData, contentType);
 			}
@@ -135,15 +135,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		final GraphObjectMap response = new GraphObjectMap();
 
-		if ("application/json".equals(contentType)) {
-
-			final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-			response.setProperty(new GenericProperty<>(HttpHelper.FIELD_BODY), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
-
-		} else {
-
-			response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
-		}
+		response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
 
 		// Set status and headers
 		final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");

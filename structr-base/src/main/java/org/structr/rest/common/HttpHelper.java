@@ -425,23 +425,24 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = new URL(address).toURI();
+			final URI uri      = new URL(address).toURI();
 			final HttpPost req = new HttpPost(uri);
 
-			Integer timeout = null;
-			boolean redirects = false;
+			Integer timeout         = null;
+			boolean followRedirects = false;
 
-			if(config != null){
-				if(config.containsKey("timeout")){
+			if (config != null) {
+
+				if (config.containsKey("timeout")) {
 					timeout = (Integer) config.get("timeout");
 				}
 
-				if(config.containsKey("redirects")){
-					redirects = (Boolean) config.get("redirects");
+				if (config.containsKey("redirects")) {
+					followRedirects = (Boolean) config.get("redirects");
 				}
 			}
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirects, validateCertificates, timeout);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, followRedirects, validateCertificates, timeout);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
