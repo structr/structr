@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ((code === 'KeyH' || keyCode === 72) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			if (Structr.isModuleActive(_Schema)) {
-				_Schema.hideSelectedSchemaTypes();
+				_Schema.ui.selection.hideSelectedSchemaTypes();
 			}
 		}
 
@@ -1024,8 +1024,6 @@ let Structr = {
 	},
 	getActiveElementId: (element) => {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
-	},
-	adaptUiToAvailableFeatures: () => {
 	},
 	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
