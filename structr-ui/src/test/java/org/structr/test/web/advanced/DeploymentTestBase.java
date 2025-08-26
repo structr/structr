@@ -166,7 +166,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
-				if (folder.as(Folder.class).includeInFrontendExport()) {
+				if (folder.as(Folder.class).includeInFrontendExport(true)) {
 
 					buf.append("Folder ");
 					buf.append(folder.getName());
@@ -178,7 +178,7 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 			for (final NodeInterface file : app.nodeQuery(StructrTraits.FILE).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
-				if (file.as(File.class).includeInFrontendExport()) {
+				if (file.as(File.class).includeInFrontendExport(true)) {
 
 					buf.append("File ");
 					buf.append(file.getName());

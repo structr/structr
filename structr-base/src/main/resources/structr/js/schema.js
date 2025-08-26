@@ -140,6 +140,9 @@ let _Schema = {
 		_Schema.activateDisplayDropdownTools();
 		_Schema.activateAdminTools();
 
+		document.getElementById('hide-selected-types').addEventListener('click', _Schema.ui.selection.hideSelectedSchemaTypes);
+		_Schema.ui.updateHideSelectedTypesButton();
+
 		document.getElementById('create-type').addEventListener('click', _Schema.nodes.showCreateTypeDialog);
 		document.getElementById('user-defined-functions').addEventListener('click', _Schema.methods.showUserDefinedMethods);
 
@@ -4697,18 +4700,6 @@ let _Schema = {
 		_Schema.hiddenSchemaNodes = hiddenTypes;
 		LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 	},
-	hideSelectedSchemaTypes: () => {
-
-		if (_Schema.ui.selection.selectedNodes.length > 0) {
-
-			for (let n of _Schema.ui.selection.selectedNodes) {
-				_Schema.hiddenSchemaNodes.push(n.name);
-			}
-
-			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-			_Schema.reload();
-		}
-	},
 	overlapsExistingNodes: (position) => {
 		if (!position) {
 			return false;
@@ -4930,6 +4921,14 @@ let _Schema = {
 				});
 			}
 		},
+		updateHideSelectedTypesButton: () => {
+
+			let disabled = (_Schema.ui.selection.selectedNodes.length === 0);
+
+			let btn = document.getElementById('hide-selected-types');
+			btn.classList.toggle('disabled', disabled);
+			btn.disabled = disabled;
+		},
 		selection: {
 			selectionInProgress: false,
 			selectedRel: undefined,
@@ -4965,6 +4964,8 @@ let _Schema = {
 				_Schema.ui.selection.selectionStop();
 
 				_Schema.ui.selection.deselectRel();
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 			selectionStart: (e) => {
 
@@ -5029,6 +5030,8 @@ let _Schema = {
 						$el.removeClass('selected');
 					}
 				}
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 			isNodeInSelection: ($el, selectionRect) => {
 
@@ -5062,6 +5065,8 @@ let _Schema = {
 						}
 					});
 				}
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 			selectRel: (rel) => {
 
@@ -5090,6 +5095,20 @@ let _Schema = {
 
 					_Schema.ui.selection.selectedRel = undefined;
 				}
+			},
+			hideSelectedSchemaTypes: () => {
+
+				if (_Schema.ui.selection.selectedNodes.length > 0) {
+
+					for (let n of _Schema.ui.selection.selectedNodes) {
+						_Schema.hiddenSchemaNodes.push(n.name);
+					}
+
+					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+					_Schema.reload();
+				}
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 		},
 		updateOverlayVisibility: (show) => {
@@ -5440,6 +5459,10 @@ let _Schema = {
 							</div>
 						</div>
 					</div>
+					
+					<button id="hide-selected-types" class="btn hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						Hide selected types
+					</button>
 				</div>
 			</div>
 		`,

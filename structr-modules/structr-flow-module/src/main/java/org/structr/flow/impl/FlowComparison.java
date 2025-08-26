@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.flow.traits.definitions.FlowBaseNodeTraitDefinition;
 import org.structr.flow.traits.definitions.FlowComparisonTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
@@ -47,6 +48,16 @@ public class FlowComparison extends FlowCondition implements DeployableEntity {
 
 	public final void setValueSource(final FlowDataSource valueSource) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(FlowComparisonTraitDefinition.VALUE_SOURCE_PROPERTY), valueSource);
+	}
+
+	public final Iterable<FlowDataSource> getDataSources() {
+
+		final Iterable<NodeInterface> dataSources = wrappedObject.getProperty(traits.key(FlowComparisonTraitDefinition.DATA_SOURCES_PROPERTY));
+		return Iterables.map(n -> n.as(FlowDataSource.class), dataSources);
+	}
+
+	public final void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowComparisonTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
 	}
 
 	public final String getOperation() {
