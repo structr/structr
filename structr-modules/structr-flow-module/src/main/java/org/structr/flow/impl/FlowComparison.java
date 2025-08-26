@@ -22,13 +22,8 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.flow.traits.definitions.FlowBaseNodeTraitDefinition;
 import org.structr.flow.traits.definitions.FlowComparisonTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class FlowComparison extends FlowCondition implements DeployableEntity {
 
@@ -75,17 +70,6 @@ public class FlowComparison extends FlowCondition implements DeployableEntity {
 
 	public final void setDecisions(final Iterable<FlowDecision> decisions) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(FlowComparisonTraitDefinition.DECISIONS_PROPERTY), decisions);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,           getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,         getType());
-		result.put(FlowComparisonTraitDefinition.OPERATION_PROPERTY, getOperation());
-
-		return result;
 	}
 
 	public enum Operation {

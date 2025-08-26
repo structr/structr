@@ -22,12 +22,8 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.traits.definitions.FlowNotEmptyTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowNotEmpty extends FlowCondition implements DeployableEntity {
 
@@ -44,16 +40,5 @@ public class FlowNotEmpty extends FlowCondition implements DeployableEntity {
 
 	public void setDataSources(final Iterable<FlowDataSource> dataSources) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(FlowNotEmptyTraitDefinition.DATA_SOURCES_PROPERTY), dataSources);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,   getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY, getType());
-
-		return result;
 	}
 }

@@ -20,12 +20,8 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.traits.definitions.FlowSwitchCaseTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowSwitchCase extends FlowNode implements DeployableEntity {
 
@@ -35,19 +31,5 @@ public class FlowSwitchCase extends FlowNode implements DeployableEntity {
 
 	public String getSwitchCase() {
 		return wrappedObject.getProperty(traits.key(FlowSwitchCaseTraitDefinition.CASE_PROPERTY));
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(FlowSwitchCaseTraitDefinition.CASE_PROPERTY,                        getSwitchCase());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 }

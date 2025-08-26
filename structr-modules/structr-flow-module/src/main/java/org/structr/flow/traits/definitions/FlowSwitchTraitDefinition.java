@@ -75,7 +75,6 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<NodeInterface> switchDefault          = new EndNode(DEFAULT_PROPERTY, StructrTraits.FLOW_NODES);
 		final Property<Iterable<NodeInterface>> cases        = new EndNodes(CASES_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
 
-
 		return newSet(
 			switchDefault,
 			cases

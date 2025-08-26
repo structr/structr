@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -25,17 +26,18 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowComparison;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Map;
 import java.util.Set;
-
-import static org.structr.flow.traits.definitions.FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -53,69 +55,85 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowComparison comparison            = node.as(FlowComparison.class);
-					final String op                            = comparison.getOperation();
-					final Iterable<FlowDataSource> dataSources = comparison.getDataSources();
-					final FlowDataSource valueSource           = comparison.getValueSource();
+						final FlowComparison comparison            = node.as(FlowComparison.class);
+						final String op                            = comparison.getOperation();
+						final Iterable<FlowDataSource> dataSources = comparison.getDataSources();
+						final FlowDataSource valueSource           = comparison.getValueSource();
 
-					if (op == null) {
+						if (op == null) {
 
-						return false;
-					}
-
-					boolean result = true;
-
-					for (FlowDataSource dataSource : dataSources) {
-
-						Object data = dataSource.get(context);
-						Object value = valueSource == null ? null : valueSource.get(context);
-
-						if (data == null || data instanceof Comparable) {
-
-							if (data != null && data.getClass().isEnum()) {
-
-								data = ((Enum) data).name();
-							} else if (data instanceof Number && value instanceof Number) {
-
-								data = ((Number) data).doubleValue();
-								value = ((Number) value).doubleValue();
-							}
-
-							Comparable c = (Comparable) data;
-
-							switch (op) {
-								case "equal":
-									result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
-									break;
-								case "notEqual":
-									result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) != 0));
-									break;
-								case "greater":
-									result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
-									break;
-								case "greaterOrEqual":
-									result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
-									break;
-								case "less":
-									result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
-									break;
-								case "lessOrEqual":
-									result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) <= 0));
-									break;
-							}
+							return false;
 						}
 
-					}
+						boolean result = true;
 
-					return result;
+						for (FlowDataSource dataSource : dataSources) {
+
+							Object data = dataSource.get(context);
+							Object value = valueSource == null ? null : valueSource.get(context);
+
+							if (data == null || data instanceof Comparable) {
+
+								if (data != null && data.getClass().isEnum()) {
+
+									data = ((Enum) data).name();
+								} else if (data instanceof Number && value instanceof Number) {
+
+									data = ((Number) data).doubleValue();
+									value = ((Number) value).doubleValue();
+								}
+
+								Comparable c = (Comparable) data;
+
+								switch (op) {
+									case "equal":
+										result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
+										break;
+									case "notEqual":
+										result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) != 0));
+										break;
+									case "greater":
+										result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
+										break;
+									case "greaterOrEqual":
+										result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
+										break;
+									case "less":
+										result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
+										break;
+									case "lessOrEqual":
+										result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) <= 0));
+										break;
+								}
+							}
+
+						}
+
+						return result;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,           flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,         flowBaseNode.getType());
+						result.put(FlowComparisonTraitDefinition.OPERATION_PROPERTY, flowBaseNode.as(FlowComparison.class).getOperation());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

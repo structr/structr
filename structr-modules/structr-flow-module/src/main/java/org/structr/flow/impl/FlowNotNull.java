@@ -21,12 +21,8 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.traits.definitions.FlowNotNullTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowNotNull extends FlowCondition implements DeployableEntity {
 
@@ -39,16 +35,5 @@ public class FlowNotNull extends FlowCondition implements DeployableEntity {
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowNotNullTraitDefinition.DATA_SOURCES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowDataSource.class), nodes);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,   getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY, getType());
-
-		return result;
 	}
 }

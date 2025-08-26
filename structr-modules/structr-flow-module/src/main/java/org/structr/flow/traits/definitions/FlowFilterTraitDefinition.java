@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -28,14 +29,17 @@ import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowFilter;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
@@ -55,34 +59,51 @@ public class FlowFilterTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Filter;
-				}
-			},
-
-			DataSourceOperations.class,
-			new DataSourceOperations() {
-
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
-
-					final FlowFilter filter = node.as(FlowFilter.class);
-					final String uuid       = node.getUuid();
-
-					Object data = context.getData(uuid);
-					if (data == null) {
-
-						filter.filter(context);
-						data = context.getData(uuid);
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Filter;
 					}
+				},
 
-					return data;
+				DataSourceOperations.class,
+				new DataSourceOperations() {
+
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+						final FlowFilter filter = node.as(FlowFilter.class);
+						final String uuid       = node.getUuid();
+
+						Object data = context.getData(uuid);
+						if (data == null) {
+
+							filter.filter(context);
+							data = context.getData(uuid);
+						}
+
+						return data;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

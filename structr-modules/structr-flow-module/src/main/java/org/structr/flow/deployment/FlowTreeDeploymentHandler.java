@@ -80,7 +80,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 			FileUtils.deleteDirectory(baseFolder.toFile());
 			baseFolder = Files.createDirectories(baseFolder);
 
-
 			try (final Tx tx = app.tx()) {
 
 				final Iterable<NodeInterface> flows = app.nodeQuery(StructrTraits.FLOW_CONTAINER).getResultStream();
@@ -97,7 +96,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			throw new FrameworkException(500, ex.getMessage());
 		}
-
 	}
 
 	@Override
@@ -287,7 +285,7 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 				final Map<String, Object> exportData   = node.exportData();
 				final Map<String, String> scriptData   = new HashMap<>();
 
-				// Remove scripts from exportData and export them seperately
+				// Remove scripts from exportData and export them separately
 				for (final String key : FLOW_SCRIPT_ATTRIBUTES) {
 					if (exportData.containsKey(key)) {
 						if (exportData.get(key) != null) {
@@ -326,7 +324,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 		}
 	}
 
-
 	private void exportRelationship(final Path target, final RelationshipInterface rel) throws FrameworkException {
 
 		try {
@@ -350,8 +347,6 @@ public class FlowTreeDeploymentHandler extends FlowAbstractDeploymentHandler imp
 
 			throw new FrameworkException(500, ex.getMessage());
 		}
-
-
 	}
 
 	private PropertyMap convertMapToPropertyMap(final String type, final Map<String,Object> map) {

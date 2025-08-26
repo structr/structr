@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
@@ -28,9 +29,11 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowCollectionDataSource;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
@@ -39,6 +42,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -53,27 +57,44 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowCollectionDataSource dataSource = node.as(FlowCollectionDataSource.class);
-					final List<FlowDataSource> sources        = Iterables.toList(dataSource.getDataSources());
-					final List<Object> result                 = new ArrayList<>();
+						final FlowCollectionDataSource dataSource = node.as(FlowCollectionDataSource.class);
+						final List<FlowDataSource> sources        = Iterables.toList(dataSource.getDataSources());
+						final List<Object> result                 = new ArrayList<>();
 
-					if (sources != null) {
+						if (sources != null) {
 
-						for (final FlowDataSource source : sources) {
+							for (final FlowDataSource source : sources) {
 
-							result.add(source.get(context));
+								result.add(source.get(context));
+							}
 						}
-					}
 
-					return result;
+						return result;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

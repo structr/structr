@@ -20,14 +20,10 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.traits.operations.LogicConditionOperations;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowLogicCondition extends FlowCondition implements DeployableEntity {
 
@@ -37,19 +33,6 @@ public class FlowLogicCondition extends FlowCondition implements DeployableEntit
 
 	public final Boolean combine(final Boolean result, final Boolean value) {
 		return traits.getMethod(LogicConditionOperations.class).combine(this, result, value);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                          getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                        getType());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 
 	public static boolean getBoolean(final Context context, final FlowDataSource source) throws FlowException {
