@@ -138,14 +138,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			Structr.openEditorDialogForUserProvidedUUID();
 		}
 
-		// Ctrl-Alt-h
-		if ((code === 'KeyH' || keyCode === 72) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			if (Structr.isModuleActive(_Schema)) {
-				_Schema.ui.selection.hideSelectedSchemaTypes();
-			}
-		}
-
 		// Ctrl-Alt-e
 		if ((code === 'KeyE' || keyCode === 69) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
