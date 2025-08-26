@@ -58,6 +58,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -1908,6 +1909,110 @@ public class SystemTest extends StructrTest {
 			final List<NodeInterface> groups = app.nodeQuery(StructrTraits.GROUP).getAsList();
 
 			assertTrue(groups.isEmpty());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testOnSaveAfterModificationWithUserContext() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(StructrTraits.USER, "tester1").as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, "tester2").as(Principal.class);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToMany, "project", "tasks");
+
+			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
+
+		// create project and two tasks with one user
+		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+		try (final Tx tx = tester1App.tx()) {
+
+			final NodeInterface project = tester1App.create("Project", "Project #1");
+			final NodeInterface task1   = tester1App.create("Task", "Task #1");
+			final NodeInterface task2   = tester1App.create("Task", "Task #2");
+
+			// allow access to project but not to tasks for both users
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester1);
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// allow access to only one task so we can check what happens
+			task2.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// associate project with both tasks
+			project.setProperty(tasksKey, List.of(task1, task2));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// try to remove tasks with user that is not allowed to see task1
+		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+		try (final Tx tx = tester2App.tx()) {
+
+			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
+
+			// associate project with both tasks
+			project.setProperty(tasksKey, List.of());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check names of objects (should contain the name of the last accessor)
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> nodes = new LinkedList<>();
+
+			nodes.addAll(app.nodeQuery("Project").getAsList());
+			nodes.addAll(app.nodeQuery("Task").getAsList());
+
+			final NodeInterface project = nodes.get(0);
+			final NodeInterface task1   = nodes.get(1);
+			final NodeInterface task2   = nodes.get(2);
+
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", project.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Created by tester1", task1.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", task2.getName());
+
+			final List<NodeInterface> tasks = Iterables.toList(project.getProperty(tasksKey));
+
+			assertEquals("Exactly one task should be left", 1, tasks.size());
 
 			tx.success();
 

@@ -343,8 +343,8 @@ public class ModificationQueue {
 
 		getState(relationship).delete(passive);
 
-		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
-		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
+		final NodeInterface sourceNode = relationship.getSourceNode();
+		final NodeInterface targetNode = relationship.getTargetNode();
 
 		modifyEndNodes(user, sourceNode, targetNode, relationship, true);
 
