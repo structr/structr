@@ -15,7 +15,7 @@ export class FlowComparison extends FlowNode {
             template: FlowComparison._nodeTemplate(),
             builder(node) {
                 let socket = FlowSockets.getInst();
-                let dataSources = new D3NE.Input('DataSources', socket.getSocket('condition_dataSource'), true);
+                let dataSources = new D3NE.Input('DataSources', socket.getSocket('dataSources'), true);
                 let valueSource = new D3NE.Input('ValueSource', socket.getSocket('valueSource'), true);
                 let result = new D3NE.Output('Result', socket.getSocket('condition_Result'), true);
 

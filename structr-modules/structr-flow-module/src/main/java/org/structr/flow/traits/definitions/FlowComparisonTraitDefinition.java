@@ -42,6 +42,7 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String OPERATION_PROPERTY    = "operation";
 	public static final String VALUE_SOURCE_PROPERTY = "valueSource";
 	public static final String DECISIONS_PROPERTY     = "decisions";
+	public static final String DATA_SOURCES_PROPERTY    = "dataSources";
 
 	public FlowComparisonTraitDefinition() {
 		super(StructrTraits.FLOW_COMPARISON);
@@ -58,53 +59,58 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowComparison comparison         = node.as(FlowComparison.class);
-					final String op                         = comparison.getOperation();
-					final FlowDataSource dataSource         = comparison.getDataSource();
-					final FlowDataSource valueSource        = comparison.getValueSource();
+					final FlowComparison comparison            = node.as(FlowComparison.class);
+					final String op                            = comparison.getOperation();
+					final Iterable<FlowDataSource> dataSources = comparison.getDataSources();
+					final FlowDataSource valueSource           = comparison.getValueSource();
 
-					if (op == null || dataSource == null) {
+					if (op == null) {
+
 						return false;
 					}
 
-					Boolean result = true;
+					boolean result = true;
 
-					Object data = dataSource.get(context);
-					Object value = valueSource == null ? null : valueSource.get(context);
+					for (FlowDataSource dataSource : dataSources) {
 
-					if (data == null || data instanceof Comparable) {
+						Object data = dataSource.get(context);
+						Object value = valueSource == null ? null : valueSource.get(context);
 
-						if (data != null && data.getClass().isEnum()) {
+						if (data == null || data instanceof Comparable) {
 
-							data = ((Enum)data).name();
-						} else if (data instanceof Number && value instanceof Number) {
+							if (data != null && data.getClass().isEnum()) {
 
-							data = ((Number)data).doubleValue();
-							value = ((Number)value).doubleValue();
+								data = ((Enum) data).name();
+							} else if (data instanceof Number && value instanceof Number) {
+
+								data = ((Number) data).doubleValue();
+								value = ((Number) value).doubleValue();
+							}
+
+							Comparable c = (Comparable) data;
+
+							switch (op) {
+								case "equal":
+									result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
+									break;
+								case "notEqual":
+									result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) != 0));
+									break;
+								case "greater":
+									result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
+									break;
+								case "greaterOrEqual":
+									result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
+									break;
+								case "less":
+									result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
+									break;
+								case "lessOrEqual":
+									result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) <= 0));
+									break;
+							}
 						}
 
-						Comparable c = (Comparable) data;
-
-						switch (op) {
-							case "equal":
-								result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) == 0));
-								break;
-							case "notEqual":
-								result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) != 0));
-								break;
-							case "greater":
-								result = result && ((c != null && value == null) || (c != null && value != null && c.compareTo(value) > 0));
-								break;
-							case "greaterOrEqual":
-								result = result && ((c == null && value == null) || (c != null && value != null && c.compareTo(value) >= 0));
-								break;
-							case "less":
-								result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) < 0));
-								break;
-							case "lessOrEqual":
-								result = result && ((c == null && value != null) || (c != null && value != null && c.compareTo(value) <= 0));
-								break;
-						}
 					}
 
 					return result;
@@ -117,7 +123,7 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
-			FlowComparison.class, (traits, node) -> new FlowComparison(traits, node)
+			FlowComparison.class, FlowComparison::new
 		);
 	}
 
@@ -127,11 +133,13 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> operation                    = new EnumProperty(OPERATION_PROPERTY, FlowComparison.Operation.class);
 		final Property<NodeInterface> valueSource           = new StartNode(VALUE_SOURCE_PROPERTY, StructrTraits.FLOW_VALUE_INPUT);
 		final Property<Iterable<NodeInterface>> decisions   = new EndNodes(DECISIONS_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
+		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
 
 		return newSet(
 			operation,
 			valueSource,
-			decisions
+			decisions,
+			dataSources
 		);
 	}
 
@@ -141,12 +149,12 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				DATA_SOURCE_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
+				DATA_SOURCES_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				DATA_SOURCE_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
+				DATA_SOURCES_PROPERTY, VALUE_SOURCE_PROPERTY, DECISIONS_PROPERTY, OPERATION_PROPERTY
 			)
 		);
 	}
