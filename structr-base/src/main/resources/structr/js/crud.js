@@ -295,7 +295,7 @@ let _Crud = {
 					let isCustomRelType = isRelType && !type.isBuiltin;
 					let isDynamicType   = !isRelType && !type.isBuiltin;
 					let isHtmlType      = type.traits.includes('DOMNode');
-					let isFlowType      = type.traits.includes('FlowNode');
+					let isFlowType      = type.traits.includes('FlowBaseNode');
 					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
 
 					let hide = (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) ||
