@@ -5440,6 +5440,10 @@ let _Schema = {
 							</div>
 						</div>
 					</div>
+					
+					<button class="btn hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
+						Hide selected types
+					</button>
 				</div>
 			</div>
 		`,

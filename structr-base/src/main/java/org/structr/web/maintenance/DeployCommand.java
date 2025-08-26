@@ -1455,7 +1455,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,         file.getCacheForSeconds());
 		}
 
-		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport());
+		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport(false));
 
 		if (abstractFile.is(StructrTraits.LINKABLE)) {
 

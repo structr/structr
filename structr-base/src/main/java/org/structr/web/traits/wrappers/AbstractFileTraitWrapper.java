@@ -172,18 +172,20 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public boolean includeInFrontendExport() {
+	public boolean includeInFrontendExport(final boolean recursive) {
 
 		if (wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY))) {
 
 			return true;
 		}
 
-		final NodeInterface parent = getParent();
-		if (parent != null) {
+		if (recursive) {
 
-			// recurse
-			return parent.as(Folder.class).includeInFrontendExport();
+			final NodeInterface parent = getParent();
+			if (parent != null) {
+
+				return parent.as(Folder.class).includeInFrontendExport(true);
+			}
 		}
 
 		return false;
