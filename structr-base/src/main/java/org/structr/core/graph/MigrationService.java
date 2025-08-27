@@ -80,9 +80,12 @@ public class MigrationService {
 	);
 
 	private static final Set<String> SchemaPropertyMigrationBlacklist = Set.of(
+		"AbstractFile.isMounted",
+		"AbstractFile.name",
 		"AbstractFile.nextSiblingId",
 		"AbstractFile.parentId",
 		"Audio._html_mediagroup",
+		"Content.content",
 		"DOMElement.",
 		"DOMElement.data-structr-action",
 		"DOMElement.data-structr-append-id",
@@ -104,7 +107,13 @@ public class MigrationService {
 		"DOMNode.hideOnDetail",
 		"DOMNode.hideOnIndex",
 		"DOMNode.renderDetails",
+		"DOMNode.childrenIds",
+		"DOMNode.pageId",
+		"DOMNode.parentId",
+		"DOMNode.sortedChildren",
+		"DOMNode.syncedNodesIds",
 		"DOMNode.xpathQuery",
+		"DOMElement._html_id",
 		"DOMElement.data-structr-target",
 		"DOMElement.data-structr-type",
 		"LDAPUser.commonName",
@@ -117,6 +126,7 @@ public class MigrationService {
 		"MQTTClient.url",
 		"PaymentNode.state",
 		"Person.twitterName",
+		"Principal.currentAccessToken",
 		"Principal.customPermissionQueryAccessControl",
 		"Principal.customPermissionQueryDelete",
 		"Principal.customPermissionQueryRead",
@@ -124,17 +134,43 @@ public class MigrationService {
 		"Principal.twoFactorCode",
 		"Textarea._html_maxlenght",
 		"User.twitterName",
-		"Video._html_mediagroup"
+		"Video._html_mediagroup",
+
+		// 4.2 migration
+		"DataFeed.description",
+		"DataFeed.feedType",
+		"FeedItem.checksum",
+		"FeedItem.pubDate",
+		"FeedItem.updatedDate",
+		"FeedItem.url",
+		"FeedItem.version",
+		"Image.tnMid",
+		"Image.tnSmall",
+		"LinkSource.linkableId",
+		"Linkable.linkingElementsIds",
+		"Localization.imported",
+		"Mailbox.mailProtocol",
+		"RemoteDocument.version",
+		"Template.content",
+		"VideoFile.duration",
+		"VideoFile.height",
+		"VideoFile.sampleRate",
+		"VideoFile.width",
+		"Widget.isPageTemplate",
+		"Widget.treePath",
+		"XMPPClient.presenceMode",
+		"XMPPRequest.requestType"
 	);
 
-	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
+	public static final Set<String> StaticTypeMigrationBlacklist = Set.of(
 		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
 		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
 		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
 		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
 		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
 		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
-		"MinifiedCssFile", "MinifiedJavaScriptFile"
+		"MinifiedCssFile", "MinifiedJavaScriptFile", "LDAPGroup",
+		"LDAPUser", "PaymentItemNode", "PaymentNode", "Person"
 	);
 
 	public static void execute() {
@@ -276,8 +312,8 @@ public class MigrationService {
 						}
 					}
 
-					// remove empty schema nodes
-					if (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods())) {
+					// remove empty or blacklisted schema nodes
+					if (typeShouldBeRemoved(schemaNode.getName()) || (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods()))) {
 
 						logger.info("DELETING empty schema node {}", schemaNode.getName());
 						app.delete(schemaNode);
