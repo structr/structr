@@ -49,7 +49,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "url, body [, contentType, charset ]";
+		return "url, body [, contentType, charset, username, password, configMap ]";
 	}
 
 	@Override
