@@ -36,8 +36,8 @@ import java.util.Map;
 
 public class HttpPostFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset, username, password])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}";
-	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}";
+	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}";
+	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}";
 
 	protected final String DEFAULT_CONTENT_TYPE = "application/json";
 	protected final String DEFAULT_CHARSET      = "UTF-8";
@@ -49,7 +49,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "url, body [, contentType, charset ]";
+		return "url, body [, contentType, charset, username, password, configMap ]";
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Sends an HTTP POST request to the given URL and returns the response body";
+		return "Sends an HTTP POST request to the given URL and returns the response body. The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.";
 	}
 
 	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final String contentType) throws FrameworkException {
