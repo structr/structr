@@ -90,6 +90,8 @@ public class SchemaService implements Service {
 
 		} else {
 
+			blacklist("Favoritable");
+
 			final App app = StructrApp.getInstance();
 			final long t0 = System.currentTimeMillis();
 

@@ -256,6 +256,65 @@ public class GraphObjectModificationState implements ModificationEvent {
 	 */
 	public boolean doInnerCallback(final ModificationQueue modificationQueue, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final CallbackCounter counter) throws FrameworkException {
 
+		final SecurityContext givenSecurityContext  = securityContext;
+		final SecurityContext objectSecurityContext = object.getSecurityContext();
+		SecurityContext innerSecurityContext        = null;
+
+		// if both security contexts are set, we will always choose the non-admin context to avoid privilege escalations
+		if (givenSecurityContext != null && objectSecurityContext != null) {
+
+			if (givenSecurityContext.isSuperUser()) {
+
+				if (objectSecurityContext.isSuperUser()) {
+
+					// both SCs are admin contexts, use given SC from the outside
+					innerSecurityContext = givenSecurityContext;
+
+				} else {
+
+					// use non-admin SC
+					innerSecurityContext = objectSecurityContext;
+				}
+
+			} else {
+
+				if (objectSecurityContext.isSuperUser()) {
+
+					// given security context is non-admin, use that one
+					innerSecurityContext = givenSecurityContext;
+
+				} else {
+
+					// both SCs are non-admin, which one do we use?
+					innerSecurityContext = givenSecurityContext;
+				}
+			}
+
+		} else {
+
+			if (givenSecurityContext != null && !givenSecurityContext.isSuperUser()) {
+
+				innerSecurityContext = givenSecurityContext;
+
+			} else if (objectSecurityContext != null && !objectSecurityContext.isSuperUser()) {
+
+				innerSecurityContext = objectSecurityContext;
+			}
+		}
+
+		if (innerSecurityContext == null) {
+
+			// use the one that is non-null
+			if (givenSecurityContext != null) {
+
+				innerSecurityContext = givenSecurityContext;
+
+			} else if (objectSecurityContext != null) {
+
+				innerSecurityContext = objectSecurityContext;
+			}
+		}
+
 		// examine only the last 4 bits here
 		switch (status & 0x000f) {
 
@@ -275,7 +334,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 6: // created, modified => only creation callback will be called
 				counter.onCreate();
-				object.onCreation(object.getSecurityContext(), errorBuffer);
+				object.onCreation(innerSecurityContext, errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
@@ -283,22 +342,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 4: // created => creation callback
 				counter.onCreate();
-				object.onCreation(object.getSecurityContext(), errorBuffer);
+				object.onCreation(innerSecurityContext, errorBuffer);
 				break;
 
 			case 3: // modified, deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(object.getSecurityContext(), errorBuffer, removedProperties);
+				object.onDeletion(innerSecurityContext, errorBuffer, removedProperties);
 				break;
 
 			case 2: // modified => modification callback
 				counter.onSave();
-				object.onModification(object.getSecurityContext(), errorBuffer, modificationQueue);
+				object.onModification(innerSecurityContext, errorBuffer, modificationQueue);
 				break;
 
 			case 1: // deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(object.getSecurityContext(), errorBuffer, removedProperties);
+				object.onDeletion(innerSecurityContext, errorBuffer, removedProperties);
 				break;
 
 			case 0:	// no action, no callback
