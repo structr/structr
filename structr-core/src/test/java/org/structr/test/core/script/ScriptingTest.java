@@ -53,7 +53,6 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
-import org.structr.core.traits.relationships.SchemaNodePropertyDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -7447,6 +7446,62 @@ public class ScriptingTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testDoAsWithUserContext() {
+
+		final ActionContext ctx = new ActionContext(SecurityContext.getSuperUserInstance());
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema         = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("TestDoAs");
+
+			type.addMethod("onCreation", "{ $.this.name += ', created by ' + $.me.name; $.log($.me); }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			// we need to create three users
+			app.create(StructrTraits.USER, "A");
+			app.create(StructrTraits.USER, "B");
+			app.create(StructrTraits.USER, "C");
+
+			ScriptTestHelper.testExternalScript(ctx, ScriptingTest.class.getResourceAsStream("/test/scripting/testDoAs.js"));
+
+			tx.success();
+
+		} catch (FrameworkException e) {
+			e.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// wait for schedule()..
+		try { Thread.sleep(5000); } catch (Throwable t) {}
+
+		try (final Tx tx = app.tx()) {
+
+			for (final NodeInterface n : app.nodeQuery("TestDoAs").getResultStream()) {
+
+				System.out.println(n.getName());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException e) {
+			e.printStackTrace();
+			fail("Unexpected exception.");
 		}
 	}
 

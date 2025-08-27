@@ -23,6 +23,7 @@ import org.structr.core.function.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.*;
+import org.structr.web.function.ScheduleFunction;
 
 import java.util.Set;
 
@@ -195,6 +196,7 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new PrefetchFunction());
 		Functions.put(licenseManager, new AddLabelsFunction());
 		Functions.put(licenseManager, new RemoveLabelsFunction());
+		Functions.put(licenseManager, new ScheduleFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());
