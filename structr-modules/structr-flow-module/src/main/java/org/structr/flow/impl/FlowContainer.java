@@ -87,7 +87,7 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), false);
+		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), b);
 	}
 
 	public void setStartNode(final FlowNode next) throws FrameworkException {
