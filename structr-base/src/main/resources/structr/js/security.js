@@ -239,7 +239,7 @@ let _Security = {
 				<div id="add-resource-access-permission" class="flex items-center">
 					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="combined-input-create">
 					<button class="action add_permission_icon button inline-flex items-center combined-input-create">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Permisson
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Permission
 					</button>
 				</div>
 
