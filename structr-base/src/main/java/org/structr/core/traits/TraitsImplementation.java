@@ -133,7 +133,7 @@ public class TraitsImplementation implements Traits {
 		}
 
 		if (throwException) {
-			throw new RuntimeException("Missing property key " + name + " of type " + typeName);
+			throw new RuntimeException("Missing property key '" + name + "' of type '" + typeName + "'.");
 		}
 
 		return null;
