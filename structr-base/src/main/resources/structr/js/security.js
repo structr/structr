@@ -1086,7 +1086,7 @@ let _CorsSettings = {
 
 		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${corsSetting.id}" class="cors-setting">
-				<td class="title-cell"><b>${corsSetting.requestUri}</b></td>
+				<td class="title-cell"><input type="text" class="cors-request-uri" data-attr-key="requestUri" size="40" value="${corsSetting.requestUri || ''}"></td>
 				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']), 'Delete')}</td>
 				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins || ''}"></td>
 				<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge || ''}"></td>
