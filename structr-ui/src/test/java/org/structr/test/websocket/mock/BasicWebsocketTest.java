@@ -18,19 +18,19 @@
  */
 package org.structr.test.websocket.mock;
 
-import io.restassured.RestAssured;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Localization;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -43,7 +43,6 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.Base64;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -462,23 +461,30 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	public void testRawResultCountWithCypher() {
 
 		// setup: create 100 Localizations
-		final List<String> parts = new LinkedList<>();
+		try (final Tx tx = app.tx()) {
 
-		for (int i=0; i<100; i++) {
-			parts.add("{ name: test" + i + ", locale: de, domain: test, localizedName: localizedTest" + i + " }");
+			for (int i = 0; i < 100; i++) {
+
+				final Localization l = app.create(StructrTraits.LOCALIZATION).as(Localization.class);
+
+				l.setName("test" + i);
+				l.setDomain("test");
+				l.setLocale("de");
+				l.setLocalizedName("localizedTest" + i);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
 		}
 
-		RestAssured
-			.given()
-			.contentType("application/json; charset=UTF-8")
-			.body(" [ " + StringUtils.join(parts, ", ") + " ] ")
-			.when().post("/Localization").getBody().as(Map.class);
+		try { Thread.sleep(1000); } catch (Throwable t) {}
 
-		try { Thread.sleep(100); } catch (Throwable t) {}
-
-
-		final String query     = "MATCH (n:Localization) RETURN DISTINCT { name: n.name, domain: n.domain } as res ORDER BY res.name asc";
-		final String sessionId = "TESTSESSION";
+		final String tenantIdentifier = app.getDatabaseService().getTenantIdentifier();
+		final String query            = "MATCH (n:Localization:" + tenantIdentifier + ") RETURN DISTINCT { name: n.name, domain: n.domain } as res ORDER BY res.name asc";
+		final String sessionId        = "TESTSESSION";
 
 		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
