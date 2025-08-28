@@ -18,7 +18,9 @@
  */
 package org.structr.test.websocket.mock;
 
+import io.restassured.RestAssured;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -41,6 +43,7 @@ import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.util.Base64;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -385,7 +388,6 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	@Test
 	public void testCreateWithNestedObject() {
 
-
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -455,4 +457,57 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			fail("Unexpected exception: " + t.getMessage());
 		}
 	}
+
+	@Test
+	public void testRawResultCountWithCypher() {
+
+		// setup: create 100 Localizations
+		final List<String> parts = new LinkedList<>();
+
+		for (int i=0; i<100; i++) {
+			parts.add("{ name: test" + i + ", locale: de, domain: test, localizedName: localizedTest" + i + " }");
+		}
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" [ " + StringUtils.join(parts, ", ") + " ] ")
+			.when().post("/Localization").getBody().as(Map.class);
+
+		try { Thread.sleep(100); } catch (Throwable t) {}
+
+
+		final String query     = "MATCH (n:Localization) RETURN DISTINCT { name: n.name, domain: n.domain } as res ORDER BY res.name asc";
+		final String sessionId = "TESTSESSION";
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try {
+			Thread.sleep(200);
+		} catch (Throwable t) {
+		}
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "SEARCH",
+			"sessionId", sessionId,
+			"data", Map.of(
+				"cypherQuery", query
+			),
+			"pageSize", 25
+		)));
+
+		final Map<String, Object> data = mock.getLastWebsocketResponse();
+
+		assertEquals("Invalid status code in websocket response to SEARCH query with Cypher", 200.0, data.get("code"));
+		assertEquals("Invalid raw result count in websocket response to SEARCH query with Cypher", 100.0, data.get("rawResultCount"));
+		assertEquals("Invalid page size in websocket response to SEARCH query with Cypher", 25.0, data.get("pageSize"));
+		assertEquals("Invalid result size in websocket response to SEARCH query with Cypher", 25, ((List) data.get("result")).size());
+	}
+
 }

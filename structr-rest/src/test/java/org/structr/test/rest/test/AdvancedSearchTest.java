@@ -1412,6 +1412,4 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.when()
 				.get(concat("/TestSix?_sort=name&testSevenName=test09"));
 	}
-
-
 }
