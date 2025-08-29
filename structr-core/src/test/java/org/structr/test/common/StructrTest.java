@@ -220,7 +220,11 @@ public class StructrTest {
 
 			for (int i = 0; i < number; i++) {
 
-				nodes.add(app.create(type, properties));
+				final NodeInterface node = app.create(type, properties);
+
+				node.setName("test" + i);
+
+				nodes.add(node);
 
 				try {
 					Thread.sleep(delay);
@@ -245,11 +249,6 @@ public class StructrTest {
 	protected List<NodeInterface> createTestNodes(final String type, final int number) throws FrameworkException {
 
 		return createTestNodes(type, number, 0);
-
-	}
-
-	protected NodeInterface createTestNode(final String type) throws FrameworkException {
-		return createTestNode(type, new PropertyMap());
 	}
 
 	protected NodeInterface createTestNode(final String type, final String name) throws FrameworkException {
@@ -286,7 +285,6 @@ public class StructrTest {
 
 			return newNode;
 		}
-
 	}
 
 	protected List<RelationshipInterface> createTestRelationships(final String type1, final String type2, final String relType, final int number) {

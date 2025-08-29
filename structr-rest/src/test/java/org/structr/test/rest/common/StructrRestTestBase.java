@@ -250,7 +250,11 @@ public abstract class StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			for (int i = 0; i < number; i++) {
-				nodes.add(app.create(type));
+
+				final NodeInterface node = app.create(type);
+				node.setName("test" + i);
+
+				nodes.add(node);
 			}
 
 			tx.success();

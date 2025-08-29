@@ -2054,7 +2054,7 @@ public class ScriptingTest extends StructrTest {
 	public void testSystemProperties () {
 		try {
 
-			final Principal user  = createTestNode(StructrTraits.USER).as(Principal.class);
+			final Principal user = createTestNode(StructrTraits.USER, "tester").as(Principal.class);
 
 			// create new node
 			NodeInterface t1 = createTestNode("TestOne", user);

@@ -311,6 +311,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * Indicates whether the value associated with this property is
 	 * validated for uniqueness.
 	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
+	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
 	boolean isUnique();
@@ -319,6 +323,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * Indicates whether the value associated with this property is
 	 * validated for uniqueness in a compound index.
 	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
+	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
 	boolean isCompound();
@@ -326,6 +334,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	/**
 	 * Indicates whether the value associated with this property is
 	 * may not be null.
+	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
 	 *
 	 * @return whether this property value is validated for uniqueness
 	 */

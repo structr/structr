@@ -75,7 +75,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			NodeInterface user = createTestNode(principalType);
+			NodeInterface user = createTestNode(principalType, "tester");
 
 			// Create node with user context
 			createTestNode("TestOne", user.as(User.class));
@@ -427,7 +427,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final User owner = createTestNode(StructrTraits.USER).as(User.class);
+			final User owner = createTestNode(StructrTraits.USER, "tester").as(User.class);
 
 			// create new node
 			createTestNode("TestOne", owner);
@@ -466,8 +466,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final User owner = createTestNode(StructrTraits.USER).as(User.class);
-			final User user  = createTestNode(StructrTraits.USER).as(User.class);
+			final User owner = createTestNode(StructrTraits.USER, "tester").as(User.class);
+			final User user  = createTestNode(StructrTraits.USER, "tester").as(User.class);
 
 			// create new node
 			final AccessControllable t1        = createTestNode("TestOne", owner).as(AccessControllable.class);
@@ -1212,7 +1212,7 @@ public class AccessControlTest extends StructrTest {
 		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1.as(User.class), AccessMode.Frontend));
 		try (final Tx tx = user1App.tx()) {
 
-			final User user2 = user1App.create(StructrTraits.USER).as(User.class);
+			final User user2 = user1App.create(StructrTraits.USER, "tester").as(User.class);
 
 			assertNotNull(user2);
 
@@ -1336,7 +1336,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final User nonAdmin = createTestNode(StructrTraits.USER).as(User.class);
+			final User nonAdmin = createTestNode(StructrTraits.USER, "tester").as(User.class);
 			final Traits traits = nonAdmin.getTraits();
 
 			final PropertyKey<Boolean> isAdminKey = traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY);
@@ -1393,7 +1393,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(type);
+			user1 = createTestNode(type, "tester");
 
 			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1");
 			user1.setProperty(eMail, "LOWERCASE@TEST.com");
