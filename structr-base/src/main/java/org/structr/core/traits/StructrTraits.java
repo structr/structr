@@ -64,7 +64,6 @@ public class StructrTraits {
 	public static final String SCHEMA_METHOD_PARAMETER             = "SchemaMethodParameter";
 	public static final String CORS_SETTING                        = "CorsSetting";
 	public static final String RESOURCE_ACCESS                     = "ResourceAccess";
-	public static final String DYNAMIC_RESOURCE_ACCESS             = "DynamicResourceAccess";
 	public static final String EMAIL_MESSAGE                       = "EMailMessage";
 	public static final String MAILBOX                             = "Mailbox";
 	public static final String WIDGET                              = "Widget";

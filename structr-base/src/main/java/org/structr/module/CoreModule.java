@@ -72,7 +72,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_VIEW,              new SchemaReloadingNodeTraitDefinition(), new SchemaViewTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.CORS_SETTING,             new CorsSettingTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.RESOURCE_ACCESS,          new ResourceAccessTraitDefinition(StructrTraits.RESOURCE_ACCESS));
-		StructrTraits.registerNodeType(StructrTraits.DYNAMIC_RESOURCE_ACCESS,  new ResourceAccessTraitDefinition(StructrTraits.DYNAMIC_RESOURCE_ACCESS));
 		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        new SessionDataNodeTraitDefinition());
 
 	}
