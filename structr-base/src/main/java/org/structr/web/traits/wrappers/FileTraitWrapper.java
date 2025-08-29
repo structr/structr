@@ -20,6 +20,8 @@ package org.structr.web.traits.wrappers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.servlet.ServletResponse;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -252,7 +254,12 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 						String encoding = "UTF-8";
 
-						final String cType = getContentType();
+						// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
+						final String cType = Optional.ofNullable(getSecurityContext())
+								.map(SecurityContext::getResponse)
+								.map(ServletResponse::getContentType)
+								.orElse(getContentType());
+
 						if (cType != null) {
 
 							final String charset = StringUtils.substringAfterLast(cType, "charset=").trim().toUpperCase();
