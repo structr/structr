@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -29,6 +30,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
@@ -41,6 +43,7 @@ import org.structr.flow.traits.operations.DataSourceOperations;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -60,79 +63,95 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowCall call = node.as(FlowCall.class);
-					final String uuid = node.getUuid();
+						final FlowCall call = node.as(FlowCall.class);
+						final String uuid = node.getUuid();
 
-					if (!context.hasData(uuid)) {
-						call.execute(context);
+						if (!context.hasData(uuid)) {
+							call.execute(context);
+						}
+
+						return context.getData(uuid);
 					}
+				},
 
-					return context.getData(uuid);
-				}
-			},
+				ActionOperations.class,
+				new ActionOperations() {
 
-			ActionOperations.class,
-			new ActionOperations() {
+					@Override
+					public void execute(final Context context, final FlowAction action) throws FlowException {
 
-				@Override
-				public void execute(final Context context, final FlowAction action) throws FlowException {
+						final FlowCall call                   = action.as(FlowCall.class);
+						final List<FlowParameterInput> params = Iterables.toList(call.getParameters());
+						final FlowContainer flow              = call.getFlow();
+						final String uuid                     = action.getUuid();
 
-					final FlowCall call                   = action.as(FlowCall.class);
-					final List<FlowParameterInput> params = Iterables.toList(call.getParameters());
-					final FlowContainer flow              = call.getFlow();
-					final String uuid                     = action.getUuid();
+						if (flow != null) {
 
-					if (flow != null) {
+							final Context functionContext = new Context(context.getThisObject());
+							final FlowEngine engine       = new FlowEngine(functionContext);
+							final FlowNode startNode      = flow.getStartNode();
 
-						final Context functionContext = new Context(context.getThisObject());
-						final FlowEngine engine       = new FlowEngine(functionContext);
-						final FlowNode startNode      = flow.getStartNode();
+							if (startNode != null) {
 
-						if (startNode != null) {
+								// Inject all parameters into context
+								if (params != null) {
 
-							// Inject all parameters into context
-							if (params != null) {
-
-								for (FlowParameterInput p : params) {
-									p.process(context, functionContext);
+									for (FlowParameterInput p : params) {
+										p.process(context, functionContext);
+									}
 								}
+
+								try {
+									final FlowResult result = engine.execute(functionContext, startNode);
+
+									// Save result
+									context.setData(uuid, result.getResult());
+
+									if (result.getError() != null) {
+
+										throw new FrameworkException(422, "FlowCall encountered an unexpected exception during execution." + result.getError().getMessage());
+									}
+								} catch (FrameworkException ex) {
+
+									throw new FlowException(ex, action);
+								}
+
+							} else {
+
+								logger.warn("Unable to evaluate FlowCall {}, flow container doesn't specify a start node.", uuid);
 							}
 
-							try {
-								final FlowResult result = engine.execute(functionContext, startNode);
-
-								// Save result
-								context.setData(uuid, result.getResult());
-
-								if (result.getError() != null) {
-
-									throw new FrameworkException(422, "FlowCall encountered an unexpected exception during execution." + result.getError().getMessage());
-								}
-							} catch (FrameworkException ex) {
-
-								throw new FlowException(ex, action);
-							}
+							// TODO: handle error
 
 						} else {
 
-							logger.warn("Unable to evaluate FlowCall {}, flow container doesn't specify a start node.", uuid);
+							logger.warn("Unable to evaluate FlowCall {}, missing flow container.", uuid);
 						}
-
-						// TODO: handle error
-
-					} else {
-
-						logger.warn("Unable to evaluate FlowCall {}, missing flow container.", uuid);
 					}
+				},
 
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

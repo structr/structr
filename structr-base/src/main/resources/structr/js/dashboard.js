@@ -647,7 +647,7 @@ let _Dashboard = {
 					}
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start a data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm = true) {
+					if (confirm === true) {
 
 						// do not listen for errors - they are sent by the backend via WS
 						await fetch(`${Structr.rootUrl}maintenance/deployData`, {

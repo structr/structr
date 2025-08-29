@@ -18,20 +18,26 @@
  */
 package org.structr.web.function;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.ParseException;
+import org.apache.http.entity.ContentType;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.property.ByteArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
 import java.util.Map;
 
 public class HttpPostFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}";
-	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}";
+	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}";
+	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}";
 
 	protected final String DEFAULT_CONTENT_TYPE = "application/json";
 	protected final String DEFAULT_CHARSET      = "UTF-8";
@@ -43,7 +49,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getSignature() {
-		return "url, body [, contentType, charset ]";
+		return "url, body [, contentType, charset, username, password, configMap ]";
 	}
 
 	@Override
@@ -53,20 +59,56 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final String uri           = sources[0].toString();
-			final String body          = sources[1].toString();
-			final String contentType   = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
-			final String charset       = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : DEFAULT_CHARSET;
+			final String address  = sources[0].toString();
+			final String body     = sources[1].toString();
+			String contentType    = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
+			String charset        = (sources.length >= 4 && sources[3] != null) ? sources[3].toString() : DEFAULT_CHARSET;
+			final String username = (sources.length >= 5 && sources[4] != null) ? sources[4].toString() : null;
+			final String password = (sources.length >= 6 && sources[5] != null) ? sources[5].toString() : null;
 			Map<String, Object> config = null;
 
-			if (sources.length >= 5 && sources[4] != null && sources[4] instanceof Map) {
-				config = (Map) sources[4];
+			if (sources.length >= 7 && sources[6] != null && sources[6] instanceof Map) {
+				config = (Map) sources[6];
 			}
 
-			//, config, ctx.getSecurityContext()
-			final Map<String, Object> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates(), config);
+			// Extract character set from contentType if given
+			if (StringUtils.isNotBlank(contentType)) {
 
-			final GraphObjectMap response = processResponseData(ctx, caller, responseData, contentType);
+				try {
+
+					final ContentType ct = ContentType.parse(contentType);
+
+					contentType = ct.getMimeType();
+
+					final Charset cs = ct.getCharset();
+
+					if (cs != null) {
+						charset = cs.toString();
+					}
+
+				} catch(ParseException pe) {
+
+					logger.warn("Unable to parse contentType parameter '{}' - using as is.", contentType);
+
+				} catch (UnsupportedCharsetException uce) {
+
+					logger.warn("Unsupported charset in contentType parameter '{}'", contentType);
+				}
+			}
+
+			Map<String, Object> responseData = null;
+			GraphObjectMap      response     = new GraphObjectMap();
+
+			if ("application/octet-stream".equals(contentType)) {
+
+				responseData = HttpHelper.postBinary(address, body, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
+				response.setProperty(new ByteArrayProperty(HttpHelper.FIELD_BODY), responseData.get(HttpHelper.FIELD_BODY));
+
+			} else {
+
+				responseData = HttpHelper.post(address, body, username, password, ctx.getHeaders(),charset, ctx.isValidateCertificates(), config);
+				response     = processResponseData(ctx, caller, responseData, contentType);
+			}
 
 			return response;
 
@@ -84,7 +126,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Sends an HTTP POST request to the given URL and returns the response body";
+		return "Sends an HTTP POST request to the given URL and returns the response body. The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.";
 	}
 
 	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final String contentType) throws FrameworkException {
@@ -93,15 +135,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 		final GraphObjectMap response = new GraphObjectMap();
 
-		if ("application/json".equals(contentType)) {
-
-			final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-			response.setProperty(new GenericProperty<>(HttpHelper.FIELD_BODY), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
-
-		} else {
-
-			response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
-		}
+		response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
 
 		// Set status and headers
 		final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");

@@ -30,20 +30,18 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -89,7 +87,7 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 	}
 
 	public void setScheduledForIndexing(final boolean b) throws FrameworkException {
-		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), false);
+		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.SCHEDULED_FOR_INDEXING_PROPERTY), b);
 	}
 
 	public void setStartNode(final FlowNode next) throws FrameworkException {
@@ -198,18 +196,8 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 
 	}
 
-	@Override
 	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             wrappedObject.getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           wrappedObject.getType());
-		result.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                         wrappedObject.getName());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        wrappedObject.isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, wrappedObject.isVisibleToAuthenticatedUsers());
-
-		return result;
+		return traits.getMethod(GetExportData.class).getExportData(this.as(FlowBaseNode.class));
 	}
 
 	public void deleteChildren() {

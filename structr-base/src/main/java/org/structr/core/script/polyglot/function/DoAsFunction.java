@@ -20,8 +20,6 @@ package org.structr.core.script.polyglot.function;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -29,7 +27,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.traits.StructrTraits;
@@ -39,105 +36,105 @@ import java.util.Arrays;
 
 public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
-    private final ActionContext actionContext;
+	private final ActionContext actionContext;
 
-    private final String PARAMETER_ERROR_MESSAGE = "Invalid parameter(s) for do_as function. Expected (non-null): Principal, Executable";
+	private final String PARAMETER_ERROR_MESSAGE = "Invalid parameter(s) for do_as function. Expected (non-null): Principal, Executable";
 
-    public DoAsFunction(final ActionContext actionContext) {
+	public DoAsFunction(final ActionContext actionContext) {
 
-        this.actionContext = actionContext;
-    }
+		this.actionContext = actionContext;
+	}
 
-    @Override
-    public Object execute(Value... arguments) {
+	@Override
+	public Object execute(Value... arguments) {
 
-        Object[] parameters = Arrays.stream(arguments).map(a -> PolyglotWrapper.unwrap(actionContext, a)).toArray();
+		Object[] parameters = Arrays.stream(arguments).map(a -> PolyglotWrapper.unwrap(actionContext, a)).toArray();
 
-        if (parameters.length == 2 && parameters[0] != null && parameters[1] != null) {
+		if (parameters.length == 2 && parameters[0] != null && parameters[1] != null) {
 
-            final SecurityContext initialSecurityContext = actionContext.getSecurityContext();
+			final SecurityContext initialSecurityContext = actionContext.getSecurityContext();
 
-            try {
+			try {
 
-                final NodeInterface node = (NodeInterface) parameters[0];
+				final NodeInterface node = (NodeInterface) parameters[0];
 
-                if (node.is(StructrTraits.USER)) {
+				if (node.is(StructrTraits.USER)) {
 
-                    final Principal user = node.as(Principal.class);
-                    final ProxyExecutable executable = (ProxyExecutable) parameters[1];
+					final Principal user             = node.as(Principal.class);
+					final ProxyExecutable executable = (ProxyExecutable) parameters[1];
+					final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);
 
-                    final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);
-                    userContext.setContextStore(initialSecurityContext.getContextStore());
-                    actionContext.setSecurityContext(userContext);
+					userContext.setContextStore(initialSecurityContext.getContextStore());
+					actionContext.setSecurityContext(userContext);
 
-                    if (executable instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
+					if (executable instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
 
-                        functionWrapper.setActionContext(actionContext);
-                    }
+						functionWrapper.setActionContext(actionContext);
+					}
 
-                    try (final Tx tx = StructrApp.getInstance(userContext).tx()) {
-                        executable.execute();
+					try (final Tx tx = StructrApp.getInstance(userContext).tx()) {
+						executable.execute();
 
-                        tx.success();
-                    } catch (FrameworkException e) {
+						tx.success();
+					} catch (FrameworkException e) {
 
-                        throw new RuntimeException(e);
-                    }
+						throw new RuntimeException(e);
+					}
 
-                    initialSecurityContext.setContextStore(userContext.getContextStore());
+					initialSecurityContext.setContextStore(userContext.getContextStore());
 
-                } else {
+				} else {
 
-                    throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
-                }
+					throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
+				}
 
-            } catch (ClassCastException ex) {
+			} catch (ClassCastException ex) {
 
-                throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
+				throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
 
-            } finally {
+			} finally {
 
-                actionContext.setSecurityContext(initialSecurityContext);
-            }
+				actionContext.setSecurityContext(initialSecurityContext);
+			}
 
-        } else {
+		} else {
 
-            throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
-        }
+			throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String getName() {
-        return "doAs";
-    }
+	@Override
+	public String getName() {
+		return "doAs";
+	}
 
-    @Override
-    public String shortDescription() {
-        return """
-**JavaScript-only**
+	@Override
+	public String shortDescription() {
+		return """
+			**JavaScript-only**
 
-Runs the given function in the context of the given user.
+			Runs the given function in the context of the given user.
 
-**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
+			**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
 
-Example:
-```
-${{
-    let user = $.find('User', { name: 'user_to_impersonate' })[0];
+			Example:
+			```
+			${{
+			    let user = $.find('User', { name: 'user_to_impersonate' })[0];
 
-    $.doAs(user, () => {
+			    $.doAs(user, () => {
 
-        // code to be run as the given user
-    });
-}}
-```
-""";
-    }
+			        // code to be run as the given user
+			    });
+			}}
+			```
+			""";
+	}
 
-    @Override
-    public String getSignature() {
-        return "user, function";
-    }
+	@Override
+	public String getSignature() {
+		return "user, function";
+	}
 }

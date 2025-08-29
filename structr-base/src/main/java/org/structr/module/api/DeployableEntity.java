@@ -23,5 +23,4 @@ import java.util.Map;
 public interface DeployableEntity {
 
 	 Map<String, Object> exportData();
-
 }

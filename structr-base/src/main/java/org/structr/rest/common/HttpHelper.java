@@ -278,6 +278,34 @@ public class HttpHelper {
 		}
 	}
 
+	public static Map<String, Object> postBinary(final String address, final String requestBody, final String charset, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+
+		return postBinary(address, requestBody, charset, username, password, null, null, null, null, headers, validateCertificates);
+	}
+
+	public static Map<String, Object> postBinary(final String address, final String requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+
+		try {
+
+			Map<String, Object> result = postAsStream(address, requestBody, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers);
+
+			if (result != null && result.get(HttpHelper.FIELD_BODY) != null) {
+
+				InputStream body = (InputStream) result.get(HttpHelper.FIELD_BODY);
+				result.put(HttpHelper.FIELD_BODY, IOUtils.toByteArray(body));
+			} else if (result != null) {
+
+				result.put(HttpHelper.FIELD_BODY, null);
+			}
+
+			return result;
+
+		} catch (final Throwable t) {
+			logger.error("Error while downloading binary data from " + address, t);
+			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
+		}
+	}
+
 	public static Map<String, Object> head(final String address, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return head(address, username, password, null, null, null, null, headers, validateCertificates);
@@ -397,23 +425,24 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = new URL(address).toURI();
+			final URI uri      = new URL(address).toURI();
 			final HttpPost req = new HttpPost(uri);
 
-			Integer timeout = null;
-			boolean redirects = false;
+			Integer timeout         = null;
+			boolean followRedirects = false;
 
-			if(config != null){
-				if(config.containsKey("timeout")){
+			if (config != null) {
+
+				if (config.containsKey("timeout")) {
 					timeout = (Integer) config.get("timeout");
 				}
 
-				if(config.containsKey("redirects")){
-					redirects = (Boolean) config.get("redirects");
+				if (config.containsKey("redirects")) {
+					followRedirects = (Boolean) config.get("redirects");
 				}
 			}
 
-			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, redirects, validateCertificates, timeout);
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, followRedirects, validateCertificates, timeout);
 
 			req.setEntity(new StringEntity(requestBody, charset));
 
@@ -565,6 +594,46 @@ public class HttpHelper {
 			final HttpGet req = new HttpGet(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
+
+			final CloseableHttpResponse resp = client.execute(req);
+
+			InputStream stream = resp.getEntity().getContent();
+
+			responseData.put(HttpHelper.FIELD_BODY, stream);
+			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(resp.getStatusLine().getStatusCode()));
+			responseData.put(HttpHelper.FIELD_HEADERS, getHeadersAsMap(resp));
+
+			return responseData;
+
+		} catch (final Throwable t) {
+
+			logger.error("Unable to get content stream from address {}, {}", new Object[]{address, t.getMessage()});
+		}
+
+		return null;
+	}
+
+	public static Map<String, Object> postAsStream(final String address, final String requestBody) {
+
+		return postAsStream(address, requestBody, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
+	}
+
+	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset) {
+
+		return postAsStream(address, requestBody, null, null, null, null, null, null, null, Collections.EMPTY_MAP);
+	}
+
+	public static Map<String, Object> postAsStream(final String address, final String requestBody, final String charset, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers) {
+
+		try {
+
+			final Map<String, Object> responseData = new HashMap<>();
+
+			final URI uri = new URL(address).toURI();
+			final HttpPost req = new HttpPost(uri);
+
+			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
+			req.setEntity(new StringEntity(requestBody, charset));
 
 			final CloseableHttpResponse resp = client.execute(req);
 

@@ -71,7 +71,6 @@ public class RenderContext extends ActionContext {
 	private AsyncBuffer buffer                         = null;
 	private int depth                                  = 0;
 	private boolean inBody                             = false;
-	private boolean appLibRendered                     = false;
 	private GraphObject detailsDataObject              = null;
 	private GraphObject currentDataObject              = null;
 	private GraphObject sourceDataObject               = null;
@@ -113,7 +112,6 @@ public class RenderContext extends ActionContext {
 
 		this.editMode                   = other.editMode;
 		this.inBody                     = other.inBody;
-		this.appLibRendered             = other.appLibRendered;
 		this.detailsDataObject          = other.detailsDataObject;
 		this.currentDataObject          = other.currentDataObject;
 		this.sourceDataObject           = other.sourceDataObject;
@@ -294,14 +292,6 @@ public class RenderContext extends ActionContext {
 
 	public boolean inBody() {
 		return inBody;
-	}
-
-	public void setAppLibRendered(final boolean appLibRendered) {
-		this.appLibRendered = appLibRendered;
-	}
-
-	public boolean appLibRendered() {
-		return appLibRendered;
 	}
 
 	public void setIsPartialRendering(final boolean isPartialRendering) {

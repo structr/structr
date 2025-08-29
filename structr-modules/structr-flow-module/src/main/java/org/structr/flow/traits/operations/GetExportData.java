@@ -16,16 +16,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.flow.impl;
+package org.structr.flow.traits.operations;
 
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.traits.Traits;
-import org.structr.flow.api.ThrowingElement;
-import org.structr.module.api.DeployableEntity;
+import java.util.Map;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.impl.FlowBaseNode;
 
-public class FlowForkJoin extends FlowAction implements DeployableEntity, ThrowingElement {
+public abstract class GetExportData extends FrameworkMethod<GetExportData> {
 
-	public FlowForkJoin(final Traits traits, final NodeInterface wrappedObject) {
-		super(traits, wrappedObject);
-	}
+	public abstract Map<String, Object> getExportData(final FlowBaseNode flowBaseNode);
 }

@@ -78,11 +78,12 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 		return Map.of(
 				PropertyView.Public,
 				newSet(
-						"id", "type", "relType", "sourceId", "targetId"
+						REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY
 				),
+
 				PropertyView.Ui,
 				newSet(
-						"id", "type", "relType", "sourceId", "targetId"
+						REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY
 				)
 		);
 	}

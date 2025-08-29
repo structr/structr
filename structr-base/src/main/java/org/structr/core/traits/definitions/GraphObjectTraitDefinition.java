@@ -193,13 +193,15 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 
 			PropertyView.Public,
-			newSet(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY),
+			newSet(
+					ID_PROPERTY, TYPE_PROPERTY
+			),
 
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY,
-					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
-					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+					ID_PROPERTY, TYPE_PROPERTY, CREATED_BY_PROPERTY,
+					CREATED_DATE_PROPERTY, LAST_MODIFIED_DATE_PROPERTY,
+					VISIBLE_TO_PUBLIC_USERS_PROPERTY, VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 			)
 		);
 	}

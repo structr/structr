@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -32,12 +33,17 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainerConfiguration;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -63,6 +69,35 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 					graphObject.setVisibility(true, true);
 				}
 			}
+		);
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final FlowContainerConfiguration flowContainerConfiguration = flowBaseNode.as(FlowContainerConfiguration.class);
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                              flowContainerConfiguration.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                            flowContainerConfiguration.getType());
+						result.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                          flowContainerConfiguration.getName());
+						result.put(FlowContainerConfigurationTraitDefinition.VALID_FOR_EDITOR_PROPERTY, flowContainerConfiguration.getValidForEditor());
+						result.put(FlowContainerConfigurationTraitDefinition.CONFIG_JSON_PROPERTY,      flowContainerConfiguration.getConfigJson());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,         true);
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,  true);
+
+						return result;
+					}
+				}
 		);
 	}
 

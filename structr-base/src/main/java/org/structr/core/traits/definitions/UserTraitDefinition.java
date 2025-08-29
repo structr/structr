@@ -131,18 +131,23 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of(IS_USER_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY),
+			Set.of(
+					IS_USER_PROPERTY
+			),
 
 			PropertyView.Ui,
 			Set.of(
-				IS_USER_PROPERTY, CONFIRMATION_KEY_PROPERTY, PrincipalTraitDefinition.EMAIL_PROPERTY, PrincipalTraitDefinition.GROUPS_PROPERTY,
-				HOME_DIRECTORY_PROPERTY, PrincipalTraitDefinition.IS_ADMIN_PROPERTY, PrincipalTraitDefinition.LOCALE_PROPERTY,
-				PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_URL_PROPERTY,
-				PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY, PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY,
-				PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, WORKING_DIRECTORY_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
-				PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
-				PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
-				PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY, SKIP_SECURITY_RELATIONSHIPS_PROPERTY, IMG_PROPERTY
+					IS_USER_PROPERTY,
+					CONFIRMATION_KEY_PROPERTY, HOME_DIRECTORY_PROPERTY, WORKING_DIRECTORY_PROPERTY, SKIP_SECURITY_RELATIONSHIPS_PROPERTY, IMG_PROPERTY,
+					PrincipalTraitDefinition.EMAIL_PROPERTY, PrincipalTraitDefinition.GROUPS_PROPERTY,
+					PrincipalTraitDefinition.IS_ADMIN_PROPERTY, PrincipalTraitDefinition.LOCALE_PROPERTY,
+					PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY,
+					PrincipalTraitDefinition.PROXY_URL_PROPERTY, PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY,
+					PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY,
+					PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
+					PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
+					PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
+					PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY
 			)
 		);
 	}

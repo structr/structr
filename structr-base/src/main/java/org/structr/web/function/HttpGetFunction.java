@@ -125,7 +125,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 							for (final Element el : elements) {
 
-								parts.add(el.html());
+								parts.add(el.outerHtml());
 
 							}
 
@@ -133,7 +133,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 						} else {
 
-							response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), elements.html());
+							response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), elements.outerHtml());
 						}
 
 					} else {

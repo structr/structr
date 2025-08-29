@@ -130,10 +130,10 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, PRIORITY_PROPERTY, PARAMETERS_PROPERTY),
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY),
 
 			PropertyView.Ui,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, PRIORITY_PROPERTY, PARAMETERS_PROPERTY)
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY)
 		);
 	}
 

@@ -28,7 +28,7 @@ import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 public class FlowKeyValueObjectInput extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
 	public FlowKeyValueObjectInput() {
-		super("FlowNodeKeyValueObjectInput");
+		super(StructrTraits.FLOW_KEY_VALUE_OBJECT_INPUT);
 	}
 
 	@Override

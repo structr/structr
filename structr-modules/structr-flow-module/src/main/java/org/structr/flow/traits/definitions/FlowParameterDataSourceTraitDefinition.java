@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -28,9 +29,11 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowParameterDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
@@ -40,6 +43,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -55,38 +59,56 @@ public class FlowParameterDataSourceTraitDefinition extends AbstractNodeTraitDef
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowParameterDataSource dataSource = node.as(FlowParameterDataSource.class);
-					final String _key                        = dataSource.getKey();
+						final FlowParameterDataSource dataSource = node.as(FlowParameterDataSource.class);
+						final String _key                        = dataSource.getKey();
 
-					if (_key != null) {
+						if (_key != null) {
 
-						if (_key.contains(".")) {
+							if (_key.contains(".")) {
 
-							final List<String> parts = Arrays.stream(_key.split("\\.")).collect(Collectors.toList());
-							if (!parts.isEmpty()) {
+								final List<String> parts = Arrays.stream(_key.split("\\.")).collect(Collectors.toList());
+								if (!parts.isEmpty()) {
 
-								Object entity = context.getParameter(parts.get(0));
-								parts.remove(0);
+									Object entity = context.getParameter(parts.get(0));
+									parts.remove(0);
 
-								return dataSource.resolveParts(entity, parts);
+									return dataSource.resolveParts(entity, parts);
 
-							} else {
+								} else {
 
-								return null;
+									return null;
+								}
 							}
+							return context.getParameter(_key);
 						}
-						return context.getParameter(_key);
-					}
 
-					return null;
+						return null;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowParameterDataSourceTraitDefinition.KEY_PROPERTY,                flowBaseNode.as(FlowParameterDataSource.class).getKey());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

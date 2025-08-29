@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -32,15 +33,18 @@ import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowGetProperty;
 import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -59,97 +63,115 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowGetProperty getProperty = node.as(FlowGetProperty.class);
-					final FlowDataSource _nodeSource  = getProperty.getNodeSource();
-					final FlowDataSource _nameSource  = getProperty.getPropertyNameSource();
-					final String _propertyName        = getProperty.getPropertyName();
-					final String uuid                 = node.getUuid();
+						final FlowGetProperty getProperty = node.as(FlowGetProperty.class);
+						final FlowDataSource _nodeSource  = getProperty.getNodeSource();
+						final FlowDataSource _nameSource  = getProperty.getPropertyNameSource();
+						final String _propertyName        = getProperty.getPropertyName();
+						final String uuid                 = node.getUuid();
 
-					if (_nodeSource != null && (_nameSource != null || _propertyName != null) ) {
+						if (_nodeSource != null && (_nameSource != null || _propertyName != null) ) {
 
-						final Object input = _nodeSource.get(context);
-						if (input != null) {
+							final Object input = _nodeSource.get(context);
+							if (input != null) {
 
-							if (input instanceof GraphObject graphObject) {
+								if (input instanceof GraphObject graphObject) {
 
-								Object mapKey;
+									Object mapKey;
 
-								if (_nameSource != null) {
-									mapKey = _nameSource.get(context);
-								} else {
-									mapKey = _propertyName;
-								}
+									if (_nameSource != null) {
+										mapKey = _nameSource.get(context);
+									} else {
+										mapKey = _propertyName;
+									}
 
-								if (mapKey != null) {
+									if (mapKey != null) {
 
-									if (mapKey instanceof String stringKey) {
+										if (mapKey instanceof String stringKey) {
 
-										final Traits traits = graphObject.getTraits();
-										if (traits.hasKey(stringKey)) {
+											final Traits traits = graphObject.getTraits();
+											if (traits.hasKey(stringKey)) {
 
-											final PropertyKey key = graphObject.getTraits().key(stringKey);
-											if (key != null) {
+												final PropertyKey key = graphObject.getTraits().key(stringKey);
+												if (key != null) {
 
-												return graphObject.getProperty(key);
+													return graphObject.getProperty(key);
+												}
+
+											} else {
+
+												logger.warn("Name source of {} returned unknown property key {}", uuid, mapKey);
 											}
-
-										} else {
-
-											logger.warn("Name source of {} returned unknown property key {}", uuid, mapKey);
 										}
+
+									} else {
+
+										logger.warn("Name source of {} returned null", uuid);
+									}
+
+								} else if (input instanceof Map) {
+
+									Object key;
+
+									if (_nameSource != null) {
+
+										key = _nameSource.get(context);
+
+									} else {
+
+										key = _propertyName;
+									}
+
+									if (key != null) {
+
+										return ((Map<?, ?>) input).get(key);
+
+									} else {
+
+										logger.warn("Name source of {} returned null", uuid);
 									}
 
 								} else {
 
-									logger.warn("Name source of {} returned null", uuid);
-								}
-
-							} else if (input instanceof Map) {
-
-								Object key;
-
-								if (_nameSource != null) {
-
-									key = _nameSource.get(context);
-
-								} else {
-
-									key = _propertyName;
-								}
-
-								if (key != null) {
-
-									return ((Map<?, ?>) input).get(key);
-
-								} else {
-
-									logger.warn("Name source of {} returned null", uuid);
+									logger.warn("Node data source of {} returned invalid object of type {}", uuid, input.getClass().getName());
 								}
 
 							} else {
 
-								logger.warn("Node data source of {} returned invalid object of type {}", uuid, input.getClass().getName());
+								logger.warn("Node data source of {} returned null", uuid);
 							}
 
 						} else {
 
-							logger.warn("Node data source of {} returned null", uuid);
+							logger.warn("Unable to evaluate FlowDataSource {}, missing at least one source.", uuid);
 						}
 
-					} else {
-
-						logger.warn("Unable to evaluate FlowDataSource {}, missing at least one source.", uuid);
+						return null;
 					}
+				},
 
-					return null;
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowGetPropertyTraitDefinition.PROPERTY_NAME_PROPERTY,              flowBaseNode.as(FlowGetProperty.class).getPropertyName());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

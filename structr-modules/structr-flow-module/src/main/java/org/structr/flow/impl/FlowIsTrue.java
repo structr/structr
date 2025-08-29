@@ -22,11 +22,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.traits.definitions.FlowIsTrueTraitDefinition;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowIsTrue extends FlowCondition {
 
@@ -53,16 +49,5 @@ public class FlowIsTrue extends FlowCondition {
 		}
 
 		return result && value;
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,   getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY, getType());
-
-		return result;
 	}
 }

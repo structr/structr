@@ -70,12 +70,12 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, TEXT_PROPERTY, LOCALE_PROPERTY
+					TEXT_PROPERTY, LOCALE_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, TEXT_PROPERTY, LOCALE_PROPERTY
+					TEXT_PROPERTY, LOCALE_PROPERTY
 			)
 		);
 	}

@@ -82,7 +82,7 @@ public abstract class RESTCallHandler {
 		return call.getURL();
 	}
 
-	public String getResourceSignature() {
+	public final String getResourceSignature() {
 
 		String signature = call.getResourceSignature();
 

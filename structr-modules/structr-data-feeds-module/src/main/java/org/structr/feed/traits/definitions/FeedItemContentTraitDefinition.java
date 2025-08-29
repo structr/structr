@@ -102,14 +102,17 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public,
-			newSet(
-					NodeInterfaceTraitDefinition.OWNER_PROPERTY, MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY
-			),
-			PropertyView.Ui,
-			newSet(
-					MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY, ITEM_PROPERTY
-			)
+				PropertyView.Public,
+				newSet(
+						MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY,
+						NodeInterfaceTraitDefinition.OWNER_PROPERTY
+				),
+
+				PropertyView.Ui,
+				newSet(
+						MODE_PROPERTY, ITEM_TYPE_PROPERTY, VALUE_PROPERTY,
+						ITEM_PROPERTY
+				)
 		);
 	}
 }

@@ -190,10 +190,6 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-			PropertyView.Public,
-			newSet(
-
-			),
 
 			PropertyView.Ui,
 			newSet(

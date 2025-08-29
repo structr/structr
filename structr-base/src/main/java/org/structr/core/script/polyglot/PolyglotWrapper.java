@@ -516,12 +516,11 @@ public abstract class PolyglotWrapper {
 						curContext.close();
 						actionContext.removeScriptingContextByValue(curContext);
 					}
-
-					return wrappedResult;
 				}
+
+				return wrappedResult;
 			}
 
-			return null;
 		}
 
 		public Value getValue() {

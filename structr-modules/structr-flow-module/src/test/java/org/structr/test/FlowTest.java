@@ -312,7 +312,7 @@ public class FlowTest extends StructrUiTest {
 			FlowComparison flowComparison = app.create(StructrTraits.FLOW_COMPARISON).as(FlowComparison.class);
 			flowComparison.setFlowContainer(container);
 			flowComparison.setDecisions(List.of(flowDecision));
-			flowComparison.setDataSource(dataSource);
+			flowComparison.setDataSources(List.of(dataSource));
 			flowComparison.setValueSource(valueSource);
 			flowComparison.setOperation(FlowComparison.Operation.equal);
 

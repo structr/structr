@@ -91,7 +91,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// resource access explicetly set to FORBIDDEN => forbidden
+			// resource access explictly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 
 			// allow GET for authenticated users => access without user/pass should be still forbidden
@@ -214,11 +214,10 @@ public class ResourceAccessTest extends StructrUiTest {
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/Folder/" + testFolder.getUuid());
 
-			folderGrant = createResourceAccess(StructrTraits.FOLDER, UiAuthenticator.FORBIDDEN);
+			folderGrant = createResourceAccess(StructrTraits.FOLDER + "/_id", UiAuthenticator.FORBIDDEN);
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
 			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
@@ -233,8 +232,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			logger.error(fex.toString());
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -248,8 +246,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			logger.error(fex.toString());
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -282,10 +279,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -322,7 +316,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/Folder/" + testFolder.getUuid());
 
-			folderGrant = createResourceAccess(StructrTraits.FOLDER, UiAuthenticator.FORBIDDEN);
+			folderGrant = createResourceAccess(StructrTraits.FOLDER + "/_id", UiAuthenticator.FORBIDDEN);
 
 			tx.success();
 		} catch (FrameworkException fex) {

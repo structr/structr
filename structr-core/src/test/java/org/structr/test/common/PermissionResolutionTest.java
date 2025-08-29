@@ -454,11 +454,11 @@ public class PermissionResolutionTest extends StructrTest {
 			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 			final NodeInterface grant      = app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           false),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          false),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"),         false),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"),  false)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY),           testGroup1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY),           false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY),          false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY),         false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY),  false)
 			);
 
 			uuid = grant.getUuid();
@@ -489,27 +489,27 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[] { false, false, false, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, false, false, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, true, false, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, true, true, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, true, true, true });
 
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), false);
 		testGranted(projectType, new boolean[] { false, true, true, true });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY), false);
 		testGranted(projectType, new boolean[] { false, false, true, true });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY), false);
 		testGranted(projectType, new boolean[] { false, false, false, true });
 
 		// allow all, but remove group link
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true);
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), true);
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), true);
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), true);
 
 		try (final Tx tx = app.tx()) {
 
@@ -656,9 +656,9 @@ public class PermissionResolutionTest extends StructrTest {
 
 			// create schema grant from group1 to type MailTemplate
 			app.create(StructrTraits.SCHEMA_GRANT,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"), group1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY), group1),
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), "MailTemplate"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), true)
 			);
 
 			group2.as(Group.class).addMember(securityContext, tester);

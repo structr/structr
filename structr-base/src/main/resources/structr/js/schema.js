@@ -140,6 +140,9 @@ let _Schema = {
 		_Schema.activateDisplayDropdownTools();
 		_Schema.activateAdminTools();
 
+		document.getElementById('hide-selected-types').addEventListener('click', _Schema.ui.selection.hideSelectedSchemaTypes);
+		_Schema.ui.updateHideSelectedTypesButton();
+
 		document.getElementById('create-type').addEventListener('click', _Schema.nodes.showCreateTypeDialog);
 		document.getElementById('user-defined-functions').addEventListener('click', _Schema.methods.showUserDefinedMethods);
 
@@ -166,6 +169,7 @@ let _Schema = {
 			});
 
 			await _Schema.loadSchema();
+			_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
 
 			$('.node').css({ zIndex: ++_Schema.ui.maxZ });
 
@@ -212,8 +216,6 @@ let _Schema = {
 				callback();
 			}
 		});
-
-		Structr.adaptUiToAvailableFeatures();
 	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');
@@ -1086,6 +1088,12 @@ let _Schema = {
 								id: "sourceMultiplicity"
 							}],
 							["Label", {
+								cssClass: "label multiplicity",
+								label: res.targetMultiplicity ? res.targetMultiplicity : '*',
+								location: Math.max(.8 - offset, .6),
+								id: "targetMultiplicity"
+							}],
+							["Label", {
 								cssClass: "label rel-type",
 								label: `<div id="rel_${res.id}" class="flex items-center" data-name="${res.name}" data-source-type="${_Schema.nodeData[res.sourceId].name}" data-target-type="${_Schema.nodeData[res.targetId].name}">
 											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
@@ -1094,12 +1102,6 @@ let _Schema = {
 										</div>`,
 								location: .5,
 								id: "label"
-							}],
-							["Label", {
-								cssClass: "label multiplicity",
-								label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-								location: Math.max(.8 - offset, .6),
-								id: "targetMultiplicity"
 							}]
 						]
 					});
@@ -2001,7 +2003,9 @@ let _Schema = {
 				} else if (propertyInfoUI[key] !== property[key]) {
 
 					if (property.propertyType === 'Cypher' && key === 'format') {
-						// ignore "changes" in format... it is not display and collected
+						// ignore changes in format (if the property is Cypher)... it is not displayed and collected
+					} else if (propertyInfoUI.propertyType !== 'Function' && (key === 'isCachingEnabled' || key === 'typeHint')) {
+						// ignore changes in isCachingEnabled and typeHint if the property is currently not configured as a Function
 					} else {
 						hasChanges = true;
 					}
@@ -4526,6 +4530,7 @@ let _Schema = {
 						_Schema.ui.zoomLevel = loadedConfig.zoom;
 						LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
 						_Schema.ui.panzoomInstance.zoom(_Schema.ui.zoomLevel);
+						_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
 
 						_Schema.ui.updateOverlayVisibility(loadedConfig.showRelLabels);
 
@@ -4695,18 +4700,6 @@ let _Schema = {
 		_Schema.hiddenSchemaNodes = hiddenTypes;
 		LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 	},
-	hideSelectedSchemaTypes: () => {
-
-		if (_Schema.ui.selection.selectedNodes.length > 0) {
-
-			for (let n of _Schema.ui.selection.selectedNodes) {
-				_Schema.hiddenSchemaNodes.push(n.name);
-			}
-
-			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-			_Schema.reload();
-		}
-	},
 	overlapsExistingNodes: (position) => {
 		if (!position) {
 			return false;
@@ -4803,11 +4796,13 @@ let _Schema = {
 		maxZ: 0,
 		initPanZoom: () => {
 
-			const schemaContainer = document.getElementById('schema-container');
-			const nodeElements = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
+			const schemaContainer     = document.getElementById('schema-container');
+			let schemaContainerParent = schemaContainer.parentNode;
+			const nodeElements        = [...document.querySelectorAll('.jsplumb-draggable, ._jsPlumb_connector')];
 
 			const panzoom = Panzoom(schemaContainer, {
 				cursor: 'default',
+				canvas: true,
 				exclude: nodeElements,
 				startScale: _Schema.ui.zoomLevel,
 				handleStartEvent: (event) => {
@@ -4829,29 +4824,27 @@ let _Schema = {
 			});
 			_Schema.ui.panzoomInstance = panzoom;
 
+			// TODO: these two listeners are never removed and thus duplicated when re-opening the schema
 			document.addEventListener('keydown', (event) => {
 				if (event.shiftKey) {
-					schemaContainer.style.cursor = 'move';
+					schemaContainerParent.style.cursor = 'move';
 				}
 			});
 			document.addEventListener('keyup', (event) => {
 				if (!event.shiftKey) {
-					schemaContainer.style.cursor = 'default';
+					schemaContainerParent.style.cursor = 'default';
 				}
 			});
-			schemaContainer.addEventListener('panzoomstart', (event) => {
-				if (!event.shiftKey) {
-					event.preventDefault();
-				}
-			});
+
 			schemaContainer.addEventListener('panzoomend', (event) => {
-				if (!event.shiftKey) {
-					schemaContainer.style.cursor = 'default';
+				if (!event.detail.originalEvent.shiftKey) {
+					schemaContainerParent.style.cursor = 'default';
 				}
 			});
-			schemaContainer.addEventListener('wheel', (event) => {
+			schemaContainerParent.addEventListener('wheel', (event) => {
 				panzoom.zoomWithWheel(event);
 				_Schema.ui.zoomLevel = panzoom.getScale();
+				_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
 
 				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
 			});
@@ -4928,6 +4921,14 @@ let _Schema = {
 				});
 			}
 		},
+		updateHideSelectedTypesButton: () => {
+
+			let disabled = (_Schema.ui.selection.selectedNodes.length === 0);
+
+			let btn = document.getElementById('hide-selected-types');
+			btn.classList.toggle('disabled', disabled);
+			btn.disabled = disabled;
+		},
 		selection: {
 			selectionInProgress: false,
 			selectedRel: undefined,
@@ -4963,6 +4964,8 @@ let _Schema = {
 				_Schema.ui.selection.selectionStop();
 
 				_Schema.ui.selection.deselectRel();
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 			selectionStart: (e) => {
 
@@ -5027,6 +5030,8 @@ let _Schema = {
 						$el.removeClass('selected');
 					}
 				}
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 			isNodeInSelection: ($el, selectionRect) => {
 
@@ -5060,6 +5065,8 @@ let _Schema = {
 						}
 					});
 				}
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 			selectRel: (rel) => {
 
@@ -5088,6 +5095,20 @@ let _Schema = {
 
 					_Schema.ui.selection.selectedRel = undefined;
 				}
+			},
+			hideSelectedSchemaTypes: () => {
+
+				if (_Schema.ui.selection.selectedNodes.length > 0) {
+
+					for (let n of _Schema.ui.selection.selectedNodes) {
+						_Schema.hiddenSchemaNodes.push(n.name);
+					}
+
+					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+					_Schema.reload();
+				}
+
+				_Schema.ui.updateHideSelectedTypesButton();
 			},
 		},
 		updateOverlayVisibility: (show) => {
@@ -5438,6 +5459,10 @@ let _Schema = {
 							</div>
 						</div>
 					</div>
+					
+					<button id="hide-selected-types" class="btn hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						Hide selected types
+					</button>
 				</div>
 			</div>
 		`,

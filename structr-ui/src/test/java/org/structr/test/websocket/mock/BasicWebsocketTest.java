@@ -25,10 +25,12 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.Localization;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.GroupTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -385,7 +387,6 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 	@Test
 	public void testCreateWithNestedObject() {
 
-
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
@@ -455,4 +456,64 @@ public class BasicWebsocketTest extends StructrWebsocketBaseTest {
 			fail("Unexpected exception: " + t.getMessage());
 		}
 	}
+
+	@Test
+	public void testRawResultCountWithCypher() {
+
+		// setup: create 100 Localizations
+		try (final Tx tx = app.tx()) {
+
+			for (int i = 0; i < 100; i++) {
+
+				final Localization l = app.create(StructrTraits.LOCALIZATION).as(Localization.class);
+
+				l.setName("test" + i);
+				l.setDomain("test");
+				l.setLocale("de");
+				l.setLocalizedName("localizedTest" + i);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try { Thread.sleep(1000); } catch (Throwable t) {}
+
+		final String tenantIdentifier = app.getDatabaseService().getTenantIdentifier();
+		final String query            = "MATCH (n:Localization:" + tenantIdentifier + ") RETURN DISTINCT { name: n.name, domain: n.domain } as res ORDER BY res.name asc";
+		final String sessionId        = "TESTSESSION";
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+		createEntityAsSuperUser("/SessionDataNode", "{ vhost: '0.0.0.0', sessionId: '" + sessionId + "' }");
+
+		final MockedWebsocketSetup mock = getMockedWebsocketSetup();
+		final StructrWebSocket websocket = mock.getWebSocket();
+
+		login(websocket, "admin", "admin", sessionId);
+
+		try {
+			Thread.sleep(200);
+		} catch (Throwable t) {
+		}
+
+		websocket.onWebSocketText(toJson(Map.of(
+			"command", "SEARCH",
+			"sessionId", sessionId,
+			"data", Map.of(
+				"cypherQuery", query
+			),
+			"pageSize", 25
+		)));
+
+		final Map<String, Object> data = mock.getLastWebsocketResponse();
+
+		assertEquals("Invalid status code in websocket response to SEARCH query with Cypher", 200.0, data.get("code"));
+		assertEquals("Invalid raw result count in websocket response to SEARCH query with Cypher", 100.0, data.get("rawResultCount"));
+		assertEquals("Invalid page size in websocket response to SEARCH query with Cypher", 25.0, data.get("pageSize"));
+		assertEquals("Invalid result size in websocket response to SEARCH query with Cypher", 25, ((List) data.get("result")).size());
+	}
+
 }

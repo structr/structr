@@ -127,54 +127,15 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Ctrl-Alt-p
 		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj, null, true);
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
+
+			Structr.openPropertiesDialogForUserProvidedUUID();
 		}
 
 		// Ctrl-Alt-m
 		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Elements.openEditContentDialog(obj);
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
-		}
 
-		// Ctrl-Alt-g
-		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj, 'permissions');
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
-		}
-
-		// Ctrl-Alt-h
-		if ((code === 'KeyH' || keyCode === 72) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			if (Structr.isModuleActive(_Schema)) {
-				_Schema.hideSelectedSchemaTypes();
-			}
+			Structr.openEditorDialogForUserProvidedUUID();
 		}
 
 		// Ctrl-Alt-e
@@ -600,7 +561,6 @@ let Structr = {
 				Structr.clearMain();
 				Structr.mainMenu.activateEntry(name);
 				Structr.modules[name].onload();
-				Structr.adaptUiToAvailableFeatures();
 			}
 
 			return moduleAllowsNavigation;
@@ -887,8 +847,6 @@ let Structr = {
 
 			Structr.activeModules = envInfo.modules;
 
-			Structr.adaptUiToAvailableFeatures();
-
 			let userConfigMenu = Structr.mainMenu.getSavedMenuConfig();
 
 			Structr.mainMenu.update(userConfigMenu);
@@ -1059,35 +1017,6 @@ let Structr = {
 	getActiveElementId: (element) => {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
-	adaptUiToAvailableFeatures: () => {
-		Structr.adaptUiToAvailableModules();
-		Structr.adaptUiToEdition();
-	},
-	adaptUiToAvailableModules: () => {
-		$('.module-dependent').each(function(idx, element) {
-			let el = $(element);
-
-			if (Structr.isModulePresent(el.data('structr-module'))) {
-				if (!el.is(':visible')) el.show();
-			} else {
-				el.hide();
-			}
-		});
-	},
-	adaptUiToEdition: () => {
-		$('.edition-dependent').each(function(idx, element) {
-			let el = $(element);
-
-			if (Structr.isAvailableInEdition(el.data('structr-edition'))) {
-				if (!el.is(':visible')) el.show();
-			} else {
-				el.hide();
-			}
-		});
-	},
-	isModulePresent: (moduleName) => {
-		return true; // Structr.activeModules[moduleName] !== undefined;
-	},
 	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
 	},
@@ -1100,18 +1029,6 @@ let Structr = {
 	},
 	registerActionToRunAfterEnvInfoIsAvailable: (cb) => {
 		Structr.envInfoAvailableCallbacks.push(cb);
-	},
-	isAvailableInEdition: (requiredEdition) => {
-		switch (Structr.edition) {
-			case 'Enterprise':
-				return true;
-			case 'Small Business':
-				return ['Small Business', 'Basic', 'Community'].indexOf(requiredEdition) !== -1;
-			case 'Basic':
-				return ['Basic', 'Community'].indexOf(requiredEdition) !== -1;
-			case 'Community':
-				return ['Community'].indexOf(requiredEdition) !== -1;
-		}
 	},
 	updateMainHelpLink: (newUrl) => {
 		let helpLink = document.querySelector('#main-help a');
@@ -1917,6 +1834,52 @@ let Structr = {
 		let infoArea = document.querySelector('#info-area');
 		infoArea.classList.toggle('force-show', forceShowState);
 	},
+	openPropertiesDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(uuid => {
+			Command.get(uuid, null, (obj) => {
+				_Entities.showProperties(obj, null, true);
+			});
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
+			}
+		});
+	},
+	openEditorDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
+
+			let validationResult = await _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise(uuid);
+
+			if (validationResult.allow) {
+
+				// basic UUID validation passed, validate further
+				let obj = await Command.getPromise(uuid, null);
+
+				if (obj.isContent === true) {
+
+					validationResult.value = obj;
+
+				} else {
+
+					validationResult.allow = false;
+					validationResult.invalidMessage = 'Given UUID does not resolve to a content element. It is of type: ' + obj.type;
+				}
+			}
+
+			return validationResult;
+
+		}).then(obj => {
+
+			_Elements.openEditContentDialog(obj);
+
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
+			}
+		});
+	},
 
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
 	internalKeys: {
@@ -1961,12 +1924,12 @@ let Structr = {
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
-								<li data-name="Flows" class="module-dependent" data-structr-module="api-builder"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
+								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 								<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
-								<li data-name="Virtual Types" class="module-dependent" data-structr-module="api-builder"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
-								<li data-name="Mail Templates" class="edition-dependent" data-structr-edition="Enterprise"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
+								<li data-name="Virtual Types"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
+								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
 								<li data-name="Login"><a id="logout_" href="javascript:void(0)">Login</a></li>
 							</ul>
 						</li>

@@ -127,8 +127,8 @@ public class UserTest extends StructrUiTest {
 
 		final String uuid = createEntityAsSuperUser("/User", "{ 'name': 'user', 'password': 'password'}");
 
-		grant(StructrTraits.USER,     UiAuthenticator.AUTH_USER_GET, true);
-		grant("User/_Ui", UiAuthenticator.AUTH_USER_GET, false);
+		grant(StructrTraits.USER,  UiAuthenticator.AUTH_USER_GET, true);
+		grant("User/_id", UiAuthenticator.AUTH_USER_GET, false);
 
 		final App app = StructrApp.getInstance();
 

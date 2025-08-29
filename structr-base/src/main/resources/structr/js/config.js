@@ -29,9 +29,7 @@ let _Editors = {
 };
 
 let _Config = {
-	resize: () => {
-		_Dialogs.basic.centerAll();
-	},
+	resize: () => {},
 	init: () => {
 
 		_Icons.preloadSVGIcons();

@@ -94,7 +94,6 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 					attrs.put("targetId", flowContainer.getUuid());
 					flowRelationships.add(attrs);
 				}
-
 			}
 
 			for (final String c : relsToExport) {
@@ -217,5 +216,4 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 			}
 		}
 	}
-
 }

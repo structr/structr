@@ -18,6 +18,7 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Relation;
@@ -27,14 +28,17 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -52,48 +56,66 @@ public class FlowDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
 
-					final String uuid = dataSource.getUuid();
+						final String uuid = dataSource.getUuid();
 
-					if (!context.hasData(uuid)) {
+						if (!context.hasData(uuid)) {
 
-						final FlowDataSource _ds = dataSource.getDataSource();
-						if (_ds != null) {
+							final FlowDataSource _ds = dataSource.getDataSource();
+							if (_ds != null) {
 
-							Object data = _ds.get(context);
-							context.setData(uuid, data);
-						}
-
-						final String _script = dataSource.getQuery();
-						if (_script != null) {
-
-							try {
-
-								Object result = Scripting.evaluate(context.getActionContext(dataSource.getSecurityContext(), dataSource), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + uuid + ")");
-
-								context.setData(dataSource.getUuid(), result);
-
-								return result;
-
-							} catch (FrameworkException fex) {
-
-								throw new FlowException(fex, dataSource);
+								Object data = _ds.get(context);
+								context.setData(uuid, data);
 							}
+
+							final String _script = dataSource.getQuery();
+							if (_script != null) {
+
+								try {
+
+									Object result = Scripting.evaluate(context.getActionContext(dataSource.getSecurityContext(), dataSource), context.getThisObject(), "${" + _script.trim() + "}", "FlowDataSource(" + uuid + ")");
+
+									context.setData(dataSource.getUuid(), result);
+
+									return result;
+
+								} catch (FrameworkException fex) {
+
+									throw new FlowException(fex, dataSource);
+								}
+							}
+
+						} else {
+
+							return context.getData(uuid);
 						}
 
-					} else {
-
-						return context.getData(uuid);
+						return null;
 					}
+				},
 
-					return null;
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       flowBaseNode.as(FlowDataSource.class).getQuery());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
