@@ -794,7 +794,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final boolean inTrash() {
-		return getParent() == null && getOwnerDocumentAsSuperUser() == null;
+		return getOwnerDocumentAsSuperUser() == null;
 	}
 
 	@Override
