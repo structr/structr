@@ -104,6 +104,11 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
+	public boolean isRolledBack() {
+		return tx.isRolledBack();
+	}
+
+	@Override
 	public Node getNode(final Identity id) {
 		return tx.getNode(id);
 	}

@@ -30,6 +30,7 @@ import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
+import org.structr.api.UnknownClientException;
 import org.structr.api.util.ResultStream;
 import org.structr.common.PropertyView;
 import org.structr.common.RequestKeywords;
@@ -851,7 +852,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		} catch (Throwable t) {
 
-			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+			if (t instanceof QuietException || t.getCause() instanceof QuietException || t instanceof UnknownClientException) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 			} else {
 				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");

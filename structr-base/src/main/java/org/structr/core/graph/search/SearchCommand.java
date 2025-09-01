@@ -19,6 +19,7 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.Predicate;
+import org.structr.api.UnknownClientException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.Operation;
@@ -153,7 +154,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, pageSize, page));
+				try {
+					indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, pageSize, page));
+
+				} catch (UnknownClientException uclex) {
+
+					throw new FrameworkException(500, uclex.getMessage());
+				}
 
 				if (comparator != null) {
 

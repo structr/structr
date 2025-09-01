@@ -28,6 +28,7 @@ import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.SyntaxErrorException;
+import org.structr.api.UnknownClientException;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
@@ -223,7 +224,11 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 			} catch (FrameworkException t) {
 
-				logger.warn("Unable to parse message.", t);
+				logger.warn(t.getMessage());
+
+			} catch (UnknownClientException uclex) {
+
+				logger.warn(uclex.getMessage());
 			}
 
 			// process message
@@ -304,6 +309,10 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 				}
 
+			} catch (UnknownClientException uclex) {
+
+				logger.warn(uclex.getMessage());
+
 			} catch (Throwable t) {
 
 				if (!(t instanceof SyntaxErrorException) && !(t instanceof AlreadyLoggedAssertException)) {
@@ -311,26 +320,17 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 					t.printStackTrace();
 				}
 
-				try (final Tx tx = app.tx(true, true, true)) {
+				// send 400 Bad Request
+				if (t instanceof FrameworkException) {
 
-					// send 400 Bad Request
-					if (t instanceof FrameworkException) {
+					final FrameworkException fex = (FrameworkException)t;
 
-						final FrameworkException fex = (FrameworkException)t;
+					send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
 
-						send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
+				} else {
 
-					} else {
+					send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
 
-						send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
-
-					}
-
-					// commit transaction
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					logger.warn("Unable to send websocket result: {}", fex.getMessage());
 				}
 			}
 

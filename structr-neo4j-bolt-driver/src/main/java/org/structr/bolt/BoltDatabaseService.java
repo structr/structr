@@ -205,7 +205,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	public Transaction beginTx() {
 
 		SessionTransaction session = sessions.get();
-		if (session == null || session.isClosed()) {
+		if (session == null || session.isClosed() || session.isRolledBack()) {
 
 			try {
 

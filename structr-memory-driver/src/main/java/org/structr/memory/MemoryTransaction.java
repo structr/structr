@@ -72,6 +72,10 @@ public class MemoryTransaction implements Transaction {
 	public boolean isSuccessful() {
 		return success;
 	}
+	@Override
+	public boolean isRolledBack() {
+		return false;
+	}
 
 	@Override
 	public void setIsPing(final boolean isPing) {
