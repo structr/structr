@@ -4871,7 +4871,8 @@ let _Schema = {
 
 						domElementsToDrag = _Schema.ui.selection.selectedNodes.map(selectedNode => document.getElementById(selectedNode.nodeId));
 						if (!dragElement.classList.contains('selected')) {
-							domElementsToDrag.push(dragElement);
+							_Schema.ui.selection.clearSelection();
+							domElementsToDrag = [dragElement];
 						}
 
 						eventStartPoint.x = e.clientX;
