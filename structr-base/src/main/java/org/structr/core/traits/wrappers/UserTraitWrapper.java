@@ -19,8 +19,10 @@
 package org.structr.core.traits.wrappers;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
@@ -33,7 +35,14 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 	@Override
 	public Folder getHomeDirectory() {
-		return wrappedObject.getProperty(traits.key(UserTraitDefinition.HOME_DIRECTORY_PROPERTY));
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(UserTraitDefinition.HOME_DIRECTORY_PROPERTY));
+		if (node != null) {
+
+			return node.as(Folder.class);
+		}
+
+		return null;
 	}
 
 	@Override
@@ -43,7 +52,14 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 	@Override
 	public Folder getWorkingDirectory() {
-		return wrappedObject.getProperty(traits.key(UserTraitDefinition.WORKING_DIRECTORY_PROPERTY));
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(UserTraitDefinition.WORKING_DIRECTORY_PROPERTY));
+		if (node != null) {
+
+			return node.as(Folder.class);
+		}
+
+		return null;
 	}
 
 	@Override
