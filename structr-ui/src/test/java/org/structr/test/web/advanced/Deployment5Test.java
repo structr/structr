@@ -42,6 +42,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
@@ -51,6 +52,7 @@ import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Option;
 import org.structr.web.traits.definitions.html.Select;
 import org.structr.websocket.command.CreateComponentCommand;
+import org.structr.websocket.command.RemoveCommand;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -706,5 +708,60 @@ public class Deployment5Test extends DeploymentTestBase {
 			fail("Unexpected exception.");
 		}
 
+	}
+
+	@Test
+	public void test60PreventDeploymentExportOfNestedTemplatesInTrash() {
+
+		String template2UUID = null;
+		String template3UUID = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test60");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+			createElement(page, head, "title", "test05");
+
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
+
+			final Template template1 = createTemplate(page, div1, "template1");
+			final Template template2 = createTemplate(page, template1, "template2");
+			final Template template3 = createTemplate(page, template2, "template3");
+
+			template2UUID = template2.getUuid();
+			template3UUID = template3.getUuid();
+
+			// remove pageId from node and all children ("move to trash")
+			template2.getParent().removeChild(template2);
+			RemoveCommand.recursivelyRemoveNodesFromPage(template2, securityContext);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			// make sure that the templates from the trash were not exported/imported
+
+			assertNotNull(template2UUID);
+			assertNotNull(template3UUID);
+
+			final NodeInterface n1 = app.getNodeById(template2UUID);
+			assertEquals("Template node should not be exported if it is in the trash", null, n1);
+
+			final NodeInterface n2 = app.getNodeById(template3UUID);
+			assertEquals("Template node should not be exported if it is in the trash as a child of another node", null, n2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 	}
 }
