@@ -52,7 +52,6 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 		return wrappedObject.getName();
 	}
 
-
 	public Iterable<NodeInterface> getEntries() {
 		return wrappedObject.getProperty(traits.key(StorageConfigurationTraitDefinition.ENTRIES_PROPERTY));
 	}
