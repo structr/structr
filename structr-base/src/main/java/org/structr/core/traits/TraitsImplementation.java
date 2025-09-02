@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits;
 
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
@@ -444,28 +445,36 @@ public class TraitsImplementation implements Traits {
 		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
 		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
 
-		for (final Trait trait : getTraits()) {
+		for (final String traitName : traits.keySet()) {
 
-			final String traitName = trait.getName();
 			String indexName = traitName;
 
-			// Use relationship type instead of the type name for relationships
-			// because the return value is for index update purposes.
-			if (trait.isRelationship()) {
+			final Trait trait = globalTraitMap.get(traitName);
+			if (trait != null) {
 
-				final Relation relation = trait.getRelation();
-				if (relation != null) {
+				// Use relationship type instead of the type name for relationships
+				// because the return value is for index update purposes.
+				if (trait.isRelationship()) {
 
-					indexName = relation.name();
+					final Relation relation = trait.getRelation();
+					if (relation != null) {
+
+						indexName = relation.name();
+					}
 				}
-			}
 
-			if (trait.isDynamic()) {
+				if (trait.isDynamic()) {
 
-				// dynamic trait => we can remove all property keys
-				removedProperties.computeIfAbsent(indexName, k -> new LinkedHashMap<>()).putAll(trait.getPropertyKeys());
+					// dynamic trait => we can remove all property keys
+					removedProperties.computeIfAbsent(indexName, k -> new LinkedHashMap<>()).putAll(trait.getPropertyKeys());
 
-				// mark trait for removal
+					// mark trait for removal
+					traitsToRemove.add(traitName);
+				}
+
+			} else {
+
+				// trait has been removed already, remove from this type as well!
 				traitsToRemove.add(traitName);
 			}
 		}
@@ -493,6 +502,12 @@ public class TraitsImplementation implements Traits {
 			if (trait != null) {
 
 				localTraitsCache.add(trait);
+
+			} else {
+
+				// leave a log message, so we can find other occurrences of this problem
+				LoggerFactory.getLogger(TraitsImplementation.class).warn("Trait {} not found, please investigate.");
+				Thread.dumpStack();
 			}
 		}
 
