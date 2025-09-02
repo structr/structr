@@ -21,10 +21,13 @@ package org.structr.web.traits.wrappers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
 import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
+import org.w3c.dom.Node;
 
 public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrapper implements StorageConfigurationEntry {
 
@@ -38,7 +41,14 @@ public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrap
 	}
 
 	public StorageConfiguration getConfiguration() {
-		return wrappedObject.getProperty(traits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY));
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY));
+		if (node != null) {
+
+			return node.as(StorageConfiguration.class);
+		}
+
+		return null;
 	}
 
 	public void setName(final String name) throws FrameworkException {
