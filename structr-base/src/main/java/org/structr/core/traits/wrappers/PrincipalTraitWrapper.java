@@ -210,7 +210,10 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public Iterable<Group> getParents() {
-		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY));
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY));
+
+		return Iterables.map(n -> n.as(Group.class), nodes);
 	}
 
 	@Override
