@@ -45,6 +45,7 @@ public class SiteTraitWrapper extends AbstractNodeTraitWrapper implements Site {
 		return wrappedObject.getProperty(traits.key(SiteTraitDefinition.PORT_PROPERTY));
 	}
 
+	// Not fixed
 	@Override
 	public Iterable<NodeInterface> getPages() {
 		return wrappedObject.getProperty(traits.key(SiteTraitDefinition.PAGES_PROPERTY));

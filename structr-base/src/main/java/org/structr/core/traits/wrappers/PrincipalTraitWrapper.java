@@ -58,6 +58,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 		return wrappedObject.getName();
 	}
 
+	// Not fixed
 	@Override
 	public Iterable<NodeInterface> getOwnedNodes() {
 		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.OWNED_NODES_PROPERTY));
@@ -208,6 +209,7 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 		}
 	}
 
+	// Not fixed
 	@Override
 	public Iterable<Group> getParents() {
 		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY));
