@@ -70,7 +70,6 @@ public class VirtualTypeTraitWrapper extends AbstractNodeTraitWrapper implements
 		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.FILTER_EXPRESSION_PROPERTY));
 	}
 
-	// Not fixed
 	@Override
 	public Iterable<NodeInterface> getVirtualProperties() {
 		return wrappedObject.getProperty(traits.key(VirtualTypeTraitDefinition.PROPERTIES_PROPERTY));

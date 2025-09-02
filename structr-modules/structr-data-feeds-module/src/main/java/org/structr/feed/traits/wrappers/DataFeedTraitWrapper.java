@@ -91,7 +91,6 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.MAX_ITEMS_PROPERTY));
 	}
 
-	// Not fixed
 	public Iterable<NodeInterface> getItems() {
 		return wrappedObject.getProperty(traits.key(DataFeedTraitDefinition.ITEMS_PROPERTY));
 	}

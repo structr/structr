@@ -58,7 +58,6 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 		return wrappedObject.getName();
 	}
 
-	// Not fixed
 	@Override
 	public Iterable<NodeInterface> getOwnedNodes() {
 		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.OWNED_NODES_PROPERTY));
