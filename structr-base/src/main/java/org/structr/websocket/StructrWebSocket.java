@@ -20,6 +20,7 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
+import java.nio.channels.ClosedChannelException;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.session.ManagedSession;
@@ -157,6 +158,19 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		} catch (FrameworkException fex) {
 
 			logger.error("Error while closing connection: {}", fex.getMessage());
+		}
+	}
+
+	@Override
+	public void onWebSocketError(Throwable cause) {
+
+		if (QuietException.isQuiet(cause) || (cause instanceof ClosedChannelException)) {
+
+			// ignore
+
+		} else {
+
+			logger.warn("Caught websocket error: {}", cause.getMessage());
 		}
 	}
 
