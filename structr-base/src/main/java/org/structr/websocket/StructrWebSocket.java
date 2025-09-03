@@ -20,7 +20,6 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
-import java.nio.channels.ClosedChannelException;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.session.ManagedSession;
@@ -162,15 +161,17 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	}
 
 	@Override
-	public void onWebSocketError(Throwable cause) {
+	public void onWebSocketError(Throwable t) {
 
-		if (QuietException.isQuiet(cause) || (cause instanceof ClosedChannelException)) {
-
-			// ignore
-
+		if (QuietException.isQuiet(t)) {
+			// ignore exceptions which (by jettys standards) should be handled less verbosely
+		} else if (t.getCause() instanceof TimeoutException) {
+			// also ignore timeoutexceptions
+		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
+			// also ignore simple "Closed" exception
 		} else {
 
-			logger.warn("Caught websocket error: {}", cause.getMessage());
+			logger.warn("Unable to send websocket message to remote client: {}", t);
 		}
 	}
 
@@ -422,7 +423,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 		} catch (Throwable t) {
 
-			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+			if (QuietException.isQuiet(t)) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 			} else if (t.getCause() instanceof TimeoutException) {
 				// also ignore timeoutexceptions
