@@ -1679,6 +1679,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	private void removeInternalDataBindingKeys(final Map<String, Object> parameters) {
 
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE);
@@ -1688,6 +1689,18 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY);
 		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRACTION);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENT);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENTS);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRSUCCESSNOTIFICATIONS);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONS);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRSUCCESSNOTIFICATIONSDELAY);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONSDELAY);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRSUCCESSTARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURETARGET);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTYPE);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTITLE);
+		parameters.remove(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTEXT);
 	}
 
 	private String getDataTargetFromParameters(final Map<String, Object> parameters, final String action, final boolean throwExceptionIfEmpty) throws FrameworkException {

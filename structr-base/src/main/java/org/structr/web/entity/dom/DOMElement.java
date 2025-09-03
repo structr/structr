@@ -39,15 +39,28 @@ public interface DOMElement extends DOMNode  {
 
 	String lowercaseBodyName = "body";
 
-	String EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT = "htmlEvent";
-	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION = "structrIdExpression";
-	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET = "structrTarget";
-	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE = "structrDataType";
-	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD = "structrMethod";
-	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFLOW = "structrFlow";
-	String EVENT_ACTION_MAPPING_PARAMETER_CHILDID = "childId";
-	String EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT = "sourceObject";
-	String EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY = "sourceProperty";
+	String EVENT_ACTION_MAPPING_PARAMETER_HTMLEVENT                        = "htmlEvent";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRID                        = "structrId";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRIDEXPRESSION              = "structrIdExpression";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRACTION                    = "structrAction";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENT                     = "structrEvent";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTREVENTS                    = "structrEvents";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRTARGET                    = "structrTarget";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDATATYPE                  = "structrDataType";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD                    = "structrMethod";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFLOW                      = "structrFlow";
+	String EVENT_ACTION_MAPPING_PARAMETER_CHILDID                          = "childId";
+	String EVENT_ACTION_MAPPING_PARAMETER_SOURCEOBJECT                     = "sourceObject";
+	String EVENT_ACTION_MAPPING_PARAMETER_SOURCEPROPERTY                   = "sourceProperty";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRSUCCESSNOTIFICATIONS      = "structrSuccessNotifications";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRSUCCESSNOTIFICATIONSDELAY = "structrSuccessNotificationsDelay";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRSUCCESSTARGET             = "structrSuccessTarget";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONS      = "structrFailureNotifications";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURENOTIFICATIONSDELAY = "structrFailureNotificationsDelay";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFAILURETARGET             = "structrFailureTarget";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTYPE                = "structrDialogType";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTITLE               = "structrDialogTitle";
+	String EVENT_ACTION_MAPPING_PARAMETER_STRUCTRDIALOGTEXT                = "structrDialogText";
 	int HtmlPrefixLength = PropertyView.Html.length();
 
 	// ----- public methods -----
