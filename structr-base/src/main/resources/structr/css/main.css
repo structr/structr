@@ -2874,7 +2874,6 @@ i.fa-sitemap {
 	height: calc(100% - 2rem);
 	background-color: transparent;
 	position: absolute;
-	top: 2rem;
 	cursor: ew-resize;
 	border: 1px solid transparent;
 	margin-left: 1rem;
