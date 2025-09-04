@@ -161,6 +161,21 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	}
 
 	@Override
+	public void onWebSocketError(Throwable t) {
+
+		if (QuietException.isQuiet(t)) {
+			// ignore exceptions which (by jettys standards) should be handled less verbosely
+		} else if (t.getCause() instanceof TimeoutException) {
+			// also ignore timeoutexceptions
+		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
+			// also ignore simple "Closed" exception
+		} else {
+
+			logger.warn("Unable to send websocket message to remote client: {}", t);
+		}
+	}
+
+	@Override
 	public void onWebSocketText(final String data) {
 
 		final Services services = Services.getInstance();
@@ -408,7 +423,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 		} catch (Throwable t) {
 
-			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+			if (QuietException.isQuiet(t)) {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 			} else if (t.getCause() instanceof TimeoutException) {
 				// also ignore timeoutexceptions
