@@ -54,6 +54,7 @@ import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -65,6 +66,7 @@ public class SchemaService implements Service {
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
 	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
 	private static final AtomicBoolean schemaIsBeingReplaced      = new AtomicBoolean(false);
+	private static final AtomicLong updatingThreadId              = new AtomicLong(-1);
 	private static final Set<String> blacklist                    = new LinkedHashSet<>();
 	private static GraphQLSchema graphQLSchema                    = null;
 
@@ -89,6 +91,8 @@ public class SchemaService implements Service {
 			errorBuffer.add(new InvalidSchemaToken("Base", "source", "token"));
 
 		} else {
+
+			updatingThreadId.set(Thread.currentThread().threadId());
 
 			blacklist("Favoritable");
 
@@ -298,6 +302,7 @@ public class SchemaService implements Service {
 
 				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", Map.of("success", true), Predicate.allExcept(initiatedBySessionId));
 
+				updatingThreadId.set(-1);
 				schemaIsBeingReplaced.set(false);
 			}
 		}
@@ -353,6 +358,28 @@ public class SchemaService implements Service {
 
 	public static boolean getSchemaIsBeingReplaced() {
 		return schemaIsBeingReplaced.get();
+	}
+
+	public static void waitForSchemaReplacement() {
+
+		final long currentThreadId = Thread.currentThread().threadId();
+		int count = 0;
+
+		while (updatingThreadId.get() != -1 && updatingThreadId.get() != currentThreadId) {
+
+			if (count++ > 100) {
+				logger.warn("Waited more than 10 seconds for schema replacement, continuing.");
+				break;
+			}
+
+			// wait a random amount of time (will only happen if the schema is currently being replaced)
+			try {
+				Thread.yield();
+				Thread.sleep((int) (Math.random() * 100) + 100);
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
 	}
 
 	// ----- interface Feature -----
