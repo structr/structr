@@ -133,9 +133,6 @@ public class StructrTest {
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
 
-		Settings.RelationshipCacheSize.setValue(10000);
-		Settings.NodeCacheSize.setValue(10000);
-
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
