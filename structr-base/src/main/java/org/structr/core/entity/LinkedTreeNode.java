@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,7 @@ import java.util.Set;
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  */
-public interface LinkedTreeNode extends LinkedListNode {
+public interface LinkedTreeNode {
 
 	String getChildLinkType();
 	PropertyKey<Integer> getPositionProperty();

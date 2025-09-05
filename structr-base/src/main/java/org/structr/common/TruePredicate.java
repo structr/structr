@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,6 @@ package org.structr.common;
 
 import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
 
 import java.util.Comparator;
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.api.index;
 
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.TypeConverter;
 
 /**
@@ -66,32 +66,32 @@ public abstract class AbstractQueryFactory<T extends DatabaseQuery> implements Q
 	}
 
 	// ----- protected methods -----
-	protected void checkOccur(final T query, final Occurrence occ, final boolean first) {
+	protected void checkOperation(final T query, final Operation operation, final boolean first) {
 
-		if (!first || occ.equals(Occurrence.FORBIDDEN)) {
-			addOccur(query, occ, first);
+		if (!first || operation.equals(Operation.NOT)) {
+			addOperation(query, operation, first);
 		}
 	}
 
 
-	protected void addOccur(final T query, final Occurrence occ, final boolean first) {
+	protected void addOperation(final T query, final Operation operation, final boolean first) {
 
-		switch (occ) {
+		switch (operation) {
 
-			case FORBIDDEN:
+			case NOT:
 				if (first) {
 					query.not();
 				} else {
 					query.andNot();
 				}
 				break;
-			case OPTIONAL:
+
+			case OR:
 				query.or();
 				break;
 
-			default:
+			case AND:
 				query.and();
-				break;
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -97,7 +97,7 @@ let _Security = {
 
 		if (isUser) {
 			elements.push({
-				name: 'Basic',
+				name: 'General',
 				clickHandler: () => {
 					_Entities.showProperties(entity, 'general');
 				}
@@ -105,7 +105,7 @@ let _Security = {
 		}
 
 		elements.push({
-			name: 'Properties',
+			name: 'Advanced',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
 			}
@@ -239,7 +239,7 @@ let _Security = {
 				<div id="add-resource-access-permission" class="flex items-center">
 					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="combined-input-create">
 					<button class="action add_permission_icon button inline-flex items-center combined-input-create">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Permisson
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create Permission
 					</button>
 				</div>
 
@@ -388,8 +388,8 @@ let _UsersAndGroups = {
 
 		let userElement = $(`
 			<div class="node user ${_UsersAndGroups.userNodeClassPrefix}${user.id}" data-user-id="${user.id}">
-				<div class="node-container flex items-center">
-					${_Icons.getIconForPrincipal(user)}<b class="name_ flex-grow truncate" data-input-class="max-w-75"></b>
+				<div class="node-container flex items-center overflow-hidden">
+					${_Icons.getIconForPrincipal(user)}<b class="name_ flex-grow truncate" data-input-class="flex-grow"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -589,7 +589,7 @@ let _UsersAndGroups = {
 			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
 				<div class="node-container flex items-center">
 					${_Icons.getIconForPrincipal(group)}
-					<b class="name_ flex-grow" data-input-class="max-w-75"></b>
+					<b class="name_ flex-grow" data-input-class="flex-grow"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -985,7 +985,7 @@ let _ResourceAccessPermissions = {
 
 			let bitmaskInput = $('.bitmask', tr);
 			bitmaskInput.on('blur', function() {
-				_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of("ResourceAccess").key("id"), $(this).val());
+				_ResourceAccessPermissions.updateResourceAccessFlags(resourceAccess.id, $(this).val());
 			});
 
 			bitmaskInput.keypress(function(e) {
@@ -1002,7 +1002,7 @@ let _ResourceAccessPermissions = {
 			tr.find('input.resource-access-flag:checked').each(function(i, input) {
 				newFlags += parseInt($(input).attr('data-flag'));
 			});
-			_ResourceAccessPermissions.updateResourceAccessFlags(Traits.of("ResourceAccess").key("id"), newFlags);
+			_ResourceAccessPermissions.updateResourceAccessFlags(resourceAccess.id, newFlags);
 		});
 
 		$('input[type=checkbox].resource-access-visibility', tr).on('change', function() {
@@ -1010,7 +1010,7 @@ let _ResourceAccessPermissions = {
 			let visibilityOptionName  = $(this).attr('name');
 			let visibilityOptionValue = $(this).prop('checked');
 
-			Command.setProperty(Traits.of("ResourceAccess").key("id"), visibilityOptionName, visibilityOptionValue, false, function() {
+			Command.setProperty(resourceAccess.id, visibilityOptionName, visibilityOptionValue, false, function() {
 				_ResourceAccessPermissions.updateResourcesAccessRow(resourceAccess.id);
 			});
 		});
@@ -1086,14 +1086,14 @@ let _CorsSettings = {
 
 		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${corsSetting.id}" class="cors-setting">
-				<td class="title-cell"><b>${corsSetting.requestUri}</b></td>
+				<td class="title-cell"><input type="text" class="cors-request-uri" data-attr-key="requestUri" size="40" value="${corsSetting.requestUri ?? ''}"></td>
 				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']), 'Delete')}</td>
-				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins || ''}"></td>
-				<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge || ''}"></td>
-				<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods || ''}"></td>
-				<td><input type="text" class="cors-allow-headers" data-attr-key="allowHeaders" size="16" value="${corsSetting.allowHeaders || ''}"></td>
-				<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="16" value="${corsSetting.allowCredentials || ''}"></td>
-				<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="16" value="${corsSetting.exposeHeaders || ''}"></td>
+				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins ?? ''}"></td>
+				<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge ?? ''}"></td>
+				<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods ?? ''}"></td>
+				<td><input type="text" class="cors-allow-headers" data-attr-key="allowHeaders" size="16" value="${corsSetting.allowHeaders ?? ''}"></td>
+				<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="16" value="${corsSetting.allowCredentials ?? ''}"></td>
+				<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="16" value="${corsSetting.exposeHeaders ?? ''}"></td>
 			</tr>
 		`);
 
@@ -1108,7 +1108,26 @@ let _CorsSettings = {
 		for (let inp of tr.querySelectorAll('input[type="text"]')) {
 			inp.addEventListener('blur', e => {
 				e.stopPropagation();
-				_Entities.setPropertyWithFeedback(corsSetting, inp.dataset.attrKey, inp.value, $(inp), inp);
+
+				let key   = inp.dataset.attrKey;
+				let value = inp.value;
+
+				if (key === 'requestUri' && value === '') {
+
+					_Helpers.blinkRed(inp);
+					inp.value = corsSetting[key];
+
+					inp.setCustomValidity('Request URI must not be empty');
+					inp.reportValidity();
+
+					setTimeout(() => {
+						inp.setCustomValidity('');
+					}, 2000);
+
+				} else {
+
+					_Entities.setPropertyWithFeedback(corsSetting, key, value, $(inp), inp);
+				}
 			});
 		}
 

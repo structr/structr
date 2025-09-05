@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,16 +22,12 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
 import org.structr.flow.traits.operations.DataSourceOperations;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowDataSource extends FlowNode implements DeployableEntity, ThrowingElement {
 
@@ -74,19 +70,5 @@ public class FlowDataSource extends FlowNode implements DeployableEntity, Throwi
 	@Override
 	public final FlowExceptionHandler getExceptionHandler(final Context context) {
 		return getExceptionHandler();
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       getQuery());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 }

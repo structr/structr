@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,26 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.impl.FlowParameterDataSource;
 import org.structr.flow.impl.FlowParameterInput;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -44,6 +53,32 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 
 		return Map.of(
 			FlowParameterInput.class, (traits, node) -> new FlowParameterInput(traits, node)
+		);
+	}
+
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowParameterInputTraitDefinition.KEY_PROPERTY,                     flowBaseNode.as(FlowParameterInput.class).getKey());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
+				}
 		);
 	}
 

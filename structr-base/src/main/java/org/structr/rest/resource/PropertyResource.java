@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -98,7 +98,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
 			// use search context from type resource
-			collectSearchAttributes(securityContext, typeName, query);
+			collectSearchAttributes(securityContext, typeName, query.and());
 
 			final Predicate<GraphObject> predicate = query.toPredicate();
 
@@ -314,11 +314,6 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public boolean isCollection() {
 			return propertyKey.isCollection();
-		}
-
-		@Override
-		public String getResourceSignature() {
-			return call.get("type") + "/_" + CaseHelper.toUpperCamelCase(propertyKey.jsonName());
 		}
 
 		@Override

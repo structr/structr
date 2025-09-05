@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,8 @@ package org.structr.websocket.message;
 import com.google.gson.JsonElement;
 import org.apache.commons.lang3.BooleanUtils;
 import org.structr.common.SecurityContext;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.GraphObject;
+import org.structr.core.property.PropertyKey;
 
 import java.util.*;
 

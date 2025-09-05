@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,6 +43,10 @@ let _Icons = {
 	iconEditionSmallBusiness: 'edition-small-business',
 	iconEditionBasic:         'edition-basic',
 	iconEditionCommunity:     'edition-community',
+
+	iconTerminal:             'terminal',
+	iconNotificationBell:     'notification-bell',
+
 
 	iconDOMTreePage:          'dom-page',
 	iconDOMTreeElement:       'dom-block',
@@ -104,6 +108,7 @@ let _Icons = {
 	iconSchemaPropertyFunction:  'function-property',
 	iconSchemaPropertyString:    'string-property',
 	iconSchemaPropertyEncrypted: 'encrypted-property',
+	iconScriptWrapped:           'curly-braces-wrap-js',
 	iconRecentlyUsed:            'folder_clock',
 
 	iconFlowSymbol:              'circle-empty',

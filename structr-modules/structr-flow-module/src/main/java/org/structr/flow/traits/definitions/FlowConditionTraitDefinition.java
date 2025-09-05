@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,14 +21,13 @@ package org.structr.flow.traits.definitions;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.impl.FlowCondition;
-import org.structr.flow.impl.FlowLogicCondition;
-import org.structr.flow.traits.operations.LogicConditionOperations;
 
 import java.util.Map;
 import java.util.Set;

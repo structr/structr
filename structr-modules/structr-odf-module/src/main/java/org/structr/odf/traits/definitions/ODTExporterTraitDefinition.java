@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.odf.traits.definitions;
 
-import org.odftoolkit.simple.TextDocument;
+import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -105,7 +105,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		try {
 
 			final App app                        = StructrApp.getInstance(securityContext);
-			final ResultStream result            = app.nodeQuery("AbstractNode").and(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
+			final ResultStream result            = app.nodeQuery("AbstractNode").key(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(securityContext, StructrTraits.NODE_INTERFACE, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();
@@ -114,7 +114,7 @@ public class ODTExporterTraitDefinition extends AbstractNodeTraitDefinition {
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);
 
-			TextDocument text = TextDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
+			OdfDocument text = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 
 			NodeList nodes = text.getContentRoot().getElementsByTagName(ODT_FIELD_TAG_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {

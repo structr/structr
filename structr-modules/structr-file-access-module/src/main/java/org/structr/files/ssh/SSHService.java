@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -268,7 +268,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			try {
 
-				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(username).getFirst();
+				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(username).getFirst();
 				if (principalNode != null) {
 
 					final Principal principal = principalNode.as(Principal.class);
@@ -324,15 +324,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			logger.warn("", t);
 
 			isValid = false;
-		}
-
-		try {
-			if (isValid) {
-				session.setAuthenticated();
-			}
-
-		} catch (IOException ex) {
-			logger.error("Unable to authenticate session", ex);
 		}
 
 		return isValid;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,32 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowKeyValue;
 import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Map;
 import java.util.Set;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -54,37 +61,55 @@ public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowKeyValue keyValue = node.as(FlowKeyValue.class);
-					final String _key           = keyValue.getKey();
-					final FlowDataSource _ds    = keyValue.getDataSource();
-					final String uuid           = keyValue.getUuid();
+						final FlowKeyValue keyValue = node.as(FlowKeyValue.class);
+						final String _key           = keyValue.getKey();
+						final FlowDataSource _ds    = keyValue.getDataSource();
+						final String uuid           = keyValue.getUuid();
 
-					if (_key != null && _ds != null) {
+						if (_key != null && _ds != null) {
 
-						final Object data = _ds.get(context);
-						if (_key.length() > 0) {
+							final Object data = _ds.get(context);
+							if (_key.length() > 0) {
 
-							return new KeyValue(_key, data);
+								return new KeyValue(_key, data);
+
+							} else {
+
+								logger.warn("Unable to evaluate FlowKeyValue {}, key was empty", uuid);
+							}
 
 						} else {
 
-							logger.warn("Unable to evaluate FlowKeyValue {}, key was empty", uuid);
+							logger.warn("Unable to evaluate FlowKeyValue {}, missing at least one source.", uuid);
 						}
 
-					} else {
-
-						logger.warn("Unable to evaluate FlowKeyValue {}, missing at least one source.", uuid);
+						return null;
 					}
+				},
 
-					return null;
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowKeyValueTraitDefinition.KEY_PROPERTY,                           flowBaseNode.as(FlowKeyValue.class).getKey());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

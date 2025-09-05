@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,8 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.io.WKTReader;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.locationtech.jts.io.WKTReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;

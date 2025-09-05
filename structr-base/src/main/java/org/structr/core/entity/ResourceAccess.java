@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,4 +32,5 @@ public interface ResourceAccess extends NodeInterface {
 	void clearFlag(final long flag) throws FrameworkException;
 	long getFlags();
 	String getResourceSignature();
+	void setResourceSignature(final String signature) throws FrameworkException;
 }

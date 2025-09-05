@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
@@ -70,7 +71,7 @@ public class OpenAPITest extends StructrUiTest {
 		HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.in",             "query");
 		HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.schema.type",    "integer");
 
-		HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_loose");
+		HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_inexact");
 		HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.in",             "query");
 		HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.type",    "boolean");
 		HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.default", false);
@@ -132,7 +133,7 @@ public class OpenAPITest extends StructrUiTest {
 		assertNotNull("Missing security scheme for x-password",  HttpFunctionsTest.getMapPathValue(response, "components.securitySchemes.XPassAuth"));
 
 		// check number of paths!
-		HttpFunctionsTest.assertMapPathValueIs(response, "paths.#",  21);
+		HttpFunctionsTest.assertMapPathValueIs(response, "paths.#",  20);
 
 		// check paths
 		final List<Map<String, Map<String, List<String>>>> paths = List.of(
@@ -152,7 +153,6 @@ public class OpenAPITest extends StructrUiTest {
 				Map.of("/maintenance/setNodeProperties",          Map.of("post", List.of("description", "operationId", "requestBody", "responses"))),
 				Map.of("/maintenance/setRelationshipProperties",  Map.of("post", List.of("description", "operationId", "requestBody", "responses"))),
 				Map.of("/maintenance/setUuid",                    Map.of("post", List.of("description", "operationId", "requestBody", "responses"))),
-				Map.of("/maintenance/snapshot",                   Map.of("post", List.of("description", "operationId", "requestBody", "responses"))),
 				Map.of("/maintenance/sync",                       Map.of("post", List.of("description", "operationId", "requestBody", "responses"))),
 				Map.of("/registration",                           Map.of("post", List.of("description", "operationId", "requestBody", "responses"))),
 				Map.of("/reset-password",                         Map.of("post", List.of("description", "operationId", "requestBody", "responses"))),
@@ -315,7 +315,7 @@ public class OpenAPITest extends StructrUiTest {
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.in",             "query");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.schema.type",    "integer");
 
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_loose");
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_inexact");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.in",             "query");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.type",    "boolean");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.default", false);
@@ -384,12 +384,12 @@ public class OpenAPITest extends StructrUiTest {
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Contact/{uuid}.#",  3);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer.#",  3);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}.#",  3);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTest/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParams/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStatic/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParams/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParamsReturn/{view}.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTest.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParams.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStatic.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParams.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParamsReturn.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTest.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParamsReturn.#",  1);
@@ -416,22 +416,22 @@ public class OpenAPITest extends StructrUiTest {
 							"put",    List.of("description", "operationId", "requestBody",               "responses", "summary", "tags"),
 							"delete", List.of("description", "operationId",                "parameters", "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/{uuid}/doTest/{view}", Map.of(
+					Map.of("/Customer/{uuid}/doTest", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/{uuid}/doTestParams/{view}", Map.of(
+					Map.of("/Customer/{uuid}/doTestParams", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/{uuid}/doTestParamsReturn/{view}", Map.of(
+					Map.of("/Customer/{uuid}/doTestParamsReturn", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/doStatic/{view}", Map.of(
+					Map.of("/Customer/doStatic", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/doStaticParams/{view}", Map.of(
+					Map.of("/Customer/doStaticParams", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/doStaticParamsReturn/{view}", Map.of(
+					Map.of("/Customer/doStaticParamsReturn", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
 					Map.of("/globalOther", Map.of(
@@ -449,7 +449,7 @@ public class OpenAPITest extends StructrUiTest {
 			));
 
 			// check some special cases manually
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn/{view}.post.requestBody.content.application/json.schema.properties.id.type", "string");
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn.post.requestBody.content.application/json.schema.properties.id.type", "string");
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.id.type",    "string");
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.index.type", "integer");
 
@@ -484,7 +484,7 @@ public class OpenAPITest extends StructrUiTest {
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.in",             "query");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.schema.type",    "integer");
 
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_loose");
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_inexact");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.in",             "query");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.type",    "boolean");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.default", false);
@@ -551,12 +551,12 @@ public class OpenAPITest extends StructrUiTest {
 			// check number of operations (get, put, post, delete, ...)
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer.#",  3);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}.#",  3);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTest/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParams/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStatic/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParams/{view}.#",  1);
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParamsReturn/{view}.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTest.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParams.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStatic.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParams.#",  1);
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/doStaticParamsReturn.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTest.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.#",  1);
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParamsReturn.#",  1);
@@ -573,22 +573,22 @@ public class OpenAPITest extends StructrUiTest {
 							"put",    List.of("description", "operationId", "requestBody",               "responses", "summary", "tags"),
 							"delete", List.of("description", "operationId",                "parameters", "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/{uuid}/doTest/{view}", Map.of(
+					Map.of("/Customer/{uuid}/doTest", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/{uuid}/doTestParams/{view}", Map.of(
+					Map.of("/Customer/{uuid}/doTestParams", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/{uuid}/doTestParamsReturn/{view}", Map.of(
+					Map.of("/Customer/{uuid}/doTestParamsReturn", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/doStatic/{view}", Map.of(
+					Map.of("/Customer/doStatic", Map.of(
 							"post",   List.of("description", "operationId",                              "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/doStaticParams/{view}", Map.of(
+					Map.of("/Customer/doStaticParams", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
-					Map.of("/Customer/doStaticParamsReturn/{view}", Map.of(
+					Map.of("/Customer/doStaticParamsReturn", Map.of(
 							"post",   List.of("description", "operationId", "requestBody",               "responses", "summary", "tags")
 					)),
 					Map.of("/globalTest", Map.of(
@@ -603,7 +603,7 @@ public class OpenAPITest extends StructrUiTest {
 			));
 
 			// check some special cases manually
-			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn/{view}.post.requestBody.content.application/json.schema.properties.id.type", "string");
+			HttpFunctionsTest.assertMapPathValueIs(response, "paths./Customer/{uuid}/doTestParamsReturn.post.requestBody.content.application/json.schema.properties.id.type", "string");
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.id.type",    "string");
 			HttpFunctionsTest.assertMapPathValueIs(response, "paths./globalTestParams.post.requestBody.content.application/json.schema.properties.index.type", "integer");
 
@@ -638,7 +638,7 @@ public class OpenAPITest extends StructrUiTest {
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.in",             "query");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.pageSize.schema.type",    "integer");
 
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_loose");
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.name",           "_inexact");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.in",             "query");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.type",    "boolean");
 			HttpFunctionsTest.assertMapPathValueIs(response, "components.parameters.inexactSearch.schema.default", false);
@@ -751,6 +751,50 @@ public class OpenAPITest extends StructrUiTest {
 				.statusCode(401)
 			.when()
 				.get("/structr/openapi/schema.json");
+
+	}
+
+	@Test
+	public void testParameterConversion() {
+
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("Test");
+
+			final JsonMethod method = type.addMethod("testDateInput", "{ return $.methodParameters; }");
+
+			method.setIsStatic(true);
+
+			method.addParameter("param1", "Date");
+			method.addParameter("param2", "Date");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("X-User", "admin")
+			.header("X-Password", "admin")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.body("{ param1: '2022-01-01T00:00:00+0100', moep1: test, param2: '2022-01-01T23:59:59+0100' }")
+			.expect()
+			.statusCode(200)
+			.when()
+			.post("/structr/rest/Test/testDateInput");
 
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -129,7 +129,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 				try {
 
-					session.getRemote().sendString(message);
+					session.sendText(message, null);
 
 				} catch (Throwable t) {
 
@@ -144,6 +144,10 @@ public class WebsocketController implements StructrTransactionListener {
 
 					logger.debug("Error sending message to client.", t);
 				}
+
+			} else {
+
+				clientsToRemove.add(socket);
 			}
 		}
 

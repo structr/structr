@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -458,6 +458,20 @@ let StructrWS = {
 
 			StructrModel.callCallback(data.callback, result);
 
+		} else if (command === 'LIST_ACTIVE_ELEMENTS' || command === 'LAYOUT') {
+
+			if (result && result.length) {
+
+				if (result[0].json) {
+
+					StructrModel.callCallback(data.callback, JSON.parse(result[0].json));
+
+				} else if (result[0].error) {
+
+					new MessageBuilder('warning').title('Layout error.').text(result[0].error).show();
+				}
+			}
+
 		} else if (command.startsWith('LIST_LOCALIZATIONS')) {
 
 			StructrModel.callCallback(data.callback, result);
@@ -632,8 +646,9 @@ let StructrWS = {
 
 	sendObj: (obj, callback) => {
 
+		obj.callback = uuid.v4();
+
 		if (callback) {
-			obj.callback = uuid.v4();
 			StructrModel.callbacks[obj.callback] = callback;
 		}
 

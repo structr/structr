@@ -11,7 +11,7 @@
 	<packaging>jar</packaging>
 
 	<properties>
-		<apache.sshd.version>2.7.0</apache.sshd.version>
+		<apache.sshd.version>2.15.0</apache.sshd.version>
 	</properties>
 
 	<dependencies>
@@ -66,7 +66,7 @@
 		<dependency>
 			<groupId>commons-net</groupId>
 			<artifactId>commons-net</artifactId>
-			<version>3.5</version>
+			<version>3.9.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>

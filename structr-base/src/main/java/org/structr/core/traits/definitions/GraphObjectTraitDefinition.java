@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -47,7 +47,6 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 
 	public static final String ID_PROPERTY                             = "id";
 	public static final String TYPE_PROPERTY                           = "type";
-	public static final String BASE_PROPERTY                           = "base";
 	public static final String CREATED_DATE_PROPERTY                   = "createdDate";
 	public static final String CREATED_BY_PROPERTY                     = "createdBy";
 	public static final String LAST_MODIFIED_DATE_PROPERTY             = "lastModifiedDate";
@@ -167,7 +166,6 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Set<PropertyKey> getPropertyKeys() {
 
-		final PropertyKey<String> baseProperty                  = new StringProperty(BASE_PROPERTY);
 		final PropertyKey<String> typeProperty                  = new TypeProperty().category(GraphObject.SYSTEM_CATEGORY);
 		final PropertyKey<String> idProperty                    = new UuidProperty().category(GraphObject.SYSTEM_CATEGORY);
 		final PropertyKey<Date> createdDateProperty             = new ISO8601DateProperty(CREATED_DATE_PROPERTY).readOnly().systemInternal().indexed().unvalidated().writeOnce().category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
@@ -178,7 +176,6 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		final Property<Boolean> visibleToAuthenticatedUsers     = new BooleanProperty(VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY).passivelyIndexed().category(GraphObject.VISIBILITY_CATEGORY).category(GraphObject.SYSTEM_CATEGORY).nodeIndexOnly();
 
 		return newSet(
-			baseProperty,
 			idProperty,
 			typeProperty,
 			createdDateProperty,
@@ -196,13 +193,15 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 
 			PropertyView.Public,
-			newSet(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY),
+			newSet(
+					ID_PROPERTY, TYPE_PROPERTY
+			),
 
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY,
-					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
-					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+					ID_PROPERTY, TYPE_PROPERTY, CREATED_BY_PROPERTY,
+					CREATED_DATE_PROPERTY, LAST_MODIFIED_DATE_PROPERTY,
+					VISIBLE_TO_PUBLIC_USERS_PROPERTY, VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 			)
 		);
 	}

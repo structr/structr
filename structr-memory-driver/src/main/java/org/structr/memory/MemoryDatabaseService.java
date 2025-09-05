@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,12 +19,14 @@
 package org.structr.memory;
 
 import org.structr.api.*;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
 import org.structr.api.index.Index;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
+import org.structr.memory.index.MemoryFulltextNodeIndex;
 import org.structr.memory.index.MemoryNodeIndex;
 import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.*;
@@ -43,6 +45,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
 	private MemoryNodeIndex nodeIndex                                   = null;
+	private MemoryFulltextNodeIndex fulltextIndex                       = null;
 
 	@Override
 	public boolean initialize(final String serviceName, final String version, final String instance) {
@@ -409,6 +412,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		tx.delete(rel);
 	}
 
+	public boolean logQueries() {
+		return Settings.CypherDebugLogging.getValue();
+	}
+
+	public boolean logPingQueries() {
+		return Settings.CypherDebugLoggingPing.getValue();
+	}
+
 	MemoryTransaction getCurrentTransaction() throws NotInTransactionException {
 		return getCurrentTransaction(true);
 	}
@@ -473,11 +484,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 	void updateCache(final MemoryRelationship relationship) {
 		relationships.updateCache(relationship);
-	}
-
-	@Override
-	public Identity identify(long id) {
-		return null;
 	}
 
 	// ----- nested classes -----

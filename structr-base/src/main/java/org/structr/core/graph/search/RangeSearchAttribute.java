@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.RangeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
@@ -31,19 +30,17 @@ import org.structr.core.property.PropertyKey;
  */
 public class RangeSearchAttribute<T> extends SearchAttribute<T> implements RangeQuery {
 
-	private PropertyKey<T> searchKey = null;
 	private boolean includeStart     = true;
 	private boolean includeEnd       = true;
 	private T rangeStart             = null;
 	private T rangeEnd               = null;
 
-	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final Occurrence occur, final boolean includeStart, final boolean includeEnd) {
+	public RangeSearchAttribute(final PropertyKey<T> searchKey, final T rangeStart, final T rangeEnd, final boolean includeStart, final boolean includeEnd) {
 
-		super(occur);
+		super(searchKey, null);
 
 		this.includeStart = includeStart;
 		this.includeEnd   = includeEnd;
-		this.searchKey    = searchKey;
 		this.rangeStart   = rangeStart;
 		this.rangeEnd     = rangeEnd;
 	}
@@ -51,11 +48,6 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 	@Override
 	public String toString() {
 		return "RangeSearchAttribute()";
-	}
-
-	@Override
-	public PropertyKey getKey() {
-		return searchKey;
 	}
 
 	@Override
@@ -71,7 +63,7 @@ public class RangeSearchAttribute<T> extends SearchAttribute<T> implements Range
 	@Override
 	public boolean includeInResult(GraphObject entity) {
 
-		final T value = entity.getProperty(searchKey);
+		final T value = entity.getProperty(key);
 		if (value != null) {
 
 			final Comparable cv = (Comparable)value;

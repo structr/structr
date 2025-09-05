@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -97,7 +97,7 @@ public class FromCsvFunction extends CsvFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
+				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[] { getName(), t.getMessage(), getParametersAsString(sources) });
 			}
 
 			return "";

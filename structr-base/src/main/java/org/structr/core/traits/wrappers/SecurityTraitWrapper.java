@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,12 +27,12 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
 
 public class SecurityTraitWrapper extends GraphObjectTraitWrapper<RelationshipInterface> implements Security {
 

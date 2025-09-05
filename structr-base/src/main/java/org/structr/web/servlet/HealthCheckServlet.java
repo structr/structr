@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,7 @@ import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -292,10 +292,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 		final List<Map<String, Object>> list = new LinkedList<>();
 
-		for (final Map<String, Object> entry : data) {
-
-			list.add(entry);
-		}
+		Collections.addAll(list, data);
 
 		dest.put(name, list);
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,8 +20,6 @@ package org.structr.memory.index.predicate;
 
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
-
-import java.util.Locale;
 
 /**
  */

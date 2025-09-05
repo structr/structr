@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -80,9 +80,12 @@ public class MigrationService {
 	);
 
 	private static final Set<String> SchemaPropertyMigrationBlacklist = Set.of(
+		"AbstractFile.isMounted",
+		"AbstractFile.name",
 		"AbstractFile.nextSiblingId",
 		"AbstractFile.parentId",
 		"Audio._html_mediagroup",
+		"Content.content",
 		"DOMElement.",
 		"DOMElement.data-structr-action",
 		"DOMElement.data-structr-append-id",
@@ -104,7 +107,13 @@ public class MigrationService {
 		"DOMNode.hideOnDetail",
 		"DOMNode.hideOnIndex",
 		"DOMNode.renderDetails",
+		"DOMNode.childrenIds",
+		"DOMNode.pageId",
+		"DOMNode.parentId",
+		"DOMNode.sortedChildren",
+		"DOMNode.syncedNodesIds",
 		"DOMNode.xpathQuery",
+		"DOMElement._html_id",
 		"DOMElement.data-structr-target",
 		"DOMElement.data-structr-type",
 		"LDAPUser.commonName",
@@ -115,7 +124,9 @@ public class MigrationService {
 		"MQTTClient.port",
 		"MQTTClient.protocol",
 		"MQTTClient.url",
+		"PaymentNode.state",
 		"Person.twitterName",
+		"Principal.currentAccessToken",
 		"Principal.customPermissionQueryAccessControl",
 		"Principal.customPermissionQueryDelete",
 		"Principal.customPermissionQueryRead",
@@ -123,17 +134,43 @@ public class MigrationService {
 		"Principal.twoFactorCode",
 		"Textarea._html_maxlenght",
 		"User.twitterName",
-		"Video._html_mediagroup"
+		"Video._html_mediagroup",
+
+		// 4.2 migration
+		"DataFeed.description",
+		"DataFeed.feedType",
+		"FeedItem.checksum",
+		"FeedItem.pubDate",
+		"FeedItem.updatedDate",
+		"FeedItem.url",
+		"FeedItem.version",
+		"Image.tnMid",
+		"Image.tnSmall",
+		"LinkSource.linkableId",
+		"Linkable.linkingElementsIds",
+		"Localization.imported",
+		"Mailbox.mailProtocol",
+		"RemoteDocument.version",
+		"Template.content",
+		"VideoFile.duration",
+		"VideoFile.height",
+		"VideoFile.sampleRate",
+		"VideoFile.width",
+		"Widget.isPageTemplate",
+		"Widget.treePath",
+		"XMPPClient.presenceMode",
+		"XMPPRequest.requestType"
 	);
 
-	private static final Set<String> StaticTypeMigrationBlacklist = Set.of(
+	public static final Set<String> StaticTypeMigrationBlacklist = Set.of(
 		"ConceptGroup", "ConceptGroupLabel", "ContentContainer", "ContentItem",
 		"CustomConceptAttribute", "CustomNote", "CustomTermAttribute", "Note",
 		"SimpleNonPreferredTerm", "StructuredDocument", "StructuredTextNode",
 		"Thesaurus", "ThesaurusArray", "ThesaurusTerm", "VersionHistory",
 		"Definition", "MetadataNode", "NodeLabel", "ThesaurusConcept",
 		"Favoritable", "Indexable", "IndexedWord", "JavaScriptSource",
-		"MinifiedCssFile", "MinifiedJavaScriptFile"
+		"MinifiedCssFile", "MinifiedJavaScriptFile", "LDAPGroup",
+		"LDAPUser", "PaymentItemNode", "PaymentNode", "Person"
 	);
 
 	public static void execute() {
@@ -153,11 +190,7 @@ public class MigrationService {
 
 	public static boolean typeShouldBeRemoved(final String name) {
 
-		if (MigrationService.StaticTypeMigrationBlacklist.contains(name)) {
-			return true;
-		}
-
-		return false;
+		return MigrationService.StaticTypeMigrationBlacklist.contains(name);
 	}
 
 	public static boolean propertyShouldBeRemoved(final SchemaProperty property) {
@@ -167,10 +200,10 @@ public class MigrationService {
 		final String propertyType        = property.getPropertyType().toString().toLowerCase();
 		final String fqcn                = property.getFqcn();
 
-		return propertyShouldBeRemoved(parent.getClassName(), propertyName, propertyType, fqcn);
+		return propertyShouldBeRemoved(property, parent.getClassName(), propertyName, propertyType, fqcn);
 	}
 
-	public static boolean propertyShouldBeRemoved(final String type, final String name, final String propertyType, final String fqcn) {
+	public static boolean propertyShouldBeRemoved(final SchemaProperty property, final String type, final String name, final String propertyType, final String fqcn) {
 
 		if (MigrationService.SchemaPropertyMigrationBlacklist.contains(type + "." + name)) {
 			return true;
@@ -182,6 +215,35 @@ public class MigrationService {
 			final Traits traits = Traits.of(type);
 			if (traits.hasKey(name) && !traits.key(name).isDynamic()) {
 
+				if (property != null) {
+
+					final PropertyKey key = traits.key(name);
+
+					if (property.isIndexed() != key.isIndexed()) {
+
+						logger.info("Allowing {} to override {} property to change indexing flag.", type, name);
+						return false;
+					}
+
+					if (property.isFulltext() != key.isFulltextIndexed()) {
+
+						logger.info("Allowing {} to override {} property to change fulltext indexing flag.", type, name);
+						return false;
+					}
+
+					if (property.isUnique() != key.isUnique()) {
+
+						logger.info("Allowing {} to override {} property to change uniqueness constraint flag.", type, name);
+						return false;
+					}
+
+					if (property.getFormat() != null && !property.getFormat().equals(key.format())) {
+
+						logger.info("Allowing {} to override {} property to change format constraint.", type, name);
+						return false;
+					}
+				}
+
 				return true;
 			}
 		}
@@ -189,10 +251,7 @@ public class MigrationService {
 		// check if property has been blacklisted
 		if ("custom".equals(propertyType)) {
 
-			if (fqcn != null && FQCNBlacklist.contains(fqcn)) {
-
-				return true;
-			}
+			return fqcn != null && FQCNBlacklist.contains(fqcn);
 		}
 
 		return false;
@@ -216,12 +275,7 @@ public class MigrationService {
 	public static boolean methodShouldBeRemoved(final String type, final String name, final String codeType) {
 
 		// we don't support Java methods anymore
-		if ("java".equals(codeType)) {
-
-			return true;
-		}
-
-		return false;
+		return "java".equals(codeType);
 	}
 
 	// ----- private methods -----
@@ -258,8 +312,8 @@ public class MigrationService {
 						}
 					}
 
-					// remove empty schema nodes
-					if (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods())) {
+					// remove empty or blacklisted schema nodes
+					if (typeShouldBeRemoved(schemaNode.getName()) || (Iterables.isEmpty(schemaNode.getSchemaProperties()) && Iterables.isEmpty(schemaNode.getSchemaMethods()))) {
 
 						logger.info("DELETING empty schema node {}", schemaNode.getName());
 						app.delete(schemaNode);
@@ -317,7 +371,7 @@ public class MigrationService {
 			// check (and fix) schema relationships
 			for (final String name : relationshipNodeNames) {
 
-				final NodeInterface rel1 = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).andName(name).getFirst();
+				final NodeInterface rel1 = app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).name(name).getFirst();
 				if (rel1 != null) {
 
 					app.delete(rel1);
@@ -422,21 +476,21 @@ public class MigrationService {
 			final PropertyKey<String> eventMappingKey     = domElementTraits.key(DOMElementTraitDefinition.EVENT_MAPPING_PROPERTY);
 
 			// check (and fix if possible) structr-app.js implementations
-			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(actionKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().key(actionKey, null).getResultStream()) {
 
 				migrateStructrAppMapping(elem, actionKey.jsonName());
 				structrAppJsCount++;
 			}
 
 			// check (and fix) old event action mappings
-			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(eventMappingKey, null).getResultStream()) {
+			for (final NodeInterface elem : app.nodeQuery(StructrTraits.DOM_ELEMENT).and().not().key(eventMappingKey, null).getResultStream()) {
 
 				migrateEventMapping(elem, eventMappingKey.jsonName());
 				eventMappingCount++;
 			}
 
 			// check and fix custom actions that call methods (action => "method", method => action)
-			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().and(newActionKey, null).getResultStream()) {
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and().not().key(newActionKey, null).getResultStream()) {
 
 				if (migrateCustomEventAction(action)) {
 					eventMappingCount++;
@@ -444,7 +498,7 @@ public class MigrationService {
 			}
 
 			// check and fix custom actions that miss successBehaviour or targetBehaviour
-			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).and(successBehaviourKey, null).getResultStream()) {
+			for (final NodeInterface action : app.nodeQuery(StructrTraits.ACTION_MAPPING).key(successBehaviourKey, null).getResultStream()) {
 
 				if (migrateReloadBehaviourAction(action)) {
 					eventMappingCount++;
@@ -639,17 +693,21 @@ public class MigrationService {
 
 			if (keyName.startsWith("data-structr-")) {
 
-				final String value = node.getProperty(key);
+				Object value       = node.getProperty(key);
 				final String name  = CaseHelper.dashesToCamelCase(keyName.substring(13));
 
-				if ("options".equals(name)) {
+				// convert on the fly
+				if (value != null) {
 
-					properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), value);
+					if ("options".equals(name)) {
 
-				} else {
+						properties.put(actionMappingTraits.key(ActionMappingTraitDefinition.OPTIONS_PROPERTY), value.toString());
 
-					// map to configuration option
-					settings.put(name, value);
+					} else {
+
+						// map to configuration option
+						settings.put(name, value.toString());
+					}
 				}
 
 				// remove old key
@@ -798,33 +856,33 @@ public class MigrationService {
 
 	private static void updateSharedComponentFlag() {
 
-		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY);
+		final PropertyKey<Boolean> key = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY);
 		final App app                  = StructrApp.getInstance();
 		long count                     = 0L;
 
 		try (final Tx tx = app.tx()) {
 
 			// prefetch dom nodes with sync rels
-			tx.prefetch(StructrTraits.DOM_ELEMENT, StructrTraits.DOM_ELEMENT,
+			tx.prefetch(StructrTraits.DOM_NODE, StructrTraits.DOM_NODE,
 				Set.of("all/INCOMING/SYNC",
 					"all/OUTGOING/SYNC")
 			);
 
 			// check (and fix) event action mapping relationships
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_ELEMENT).getResultStream()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.DOM_NODE).getResultStream()) {
 
-				final DOMElement elem = node.as(DOMElement.class);
+				final DOMNode elem = node.as(DOMNode.class);
 
 				if (!node.getProperty(key) && elem.getSharedComponent() != null) {
 					node.setProperty(key, true);
 					count++;
 				}
-
 			}
 
 			tx.success();
 
 		} catch (Throwable fex) {
+
 			logger.warn("Unable to update hasSharedComponent flag: {}", fex.getMessage());
 			fex.printStackTrace();
 		}
@@ -918,7 +976,7 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface property : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(typeKey, "Notion").getResultStream()) {
+			for (final NodeInterface property : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(typeKey, "Notion").getResultStream()) {
 
 				final SchemaProperty schemaProperty = property.as(SchemaProperty.class);
 				final AbstractSchemaNode type       = schemaProperty.getSchemaNode();
@@ -944,7 +1002,7 @@ public class MigrationService {
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_ELEMENT).and().not().and(key, null).getResultStream()) {
+			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_ELEMENT).and().not().key(key, null).getResultStream()) {
 
 				final String str     = elem.getProperty(key);
 				final String cleaned = str.replaceAll("[\\W0-9]+", "");

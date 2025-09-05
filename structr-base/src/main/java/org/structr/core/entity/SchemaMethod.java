@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.entity;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
@@ -55,6 +56,7 @@ public interface SchemaMethod extends NodeInterface {
 	boolean includeInOpenAPI();
 	boolean isLifecycleMethod();
 	boolean isJava();
+	boolean wrapJsInMain();
 
 	Class<LifecycleMethod> getMethodType();
 	LifecycleMethod asLifecycleMethod();
@@ -91,5 +93,15 @@ public interface SchemaMethod extends NodeInterface {
 		if (isPrivateMethod() == true) {
 			setProperty(schemaMethodTraits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY), false);
 		}
+	}
+
+	default void warnAboutShadowingBuiltinFunction() {
+
+		final String name = getName();
+
+		TransactionCommand.simpleBroadcastWarning("User-defined function shadows built-in function", """
+			The user-defined function "%s" is shadowing a built-in function (in non-StructrScript contexts).
+			You can still use the built-in function in such contexts. In JavaScript, for example via "$._functions.%s"
+		""".formatted(name, name), null);
 	}
 }

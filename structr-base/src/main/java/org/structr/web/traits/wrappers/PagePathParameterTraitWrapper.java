@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -100,6 +100,8 @@ public class PagePathParameterTraitWrapper extends AbstractNodeTraitWrapper impl
 			}
 
 		} catch (Throwable t) {
+
+			t.printStackTrace();
 
 			// log error (or report it to somewhere), but don't fail here  because we are resolving a URL in the frontend and we don't want to send a 422 to the client..
 			LoggerFactory.getLogger(PagePathParameter.class).warn("Exception while converting input for PagePathParameter with path {}: {}", getName(), t.getMessage());

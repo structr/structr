@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -102,7 +102,7 @@ public class EnumProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

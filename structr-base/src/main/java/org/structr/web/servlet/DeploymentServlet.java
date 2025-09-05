@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,13 +25,10 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.stream.Collectors;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -54,12 +51,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Servlet to handle upload and download of application and data deployment files.
@@ -87,7 +87,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	@Override
 	public void configureServletHolder(final ServletHolder servletHolder) {
-		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", (long) MEGABYTE * Settings.UploadMaxFileSize.getValue(), (long) MEGABYTE * Settings.UploadMaxRequestSize.getValue(), MEGABYTE);
 		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
 	}
 
@@ -206,7 +206,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
-				return;
 			}
 
 		} catch (Throwable t) {

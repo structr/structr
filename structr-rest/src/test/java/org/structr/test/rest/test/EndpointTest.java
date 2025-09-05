@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,6 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -44,8 +42,6 @@ import static org.testng.AssertJUnit.fail;
  *
  */
 public class EndpointTest extends StructrRestTestBase {
-
-	private static final Logger logger = LoggerFactory.getLogger(EndpointTest.class.getName());
 
 	@Test
 	public void testOnSaveConcurrency() {

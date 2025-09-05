@@ -2,6 +2,7 @@
 .project
 .classpath
 target
+structr-base/plugins
 structr-base/data
 structr-base/db*
 structr-base/files*
@@ -14,6 +15,7 @@ structr-base/logs
 structr-base/layouts
 structr-base/webapp-data
 structr-base/structr.conf
+structr-base/structr_hostkey
 structr-base/modules
 structr-base/jsp
 structr-base/log4j.log

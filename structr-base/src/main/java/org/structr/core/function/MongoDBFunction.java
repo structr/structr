@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -67,7 +67,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, t.getMessage(), sources);
+				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[] { getName(), t.getMessage(), sources });
 			}
 
 			return data;

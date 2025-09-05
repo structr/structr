@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -81,7 +82,7 @@ public class SetPermissionCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(400).build(), true);
 		}
 
-		Principal principal = (Principal) getNode(principalId);
+		Principal principal = getNodeAs(principalId, Principal.class, StructrTraits.PRINCIPAL);
 		if (principal == null) {
 
 			logger.error("No principal found with id {}", principalId);
@@ -234,9 +235,9 @@ public class SetPermissionCommand extends AbstractCommand {
 
 			final List<NodeInterface> children = new ArrayList<>();
 
-			if (obj.is("LinkedTreeNode")) {
+			if (obj.is(StructrTraits.DOM_NODE)) {
 
-				children.addAll(obj.as(DOMNode.class).treeGetChildren());
+				children.addAll(obj.as(DOMNode.class).getAllChildNodes());
 
 			} else if (obj.is(StructrTraits.FOLDER)) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,8 @@ package org.structr.web.traits.wrappers;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.servlet.ServletResponse;
+import java.util.Optional;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -33,8 +35,8 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.UnnamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
@@ -50,6 +52,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.providers.local.LocalFSHelper;
 import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -60,16 +63,18 @@ import org.structr.web.entity.User;
 import org.structr.web.importer.CSVFileImportJob;
 import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.operations.OnUploadCompletion;
 
 import javax.xml.stream.XMLStreamException;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 
 /**
  *
@@ -96,29 +101,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public void notifyUploadCompletion() {
-
-		try {
-
-			try (final Tx tx = StructrApp.getInstance().tx()) {
-
-				FileHelper.updateMetadata(this, true);
-				increaseVersion();
-
-				// indexing can be controlled for each file separately
-				if (doIndexing()) {
-
-					final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
-					indexer.addToFulltextIndex(wrappedObject);
-				}
-
-				tx.success();
-			}
-
-		} catch (FrameworkException fex) {
-
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("Unable to index {}: {}", this, fex.getMessage());
-		}
+		traits.getMethod(OnUploadCompletion.class).onUploadCompletion(this, getSecurityContext());
 	}
 
 	@Override
@@ -129,7 +112,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 			final AbstractMethod method = Methods.resolveMethod(traits, "onUpload");
 			if (method != null) {
 
-				method.execute(ctx, wrappedObject, new Arguments(), new EvaluationHints());
+				method.execute(ctx, wrappedObject, new UnnamedArguments(), new EvaluationHints());
 			}
 
 			tx.success();
@@ -145,8 +128,13 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	@Override
 	public String getFormattedSize() {
 		return FileUtils.byteCountToDisplaySize(
-				StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size()
+				getSize()
 		);
+	}
+
+	@Override
+	public Long getSize() {
+		return StorageProviderFactory.getStorageProvider(wrappedObject.as(AbstractFile.class)).size();
 	}
 
 	@Override
@@ -216,6 +204,20 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
+	public String getDiskFilePath(final SecurityContext securityContext) {
+
+		final LocalFSHelper helper    = new LocalFSHelper(getStorageConfiguration());
+		final java.io.File fileOnDisk = helper.getFileOnDisk(this);
+
+		if (fileOnDisk != null) {
+
+			return fileOnDisk.getAbsolutePath();
+		}
+
+		return null;
+	}
+
+	@Override
 	public InputStream getInputStream() {
 
 		final Logger logger = LoggerFactory.getLogger(File.class);
@@ -241,7 +243,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 				if (!editModeActive) {
 
-					final String content = IOUtils.toString(is, "UTF-8");
+					final String content = IOUtils.toString(is, StandardCharsets.UTF_8);
 
 					// close input stream here
 					is.close();
@@ -252,7 +254,12 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 						String encoding = "UTF-8";
 
-						final String cType = getContentType();
+						// if we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
+						final String cType = Optional.ofNullable(getSecurityContext())
+								.map(SecurityContext::getResponse)
+								.map(ServletResponse::getContentType)
+								.orElse(getContentType());
+
 						if (cType != null) {
 
 							final String charset = StringUtils.substringAfterLast(cType, "charset=").trim().toUpperCase();
@@ -300,17 +307,12 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 
 	@Override
 	public String getExtractedContent() {
-		return wrappedObject.getProperty(traits.key("extractedContent"));			// FIXME: extractedContent... this used to extend "Indexable"
+		return wrappedObject.getProperty(traits.key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY));
 	}
 
 	@Override
 	public String getContentType() {
 		return wrappedObject.getProperty(traits.key(FileTraitDefinition.CONTENT_TYPE_PROPERTY));
-	}
-
-	@Override
-	public boolean useAsJavascriptLibrary() {
-		return wrappedObject.getProperty(traits.key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY));
 	}
 
 	@Override
@@ -588,23 +590,6 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		return wrappedObject.getSecurityContext().doIndexing();
 	}
 
-	// ----- interface JavaScriptSource -----
-	@Override
-	public String getJavascriptLibraryCode() {
-
-		try (final InputStream is = getInputStream()) {
-
-			return IOUtils.toString(new InputStreamReader(is));
-
-		} catch (IOException ioex) {
-
-			final Logger logger = LoggerFactory.getLogger(File.class);
-			logger.warn("", ioex);
-		}
-
-		return null;
-	}
-
 	@Override
 	public boolean isImmutable() {
 
@@ -626,10 +611,10 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	private LineAndSeparator getFirstLines(final int num) {
 
 		final StringBuilder lines = new StringBuilder();
-		int separator[]           = new int[10];
+		int[] separator = new int[10];
 		int separatorLength       = 0;
 
-		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), StandardCharsets.UTF_8))) {
 
 			int[] buf = new int[10010];
 

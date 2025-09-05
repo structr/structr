@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,6 @@ package org.structr.bolt;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.TransactionConfig;
 import org.neo4j.driver.exceptions.*;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Mono;
 import org.neo4j.driver.reactive.RxResult;
 import org.neo4j.driver.reactive.RxSession;
 import org.neo4j.driver.reactive.RxTransaction;
@@ -33,6 +31,8 @@ import org.structr.api.NetworkException;
 import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
 import org.structr.api.util.Iterables;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
@@ -103,8 +103,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			} catch (ServiceUnavailableException ex) {
 				throw new NetworkException(ex.getMessage(), ex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateDatabaseException(dex);
 			} catch (ClientException cex) {
+				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateClientException(cex);
 			}
 
@@ -122,8 +124,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			} catch (ServiceUnavailableException ex) {
 				throw new NetworkException(ex.getMessage(), ex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateDatabaseException(dex);
 			} catch (ClientException cex) {
+				isRolledBack = true;
 				throw ReactiveSessionTransaction.translateClientException(cex);
 			}
 		}
@@ -181,8 +185,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -218,8 +224,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -255,8 +263,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -292,8 +302,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -318,8 +330,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -344,8 +358,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -369,8 +385,10 @@ class ReactiveSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
 		}
 	}

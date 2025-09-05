@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
@@ -82,7 +82,7 @@ public abstract class RESTCallHandler {
 		return call.getURL();
 	}
 
-	public String getResourceSignature() {
+	public final String getResourceSignature() {
 
 		String signature = call.getResourceSignature();
 
@@ -297,7 +297,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void collectSearchAttributes(final SecurityContext securityContext, final String entityClass, final Query query) throws FrameworkException {
+	protected void collectSearchAttributes(final SecurityContext securityContext, final String entityClass, final QueryGroup query) throws FrameworkException {
 
 		final HttpServletRequest request = securityContext.getRequest();
 
@@ -308,7 +308,7 @@ public abstract class RESTCallHandler {
 		extractDistanceSearch(request, query);
 	}
 
-	protected void extractDistanceSearch(final HttpServletRequest request, final Query query) {
+	protected void extractDistanceSearch(final HttpServletRequest request, final QueryGroup query) {
 
 		if (request != null) {
 
@@ -373,7 +373,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void extractSearchableAttributes(final SecurityContext securityContext, final String type, final HttpServletRequest request, final Query query) throws FrameworkException {
+	protected void extractSearchableAttributes(final SecurityContext securityContext, final String type, final HttpServletRequest request, final QueryGroup query) throws FrameworkException {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 

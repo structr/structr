@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -71,7 +71,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 

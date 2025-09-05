@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -601,6 +601,9 @@ StructrImage.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrImage.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderDeletionNotification(this);
+	}
 };
 
 StructrImage.prototype.append = function() {
@@ -1102,15 +1105,3 @@ StructrSearchResult.prototype.append = function() {
 		}
 	}
 };
-
-function removeFromArray(array, obj) {
-	var newArray = [];
-	if (array && array.length) {
-		$.each(array, function(i, el) {
-			if (el.id !== obj.id && el !== obj.id) {
-				newArray.push(el);
-			}
-		});
-	}
-	return newArray;
-}

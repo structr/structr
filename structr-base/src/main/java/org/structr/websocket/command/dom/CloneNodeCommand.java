@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.websocket.command.dom;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -64,13 +65,13 @@ public class CloneNodeCommand extends AbstractCommand {
 
 			} catch (final IllegalArgumentException iae) {
 
-				// default to Before
 				getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
 				return;
 			}
 
 		} else {
 
+			// default to Before
 			position = RelativePosition.Before;
 		}
 
@@ -131,7 +132,7 @@ public class CloneNodeCommand extends AbstractCommand {
 					}
 				}
 
-				final DOMNode clonedNode = (DOMNode) node.cloneNode(deep);
+				final DOMNode clonedNode = node.cloneNode(deep);
 				final DOMNode refNode    = (refId != null) ? getDOMNode(refId) : null;
 
 				if (parent != null) {
@@ -173,6 +174,12 @@ public class CloneNodeCommand extends AbstractCommand {
 				}
 
 				setOwnerPageRecursively(clonedNode, clonedNode.getSecurityContext(), ownerPage);
+
+				TransactionCommand.registerNodeCallback(clonedNode, callback);
+
+				// send success
+				getWebSocket().send(webSocketData, true);
+
 
 			} catch (DOMException | FrameworkException ex) {
 

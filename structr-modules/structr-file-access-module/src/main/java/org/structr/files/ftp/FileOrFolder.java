@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,12 +39,12 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  * This class is an equivalent to Java's native File class for file and folder

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,46 +37,31 @@ public interface Predicate<T> {
 		return null;
 	}
 
-	public static <T> Predicate<T> all() {
+	static <T> Predicate<T> all() {
+		return value -> true;
+	}
 
-		return new Predicate<T>() {
+	static <T> Predicate<T> allExcept(final T given) {
 
-			@Override
-			public boolean accept(final T value) {
-				return true;
+		return value -> {
+
+			if (value != null && given != null) {
+				return !value.equals(given);
 			}
+
+			return true;
 		};
 	}
 
-	public static <T> Predicate<T> allExcept(final T given) {
+	static <T> Predicate<T> only(final T given) {
 
-		return new Predicate<T>() {
+		return value -> {
 
-			@Override
-			public boolean accept(final T value) {
-
-				if (value != null && given != null) {
-					return !value.equals(given);
-				}
-
-				return true;
+			if (value != null && given != null) {
+				return value.equals(given);
 			}
-		};
-	}
 
-	public static <T> Predicate<T> only(final T given) {
-
-		return new Predicate<T>() {
-
-			@Override
-			public boolean accept(final T value) {
-
-				if (value != null && given != null) {
-					return value.equals(given);
-				}
-
-				return false;
-			}
+			return false;
 		};
 	}
 }

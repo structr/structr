@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -375,7 +375,7 @@ public abstract class StreamingWriter {
 			final SecurityContext securityContext = writer.getSecurityContext();
 
 			try {
-				final PropertyConverter converter = key.inputConverter(securityContext);
+				final PropertyConverter converter = key.inputConverter(securityContext, false);
 				if (converter != null) {
 
 					Object convertedValue = value;
@@ -462,6 +462,11 @@ public abstract class StreamingWriter {
 						}
 
 						for (final PropertyKey key : keys) {
+
+							// skip properties whose serialization is disabled
+							if (key.serializationDisabled()) {
+								continue;
+							}
 
 							final QueryRange range = writer.getSecurityContext().getRange(key.jsonName());
 							if (range != null) {
@@ -609,6 +614,11 @@ public abstract class StreamingWriter {
 
 					final PropertyKey key   = entry.getKey();
 					final Object value      = entry.getValue();
+
+					// skip properties whose serialization is disabled
+					if (key.serializationDisabled()) {
+						continue;
+					}
 
 					if (serializeNulls || value != null) {
 

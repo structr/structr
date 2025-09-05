@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,10 +20,6 @@ package org.structr.flow.impl;
 
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-
-import java.util.Map;
-import java.util.TreeMap;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.traits.definitions.FlowGetPropertyTraitDefinition;
 
 public class FlowGetProperty extends FlowDataSource {
@@ -56,19 +52,5 @@ public class FlowGetProperty extends FlowDataSource {
 
 	public final String getPropertyName() {
 		return wrappedObject.getProperty(traits.key(FlowGetPropertyTraitDefinition.PROPERTY_NAME_PROPERTY));
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(FlowGetPropertyTraitDefinition.PROPERTY_NAME_PROPERTY,              getPropertyName());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 }

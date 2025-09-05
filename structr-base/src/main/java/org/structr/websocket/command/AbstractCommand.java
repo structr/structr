@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,6 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -66,36 +65,20 @@ public abstract class AbstractCommand {
 	}
 
 	public Page getPage(final String id) {
-
-		final NodeInterface node = getNode(id);
-
-		if (node != null && node.is(StructrTraits.PAGE)) {
-
-			return node.as(Page.class);
-		}
-
-		return null;
+		return getNodeAs(id, Page.class, StructrTraits.PAGE);
 	}
 
 	public DOMNode getDOMNode(final String id) {
-
-		final NodeInterface node = getNode(id);
-
-		if (node != null && node.is(StructrTraits.DOM_NODE)) {
-
-			return node.as(DOMNode.class);
-		}
-
-		return null;
+		return getNodeAs(id, DOMNode.class, StructrTraits.DOM_NODE);
 	}
 
-	public Widget getWidget(final String id) {
+	public <T> T getNodeAs(final String id, final Class<T> type, final String traitName) {
 
 		final NodeInterface node = getNode(id);
 
-		if (node != null && node.is(StructrTraits.WIDGET)) {
+		if (node != null && node.is(traitName)) {
 
-			return node.as(Widget.class);
+			return node.as(type);
 		}
 
 		return null;
@@ -271,18 +254,10 @@ public abstract class AbstractCommand {
 	 */
 	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) throws FrameworkException {
 
-		DOMNode child = sourceNode.getFirstChild();
-
-		while (child != null) {
-
-			DOMNode next = (DOMNode) child.getNextSibling();
+		for (final DOMNode child : sourceNode.getChildren()) {
 
 			targetNode.appendChild(child);
-
-			child = next;
-
 		}
-
 	}
 
 	/**

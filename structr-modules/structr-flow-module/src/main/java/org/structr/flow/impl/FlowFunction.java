@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,7 +70,7 @@ public class FlowFunction extends Function<Object, Object> {
 				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
 				Map<String, Object> parameters    = null;
 
-				final NodeInterface containerNode = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(StructrTraits.FLOW_CONTAINER).and(nameKey, name).getFirst();
+				final NodeInterface containerNode = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, name).getFirst();
 
 				if (sources.length > 1 && sources[1] instanceof Map) {
 					parameters = (Map)sources[1];

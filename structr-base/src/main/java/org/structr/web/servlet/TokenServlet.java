@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
-import org.structr.web.entity.User;
 
 public class TokenServlet extends LoginServlet {
 

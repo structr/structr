@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,8 +29,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -38,15 +36,15 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
-import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 
@@ -169,7 +167,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					properties.put(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY),                                            Long.valueOf(data.length));
 					properties.put(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),                        originalImage.as(AccessControllable.class).getOwnerNode());
 					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY),                                  originalImage.getThumbnailParentFolder(originalImage.getParent(), securityContext));
-					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY),                              originalImage.getProperty(Traits.of(StructrTraits.IMAGE).key("hasParent")));
+					properties.put(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY),                              true);
 
 					thumbnail.unlockSystemPropertiesOnce();
 					thumbnail.setProperties(securityContext, properties);

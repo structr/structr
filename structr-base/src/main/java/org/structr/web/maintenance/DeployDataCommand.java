@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.SchemaHelper;
@@ -45,6 +44,7 @@ import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -119,7 +119,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		final Path target  = Paths.get(path);
 
-		if (target.isAbsolute() != true) {
+		if (!target.isAbsolute()) {
 
 			publishWarningMessage("Data export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			throw new FrameworkException(422, "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
@@ -306,14 +306,14 @@ public class DeployDataCommand extends DeployCommand {
 				throw new ImportPreconditionFailedException("Data Deployment Import not started", "Source path " + path + " is not a directory.");
 			}
 
-			if (source.isAbsolute() != true) {
+			if (!source.isAbsolute()) {
 
 				throw new ImportPreconditionFailedException("Data Deployment Import not started", "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			}
 
-			doInnerCallbacks  = parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME) == null  ? false : "true".equals(parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME).toString());
-			doOuterCallbacks  = parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME) == null  ? false : "true".equals(parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME).toString());
-			doCascadingDelete = parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME) == null ? false : "true".equals(parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME).toString());
+			doInnerCallbacks  = parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME).toString());
+			doOuterCallbacks  = parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME).toString());
+			doCascadingDelete = parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME) != null && "true".equals(parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME).toString());
 
 			doImportFromDirectory(source);
 
@@ -429,16 +429,15 @@ public class DeployDataCommand extends DeployCommand {
 					if (f.isFile() && f.getName().endsWith(".json")) {
 
 						final String typeName = StringUtils.substringBeforeLast(f.getName(), ".json");
-						final Traits type     = Traits.of(typeName);
 
-						if (type == null) {
+						if (Traits.exists(typeName)) {
 
-							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
-							publishWarningMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
+							importRelationshipListData(context, typeName, readConfigList(p));
 
 						} else {
 
-							importRelationshipListData(context, typeName, readConfigList(p));
+							logger.warn("Not importing data. Relationship type cannot be found: {}!", typeName);
+							publishWarningMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Type can not be found! NOT Importing relationships for type " + typeName);
 						}
 					}
 				});
@@ -457,14 +456,14 @@ public class DeployDataCommand extends DeployCommand {
 			final String title = "Missing Principal(s)";
 			final String text = "The following user(s) and/or group(s) are missing for resource access permissions or node ownership during <b>data deployment</b>.<br>"
 					+ "Because of these missing permissions/ownerships, <b>node access rights are not identical to the export you just imported</b>."
-					+ "<ul><li>" + missingPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
+					+ "<ul><li>" + transformCountedMapToHumanReadableList(missingPrincipals, "</li><li>") + "</li></ul>"
 					+ "Consider adding these principals to your <a href=\"https://docs.structr.com/docs/fundamental-concepts#pre-deployconf\">pre-data-deploy.conf</a> and re-importing.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tThe following user(s) and/or group(s) are missing for resource access permissions or node ownership during deployment.\n"
 					+ "\tBecause of these missing permissions/ownerships, node access rights are not identical to the export you just imported.\n\n"
-					+ "\t" + missingPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
+					+ "\t" + transformCountedMapToHumanReadableList(missingPrincipals, "\n\t")
 					+ "\n\n\tConsider adding these principals to your 'pre-data-deploy.conf' (see https://docs.structr.com/docs/fundamental-concepts#pre-deployconf) and re-importing.\n"
 					+ "###############################################################################"
 			);
@@ -477,14 +476,14 @@ public class DeployDataCommand extends DeployCommand {
 			final String title = "Ambiguous Principal(s)";
 			final String text = "For the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during <b>data deployment</b>.<br>"
 					+ "Because of this ambiguity, <b>node access rights could not be restored as defined in the export you just imported</b>."
-					+ "<ul><li>" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("</li><li>")) + "</li></ul>"
+					+ "<ul><li>" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "</li><li>") + "</li></ul>"
 					+ "Consider clearing up such ambiguities in the database.";
 
 			logger.info("\n###############################################################################\n"
 					+ "\tWarning: " + title + "!\n"
 					+ "\tFor the following names, there are multiple candidates (User/Group) for resource access permissions or node ownership during data deployment.\n"
 					+ "\tBecause of this ambiguity, node access rights could not be restored as defined in the export you just imported.\n\n"
-					+ "\t" + ambiguousPrincipals.stream().sorted().collect(Collectors.joining("\n\t"))
+					+ "\t" + transformCountedMapToHumanReadableList(ambiguousPrincipals, "\n\t")
 					+ "\n\n\tConsider clearing up such ambiguities in the database.\n"
 					+ "###############################################################################"
 			);
@@ -536,7 +535,7 @@ public class DeployDataCommand extends DeployCommand {
 		customHeaders.put("end", new Date(endTime).toString());
 		customHeaders.put("duration", duration);
 
-		logger.info("Import from {} done. (Took {})", source.toString(), duration);
+		logger.info("Import from {} done. (Took {})", source, duration);
 
 		broadcastData.put("end", endTime);
 		broadcastData.put("duration", duration);
@@ -727,7 +726,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		// we export everything to files.json (even folders which are just exported as required parents)
 		// but we remember the required parents to export them later
-		if (isDirectExport == true) {
+		if (isDirectExport) {
 
 			exportedFoldersAsParents.remove(path);
 
@@ -839,21 +838,25 @@ public class DeployDataCommand extends DeployCommand {
 
 	private boolean isTypeInExportedTypes(final String type) {
 
-		final Traits traits = Traits.of(type);
+		// check if trait exists to avoid error message
+		if (Traits.exists(type)) {
 
-		for (final String exportedType : exportTypes) {
+			final Traits traits = Traits.of(type);
 
-			if (traits.contains(exportedType)) {
+			for (final String exportedType : exportTypes) {
 
-				return true;
+				if (traits.contains(exportedType)) {
+
+					return true;
+				}
 			}
-		}
 
-		for (final String exportedType : exportFileAndFolderTypes) {
+			for (final String exportedType : exportFileAndFolderTypes) {
 
-			if (traits.contains(exportedType)) {
+				if (traits.contains(exportedType)) {
 
-				return true;
+					return true;
+				}
 			}
 		}
 
@@ -862,7 +865,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	private void exportRelationship(final SecurityContext context, final RelationshipInterface rel, final Path relsDir) throws FrameworkException {
 
-		final String relTypeName = rel.getClass().getSimpleName();
+		final String relTypeName = rel.getType();
 
 		if (!blacklistedRelationshipTypes.contains(relTypeName)) {
 
@@ -899,9 +902,9 @@ public class DeployDataCommand extends DeployCommand {
 
 					entry.put(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, rel.getSourceNodeId());
 					entry.put(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, rel.getTargetNodeId());
-					entry.put(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY,  rel.getRelType());
+					entry.put(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY,  rel.getRelType().name());
 
-					exportRelationshipDirectly(rel.getClass().getSimpleName(), entry, relsDir);
+					exportRelationshipDirectly(relTypeName, entry, relsDir);
 
 					alreadyExportedRelationships.add(relUuid);
 				}
@@ -1208,7 +1211,7 @@ public class DeployDataCommand extends DeployCommand {
 		}
 	}
 
-	private enum DataType { Integer, Double, Long };
+	private enum DataType { Integer, Double, Long }
 
 	private void correctNumberFormats(final SecurityContext context, final Map<String, Object> map, final String type) throws FrameworkException {
 
@@ -1271,7 +1274,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (Files.exists(metadataFile)) {
 
-			try (final Reader reader = Files.newBufferedReader(metadataFile, Charset.forName("utf-8"))) {
+			try (final Reader reader = Files.newBufferedReader(metadataFile, StandardCharsets.UTF_8)) {
 
 				return new ArrayList<>(getGson().fromJson(reader, ArrayList.class));
 

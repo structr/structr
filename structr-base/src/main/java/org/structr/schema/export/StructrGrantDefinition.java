@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -152,7 +152,7 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 
 		final PropertyMap getOrCreateProperties = new PropertyMap();
 		final PropertyMap updateProperties      = new PropertyMap();
-		final List<NodeInterface> principals    = app.nodeQuery(StructrTraits.PRINCIPAL).andName(principalName).getAsList();
+		final List<NodeInterface> principals    = app.nodeQuery(StructrTraits.PRINCIPAL).name(principalName).getAsList();
 		final Traits traits                     = Traits.of(StructrTraits.SCHEMA_GRANT);
 
 		if (principals.isEmpty()) {
@@ -169,16 +169,16 @@ public class StructrGrantDefinition implements JsonGrant, StructrDefinition {
 		getOrCreateProperties.put(traits.key("principal"),  principals.get(0));
 		getOrCreateProperties.put(traits.key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), (SchemaNode)schemaNode);
 
-		NodeInterface grant = app.nodeQuery(StructrTraits.SCHEMA_GRANT).and(getOrCreateProperties).getFirst();
+		NodeInterface grant = app.nodeQuery(StructrTraits.SCHEMA_GRANT).key(getOrCreateProperties).getFirst();
 		if (grant == null) {
 
 			grant = app.create(StructrTraits.SCHEMA_GRANT, getOrCreateProperties);
 		}
 
-		updateProperties.put(traits.key("allowRead"),          getAllowRead());
-		updateProperties.put(traits.key("allowWrite"),         getAllowWrite());
-		updateProperties.put(traits.key("allowDelete"),        getAllowDelete());
-		updateProperties.put(traits.key("allowAccessControl"), getAllowAccessControl());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY),           getAllowRead());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY),          getAllowWrite());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY),         getAllowDelete());
+		updateProperties.put(traits.key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), getAllowAccessControl());
 
 		grant.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 

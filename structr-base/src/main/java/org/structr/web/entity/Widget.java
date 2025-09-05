@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -125,7 +125,7 @@ public interface Widget extends NodeInterface {
 
 	class ReplacementInfo {
 
-		private ArrayList<String> options = new ArrayList<>();
+		private final ArrayList<String> options = new ArrayList<>();
 		private String key                = null;
 		private boolean hasOptions        = false;
 

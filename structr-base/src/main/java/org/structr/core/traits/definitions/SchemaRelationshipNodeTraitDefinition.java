@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.PropagationDirection;
@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
@@ -61,7 +61,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 	public static final String SOURCE_TYPE_PROPERTY                = "sourceType";
 	public static final String TARGET_TYPE_PROPERTY                = "targetType";
-	public static final String NAME_PROPERTY                       = "name";					// FIXME? Why does this type define "name"? (without adding a constraint or something like that)
 	public static final String RELATIONSHIP_TYPE_PROPERTY          = "relationshipType";
 	public static final String SOURCE_MULTIPLICITY_PROPERTY        = "sourceMultiplicity";
 	public static final String TARGET_MULTIPLICITY_PROPERTY        = "targetMultiplicity";
@@ -231,28 +230,24 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
-			"export",
+
+			PropertyView.Schema,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
-					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
-					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY,
-					PERMISSION_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
-			),
-			"schema",
-			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_VIEWS_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
@@ -269,7 +264,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final Property<String>     targetId               = new EntityNotionProperty<>(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_NODE, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_NODE, new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String>     sourceType             = new StringProperty(SOURCE_TYPE_PROPERTY);
 		final Property<String>     targetType             = new StringProperty(TARGET_TYPE_PROPERTY);
-		final Property<String>     name                   = new StringProperty(NAME_PROPERTY).indexed();
 		final Property<String>     relationshipType       = new StringProperty(RELATIONSHIP_TYPE_PROPERTY).indexed();
 		final Property<String>     sourceMultiplicity     = new StringProperty(SOURCE_MULTIPLICITY_PROPERTY);
 		final Property<String>     targetMultiplicity     = new StringProperty(TARGET_MULTIPLICITY_PROPERTY);
@@ -284,10 +278,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty(IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY);
 
 		// permission propagation via domain relationships
-		final Property<String> permissionPropagation    = new EnumProperty(PERMISSION_PROPAGATION_PROPERTY,    PropagationDirection.class).defaultValue(PropagationDirection.None.name());
-		final Property<String> readPropagation          = new EnumProperty(READ_PROPAGATION_PROPERTY,          PropagationMode.class).defaultValue(PropagationMode.Remove.name());
-		final Property<String> writePropagation         = new EnumProperty(WRITE_PROPAGATION_PROPERTY,         PropagationMode.class).defaultValue(PropagationMode.Remove.name());
-		final Property<String> deletePropagation        = new EnumProperty(DELETE_PROPAGATION_PROPERTY,        PropagationMode.class).defaultValue(PropagationMode.Remove.name());
+		final Property<String> permissionPropagation    = new EnumProperty(PERMISSION_PROPAGATION_PROPERTY,     PropagationDirection.class).defaultValue(PropagationDirection.None.name());
+		final Property<String> readPropagation          = new EnumProperty(READ_PROPAGATION_PROPERTY,           PropagationMode.class).defaultValue(PropagationMode.Remove.name());
+		final Property<String> writePropagation         = new EnumProperty(WRITE_PROPAGATION_PROPERTY,          PropagationMode.class).defaultValue(PropagationMode.Remove.name());
+		final Property<String> deletePropagation        = new EnumProperty(DELETE_PROPAGATION_PROPERTY,         PropagationMode.class).defaultValue(PropagationMode.Remove.name());
 		final Property<String> accessControlPropagation = new EnumProperty(ACCESS_CONTROL_PROPAGATION_PROPERTY, PropagationMode.class).defaultValue(PropagationMode.Remove.name());
 		final Property<String> propertyMask             = new StringProperty(PROPERTY_MASK_PROPERTY);
 
@@ -298,7 +292,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			targetId,
 			sourceType,
 			targetType,
-			name,
 			relationshipType,
 			sourceMultiplicity,
 			targetMultiplicity,
@@ -342,11 +335,11 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			final SchemaNode sourceNode = node.getSourceNode();
 			final SchemaNode targetNode = node.getTargetNode();
 
-			final Query<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).and(relTypeKey, node.getRelationshipType(), true);
+			final QueryGroup<NodeInterface> query = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).key(relTypeKey, node.getRelationshipType(), true);
 
 			// source node or static type (string-based)
-			if (sourceNode != null) query.and(sourceNodeKey, sourceNode); else query.and(sourceTypeKey, node.getSourceType());
-			if (targetNode != null) query.and(targetNodeKey, targetNode); else query.and(targetTypeKey, node.getTargetType());
+			if (sourceNode != null) query.key(sourceNodeKey, sourceNode); else query.key(sourceTypeKey, node.getSourceType());
+			if (targetNode != null) query.key(targetNodeKey, targetNode); else query.key(targetTypeKey, node.getTargetType());
 
 			for (final NodeInterface exRel : query.getResultStream()) {
 
@@ -363,7 +356,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 				);
 			}
 
-		} catch (FrameworkException fex) {
+		} catch (Throwable fex) {
 			fex.printStackTrace();
 		}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -115,7 +115,7 @@ public class MemoryNode extends MemoryEntity implements Node {
 
 		for (final Relationship rel : db.getRelationships(this)) {
 
-			final String type = rel.getType().name();
+			final String type = (String) rel.getProperty("type");
 			final Long count  = degree.get(type);
 
 			if (count == null) {

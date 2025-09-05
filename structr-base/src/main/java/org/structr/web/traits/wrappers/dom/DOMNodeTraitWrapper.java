@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,7 +37,6 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -54,10 +53,7 @@ import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.traits.definitions.LinkSourceTraitDefinition;
@@ -84,14 +80,18 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	 * @param nodeToClone
 	 * @return
 	 */
-	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone) throws FrameworkException {
+	public static DOMNode cloneAndAppendChildren(final SecurityContext securityContext, final DOMNode nodeToClone, final Map<String, DOMNode> cloneMap) throws FrameworkException {
 
-		final DOMNode newNode               = nodeToClone.cloneNode(false);
-		final List<DOMNode> childrenToClone = nodeToClone.getChildNodes();
+		final DOMNode newNode                   = nodeToClone.cloneNode(false);
+		final Iterable<DOMNode> childrenToClone = nodeToClone.getChildren();
+
+		if (cloneMap.put(nodeToClone.getUuid(), newNode) != null) {
+			throw new FrameworkException(422, "Node already cloned!");
+		}
 
 		for (final DOMNode childNodeToClone : childrenToClone) {
 
-			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone));
+			newNode.appendChild(cloneAndAppendChildren(securityContext, childNodeToClone, cloneMap));
 		}
 
 		return newNode;
@@ -132,7 +132,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		// add new node to linked list
 		if (lastChild != null) {
-			listInsertAfter(lastChild, childElement);
+			//listInsertAfter(lastChild, childElement);
 		}
 
 		ensureCorrectChildPositions();
@@ -184,7 +184,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		// insert new node in linked list
-		listInsertBefore(refChild, newChild);
+		//listInsertBefore(refChild, newChild);
 
 		ensureCorrectChildPositions();
 	}
@@ -222,7 +222,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 
 		// insert new node in linked list
-		listInsertAfter(refChild, newChild);
+		//listInsertAfter(refChild, newChild);
 
 		ensureCorrectChildPositions();
 
@@ -232,7 +232,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public final void treeRemoveChild(final NodeInterface childToRemove) throws FrameworkException {
 
 		// remove element from linked list
-		listRemove(childToRemove);
+		//listRemove(childToRemove);
 
 		unlinkChildren(this, childToRemove);
 
@@ -256,8 +256,8 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		linkChildren(this, newChild, properties);
 
 		// replace element in linked list as well
-		listInsertBefore(oldChild, newChild);
-		listRemove(oldChild);
+		//listInsertBefore(oldChild, newChild);
+		//listRemove(oldChild);
 
 		ensureCorrectChildPositions();
 	}
@@ -378,7 +378,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	public final void unlinkChildren(NodeInterface startNode, NodeInterface endNode) throws FrameworkException {
 
 		final List<RelationshipInterface> list = Iterables.toList(startNode.getRelationships(getChildLinkType()));
-		final App app      = StructrApp.getInstance(getSecurityContext());
+		final App app                          = StructrApp.getInstance(getSecurityContext());
 
 		for (RelationshipInterface rel : list) {
 
@@ -777,120 +777,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 	}
 
-	/*
-	default public void setSessionAttribute(final SecurityContext securityContext, final String key, final Object value) {
-
-		final HttpServletRequest request = securityContext.getRequest();
-		if (request != null) {
-
-			final HttpSession session = request.getSession(false);
-			if (session != null) {
-
-				session.setAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key, value);
-			}
-		}
-	}
-
-	default public void removeSessionAttribute(final SecurityContext securityContext, final String key) {
-
-		final HttpServletRequest request = securityContext.getRequest();
-		if (request != null) {
-
-			final HttpSession session = request.getSession(false);
-			if (session != null) {
-
-				session.removeAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key);
-			}
-		}
-	}
-
-	default public Object getSessionAttribute(final SecurityContext securityContext, final String key) {
-
-		final HttpServletRequest request = securityContext.getRequest();
-		if (request != null) {
-
-			final HttpSession session = request.getSession(false);
-			if (session != null) {
-
-				return session.getAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX + key);
-			}
-		}
-
-		return null;
-	}
-
-	default public String getTreeItemSessionIdentifier(final String target) {
-		return "tree-item-" + target + "-is-open";
-	}
-	*/
-
-	public static void prefetchDOMNodes(final String id) {
-
-		TransactionCommand.getCurrentTransaction().prefetch2(
-
-			"MATCH (n:NodeInterface { id: $id })-[r:RELOADS|CONTAINS|SUCCESS_TARGET|FAILURE_TARGET|SUCCESS_NOTIFICATION_ELEMENT|FAILURE_NOTIFICATION_ELEMENT|FLOW|INPUT_ELEMENT|PARAMETER|SYNC|TRIGGERED_BY*]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
-
-			Set.of(
-				"all/OUTGOING/CONTAINS",
-				"all/OUTGOING/SUCCESS_TARGET",
-				"all/OUTGOING/FAILURE_TARGET",
-				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
-				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
-				"all/OUTGOING/RELOADS",
-				"all/OUTGOING/FLOW",
-				"all/OUTGOING/INPUT_ELEMENT",
-				"all/OUTGOING/PARAMETER",
-				"all/OUTGOING/SYNC",
-				"all/OUTGOING/TRIGGERED_BY",
-
-				"all/INCOMING/CONTAINS",
-				"all/INCOMING/SUCCESS_TARGET",
-				"all/INCOMING/FAILURE_TARGET",
-				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
-				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
-				"all/INCOMING/RELOADS",
-				"all/INCOMING/FLOW",
-				"all/INCOMING/INPUT_ELEMENT",
-				"all/INCOMING/PARAMETER",
-				"all/INCOMING/TRIGGERED_BY"
-			),
-
-			Set.of(
-				"all/OUTGOING/CONTAINS",
-				"all/OUTGOING/SUCCESS_TARGET",
-				"all/OUTGOING/FAILURE_TARGET",
-				"all/OUTGOING/SUCCESS_NOTIFICATION_ELEMENT",
-				"all/OUTGOING/FAILURE_NOTIFICATION_ELEMENT",
-				"all/OUTGOING/RELOADS",
-				"all/OUTGOING/FLOW",
-				"all/OUTGOING/INPUT_ELEMENT",
-				"all/OUTGOING/PARAMETER",
-				"all/OUTGOING/SYNC",
-				"all/OUTGOING/TRIGGERED_BY",
-
-				"all/INCOMING/CONTAINS",
-				"all/INCOMING/SUCCESS_TARGET",
-				"all/INCOMING/FAILURE_TARGET",
-				"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
-				"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
-				"all/INCOMING/RELOADS",
-				"all/INCOMING/FLOW",
-				"all/INCOMING/INPUT_ELEMENT",
-				"all/INCOMING/PARAMETER",
-				"all/INCOMING/TRIGGERED_BY"
-			),
-
-			id
-		);
-
-		/*
-		TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + id + "\" })-[:CONTAINS*]->(m)",
-			Set.of("all/OUTGOING/CONTAINS"),
-			Set.of("all/INCOMING/CONTAINS")
-		);
-		*/
-	}
-
 	@Override
 	public final boolean isSynced() {
 		return Iterables.count(getSyncedNodes()) > 0 || getSharedComponent() != null;
@@ -908,7 +794,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final boolean inTrash() {
-		return getParent() == null && getOwnerDocumentAsSuperUser() == null;
+		return getOwnerDocumentAsSuperUser() == null;
 	}
 
 	@Override
@@ -1157,10 +1043,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 	@Override
 	public final Iterable<DOMNode> getChildren() {
-
-		final PropertyKey<Iterable<NodeInterface>> key = traits.key(DOMNodeTraitDefinition.CHILDREN_PROPERTY);
-
-		return Iterables.map(n -> n.as(DOMNode.class), wrappedObject.getProperty(key));
+		return Iterables.map(n -> n.as(DOMNode.class), treeGetChildren());
 	}
 
 	@Override
@@ -1216,6 +1099,11 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	@Override
 	public final void updateFromNode(final DOMNode otherNode) throws FrameworkException {
 		traits.getMethod(UpdateFromNode.class).updateFromNode(wrappedObject, otherNode);
+	}
+
+	@Override
+	public final void updateHasSharedComponentFlag() throws FrameworkException {
+		wrappedObject.setProperty(traits.key(DOMNodeTraitDefinition.HAS_SHARED_COMPONENT_PROPERTY), getSharedComponent() != null);
 	}
 
 	@Override
@@ -1579,6 +1467,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		return customProperties;
 	}
 
+	/*
 	@Override
 	public final String getSiblingLinkType() {
 		return StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE;
@@ -1710,6 +1599,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 		}
 	}
+	*/
 
 	public final DOMNode getFirstChild() throws FrameworkException {
 
@@ -1724,6 +1614,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		return null;
 	}
 
+	/*
 	public final DOMNode getLastChild() throws FrameworkException {
 
 		checkReadAccess();
@@ -1747,31 +1638,25 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		return null;
 	}
+	*/
 
 	public final DOMNode getNextSibling() {
 
-		final NodeInterface node = wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.NEXT_SIBLING_PROPERTY));
-		if (node != null) {
+		final DOMNode parent = getParent();
+		if (parent != null) {
 
-			return node.as(DOMNode.class);
+			final int pos = parent.getChildPosition(this);
+			if (pos >= 0) {
+
+				final NodeInterface next = parent.treeGetChild(pos + 1);
+				if (next != null && next.is(StructrTraits.DOM_NODE)) {
+
+					return next.as(DOMNode.class);
+				}
+			}
 		}
 
 		return null;
-	}
-
-
-	public final List<DOMNode> getChildNodes() throws FrameworkException {
-
-		checkReadAccess();
-
-		final List<DOMNode> nodes = new LinkedList<>();
-
-		for (final NodeInterface node : treeGetChildren()) {
-
-			nodes.add(node.as(DOMNode.class));
-		}
-
-		return nodes;
 	}
 
 	@Override
@@ -1877,7 +1762,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		try {
 
-			doRemoveChild((DOMNode)node);
+			doRemoveChild(node);
 
 		} catch (FrameworkException fex) {
 
@@ -1929,7 +1814,40 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 
 		if (deep) {
 
-			return cloneAndAppendChildren(securityContext, this);
+			final Map<String, DOMNode> cloneMap = new LinkedHashMap<>();
+			final DOMNode clone                 = cloneAndAppendChildren(securityContext, this, cloneMap);
+			final App app                       = StructrApp.getInstance(securityContext);
+
+			// clone event action mapping as well (must be done after cloning all DOM nodes)
+			for (final String uuid : cloneMap.keySet()) {
+
+				// fetch original node, so we can check for action mappings to clone
+				final NodeInterface originalNode = app.getNodeById(uuid);
+				if (originalNode != null && originalNode.is(StructrTraits.DOM_ELEMENT)) {
+
+					final DOMElement originalElement = originalNode.as(DOMElement.class);
+					final DOMNode clonedNode         = cloneMap.get(uuid);
+
+					if (clonedNode.is(StructrTraits.DOM_ELEMENT)) {
+
+						final List<NodeInterface> clonedActionMappings = new LinkedList<>();
+						final DOMElement clonedElement = clonedNode.as(DOMElement.class);
+
+						for (final ActionMapping actionMapping : originalElement.getTriggeredActions()) {
+
+							final NodeInterface clonedActionMapping = actionMapping.cloneActionMapping(cloneMap);
+							if (clonedActionMapping != null) {
+
+								clonedActionMappings.add(clonedActionMapping);
+							}
+						}
+
+						clonedElement.setProperty(clonedElement.getTraits().key(DOMElementTraitDefinition.TRIGGERED_ACTIONS_PROPERTY), clonedActionMappings);
+					}
+				}
+			}
+
+			return clone;
 
 		} else {
 
@@ -2014,6 +1932,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 		}
 	}
 
+	/*
 	public final void normalize() throws FrameworkException {
 
 		final Page document = getOwnerDocument();
@@ -2066,6 +1985,7 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 			}
 		}
 	}
+	*/
 
 	@Override
 	public void setHidden(final boolean hidden) throws FrameworkException {

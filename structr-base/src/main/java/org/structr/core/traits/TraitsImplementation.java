@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits;
 
+import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
@@ -29,16 +30,18 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.schema.SchemaService;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A named collection of traits that a node can have.
  */
 public class TraitsImplementation implements Traits {
 
-	private static final Map<String, Traits> globalTypeMap = new HashMap<>();
-	private static final Map<String, Trait> globalTraitMap = new HashMap<>();
+	private static final Map<String, Traits> globalTypeMap = new ConcurrentHashMap<>();
+	private static final Map<String, Trait> globalTraitMap = new ConcurrentHashMap<>();
 
 	private final Map<String, TraitDefinition> traits                   = new LinkedHashMap<>();
 	private final Set<Trait> localTraitsCache                           = new LinkedHashSet<>();
@@ -132,7 +135,7 @@ public class TraitsImplementation implements Traits {
 		}
 
 		if (throwException) {
-			throw new RuntimeException("Missing property key " + name + " of type " + typeName);
+			throw new RuntimeException("Missing property key '" + name + "' of type '" + typeName + "'.");
 		}
 
 		return null;
@@ -443,28 +446,36 @@ public class TraitsImplementation implements Traits {
 		final Map<String, Map<String, PropertyKey>> removedProperties = new LinkedHashMap<>();
 		final Set<String> traitsToRemove                              = new LinkedHashSet<>();
 
-		for (final Trait trait : getTraits()) {
+		for (final String traitName : traits.keySet()) {
 
-			final String traitName = trait.getName();
 			String indexName = traitName;
 
-			// Use relationship type instead of the type name for relationships
-			// because the return value is for index update purposes.
-			if (trait.isRelationship()) {
+			final Trait trait = globalTraitMap.get(traitName);
+			if (trait != null) {
 
-				final Relation relation = trait.getRelation();
-				if (relation != null) {
+				// Use relationship type instead of the type name for relationships
+				// because the return value is for index update purposes.
+				if (trait.isRelationship()) {
 
-					indexName = relation.name();
+					final Relation relation = trait.getRelation();
+					if (relation != null) {
+
+						indexName = relation.name();
+					}
 				}
-			}
 
-			if (trait.isDynamic()) {
+				if (trait.isDynamic()) {
 
-				// dynamic trait => we can remove all property keys
-				removedProperties.computeIfAbsent(indexName, k -> new LinkedHashMap<>()).putAll(trait.getPropertyKeys());
+					// dynamic trait => we can remove all property keys
+					removedProperties.computeIfAbsent(indexName, k -> new LinkedHashMap<>()).putAll(trait.getPropertyKeys());
 
-				// mark trait for removal
+					// mark trait for removal
+					traitsToRemove.add(traitName);
+				}
+
+			} else {
+
+				// trait has been removed already, remove from this type as well!
 				traitsToRemove.add(traitName);
 			}
 		}
@@ -492,6 +503,12 @@ public class TraitsImplementation implements Traits {
 			if (trait != null) {
 
 				localTraitsCache.add(trait);
+
+			} else {
+
+				// leave a log message, so we can find other occurrences of this problem
+				LoggerFactory.getLogger(TraitsImplementation.class).warn("Trait {} not found, please investigate.");
+				Thread.dumpStack();
 			}
 		}
 
@@ -500,6 +517,8 @@ public class TraitsImplementation implements Traits {
 
 	// ----- static methods -----
 	static Traits of(String name) {
+
+		TraitsImplementation.waitForSchema();
 
 		final Traits traits = TraitsImplementation.globalTypeMap.get(name);
 		if (traits != null) {
@@ -511,6 +530,8 @@ public class TraitsImplementation implements Traits {
 	}
 
 	public static Trait getTrait(final String type) {
+
+		TraitsImplementation.waitForSchema();
 		return globalTraitMap.get(type);
 	}
 
@@ -520,6 +541,8 @@ public class TraitsImplementation implements Traits {
 	 * @return
 	 */
 	public static Set<PropertyKey> getDefaultKeys() {
+
+		TraitsImplementation.waitForSchema();
 
 		final Set<PropertyKey> keys = new LinkedHashSet<>();
 		final Traits nodeTraits     = Traits.of(StructrTraits.NODE_INTERFACE);
@@ -533,6 +556,8 @@ public class TraitsImplementation implements Traits {
 
 	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
 
+		TraitsImplementation.waitForSchema();
+
 		for (final Trait trait : globalTraitMap.values()) {
 
 			if (name.equals(trait.getLabel())) {
@@ -545,6 +570,8 @@ public class TraitsImplementation implements Traits {
 	}
 
 	static Traits ofRelationship(String type1, String relType, String type2) {
+
+		TraitsImplementation.waitForSchema();
 
 		final Traits traits1 = Traits.of(type1);
 		final Traits traits2 = Traits.of(type2);
@@ -572,14 +599,20 @@ public class TraitsImplementation implements Traits {
 	}
 
 	static boolean exists(final String name) {
+
+		SchemaService.waitForSchemaReplacement();
 		return TraitsImplementation.globalTypeMap.containsKey(name);
 	}
 
 	static Set<String> getAllTypes() {
+
+		TraitsImplementation.waitForSchema();
 		return getAllTypes(null);
 	}
 
 	static Set<String> getAllTypes(final Predicate<Traits> filter) {
+
+		TraitsImplementation.waitForSchema();
 
 		final Set<String> types = new LinkedHashSet<>();
 
@@ -614,6 +647,8 @@ public class TraitsImplementation implements Traits {
 	}
 
 	static Set<String> getAllViews() {
+
+		TraitsImplementation.waitForSchema();
 
 		final Set<String> allViews = new LinkedHashSet<>();
 
@@ -650,6 +685,10 @@ public class TraitsImplementation implements Traits {
 		}
 
 		return removedClasses;
+	}
+
+	private static void waitForSchema() {
+		SchemaService.waitForSchemaReplacement();
 	}
 
 	class Wrapper<T> {

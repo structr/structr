@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@
 
 #crud-main {
 	height: calc(100% - 2rem);
-	margin: 2rem;
+	margin: 0 2rem 2rem 2rem;
 	display: flex;
 }
 
@@ -30,13 +30,6 @@
 	flex-direction: column;
 }
 
-#crud-types, #crud-recent-types {
-	height: 50%;
-	display: flex;
-	flex-direction: column;
-	padding: 1rem 0;
-}
-
 #crudTypesSearch {
 	margin: 0 1rem .75rem .5rem;
 }
@@ -44,7 +37,6 @@
 #crud-types-list, #crud-recent-types-list {
 	padding: 1px 0 0 0;
 	margin: 0;
-	height: calc(100% - 70px);
 	overflow-y: scroll;
 }
 
@@ -216,7 +208,7 @@ input.readonly {
 .exportArea, .importArea {
 	border: 1x solid var(--input-field-border);
 	margin: 0;
-	height: 448px;
+	height: calc(100% - .5rem);
 	overflow: auto;
 }
 

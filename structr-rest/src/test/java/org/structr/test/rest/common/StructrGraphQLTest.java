@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,9 +51,6 @@ public abstract class StructrGraphQLTest extends StructrRestTestBase {
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
-
-		Settings.RelationshipCacheSize.setValue(1000);
-		Settings.NodeCacheSize.setValue(1000);
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");

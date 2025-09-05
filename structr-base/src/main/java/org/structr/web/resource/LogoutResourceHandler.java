@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,6 @@
  */
 package org.structr.web.resource;
 
-import java.util.Map;
-import java.util.Set;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -29,6 +26,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+
+import java.util.Map;
+import java.util.Set;
 
 public class LogoutResourceHandler extends RESTCallHandler {
 
@@ -39,7 +40,7 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-		if (Settings.CallbacksOnLogout.getValue() == false) {
+		if (!Settings.CallbacksOnLogout.getValue()) {
 			securityContext.disableInnerCallbacks();
 		}
 

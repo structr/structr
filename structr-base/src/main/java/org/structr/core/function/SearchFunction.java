@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,10 +20,9 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 public class SearchFunction extends AbstractQueryFunction {
@@ -58,8 +57,7 @@ public class SearchFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final ConfigurationProvider config    = StructrApp.getConfiguration();
-			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
+			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
 
 			applyQueryParameters(securityContext, query);
 
@@ -68,11 +66,11 @@ public class SearchFunction extends AbstractQueryFunction {
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = Traits.of(typeString);
+				if (Traits.exists(typeString)) {
 
-				if (type != null) {
+					type = Traits.of(typeString);
 
-					query.andTypes(type);
+					query.types(type);
 
 				} else {
 

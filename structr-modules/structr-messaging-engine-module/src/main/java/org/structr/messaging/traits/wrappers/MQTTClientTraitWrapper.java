@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,9 +30,9 @@ import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
+import org.structr.messaging.traits.definitions.MQTTClientTraitDefinition;
 
 import java.util.List;
-import org.structr.messaging.traits.definitions.MQTTClientTraitDefinition;
 
 public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements MQTTClient {
 

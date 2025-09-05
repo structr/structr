@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -217,11 +217,11 @@ let _Crud = {
 					let recentTypesList = document.querySelector('#crud-recent-types-list');
 
 					recentTypesList.innerHTML = recentTypes.map(type => `
-							<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}" data-type="${type}">
-								<div class="truncate">${type}</div>
-								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
-							</div>
-						`).join('');
+						<div class="crud-type flex items-center justify-between ${(selectedType === type ? ' active' : '')}" data-type="${type}">
+							<div class="truncate">${type}</div>
+							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
+						</div>
+					`).join('');
 				}
 
 				LSWrapper.setItem(_Crud.typeList.recents.crudRecentTypesKey, recentTypes);
@@ -295,7 +295,7 @@ let _Crud = {
 					let isCustomRelType = isRelType && !type.isBuiltin;
 					let isDynamicType   = !isRelType && !type.isBuiltin;
 					let isHtmlType      = type.traits.includes('DOMNode');
-					let isFlowType      = type.traits.includes('FlowNode');
+					let isFlowType      = type.traits.includes('FlowBaseNode');
 					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
 
 					let hide = (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) ||
@@ -489,6 +489,11 @@ let _Crud = {
 				await navigator.clipboard.writeText(exportArea.value);
 
 				new SuccessMessage().text('Copied to clipboard').show();
+			});
+
+			let downLoad = _Dialogs.custom.appendCustomDialogButton('<button id="download-csv-export" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Download</button>');
+			downLoad.addEventListener('click', async () => {
+				_Helpers.downloadFile([exportArea.value], `csv-export-${_Helpers.getTimestampWithPrefix(type)}.csv`, 'text/csv');
 			});
 
 			let hiddenKeys             = _Crud.objectList.getHiddenKeys(type);
@@ -764,6 +769,9 @@ let _Crud = {
 								// all keys for current view minus the ones that are hidden
 								sortOrder = _Crud.objectList.filterKeys(type, Object.keys(_Crud.types[type].views.all));
 							}
+
+							// filter out keys that have serializationDisabled flag
+							sortOrder = sortOrder.filter(key => !_Crud.helpers.isSerializationDisabled(type, key));
 
 							let orderedColumnsSet = new Set(sortOrder);
 
@@ -1261,7 +1269,7 @@ let _Crud = {
 
 							if (nodeSelected) {
 
-								_Crud.objectList.getAndAppendNode(type, id, key, node, cell, node, true);
+								_Crud.objectList.addRelatedObject(type, id, key, node, () => {});
 
 								if (!isCollection) {
 
@@ -1811,7 +1819,7 @@ let _Crud = {
 					let row = _Helpers.createSingleDOMElementFromHTML(`
 						<tr>
 							<td class="key"><label>${key}</label></td>
-							<td class="__value"></td>
+							<td class="__value relative"></td>
 						</tr>
 					`);
 					table.appendChild(row);
@@ -1930,6 +1938,8 @@ let _Crud = {
 			// 2. remove all keys that are not in sourceArray
 			sortOrder = sortOrder.filter(key => sourceArray.includes(key));
 
+			// 3. remove alle keys that have the serializationDisabled flag active
+			sortOrder = sortOrder.filter(key => !_Crud.helpers.isSerializationDisabled(type, key));
 
 			// always have id,type,name as the first elements of the array
 			let idTypeName = ['id', 'type', 'name'];
@@ -1938,7 +1948,7 @@ let _Crud = {
 				return (idTypeName.includes(key) === false);
 			});
 
-			sortOrder.unshift(...idTypeName)
+			sortOrder.unshift(...idTypeName);
 
 			return sortOrder;
 		},
@@ -2378,7 +2388,7 @@ let _Crud = {
 
 			_Helpers.appendInfoTextToElement({
 				element: _Crud.search.searchField,
-				text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+				text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base node type to achieve the fastest results.',
 				insertAfter: true,
 				css: {
 					left: '-18px',
@@ -2482,7 +2492,7 @@ let _Crud = {
 
 				} else {
 
-					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
+					searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('inexact')}=1`;
 					url = `${Structr.rootUrl}${type}${_Crud.helpers.getSortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
 				}
 
@@ -2796,6 +2806,9 @@ let _Crud = {
 		isReadOnly: (key, type) => {
 			return (key && type && (_Crud.types[type]?.views.all[key]?.readOnly === true || _Crud.helpers.isCypherProperty(key, type)));
 		},
+		isSerializationDisabled: (type, key) => {
+			return (key && type && _Crud.types[type]?.views.all[key]?.serializationDisabled === true);
+		},
 		/**
 		 * Return the related type of the given property key of the given type (or a comma-separated list of possible related types)
 		 */
@@ -2883,7 +2896,7 @@ let _Crud = {
 
 					if (!isNew || isChanged) {
 
-						let val = _Entities.basicTab.getValueFromFormElement(i);
+						let val = _Entities.generalTab.getValueFromFormElement(i);
 
 
 						if (isCollection) {
@@ -2905,7 +2918,7 @@ let _Crud = {
 		},
 		crudAskDelete: async (type, id) => {
 
-			let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
+			let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to delete <b>${type}</b> ${id}?`);
 			if (confirm === true) {
 				_Crud.helpers.crudDelete(type, id);
 			}
@@ -2970,7 +2983,7 @@ let _Crud = {
 
 			if (e.shiftKey === true) {
 
-				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowCreateDialog(type, initialData, onSuccess);
+				_Crud.creationDialogWithErrorHandling.loadTypeInfoAndShowRequestedCreateDialog(type, initialData, onSuccess);
 
 			} else {
 
@@ -3056,11 +3069,15 @@ let _Crud = {
 				}
 			}, 100);
 		},
-		loadTypeInfoAndShowCreateDialog: (type, initialData = {}, onSuccess) => {
+		loadTypeInfoAndShowRequestedCreateDialog: (type, initialData = {}, onSuccess) => {
 
 			_Crud.helpers.ensureTypeInfoIsLoaded(type, () => {
 
-				_Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+				let dialog = _Crud.creationDialogWithErrorHandling.showCreateDialog(type, initialData, onSuccess);
+
+				// when displaying the on-demand create dialog, focus the first element
+				let firstInputOrTextarea = dialog.dialogText.querySelector('input, textarea');
+				firstInputOrTextarea.focus();
 			});
 		},
 		showCreateDialog: (type, initialData = {}, onSuccess, errors = []) => {
@@ -3210,26 +3227,23 @@ let _Crud = {
 
 				<div class="column-resizer"></div>
 
-				<div id="crud-left" class="resourceBox">
+				<div id="crud-left" class="resourceBox gap-y-12 pt-4 flex flex-col mr-8">
 
-					<div id="crud-types">
+					<div id="crud-types" class="h-1/2 flex flex-col">
 					
 						<div class="flex">
-
 							<h2 class="flex-grow">Types</h2>
-
 							${_Crud.typeList.filtering.templates.filterBox(config)}
 						</div>
 						
 						${_Crud.typeList.filtering.templates.filterInput(config)}
 
-						<div id="crud-types-list"></div>
+						<div id="crud-types-list" class="flex-grow"></div>
 					</div>
 
-					<div id="crud-recent-types">
+					<div id="crud-recent-types" class="h-1/2 flex flex-col">
 						<h2>Recent</h2>
-
-						<div id="crud-recent-types-list"></div>
+						<div id="crud-recent-types-list" class="flex-grow"></div>
 					</div>
 
 				</div>

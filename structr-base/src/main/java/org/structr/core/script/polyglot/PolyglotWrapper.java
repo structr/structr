@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,17 @@
  */
 package org.structr.core.script.polyglot;
 
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
+import org.structr.core.api.IllegalArgumentTypeException;
+import org.structr.core.api.NamedArguments;
+import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
@@ -32,6 +37,7 @@ import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -273,6 +279,13 @@ public abstract class PolyglotWrapper {
 					return convertValueToSet(actionContext, value);
 				}
 
+				if (value.hasMembers() && value.getMetaObject() != null && "promise".equals(value.getMetaObject().getMetaSimpleName().toLowerCase())) {
+
+					PromiseConsumer consumer = new PromiseConsumer();
+					value.invokeMember("then", consumer);
+					return consumer.getResult();
+				}
+
 				if (value.isNull()) {
 
 					return null;
@@ -316,7 +329,7 @@ public abstract class PolyglotWrapper {
 
 	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {
 
-		final Arguments arguments = new Arguments();
+		final NamedArguments arguments = new NamedArguments();
 
 		for (final Value value : args) {
 
@@ -330,8 +343,8 @@ public abstract class PolyglotWrapper {
 
 			} else {
 
-				// we don't have names for the arguments here... :(
-				arguments.add(null, unwrapped);
+				throw new IllegalArgumentTypeException();
+				//arguments.add(unwrapped);
 			}
 
 		}
@@ -355,7 +368,7 @@ public abstract class PolyglotWrapper {
 
 		final Map<String, Object> unwrappedMap = new HashMap<>();
 
-		for (Map.Entry<String,Object> entry : map.entrySet()) {
+		for (Entry<String,Object> entry : map.entrySet()) {
 
 			unwrappedMap.put(entry.getKey(), unwrap(actionContext, entry.getValue()));
 		}
@@ -437,48 +450,96 @@ public abstract class PolyglotWrapper {
 	public static class FunctionWrapper implements ProxyExecutable {
 
 		private Value func;
-		private final ActionContext actionContext;
+		private ActionContext actionContext;
 		private final ReentrantLock lock;
+		private boolean hasRun;
 
 		public FunctionWrapper(final ActionContext actionContext, final Value func) {
 
 			this.actionContext = actionContext;
 			this.lock = new ReentrantLock();
+			this.hasRun = false;
 
 			if (func.canExecute()) {
 
 				this.func = func;
+				ContextHelper.incrementReferenceCount(func.getContext());
 			}
+		}
+
+		public void setActionContext(final ActionContext actionContext) {
+			this.actionContext = actionContext;
 		}
 
 		@Override
 		public Object execute(Value... arguments) {
 
-			synchronized (func.getContext()) {
-
-				if (func != null) {
-
-					lock.lock();
-					List<Value> processedArgs = Arrays.stream(arguments)
-							.map(a -> unwrap(actionContext, a))
-							.map(a -> wrap(actionContext, a))
-							.map(Value::asValue)
-							.collect(Collectors.toList());
-
-
-					Object result = func.execute(processedArgs.toArray());
-					lock.unlock();
-
-					return wrap(actionContext, unwrap(actionContext, result));
-				}
+			if (func == null) {
+				throw new IllegalStateException("FunctionWrapper: Function cannot be null.");
 			}
 
-			return null;
+			synchronized (func.getContext()) {
+
+				if (hasRun) {
+
+					ContextHelper.incrementReferenceCount(func.getContext());
+					hasRun = false;
+				}
+
+				lock.lock();
+				List<Value> processedArgs = Arrays.stream(arguments)
+						.map(a -> unwrap(actionContext, a))
+						.map(a -> wrap(actionContext, a))
+						.map(Value::asValue)
+						.toList();
+
+				Object result = func.execute(processedArgs.toArray());
+				hasRun = true;
+				lock.unlock();
+
+				final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));
+
+				// Handle context reference counter and close current context if thread is the last one referencing it
+				ContextHelper.decrementReferenceCount(func.getContext());
+				if (ContextHelper.getReferenceCount(func.getContext()) <= 0) {
+
+					final Context curContext = actionContext.getScriptingContexts()
+							.entrySet()
+							.stream()
+							.filter(entry -> entry.getValue().equals(func.getContext()))
+							.findFirst()
+							.map(Entry::getValue)
+							.orElse(null);
+
+					if (curContext != null) {
+
+						curContext.close();
+						actionContext.removeScriptingContextByValue(curContext);
+					}
+				}
+
+				return wrappedResult;
+			}
+
 		}
 
 		public Value getValue() {
 
 			return func;
+		}
+	}
+
+	public static class PromiseConsumer implements Consumer<Object> {
+		private Object result;
+
+		@HostAccess.Export
+		@Override
+		public void accept(Object o) {
+			result = o;
+		}
+
+		public Object getResult() {
+			return result;
 		}
 	}
 }

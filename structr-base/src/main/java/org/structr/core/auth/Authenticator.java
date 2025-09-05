@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
-import org.structr.core.traits.Traits;
 
 /**
  * An authenticator interface that defines how the system can obtain a principal
@@ -38,13 +37,13 @@ public interface Authenticator {
 	/*
 	 * Indicate that the authenticator has already examined the request
 	 */
-	public boolean hasExaminedRequest();
+	boolean hasExaminedRequest();
 
 	/**
 	 * Return user class
 	 * @return userClass
 	 */
-	public String getUserClass();
+	String getUserClass();
 
 	/**
 	 * Initializes the authenticator with data from the given request.
@@ -54,7 +53,7 @@ public interface Authenticator {
 	 * @return securityContext
 	 * @throws FrameworkException
 	 */
-	public SecurityContext initializeAndExamineRequest(final HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
+	SecurityContext initializeAndExamineRequest(final HttpServletRequest request, HttpServletResponse response) throws FrameworkException;
 
 	/**
 	 *
@@ -64,7 +63,7 @@ public interface Authenticator {
 	 * @param propertyView
 	 * @throws FrameworkException
 	 */
-	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String resourceSignature, final String propertyView) throws FrameworkException;
+	void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String resourceSignature, final String propertyView) throws FrameworkException;
 
 	/**
 	 *
@@ -78,14 +77,14 @@ public interface Authenticator {
 	 * @throws AuthenticationException
 	 * @throws FrameworkException
 	 */
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException;
+	Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws AuthenticationException, FrameworkException;
 
 	/**
 	 * Logs the given request out.
 	 *
 	 * @param request the request to log out
 	 */
-	public void doLogout(final HttpServletRequest request);
+	void doLogout(final HttpServletRequest request);
 
 	/**
 	 * Returns the user that is currently logged into the system,
@@ -96,5 +95,5 @@ public interface Authenticator {
 	 * @return the logged-in user or null
 	 * @throws FrameworkException
 	 */
-	public Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException;
+	Principal getUser(final HttpServletRequest request, final boolean tryLogin) throws FrameworkException;
 }

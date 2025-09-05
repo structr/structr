@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.web.traits.definitions.html;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -175,9 +175,8 @@ public class Option extends GenericHtmlElementTraitDefinition {
 
 							} else {
 
-								if (currentValue instanceof GraphObjectMap) {
+								if (currentValue instanceof GraphObjectMap map) {
 
-									final GraphObjectMap map = (GraphObjectMap)currentValue;
 									if (map.size() == 1 && map.containsKey(valueKey)) {
 
 										final java.lang.Object value = map.get(valueKey);

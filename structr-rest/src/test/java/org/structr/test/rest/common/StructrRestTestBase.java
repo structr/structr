@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,12 +41,12 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
+import org.structr.test.helper.ConcurrentPortNumberHelper;
 import org.structr.test.rest.traits.definitions.*;
 import org.structr.test.rest.traits.definitions.relationships.*;
 import org.testng.annotations.*;
 
 import java.io.File;
-import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -72,7 +72,7 @@ public abstract class StructrRestTestBase {
 	protected final String contextPath = "/";
 	protected final String restUrl     = "/structr/rest";
 	protected final String host        = "127.0.0.1";
-	protected final int httpPort       = getNextPortNumber();
+	protected final int httpPort       = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
@@ -222,46 +222,6 @@ public abstract class StructrRestTestBase {
 		System.out.println("######################################################################################");
 	}
 
-	protected int getNextPortNumber() {
-
-		// allow override via system property (-DhttpPort=...)
-		if (System.getProperty("httpPort") != null) {
-
-			return Integer.parseInt(System.getProperty("httpPort"));
-		};
-
-		// use locked file to store last used port
-		final String fileName = "/tmp/structr.test.port.lock";
-		final int max         = 65500;
-		final int min         = 8875;
-		int port              = min;
-
-
-		try (final RandomAccessFile raf = new RandomAccessFile(fileName, "rws")) {
-
-			raf.getChannel().lock();
-
-			if (raf.length() > 0) {
-
-				port = raf.readInt();
-			}
-
-			port++;
-
-			if (port > max) {
-				port = min;
-			}
-
-			raf.setLength(0);
-			raf.writeInt(port);
-
-		} catch (Throwable t) {
-			t.printStackTrace();
-		}
-
-		return port;
-	}
-
 	protected String getRandomTenantIdentifier() {
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
@@ -290,7 +250,11 @@ public abstract class StructrRestTestBase {
 		try (final Tx tx = app.tx()) {
 
 			for (int i = 0; i < number; i++) {
-				nodes.add(app.create(type));
+
+				final NodeInterface node = app.create(type);
+				node.setName("test" + i);
+
+				nodes.add(node);
 			}
 
 			tx.success();
@@ -386,7 +350,7 @@ public abstract class StructrRestTestBase {
 			final JsonType type     = schema.addType("TestUser");
 
 			type.addTrait(StructrTraits.USER);
-			type.overrideMethod("onCreate", true, "set(this, 'name', concat('test', now));");
+			type.addMethod("onCreate", "set(this, 'name', concat('test', now));");
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -163,7 +163,8 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					ContentTraitDefinition.CONTENT_PROPERTY, ContentTraitDefinition.CONTENT_TYPE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY
+					ContentTraitDefinition.CONTENT_PROPERTY, ContentTraitDefinition.CONTENT_TYPE_PROPERTY,
+					DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

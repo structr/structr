@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,13 +20,10 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.ImageHelper;
 import org.testng.annotations.Test;
@@ -95,13 +92,12 @@ public class GraphQLTest extends StructrUiTest {
 				.header(X_USER_HEADER, ADMIN_USERNAME)
 				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.contentType("application/json; charset=UTF-8")
-			//.body("{ Image(isThumbnail: {_equals: false}) { tnSmall { imageData, base64Data }}}")
 				.body("{ Image(isThumbnail: {_equals: false}) { tnSmall { imageData, base64Data }}}")
 
 			.expect()
 				.statusCode(200)
-				.body("Image[0].tnSmall.base64Data", equalTo("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mP4DwQACfsD/Wj6HMwAAAAASUVORK5CYII="))
-				.body("Image[0].tnSmall.imageData",  equalTo("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR42mP4DwQACfsD/Wj6HMwAAAAASUVORK5CYII="))
+				.body("Image[0].tnSmall.base64Data", equalTo("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4XmP4DwQACfsD/YcUtbcAAAAASUVORK5CYII="))
+				.body("Image[0].tnSmall.imageData",  equalTo("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4XmP4DwQACfsD/YcUtbcAAAAASUVORK5CYII="))
 
 			.when()
 				.post("/");

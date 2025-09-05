@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,12 +48,10 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			if (!(sources[0] instanceof Number)) {
+			if (!(sources[0] instanceof Number statusCode)) {
 
 				throw new IllegalArgumentException("Parameter must be a number!");
 			}
-
-			final Number statusCode = (Number)sources[0];
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			if (securityContext != null) {

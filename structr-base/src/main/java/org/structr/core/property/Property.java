@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,12 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
@@ -59,13 +58,17 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean indexed                   = false;
 	protected boolean indexedPassively          = false;
 	protected boolean indexedWhenEmpty          = false;
+	protected boolean fulltextIndexed           = false;
 	protected boolean compound                  = false;
 	protected boolean unique                    = false;
 	protected boolean notNull                   = false;
 	protected boolean dynamic                   = false;
-	protected boolean isPartOfBuiltInSchema     = false;
 	protected boolean cachingEnabled            = false;
 	protected boolean nodeOnly                  = false;
+	protected boolean isAbstract                = false;
+	protected boolean serializationDisabled     = false;
+	protected boolean writeFunctionWrapJS       = true;
+	protected boolean readFunctionWrapJS        = true;
 	protected String dbName                     = null;
 	protected String jsonName                   = null;
 	protected String format                     = null;
@@ -212,6 +215,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	@Override
+	public Property<T> fulltextIndexed() {
+
+		this.fulltextIndexed = true;
+		return this;
+
+	}
+
 	public Property<T> hint(final String hint) {
 		this.hint = hint;
 		return this;
@@ -235,6 +246,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	public Property<T> setSourceUuid(final String sourceUuid) {
 		this.sourceUuid = sourceUuid;
 		return this;
+	}
+
+	@Override
+	public boolean isAbstract() {
+		return isAbstract;
 	}
 
 	@Override
@@ -333,6 +349,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> setIsAbstract(final boolean isAbstract) {
+
+		this.isAbstract = isAbstract;
+
+		return this;
+	}
+
+	@Override
 	public Property<T> notNull(final boolean notNull) {
 		this.notNull = notNull;
 		return this;
@@ -367,8 +391,35 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Boolean readFunctionWrapJS() {
+		return this.readFunctionWrapJS;
+	}
+
+	@Override
+	public Boolean writeFunctionWrapJS() {
+		return this.writeFunctionWrapJS;
+	}
+
+	@Override
+	public Property<T> readFunctionWrapJS(final boolean wrap) {
+		this.readFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
+	public Property<T> writeFunctionWrapJS(final boolean wrap) {
+		this.writeFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
 	public Property<T> cachingEnabled(final boolean enabled) {
 		this.cachingEnabled = enabled;
+		return this;
+	}
+
+	public Property<T> disableSerialization(final boolean disableSerialization) {
+		this.serializationDisabled = disableSerialization;
 		return this;
 	}
 
@@ -480,6 +531,11 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isFulltextIndexed() {
+		return fulltextIndexed;
+	}
+
+	@Override
 	public boolean isIndexedWhenEmpty() {
 		return indexedWhenEmpty;
 	}
@@ -505,7 +561,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean cachingEnabled() { return cachingEnabled; }
+	public boolean cachingEnabled() {
+		return cachingEnabled;
+	}
+
+	@Override
+	public boolean serializationDisabled() {
+		return serializationDisabled;
+	}
 
 	@Override
 	public Object getIndexValue(final Object value) {
@@ -574,12 +637,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query) {
-		return new PropertySearchAttribute(this, searchValue, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query) {
+		return new PropertySearchAttribute(this, searchValue, exactMatch);
 	}
 
 	@Override
-	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException {
+	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final QueryGroup query) throws FrameworkException {
 
 		final String[] searchValues = request.getParameterValues(jsonName());
 		if (searchValues != null) {
@@ -594,7 +657,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
 
-		PropertyConverter inputConverter = inputConverter(securityContext);
+		PropertyConverter inputConverter = inputConverter(securityContext, true);
 		Object convertedSearchValue      = requestParameter;
 
 		if (inputConverter != null) {
@@ -615,7 +678,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return new DefaultSortOrder(this, descending);
 	}
 
-    // ----- interface Comparable -----
+	// ----- interface Comparable -----
 	@Override
 	public int compareTo(final PropertyKey other) {
 		return dbName().compareTo(other.dbName());
@@ -640,7 +703,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return resultStr;
 	}
 
-	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final Query query) throws FrameworkException {
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final QueryGroup query) throws FrameworkException {
 
 		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
 
@@ -653,7 +716,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 					final String rangeStart = matcher.group(1);
 					final String rangeEnd   = matcher.group(2);
 
-					final PropertyConverter inputConverter = inputConverter(securityContext);
+					final PropertyConverter inputConverter = inputConverter(securityContext, false);
 					Object rangeStartConverted = (rangeStart.equals("")) ? null : rangeStart;
 					Object rangeEndConverted   = (rangeEnd.equals(""))   ? null : rangeEnd;
 
@@ -668,7 +731,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 						}
 					}
 
-					query.andRange(this, rangeStartConverted, rangeEndConverted);
+					query.range(this, rangeStartConverted, rangeEndConverted);
 
 					return;
 				}
@@ -705,40 +768,35 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (requestParameter.contains(";")) {
 
+			final QueryGroup or = query.or();
+
 			if (multiValueSplitAllowed()) {
 
 				// descend into a new group
-				query.and();
 
 				for (final String part : requestParameter.split("[;]+")) {
 
-					query.or(this, convertSearchValue(securityContext, part), exactMatch);
+					or.key(this, convertSearchValue(securityContext, part), exactMatch);
 				}
-
-				// ascend to the last group
-				query.parent();
 
 			} else {
 
-				query.or(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+				or.key(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
 		} else if (requestParameter.contains(",")) {
 
 			// descend into a new group
-			query.and();
+			final QueryGroup and = query.and();
 
 			for (final String part : requestParameter.split("[,]+")) {
 
-				query.and(this, convertSearchValue(securityContext, part), exactMatch);
+				and.key(this, convertSearchValue(securityContext, part), exactMatch);
 			}
-
-			// ascend to the last group
-			query.parent();
 
 		} else {
 
-			query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+			query.and().key(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 		}
 	}
 

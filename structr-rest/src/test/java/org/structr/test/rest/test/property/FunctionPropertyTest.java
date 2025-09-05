@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -162,7 +162,7 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Invalid search result for typed function property", 1, app.nodeQuery(type).and(key, value).getAsList().size());
+			assertEquals("Invalid search result for typed function property", 1, app.nodeQuery(type).key(key, value).getAsList().size());
 
 			tx.success();
 

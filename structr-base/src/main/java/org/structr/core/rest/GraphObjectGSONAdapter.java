@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -214,7 +214,7 @@ public class GraphObjectGSONAdapter {
 		public JsonElement serializeProperty(PropertyKey key, Object value, String localPropertyView, int depth) {
 
 			try {
-				PropertyConverter converter = key.inputConverter(securityContext);
+				PropertyConverter converter = key.inputConverter(securityContext, false);
 
 				if (converter != null) {
 
@@ -237,14 +237,12 @@ public class GraphObjectGSONAdapter {
 
 			} catch (Throwable t) {
 
-				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", new Object[] {
-					key.jsonName(),
+				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
 					value.getClass().getName(),
 					value,
-					t.getMessage()
-				});
+					t.getMessage());
 			}
 
 			return null;

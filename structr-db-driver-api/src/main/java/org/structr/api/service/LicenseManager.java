@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.api.service;
 
-import java.security.CodeSigner;
 import java.util.Date;
 
 /**
@@ -38,12 +37,4 @@ public interface LicenseManager {
 	Date getEndDate();
 
 	int getNumberOfUsers();
-
-	boolean isValid(final Feature feature);
-	boolean isValid(final CodeSigner[] codeSigners);
-
-	boolean isModuleLicensed(final String module);
-	boolean isClassLicensed(final String fqcn);
-
-	void addLicensedClass(final String fqcn);
 }

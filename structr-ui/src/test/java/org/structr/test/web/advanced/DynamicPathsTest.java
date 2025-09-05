@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -427,7 +427,7 @@ public class DynamicPathsTest extends FrontendTest {
 		// now we create a page path and expect the same result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).andName("test004").getFirst();
+			final NodeInterface page = app.nodeQuery(StructrTraits.PAGE).name("test004").getFirst();
 
 			app.create(StructrTraits.PAGE_PATH,
 				new NodeAttribute<>(Traits.of(StructrTraits.PAGE_PATH).key(PagePathTraitDefinition.PAGE_PROPERTY), page),

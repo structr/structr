@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.web.traits.definitions.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -35,6 +36,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
@@ -85,7 +87,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final Content content = ((NodeInterface) obj).as(Content.class);
+					final Content content = obj.as(Content.class);
 
 					if (content.getContentType() == null) {
 						content.setContentType("text/plain");
@@ -99,7 +101,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onModification(final GraphObject obj, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-					final Content content = ((NodeInterface) obj).as(Content.class);
+					final Content content = obj.as(Content.class);
 					final DOMNode domNode = content.as(DOMNode.class);
 
 					// acknowledge all events for this node when it is modified
@@ -209,7 +211,11 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						final String _sharedComponentConfiguration = node.getSharedComponentConfiguration();
 						if (StringUtils.isNotBlank(_sharedComponentConfiguration)) {
 
-							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid());
+							final ScriptConfig scriptConfig = ScriptConfig.builder()
+									.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+									.build();
+
+							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid(), scriptConfig);
 						}
 
 						// determine some postprocessing flags
@@ -248,7 +254,7 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 						if (((_contentType == null) || _contentType.equals("text/plain"))) {
 
 							final DOMNode _parent = node.getParent();
-							if (_parent == null || !(_parent.is("Textarea"))) {
+							if (_parent == null || !(_parent.is(StructrTraits.TEXTAREA))) {
 
 								handler.setReplaceNewlines(true);
 							}
@@ -365,19 +371,21 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					IS_CONTENT_PROPERTY, CONTENT_TYPE_PROPERTY, CONTENT_PROPERTY, DOMNodeTraitDefinition.IS_DOM_NODE_PROPERTY,
-					DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY,
-					DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY,
-					DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
+					IS_CONTENT_PROPERTY, CONTENT_TYPE_PROPERTY, CONTENT_PROPERTY,
+					DOMNodeTraitDefinition.IS_DOM_NODE_PROPERTY, DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY,
+					DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
+					DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY,
+					DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
 					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY,
 					DOMNodeTraitDefinition.REST_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-					IS_CONTENT_PROPERTY, CONTENT_TYPE_PROPERTY, CONTENT_PROPERTY, DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY,
+					IS_CONTENT_PROPERTY, CONTENT_TYPE_PROPERTY, CONTENT_PROPERTY,
 					DOMNodeTraitDefinition.IS_DOM_NODE_PROPERTY, DOMNodeTraitDefinition.PAGE_ID_PROPERTY, DOMNodeTraitDefinition.PARENT_PROPERTY,
 					DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
-					DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
+					DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY,
+					DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
 					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY,
 					DOMNodeTraitDefinition.REST_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
 			)
@@ -616,7 +624,11 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
+					final ScriptConfig scriptConfig = ScriptConfig.builder()
+							.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+							.build();
+
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), scriptConfig);
 					if (value != null) {
 
 						String content = null;

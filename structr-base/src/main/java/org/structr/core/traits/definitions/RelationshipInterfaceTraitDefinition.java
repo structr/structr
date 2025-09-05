@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,10 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.StructrTraits;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.StructrTraits;
 
 import static org.structr.core.GraphObject.SYSTEM_CATEGORY;
 
@@ -79,11 +78,12 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 		return Map.of(
 				PropertyView.Public,
 				newSet(
-						"id", "type", "relType", "sourceId", "targetId"
+						REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY
 				),
+
 				PropertyView.Ui,
 				newSet(
-						"id", "type", "relType", "sourceId", "targetId"
+						REL_TYPE_PROPERTY, SOURCE_ID_PROPERTY, TARGET_ID_PROPERTY
 				)
 		);
 	}

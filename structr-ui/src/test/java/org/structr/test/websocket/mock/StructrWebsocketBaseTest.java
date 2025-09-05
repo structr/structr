@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -71,7 +71,7 @@ public class StructrWebsocketBaseTest extends StructrUiTest {
 		final MockWebsocketSession session   = new MockWebsocketSession(gson);
 
 		websocket.setRequest(request);
-		websocket.onWebSocketConnect(session);
+		websocket.onWebSocketOpen(session);
 
 		return new MockedWebsocketSetup(session, websocket);
 	}

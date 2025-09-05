@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -530,7 +530,7 @@ let _Elements = {
 					{
 						name: 'Access Control and Visibility',
 						clickHandler: () => {
-							_Entities.showAccessControlDialog(entity);
+							_Entities.showProperties(entity, 'permissions');
 						}
 					},
 					'|'
@@ -1020,15 +1020,15 @@ let _Elements = {
 
 			Structr.resize();
 
-			if (entity.isFavoritable) {
+			if (entity.isFile) {
 
 				let addToFavoritesButton = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconAddToFavorites, 16, 16, ['add-to-favorites']));
 				buttonArea.appendChild(addToFavoritesButton);
 
 				addToFavoritesButton.addEventListener('click', (e) => {
-					Command.favorites('add', entity.id, () => {
-						_Helpers.blinkGreen(e.target.closest('.add-to-favorites'));
-					});
+
+					_Favorites.addToFavorites([entity.id]);
+					_Helpers.blinkGreen(addToFavoritesButton);
 				});
 			}
 

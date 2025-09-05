@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,7 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
@@ -40,7 +40,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	private final Map<String, Object> parameters    = new TreeMap<>();
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
-	private final Set<String> typeLabels            = new LinkedHashSet<>();
+	protected final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final Map<String, GraphQueryPart> parts = new LinkedHashMap<>();
 	private final StringBuilder buffer              = new StringBuilder();
 	private AbstractCypherIndex<?> index            = null;
@@ -48,7 +48,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private QueryTimer queryTimer                   = null;
 	private int fetchSize                           = Settings.FetchSize.getValue();
 	private boolean hasOptionalParts                = false;
-	private String currentGraphPartIdentifier       = "n";
+	private int graphPartIdentifierIndex            = 1;
+	private String currentGraphPartIdentifier       = null;
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private String relationshipType                 = null;
@@ -240,15 +241,19 @@ public class AdvancedCypherQuery implements CypherQuery {
 		buffer.append("(");
 	}
 
-	public void endGroup() {
+	public boolean endGroup() {
 
 		if ('(' == buffer.charAt(buffer.length() - 1)) {
 
 			buffer.deleteCharAt(buffer.length() - 1);
 
+			return false;
+
 		} else {
 
 			buffer.append(")");
+
+			return true;
 		}
 	}
 
@@ -477,8 +482,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	public void addGraphQueryPart(final GraphQueryPart newPart) {
 
-		final Occurrence occurrence = newPart.getOccurrence();
-		if (Occurrence.OPTIONAL.equals(occurrence)) {
+		final Operation operation = newPart.getOperation();
+		if (Operation.OR.equals(operation)) {
 
 			final String linkIdentifier       = newPart.getLinkIdentifier();
 			final GraphQueryPart existingPart = parts.get(linkIdentifier);
@@ -646,7 +651,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	private String getNextGraphPartIdentifier() {
 
-		currentGraphPartIdentifier = Character.toString(currentGraphPartIdentifier.charAt(0) + 1);
+		currentGraphPartIdentifier = "n" + graphPartIdentifierIndex++;
 
 		return currentGraphPartIdentifier;
 	}

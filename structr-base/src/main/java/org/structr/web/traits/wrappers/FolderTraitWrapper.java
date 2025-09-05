@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,10 +30,10 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public class FolderTraitWrapper extends AbstractFileTraitWrapper implements Folder {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,8 +31,8 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
@@ -133,9 +133,6 @@ public class StructrTest {
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
 
-		Settings.RelationshipCacheSize.setValue(10000);
-		Settings.NodeCacheSize.setValue(10000);
-
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 
@@ -220,7 +217,11 @@ public class StructrTest {
 
 			for (int i = 0; i < number; i++) {
 
-				nodes.add(app.create(type, properties));
+				final NodeInterface node = app.create(type, properties);
+
+				node.setName("test" + i);
+
+				nodes.add(node);
 
 				try {
 					Thread.sleep(delay);
@@ -245,11 +246,6 @@ public class StructrTest {
 	protected List<NodeInterface> createTestNodes(final String type, final int number) throws FrameworkException {
 
 		return createTestNodes(type, number, 0);
-
-	}
-
-	protected NodeInterface createTestNode(final String type) throws FrameworkException {
-		return createTestNode(type, new PropertyMap());
 	}
 
 	protected NodeInterface createTestNode(final String type, final String name) throws FrameworkException {
@@ -286,7 +282,6 @@ public class StructrTest {
 
 			return newNode;
 		}
-
 	}
 
 	protected List<RelationshipInterface> createTestRelationships(final String type1, final String type2, final String relType, final int number) {
@@ -400,6 +395,8 @@ public class StructrTest {
 
 		// use database driver from system property, default to MemoryDatabaseService
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
+		//Settings.DatabaseDriver.setValue(Settings.DEFAULT_DATABASE_DRIVER);
+
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin123");
 		if (StringUtils.isBlank(testDatabaseConnection)) {
@@ -458,7 +455,7 @@ public class StructrTest {
 
 			hints.reportExistingKey(methodName);
 
-			return method.execute(securityContext, node, Arguments.fromMap(parameters), new EvaluationHints());
+			return method.execute(securityContext, node, NamedArguments.fromMap(parameters), new EvaluationHints());
 		}
 
 		if (throwIfNotExists) {

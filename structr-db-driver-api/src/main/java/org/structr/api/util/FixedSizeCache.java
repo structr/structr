@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,8 @@
 package org.structr.api.util;
 
 import org.apache.commons.collections4.map.LRUMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**

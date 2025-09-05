@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -83,6 +83,8 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
+					graphObject.as(AbstractSchemaNode.class).checkInheritanceConstraints();
+
 					// register transaction post processing that recreates the schema information
 					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));
 				}
@@ -95,6 +97,8 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 
 				@Override
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+
+					graphObject.as(AbstractSchemaNode.class).checkInheritanceConstraints();
 
 					// register transaction post processing that recreates the schema information
 					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));
@@ -149,11 +153,8 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 			PropertyView.Ui,
 			newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
 
-			"schema",
-			newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY),
-
-			"export",
-			newSet(CHANGELOG_DISABLED_PROPERTY, ICON_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_SERVICE_CLASS_PROPERTY)
+			PropertyView.Schema,
+			newSet(TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, INCLUDE_IN_OPEN_API_PROPERTY, IS_SERVICE_CLASS_PROPERTY)
 		);
 	}
 

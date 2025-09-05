@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,19 @@
  */
 package org.structr.core.api;
 
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethodParameter;
+
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.ClassUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.Iterables;
-import org.structr.common.SecurityContext;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethodParameter;
 
 /**
  * Base class for parameters that can be defined by Method implementations.
@@ -74,19 +76,19 @@ public class Parameters extends LinkedHashMap<String, String> {
 		return Iterables.nth(this.keySet(), index);
 	}
 
-	public String getTypeByNameOrIndex(final String name, final int index) {
+	public String getTypeByNameOrIndex(final String name, final int index) throws FrameworkException {
 
 		if (name != null) {
 
 			final String value = this.get(name);
-			if (value != null) {
+			return value;
 
-				return value;
-	}
+		} else {
+
+			throw new FrameworkException(400, "Unexpected method parameter #" + (index+1) + ", method defines only " + size() + " parameters.");
 		}
 
-		// fallback: get by index
-		return Iterables.nth(this.values(), index);
+		// no named parameter found
 	}
 
 	// ----- public static methods -----

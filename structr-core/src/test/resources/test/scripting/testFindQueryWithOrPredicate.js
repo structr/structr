@@ -23,5 +23,5 @@ search.push(equals('tasks', [ tasks[0] ]));
 search.push(equals('tasks', [ tasks[1] ]));
 search.push(equals('tasks', [ tasks[5] ]));
 
-return $.find('Project', $.predicate.or(search), $.predicate.sort('name'));
+$.find('Project', $.predicate.or(search), $.predicate.sort('name'));
 

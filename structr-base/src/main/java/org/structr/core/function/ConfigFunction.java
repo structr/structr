@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,12 +55,11 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 			if (setting == null) {
 
 				setting = Settings.getCaseSensitiveSetting(configKey);
-
 			}
 
 			if (setting != null) {
 
-				if (setting.equals(Settings.SuperUserPassword)) {
+				if (setting.isProtected()) {
 
 					return Principal.HIDDEN;
 
@@ -93,6 +92,6 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the structr.conf value with the given key";
+		return "Returns the structr.conf value for the given key";
 	}
 }

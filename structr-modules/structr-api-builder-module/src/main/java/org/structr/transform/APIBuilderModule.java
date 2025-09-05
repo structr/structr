@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,7 +27,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -38,8 +37,6 @@ import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 import org.structr.transform.traits.definitions.VirtualPropertyTraitDefinition;
 import org.structr.transform.traits.definitions.VirtualTypeTraitDefinition;
 import org.structr.transform.traits.relationship.VirtualTypevirtualPropertyVirtualProperty;
@@ -59,7 +56,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	private static final Logger logger = LoggerFactory.getLogger(APIBuilderModule.class.getName());
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY, new VirtualTypevirtualPropertyVirtualProperty());
 
@@ -84,23 +81,6 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	@Override
 	public Set<String> getFeatures() {
 		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
-		return null;
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 
 	@Override
@@ -245,7 +225,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.VIRTUAL_TYPE).andName(targetType).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.VIRTUAL_TYPE).name(targetType).getFirst();
 			if (node != null) {
 
 				final VirtualType type = node.as(VirtualType.class);

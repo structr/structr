@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,12 +50,9 @@ let _Dashboard = {
 				dashboardUiConfig.envInfo = dashboardUiConfig.envInfo[0];
 			}
 
-			dashboardUiConfig.envInfo.version = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).version || '';
-			dashboardUiConfig.envInfo.build   = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).build   || '';
-			dashboardUiConfig.envInfo.date    = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-ui']).date    || '';
-
-			dashboardUiConfig.releasesIndexUrl  = dashboardUiConfig.envInfo.availableReleasesUrl;
-			dashboardUiConfig.snapshotsIndexUrl = dashboardUiConfig.envInfo.availableSnapshotsUrl;
+			dashboardUiConfig.envInfo.version = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).version || '';
+			dashboardUiConfig.envInfo.build   = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).build   || '';
+			dashboardUiConfig.envInfo.date    = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-base']).date    || '';
 
 			if (dashboardUiConfig.envInfo.startDate) {
 				dashboardUiConfig.envInfo.startDate = dashboardUiConfig.envInfo.startDate.slice(0, 10);
@@ -121,9 +118,19 @@ let _Dashboard = {
 
 				let drawStatistics = (interval) => {
 
-					fetch(`${Structr.rootUrl}stats?interval=${interval}&max=3600`).then(response => response.json()).then(json => {
+					fetch(`${Structr.rootUrl}stats?interval=${interval}`).then(response => response.json()).then(json => {
 
-						httpStatisticsCell.innerHTML = '<label>Resolution: </label><select id="statistics-resolution-selector"><option value="1000">Seconds</option><option value="60000">Minutes</option><option value="3600000">Hours</option></option></select></select> <button id="statistics-refresh-button">Refresh</button><div id="statistics-diagram-container"></div>';
+						httpStatisticsCell.innerHTML = `
+							<label>Resolution: </label>
+							<select id="statistics-resolution-selector">
+								<option value="60000">Minutes</option>
+								<option value="3600000">Hours</option>
+								<option value="86400000">Days</option>
+								</option>
+							</select>
+							<button id="statistics-refresh-button">Refresh</button>
+							<div id="statistics-diagram-container"></div>
+						`;
 
 						let data = json.result;
 						let items = [];
@@ -146,33 +153,56 @@ let _Dashboard = {
 							}
 
 							for (let date of Object.keys(local)) {
+
 								let dateNumber = new Number(date);
-								min = dateNumber < min ? dateNumber : min;
-								max = dateNumber > max ? dateNumber : max;
+								min = Math.min(dateNumber, min);
+								max = Math.max(dateNumber, max);
 								items.push({
 									x: new Date(dateNumber).toISOString(),
-									x2: new Date(dateNumber + interval).toISOString(),
-									y: local[date], group: group
+									//x2: new Date(dateNumber + interval).toISOString(),
+									y: local[date],
+									group: group
 								});
 							}
 						}
 
-						console.log(items);
+						// console.log(items);
 
-						let groupList = Object.keys(groups).map(k => groups[k]);
+						let groupList = Object.values(groups);
 
-						if (items.length > 0) {
+						let timeAxisScale = {
+							//'1000': 'second',
+							'60000': 'minute',
+							'3600000': 'hour'
+						};
+						let timeAxisStep = {
+							//'1000': 600,
+							'60000': 15,
+							'3600000': 1
+						};
 
-							var options = {
-								start: new Date(min - interval).toISOString(),
-								end: new Date(max + interval).toISOString(),
-								legend: true,
-								drawPoints: true,
-								barChart: {align: 'right'},
-								style: 'bar',
-								stack: true
-							};
-						}
+						let options = {
+							start: new Date(min - interval).toISOString(),
+							end: new Date(max + interval).toISOString(),
+							legend: true,
+							drawPoints: true,
+							barChart: {
+								align: 'right'
+							},
+							style: 'bar',
+							stack: true,
+							dataAxis: {
+								left: {
+									range: {
+										min: 0
+									}
+								}
+							},
+							timeAxis: {
+								scale: timeAxisScale[interval],
+								step: timeAxisStep[interval]
+							}
+						};
 
 						new vis.Graph2d(httpStatisticsCell.querySelector("#statistics-diagram-container"), new vis.DataSet(items), new vis.DataSet(groupList), options);
 
@@ -326,17 +356,23 @@ let _Dashboard = {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: (dashboardUiConfig) => {
-				_Dashboard.tabs['about-structr'].gatherVersionUpdateInfo(dashboardUiConfig.envInfo.version, dashboardUiConfig.releasesIndexUrl, dashboardUiConfig.snapshotsIndexUrl);
+				_Dashboard.tabs['about-structr'].gatherVersionUpdateInfo(dashboardUiConfig.envInfo);
 				_Dashboard.tabs['about-structr'].checkLicenseEnd(dashboardUiConfig.envInfo, $('#dashboard-about-structr .end-date'), { noSpan: true });
 			},
-			gatherVersionUpdateInfo: async (currentVersion, releasesIndexUrl, snapshotsIndexUrl) => {
+			gatherVersionUpdateInfo: async (envInfo) => {
+
+				let currentVersion = envInfo.version;
+				// let currentBuild = envInfo.build;
+				// let currentDate = envInfo.date;
+
+				let releasesIndexUrl  = 'https://download.structr.com/repositories/releases/org/structr/structr/index';
+				let snapshotsIndexUrl = 'https://download.structr.com/repositories/snapshots/org/structr/structr/index';
 
 				let releaseInfo  = '';
 				let snapshotInfo = '';
 
-				if (releasesIndexUrl !== '') {
-
-					// Search for newer releases and store latest version
+				// Search for newer releases and store latest version
+				{
 					let response = await fetch(releasesIndexUrl);
 					if (response.ok) {
 
@@ -353,8 +389,8 @@ let _Dashboard = {
 					}
 				}
 
-				if (snapshotsIndexUrl !== '') {
-
+				// Search for newer snapshots and store latest version
+				{
 					let response = await fetch(snapshotsIndexUrl);
 					if (response.ok) {
 
@@ -464,7 +500,7 @@ let _Dashboard = {
 						let downloadUrl = deploymentUrlInput.value;
 
 						if (!(downloadUrl && downloadUrl.length)) {
-							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().show();
 						} else {
 							_Dashboard.tabs.deployment.actions.importFromZIPURL('app', downloadUrl, zipContentPath);
 						}
@@ -511,7 +547,7 @@ let _Dashboard = {
 
 						if (!(downloadUrl && downloadUrl.length)) {
 
-							new WarningMessage().title('Unable to start data import from URL').text('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start data import from URL').text('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().show();
 
 						} else {
 
@@ -567,7 +603,7 @@ let _Dashboard = {
 				deploy: async (mode, location) => {
 
 					if (!(location && location.length)) {
-						new WarningMessage().title(`Unable to start application ${mode}`).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title(`Unable to start application ${mode}`).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().show();
 						return;
 					}
 
@@ -577,7 +613,7 @@ let _Dashboard = {
 					};
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start an application ${mode}?<br>This will overwrite application data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						_Dashboard.tabs.deployment.history.addEntry(data);
 
@@ -591,7 +627,7 @@ let _Dashboard = {
 				deployData: async (mode, location, types) => {
 
 					if (!(location && location.length)) {
-						new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().show();
 						return;
 					}
 
@@ -605,13 +641,13 @@ let _Dashboard = {
 						if (types && types.length) {
 							data['types'] = types.join(',');
 						} else {
-							new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().show();
 							return;
 						}
 					}
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start a data ${mode}?<br>This will overwrite data ${mode === 'export' ? 'on disk' : 'in the database'}.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						// do not listen for errors - they are sent by the backend via WS
 						await fetch(`${Structr.rootUrl}maintenance/deployData`, {
@@ -637,12 +673,12 @@ let _Dashboard = {
 					};
 
 					if (appendTimestamp) {
-						prefix = _Dashboard.tabs.deployment.helpers.appendTimeStampToPrefix(prefix);
+						prefix = _Helpers.getTimestampWithPrefix(prefix);
 					}
 
 					if (prefix === '') {
 
-						new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
 
 					} else {
 
@@ -665,16 +701,16 @@ let _Dashboard = {
 					};
 
 					if (appendTimestamp) {
-						prefix = _Dashboard.tabs.deployment.helpers.appendTimeStampToPrefix(prefix);
+						prefix = _Helpers.getTimestampWithPrefix(prefix);
 					}
 
 					if (types.length === 0) {
 
-						new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().show();
 
 					} else if (prefix === '') {
 
-						new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().show();
 
 					} else {
 
@@ -685,7 +721,7 @@ let _Dashboard = {
 				importFromZIPURL: async (deploymentType, downloadUrl, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP URL?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);
@@ -701,7 +737,7 @@ let _Dashboard = {
 						if (!response.ok && response.status === 400) {
 
 							let responseText = await response.text();
-							new WarningMessage().title(`Unable to import ${deploymentType} from ZIP URL`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to import ${deploymentType} from ZIP URL`).text(responseText).requiresConfirmation().show();
 
 						} else {
 
@@ -716,7 +752,7 @@ let _Dashboard = {
 				importFromZIPFileUpload: async (deploymentType, filesSelectField, zipContentPath) => {
 
 					let confirm = await _Dialogs.confirmation.showPromise(`Are you sure you want to start ${deploymentType} import from the given ZIP file?<br>This will overwrite ${deploymentType === 'app' ? 'the application' : 'data'} in the database.`, false);
-					if (confirm) {
+					if (confirm === true) {
 
 						let formData = new FormData();
 						formData.append('redirectUrl', window.location.pathname);
@@ -732,7 +768,7 @@ let _Dashboard = {
 						if (!response.ok && response.status === 400) {
 
 							let responseText = await response.text();
-							new WarningMessage().title(`Unable to import ${deploymentType} from uploaded ZIP`).text(responseText).requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title(`Unable to import ${deploymentType} from uploaded ZIP`).text(responseText).requiresConfirmation().show();
 
 						} else {
 
@@ -745,21 +781,9 @@ let _Dashboard = {
 				cleanFileNamePrefix: (prefix) => {
 					let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
 					if (cleaned !== prefix) {
-						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().allowConfirmAll().show();
+						new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().show();
 					}
 					return cleaned;
-				},
-				appendTimeStampToPrefix: (prefix) => {
-
-					let date    = new Date();
-					let year    = date.getFullYear();
-					let month   = String(date.getMonth() + 1).padStart(2, '0');
-					let day     = String(date.getDate()).padStart(2, '0');
-					let hours   = String(date.getHours()).padStart(2, '0');
-					let minutes = String(date.getMinutes()).padStart(2, '0');
-					let seconds = String(date.getSeconds()).padStart(2, '0');
-
-					return `${prefix}_${year}${month}${day}_${hours}${minutes}${seconds}`;
 				},
 				getMessageMarkupIfDeploymentServletInactive: (config, message) => (config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.templates.servletMessage({ message }))
 			},
@@ -850,7 +874,7 @@ let _Dashboard = {
 
 					_Helpers.fastRemoveAllChildren(container);
 
-					if (historyEntries.length == 0) {
+					if (historyEntries.length === 0) {
 
 						container.append(_Helpers.createSingleDOMElementFromHTML('<div class="p-2">No history entries</div>'));
 
@@ -868,7 +892,7 @@ let _Dashboard = {
 
 							element.addEventListener('click', () => {
 								_Dashboard.tabs.deployment.history.modes[entry.mode].apply(entry);
-								Structr.hideDropdownContainer(container);
+								Structr.dropdowns.hideDropdownContainer(container);
 							});
 
 							container.append(element);
@@ -1065,7 +1089,7 @@ let _Dashboard = {
 
 								<fieldset class="border-0 p-0">
 									<h3>Action / Mode<span data-comment="If <b>Export</b> is selected, no data is changed in this instance, but an older export data record may be overwritten.<br><br>If <b>Import</b> is selected, data in this Structr instance will be overwritten."></span></h3>
-									<div class="w-1/3 mb-4">
+									<div class="mb-4">
 										<p>Specify if data is to be exported from or imported into Structr.</p>
 										
 									</div>
@@ -1079,7 +1103,7 @@ let _Dashboard = {
 
 								<fieldset class="border-0 p-0">
 									<h3>Type<span data-comment="<b>Application</b> is equivalent to the source code of an application in a classic development environment.<br><br>Select <b>Data</b> for handling user-created and domain-specific data of a Structr instance."></span></h3>
-									<div class="w-1/3 mb-4">
+									<div class="mb-4">
 										<p>Choose the type of data to be exported or imported.</p>
 									</div>
 									<div class="options-switch">
@@ -1092,7 +1116,7 @@ let _Dashboard = {
 
 								<fieldset class="border-0 p-0">
 									<h3>Target / Source<span data-comment="<b>Server directory</b> means a local directory on the server on which Structr is running.<br><br><b>ZIP</b> means downloading the export as a ZIP file or upload a ZIP file to import app or user data."></span></h3>
-									<div class="w-1/3 mb-4">
+									<div class="mb-4">
 										<p>Select where to/from it should be written/read.</p>
 									</div>
 									<div class="options-switch">
@@ -1314,7 +1338,7 @@ let _Dashboard = {
 				let methodEntry = _Helpers.createSingleDOMElementFromHTML(_Dashboard.tabs.methods.getMarkupForMethod(method));
 
 				methodEntry.querySelector('button.run').addEventListener('click', () => {
-					_Code.mainArea.helpers.runSchemaMethod(method);
+					_Schema.methods.runSchemaMethod(method);
 				});
 
 				container.appendChild(methodEntry);
@@ -1387,18 +1411,7 @@ let _Dashboard = {
 				});
 
 				document.querySelector('#dashboard-server-log-download').addEventListener('click', async () => {
-
-					const file = new File([textarea.textContent], 'structr.log.txt', { type: 'text/plain' });
-					const link = document.createElement('a');
-					const url  = URL.createObjectURL(file);
-
-					link.href = url;
-					link.download = file.name;
-					document.body.appendChild(link);
-					link.click();
-
-					document.body.removeChild(link);
-					window.URL.revokeObjectURL(url);
+					_Helpers.downloadFile([textarea.textContent], 'structr.log.txt', 'text/plain');
 				});
 
 				_Dashboard.tabs['server-log'].getManualRefreshButton().addEventListener('click', _Dashboard.tabs['server-log'].updateLog);
@@ -1966,7 +1979,7 @@ let _Dashboard = {
 
 						<div class="flex menu-order-container">
 							<div class="text-center font-bold w-40 p-4">Main Menu</div>
-							<div class="text-center font-bold w-40 p-4">Custom Menu (${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 8, 8)})</div>
+							<div class="text-center font-bold w-40 p-4">Submenu (${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 8, 8)})</div>
 						</div>
 
 						<div class="flex menu-order-container">

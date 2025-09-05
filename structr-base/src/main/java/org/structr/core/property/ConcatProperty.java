@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,11 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeInterface;
 
 import java.util.Arrays;
 import java.util.Map;

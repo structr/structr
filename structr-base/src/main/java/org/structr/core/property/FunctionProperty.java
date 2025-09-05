@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,11 @@
 package org.structr.core.property;
 
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,6 +33,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
@@ -121,7 +124,11 @@ public class FunctionProperty<T> extends Property<T> {
 					// don't ignore predicate
 					actionContext.setPredicate(predicate);
 
-					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid);
+					final ScriptConfig scriptConfig = ScriptConfig.builder()
+							.wrapJsInMain(this.readFunctionWrapJS())
+							.build();
+
+					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid, scriptConfig);
 
 					PropertyConverter converter = null;
 
@@ -130,19 +137,19 @@ public class FunctionProperty<T> extends Property<T> {
 						switch (typeHint.toLowerCase()) {
 
 							case "boolean":
-								converter = pBoolean.inputConverter(securityContext);
+								converter = pBoolean.inputConverter(securityContext, false);
 								break;
 							case "int":
-								converter = pInt.inputConverter(securityContext);
+								converter = pInt.inputConverter(securityContext, false);
 								break;
 							case "long":
-								converter = pLong.inputConverter(securityContext);
+								converter = pLong.inputConverter(securityContext, false);
 								break;
 							case "double":
-								converter = pDouble.inputConverter(securityContext);
+								converter = pDouble.inputConverter(securityContext, false);
 								break;
 							case "date":
-								converter = pDate.inputConverter(securityContext);
+								converter = pDate.inputConverter(securityContext, false);
 								break;
 						}
 
@@ -169,12 +176,21 @@ public class FunctionProperty<T> extends Property<T> {
 
 			} else {
 
-				logger.warn("Unable to evaluate function property {}, object was null.", jsonName());
+				logger.warn("Unable to evaluate function property '{}', object was null.", jsonName());
 			}
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception while evaluating read function in Function property '" + jsonName() + "'", t);
+			final String message = "Exception while evaluating read function in Function property '" + jsonName() + "' for node " + target.getUuid();
+
+			if (Settings.LogFunctionsStackTrace.getValue()) {
+
+				logger.warn(message, t);
+
+			} else {
+
+				logger.warn(message + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")");
+			}
 		}
 
 		return null;
@@ -257,7 +273,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return getDatabaseConverter(securityContext);
 	}
 
@@ -269,7 +285,7 @@ public class FunctionProperty<T> extends Property<T> {
 		final String func       = getWriteFunction();
 		T result                = null;
 
-		if (func != null) {
+		if (StringUtils.isNotBlank(func)) {
 
 			try {
 
@@ -279,7 +295,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 				ctx.setConstant("value", value);
 
-				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid);
+				final ScriptConfig scriptConfig = ScriptConfig.builder()
+						.wrapJsInMain(this.writeFunctionWrapJS())
+						.build();
+
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid, scriptConfig);
 
 			} catch (FrameworkException fex) {
 
@@ -290,6 +310,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
 			}
+
+		} else {
+
+			logger.warn("FunctionProperty {} has empty write function, value will not be changed.", jsonName());
 		}
 
 		if (ctx.hasError()) {
@@ -315,11 +339,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 			switch (typeHint.toLowerCase()) {
 
-				case "boolean": converter = pBoolean.inputConverter(securityContext); break;
-				case "int":     converter = pInt.inputConverter(securityContext); break;
-				case "long":    converter = pLong.inputConverter(securityContext); break;
-				case "double":  converter = pDouble.inputConverter(securityContext); break;
-				case "date":    converter = pDate.inputConverter(securityContext); break;
+				case "boolean": converter = pBoolean.inputConverter(securityContext, false); break;
+				case "int":     converter = pInt.inputConverter(securityContext, false); break;
+				case "long":    converter = pLong.inputConverter(securityContext, false); break;
+				case "double":  converter = pDouble.inputConverter(securityContext, false); break;
+				case "date":    converter = pDate.inputConverter(securityContext, false); break;
 			}
 
 			if (converter != null) {

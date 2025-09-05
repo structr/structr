@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,11 +37,11 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
+import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.web.traits.definitions.ImageTraitDefinition;
-import org.structr.web.traits.relationships.ImageTHUMBNAILImage;
 
 /**
  * An image whose binary data will be stored on disk.
@@ -175,6 +175,7 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 		final SecurityContext securityContext = wrappedObject.getSecurityContext();
 		final String originalContentType      = getContentType();
 		final Image existingThumbnail         = getExistingThumbnail(maxWidth, maxHeight, cropToFit);
+		final boolean hasBytes                = getSize() > 0;
 
 		if (existingThumbnail != null) {
 
@@ -190,6 +191,11 @@ public class ImageTraitWrapper extends FileTraitWrapper implements Image {
 		// do not create thumbnails if thumbnail creation failed before
 		if (Boolean.TRUE.equals(thumbnailCreationFailed())) {
 
+			return null;
+		}
+
+		// don't create thumbnails for empty files
+		if (!hasBytes) {
 			return null;
 		}
 

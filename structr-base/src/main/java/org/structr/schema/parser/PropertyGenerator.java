@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -137,6 +137,18 @@ public abstract class PropertyGenerator<T> {
 			propertyKey.writeFunction(source.getWriteFunction());
 		}
 
+		propertyKey.readFunctionWrapJS(source.getReadFunctionWrapJS());
+
+		propertyKey.writeFunctionWrapJS(source.getWriteFunctionWrapJS());
+
+		if (source.isSerializationDisabled()) {
+			propertyKey.disableSerialization(source.isSerializationDisabled());
+		}
+
+		if (source.isAbstract()) {
+			propertyKey.setIsAbstract(true);
+		}
+
 		if (StringUtils.isNotBlank(source.getTypeHint())) {
 			propertyKey.typeHint(source.getTypeHint());
 		}
@@ -164,6 +176,11 @@ public abstract class PropertyGenerator<T> {
 				propertyKey.indexedWhenEmpty();
 
 			} else {
+
+				if (source.isFulltext()) {
+
+					propertyKey.fulltextIndexed();
+				}
 
 				propertyKey.indexed();
 			}

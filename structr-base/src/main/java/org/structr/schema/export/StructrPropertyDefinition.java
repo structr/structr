@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,11 +59,14 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected String defaultValue           = null;
 	protected String hint                   = null;
 	protected String category               = null;
+	protected boolean isAbstract            = false;
 	protected boolean required              = false;
 	protected boolean compound              = false;
 	protected boolean unique                = false;
 	protected boolean indexed               = false;
+	protected boolean fulltext              = false;
 	protected boolean readOnly              = false;
+	protected boolean serializationDisabled = false;
 
 	StructrPropertyDefinition(final JsonType parent, final String name) {
 		this.parent = parent;
@@ -160,8 +163,23 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public boolean isFulltext() {
+		return fulltext;
+	}
+
+	@Override
+	public boolean isAbstract() {
+		return isAbstract;
+	}
+
+	@Override
 	public boolean isReadOnly() {
 		return readOnly;
+	}
+
+	@Override
+	public boolean isSerializationDisabled() {
+		return serializationDisabled;
 	}
 
 	@Override
@@ -203,6 +221,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public JsonProperty setAbstract(boolean isAbstract) {
+
+		this.isAbstract = isAbstract;
+		return this;
+	}
+
+	@Override
 	public JsonProperty setRequired(boolean required) {
 
 		this.required = required;
@@ -225,8 +250,15 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 	@Override
 	public JsonProperty setIndexed(boolean indexed) {
+		return this.setIndexed(indexed, false);
+	}
 
-		this.indexed = indexed;
+	@Override
+	public JsonProperty setIndexed(boolean indexed, final boolean isFulltext) {
+
+		this.indexed  = indexed;
+		this.fulltext = isFulltext;
+
 		return this;
 	}
 
@@ -234,6 +266,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	public JsonProperty setReadOnly(boolean readOnly) {
 
 		this.readOnly = readOnly;
+		return this;
+	}
+
+	@Override
+	public JsonProperty setSerializationDisabled(boolean serializationDisabled) {
+
+		this.serializationDisabled = serializationDisabled;
 		return this;
 	}
 
@@ -282,19 +321,22 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 			final PropertyMap getOrCreateProperties = new PropertyMap();
 
-			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           getName());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),   schemaNode);
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY),      isCompoundUnique());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),        isUnique());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),       isIndexed());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),      isRequired());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),     isReadOnly());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),        getFormat());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY),          getHint());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY),      getCategory());
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),    listToArray(validators));
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),  listToArray(transformers));
-			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY), defaultValue);
+			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                       getName());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY),               schemaNode);
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY),                  isCompoundUnique());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),                    isUnique());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),                   isIndexed());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY),                  isFulltext());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),                  isRequired());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),                 isReadOnly());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_ABSTRACT_PROPERTY),               isAbstract());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY), isSerializationDisabled());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY),                    getFormat());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.HINT_PROPERTY),                      getHint());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.CATEGORY_PROPERTY),                  getCategory());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.VALIDATORS_PROPERTY),                listToArray(validators));
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.TRANSFORMERS_PROPERTY),              listToArray(transformers));
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.DEFAULT_VALUE_PROPERTY),             defaultValue);
 
 			property = app.create(StructrTraits.SCHEMA_PROPERTY, getOrCreateProperties).as(SchemaProperty.class);
 		}
@@ -335,8 +377,20 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			this.indexed = (Boolean)source.get(JsonSchema.KEY_INDEXED);
 		}
 
+		if (source.containsKey(JsonSchema.KEY_FULLTEXT)) {
+			this.fulltext = (Boolean)source.get(JsonSchema.KEY_FULLTEXT);
+		}
+
 		if (source.containsKey(JsonSchema.KEY_READ_ONLY)) {
 			this.readOnly = (Boolean)source.get(JsonSchema.KEY_READ_ONLY);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_IS_ABSTRACT)) {
+			this.isAbstract = (Boolean)source.get(JsonSchema.KEY_IS_ABSTRACT);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_SERIALIZATION_DISABLED)) {
+			this.serializationDisabled = (Boolean)source.get(JsonSchema.KEY_SERIALIZATION_DISABLED);
 		}
 
 		final Object _format = source.get(JsonSchema.KEY_FORMAT);
@@ -384,8 +438,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setCompound(property.isCompound());
 		setRequired(property.isNotNull());
 		setUnique(property.isUnique());
-		setIndexed(property.isIndexed());
+		setIndexed(property.isIndexed(), property.isFulltext());
 		setReadOnly(property.isReadOnly());
+		setAbstract(property.isAbstract());
+		setSerializationDisabled(property.isSerializationDisabled());
+
 		setHint(property.getHint());
 		setCategory(property.getCategory());
 
@@ -424,8 +481,20 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			map.put(JsonSchema.KEY_INDEXED, true);
 		}
 
+		if (fulltext) {
+			map.put(JsonSchema.KEY_FULLTEXT, true);
+		}
+
 		if (readOnly) {
 			map.put(JsonSchema.KEY_READ_ONLY, true);
+		}
+
+		if (isAbstract) {
+			map.put(JsonSchema.KEY_IS_ABSTRACT, true);
+		}
+
+		if (serializationDisabled) {
+			map.put(JsonSchema.KEY_SERIALIZATION_DISABLED, true);
 		}
 
 		if (format != null) {
@@ -464,7 +533,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	// ----- static methods -----
 	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
 
-		if (MigrationService.propertyShouldBeRemoved(parent.getName(), name, (String) source.get(JsonSchema.KEY_TYPE), (String) source.get(JsonSchema.KEY_FQCN))) {
+		if (MigrationService.propertyShouldBeRemoved(null, parent.getName(), name, (String) source.get(JsonSchema.KEY_TYPE), (String) source.get(JsonSchema.KEY_FQCN))) {
 			return null;
 		}
 

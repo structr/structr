@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,10 @@
  */
 package org.structr.bolt;
 
+import org.neo4j.driver.Value;
 import org.structr.api.graph.Node;
 
 import java.util.function.Function;
-import org.neo4j.driver.Value;
 
 /**
  *

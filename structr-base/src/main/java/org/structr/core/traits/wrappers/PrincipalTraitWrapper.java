@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,8 @@
  */
 package org.structr.core.traits.wrappers;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -210,7 +210,10 @@ public class PrincipalTraitWrapper extends AbstractNodeTraitWrapper implements P
 
 	@Override
 	public Iterable<Group> getParents() {
-		return wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY));
+
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY));
+
+		return Iterables.map(n -> n.as(Group.class), nodes);
 	}
 
 	@Override

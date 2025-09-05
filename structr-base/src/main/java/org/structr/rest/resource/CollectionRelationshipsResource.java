@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -100,7 +100,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 			for (final Object obj : super.doGet(securityContext, sortOrder, pageSize, page)) {
 
 				if (obj instanceof NodeInterface node) {
-					
+
 					List<? extends RelationshipInterface> relationships = null;
 
 					switch (direction) {

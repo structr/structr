@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -109,6 +109,8 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),          valueTypeName);
 								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),               key.isNotNull());
 								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),                 key.isUnique());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),                key.isIndexed());
+								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY),               key.isFulltextIndexed());
 								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.IS_DYNAMIC_PROPERTY),             key.isDynamic());
 								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.DECLARING_CLASS_PROPERTY),        declaringClass);
 								property.put(schemaPropertyTraits.key(SchemaPropertyTraitDefinition.DECLARING_UUID_PROPERTY),         declaringUuid);

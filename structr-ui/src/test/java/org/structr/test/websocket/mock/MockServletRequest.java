@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -151,11 +151,6 @@ public class MockServletRequest implements HttpServletRequest {
 
 	@Override
 	public boolean isRequestedSessionIdFromURL() {
-		return false;
-	}
-
-	@Override
-	public boolean isRequestedSessionIdFromUrl() {
 		return false;
 	}
 
@@ -315,11 +310,6 @@ public class MockServletRequest implements HttpServletRequest {
 	}
 
 	@Override
-	public String getRealPath(String path) {
-		return "";
-	}
-
-	@Override
 	public int getRemotePort() {
 		return 0;
 	}
@@ -371,6 +361,21 @@ public class MockServletRequest implements HttpServletRequest {
 
 	@Override
 	public DispatcherType getDispatcherType() {
+		return null;
+	}
+
+	@Override
+	public String getRequestId() {
+		return "";
+	}
+
+	@Override
+	public String getProtocolRequestId() {
+		return "";
+	}
+
+	@Override
+	public ServletConnection getServletConnection() {
 		return null;
 	}
 }

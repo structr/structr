@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.InstanceMethod;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.Relation;
@@ -67,8 +68,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String PARENT_PROPERTY                         = "parent";
 	public static final String CHILDREN_PROPERTY                       = "children";
-	public static final String PREVIOUS_SIBLING_PROPERTY               = "previousSibling";
-	public static final String NEXT_SIBLING_PROPERTY                   = "nextSibling";
 	public static final String SHARED_COMPONENT_PROPERTY               = "sharedComponent";
 	public static final String SYNCED_NODES_PROPERTY                   = "syncedNodes";
 	public static final String OWNER_DOCUMENT_PROPERTY                 = "ownerDocument";
@@ -78,7 +77,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FAILURE_NOTIFICATION_ACTIONS_PROPERTY   = "failureNotificationActions";
 	public static final String SORTED_CHILDREN_PROPERTY                = "sortedChildren";
 	public static final String CHILDREN_IDS_PROPERTY                   = "childrenIds";
-	public static final String NEXT_SIBLING_ID_PROPERTY                = "nextSiblingId";
 	public static final String PAGE_ID_PROPERTY                        = "pageId";
 	public static final String PARENT_ID_PROPERTY                      = "parentId";
 	public static final String SHARED_COMPONENT_ID_PROPERTY            = "sharedComponentId";
@@ -126,6 +124,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
+					domNode.updateHasSharedComponentFlag();
 				}
 			},
 
@@ -140,6 +139,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 					domNode.increasePageVersion();
 					domNode.checkName(errorBuffer);
 					domNode.syncName(errorBuffer);
+					domNode.updateHasSharedComponentFlag();
 
 					// acknowledge all events for this node when it is modified
 					RuntimeEventLog.acknowledgeAllEventsForId(domNode.getUuid());
@@ -263,9 +263,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 											for (Object o : (Iterable) elements) {
 
-												if (o instanceof GraphObject) {
+												if (o instanceof GraphObject graphObject) {
 
-													GraphObject graphObject = (GraphObject) o;
 													renderContext.putDataObject(subKey, graphObject);
 													node.renderContent(renderContext, depth);
 
@@ -556,7 +555,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					// TODO: check hierarchy constraints imposed by the schema
 					// validation successful
-					return;
 				}
 			}
 		);
@@ -626,7 +624,67 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
+
+		return Set.of(
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "cloneNode") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+					final boolean deep = parameters.get("deep") != null && Boolean.parseBoolean(parameters.get("deep").toString());
+
+					final DOMNode clonedNode = node.cloneNode(deep);
+
+					return clonedNode;
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "appendChild") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
+
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
+
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.appendChild(): missing required argument `newChild` of type DOMNode.");
+					}
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "setOwnerDocument") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
+
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
+
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.setOwnerDocument(): missing required argument `newChild` of type DOMNode.");
+					}
+				}
+			}
+		);
 	}
 
 	@Override
@@ -634,8 +692,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<NodeInterface> parentProperty                               = new StartNode(PARENT_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes(CHILDREN_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> previousSiblingProperty                      = new StartNode(PREVIOUS_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> nextSiblingProperty                          = new EndNode(NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<NodeInterface> sharedComponentProperty                      = new StartNode(SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes(SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
 		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode(OWNER_DOCUMENT_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
@@ -645,7 +701,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty(SORTED_CHILDREN_PROPERTY).typeHint("DOMNode[]");
 		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty(CHILDREN_IDS_PROPERTY, StructrTraits.DOM_NODE, DOMNodeTraitDefinition.CHILDREN_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
-		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty(NEXT_SIBLING_ID_PROPERTY, StructrTraits.DOM_NODE, NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> pageIdProperty                                      = new EntityIdProperty(PAGE_ID_PROPERTY, StructrTraits.DOM_NODE, OWNER_DOCUMENT_PROPERTY, StructrTraits.PAGE).category("Page Structure");
 		final Property<String> parentIdProperty                                    = new EntityIdProperty(PARENT_ID_PROPERTY, StructrTraits.DOM_NODE, PARENT_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> sharedComponentIdProperty                           = new EntityIdProperty(SHARED_COMPONENT_ID_PROPERTY, StructrTraits.DOM_NODE, SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE).format("sharedComponent, {},");
@@ -669,8 +724,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return newSet(
 			parentProperty,
 			childrenProperty,
-			previousSiblingProperty,
-			nextSiblingProperty,
 			sharedComponentProperty,
 			syncedNodesProperty,
 			ownerDocumentProperty,
@@ -680,7 +733,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			failureNotificationActionsProperty,
 			sortedChildrenProperty,
 			childrenIdsProperty,
-			nextSiblingIdProperty,
 			pageIdProperty,
 			parentIdProperty,
 			sharedComponentIdProperty,
@@ -709,8 +761,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-					DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
-					DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY
+					RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY,
+					SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, FAILURE_NOTIFICATION_ACTIONS_PROPERTY
 			)
 		);
 	}

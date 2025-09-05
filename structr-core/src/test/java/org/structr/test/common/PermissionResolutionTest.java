@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,12 +38,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GroupTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
-import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -448,7 +443,7 @@ public class PermissionResolutionTest extends StructrTest {
 			final Group testGroup1 = app.create(StructrTraits.GROUP, "Group1").as(Group.class);
 			final Group testGroup2 = app.create(StructrTraits.GROUP, "Group2").as(Group.class);
 			final Group testGroup3 = app.create(StructrTraits.GROUP, "Group3").as(Group.class);
-			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(Principal.class);
 
 			// create group hierarchy for test user
 			testGroup1.addMember(securityContext, testGroup2);
@@ -456,14 +451,14 @@ public class PermissionResolutionTest extends StructrTest {
 			testGroup3.addMember(securityContext, tester);
 
 			// create grant
-			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 			final NodeInterface grant      = app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           false),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          false),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"),         false),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"),  false)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY),           testGroup1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY),           false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY),          false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY),         false),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY),  false)
 			);
 
 			uuid = grant.getUuid();
@@ -479,7 +474,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
+			final Principal tester = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(Principal.class);
 
 			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project1"), new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester));
 			app.create(projectType, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project2"));
@@ -494,32 +489,32 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 
 		testGranted(projectType, new boolean[] { false, false, false, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, false, false, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, true, false, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, true, true, false });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), true);
 		testGranted(projectType, new boolean[] { true, true, true, true });
 
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), false);
 		testGranted(projectType, new boolean[] { false, true, true, true });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY), false);
 		testGranted(projectType, new boolean[] { false, false, true, true });
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), false);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY), false);
 		testGranted(projectType, new boolean[] { false, false, false, true });
 
 		// allow all, but remove group link
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"), true);
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"), true);
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"), true);
-		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY), true);
+		configureSchemaGrant(uuid, Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), true);
 
 		try (final Tx tx = app.tx()) {
 
 			// delete Group2 which links tester to granted Group1
-			app.delete(app.nodeQuery(StructrTraits.GROUP).andName("Group2").getFirst());
+			app.delete(app.nodeQuery(StructrTraits.GROUP).name("Group2").getFirst());
 			tx.success();
 
 		} catch (Throwable t) {
@@ -620,8 +615,6 @@ public class PermissionResolutionTest extends StructrTest {
 	@Test
 	public void testAdminFlagWithServicePrincipal() {
 
-		final SecurityContext ctx = SecurityContext.getSuperUserInstance();
-
 		try (final Tx tx = app.tx()) {
 
 			final ServicePrincipal principal = new ServicePrincipal("tester", "tester", null, true);
@@ -636,22 +629,74 @@ public class PermissionResolutionTest extends StructrTest {
 		}
 	}
 
-	public static void clearResourceAccess() {
+	@Test
+	public void testCircularGroupHierarchy() {
 
-		final App app = StructrApp.getInstance();
+		Principal tester = null;
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface access : app.nodeQuery(StructrTraits.RESOURCE_ACCESS).getAsList()) {
-				app.delete(access);
-			}
+			final Traits traits = Traits.of(StructrTraits.GROUP);
+
+			final NodeInterface group1 = app.create(StructrTraits.GROUP, "group1");
+			final NodeInterface group2 = app.create(StructrTraits.GROUP, "group2");
+
+			final PropertyKey<Iterable<NodeInterface>> key = traits.key(PrincipalTraitDefinition.GROUPS_PROPERTY);
+
+			tester = app.create(StructrTraits.PRINCIPAL, "tester").as(Principal.class);
+
+			// make to groups contain each other
+			group1.setProperty(key, List.of(group2));
+			group2.setProperty(key, List.of(group1));
+
+			/*
+			alternative test case: if circular groups are allowed, make sure there is no stack overflow when resolving the permissions
+
+			final NodeInterface test1 = app.create(StructrTraits.MAIL_TEMPLATE, "test");
+
+			// create schema grant from group1 to type MailTemplate
+			app.create(StructrTraits.SCHEMA_GRANT,
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY), group1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), "MailTemplate"),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY), true)
+			);
+
+			group2.as(Group.class).addMember(securityContext, tester);
+			group1.as(Group.class).addMember(securityContext, tester);
+			*/
 
 			tx.success();
 
-		} catch (Throwable t) {
+			fail("Creating circular group hierarchies should cause an exception.");
 
-			logger.warn("Unable to clear resource access permissions", t);
+		} catch (FrameworkException fex) {
+
+			assertEquals("Wrong error message for circular group hierarchy", "Unable to commit transaction, validation failed", fex.getMessage());
+			assertEquals("Wrong error type for circular group hierarchy", "Group", fex.getErrorBuffer().getErrorTokens().get(0).getType());
+			assertEquals("Wrong error property for circular group hierarchy", "groups", fex.getErrorBuffer().getErrorTokens().get(0).getProperty());
+			assertEquals("Wrong error token for circular group hierarchy", "circular_reference", fex.getErrorBuffer().getErrorTokens().get(0).getToken());
 		}
+
+		/*
+
+		alternative test case: if circular groups are allowed, make sure there is no stack overflow when resolving the permissions
+
+		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
+		final App userApp                 = StructrApp.getInstance(userContext);
+
+		try (final Tx tx = userApp.tx()) {
+
+			final NodeInterface node = userApp.nodeQuery(StructrTraits.MAIL_TEMPLATE).getFirst();
+
+			assertNotNull("MailTemplate should be found", node);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+		*/
 	}
 
 	// ----- private methods -----
@@ -694,7 +739,7 @@ public class PermissionResolutionTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final Principal tester            = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(Principal.class);
+			final Principal tester            = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(Principal.class);
 			final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 			final List<NodeInterface> result  = app.nodeQuery(projectType).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -91,7 +91,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			// resource access explicetly set to FORBIDDEN => forbidden
+			// resource access explictly set to FORBIDDEN => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().get("/Folder");
 
 			// allow GET for authenticated users => access without user/pass should be still forbidden
@@ -214,11 +214,10 @@ public class ResourceAccessTest extends StructrUiTest {
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().put("/Folder/" + testFolder.getUuid());
 
-			folderGrant = createResourceAccess(StructrTraits.FOLDER, UiAuthenticator.FORBIDDEN);
+			folderGrant = createResourceAccess(StructrTraits.FOLDER + "/_id", UiAuthenticator.FORBIDDEN);
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
 			logger.error(fex.toString());
 			fail("Unexpected exception");
 		}
@@ -233,8 +232,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			logger.error(fex.toString());
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -248,8 +246,7 @@ public class ResourceAccessTest extends StructrUiTest {
 
 			tx.success();
 		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			logger.error(fex.toString());
+			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
 
@@ -282,10 +279,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-
-			logger.warn("", ex);
-
-			logger.error(ex.toString());
+			ex.printStackTrace();
 			fail("Unexpected exception");
 
 		}
@@ -322,7 +316,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			// no resource access node at all => forbidden
 			RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(401).when().delete("/Folder/" + testFolder.getUuid());
 
-			folderGrant = createResourceAccess(StructrTraits.FOLDER, UiAuthenticator.FORBIDDEN);
+			folderGrant = createResourceAccess(StructrTraits.FOLDER + "/_id", UiAuthenticator.FORBIDDEN);
 
 			tx.success();
 		} catch (FrameworkException fex) {
@@ -410,7 +404,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			final JsonType type     = schema.addType("Test");
 
 			type.addMethod("getName", "{ return $.this.name; }");
-			type.addMethod("getName2", "{ return $.this.name + $.methodParameters.param1; }").setHttpVerb("GET").addParameter("param1", "string");
+			type.addMethod("getName2", "{ return ($.this.name + $.methodParameters.param1); }").setHttpVerb("GET").addParameter("param1", "string");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -432,7 +426,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			uuid = test.getUuid();
 
 			// set owner
-			final NodeInterface tester = app.nodeQuery(StructrTraits.PRINCIPAL).andName("tester").getFirst();
+			final NodeInterface tester = app.nodeQuery(StructrTraits.PRINCIPAL).name("tester").getFirst();
 
 			test.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), tester);
 
@@ -451,8 +445,8 @@ public class ResourceAccessTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			createResourceAccess("Test/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
-			createResourceAccess("Test/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/_id/getName", UiAuthenticator.AUTH_USER_POST).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+			createResourceAccess("Test/_id/getName2", UiAuthenticator.AUTH_USER_GET).setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 
 			tx.success();
 
@@ -471,8 +465,13 @@ public class ResourceAccessTest extends StructrUiTest {
 			.body("result", equalTo("test123undefined"))
 			.when().get("/Test/" + uuid + "/getName2");
 
+		// expect success only if exactly the defined arguments are given
 		RestAssured.given().headers(Map.of(X_USER_HEADER, "tester", X_PASSWORD_HEADER, "test")).contentType("application/json; charset=UTF-8").expect().statusCode(200)
 			.body("result", equalTo("test123value1"))
+			.when().get("/Test/" + uuid + "/getName2/value1");
+
+		// expect error if more values are given than parameters are specified (when using values in URL path syntax)
+		RestAssured.given().headers(Map.of(X_USER_HEADER, "tester", X_PASSWORD_HEADER, "test")).contentType("application/json; charset=UTF-8").expect().statusCode(400)
 			.when().get("/Test/" + uuid + "/getName2/value1/value2/123");
 	}
 
@@ -488,7 +487,7 @@ public class ResourceAccessTest extends StructrUiTest {
 			final JsonSchema schema = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("Test");
 
-			type.addMethod("myMethod", "{ return 'test!'; }");
+			type.addMethod("myMethod", "{ 'test!'; }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 

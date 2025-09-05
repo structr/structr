@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,8 @@ let _Dialogs = {
 						position: fixed;
 						top: 0;
 						left: 0;
+						bottom: 0;
+						right: 0;
 						border: none;
 						margin: 0;
 						padding: 0;
@@ -46,11 +48,6 @@ let _Dialogs = {
 					"></div>
 					<div class="${_Dialogs.basic.contentClass}" style="
 						z-index: ${content_max_zIndex};
-						position: fixed;
-						top: 40vh;
-						left: 35vw;
-						background-color: var(--gray-eee);
-						box-shadow: 0 0 .1rem var(--gray-999);
 					">
 						${messageHtml}
 					</div>
@@ -63,19 +60,8 @@ let _Dialogs = {
 
 			document.body.appendChild(overlay);
 
-			// if no message is provided, or more content is added in the caller, then the caller must handle this
-			_Dialogs.basic.centerAll();
-
 			// inner element is returned to allow adding elements there
 			return contentElement;
-		},
-		centerAll: () => {
-
-			for (let messageDiv of document.querySelectorAll(`.${_Dialogs.basic.contentClass}`)) {
-
-				messageDiv.style.top  = `${(window.innerHeight - messageDiv.offsetHeight) / 2}px`;
-				messageDiv.style.left = `${(window.innerWidth - messageDiv.offsetWidth) / 2}px`;
-			}
 		},
 		removeBlockerAround: (element) => {
 
@@ -137,7 +123,6 @@ let _Dialogs = {
 
 				Structr.getActiveModule()?.unload?.();
 
-				_Favorites.logoutAction();
 				_Console.logoutAction();
 
 				Structr.clearMain();
@@ -152,8 +137,6 @@ let _Dialogs = {
 				});
 
 				document.querySelector('#usernameField').focus();
-
-				_Dialogs.basic.centerAll();
 
 				document.querySelector('form#login-username-password').addEventListener('submit', (e) => {
 					e.stopPropagation();
@@ -227,7 +210,6 @@ let _Dialogs = {
 				if (ssoAvailable) {
 					ssoElement.classList.remove('hidden');
 				}
-				_Dialogs.basic.centerAll(); // or too jumpy?
 			});
 		},
 		showTwoFactor: (data) => {
@@ -248,8 +230,6 @@ let _Dialogs = {
 			}
 
 			$('#twoFactorTokenField').val(data.token);
-
-			window.setTimeout(_Dialogs.basic.centerAll, 0);
 		},
 		hideTwoFactor: () => {
 			document.querySelector('#login-username-password').style.display = 'block';
@@ -268,15 +248,13 @@ let _Dialogs = {
 			});
 
 			document.querySelector('#passwordField').focus();
-
-			_Dialogs.basic.centerAll();
 		}
 	},
 	tempInfoBox: {
 		show: (messageHtml = '') => {
 
 			let tempInfoMessage = `
-				<div class="text-center">
+				<div class="dialog text-center">
 					<div class="infoHeading"></div>
 					<div class="infoMsg min-h-20">
 						${messageHtml}
@@ -286,7 +264,7 @@ let _Dialogs = {
 					</div>
 				</div>
 			`;
-			let messageDiv  = _Dialogs.basic.append(tempInfoMessage, { padding: '1rem' });
+			let messageDiv  = _Dialogs.basic.append(tempInfoMessage);
 			let closeButton = messageDiv.querySelector('.closeButton');
 
 			closeButton.addEventListener('click', (e) => {
@@ -301,17 +279,19 @@ let _Dialogs = {
 		},
 	},
 	confirmation: {
-		showPromise: (text, defaultOption = true) => {
+		showPromise: (text, highlightedOption = true) => {
 
-			let choices = [{
+			let choices = [
+				{
 					buttonText: `${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes`,
 					result: true
 				}, {
 					buttonText: `${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No`,
 					result: false
-			}];
+				}
+			];
 
-			return _Dialogs.multipleChoiceQuestion.askPromise(text, choices, defaultOption, !defaultOption);
+			return _Dialogs.multipleChoiceQuestion.askPromise(text, choices, highlightedOption, null);
 		},
 	},
 	multipleChoiceQuestion: {
@@ -327,7 +307,7 @@ let _Dialogs = {
 					</div>
 				`;
 
-				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage, { padding: '1rem' });
+				let messageDiv            = _Dialogs.basic.append(multipleChoiceMessage);
 				let confirmationContainer = messageDiv.querySelector('.confirmationText');
 
 				let answerFunction = (e, response) => {
@@ -384,6 +364,99 @@ let _Dialogs = {
 			});
 		},
 	},
+	readUUIDFromUser: {
+		defaultUUIDValidationPromise: async (uuid) => {
+
+			let isValidUUID = _Helpers.isUUID(uuid);
+			return {
+				allow: isValidUUID,
+				value: uuid,
+				invalidMessage: 'Given value is not a valid UUID'
+			};
+		},
+		showPromise: (text, validationPromise = _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise) => {
+
+			return new Promise((resolve, reject) => {
+
+				let dialogMessage = `
+					<div class="confirmationText text-center">
+						<div class="mb-6">
+							<div class="mb-4">${text}</div>
+
+							<input data-uuid type="text" placeholder="UUID" class="w-full box-border">
+						</div>
+
+						<div data-button-container class="flex items-center justify-center gap-4"></div>
+					</div>
+				`;
+
+				let messageDiv      = _Dialogs.basic.append(dialogMessage);
+				let buttonContainer = messageDiv.querySelector('[data-button-container]');
+				let uuidInput       = messageDiv.querySelector('input[data-uuid]');
+				uuidInput.focus();
+
+				let runActionOption = true;
+				let cancelOption    = false;
+				let choices = [
+					{ buttonText: `OK`,     result: runActionOption, classes: []                },
+					{ buttonText: `Cancel`, result: cancelOption,    classes: ['cancel-button'] }
+				];
+
+				let answerFunction = (e, response) => {
+					e.stopPropagation();
+
+					if (response === runActionOption) {
+
+						let uuid = uuidInput.value;
+
+						validationPromise(uuid).then(validationResult => {
+
+							if (validationResult.allow === true) {
+
+								resolve(validationResult.value);
+								_Dialogs.basic.removeBlockerAround(messageDiv);
+
+							} else {
+
+								uuidInput.setCustomValidity(validationResult.invalidMessage);
+								uuidInput.reportValidity();
+							}
+						});
+
+					} else {
+
+						reject('User aborted');
+						_Dialogs.basic.removeBlockerAround(messageDiv);
+					}
+				};
+
+				for (let choice of choices) {
+
+					let button = _Helpers.createSingleDOMElementFromHTML(`
+						<button class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0">
+							${choice.buttonText}
+						</button>
+					`);
+
+					button.addEventListener('click', (e) => answerFunction(e, choice.result));
+					button.classList.add(...choice.classes);
+
+					buttonContainer.appendChild(button);
+				}
+
+				// hacky way to use global ESC handler...
+				_Dialogs.custom.elements.dialogCancelButton = messageDiv.querySelector('.cancel-button');
+
+				_Helpers.activateCommentsInElement(messageDiv);
+
+				uuidInput.addEventListener('keyup', (e) => {
+					if (e.key === 'Enter' || e.code === 'Enter' || e.keyCode === 13) {
+						answerFunction(e, runActionOption);
+					}
+				});
+			});
+		},
+	},
 	spinner: {
 		// spinner has unique id and if called with an existing spinner, the previous one is removed
 		id: 'structr-loading-spinner',
@@ -417,7 +490,7 @@ let _Dialogs = {
 			_Dialogs.loadingMessage.hide(messageId);
 
 			let loadingMessage = `
-				<div id="${messageId}" class="text-center">
+				<div id="${messageId}" class="dialog text-center">
 					<div class="flex items-center justify-center">
 						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
 					</div>
@@ -426,7 +499,7 @@ let _Dialogs = {
 				</div>
 			`;
 
-			_Dialogs.basic.append(loadingMessage, { padding: '1rem' });
+			_Dialogs.basic.append(loadingMessage);
 		},
 		hide: (messageId = _Dialogs.loadingMessage.defaultId) => {
 
@@ -500,28 +573,17 @@ let _Dialogs = {
 		isDialogOpen: () => {
 			return (!!_Dialogs.custom.elements.dialogBox && !!_Dialogs.custom.elements.dialogBox.offsetParent);
 		},
-		setDialogSize: (windowWidth, windowHeight, dialogWidth, dialogHeight) => {
-
-			let horizontalOffset = 130;
-
-			let dialogTextWrapperElement = _Dialogs.custom.getDialogTextWrapperElement();
-			if (dialogTextWrapperElement) {
-
-				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 2rem)`;
-				dialogTextWrapperElement.style.height = `${dialogHeight - horizontalOffset}px`;
-			}
-
+		minimizeDialog: () => {
+			_Dialogs.custom.getDialogBoxElement()?.classList.remove('maximized');
+			_Dialogs.custom.getDialogTextWrapperElement()?.classList.remove('maximized');
 			// needed for maximized dialog (currently assumes there is only one dialog!)
-			let blockPageElement = document.querySelector(`.${_Dialogs.basic.contentClass}`);
-			if (blockPageElement) {
-
-				let left = (windowWidth - dialogWidth) / 2;
-				let top  = (windowHeight - dialogHeight) / 2;
-
-				blockPageElement.style.width = `${dialogWidth}px`;
-				blockPageElement.style.top   = `${top}px`;
-				blockPageElement.style.left  = `${left}px`;
-			}
+			document.querySelector(`.${_Dialogs.basic.contentClass}`)?.classList.remove('maximized');
+		},
+		maximizeDialog: () => {
+			_Dialogs.custom.getDialogBoxElement()?.classList.add('maximized');
+			_Dialogs.custom.getDialogTextWrapperElement()?.classList.add('maximized');
+			// needed for maximized dialog (currently assumes there is only one dialog!)
+			document.querySelector(`.${_Dialogs.basic.contentClass}`)?.classList.add('maximized');
 		},
 		getDialogDimensions: (marginLeft, marginTop) => {
 
@@ -553,15 +615,13 @@ let _Dialogs = {
 					// Calculate dimensions of dialog
 					if (_Dialogs.custom.isDialogOpen() && !_Dialogs.loginDialog.isOpen()) {
 
-						_Dialogs.custom.setDialogSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+						_Dialogs.custom.minimizeDialog();
 
 						if (_Dialogs.custom.getMinimizeDialogButton()) _Dialogs.custom.getMinimizeDialogButton().style.display = 'none';
 						if (_Dialogs.custom.getMaximizeDialogButton()) _Dialogs.custom.getMaximizeDialogButton().style.display = 'block';
 					}
 				}
 			}
-
-			_Dialogs.basic.centerAll();
 		},
 		openDialog: (dialogTitleText = '', callbackCancel, customClasses = []) => {
 
@@ -574,7 +634,7 @@ let _Dialogs = {
 			_Dialogs.custom.getMaximizeDialogButton().addEventListener('click', _Dialogs.custom.maximizeDialogButtonAction);
 			_Dialogs.custom.getCloseDialogButton().addEventListener('click', _Dialogs.custom.clickDialogCancelButton);
 
-			_Dialogs.custom.getDialogBoxElement().classList.add(...["dialog", ...customClasses]);
+			_Dialogs.custom.getDialogBoxElement().classList.add(...['dialog', ...customClasses]);
 
 			_Dialogs.custom.getDialogTitleElement().textContent = dialogTitleText;
 
@@ -629,10 +689,9 @@ let _Dialogs = {
 		getMaximizeDialogButton: () => _Dialogs.custom.getDialogBoxElement().querySelector('#maximizeDialog'),
 		getCloseDialogButton: () => _Dialogs.custom.getDialogBoxElement().querySelector('#closeDialog'),
 		maximizeDialogButtonAction: () => {
-
-			// Calculate dimensions of dialog
+			_Dialogs.custom.maximizeDialog();
 			if (_Dialogs.custom.isDialogOpen() && !_Dialogs.loginDialog.isOpen()) {
-				_Dialogs.custom.setDialogSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
+				_Dialogs.custom.maximizeDialog();
 			}
 
 			_Dialogs.custom.isMaximized = true;
@@ -644,8 +703,8 @@ let _Dialogs = {
 			Structr.getActiveModule()?.dialogSizeChanged?.();
 		},
 		minimizeDialogButtonAction: () => {
-
 			_Dialogs.custom.isMaximized = false;
+			_Dialogs.custom.minimizeDialog();
 			LSWrapper.removeItem(_Dialogs.custom.dialogMaximizedKey);
 			Structr.resize();
 
@@ -705,17 +764,36 @@ let _Dialogs = {
 		},
 		isNoConfirmOnEscape: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.noConfirmOnEscapeClass) ?? false,
 		hasCustomCloseHandler: () => _Dialogs.custom.getDialogTextElement()?.classList.contains(_Dialogs.custom.hasCustomCloseHandlerClass) ?? false,
-		checkSaveOrCloseOnEscapeKeyPressed: () => {
+		checkSaveOrCloseOnEscapeKeyPressed: async () => {
 
 			let hasAttachedAndEnabledSaveButton = _Dialogs.custom.elements.dialogSaveButton && _Dialogs.custom.elements.dialogSaveButton.offsetParent && !_Dialogs.custom.elements.dialogSaveButton.disabled;
 
 			if (_Dialogs.custom.isDialogOpen() && hasAttachedAndEnabledSaveButton && !_Dialogs.custom.isNoConfirmOnEscape() && !_Dialogs.custom.hasCustomCloseHandler()) {
 
-				let saveBeforeExit = confirm('Save changes before closing?');
-				if (saveBeforeExit) {
+				let SAVE_AND_CLOSE    = 1;
+				let DISCARD_AND_CLOSE = 2;
+				let KEEP_OPEN         = 3;
+				let options = [
+					{ buttonText: 'Save and close', result: SAVE_AND_CLOSE },
+					{ buttonText: 'Discard and close', result: DISCARD_AND_CLOSE },
+					{ buttonText: 'Keep open', result: KEEP_OPEN }
+				];
+
+				let action = await _Dialogs.multipleChoiceQuestion.askPromise('Save changes before closing?', options, SAVE_AND_CLOSE);
+
+				if (action === SAVE_AND_CLOSE) {
+
 					_Dialogs.custom.clickSaveButton();
 
-					window.setTimeout(_Dialogs.custom.clickDialogCancelButton, 500);
+					window.setTimeout(_Dialogs.custom.clickDialogCancelButton, 750);
+
+				} else if (action === DISCARD_AND_CLOSE) {
+
+					_Dialogs.custom.clickDialogCancelButton();
+
+				} else if (action === KEEP_OPEN) {
+
+					// do nothing
 				}
 
 			} else {

@@ -15,7 +15,7 @@
 	</moduleSets>
 	<fileSets>
 		<fileSet>
-			<directory>${project.parent.basedir}/structr-base/target</directory>
+			<directory>${assemblies.base.path}</directory>
 			<outputDirectory></outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
@@ -28,7 +28,7 @@
 
 		</fileSet>
 		<fileSet>
-			<directory>${project.parent.basedir}/structr-base/target/lib</directory>
+			<directory>${assemblies.base.path}/lib</directory>
 			<outputDirectory>lib</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
@@ -37,7 +37,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.parent.basedir}/structr-base/src/main/resources/structr</directory>
+			<directory>${assemblies.resources.path}/structr</directory>
 			<outputDirectory>structr</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
@@ -46,7 +46,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>src/main/resources/logs</directory>
+			<directory>${assemblies.resources.path}/logs</directory>
 			<outputDirectory>logs</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
@@ -57,52 +57,52 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/amd64/prunsrv.exe</source>
+			<source>${assemblies.resources.path}/bin/commons-daemon/amd64/prunsrv.exe</source>
 			<outputDirectory>bin/commons-daemon/amd64</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/LICENSE.txt</source>
+			<source>${assemblies.resources.path}/bin/commons-daemon/LICENSE.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/LICENSE.txt</source>
+			<source>${assemblies.resources.path}/bin/commons-daemon/LICENSE.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/NOTICE.txt</source>
+			<source>${assemblies.resources.path}/bin/commons-daemon/NOTICE.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/prunmgr.exe</source>
+			<source>${assemblies.resources.path}/bin/commons-daemon/prunmgr.exe</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/prunsrv.exe</source>
+			<source>${assemblies.resources.path}/bin/commons-daemon/prunsrv.exe</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/RELEASE-NOTES.txt</source>
+			<source>${assemblies.resources.path}/bin/commons-daemon/RELEASE-NOTES.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/config</source>
+			<source>${assemblies.resources.path}/bin/config</source>
 			<outputDirectory>bin</outputDirectory>
 			<filtered>true</filtered>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/start</source>
+			<source>${assemblies.resources.path}/bin/start</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/start.cmd</source>
+			<source>${assemblies.resources.path}/bin/start.cmd</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/stop</source>
+			<source>${assemblies.resources.path}/bin/stop</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/docker.sh</source>
+			<source>${assemblies.resources.path}/bin/docker.sh</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 	</files>

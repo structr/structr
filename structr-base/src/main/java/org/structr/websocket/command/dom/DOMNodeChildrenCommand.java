@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.websocket.command.dom;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -29,8 +30,6 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-
-import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given DOM node
@@ -59,16 +58,12 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 		prefetch(webSocketData.getId());
 
 		final List<GraphObject> result = new LinkedList<>();
-		DOMNode currentNode            = node.getFirstChild();
 
-		while (currentNode != null) {
+		for (final DOMNode currentNode : node.getChildren()) {
 
 			prefetch(currentNode.getUuid());
 
 			result.add(currentNode);
-
-			currentNode = (DOMNode) currentNode.getNextSibling();
-
 		}
 
 		webSocketData.setView(PropertyView.All);
@@ -76,7 +71,6 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		// send only over local connection
 		getWebSocket().send(webSocketData, true);
-
 	}
 
 	@Override

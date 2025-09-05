@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,9 @@
 package org.structr.web.resource;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**

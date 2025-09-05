@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,9 +25,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.util.Map;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 public class AbstractFileIsMountedProperty extends AbstractReadOnlyProperty<Boolean> {
 

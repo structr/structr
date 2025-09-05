@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.autocomplete;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
-import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -53,6 +52,7 @@ import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
 import java.util.*;
+
 
 
 public abstract class AbstractHintProvider {
@@ -176,7 +176,6 @@ public abstract class AbstractHintProvider {
 			hints.add(func);
 		}
 
-		hints.add(new IncludeJSFunction(actionContext));
 		hints.add(new DoInNewTransactionFunction(actionContext, null));
 		hints.add(new DoAsFunction(actionContext));
 		hints.add(new DoPrivilegedFunction(actionContext));
@@ -200,7 +199,6 @@ public abstract class AbstractHintProvider {
 		hints.add(0, createKeywordHint("locale",              "The current locale",         "locale"));
 		hints.add(0, createKeywordHint("current",             "The current details object", "current"));
 		hints.add(0, createKeywordHint("cache",               "Time-based cache object", "cache"));
-		hints.add(0, createKeywordHint("batch",               "Open a batch transaction context", "batch"));
 		hints.add(0, createKeywordHint("applicationStore",    "The application store", "applicationStore"));
 
 		// add global schema methods to show at the start of the list
@@ -208,7 +206,7 @@ public abstract class AbstractHintProvider {
 
 			final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).and(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
 
 				final SchemaMethod method = node.as(SchemaMethod.class);
 
@@ -322,7 +320,7 @@ public abstract class AbstractHintProvider {
 
 				case "this":
 
-					if (currentNode.isNode()) {
+					if (currentNode != null && currentNode.isNode()) {
 
 						final NodeInterface node = (NodeInterface)currentNode;
 
@@ -335,7 +333,7 @@ public abstract class AbstractHintProvider {
 								type = schemaNode.getClassName();
 							}
 
-						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(((SchemaProperty) currentNode).getPropertyType())) {
+						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(currentNode.as(SchemaProperty.class).getPropertyType())) {
 
 
 							final AbstractSchemaNode schemaNode = node.as(SchemaProperty.class).getSchemaNode();

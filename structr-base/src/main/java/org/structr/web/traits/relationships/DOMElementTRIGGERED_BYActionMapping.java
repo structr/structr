@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -56,7 +56,7 @@ public class DOMElementTRIGGERED_BYActionMapping extends AbstractRelationshipTra
 
 	@Override
 	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
+		return Relation.SOURCE_TO_TARGET;
 	}
 
 	@Override

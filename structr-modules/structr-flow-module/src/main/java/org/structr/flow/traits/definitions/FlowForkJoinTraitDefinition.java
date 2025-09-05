@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,41 +57,40 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Action;
-				}
-			},
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Action;
+					}
+				},
 
-			ActionOperations.class,
-			new ActionOperations() {
+				ActionOperations.class,
+				new ActionOperations() {
 
-				@Override
-				public void execute(final Context context, final FlowAction action) throws FlowException {
+					@Override
+					public void execute(final Context context, final FlowAction action) throws FlowException {
 
-					try {
+						try {
 
-						final Queue<Future> futures = context.getForkFutures();
-						while(!futures.isEmpty()) {
+							final Queue<Future> futures = context.getForkFutures();
+							while(!futures.isEmpty()) {
 
-							//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
-							Future f = futures.poll();
-							if (f != null) {
+								//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
+								Future f = futures.poll();
+								if (f != null) {
 
-								f.get();
+									f.get();
+								}
 							}
+
+						} catch (ExecutionException | InterruptedException ex) {
+
+							throw new FlowException(ex, action);
 						}
-
-					} catch (ExecutionException | InterruptedException ex) {
-
-						throw new FlowException(ex, action);
 					}
 				}
-			}
-
 		);
 	}
 

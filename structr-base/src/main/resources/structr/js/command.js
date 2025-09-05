@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -524,19 +524,13 @@ let Command = {
 			return StructrWS.sendObj(obj, callback);
 		}
 	},
-	/**
-	 * Send an UNARCHIVE command to the server.
-	 *
-	 * The server will unarchive the file with the given id in the folder
-	 * with the given parent folder id and create files for each archive entry.
-	 *
-	 */
-	unarchive: function(id, parentFolderId, callback) {
+	unarchive: (id, parentFolderId, createFolder, callback) => {
 		let obj = {
 			command: 'UNARCHIVE',
 			id: id,
 			data: {
-				parentFolderId: parentFolderId
+				parentFolderId: parentFolderId,
+				createFolder: createFolder
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
@@ -1013,7 +1007,7 @@ let Command = {
 				parent: file.parent,
 				hasParent: file.hasParent,
 				parentId: file.parentId,
-				type: (_Helpers.isImage(file.type) ? 'Image' : (_Helpers.isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
+				type: (_Helpers.isImage(file.type) ? 'Image' : (_Helpers.isVideo(file.type)) ? 'VideoFile' : 'File')
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
@@ -1050,6 +1044,38 @@ let Command = {
 			}
 		};
 		return StructrWS.sendObj(obj);
+	},
+	/**
+	 * Send a LIST_ACTIVE_ELEMENTS command to the server.
+	 *
+	 * The server will return a result set containing all active elements
+	 * in the given page.
+	 *
+	 * The optional callback function will be executed for each node in the result set.
+	 */
+	listActiveElements: function(id, callback) {
+		let obj = {
+			command: 'LIST_ACTIVE_ELEMENTS',
+			id: id
+		};
+		return StructrWS.sendObj(obj, callback);
+	},
+	/**
+	 * Send a LAYOUT command to the server.
+	 *
+	 * The server will apply a layout to the object tree and
+	 * return the modified object tree as a JSON string.
+	 *
+	 * The callback function will be executed with the result.
+	 */
+	layout: function(data, callback) {
+		let obj = {
+			command: 'LAYOUT',
+			data: {
+				input: JSON.stringify(data)
+			}
+		};
+		return StructrWS.sendObj(obj, callback);
 	},
 	listLocalizations: (pageId, locale, detailObjectId, queryString) => {
 		return new Promise((resolve, reject) => {
@@ -1092,7 +1118,7 @@ let Command = {
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
-	listUnattachedNodes: function(pageSize, page, sort, order, callback) {
+	listUnattachedNodes: (pageSize, page, sort, order, callback) => {
 		let obj = {
 			command: 'LIST_UNATTACHED_NODES',
 			pageSize: pageSize,
@@ -1110,7 +1136,7 @@ let Command = {
 	 *
 	 * No broadcast.
 	 */
-	deleteUnattachedNodes: function() {
+	deleteUnattachedNodes: () => {
 		let obj = {
 			command: 'DELETE_UNATTACHED_NODES'
 		};
@@ -1121,32 +1147,20 @@ let Command = {
 	 *
 	 * No broadcast.
 	 */
-	listSchemaProperties: function(id, view, callback) {
+	listSchemaProperties: (id, view, callback) => {
 		let obj  = {
 			command: 'LIST_SCHEMA_PROPERTIES',
 			id: id,
 			data: {
-				view: view
+				view: view		// view only influences the "isSelected" attribute in the response for each property (is included in the given view)
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
 	},
-	/**
-	 * Send a SNAPSHOTS command to the server.
-	 *
-	 * The server will return a status object.
-	 */
-	snapshots: function(mode, name, types, callback) {
+	clearSchema: (callback) => {
 		let obj  = {
-			command: 'SNAPSHOTS',
-			data: {
-				mode: mode,
-				name: name
-			}
+			command: 'CLEAR_SCHEMA',
 		};
-		if (types && types.length) {
-			obj.data.types = types.join(',');
-		}
 		return StructrWS.sendObj(obj, callback);
 	},
 	/**
@@ -1165,22 +1179,6 @@ let Command = {
 				line: line,
 				cursorPosition: cursorPosition,
 				isAutoscriptEnv: isAutoscriptEnv
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
-	 * Send a FAVORITES command to the server.
-	 *
-	 * Depending on the mode the server will either add/remove the file to/from
-	 * the users favorite files.
-	 */
-	favorites: function(mode, fileId, callback) {
-		let obj  = {
-			command: 'FAVORITES',
-			data: {
-				mode: mode,
-				id: fileId
 			}
 		};
 		return StructrWS.sendObj(obj, callback);

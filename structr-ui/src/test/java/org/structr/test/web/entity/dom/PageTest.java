@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
@@ -39,6 +40,7 @@ import org.structr.web.traits.wrappers.dom.DOMNodeTraitWrapper;
 import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -190,8 +192,8 @@ public class PageTest extends StructrUiTest {
 				// srcPage should not have a document element any more
 				//assertNull(srcPage.getDocumentElement());
 
-				final List<DOMNode> srcChildren = srcPage.getChildNodes();
-				final List<DOMNode> dstChildren = dstPage.getChildNodes();
+				final List<DOMNode> srcChildren = Iterables.toList(srcPage.getChildren());
+				final List<DOMNode> dstChildren = Iterables.toList(dstPage.getChildren());
 
 				// srcPage should have no children any more
 				assertEquals(0, srcChildren.size());
@@ -392,7 +394,7 @@ public class PageTest extends StructrUiTest {
 			DOMNode firstChild = pageToClone.getFirstChild();
 			if (firstChild != null) {
 
-				final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, firstChild);
+				final DOMNode newHtmlNode = DOMNodeTraitWrapper.cloneAndAppendChildren(securityContext, firstChild, new LinkedHashMap<>());
 
 				newPage.adoptNode(newHtmlNode);
 				newPage.appendChild(newHtmlNode);

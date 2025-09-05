@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,14 +26,12 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
@@ -90,7 +88,7 @@ public class XmlImportTest extends StructrUiTest {
 			final Traits userTraits = Traits.of(StructrTraits.USER);
 
 			newType.addStringProperty("name");
-			newType.addIntegerProperty("originId").isIndexed();
+			newType.addIntegerProperty("originId").setIndexed(true);
 			newType.addStringProperty("typeName");
 			newType.addIntegerProperty("test1");
 			newType.addIntegerProperty("test2");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -438,7 +438,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	newGroup.addMember({ user: newUser });\n" +
 				"\n" +
-				"	return newGroup.members.length;" +
+				"	newGroup.members.length;" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {
@@ -464,7 +464,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	group.removeMember({ user: user });\n" +
 				"\n" +
-				"	return beforeRemove + ' - after: ' + group.members.length;" +
+				"	(beforeRemove + ' - after: ' + group.members.length);" +
 				"}}";
 
 		try (final Tx tx = app.tx()) {

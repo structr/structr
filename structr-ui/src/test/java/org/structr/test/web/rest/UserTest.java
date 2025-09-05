@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
+import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -34,6 +35,8 @@ import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.testng.Assert.fail;
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  *
@@ -127,8 +130,8 @@ public class UserTest extends StructrUiTest {
 
 		final String uuid = createEntityAsSuperUser("/User", "{ 'name': 'user', 'password': 'password'}");
 
-		grant(StructrTraits.USER,     UiAuthenticator.AUTH_USER_GET, true);
-		grant("User/_Ui", UiAuthenticator.AUTH_USER_GET, false);
+		grant(StructrTraits.USER,  UiAuthenticator.AUTH_USER_GET, true);
+		grant("User/_id", UiAuthenticator.AUTH_USER_GET, false);
 
 		final App app = StructrApp.getInstance();
 
@@ -200,5 +203,62 @@ public class UserTest extends StructrUiTest {
 			.get("/User/" + uuid);
 
 
+	}
+
+	@Test
+	public void testUserNameOrEMailConstraint() {
+
+		createAdminUser();
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.body("{}")
+			.header(X_USER_HEADER, "admin")
+			.header(X_PASSWORD_HEADER, "admin")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+			.statusCode(422)
+			.body("code", equalTo(422))
+			.body("message", equalTo("Cannot create a user who has neither a name nor an email address"))
+			.body("errors[0].token",    equalTo("must_not_be_empty"))
+			.body("errors[0].type",     equalTo("User"))
+			.body("errors[0].property", equalTo("name"))
+			.body("errors[1].token",    equalTo("must_not_be_empty"))
+			.body("errors[1].type",     equalTo("User"))
+			.body("errors[1].property", equalTo("eMail"))
+			.when()
+			.post("/User");
+
+		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.USER);
+
+			tx.success();
+
+			fail("User without name and eMail address should not be created");
+
+		} catch (FrameworkException fex) {
+
+			final ErrorBuffer buffer = fex.getErrorBuffer();
+
+			assertEquals("Invalid error code", 422, fex.getStatus());
+			assertEquals("Invalid error message", "Cannot create a user who has neither a name nor an email address", fex.getMessage());
+
+			assertEquals("Invalid type in error token", "User", buffer.getErrorTokens().get(0).getType());
+			assertEquals("Invalid property in error token", "name", buffer.getErrorTokens().get(0).getProperty());
+			assertEquals("Invalid token in error token", "must_not_be_empty", buffer.getErrorTokens().get(0).getToken());
+
+			assertEquals("Invalid type in error token", "User", buffer.getErrorTokens().get(1).getType());
+			assertEquals("Invalid property in error token", "eMail", buffer.getErrorTokens().get(1).getProperty());
+			assertEquals("Invalid token in error token", "must_not_be_empty", buffer.getErrorTokens().get(1).getToken());
+
+		}
 	}
 }

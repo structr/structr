@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,26 +19,28 @@
 package org.structr.rest.resource;
 
 
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -92,7 +94,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 
 			try (final Tx tx = app.tx()) {
 
-				final Arguments arguments     = Arguments.fromMap(propertySet);
+				final Arguments arguments     = NamedArguments.fromMap(propertySet);
 				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
 
 				tx.success();

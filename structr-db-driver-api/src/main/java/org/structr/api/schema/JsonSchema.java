@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,6 +58,7 @@ public interface JsonSchema {
 	String KEY_HINT                     = "hint";
 	String KEY_CATEGORY                 = "category";
 	String KEY_READ_ONLY                = "readOnly";
+	String KEY_SERIALIZATION_DISABLED   = "serializationDisabled";
 	String KEY_VALIDATORS               = "validators";
 	String KEY_TRANSFORMATORS           = "transformators";
 	String KEY_DATE_PATTERN             = "datePattern";
@@ -100,6 +101,7 @@ public interface JsonSchema {
 	String KEY_COMPOUND                 = "compound";
 	String KEY_UNIQUE                   = "unique";
 	String KEY_INDEXED                  = "indexed";
+	String KEY_FULLTEXT                 = "fulltext";
 	String KEY_DEFAULT                  = "default";
 	String KEY_CASCADE                  = "cascade";
 	String KEY_CREATE                   = "create";
@@ -109,6 +111,8 @@ public interface JsonSchema {
 	String KEY_TARGET_NAME              = "targetName";
 	String KEY_READ_FUNCTION            = "readFunction";
 	String KEY_WRITE_FUNCTION           = "writeFunction";
+	String KEY_WRITE_FUNCTION_WRAP_JS   = "writeFunctionWrapJS";
+	String KEY_READ_FUNCTION_WRAP_JS    = "readFunctionWrapJS";
 	String KEY_TYPE_HINT                = "typeHint";
 	String KEY_ACL_RESOLUTION           = "aclResolution";
 	String KEY_ACL_READ_MASK            = "aclReadMask";

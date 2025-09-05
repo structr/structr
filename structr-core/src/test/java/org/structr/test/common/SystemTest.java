@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,12 +45,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.export.StructrSchema;
@@ -63,6 +58,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -655,7 +651,7 @@ public class SystemTest extends StructrTest {
 		// test setProperty with different user (should delete the previous relationship)
 		try (final Tx tx = tester2App.tx()) {
 
-			final NodeInterface item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1 = tester2App.nodeQuery(type).name("item1").getFirst();
 
 			assertNotNull("Item 1 should be visible to tester2", item1);
 
@@ -671,14 +667,14 @@ public class SystemTest extends StructrTest {
 		// check result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1              = app.nodeQuery(type).name("item1").getFirst();
 			final List<RelationshipInterface> rels = Iterables.toList(item1.getOutgoingRelationships());
 
 			for (final RelationshipInterface rel : rels) {
 				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
 			}
 
-			assertEquals("OneToOne.ensureCardinality is not wirking correctly", 1, rels.size());
+			assertEquals("OneToOne.ensureCardinality is not working correctly", 1, rels.size());
 
 			tx.success();
 
@@ -747,7 +743,7 @@ public class SystemTest extends StructrTest {
 		// test setProperty with different user (should delete the previous relationship)
 		try (final Tx tx = tester2App.tx()) {
 
-			final NodeInterface item1 = tester2App.nodeQuery(itemType).andName("item1").getFirst();
+			final NodeInterface item1 = tester2App.nodeQuery(itemType).name("item1").getFirst();
 
 			assertNotNull("Item 1 should be visible to tester2", item1);
 
@@ -763,7 +759,7 @@ public class SystemTest extends StructrTest {
 		// check result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface item1                  = app.nodeQuery(itemType).andName("item1").getFirst();
+			final NodeInterface item1                  = app.nodeQuery(itemType).name("item1").getFirst();
 			final List<RelationshipInterface> rels     = Iterables.toList(item1.getIncomingRelationships());
 			final List<RelationshipInterface> filtered = new LinkedList<>();
 
@@ -843,7 +839,7 @@ public class SystemTest extends StructrTest {
 		// test setProperty with different user (should delete the previous relationship)
 		try (final Tx tx = tester2App.tx()) {
 
-			final NodeInterface item1 = tester2App.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1 = tester2App.nodeQuery(type).name("item1").getFirst();
 
 			assertNotNull("Item 1 should be visible to tester2", item1);
 
@@ -859,7 +855,7 @@ public class SystemTest extends StructrTest {
 		// check result
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface item1              = app.nodeQuery(type).andName("item1").getFirst();
+			final NodeInterface item1              = app.nodeQuery(type).name("item1").getFirst();
 			final List<RelationshipInterface> rels = Iterables.toList(item1.getOutgoingRelationships());
 
 			for (final RelationshipInterface rel : rels) {
@@ -1059,7 +1055,7 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			app.nodeQuery(StructrTraits.GROUP).getAsList();
-			app.nodeQuery(StructrTraits.GROUP).andName("test").getAsList();
+			app.nodeQuery(StructrTraits.GROUP).name("test").getAsList();
 
 			tx.success();
 
@@ -1284,8 +1280,6 @@ public class SystemTest extends StructrTest {
 		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet", Settings.Servlets.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());
 		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.SchemaAutoMigration.getValue());
-		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.LogSchemaOutput.getValue());
-		assertEquals("Invalid configuration setting result", Integer.valueOf(112233), Settings.NodeCacheSize.getValue());
 
 		// config setting will not be found
 		assertNull("Invalid configuration setting result", Settings.getBooleanSetting("deployment.export.exportfileuuids"));
@@ -1309,8 +1303,6 @@ public class SystemTest extends StructrTest {
 		}
 
 		tmpConfig.deleteOnExit();
-
-		Settings.LogSchemaOutput.setValue(false);
 	}
 
 	@Test
@@ -1359,7 +1351,7 @@ public class SystemTest extends StructrTest {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+				final GraphObject node1 = app.nodeQuery(type).name("Test").getFirst();
 
 				node1.setProperty(key1, "key1.value after thread1");
 
@@ -1378,7 +1370,7 @@ public class SystemTest extends StructrTest {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+				final GraphObject node1 = app.nodeQuery(type).name("Test").getFirst();
 
 				node1.setProperty(key2, "key2.value after thread2");
 
@@ -1399,7 +1391,7 @@ public class SystemTest extends StructrTest {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final GraphObject node1 = app.nodeQuery(type).andName("Test").getFirst();
+			final GraphObject node1 = app.nodeQuery(type).name("Test").getFirst();
 
 			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key1.value after thread1", node1.getProperty(key1));
 			assertEquals("Invalid result for interleaving transactions, transaction isolation violated.", "key2.value after thread2", node1.getProperty(key2));
@@ -1448,16 +1440,16 @@ public class SystemTest extends StructrTest {
 
 			testGroup3.addMember(securityContext, user);
 
-			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 
 			// create grant
 			app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"),         true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"),  true)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY),            testGroup1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY),           true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY),          true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY),         true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), true)
 			);
 
 			tx.success();
@@ -1494,15 +1486,15 @@ public class SystemTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final NodeInterface testGroup1  = app.create(StructrTraits.GROUP, "Group1");
-			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst();
+			final NodeInterface projectNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst();
 
 			app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY),          projectNode),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),           testGroup1),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),           true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),          true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"),         true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowAccessControl"),  true)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY),            testGroup1),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY),           true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY),          true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY),         true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY), true)
 			);
 
 			tx.success();
@@ -1514,7 +1506,7 @@ public class SystemTest extends StructrTest {
 		// test - delete schema node
 		try (final Tx tx = app.tx()) {
 
-			app.delete(app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("Project").getFirst());
+			app.delete(app.nodeQuery(StructrTraits.SCHEMA_NODE).name("Project").getFirst());
 
 			tx.success();
 
@@ -1567,7 +1559,7 @@ public class SystemTest extends StructrTest {
 		// test: load all groups
 		try (final Tx tx = app.tx()) {
 
-			final Group root = app.nodeQuery(StructrTraits.GROUP).andName("root").getFirst().as(Group.class);
+			final Group root = app.nodeQuery(StructrTraits.GROUP).name("root").getFirst().as(Group.class);
 			int count        = 0;
 
 			for (final Principal p : root.getMembers()) {
@@ -1917,6 +1909,416 @@ public class SystemTest extends StructrTest {
 			tx.success();
 
 		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testOnSaveAfterModificationWithUserContextManyToMany() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(StructrTraits.USER, "tester1").as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, "tester2").as(Principal.class);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.ManyToMany, "projects", "tasks");
+
+			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
+
+		// create project and two tasks with one user
+		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+		try (final Tx tx = tester1App.tx()) {
+
+			final NodeInterface project = tester1App.create("Project", "Project #1");
+			final NodeInterface task1   = tester1App.create("Task", "Task #1");
+			final NodeInterface task2   = tester1App.create("Task", "Task #2");
+
+			// allow access to project but not to tasks for both users
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester1);
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// allow access to only one task so we can check what happens
+			task2.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// associate project with both tasks
+			project.setProperty(tasksKey, List.of(task1, task2));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// try to remove tasks with user that is not allowed to see task1
+		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+		try (final Tx tx = tester2App.tx()) {
+
+			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
+
+			// associate project with both tasks
+			project.setProperty(tasksKey, List.of());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check names of objects (should contain the name of the last accessor)
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> nodes = new LinkedList<>();
+
+			nodes.addAll(app.nodeQuery("Project").getAsList());
+			nodes.addAll(app.nodeQuery("Task").getAsList());
+
+			final NodeInterface project = nodes.get(0);
+			final NodeInterface task1   = nodes.get(1);
+			final NodeInterface task2   = nodes.get(2);
+
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", project.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Created by tester1", task1.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", task2.getName());
+
+			final List<NodeInterface> tasks = Iterables.toList(project.getProperty(tasksKey));
+
+			assertEquals("Exactly one task should be left", 1, tasks.size());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void testOnSaveAfterModificationWithUserContextOneToMany() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(StructrTraits.USER, "tester1").as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, "tester2").as(Principal.class);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToMany, "project", "tasks");
+
+			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
+
+		// create project and two tasks with one user
+		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+		try (final Tx tx = tester1App.tx()) {
+
+			final NodeInterface project = tester1App.create("Project", "Project #1");
+			final NodeInterface task1   = tester1App.create("Task", "Task #1");
+			final NodeInterface task2   = tester1App.create("Task", "Task #2");
+
+			// allow access to project but not to tasks for both users
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester1);
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// allow access to only one task so we can check what happens
+			task2.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// associate project with both tasks
+			project.setProperty(tasksKey, List.of(task1, task2));
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// try to remove tasks with user that is not allowed to see task1
+		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+		try (final Tx tx = tester2App.tx()) {
+
+			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
+
+			// associate project with both tasks
+			project.setProperty(tasksKey, List.of());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check names of objects (should contain the name of the last accessor)
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> nodes = new LinkedList<>();
+
+			nodes.addAll(app.nodeQuery("Project").getAsList());
+			nodes.addAll(app.nodeQuery("Task").getAsList());
+
+			final NodeInterface project = nodes.get(0);
+			final NodeInterface task1   = nodes.get(1);
+			final NodeInterface task2   = nodes.get(2);
+
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", project.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Created by tester1", task1.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", task2.getName());
+
+			final List<NodeInterface> tasks = Iterables.toList(project.getProperty(tasksKey));
+
+			assertEquals("Exactly one task should be left", 1, tasks.size());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void testOnSaveAfterModificationWithUserContextOneToOneWithAccessibleTask() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(StructrTraits.USER, "tester1").as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, "tester2").as(Principal.class);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToOne, "project", "task");
+
+			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final PropertyKey<NodeInterface> taskKey = Traits.of("Project").key("task");
+
+		// create project and two tasks with one user
+		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+		try (final Tx tx = tester1App.tx()) {
+
+			final NodeInterface project = tester1App.create("Project", "Project #1");
+			final NodeInterface task1   = tester1App.create("Task", "Task #1");
+
+			// allow access to project but not to tasks for both users
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester1);
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// allow access to only one task so we can check what happens
+			task1.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// associate project with both tasks
+			project.setProperty(taskKey, task1);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// try to remove tasks with user that is not allowed to see task1
+		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+		try (final Tx tx = tester2App.tx()) {
+
+			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
+
+			// associate project with both tasks
+			project.setProperty(taskKey, null);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check names of objects (should contain the name of the last accessor)
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> nodes = new LinkedList<>();
+
+			nodes.addAll(app.nodeQuery("Project").getAsList());
+			nodes.addAll(app.nodeQuery("Task").getAsList());
+
+			final NodeInterface project = nodes.get(0);
+			final NodeInterface task1   = nodes.get(1);
+
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", project.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Modified by tester2", task1.getName());
+
+			final NodeInterface task = project.getProperty(taskKey);
+
+			assertNull("Relationship should be deleted", task);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+	}
+
+	@Test
+	public void testOnSaveAfterModificationWithUserContextOneToOneWithInaccessibleTask() {
+
+		Principal tester1 = null;
+		Principal tester2 = null;
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			tester1 = app.create(StructrTraits.USER, "tester1").as(Principal.class);
+			tester2 = app.create(StructrTraits.USER, "tester2").as(Principal.class);
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToOne, "project", "task");
+
+			project.addMethod("onCreation", "{ $.this.name = 'Created by ' + $.me.name; }");
+			project.addMethod("onModification", "{ $.this.name = 'Modified by ' + $.me.name; }");
+			task.addMethod("onCreation", "{  $.this.name = 'Created by ' + $.me.name; }");
+			task.addMethod("onModification", "{  $.this.name = 'Modified by ' + $.me.name; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final PropertyKey<NodeInterface> taskKey = Traits.of("Project").key("task");
+
+		// create project and two tasks with one user
+		final App tester1App = StructrApp.getInstance(SecurityContext.getInstance(tester1, AccessMode.Backend));
+		try (final Tx tx = tester1App.tx()) {
+
+			final NodeInterface project = tester1App.create("Project", "Project #1");
+			final NodeInterface task1   = tester1App.create("Task", "Task #1");
+
+			// allow access to project but not to tasks for both users
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester1);
+			project.as(AccessControllable.class).grant(Set.of(Permission.read, Permission.write, Permission.delete, Permission.accessControl), tester2);
+
+			// associate project with both tasks
+			project.setProperty(taskKey, task1);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// try to remove tasks with user that is not allowed to see task1
+		final App tester2App = StructrApp.getInstance(SecurityContext.getInstance(tester2, AccessMode.Backend));
+		try (final Tx tx = tester2App.tx()) {
+
+			final NodeInterface project = tester2App.nodeQuery("Project").getFirst();
+
+			// associate project with both tasks
+			project.setProperty(taskKey, null);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		// check names of objects (should contain the name of the last accessor)
+		try (final Tx tx = app.tx()) {
+
+			final List<NodeInterface> nodes = new LinkedList<>();
+
+			nodes.addAll(app.nodeQuery("Project").getAsList());
+			nodes.addAll(app.nodeQuery("Task").getAsList());
+
+			final NodeInterface project = nodes.get(0);
+			final NodeInterface task1   = nodes.get(1);
+
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Created by tester1", project.getName());
+			assertEquals("onSave method was called with the wrong SecurityContext!", "Created by tester1", task1.getName());
+
+			final NodeInterface task = project.getProperty(taskKey);
+
+			assertNotNull("Relationship should not be deleted", task);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}

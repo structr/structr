@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -66,7 +66,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 				final App app                       = StructrApp.getInstance(ctx.getSecurityContext());
 				final String name                   = sources[0].toString();
 				final String locale                 = sources[1].toString();
-				final GraphObject template          = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).andName(name).and(localeKey, locale).getFirst();
+				final GraphObject template          = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).name(name).key(localeKey, locale).getFirst();
 				final GraphObject templateInstance  = (GraphObject)sources[2];
 
 				if (template != null) {

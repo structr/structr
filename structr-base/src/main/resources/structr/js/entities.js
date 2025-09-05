@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -74,7 +74,7 @@ let _Entities = {
 	},
 	deleteNode: (entity, recursive, callback) => {
 
-		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${_Helpers.escapeTags(entity?.name ?? '')}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`Delete ${entity.type} <strong>${_Helpers.escapeTags(entity?.name ?? '')}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?`).then(confirm => {
 
 			if (confirm === true) {
 
@@ -87,7 +87,7 @@ let _Entities = {
 	},
 	deleteEdge: (entity, recursive, callback) => {
 
-		_Dialogs.confirmation.showPromise(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`Delete Relationship (${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?`).then(confirm => {
 
 			if (confirm === true) {
 
@@ -100,14 +100,11 @@ let _Entities = {
 	repeaterConfig: (entity, el) => {
 
 		let queryTypes = [
+			{ title: 'Flow', propertyName: 'flow' },
 			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];
-
-		if (Structr.isModulePresent('flows')) {
-			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
-		}
 
 		let queryTypeButtonsContainer = el.querySelector('.query-type-buttons');
 
@@ -288,26 +285,16 @@ let _Entities = {
 			});
 		};
 
-		if (Structr.isModulePresent('flows')) {
+		flowSelector.insertAdjacentHTML('beforeend', '<option>--- Select Flow ---</option>');
 
-			flowSelector.insertAdjacentHTML('beforeend', '<option>--- Select Flow ---</option>');
+		Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, (flows) => {
 
-			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, (flows) => {
-
-				flowSelector.insertAdjacentHTML('beforeend', flows.map(flow => '<option value="' + flow.id + '">' + flow.effectiveName + '</option>').join());
-
-				initRepeaterInputs();
-
-				_Editors.resizeVisibleEditors();
-			});
-
-		} else {
-
-			flowSelector?.remove();
+			flowSelector.insertAdjacentHTML('beforeend', flows.map(flow => '<option value="' + flow.id + '">' + flow.effectiveName + '</option>').join());
 
 			initRepeaterInputs();
+
 			_Editors.resizeVisibleEditors();
-		}
+		});
 	},
 	editEmptyDiv: (entity) => {
 
@@ -478,7 +465,7 @@ let _Entities = {
 						dialogTitle = `Edit properties of ${entity?.type ?? ''} node ${entity?.name ?? entity.id}`;
 					}
 
-					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
+					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle);
 
 					if (showDeleteBtn) {
 
@@ -502,7 +489,7 @@ let _Entities = {
 					let mainTabs  = dialogText.querySelector('#tabs');
 					let contentEl = dialogText.querySelector('#tabs');
 
-					_Entities.basicTab.appendBasicTypeTab(entity, mainTabs, contentEl, typeInfo);
+					_Entities.generalTab.appendGeneralTypeTab(entity, mainTabs, contentEl, typeInfo);
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
@@ -512,7 +499,13 @@ let _Entities = {
 					}
 
 					activeView = activeViewOverride || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`) || activeView;
-					$(`#tab-${activeView}`).click();
+
+					let requestedTabLi = mainTabs.querySelector(`#tab-${activeView}`);
+					if (requestedTabLi) {
+						requestedTabLi.click();
+					} else {
+						mainTabs.querySelector('li').click();
+					}
 
 					Structr.resize();
 				});
@@ -529,7 +522,7 @@ let _Entities = {
 
 		let tabId      = `tab-${name}`;
 		let ul         = tabsEl.querySelector('ul');
-		let tabContent = _Helpers.createSingleDOMElementFromHTML(`<div class="propTabContent h-full overflow-y-auto" id="tabView-${name}" data-tab-id="${tabId}"></div>`);
+		let tabContent = _Helpers.createSingleDOMElementFromHTML(`<div class="propTabContent h-full overflow-y-auto mt-6" id="tabView-${name}" data-tab-id="${tabId}"></div>`);
 		let tab        = _Helpers.createSingleDOMElementFromHTML(`<li id="${tabId}">${label}</li>`);
 
 		contentEl.appendChild(tabContent);
@@ -592,7 +585,7 @@ let _Entities = {
 		for (let view of views) {
 
 			let tab     = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${view}">${texts[view]}</li>`);
-			let tabView = _Helpers.createSingleDOMElementFromHTML(`<div class="propTabContent overflow-y-auto" id="tabView-${view}"></div>`);
+			let tabView = _Helpers.createSingleDOMElementFromHTML(`<div class="propTabContent overflow-y-auto mt-6" id="tabView-${view}"></div>`);
 
 			ul.appendChild(tab);
 			contentEl.appendChild(tabView);
@@ -649,10 +642,11 @@ let _Entities = {
 	},
 	listProperties: (entity, view, tabView, typeInfo, callback) => {
 
-		_Entities.getSchemaProperties(entity.type, view, (properties) => {
+		_Entities.getSchemaProperties(entity.type, view, (schemaProperties) => {
 
-			let filteredProperties   = Object.keys(properties).filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
-			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
+			let serializableKeys     = Object.keys(schemaProperties).filter(key => schemaProperties[key].serializationDisabled !== true);
+			let filteredProperties   = serializableKeys.filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
+			let collectionProperties = serializableKeys.filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
 			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
 				headers: _Helpers.getHeadersForCustomView(filteredProperties)
@@ -671,24 +665,29 @@ let _Entities = {
 						});
 					});
 
-					let keys           = Object.keys(properties);
+					let keys           = Object.keys(schemaProperties);
 					let noCategoryKeys = [];
 					let groupedKeys    = {};
 
 					for (let key of keys) {
 
-						let category = typeInfo?.[key]?.category ?? 'System';
+						// completely hide attributes with the "serializationDisabled" flag
+						let serializationDisabled = typeInfo?.[key]?.serializationDisabled;
+						if (serializationDisabled !== true) {
 
-						if (category !== 'System') {
+							let category = typeInfo?.[key]?.category ?? 'System';
 
-							if (!groupedKeys[category]) {
-								groupedKeys[category] = [];
+							if (category !== 'System') {
+
+								if (!groupedKeys[category]) {
+									groupedKeys[category] = [];
+								}
+								groupedKeys[category].push(key);
+
+							} else {
+
+								noCategoryKeys.push(key);
 							}
-							groupedKeys[category].push(key);
-
-						} else {
-
-							noCategoryKeys.push(key);
 						}
 					}
 
@@ -721,7 +720,7 @@ let _Entities = {
 					}
 				}
 
-				callback?.(properties);
+				callback?.(schemaProperties);
 			});
 		});
 	},
@@ -2471,180 +2470,162 @@ let _Entities = {
 		`
 	},
 
-	basicTab: {
+	generalTab: {
 		dialogs: {
 			defaultDom: async (el, entity, typeInfo) => {
 
-				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+				let enrichedEntity = await _Entities.generalTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.defaultDOMOptions({ entity: enrichedEntity, typeInfo }));
+				el.html(_Entities.generalTab.templates.defaultDOMOptions({ entity: enrichedEntity, typeInfo }));
 
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+				_Entities.generalTab.populateInputFields(el, enrichedEntity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
+				_Entities.generalTab.activateShowHideConditionOptions(el, entity);
+				_Entities.generalTab.showRenderingOptions(el, entity);
 
-				_Entities.basicTab.showChildContentEditor(el, entity);
+				_Entities.generalTab.showChildContentEditor(el, entity);
 
-				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
+				_Entities.generalTab.showSharedComponentConfigurationEditor(el, entity);
 			},
 			a: async (el, entity, typeInfo) => {
 
-				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+				let enrichedEntity = await _Entities.generalTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.aOptions({ entity: enrichedEntity, typeInfo }));
+				el.html(_Entities.generalTab.templates.aOptions({ entity: enrichedEntity, typeInfo }));
 
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+				_Entities.generalTab.populateInputFields(el, enrichedEntity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
+				_Entities.generalTab.activateShowHideConditionOptions(el, entity);
+				_Entities.generalTab.showRenderingOptions(el, entity);
 
-				_Entities.basicTab.showChildContentEditor(el, entity);
+				_Entities.generalTab.showChildContentEditor(el, entity);
 
-				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
+				_Entities.generalTab.showSharedComponentConfigurationEditor(el, entity);
 			},
 			button: async (el, entity, typeInfo) => {
 
-				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+				let enrichedEntity = await _Entities.generalTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.buttonOptions({ entity: enrichedEntity, typeInfo }));
+				el.html(_Entities.generalTab.templates.buttonOptions({ entity: enrichedEntity, typeInfo }));
 
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+				_Entities.generalTab.populateInputFields(el, enrichedEntity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
+				_Entities.generalTab.activateShowHideConditionOptions(el, entity);
+				_Entities.generalTab.showRenderingOptions(el, entity);
 
-				_Entities.basicTab.showChildContentEditor(el, entity);
+				_Entities.generalTab.showChildContentEditor(el, entity);
 
-				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
+				_Entities.generalTab.showSharedComponentConfigurationEditor(el, entity);
 			},
 			content: async (el, entity, typeInfo) => {
 
-				el.html(_Entities.basicTab.templates.contentOptions({ entity: entity, typeInfo }));
+				el.html(_Entities.generalTab.templates.contentOptions({ entity: entity, typeInfo }));
 
-				_Entities.basicTab.populateInputFields(el, entity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+				_Entities.generalTab.populateInputFields(el, entity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
+				_Entities.generalTab.activateShowHideConditionOptions(el, entity);
 			},
 			div: async (el, entity, typeInfo) => {
 
-				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+				let enrichedEntity = await _Entities.generalTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.divOptions({ entity: enrichedEntity, typeInfo }));
+				el.html(_Entities.generalTab.templates.divOptions({ entity: enrichedEntity, typeInfo }));
 
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+				_Entities.generalTab.populateInputFields(el, enrichedEntity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
+				_Entities.generalTab.activateShowHideConditionOptions(el, entity);
+				_Entities.generalTab.showRenderingOptions(el, entity);
 
-				_Entities.basicTab.showChildContentEditor(el, entity);
+				_Entities.generalTab.showChildContentEditor(el, entity);
 
-				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
+				_Entities.generalTab.showSharedComponentConfigurationEditor(el, entity);
 			},
 			option: async (el, entity, typeInfo) => {
 
-				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+				let enrichedEntity = await _Entities.generalTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.optionOptions({ entity: enrichedEntity, typeInfo }));
+				el.html(_Entities.generalTab.templates.optionOptions({ entity: enrichedEntity, typeInfo }));
 
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+				_Entities.generalTab.populateInputFields(el, enrichedEntity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
+				_Entities.generalTab.activateShowHideConditionOptions(el, entity);
+				_Entities.generalTab.showRenderingOptions(el, entity);
 
-				_Entities.basicTab.showChildContentEditor(el, entity);
+				_Entities.generalTab.showChildContentEditor(el, entity);
 
-				_Entities.basicTab.showSharedComponentConfigurationEditor(el, entity);
+				_Entities.generalTab.showSharedComponentConfigurationEditor(el, entity);
 			},
 			file: async (el, entity) => {
 
-				el.html(_Entities.basicTab.templates.fileOptions({ file: entity }));
+				el.html(_Entities.generalTab.templates.fileOptions({ file: entity }));
 
-				if (Structr.isModulePresent('text-search')) {
+				_Entities.generalTab.populateInputFields(el, entity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
-					$('#content-extraction').removeClass('hidden');
-
-					$('button#extract-structure-button').on('click', async () => {
-
-						_Dialogs.custom.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
-
-						let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/extractStructure`, {
-							method: 'POST'
-						});
-
-						if (response.ok) {
-							_Dialogs.custom.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
-						}
-					});
-				}
-
-				_Entities.basicTab.populateInputFields(el, entity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
-
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 			},
 			folder: async (el, entity) => {
 
-				el.html(_Entities.basicTab.templates.folderOptions({ file: entity }));
+				el.html(_Entities.generalTab.templates.folderOptions({ file: entity }));
 
-				_Entities.basicTab.populateInputFields(el, entity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+				_Entities.generalTab.populateInputFields(el, entity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 			},
 			input: async (el, entity) => {
 
-				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+				let enrichedEntity = await _Entities.generalTab.addHtmlPropertiesToEntity(entity);
 
-				el.html(_Entities.basicTab.templates.inputOptions({ entity: enrichedEntity }));
+				el.html(_Entities.generalTab.templates.inputOptions({ entity: enrichedEntity }));
 
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+				_Entities.generalTab.populateInputFields(el, enrichedEntity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.activateShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
+				_Entities.generalTab.activateShowHideConditionOptions(el, entity);
+				_Entities.generalTab.showRenderingOptions(el, entity);
 			},
 			ldapGroup: async (el, entity) => {
 
-				el.html(_Entities.basicTab.templates.ldapGroup({ group: entity }));
+				el.html(_Entities.generalTab.templates.ldapGroup({ group: entity }));
 
 				let dnInput     = $('input#ldap-group-dn');
 				let pathInput   = $('input#ldap-group-path');
 				let filterInput = $('input#ldap-group-filter');
 				let scopeInput  = $('input#ldap-group-scope');
 
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
 				// dialog logic here..
-				$('.clear-ldap-group-dn', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'distinguishedName', dnInput); });
-				$('.clear-ldap-group-path', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'path', pathInput); });
-				$('.clear-ldap-group-filter', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'filter', filterInput); });
-				$('.clear-ldap-group-scope', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'scope', scopeInput); });
+				$('.clear-ldap-group-dn', el).on('click', () => { _Entities.generalTab.setNull(entity.id, 'distinguishedName', dnInput); });
+				$('.clear-ldap-group-path', el).on('click', () => { _Entities.generalTab.setNull(entity.id, 'path', pathInput); });
+				$('.clear-ldap-group-filter', el).on('click', () => { _Entities.generalTab.setNull(entity.id, 'filter', filterInput); });
+				$('.clear-ldap-group-scope', el).on('click', () => { _Entities.generalTab.setNull(entity.id, 'scope', scopeInput); });
 
 				$('button#ldap-sync-button').on('click', async () => {
 
@@ -2659,55 +2640,55 @@ let _Entities = {
 					}
 				});
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 			},
 			user: async (el, entity) => {
 
-				el.html(_Entities.basicTab.templates.userOptions({ entity: entity, user: entity }));
+				el.html(_Entities.generalTab.templates.userOptions({ entity: entity, user: entity }));
 
-				_Entities.basicTab.populateInputFields(el, entity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+				_Entities.generalTab.populateInputFields(el, entity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
 				$('button#set-password-button').on('click', (e) => {
 					let input = $('input#password-input');
 					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
 				});
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				_Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.generalTab.showCustomProperties(el, entity);
 			},
 			page: async (el, entity) => {
 
-				el.html(_Entities.basicTab.templates.pageOptions({ entity: entity, page: entity }));
+				el.html(_Entities.generalTab.templates.pageOptions({ entity: entity, page: entity }));
 
-				_Entities.basicTab.populateInputFields(el, entity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+				_Entities.generalTab.populateInputFields(el, entity);
+				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
 				_Pages.previews.configurePreview(entity, el[0]);
 
-				_Entities.basicTab.focusInput(el);
+				_Entities.generalTab.focusInput(el);
 
-				await _Entities.basicTab.showCustomProperties(el, entity);
+				await _Entities.generalTab.showCustomProperties(el, entity);
 			},
 		},
-		getBasicTabConfig: (entity) => {
+		getGeneralTabConfig: (entity) => {
 
 			let registeredDialogs = {
-				'DEFAULT_DOM_NODE': { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.defaultDom },
-				'A':                { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.a },
-				'Button':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.button },
-				'Content':          { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.content },
-				'Div':              { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.div },
-				'File':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
-				'Image':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
-				'Folder':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.folder },
-				'Input':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.input },
-				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.basicTab.dialogs.ldapGroup, condition: () => { return Structr.isModulePresent('ldap-client'); } },
-				'Option':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.option },
-				'Page':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.page },
-				'Template':         { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.content },
-				'User':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.user }
+				'DEFAULT_DOM_NODE': { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.defaultDom },
+				'A':                { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.a },
+				'Button':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.button },
+				'Content':          { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.content },
+				'Div':              { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.div },
+				'File':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.file },
+				'Image':            { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.file },
+				'Folder':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.folder },
+				'Input':            { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.input },
+				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.generalTab.dialogs.ldapGroup },
+				'Option':           { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.option },
+				'Page':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.page },
+				'Template':         { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.content },
+				'User':             { id: 'general', title: 'General',     appendDialogForEntityToContainer: _Entities.generalTab.dialogs.user }
 			};
 
 			let dialogConfig = registeredDialogs[entity.type];
@@ -2720,11 +2701,19 @@ let _Entities = {
 				dialogConfig = registeredDialogs['User'];
 			}
 
+			if (!dialogConfig && entity.isFile) {
+				dialogConfig = registeredDialogs['File'];
+			}
+
+			if (!dialogConfig && entity.isFolder) {
+				dialogConfig = registeredDialogs['Folder'];
+			}
+
 			return dialogConfig;
 		},
-		appendBasicTypeTab: (entity, mainTabs, contentEl, typeInfo) => {
+		appendGeneralTypeTab: (entity, mainTabs, contentEl, typeInfo) => {
 
-			let dialogConfig = _Entities.basicTab.getBasicTabConfig(entity);
+			let dialogConfig = _Entities.generalTab.getGeneralTabConfig(entity);
 
 			if (dialogConfig) {
 
@@ -2795,8 +2784,8 @@ let _Entities = {
 					let modelObj = StructrModel.obj(child.id) ?? child;
 
 					let populateDialog = (child) => {
-						_Entities.basicTab.populateInputFields($(textContentContainer), child);
-						_Entities.basicTab.registerDeferredSimpleInputChangeHandlers($(textContentContainer), child, true);
+						_Entities.generalTab.populateInputFields($(textContentContainer), child);
+						_Entities.generalTab.registerDeferredSimpleInputChangeHandlers($(textContentContainer), child, true);
 					};
 
 					if (!modelObj.content) {
@@ -2868,7 +2857,7 @@ let _Entities = {
 		},
 		registerDeferredSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull) => {
 
-			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
+			_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
 		},
 		registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
 
@@ -2882,7 +2871,7 @@ let _Entities = {
 
 						let key      = inputEl.name;
 						let oldVal   = entity[key];
-						let newVal   = _Entities.basicTab.getValueFromFormElement(inputEl);
+						let newVal   = _Entities.generalTab.getValueFromFormElement(inputEl);
 						let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
 
 						if (isChange) {
@@ -2976,30 +2965,30 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
-						${_Entities.basicTab.templates.htmlClassTile(config)}
+						${_Entities.generalTab.templates.htmlClassTile(config)}
 
-						${_Entities.basicTab.templates.htmlIdTile(config)}
+						${_Entities.generalTab.templates.htmlIdTile(config)}
 
 						<div class="col-span-2">
 							<label class="block mb-2" for="href-input">HREF attribute</label>
 							<input type="text" id="href-input" name="_html_href">
 						</div>
 
-						${_Entities.basicTab.templates.htmlStyleTile(config)}
+						${_Entities.generalTab.templates.htmlStyleTile(config)}
 
-						${_Entities.basicTab.templates.repeaterPartial(config)}
+						${_Entities.generalTab.templates.repeaterPartial(config)}
 
-						${_Entities.basicTab.templates.visibilityPartial(config)}
+						${_Entities.generalTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.textContentPartial()}
+						${_Entities.generalTab.templates.textContentPartial()}
 
 					</div>
 
-					${_Entities.basicTab.templates.renderingOptions(config)}
+					${_Entities.generalTab.templates.renderingOptions(config)}
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 				</div>
 			`,
 			buttonOptions: config => `
@@ -3007,28 +2996,28 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
-						${_Entities.basicTab.templates.htmlClassTile(config)}
+						${_Entities.generalTab.templates.htmlClassTile(config)}
 
-						${_Entities.basicTab.templates.htmlIdTile(config)}
+						${_Entities.generalTab.templates.htmlIdTile(config)}
 
-						${_Entities.basicTab.templates.htmlTitleTile(config)}
+						${_Entities.generalTab.templates.htmlTitleTile(config)}
 
-						${_Entities.basicTab.templates.htmlTypeTile(config)}
+						${_Entities.generalTab.templates.htmlTypeTile(config)}
 
-						${_Entities.basicTab.templates.htmlStyleTile(config)}
+						${_Entities.generalTab.templates.htmlStyleTile(config)}
 
-						${_Entities.basicTab.templates.repeaterPartial(config)}
+						${_Entities.generalTab.templates.repeaterPartial(config)}
 
-						${_Entities.basicTab.templates.visibilityPartial(config)}
+						${_Entities.generalTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.textContentPartial()}
+						${_Entities.generalTab.templates.textContentPartial()}
 
-						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
+						${_Entities.generalTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 				</div>
 			`,
 			contentOptions: config => `
@@ -3036,15 +3025,15 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
-						${_Entities.basicTab.templates.repeaterPartial(config)}
+						${_Entities.generalTab.templates.repeaterPartial(config)}
 
-						${_Entities.basicTab.templates.visibilityPartial(config)}
+						${_Entities.generalTab.templates.visibilityPartial(config)}
 
 					</div>
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 				</div>
 			`,
 			textContentPartial: config => `
@@ -3070,26 +3059,26 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
-						${_Entities.basicTab.templates.htmlClassTile(config)}
+						${_Entities.generalTab.templates.htmlClassTile(config)}
 
-						${_Entities.basicTab.templates.htmlIdTile(config)}
+						${_Entities.generalTab.templates.htmlIdTile(config)}
 
-						${_Entities.basicTab.templates.htmlStyleTile(config)}
+						${_Entities.generalTab.templates.htmlStyleTile(config)}
 
-						${_Entities.basicTab.templates.repeaterPartial(config)}
+						${_Entities.generalTab.templates.repeaterPartial(config)}
 
-						${_Entities.basicTab.templates.visibilityPartial(config)}
+						${_Entities.generalTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.textContentPartial()}
+						${_Entities.generalTab.templates.textContentPartial()}
 
-						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
+						${_Entities.generalTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
-					${_Entities.basicTab.templates.renderingOptions(config)}
+					${_Entities.generalTab.templates.renderingOptions(config)}
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 				</div>
 			`,
 			divOptions: config => `
@@ -3097,26 +3086,26 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
-						${_Entities.basicTab.templates.htmlClassTile(config)}
+						${_Entities.generalTab.templates.htmlClassTile(config)}
 
-						${_Entities.basicTab.templates.htmlIdTile(config)}
+						${_Entities.generalTab.templates.htmlIdTile(config)}
 
-						${_Entities.basicTab.templates.htmlStyleTile(config)}
+						${_Entities.generalTab.templates.htmlStyleTile(config)}
 
-						${_Entities.basicTab.templates.repeaterPartial(config)}
+						${_Entities.generalTab.templates.repeaterPartial(config)}
 
-						${_Entities.basicTab.templates.visibilityPartial(config)}
+						${_Entities.generalTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.textContentPartial()}
+						${_Entities.generalTab.templates.textContentPartial()}
 
-						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
+						${_Entities.generalTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
-					${_Entities.basicTab.templates.renderingOptions(config)}
+					${_Entities.generalTab.templates.renderingOptions(config)}
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 
 				</div>
 			`,
@@ -3131,7 +3120,7 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(config)}
+						${_Entities.generalTab.templates.nameTile(config)}
 
 						<div>
 							<label class="block mb-2" for="content-type-input">Content Type</label>
@@ -3157,20 +3146,7 @@ let _Entities = {
 								<label for="dontCache">Caching disabled</label>
 							</div>
 
-							${_Entities.basicTab.templates.includeInFrontendExport(config)}
-
-							<div class="mb-2 flex items-center">
-								<input type="checkbox" name="useAsJavascriptLibrary" id="useAsJavascriptLibrary">
-								<label for="useAsJavascriptLibrary" data-comment-config='{"insertAfter":true}' data-comment="If checked this file can be included via <code>$.includeJs(fileName)</code> in any other server-side JavaScript context.<br><br>File must have content-type <code>text/javascript</code> or <code>application/javascript</code>">Use As Javascript Library</label>
-							</div>
-						</div>
-					</div>
-
-					<div id="content-extraction" class="hidden">
-						<h3>Content Extraction</h3>
-						<div>
-							<p>Extract text content from this document or image and store it in a StructuredDocument node with StructuredTextNode children.</p>
-							<button type="button" class="action" id="extract-structure-button">Extract document content</button>
+							${_Entities.generalTab.templates.includeInFrontendExport(config)}
 						</div>
 					</div>
 				</div>
@@ -3180,13 +3156,13 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(config)}
+						${_Entities.generalTab.templates.nameTile(config)}
 
 						<div>
 
 							<label class="block mb-2">Options</label>
 
-							${_Entities.basicTab.templates.includeInFrontendExport(config)}
+							${_Entities.generalTab.templates.includeInFrontendExport(config)}
 
 						</div>
 					</div>
@@ -3197,28 +3173,28 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
-						${_Entities.basicTab.templates.htmlClassTile(config)}
+						${_Entities.generalTab.templates.htmlClassTile(config)}
 
-						${_Entities.basicTab.templates.htmlIdTile(config)}
+						${_Entities.generalTab.templates.htmlIdTile(config)}
 
-						${_Entities.basicTab.templates.htmlTypeTile(config)}
+						${_Entities.generalTab.templates.htmlTypeTile(config)}
 
 						<div>
 							<label class="block mb-2" for="placeholder-input">Placeholder</label>
 							<input type="text" id="placeholder-input" name="_html_placeholder">
 						</div>
 
-						${_Entities.basicTab.templates.htmlStyleTile(config)}
+						${_Entities.generalTab.templates.htmlStyleTile(config)}
 
-						${_Entities.basicTab.templates.htmlTitleTile(config)}
+						${_Entities.generalTab.templates.htmlTitleTile(config)}
 
-						${_Entities.basicTab.templates.visibilityPartial(config)}
+						${_Entities.generalTab.templates.visibilityPartial(config)}
 
 					</div>
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 				</div>
 			`,
 			ldapGroup: config => `
@@ -3261,15 +3237,15 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+						${_Entities.generalTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
-						${_Entities.basicTab.templates.htmlClassTile(config)}
+						${_Entities.generalTab.templates.htmlClassTile(config)}
 
-						${_Entities.basicTab.templates.htmlIdTile(config)}
+						${_Entities.generalTab.templates.htmlIdTile(config)}
 
-						${_Entities.basicTab.templates.htmlStyleTile(config)}
+						${_Entities.generalTab.templates.htmlStyleTile(config)}
 
-						${_Entities.basicTab.templates.repeaterPartial(config)}
+						${_Entities.generalTab.templates.repeaterPartial(config)}
 
 						<div>
 							<label class="block mb-2" for="selected-input">Selected</label>
@@ -3288,16 +3264,16 @@ let _Entities = {
 
 						<div><!-- occupy space in grid UI --></div>
 
-						${_Entities.basicTab.templates.visibilityPartial(config)}
+						${_Entities.generalTab.templates.visibilityPartial(config)}
 
-						${_Entities.basicTab.templates.textContentPartial()}
+						${_Entities.generalTab.templates.textContentPartial()}
 
-						${_Entities.basicTab.templates.sharedComponentConfigurationPartial(config)}
+						${_Entities.generalTab.templates.sharedComponentConfigurationPartial(config)}
 					</div>
 
-					${_Entities.basicTab.templates.renderingOptions(config)}
+					${_Entities.generalTab.templates.renderingOptions(config)}
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 
 				</div>
 			`,
@@ -3306,7 +3282,7 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(config)}
+						${_Entities.generalTab.templates.nameTile(config)}
 
 						<div>
 							<label class="block mb-2" for="content-type-input">Content Type</label>
@@ -3366,14 +3342,14 @@ let _Entities = {
 
 						<div>
 							<label class="block mb-2" for="_request-parameters" data-comment="Request parameters to append to preview URL">Preview Request Parameters</label>
-							<div class="flex items-baseline">
+							<div class="flex items-center">
 								<code>?</code>
 								<input id="_request-parameters" type="text" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
 							</div>
 						</div>
 					</div>
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 
 				</div>
 			`,
@@ -3417,7 +3393,7 @@ let _Entities = {
 
 					<div class="grid grid-cols-2 gap-8">
 
-						${_Entities.basicTab.templates.nameTile(config)}
+						${_Entities.generalTab.templates.nameTile(config)}
 
 						<div>
 							<label class="block mb-2" for="e-mail-input">eMail</label>
@@ -3461,7 +3437,7 @@ let _Entities = {
 						</div>
 					</div>
 
-					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+					${_Entities.generalTab.templates.customPropertiesPartial(config)}
 
 				</div>
 			`,
@@ -3482,7 +3458,7 @@ let _Entities = {
 									<h3>Example show conditions</h3>
 								</div>
 
-								${_Entities.exampleShowHideConditions.map(c => _Entities.basicTab.templates.showConditionEntry(c)).join('')}
+								${_Entities.exampleShowHideConditions.map(c => _Entities.generalTab.templates.showConditionEntry(c)).join('')}
 							</div>
 						</div>
 					</div>
@@ -3505,7 +3481,7 @@ let _Entities = {
 									<h3>Example hide conditions</h3>
 								</div>
 
-								${_Entities.exampleShowHideConditions.map(c => _Entities.basicTab.templates.showConditionEntry(c)).join('')}
+								${_Entities.exampleShowHideConditions.map(c => _Entities.generalTab.templates.showConditionEntry(c)).join('')}
 							</div>
 						</div>
 					</div>

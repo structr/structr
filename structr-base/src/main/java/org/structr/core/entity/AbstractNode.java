@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
@@ -337,7 +338,7 @@ public final class AbstractNode extends AbstractGraphObject<Node> implements Nod
 
 					final ContextStore contextStore = actionContext.getContextStore();
 					final Map<String, Object> temp  = contextStore.getTemporaryParameters();
-					final Arguments arguments       = Arguments.fromMap(temp);
+					final Arguments arguments       = NamedArguments.fromMap(temp);
 
 					return method.execute(actionContext.getSecurityContext(), this, arguments, hints);
 				}

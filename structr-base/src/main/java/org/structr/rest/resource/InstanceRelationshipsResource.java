@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,7 +51,7 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 
 		super(
 			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern, true),
-			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), false),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts(), true, "_id"),
 			RESTParameter.forPattern("rel",  "in|out", true)
 		);
 	}

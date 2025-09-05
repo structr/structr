@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class OAuthException extends FrameworkException {
 
-	private boolean isSilent;
+	private final boolean isSilent;
 
 	public OAuthException(final String message, final boolean isSilent) {
 

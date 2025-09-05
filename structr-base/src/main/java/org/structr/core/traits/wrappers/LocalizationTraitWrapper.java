@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,11 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Localization;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 public class LocalizationTraitWrapper extends AbstractNodeTraitWrapper implements Localization {
 
@@ -48,5 +48,20 @@ public class LocalizationTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public boolean isImported() {
 		return wrappedObject.getProperty(traits.key(LocalizationTraitDefinition.IMPORTED_PROPERTY));
+	}
+
+	@Override
+	public void setLocalizedName(final String localizedName) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY), localizedName);
+	}
+
+	@Override
+	public void setLocale(final String locale) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY), locale);
+	}
+
+	@Override
+	public void setDomain(final String domain) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY), domain);
 	}
 }

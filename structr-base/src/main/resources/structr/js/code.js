@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,8 +26,6 @@ let _Code = {
 	codeTree: undefined,
 	codeContents: undefined,
 	lastClickedPath: '',
-	layouter: null,
-	seed: 42,
 	availableTags: [],
 	tagBlacklist: ['core', 'ui', 'html'],       // don't show internal tags (core, ui, html)
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + location.port,
@@ -41,8 +39,6 @@ let _Code = {
 	defaultPage: 1,
 
 	init: () => {
-
-		Structr.adaptUiToAvailableFeatures();
 	},
 	beforeunloadHandler: () => {
 		if (_Code.persistence.isDirty()) {
@@ -140,7 +136,6 @@ let _Code = {
 			Structr.mainMenu.unblock(100);
 
 			Structr.resize();
-			Structr.adaptUiToAvailableFeatures();
 		});
 	},
 	tree: {
@@ -238,19 +233,6 @@ let _Code = {
 							// 		path:    '/root/builtin'
 							// 	},
 							// },
-							{
-								id:       '/root/workingsets',
-								text:     'Working Sets',
-								children: true,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': 'workingsets' },
-								data: {
-									svgIcon: _Icons.getSvgIcon(_Icons.iconFavoritesFolder, 16, 24),
-									key: 'workingsets',
-									content: 'workingsets',
-									path: '/root/workingsets'
-								},
-							}
 						],
 					}
 				];
@@ -290,18 +272,6 @@ let _Code = {
 					case 'openapi':
 						_Code.tree.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
 						break;
-
-					case 'workingsets':
-						_Code.tree.loadWorkingSets(data);
-						break;
-
-					case 'workingset':
-						_Code.tree.loadWorkingSet(data);
-						break;
-
-					// case 'loadmultiple':
-					// 	_Code.loadMultiple(data);
-					// 	break;
 
 					case 'remoteproperties':
 						_Code.tree.loadRemoteProperties(data);
@@ -381,34 +351,16 @@ let _Code = {
 							break;
 						}
 
-						case 'SchemaGroup': {
-
-							list.push({
-								id:       path + '/' + entity.id,
-								text:     entity.name,
-								children: entity.children.length > 0,
-								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': entity.id },
-								data: {
-									svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? _Icons.iconRecentlyUsed : _Icons.iconFolderClosed), 16, 24),
-									key:     'workingset',
-									id:      entity.id,
-									content: 'workingset',
-									path:    path + '/' + entity.id
-								},
-							});
-
-							break;
-						}
-
 						case 'SchemaNode': {
+
+							let doHighlight = false;  //entity?.schemaMethods?.length > 0;
 
 							list.push({
 								id:       path + '/' + entity.id,
 								text:     entity.name,
 								children: _Code.tree.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
 								icon:     _Icons.nonExistentEmptyIcon,
-								li_attr:  { 'data-id': entity.id },
+								li_attr:  { 'data-id': entity.id, class: doHighlight ? 'highlight-name' : '' },
 								data: {
 									svgIcon: icon,
 									key:     entity.type,
@@ -732,14 +684,6 @@ let _Code = {
 						_Code.mainArea.displayBuiltInTypesContent(data.type);
 						break;
 
-					case 'workingsets':
-						_Code.mainArea.displayWorkingSetsContent();
-						break;
-
-					case 'workingset':
-						_Code.mainArea.displayWorkingSetContent(data);
-						break;
-
 					case 'properties':
 						_Code.mainArea.displayPropertiesContent(data, data.updateLocationStack);
 						break;
@@ -769,21 +713,6 @@ let _Code = {
 						break;
 				}
 			}
-		},
-		// loadMultiple: async (data) => {
-		// 	// execute a list of queries and join the results
-		// 	let result = [];
-		// 	for (let query of data.queries) {
-		// 		let r = await Command.queryPromise(query.type, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', query.query, true, 'ui');
-		// 		result = result.concat(r);
-		// 	}
-		// 	_Code.tree.displayFunction(result, data);
-		// },
-		loadWorkingSets: (data) => {
-			_WorkingSets.getWorkingSets(result => _Code.tree.displayFunction(result, data, true));
-		},
-		loadWorkingSet: (data) => {
-			_WorkingSets.getWorkingSetContents(data.id, result => _Code.tree.displayFunction(result, data));
 		},
 		loadRemoteProperties: (data) => {
 
@@ -941,7 +870,7 @@ let _Code = {
 
 			_Code.codeContents.append(_Code.templates.globals());
 
-			Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
+			_Schema.methods.fetchUserDefinedMethods((methods) => {
 
 				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), null, methods, () => {
 					_Code.tree.refreshNode(data.path);
@@ -1010,7 +939,7 @@ let _Code = {
 				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 				_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
-				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'basic');
+				let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'general');
 				let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView);
 
 				// remove bulk edit save/discard buttons
@@ -1138,7 +1067,7 @@ let _Code = {
 
 			_Code.codeContents.append(_Code.templates.methods({ data: data }));
 
-			Command.get(data.id, null, (entity) => {
+			fetch(Structr.rootUrl + data.id + '/schema').then(res => res.json()).then(r => r.result).then((entity) => {
 
 				_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), entity, entity.schemaMethods, () => {
 					_Code.tree.refreshNode(data.path);
@@ -1147,7 +1076,7 @@ let _Code = {
 				_Code.persistence.runCurrentEntitySaveAction = () => {
 					$('.save-all', _Code.codeContents).click();
 				};
-			}, 'schema');
+			});
 		},
 		displayInheritedPropertiesContent: (data, updateLocationStack) => {
 
@@ -1222,9 +1151,20 @@ let _Code = {
 					activateTab(tabLink.dataset.name);
 				})
 			}
-			activateTab(lastOpenTab || 'source');
+			if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+				activateTab(lastOpenTab || 'source');
+			} else {
+				activateTab('source');
+			}
 
 			_Helpers.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
+
+			let updateWrapFlagVisibility = (key, text) => {
+
+				let isJs = (_Editors.getMonacoEditorModeForContent(text, property) === 'javascript');
+				let el = document.querySelector(`[data-property="${key}"]`);
+				el?.parentNode.classList.toggle('hidden', !isJs);
+			};
 
 			let functionPropertyMonacoConfig = {
 				language: 'auto',
@@ -1232,6 +1172,9 @@ let _Code = {
 				autocomplete: true,
 				changeFn: (editor, entity) => {
 					_Code.persistence.updateDirtyFlag(entity);
+
+					let key = `${editor.getModel().uri.structr_property}WrapJS`;
+					updateWrapFlagVisibility(key, editor.getValue());
 				},
 				isAutoscriptEnv: true
 			};
@@ -1253,6 +1196,9 @@ let _Code = {
 			_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
 
 			_Code.mainArea.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
+
+			updateWrapFlagVisibility('readFunctionWrapJS', property.readFunction);
+			updateWrapFlagVisibility('writeFunctionWrapJS', property.writeFunction);
 		},
 		displayCypherPropertyDetails: (property, data) => {
 
@@ -1294,10 +1240,11 @@ let _Code = {
 				_Code.persistence.saveEntityAction(property);
 			};
 
-			let buttons     = $('#property-buttons');
-			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+			let propertyUIContainer = $('#property-buttons');
+			let showDBName          = UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties);
+			let dbNameClass         = ((showDBName === true) ? '' : 'hidden');
 
-			buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
+			propertyUIContainer.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
 			_Code.mainArea.helpers.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save property', _Code.persistence.runCurrentEntitySaveAction);
 
@@ -1316,28 +1263,32 @@ let _Code = {
 
 				_Code.persistence.updateDirtyFlag(property);
 
-				if (property.propertyType === 'Function') {
+				let propertyInfoUI = Object.assign({ propertyType: property.propertyType }, _Code.persistence.collectPropertyData(property));
+				let container      = propertyUIContainer[0].querySelector('#property-indexed').closest('div');
 
-					let propertyInfoUI = _Code.persistence.collectPropertyData(property);
-					let container      = buttons[0].querySelector('#property-indexed').closest('div');
-
-					_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
-				}
+				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 			};
 
 			if (property.propertyType !== 'Function') {
-				_Helpers.fastRemoveElement($('#property-type-hint-input').parent()[0]);
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-type-hint-input').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-cached').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-readfunction-wrap').closest('[data-is-property-attribute-container]'));
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-writefunction-wrap').closest('[data-is-property-attribute-container]'));
 			} else {
 				$('#property-type-hint-input').val(property.typeHint || 'null');
+			}
+
+			if (property.propertyType !== 'String' && property.propertyType !== 'StringArray') {
+				_Helpers.fastRemoveElement(propertyUIContainer[0].querySelector('#property-fulltext-indexed').closest('[data-is-property-attribute-container]'));
 			}
 
 			if (property.propertyType === 'Cypher') {
 				_Helpers.fastRemoveElement($('#property-format-input').parent()[0]);
 			}
 
-			$('select', buttons).on('change', changeHandler);
-			$('input[type=checkbox]', buttons).on('change', changeHandler);
-			$('input[type=text]', buttons).on('keyup', changeHandler);
+			$('select', propertyUIContainer).on('change', changeHandler);
+			$('input[type=checkbox]', propertyUIContainer).on('change', changeHandler);
+			$('input[type=text]', propertyUIContainer).on('keyup', changeHandler);
 
 			if (property.schemaNode.isBuiltinType) {
 
@@ -1351,6 +1302,8 @@ let _Code = {
 			}
 
 			changeHandler();
+
+			_Helpers.activateCommentsInElement(propertyUIContainer[0]);
 
 			if (typeof callback === 'function') {
 				callback();
@@ -1487,8 +1440,7 @@ let _Code = {
 		},
 		displaySchemaMethodContent: (data) => {
 
-			// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-			Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,returnRawResult,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI,index,exampleValue,parameterType', (result) => {
+			fetch(Structr.rootUrl + data.id + '/schema').then(res => res.json()).then(r => r.result).then((result) => {
 
 				let isCallableViaHTTP   = (result.isPrivate !== true);
 				let isUserDefinedMethod = (!result.schemaNode && !result.isPartOfBuiltInSchema);
@@ -1564,6 +1516,9 @@ let _Code = {
 					isAutoscriptEnv: true,
 					changeFn: (editor, entity) => {
 						_Code.persistence.updateDirtyFlag(entity);
+
+						let updatedObj = Object.assign({}, result, { source: editor.getValue() });
+						_Schema.methods.updateUIForAllAttributes(buttons[0], updatedObj);
 					}
 				};
 
@@ -1688,7 +1643,7 @@ let _Code = {
 					let exampleData      = Object.fromEntries((result.parameters ?? []).map(p => [p.name, (p.exampleValue ?? '')]));
 					let isGet            = (result.httpVerb.toLowerCase() === 'get');
 					let isStatic         = (result.isStatic === true);
-					let url              = _Code.mainArea.helpers.getURLForSchemaMethod(result, true);
+					let url              = _Schema.methods.getURLForSchemaMethod(result, true);
 					let queryString      = new URLSearchParams(exampleData).toString();
 					let isUserDefinedFn  = (!result.schemaNode);
 					let isInstanceMethod = (!isStatic && !isUserDefinedMethod);
@@ -1723,7 +1678,7 @@ let _Code = {
 								parts.push(`// ${uuidHelpText}`);
 							}
 
-							parts.push(`fetch('${_Code.mainArea.helpers.getURLForSchemaMethod(result, true)}', {`);
+							parts.push(`fetch('${_Schema.methods.getURLForSchemaMethod(result, true)}', {`);
 							parts.push(`	method: '${result.httpVerb.toUpperCase()}',`);
 							parts.push('	body: JSON.stringify(data)');
 							parts.push('}).then(response => {');
@@ -1859,7 +1814,7 @@ let _Code = {
 				if ((isUserDefinedMethod || isStaticMethod) && isCallableViaHTTP) {
 
 					_Code.mainArea.helpers.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Open run dialog', () => {
-						_Code.mainArea.helpers.runSchemaMethod(result);
+						_Schema.methods.runSchemaMethod(result);
 					});
 				}
 
@@ -1896,7 +1851,12 @@ let _Code = {
 					e.stopPropagation();
 					activateTab($(this).data('name'));
 				});
-				activateTab(lastOpenTab || 'source');
+
+				if (_Code.codeContents[0].querySelector(`li[data-name="${lastOpenTab}"]`)) {
+					activateTab(lastOpenTab || 'source');
+				} else {
+					activateTab('source');
+				}
 
 				_Editors.focusEditor(sourceEditor);
 			});
@@ -1966,7 +1926,7 @@ let _Code = {
 						_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 						_Code.codeContents.append(_Code.templates.propertyRemote({ data, entity, sourceNode, targetNode }));
 
-						let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
+						let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'general');
 						let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents)[0], $('.tabs-content-container', _Code.codeContents)[0], sourceNode, targetNode, targetView);
 
 						// remove bulk edit save/discard buttons
@@ -2030,126 +1990,6 @@ let _Code = {
 			let iframeSrc     = `${swaggerUrl}?url=${openApiTagUrl}`;
 
 			_Code.codeContents.append(_Code.templates.swaggerui({ iframeSrc: iframeSrc }));
-		},
-		displayWorkingSetsContent: () => {
-			_Code.codeContents.append(_Code.templates.workingSets());
-		},
-		displayWorkingSetContent: (data) => {
-
-			_WorkingSets.getWorkingSet(data.id, function(workingSet) {
-
-				_Code.recentElements.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
-				_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
-				_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
-
-				if (workingSet.name === _WorkingSets.recentlyUsedName) {
-
-					_Code.mainArea.helpers.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'clear', 'Clear', function() {
-						_WorkingSets.clearRecentlyUsed(function() {
-							_Code.tree.refreshTree();
-						});
-					});
-
-					$('#group-name-input').prop('disabled', true);
-
-				} else {
-
-					_Code.mainArea.helpers.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'remove', 'Remove', function() {
-						_WorkingSets.deleteSet(data.id, function() {
-							_Code.tree.refreshNode('/workingsets');
-							_Code.tree.findAndOpenNode('/workingsets');
-						});
-					});
-
-					$('input#group-name-input').on('blur', function() {
-						let elem     = $(this);
-						let previous = elem.attr('value');
-
-						if (previous !== elem.val()) {
-							let data   = {
-								name: elem.val()
-							};
-
-							Command.setProperties(workingSet.id, data, () => {
-								_Helpers.blinkGreen(elem);
-								_TreeHelper.refreshTree('#code-tree');
-							});
-						}
-					});
-				}
-
-				$('#schema-graph').append(_Code.templates.root());
-
-				var layouter = new SigmaLayouter('group-contents');
-
-				Command.query('SchemaNode', 10000, 1, 'name', 'asc', { }, function(result1) {
-
-					for (let node of result1) {
-						if (workingSet.children.includes(node.name)) {
-							layouter.addNode(node, data.path);
-						}
-					}
-
-					Command.query('SchemaRelationshipNode', 10000, 1, 'name', 'asc', { }, function(result2) {
-
-						for (let r of result2) {
-							layouter.addEdge(r.id, r.relationshipType, r.sourceId, r.targetId, true);
-						}
-
-						layouter.refresh();
-						layouter.layout();
-						layouter.on('clickNode', e => {
-
-							let eventData = e.data;
-							if (eventData.node) {
-
-								if (eventData.node.path) {
-
-									_Code.tree.findAndOpenNode(eventData.node.path + '/' + eventData.node.id, false);
-
-								} else {
-
-									// we need to find out if this node is a custom type or built-in
-									if (eventData.node.builtIn) {
-										_Code.tree.findAndOpenNode('/root/builtin/' + eventData.node.id, false);
-									} else {
-										_Code.tree.findAndOpenNode('/root/custom/' + eventData.node.id, false);
-									}
-								}
-							}
-						});
-
-						_Code.layouter = layouter;
-
-						// experimental: use positions from schema layouter to initialize positions in schema editor
-						window.setTimeout(function() {
-
-							let minX = 0;
-							let minY = 0;
-
-							layouter.getNodes().forEach(function(node) {
-								if (node.x < minX) { minX = node.x; }
-								if (node.y < minY) { minY = node.y; }
-							});
-
-							let positions = {};
-
-							layouter.getNodes().forEach(function(node) {
-
-								positions[node.label] = {
-									top: node.y - minY + 20,
-									left: node.x - minX + 20
-								};
-							});
-
-							_WorkingSets.updatePositions(workingSet.id, positions);
-
-						}, 300);
-
-					}, true, 'ui');
-
-				}, true, 'ui');
-			});
 		},
 		displayServiceClassesContent: (data) => {
 
@@ -2239,178 +2079,6 @@ let _Code = {
 				targetNode.appendChild(button);
 
 				return button;
-			},
-			runSchemaMethod: (schemaMethod) => {
-
-				let storagePrefix = 'schemaMethodParameters_';
-				let name          = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + '/' + schemaMethod.name;
-				let url           = _Code.mainArea.helpers.getURLForSchemaMethod(schemaMethod);
-
-				let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`);
-
-				let runButton = _Dialogs.custom.prependCustomDialogButton(`
-					<button id="run-method" class="flex items-center action focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
-						<span>Run</span>
-					</button>
-				`);
-
-				let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
-
-				window.setTimeout(() => {
-					runButton.focus();
-				}, 50);
-
-				let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
-					<div>
-						<div id="params">
-							<h3 class="heading-narrow">Parameters</h3>
-							<div class="method-parameters">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
-							</div>
-						</div>
-						<h3 class="mt-4">Result</h3>
-						<pre id="log-output"></pre>
-					</div>
-				`);
-				dialogText.appendChild(paramsOuterBox);
-
-				_Helpers.appendInfoTextToElement({
-					element: paramsOuterBox.querySelector('h3'),
-					text: 'Parameters can be accessed in the called method by using the <code>$.methodParameters[name]</code> object (JavaScript-only) or the <code>retrieve(name)</code> function.<br>For methods called via GET, the parameters are sent using the request URL and thus, they can be accessed via the <code>request</code> object',
-					css: { marginLeft: "5px" },
-					helpElementCss: { fontSize: "12px" }
-				});
-
-				let appendParameter = (name = '', value = '', paramDefinition = {}) => {
-
-					let infoSpan = '';
-
-					if (paramDefinition.parameterType || paramDefinition.description || paramDefinition.exampleValue) {
-
-						let infoText = `
-							Type: ${paramDefinition.parameterType ?? ''}<br>
-							Description: ${paramDefinition.description ?? ''}<br>
-							Example Value: ${paramDefinition.exampleValue ?? ''}<br>
-						`;
-
-						infoSpan = `<span data-comment="${_Helpers.escapeForHtmlAttributes(infoText)}"></span>`;
-					}
-
-					let newParam = _Helpers.createSingleDOMElementFromHTML(`
-						<div class="param flex items-center mb-1">
-							<input class="param-name" placeholder="Key">
-							${infoSpan}
-							<span class="px-2">=</span>
-							<input class="param-value" placeholder="Value" data-input-type="${(paramDefinition.parameterType ?? 'string').toLowerCase()}">
-							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']), 'Remove parameter')}
-						</div>
-					`);
-
-					newParam.querySelector('.param-name').value  = name;
-					newParam.querySelector('.param-value').value = (typeof value === "string") ? value : JSON.stringify(value);
-
-					newParam.querySelector('.remove-action').addEventListener('click', () => {
-						_Helpers.fastRemoveElement(newParam);
-					});
-
-					paramsOuterBox.querySelector('.method-parameters').appendChild(newParam);
-				};
-
-				let lastParams = LSWrapper.getItem(storagePrefix + url, {});
-
-				if (Object.keys(lastParams).length > 0) {
-
-					let paramDefinitions = Object.fromEntries((schemaMethod.parameters ?? []).map(p => [p.name, p]));
-
-					for (let [k,v] of Object.entries(lastParams)) {
-						appendParameter(k, v, paramDefinitions[k]);
-					}
-
-				} else {
-
-					for (let paramDefinition of (schemaMethod.parameters ?? [])) {
-						appendParameter(paramDefinition.name, '', paramDefinition);
-					}
-				}
-
-				_Helpers.activateCommentsInElement(paramsOuterBox);
-
-				paramsOuterBox.querySelector('.add-param-action').addEventListener('click', () => {
-					appendParameter();
-				});
-
-				let logOutput = paramsOuterBox.querySelector('#log-output');
-
-				runButton.addEventListener('click', async () => {
-
-					logOutput.textContent = 'Running method...';
-
-					let params = {};
-					for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
-
-						let name = paramRow.querySelector('.param-name').value;
-						if (name) {
-
-							let valueInput = paramRow.querySelector('.param-value');
-							let value = valueInput.value;
-
-							// if the value type is not a basic string, try to parse it as JSON (but fail gracefully)
-							// if this ever creates problems, we should rather add a dropdown "Parameter Type" and
-							// populate it with "String" by default and also take the OpenAPI parameter definition into account
-							if (valueInput.dataset['inputType'] !== 'string') {
-								try {
-									value = JSON.parse(value);
-								} catch(e) {}
-							}
-
-							params[name] = value;
-						}
-					}
-
-					LSWrapper.setItem(storagePrefix + url, params);
-
-					let methodCallUrl = url;
-					let fetchConfig = {
-						method: schemaMethod.httpVerb
-					};
-
-					if (schemaMethod.httpVerb === 'GET') {
-
-						methodCallUrl += '?' + new URLSearchParams(params).toString();
-
-					} else {
-
-						fetchConfig.body = JSON.stringify(params);
-					}
-
-					let response = await fetch(methodCallUrl, fetchConfig);
-					logOutput.textContent = await response.text();
-				});
-
-				clearButton.addEventListener('click', () => {
-					logOutput.textContent = '';
-				});
-			},
-			getURLForSchemaMethod: (schemaMethod, absolute = true) => {
-
-				let isStatic              = (schemaMethod.isStatic === true);
-				let isUserDefinedFunction = (schemaMethod.schemaNode === null);
-
-				let parts = [];
-
-				if (!isUserDefinedFunction) {
-					parts.push(schemaMethod.schemaNode.name);
-
-					if (!isStatic) {
-						parts.push('<b>{uuid}</b>');
-					}
-				}
-
-				parts.push(schemaMethod.name);
-				let url  = (absolute ? location.origin : '') + Structr.rootUrl + parts.join('/');
-
-				return url;
 			},
 		}
 	},
@@ -2563,11 +2231,11 @@ let _Code = {
 		deleteSchemaEntity: (entity, title, text, data) => {
 
 			let path  = data.path;
-			let parts = path.split('-');
+			let parts = path.split('/');
 
 			parts.pop();
 
-			let parent = parts.join('-');
+			let parent = parts.join('/');
 
 			_Dialogs.confirmation.showPromise(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
 
@@ -2768,7 +2436,9 @@ let _Code = {
 						if (isArray) {
 							option.selected = entity[p.dataset.property].includes(option.value);
 						} else {
-							option.selected = (entity[p.dataset.property].id === option.value);
+							// only use id for nodes - otherwise use value directly
+							let valueInEntity = (entity[p.dataset.property]?.id ?? entity[p.dataset.property]);
+							option.selected = (valueInEntity === option.value);
 						}
 					}
 				}
@@ -2955,11 +2625,6 @@ let _Code = {
 		updateRecentlyUsed: (entity, path, updateLocationStack) => {
 
 			_Code.recentElements.addRecentlyUsedEntity(entity, path);
-
-			// add recently used types to corresponding working set
-			if (entity.type === 'SchemaNode') {
-				_WorkingSets.addRecentlyUsed(entity.name);
-			}
 
 			if (updateLocationStack) {
 				_Code.pathLocations.updatePathLocationStack(path);
@@ -3150,14 +2815,17 @@ let _Code = {
 			<h2>System Types</h2>
 		`,
 		createNewType: config => `
-			<h2>Create New ${config?.text ?? 'Type'}</h2>
-			<div id="method-buttons">
-				<div class="flex flex-wrap gap-x-4">
-					<div class="mb-2">
-						<div id="create-type-actions"></div>
+			<div class="flex flex-wrap justify-between gap-2 mb-2">
+				<h2>Create New ${config?.text ?? 'Type'}</h2>
+				<div id="method-buttons">
+					<div class="flex flex-wrap gap-x-4">
+						<div class="mb-2">
+							<div id="create-type-actions"></div>
+						</div>
 					</div>
 				</div>
 			</div>
+				
 			<div id="create-type-container"></div>
 		`,
 		cypherProperty: config => `
@@ -3194,7 +2862,7 @@ let _Code = {
 
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
 							<h4 class="py-2 font-semibold">Read Function</h4>
-							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="readFunction"></div>
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
@@ -3202,7 +2870,7 @@ let _Code = {
 									Write Function
 								</h4>
 							</div>
-							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
+							<div class="editor flex-grow" data-property="writeFunction"></div>
 						</div>
 
 					</div>
@@ -3268,7 +2936,7 @@ let _Code = {
 				<div class="flex flex-wrap gap-8">
 
 					<div class="min-w-48">
-						<label class="block mb-5">Enabled</label>
+						<label class="block mb-5">Enable/include this type</label>
 						<label class="flex"><input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output</label>
 					</div>
 
@@ -3404,23 +3072,23 @@ let _Code = {
 					<div id="property-actions"></div>
 				</div>
 				<div class="mb-4 grid grid-cols-4 gap-4">
-					<div class="col-span-3">
+					<div class="col-span-3" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Name</label>
 						<input type="text" id="property-name-input" data-property="name" value="${config.property.name}">
 					</div>
-					<div class="col-span-1">
+					<div class="col-span-1" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Default value</label>
 						<input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}">
 					</div>
-					<div class="col-span-1">
+					<div class="col-span-1" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Content type</label>
 						<input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}">
 					</div>
-					<div class="col-span-2">
+					<div class="col-span-2" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Format</label>
 						<input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}">
 					</div>
-					<div class="col-span-1">
+					<div class="col-span-1" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
@@ -3434,9 +3102,9 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="col-span-2 ${config.dbNameClass}">
+					<div class="col-span-2 ${config.dbNameClass}" data-is-property-attribute-container>
 						<label class="block mb-1 font-semibold">Database name</label>
-						<input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}">
+						<input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName ?? ''}">
 					</div>
 				</div>
 
@@ -3444,22 +3112,37 @@ let _Code = {
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="mt-2 grid grid-cols-3 gap-4">
-						<div>
+					<div class="mt-2 grid grid-cols-4 gap-4">
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''}>Property value must be unique</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''}>Include in composite uniqueness</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''}>Property value must not be null</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
+							${_Schema.properties.templates.functionProperty.readFunctionWrapJS({ entity: config.property })}
+						</div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
 						</div>
-						<div>
+						<div data-is-property-attribute-container>
+							<label><input type="checkbox" id="property-fulltext-indexed" data-property="fulltext" ${config.property.fulltext ? 'checked' : ''}>Property value is fulltext indexed</label>
+						</div>
+						<div data-is-property-attribute-container>
 							<label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''}>Property value can be cached</label>
 						</div>
+						<div data-is-property-attribute-container>
+							<label data-comment="If active, the property will not be serialized (REST/CSV etc) but can be used otherwise (e.g. scripting). It will not be shown in the backend UI in the data area and dialogs. This setting overrides view configurations. Such attributes will still not be serialized even if they are in a view.">
+								<input type="checkbox" id="property-is-serialization-disabled" data-property="isSerializationDisabled" ${config.property.isSerializationDisabled ? 'checked' : ''}>Disable Property serialization (via REST)
+							</label>
+						</div>
+						<div data-is-property-attribute-container>
+							${_Schema.properties.templates.functionProperty.writeFunctionWrapJS({ entity: config.property })}
+						</div>
+
 					</div>
 				</div>
 			</div>
@@ -3481,9 +3164,11 @@ let _Code = {
 			<div id="property-buttons"></div>
 		`,
 		type: config => `
-			<h2>Type ${config.type.name}</h2>
-			<div id="type-actions"></div>
-
+			<div class="flex flex-wrap justify-between gap-2 mb-2">
+				<h2>Type ${config.type.name}</h2>
+				<div id="type-actions"></div>
+			</div>
+			
 			<div class="tabs-container code-tabs">
 				<ul></ul>
 			</div>
@@ -3520,241 +3205,10 @@ let _Code = {
 			<h2>Views of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
-		workingSet: config => `
-			<h2>Group ${config.type.name}</h2>
-			<div class="mb-4">
-				A customizable group of classes. To add classes, click on the class name and then on the "New group" button.
-			</div>
-
-			<div id="working-set-content" data-type-id="${config.type.id}"></div>
-
-			<div class="mb-4">
-				<p class="input">
-					<label class="block">Name</label>
-					<input type="text" id="group-name-input" data-property="name" size="30" value="${config.type.name}">
-				</p>
-			</div>
-
-			<div id="group-contents" style="height: calc(100% - 200px); background-color: #fff;"></div>
-		`,
-		workingSets: config => `
-			<h2>Working Sets</h2>
-			<div class="mb-4">
-				<p>
-					Working Sets are customizable group of classes. To add classes to a working set, click on the class name and then on the "New working set" button.
-				</p>
-			</div>
-		`,
 		swaggerui: config => `
 			<div id="swagger-ui-container" class="flex-grow">
 				<iframe class="border-0" src="${config.iframeSrc}" width="100%" height="100%"></iframe>
 			</div>
 		`
-	}
-};
-
-let _WorkingSets = {
-
-	recentlyUsedName: 'Recently Used Types',
-	deleted: {},
-	getWorkingSets: (callback) => {
-
-		Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: 'layout' }, (result) => {
-
-			let workingSets = [];
-			let recent;
-
-			for (let layout of result) {
-
-				if (!layout.owner || layout.owner.name === StructrWS.me.username) {
-
-					let content  = JSON.parse(layout.content);
-					let children = Object.keys(content.positions);
-					let data     = {
-						id: layout.id,
-						type: 'SchemaGroup',
-						name: layout.name,
-						children: children
-					};
-
-					if (layout.name === _WorkingSets.recentlyUsedName) {
-
-						recent = data;
-
-					} else {
-
-						workingSets.push(data);
-					}
-				}
-			}
-
-			// insert most recent at the top
-			if (recent) {
-				workingSets.unshift(recent);
-			}
-
-			callback(workingSets);
-
-		}, true, null, 'id,type,name,content,owner');
-	},
-	getWorkingSet: (id, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content = JSON.parse(result.content);
-
-			callback({
-				id: result.id,
-				type: result.type,
-				name: result.name,
-				owner: result.owner,
-				children: Object.keys(content.positions)
-			});
-		});
-	},
-	getWorkingSetContents: (id, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content   = JSON.parse(result.content);
-			let positions = content.positions;
-
-			Command.query('SchemaNode', 1000, 1, 'name', true, {}, (result) => {
-
-				callback(result.filter(schemaNode => positions[schemaNode.name]));
-			});
-		});
-	},
-	addTypeToSet: (id, type, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content = JSON.parse(result.content);
-			if (!content.positions[type]) {
-
-				content.positions[type] = {
-					top: 0,
-					left: 0
-				};
-
-				// adjust hidden types as well
-				content.hiddenTypes.splice(content.hiddenTypes.indexOf(type), 1);
-
-				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
-			}
-		});
-	},
-	removeTypeFromSet: (id, type, callback) => {
-
-		Command.get(id, null, (result) => {
-
-			let content = JSON.parse(result.content);
-			delete content.positions[type];
-
-			// adjust hidden types as well
-			content.hiddenTypes.push(type);
-
-			Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
-		});
-	},
-	createNewSetAndAddType: (name, callback, setName) => {
-
-		Command.query('SchemaNode', 10000, 1, 'name', true, { }, (result) => {
-
-			let positions = {};
-
-			positions[name] = { top: 0, left: 0 };
-
-			// all types are hidden except the one we want to add
-			let hiddenTypes = result.filter(t => t.name !== name).map(t => t.name);
-
-			let config = {
-				_version: 2,
-				positions: positions,
-				hiddenTypes: hiddenTypes,
-				zoom: 1,
-				connectorStyle: 'Flowchart',
-				showRelLabels: true
-			};
-
-			Command.create({
-				type: 'ApplicationConfigurationDataNode',
-				name: setName || 'New Working Set',
-				content: JSON.stringify(config),
-				configType: 'layout'
-			}, callback);
-
-		}, true, null, 'id,name');
-	},
-	deleteSet: (id, callback) => {
-
-		_WorkingSets.deleted[id] = true;
-
-		Command.deleteNode(id, false, callback);
-	},
-	updatePositions: (id, positions, callback) => {
-
-		if (positions && !_WorkingSets.deleted[id]) {
-
-			Command.get(id, null, (result) => {
-
-				let content = JSON.parse(result.content);
-
-				for (let key of Object.keys(content.positions)) {
-
-					let position = content.positions[key];
-
-					if (position && position.left === 0 && position.top === 0 && positions[key]) {
-
-						position.left = positions[key].left * 2;
-						position.top  = positions[key].top * 2;
-					}
-				}
-
-				Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
-			});
-		}
-	},
-	addRecentlyUsed: (name) => {
-
-		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, (result) => {
-
-			if (result && result.length) {
-
-				_WorkingSets.addTypeToSet(result[0].id, name, () => {
-					_Code.tree.refreshNode('/workingsets/' + result[0].id);
-				});
-
-			} else {
-
-				_WorkingSets.createNewSetAndAddType(name, () => {
-					_Code.tree.refreshNode('/workingsets');
-				}, _WorkingSets.recentlyUsedName);
-			}
-
-		}, true, null, 'id,name');
-	},
-	clearRecentlyUsed: (callback) => {
-
-		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, (result) => {
-
-			if (result && result.length) {
-
-				let set     = result[0];
-				let content = JSON.parse(set.content);
-
-				for (let type of Object.keys(content.positions)) {
-
-					// remove type from positions object
-					delete content.positions[type];
-
-					// add type to hidden types
-					content.hiddenTypes.push(type);
-				}
-
-				Command.setProperty(set.id, 'content', JSON.stringify(content), false, callback);
-			}
-
-		}, true, null, 'id,name,content');
 	}
 };

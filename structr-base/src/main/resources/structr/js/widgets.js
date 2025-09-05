@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 let _Widgets = {
 	defaultWidgetServerUrl: 'https://apps.structr.com/structr/rest/Widget',
-	//defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/Widget',
 	widgetServerKey: 'structrWidgetServerKey_' + location.port,
 	applicationConfigurationDataNodeKey: 'remote_widget_server',
 
@@ -64,7 +63,7 @@ let _Widgets = {
 		if (entity.isLocalWidget === true) {
 
 			elements.push({
-				name: 'Properties',
+				name: 'Advanced',
 				clickHandler: () => {
 					_Entities.showProperties(entity, 'ui');
 				}
@@ -1034,4 +1033,3 @@ let _Widgets = {
 		`,
 	}
 };
-

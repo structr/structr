@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.bolt;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,9 +36,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Neo4IndexUpdater {
+public class Neo4IndexUpdater implements IndexUpdater {
 
 	private static final Logger logger          = LoggerFactory.getLogger(Neo4IndexUpdater.class);
+	private final AtomicBoolean isFinished      = new AtomicBoolean(false);
 	private boolean supportsRelationshipIndexes = false;
 	private BoltDatabaseService db              = null;
 
@@ -49,6 +50,8 @@ public class Neo4IndexUpdater {
 	}
 
 	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
+
+		isFinished.set(false);
 
 		final ExecutorService executor                           = Executors.newCachedThreadPool();
 		final Map<String, Map<String, Object>> existingDbIndexes = new HashMap<>();
@@ -62,7 +65,7 @@ public class Neo4IndexUpdater {
 
 					tx.prefetchHint("Neo4IndexUpdater query");
 
-					for (final Map<String, Object> row : db.execute("CALL db.indexes() YIELD name, type, state, labelsOrTypes, properties WHERE type = 'BTREE' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
+					for (final Map<String, Object> row : db.execute("CALL db.indexes() YIELD name, type, state, labelsOrTypes, properties WHERE (type = 'BTREE' OR type = 'TEXT' OR type = 'FULLTEXT') RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}")) {
 
 						for (final Object value : row.values()) {
 
@@ -114,7 +117,7 @@ public class Neo4IndexUpdater {
 				final IndexConfig indexConfig         = propertyIndexConfig.getValue();
 				final String propertyKey              = propertyIndexConfig.getKey();
 				final boolean finalIndexAlreadyOnline = indexAlreadyOnline;
-				final String finalIndexName           = indexName;
+				final String finalIndexName           = indexName != null ? indexName : typeName + "_" + propertyKey;
 
 				// skip relationship indexes if not supported
 				if (!indexConfig.isNodeIndex() && !supportsRelationshipIndexes) {
@@ -185,8 +188,19 @@ public class Neo4IndexUpdater {
 										try {
 
 											final String indexDescription = indexConfig.getIndexDescriptionForStatement(typeName);
+											if (indexConfig.isFulltextIndex()) {
 
-											db.consume("CREATE INDEX IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+												db.consume("CREATE FULLTEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]");
+
+											} else if (indexConfig.isFulltextIndex()) {
+
+												db.consume("CREATE TEXT INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+
+											} else {
+
+												db.consume("CREATE INDEX " + finalIndexName + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)");
+											}
+
 											createdIndexes.incrementAndGet();
 
 										} catch (Throwable t) {
@@ -311,5 +325,12 @@ public class Neo4IndexUpdater {
 				logger.debug("Dropped {} indexes of deleted types ({})", droppedIndexesOfRemovedTypes.get(), StringUtils.join(removedTypes, ", "));
 			}
 		}
+
+		isFinished.set(true);
+	}
+
+	@Override
+	public boolean isFinished() {
+		return isFinished.get();
 	}
 }

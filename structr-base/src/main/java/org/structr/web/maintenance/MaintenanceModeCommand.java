@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,11 +27,11 @@ import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class MaintenanceModeCommand extends NodeServiceCommand implements MaintenanceCommand {
 

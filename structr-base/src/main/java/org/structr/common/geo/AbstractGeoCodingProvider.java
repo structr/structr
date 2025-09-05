@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,12 @@
  */
 package org.structr.common.geo;
 
-import org.apache.commons.jxpath.JXPathContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
-import java.util.Map;
 
 /**
  * Abstract base class for geocoding providers.
@@ -39,14 +37,6 @@ public abstract class AbstractGeoCodingProvider implements GeoCodingProvider {
 
 	public AbstractGeoCodingProvider() {
 		this.apiKey = Settings.GeocodingApiKey.getValue();
-	}
-
-	protected <T> T extract(Map source, String path, Class<T> type) {
-
-		JXPathContext context = JXPathContext.newContext(source);
-		T value               = (T)context.getValue(path);
-
-		return value;
 	}
 
 	protected String encodeURL(String source) {

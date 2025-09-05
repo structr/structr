@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -105,6 +105,9 @@ public class RemoveCommand extends AbstractCommand {
 						}
 
 						TransactionCommand.registerNodeCallback(node, callback);
+
+						// send success
+						getWebSocket().send(webSocketData, true);
 
 					} catch (Throwable t) {
 

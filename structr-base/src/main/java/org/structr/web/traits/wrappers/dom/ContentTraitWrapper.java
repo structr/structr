@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,19 +21,21 @@ package org.structr.web.traits.wrappers.dom;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.Traits;
 import org.structr.web.ContentHandler;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.
@@ -147,14 +149,13 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset);
-			final StringBuilder buf = new StringBuilder(text.length() + data.length() + 1);
 
-			buf.append(leftPart);
-			buf.append(data);
-			buf.append(rightPart);
+			String buf = leftPart +
+				data +
+				rightPart;
 
 			// finally, set content to concatenated left, data and right parts
-			this.setContent(buf.toString());
+			this.setContent(buf);
 
 		} catch (FrameworkException fex) {
 
@@ -193,13 +194,12 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 			final String text       = this.getContent();
 			final String leftPart   = text.substring(0, offset);
 			final String rightPart  = text.substring(offset + count);
-			final StringBuilder buf = new StringBuilder(leftPart.length() + data.length() + rightPart.length());
 
-			buf.append(leftPart);
-			buf.append(data);
-			buf.append(rightPart);
+			String buf = leftPart +
+				data +
+				rightPart;
 
-			this.setContent(buf.toString());
+			this.setContent(buf);
 
 		} catch (FrameworkException fex) {
 
@@ -436,7 +436,11 @@ public class ContentTraitWrapper extends DOMNodeTraitWrapper implements Content 
 
 				} else {
 
-					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid());
+					final ScriptConfig scriptConfig = ScriptConfig.builder()
+							.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+							.build();
+
+					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), scriptConfig);
 					if (value != null) {
 
 						String content = null;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -569,6 +569,31 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	@Override
 	public void setCascadingDeleteFlag(final Long flag) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.CASCADING_DELETE_FLAG_PROPERTY), flag);
+	}
+
+	@Override
+	public void setRelationshipType(final String relType) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.RELATIONSHIP_TYPE_PROPERTY), relType);
+	}
+
+	@Override
+	public void setSourceMultiplicity(final String sourceMultiplicity) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_MULTIPLICITY_PROPERTY), sourceMultiplicity);
+	}
+
+	@Override
+	public void setTargetMultiplicity(final String targetMultiplicity) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_MULTIPLICITY_PROPERTY), targetMultiplicity);
+	}
+
+	@Override
+	public void setSourceJsonName(final String sourcePropertyName) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.SOURCE_JSON_NAME_PROPERTY), sourcePropertyName);
+	}
+
+	@Override
+	public void setTargetJsonName(final String targetPropertyName) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(SchemaRelationshipNodeTraitDefinition.TARGET_JSON_NAME_PROPERTY), targetPropertyName);
 	}
 
 	@Override

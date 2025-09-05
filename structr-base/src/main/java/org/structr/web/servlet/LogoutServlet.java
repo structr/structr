@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,7 @@ import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.web.auth.UiAuthenticator;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.
@@ -62,7 +63,7 @@ public class LogoutServlet extends AbstractDataServlet implements HttpServiceSer
 
 			try {
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 

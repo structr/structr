@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,7 +28,6 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
@@ -120,7 +119,7 @@ public class GetFunction extends CoreFunction {
 				final PropertyKey key = traits.key(keyName);
 				if (key != null) {
 
-					final PropertyConverter inputConverter = key.inputConverter(securityContext);
+					final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 					Object value = dataObject.getProperty(key);
 
 					if (inputConverter != null) {

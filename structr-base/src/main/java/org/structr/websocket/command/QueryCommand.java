@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -81,10 +81,11 @@ public class QueryCommand extends AbstractCommand {
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
 
-		final Query query = StructrApp.getInstance(securityContext)
-			.nodeQuery(rawType)
+		final QueryGroup query = StructrApp.getInstance(securityContext)
+			.nodeQuery()
 			.page(page)
-			.pageSize(pageSize);
+			.pageSize(pageSize)
+			.and().type(rawType);
 
 		if (sortKey != null) {
 
@@ -97,6 +98,7 @@ public class QueryCommand extends AbstractCommand {
 		if (andProperties != null) {
 
 			try {
+
 				final Gson gson                          = new GsonBuilder().create();
 
 				final Map<String, Object> andQuerySource = gson.fromJson(andProperties, new TypeToken<Map<String, Object>>() {}.getType());
@@ -109,17 +111,17 @@ public class QueryCommand extends AbstractCommand {
 
 				// add properties to query
 				for (final Entry<PropertyKey, Object> entry : andQueryMap.entrySet()) {
-					query.and(entry.getKey(), entry.getValue(), !inexactQuery);
+					query.key(entry.getKey(), entry.getValue(), !inexactQuery);
 				}
 
 				// "not" properties
 				for (final Entry<PropertyKey, Object> entry : notQueryMap.entrySet()) {
-					query.not().and(entry.getKey(), entry.getValue(), !inexactQuery);
+					query.not().key(entry.getKey(), entry.getValue(), !inexactQuery);
 				}
 
 			} catch (FrameworkException fex) {
 
-				logger.warn("Exception occured", fex);
+				logger.warn("Exception occurred", fex);
 				getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 				return;
@@ -136,7 +138,7 @@ public class QueryCommand extends AbstractCommand {
 
 		} catch (FrameworkException fex) {
 
-			logger.warn("Exception occured", fex);
+			logger.warn("Exception occurred", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 		}
 	}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -968,7 +968,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Page version is not increased on modification", 3, page.getVersion());
+			assertEquals("Page version is not increased on modification", 2, page.getVersion());
 
 			tx.success();
 

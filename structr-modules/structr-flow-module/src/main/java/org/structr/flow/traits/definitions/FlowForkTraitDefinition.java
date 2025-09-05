@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,28 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.*;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowFork;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
@@ -53,39 +60,55 @@ public class FlowForkTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(final FlowNode flowNode) {
-					return FlowType.Fork;
-				}
-			},
+					@Override
+					public FlowType getFlowType(final FlowNode flowNode) {
+						return FlowType.Fork;
+					}
+				},
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
 
-					final String uuid = dataSource.getUuid();
-					Object data       = context.getData(uuid);
+						final String uuid = dataSource.getUuid();
+						Object data       = context.getData(uuid);
 
-					if (data == null) {
+						if (data == null) {
 
-						FlowDataSource _ds = dataSource.getDataSource();
-						if (_ds != null) {
+							FlowDataSource _ds = dataSource.getDataSource();
+							if (_ds != null) {
 
-							data = _ds.get(context);
-							context.setData(uuid, data);
+								data = _ds.get(context);
+								context.setData(uuid, data);
+							}
+
 						}
 
+						return data;
 					}
+				},
 
-					return data;
+				GetExportData.class,
+				new GetExportData() {
 
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 

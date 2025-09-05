@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
@@ -80,7 +81,10 @@ public class AppendWidgetCommand extends AbstractCommand {
 			if (page != null) {
 
 				try {
+
 					Widget.expandWidget(getWebSocket().getSecurityContext(), page, parentDOMNode, baseUrl, webSocketData.getNodeData(), processDeploymentInfo);
+
+					TransactionCommand.registerNodeCallback(parentDOMNode, callback);
 
 					// send success
 					getWebSocket().send(webSocketData, true);

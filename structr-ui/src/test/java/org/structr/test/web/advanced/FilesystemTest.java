@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -138,7 +138,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
+			final User tester = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(User.class);
 			tester.setEMail("tester@structr.com");
 
 			tx.success();
@@ -150,7 +150,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
+			final User tester = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(User.class);
 			tester.setEMail("tester2@structr.com");
 
 			tx.success();
@@ -162,7 +162,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
+			final User tester = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(User.class);
 			tester.setEMail("tester3@structr.com");
 
 			tx.success();
@@ -174,7 +174,7 @@ public class FilesystemTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final User tester              = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst().as(User.class);
+			final User tester              = app.nodeQuery(StructrTraits.USER).name("tester").getFirst().as(User.class);
 			final List<NodeInterface> dirs = app.nodeQuery(StructrTraits.FOLDER).getAsList();
 			final Set<String> names        = new HashSet<>();
 

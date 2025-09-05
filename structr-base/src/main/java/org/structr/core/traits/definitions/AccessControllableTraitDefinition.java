@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -514,10 +514,11 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 		for (final String type : degree.keySet()) {
 
-			final Traits propagatingType = Traits.of(type);
-			if (propagatingType != null) {
+			if (Traits.exists(type)) {
 
-				final Relation relation = propagatingType.getRelation();
+				final Traits propagatingType = Traits.of(type);
+				final Relation relation      = propagatingType.getRelation();
+
 				if (relation != null && !PropagationDirection.None.equals(relation.getPropagationDirection())) {
 
 					// iterate over list of relationships

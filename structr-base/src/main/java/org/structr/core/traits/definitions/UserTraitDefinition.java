@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
@@ -28,6 +28,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -49,11 +50,11 @@ import org.structr.core.traits.wrappers.UserTraitWrapper;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -131,18 +132,23 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of(IS_USER_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY),
+			Set.of(
+					IS_USER_PROPERTY
+			),
 
 			PropertyView.Ui,
 			Set.of(
-				IS_USER_PROPERTY, CONFIRMATION_KEY_PROPERTY, PrincipalTraitDefinition.EMAIL_PROPERTY, PrincipalTraitDefinition.GROUPS_PROPERTY,
-				HOME_DIRECTORY_PROPERTY, PrincipalTraitDefinition.IS_ADMIN_PROPERTY, PrincipalTraitDefinition.LOCALE_PROPERTY,
-				PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_URL_PROPERTY,
-				PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY, PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY,
-				PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, WORKING_DIRECTORY_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
-				PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
-				PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
-				PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY, SKIP_SECURITY_RELATIONSHIPS_PROPERTY, IMG_PROPERTY
+					IS_USER_PROPERTY,
+					CONFIRMATION_KEY_PROPERTY, HOME_DIRECTORY_PROPERTY, WORKING_DIRECTORY_PROPERTY, SKIP_SECURITY_RELATIONSHIPS_PROPERTY, IMG_PROPERTY,
+					PrincipalTraitDefinition.EMAIL_PROPERTY, PrincipalTraitDefinition.GROUPS_PROPERTY,
+					PrincipalTraitDefinition.IS_ADMIN_PROPERTY, PrincipalTraitDefinition.LOCALE_PROPERTY,
+					PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY,
+					PrincipalTraitDefinition.PROXY_URL_PROPERTY, PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY,
+					PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY,
+					PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
+					PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
+					PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
+					PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY
 			)
 		);
 	}
@@ -168,6 +174,16 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 		try {
 
+			// make sure that username OR email is set
+			final ErrorBuffer errorBuffer      = new ErrorBuffer();
+			final PropertyKey<String> nameKey  = userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<String> eMailKey = userTraits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
+
+			if (!ValidationHelper.isValidStringNotBlank(user, nameKey, errorBuffer) && !ValidationHelper.isValidStringNotBlank(user, eMailKey, errorBuffer)) {
+
+				throw new FrameworkException(422, "Cannot create a user who has neither a name nor an email address", errorBuffer);
+			}
+
 			// check per-user licensing count
 			final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 			if (licenseManager != null) {
@@ -184,10 +200,10 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-			final PropertyKey<Boolean> skipSecurityRels = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
-			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
+			final PropertyKey<Boolean> skipSecurityRelationships = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
+			if (user.getProperty(skipSecurityRelationships).equals(Boolean.TRUE) && !user.isAdmin()) {
 
-				TransactionCommand.simpleBroadcastWarning("Info", "This user has the skipSecurityRels flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
+				TransactionCommand.simpleBroadcastWarning("Info", "This user has the '" + SKIP_SECURITY_RELATIONSHIPS_PROPERTY + "' flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
 			}
 
 			if (user.getTwoFactorSecret() == null) {
@@ -209,7 +225,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// create home directory
 						final App app            = StructrApp.getInstance();
-						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).and(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").and(parentKey, null).getFirst();
+						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).key(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").key(parentKey, null).getFirst();
 
 						if (homeFolder == null) {
 

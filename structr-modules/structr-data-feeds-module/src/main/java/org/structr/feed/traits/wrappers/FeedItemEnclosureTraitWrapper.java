@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,11 @@ import org.apache.commons.io.IOUtils;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.feed.entity.FeedItemEnclosure;
+import org.structr.feed.traits.definitions.FeedItemEnclosureTraitDefinition;
+import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import org.structr.feed.traits.definitions.FeedItemEnclosureTraitDefinition;
-import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
 
 /**
  * Represents feed enclosures

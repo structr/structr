@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -202,7 +202,7 @@ public class UiAuthenticator implements Authenticator {
 		response.setHeader("X-Structr-Edition", Services.getInstance().getEdition());
 
 		// expose cluster node replica number
-		if (Settings.ClusterModeEnabled.getValue(false) == true) {
+		if (Settings.ClusterModeEnabled.getValue(false)) {
 
 			response.setHeader("X-Structr-Cluster-Node", Services.getInstance().getNodeName());
 		}
@@ -234,7 +234,7 @@ public class UiAuthenticator implements Authenticator {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(StructrTraits.CORS_SETTING).and(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY), requestUri).getFirst();
+			final NodeInterface corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(StructrTraits.CORS_SETTING).key(traits.key(CorsSettingTraitDefinition.REQUEST_URI_PROPERTY), requestUri).getFirst();
 			if (corsSettingObjectFromDatabase != null) {
 
 				acceptedOriginsString = (String)  getEffectiveCorsSettingValue(corsSettingObjectFromDatabase, CorsSettingTraitDefinition.ACCEPTED_ORIGINS_PROPERTY,  acceptedOriginsString);
@@ -472,7 +472,7 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest request, final String emailOrUsername, final String password) throws FrameworkException {
+	public Principal doLogin(final HttpServletRequest reqt, final String emailOrUsername, final String password) throws FrameworkException {
 
 		final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
@@ -810,7 +810,7 @@ public class UiAuthenticator implements Authenticator {
 
 		} catch (IOException ex) {
 
-			logger.error("Could not redirect to {}: {}", new Object[]{ oAuth2Client.getErrorURI(), ex });
+			logger.error("Could not redirect to {}: {}", oAuth2Client.getErrorURI(), ex);
 		}
 
 

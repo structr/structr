@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@ package org.structr.rest.service;
 
 
 import jakarta.servlet.Servlet;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.structr.api.service.Feature;
 import org.structr.rest.common.StatsCallback;
 
@@ -32,7 +32,7 @@ import org.structr.rest.common.StatsCallback;
  */
 public interface HttpServiceServlet extends Servlet, Feature {
 
-	public StructrHttpServiceConfig getConfig();
-	public void registerStatsCallback(final StatsCallback stats);
-	default public void configureServletHolder(final ServletHolder servletHolder) {}
+	StructrHttpServiceConfig getConfig();
+	void registerStatsCallback(final StatsCallback stats);
+	default void configureServletHolder(final ServletHolder servletHolder) {}
 }

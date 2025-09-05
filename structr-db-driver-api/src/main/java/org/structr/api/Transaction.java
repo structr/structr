@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,7 @@ public interface Transaction extends AutoCloseable, Prefetcher {
 	void success();
 	long getTransactionId();
 	boolean isSuccessful();
+	boolean isRolledBack();
 	void setNodeIsCreated(final long id);
 	boolean isNodeCreated(final long id);
 	boolean isNodeDeleted(final long id);

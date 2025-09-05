@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,10 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -44,6 +42,7 @@ import org.structr.web.entity.File;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -126,7 +125,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 				final Map<String, RelationProperty> relKeyCache = new LinkedHashMap<>();
 				final Character fieldSeparator                  = delimiter.charAt(0);
 				final Character quoteCharacter                  = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable              = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
+				final Iterable<JsonInput> iterable              = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, StandardCharsets.UTF_8), fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
 				final Iterator<JsonInput> iterator              = iterable.iterator();
 				int chunks                                      = 0;
 				int ignoreCount                                 = 0;
@@ -176,7 +175,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 								// search for object before creating it again
 								if (!searchAttributes.isEmpty()) {
-									newObject = app.nodeQuery(typeName).and(searchAttributes).getFirst();
+									newObject = app.nodeQuery(typeName).key(searchAttributes).getFirst();
 								}
 
 								// create new object if it doesn't exist yet

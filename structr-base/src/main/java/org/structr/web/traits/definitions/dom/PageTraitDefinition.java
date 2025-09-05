@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -85,24 +85,21 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final Page page = node.as(Page.class);
 
+					DOMNode.prefetchDOMNodes(page.getUuid());
+
 					renderContext.setPage(page);
 
-					DOMNode subNode = node.getFirstChild();
+					for (final DOMNode subNode : node.getChildren()) {
 
-					// output doctype definition only if first child is not a template
-					if (subNode != null && subNode.is("Html")) {
-						renderContext.getBuffer().append("<!DOCTYPE html>\n");
-					}
-
-					while (subNode != null) {
+						// output doctype definition only if first child is not a template
+						if (subNode.is(StructrTraits.HTML)) {
+							renderContext.getBuffer().append("<!DOCTYPE html>\n");
+						}
 
 						if (renderContext.getSecurityContext().isVisible(subNode)) {
 
 							subNode.render(renderContext, depth);
 						}
-
-						subNode = subNode.getNextSibling();
-
 					}
 				}
 			},
@@ -138,7 +135,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 					}
 					*/
 
-					if (!(otherNode.is("Html") || otherNode.is(StructrTraits.COMMENT) || otherNode.is(StructrTraits.TEMPLATE))) {
+					if (!(otherNode.is(StructrTraits.HTML) || otherNode.is(StructrTraits.COMMENT) || otherNode.is(StructrTraits.TEMPLATE))) {
 
 						throw new FrameworkException(422, DOMNode.HIERARCHY_REQUEST_ERR_MESSAGE_ELEMENT);
 					}
@@ -206,22 +203,22 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
+					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, SITES_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY,
+					CACHE_FOR_SECONDS_PROPERTY, PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY,
+					DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
 					LinkableTraitDefinition.LINKING_ELEMENTS_PROPERTY, LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY,
-					LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY, SITES_PROPERTY,
-					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY, CACHE_FOR_SECONDS_PROPERTY,
-					PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY
+					LinkableTraitDefinition.BASIC_AUTH_REALM_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY,
-					SITES_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY, CACHE_FOR_SECONDS_PROPERTY, PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY,
-					CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY
+					IS_PAGE_PROPERTY, PAGE_CREATES_RAW_DATA_PROPERTY, SITES_PROPERTY, VERSION_PROPERTY, POSITION_PROPERTY,
+					CACHE_FOR_SECONDS_PROPERTY, PATH_PROPERTY, SHOW_ON_ERROR_CODES_PROPERTY, CONTENT_TYPE_PROPERTY, CATEGORY_PROPERTY, PATHS_PROPERTY,
+					DOMNodeTraitDefinition.DONT_CACHE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY
 			),
 
 			"category",
-				newSet(
+			newSet(
 				CATEGORY_PROPERTY
 			)
 		);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
@@ -154,7 +153,7 @@ public class CacheTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				app.create(StructrTraits.SCHEMA_PROPERTY,
-					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), app.nodeQuery(StructrTraits.SCHEMA_NODE).andName(StructrTraits.PERSON).getFirst()),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.MAIL_TEMPLATE).getFirst()),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String"),
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "name")
 				);
@@ -179,7 +178,7 @@ public class CacheTest extends StructrUiTest {
 			try (final Tx tx = app.tx()) {
 
 				final JsonSchema schema = StructrSchema.createFromDatabase(app);
-				final JsonType type     = schema.getType(StructrTraits.PERSON);
+				final JsonType type     = schema.getType(StructrTraits.MAIL_TEMPLATE);
 
 				final Iterator<JsonProperty> iterator = type.getProperties().iterator();
 				while (iterator.hasNext()) {

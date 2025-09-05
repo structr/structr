@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,14 @@
  */
 package org.structr.api.config;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
-import java.util.LinkedHashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * A configuration setting with a key and a type.
@@ -42,7 +41,7 @@ public class ChoiceSetting extends StringSetting {
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices, final String comment) {
 		super(group, categoryName, key, value, comment);
 
-		this.choices.putAll(choices.stream().collect(Collectors.toMap(Function.identity(), Function.identity())));
+		this.choices.putAll(choices.stream().collect(Collectors.toMap(Function.identity(), Function.identity(), (a, b) -> a, LinkedHashMap::new)));
 	}
 
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Map<String, String> choicesMap, final String comment) {

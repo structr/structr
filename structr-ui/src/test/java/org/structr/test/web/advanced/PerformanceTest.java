@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,7 @@
  */
 package org.structr.test.web.advanced;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -432,7 +432,7 @@ public class PerformanceTest extends StructrUiTest {
 					final long t0 = System.currentTimeMillis();
 
 					final int r               = randm.nextInt(10000);
-					final List<NodeInterface> nodes = app.nodeQuery("TestTwo").andName("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
+					final List<NodeInterface> nodes = app.nodeQuery("TestTwo").name("Test" + StringUtils.leftPad(Integer.toString(r), 5, "0")).getAsList();
 
 					assertEquals(1, nodes.size());
 
@@ -533,8 +533,6 @@ public class PerformanceTest extends StructrUiTest {
 				final Page page      = app.nodeQuery(StructrTraits.PAGE).getFirst().as(Page.class);
 				final String content = page.getContent(RenderContext.EditMode.NONE);
 
-				System.out.println("###################################################################################################################");
-				System.out.println(content);
 				System.out.println("Content length: " + content.length());
 
 				tx.success();

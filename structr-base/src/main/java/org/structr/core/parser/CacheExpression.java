@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,8 @@ package org.structr.core.parser;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.Services;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 

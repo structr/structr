@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -86,9 +86,7 @@ public class FileDataConverter extends PropertyConverter {
 				logger.warn("Unable to parse file data", mex);
 			}
 
-		} else if (source instanceof String) {
-
-			String sourceString = (String) source;
+		} else if (source instanceof String sourceString) {
 
 			if (StringUtils.isNotBlank(sourceString)) {
 

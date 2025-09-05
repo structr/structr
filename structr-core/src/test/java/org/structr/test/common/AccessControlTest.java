@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,7 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.User;
+import org.structr.web.function.ValidateEmailFunction;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -75,7 +76,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			NodeInterface user = createTestNode(principalType);
+			NodeInterface user = createTestNode(principalType, "tester");
 
 			// Create node with user context
 			createTestNode("TestOne", user.as(User.class));
@@ -427,7 +428,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final User owner = createTestNode(StructrTraits.USER).as(User.class);
+			final User owner = createTestNode(StructrTraits.USER, "tester").as(User.class);
 
 			// create new node
 			createTestNode("TestOne", owner);
@@ -466,8 +467,8 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final User owner = createTestNode(StructrTraits.USER).as(User.class);
-			final User user  = createTestNode(StructrTraits.USER).as(User.class);
+			final User owner = createTestNode(StructrTraits.USER, "tester").as(User.class);
+			final User user  = createTestNode(StructrTraits.USER, "tester").as(User.class);
 
 			// create new node
 			final AccessControllable t1        = createTestNode("TestOne", owner).as(AccessControllable.class);
@@ -1126,7 +1127,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = user2App.tx()) {
 
-			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).andName("group").getFirst().as(Group.class);
+			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).name("group").getFirst().as(Group.class);
 
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
@@ -1145,7 +1146,7 @@ public class AccessControlTest extends StructrTest {
 		String testType = "";
 		try (final Tx tx = user2App.tx()) {
 
-			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).andName("group").getFirst().as(Group.class);
+			final Group testGroup = user2App.nodeQuery(StructrTraits.GROUP).name("group").getFirst().as(Group.class);
 
 			assertNotNull("Group should be readable for members", testGroup);
 			assertEquals("Group name should be readable for members", "group", testGroup.getName());
@@ -1176,7 +1177,7 @@ public class AccessControlTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 1);
-			user1 = users.get(0);
+			user1 = users.getFirst();
 			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1");
 
 			tx.success();
@@ -1185,12 +1186,14 @@ public class AccessControlTest extends StructrTest {
 			logger.error(ex.toString());
 		}
 
+		final String invalidEmailAddress = "invalid";
+
 		try (final Tx tx = app.tx()) {
 
 			final List<NodeInterface> users = createTestNodes(StructrTraits.USER, 1);
-			final NodeInterface invalidUser =  users.get(0);
+			final NodeInterface invalidUser = users.getFirst();
 			invalidUser.setProperty(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY) , "tester");
-			invalidUser.setProperty(eMail, "invalid");
+			invalidUser.setProperty(eMail, invalidEmailAddress);
 
 			tx.success();
 
@@ -1198,13 +1201,13 @@ public class AccessControlTest extends StructrTest {
 
 		} catch (FrameworkException ex) {
 
-			final ErrorToken token = ex.getErrorBuffer().getErrorTokens().get(0);
+			final ErrorToken token = ex.getErrorBuffer().getErrorTokens().getFirst();
 
 			assertEquals("Invalid error code", 422, ex.getStatus());
 			assertEquals("Invalid error code", StructrTraits.USER, token.getType());
 			assertEquals("Invalid error code", PrincipalTraitDefinition.EMAIL_PROPERTY, token.getProperty());
-			assertEquals("Invalid error code", "must_contain_at_character", token.getToken());
-			assertEquals("Invalid error code", "invalid", token.getDetail());
+			assertEquals("Invalid error code", ValidateEmailFunction.getEmailValidationErrorMessageOrNull(invalidEmailAddress), token.getToken());
+			assertEquals("Invalid error code", invalidEmailAddress, token.getDetail());
 
 		}
 
@@ -1212,7 +1215,7 @@ public class AccessControlTest extends StructrTest {
 		final App user1App = StructrApp.getInstance(SecurityContext.getInstance(user1.as(User.class), AccessMode.Frontend));
 		try (final Tx tx = user1App.tx()) {
 
-			final User user2 = user1App.create(StructrTraits.USER).as(User.class);
+			final User user2 = user1App.create(StructrTraits.USER, "tester").as(User.class);
 
 			assertNotNull(user2);
 
@@ -1336,7 +1339,7 @@ public class AccessControlTest extends StructrTest {
 
 		try {
 
-			final User nonAdmin = createTestNode(StructrTraits.USER).as(User.class);
+			final User nonAdmin = createTestNode(StructrTraits.USER, "tester").as(User.class);
 			final Traits traits = nonAdmin.getTraits();
 
 			final PropertyKey<Boolean> isAdminKey = traits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY);
@@ -1393,7 +1396,7 @@ public class AccessControlTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user1 = createTestNode(type);
+			user1 = createTestNode(type, "tester");
 
 			user1.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "user1");
 			user1.setProperty(eMail, "LOWERCASE@TEST.com");

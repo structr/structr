@@ -7,4 +7,4 @@ function test() {
 	return $.toJson(x);
 }
 
-return test();
+test();

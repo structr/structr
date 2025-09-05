@@ -30,6 +30,7 @@
 	</appender>
 
 	<logger name="org.structr" level="INFO"/>
+	<logger name="org.apache.commons.beanutils" level="WARN" />
 
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />

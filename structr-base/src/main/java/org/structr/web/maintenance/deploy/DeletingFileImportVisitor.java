@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,16 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,10 +41,10 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 	private long totalTime = 0;
 	private int batchCount = 0;
 
-	private int batchSize;
+	private final int batchSize;
 	private long startTime;
 
-	private List<String> parents;
+	private final List<String> parents;
 
 	public DeletingFileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata, final int batchSize, final List<String> requiredParentsPaths) {
 
@@ -61,9 +60,9 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 
 	// ----- private methods -----
 	@Override
-	protected void createFolder(final Path folderObj) {
+	protected boolean createFolder(final Path path) {
 
-		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
+		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 
 		// only delete folder if it was in the export set and NOT as a required parent (meaning that it was deliberately exported and not just because it was required because a child was exported)
 		final boolean folderWasOnlyExportedAsParent = parents.contains(folderPath);
@@ -84,13 +83,15 @@ public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 
 			} catch (Exception ex) {
 
-				logger.error("Error occurred while deleting folder before import: " + folderObj, ex);
+				logger.error("Error occurred while deleting folder before import: " + path, ex);
 			}
 		}
 
-		super.createFolder(folderObj);
+		super.createFolder(path);
 
 		objectProcessed();
+
+		return true;
 	}
 
 	@Override

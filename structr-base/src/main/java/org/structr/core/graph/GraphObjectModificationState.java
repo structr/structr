@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,10 +33,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
-
-import java.util.*;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+
+import java.util.*;
 
 /**
  *
@@ -45,9 +45,7 @@ import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 public class GraphObjectModificationState implements ModificationEvent {
 
 	private static final Logger LOGGER                          = LoggerFactory.getLogger(GraphObjectModificationState.class);
-	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] {
-			GraphObjectTraitDefinition.ID_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY, "localStorage", PrincipalTraitDefinition.SALT_PROPERTY, PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY
-	}));
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY, "localStorage", PrincipalTraitDefinition.SALT_PROPERTY, PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
@@ -258,6 +256,65 @@ public class GraphObjectModificationState implements ModificationEvent {
 	 */
 	public boolean doInnerCallback(final ModificationQueue modificationQueue, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final CallbackCounter counter) throws FrameworkException {
 
+		final SecurityContext givenSecurityContext  = securityContext;
+		final SecurityContext objectSecurityContext = object.getSecurityContext();
+		SecurityContext innerSecurityContext        = null;
+
+		// if both security contexts are set, we will always choose the non-admin context to avoid privilege escalations
+		if (givenSecurityContext != null && objectSecurityContext != null) {
+
+			if (givenSecurityContext.isSuperUser()) {
+
+				if (objectSecurityContext.isSuperUser()) {
+
+					// both SCs are admin contexts, use given SC from the outside
+					innerSecurityContext = givenSecurityContext;
+
+				} else {
+
+					// use non-admin SC
+					innerSecurityContext = objectSecurityContext;
+				}
+
+			} else {
+
+				if (objectSecurityContext.isSuperUser()) {
+
+					// given security context is non-admin, use that one
+					innerSecurityContext = givenSecurityContext;
+
+				} else {
+
+					// both SCs are non-admin, which one do we use?
+					innerSecurityContext = givenSecurityContext;
+				}
+			}
+
+		} else {
+
+			if (givenSecurityContext != null && !givenSecurityContext.isSuperUser()) {
+
+				innerSecurityContext = givenSecurityContext;
+
+			} else if (objectSecurityContext != null && !objectSecurityContext.isSuperUser()) {
+
+				innerSecurityContext = objectSecurityContext;
+			}
+		}
+
+		if (innerSecurityContext == null) {
+
+			// use the one that is non-null
+			if (givenSecurityContext != null) {
+
+				innerSecurityContext = givenSecurityContext;
+
+			} else if (objectSecurityContext != null) {
+
+				innerSecurityContext = objectSecurityContext;
+			}
+		}
+
 		// examine only the last 4 bits here
 		switch (status & 0x000f) {
 
@@ -277,7 +334,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 6: // created, modified => only creation callback will be called
 				counter.onCreate();
-				object.onCreation(securityContext, errorBuffer);
+				object.onCreation(innerSecurityContext, errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
@@ -285,22 +342,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 4: // created => creation callback
 				counter.onCreate();
-				object.onCreation(securityContext, errorBuffer);
+				object.onCreation(innerSecurityContext, errorBuffer);
 				break;
 
 			case 3: // modified, deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(innerSecurityContext, errorBuffer, removedProperties);
 				break;
 
 			case 2: // modified => modification callback
 				counter.onSave();
-				object.onModification(securityContext, errorBuffer, modificationQueue);
+				object.onModification(innerSecurityContext, errorBuffer, modificationQueue);
 				break;
 
 			case 1: // deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(innerSecurityContext, errorBuffer, removedProperties);
 				break;
 
 			case 0:	// no action, no callback
@@ -453,7 +510,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				obj.add("val",      toElement(newValue));
 
 				if (Settings.ChangelogEnabled.getValue()) {
-					changeLog.append(obj.toString());
+					changeLog.append(obj);
 					changeLog.append("\n");
 				}
 
@@ -488,7 +545,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("relDir",   toElement(direction));
 			obj.add("target",   toElement(object));
 
-			changeLog.append(obj.toString());
+			changeLog.append(obj);
 			changeLog.append("\n");
 		}
 	}
@@ -510,7 +567,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("target",   toElement(targetUuid));
 
 			if (Settings.ChangelogEnabled.getValue()) {
-				changeLog.append(obj.toString());
+				changeLog.append(obj);
 				changeLog.append("\n");
 			}
 
@@ -544,9 +601,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 				if (changeLog.length() > 0 && verb.equals(Verb.create)) {
 					// ensure that node creation appears first in the log
 					changeLog.insert(0, "\n");
-					changeLog.insert(0, obj.toString());
+					changeLog.insert(0, obj);
 				} else {
-					changeLog.append(obj.toString());
+					changeLog.append(obj);
 					changeLog.append("\n");
 				}
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,11 @@ package org.structr.text;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.detect.Detector;
+import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MimeTypes;
+import org.apache.tika.parser.AutoDetectParser;
+import org.apache.tika.parser.EmptyParser;
+import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Agent;
@@ -39,11 +43,16 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.util.*;
-import java.util.Map.Entry;
+import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -55,7 +64,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 	private static final Logger logger = LoggerFactory.getLogger(FulltextIndexingAgent.class.getName());
 	static final Map<String, Set<String>> languageStopwordMap = new LinkedHashMap<>();
-	public static final String TASK_NAME                              = "FulltextIndexing";
+	public static final String TASK_NAME                      = "FulltextIndexing";
 
 	private final Detector detector;
 
@@ -86,7 +95,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 						//SearchCommand.prefetch(Indexable.class, indexableId);
 
-						final NodeInterface indexable = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.ID_PROPERTY), indexableId).getFirst();
+						final NodeInterface indexable = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.ID_PROPERTY), indexableId).getFirst();
 						if (indexable != null) {
 
 							if (doIndexing(app, indexable.as(File.class))) {
@@ -104,7 +113,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 				}
 			}
 
-			return ReturnValue.Success;
+			// retry
+			return ReturnValue.Retry;
 		}
 
 		return ReturnValue.Abort;
@@ -123,15 +133,8 @@ public class FulltextIndexingAgent extends Agent<String> {
 	// ----- private methods -----
 	private boolean doIndexing(final App app, final File indexable) {
 
-		logger.info("Indexing is currently disabled!");
-
-		return true;
-
-		/*
-
-		boolean parsingSuccessful         = false;
-		InputStream inputStream           = null;
-		String fileName                   = "unknown file";
+		boolean parsingSuccessful;
+		InputStream inputStream;
 
 		try {
 
@@ -148,89 +151,35 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 				indexable.getSecurityContext().disableModificationOfAccessTime();
 				inputStream = indexable.getInputStream();
-				fileName    = indexable.getName();
 
 				if (inputStream != null) {
 
 					final Metadata metadata = new Metadata();
 
-					try (final FulltextTokenizer tokenizer = new FulltextTokenizer(indexable.indexedWordMinLength(), indexable.indexedWordMaxLength())) {
+					try (final FulltextTokenizer tokenizer = new FulltextTokenizer()) {
 
-						try (final InputStream is = inputStream) {
+						if (indexable.getSize() == 0) {
 
-							final AutoDetectParser parser = new AutoDetectParser(detector);
+							// empty out possibly previously extracted text (prevent warning in log)
+							indexable.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), tokenizer.getRawText());
 
-							parser.parse(is, new BodyContentHandler(tokenizer), metadata);
+						} else {
 
-							parsingSuccessful = !EmptyParser.class.getName().equals(metadata.get("X-Parsed-By"));
-						}
+							try (final InputStream is = inputStream) {
 
-						// only do indexing when parsing was successful
-						if (parsingSuccessful) {
+								final AutoDetectParser parser = new AutoDetectParser(detector);
 
-							// save raw extracted text
-							indexable.setProperty(StructrApp.key(File.class, "extractedContent"), tokenizer.getRawText());
+								parser.parse(is, new BodyContentHandler(tokenizer), metadata);
 
-							// tokenize name
-							tokenizer.write(getName());
-
-							// tokenize owner name
-							final Principal _owner = indexable.getOwnerNode();
-							if (_owner != null) {
-
-								final String ownerName = _owner.getName();
-								if (ownerName != null) {
-
-									tokenizer.write(ownerName);
-								}
-
-								final String eMail = _owner.getEMail();
-								if (eMail != null) {
-
-									tokenizer.write(eMail);
-								}
+								parsingSuccessful = !EmptyParser.class.getName().equals(metadata.get("X-Parsed-By"));
 							}
 
-							// index document excluding stop words
-							final Set<String> stopWords             = languageStopwordMap.get(tokenizer.getLanguage());
-							final Iterator<String> wordIterator     = tokenizer.getWords().iterator();
-							final Map<String, Integer> indexedWords = new LinkedHashMap<>();
+							// only do indexing when parsing was successful
+							if (parsingSuccessful) {
 
-							while (wordIterator.hasNext()) {
-
-								// strip quotes
-								final String word = StringUtils.strip(wordIterator.next(), "\"\'");
-								if (!stopWords.contains(word)) {
-
-									add(indexedWords, word);
-								}
-							}
-
-							final List<String> topWords       = getFrequencySortedTopWords(indexedWords, maximumIndexedWords());
-							final List<IndexedWord> wordNodes = new LinkedList<>();
-
-							try {
-
-								// create words first
-								for (final String word : topWords) {
-
-									IndexedWord wordNode = app.nodeQuery("IndexedWord").andName(word).getFirst();
-									if (wordNode == null) {
-
-										wordNode = app.create("IndexedWord", word);
-									}
-
-									wordNodes.add(wordNode);
-								}
-
-								// store indexed words
-								indexable.setProperty(StructrApp.key(File.class, "words"), wordNodes);
-
-							} catch (Throwable t) {
-
-								logger.info("Unable to store fulltext indexing result for {}, retrying after 1000ms..", fileName);
-
-								return false;
+								// save raw extracted text
+								indexable.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.EXTRACTED_CONTENT_PROPERTY), tokenizer.getRawText());
+								return true;
 							}
 						}
 					}
@@ -245,85 +194,16 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 		} catch (final Throwable t) {
 
-			logger.warn("Indexing of {} failed: {}", indexable.getProperty(StructrApp.key(File.class, "path")), t.getMessage());
+			logger.warn("Indexing of {} failed: {}", indexable.getProperty(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY)), t.getMessage());
 
 			return false;
 		}
 
 		return true;
-		*/
-	}
-
-	private void add(final Map<String, Integer> frequencyMap, final String word) {
-
-		Integer count = frequencyMap.get(word);
-		if (count == null) {
-
-			frequencyMap.put(word, 1);
-
-		} else {
-
-			frequencyMap.put(word, count + 1);
-		}
-	}
-
-	private List<String> getFrequencySortedTopWords(final Map<String, Integer> frequency, final Integer maxEntries) {
-
-		final Map<Integer, Set<String>> words = new TreeMap<>(Collections.reverseOrder());
-		final ArrayList<String> resultList    = new ArrayList<>();
-
-		for (final Entry<String, Integer> frequencyEntry : frequency.entrySet()) {
-
-			final String word   = frequencyEntry.getKey();
-			final Integer count = frequencyEntry.getValue();
-
-			Set<String> wordSet = words.get(count);
-			if (wordSet == null) {
-
-				wordSet = new TreeSet<>();
-				words.put(count, wordSet);
-			}
-
-			wordSet.add(word);
-		}
-
-		for (final Set<String> set : words.values()) {
-
-			for (final String word : set) {
-
-				resultList.add(word);
-
-				if (resultList.size() >= maxEntries) {
-					break;
-				}
-			}
-
-			if (resultList.size() >= maxEntries) {
-				break;
-			}
-		}
-
-		return resultList;
 	}
 
 	private long getFileSize(final File file) {
 		return StorageProviderFactory.getStorageProvider(file).size();
-	}
-
-	private boolean indexingEnabled() {
-		return Settings.IndexingEnabled.getValue();
-	}
-
-	private Integer maximumIndexedWords() {
-		return Settings.IndexingLimit.getValue();
-	}
-
-	private Integer indexedWordMinLength() {
-		return Settings.IndexingMinLength.getValue();
-	}
-
-	private Integer indexedWordMaxLength() {
-		return Settings.IndexingMaxLength.getValue();
 	}
 
 	static {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -130,10 +130,10 @@ public class PagePathTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 			PropertyView.Public,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, PRIORITY_PROPERTY, PARAMETERS_PROPERTY),
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY),
 
 			PropertyView.Ui,
-			newSet(NodeInterfaceTraitDefinition.NAME_PROPERTY, PRIORITY_PROPERTY, PARAMETERS_PROPERTY)
+			newSet(PRIORITY_PROPERTY, PARAMETERS_PROPERTY)
 		);
 	}
 

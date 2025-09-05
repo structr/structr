@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import graphql.GraphQLContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -26,7 +25,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.rest.entity.LogEvent;
 import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -54,10 +52,9 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 		final Traits traits  = Traits.of(StructrTraits.LOG_EVENT);
 
-		if (sources.length == 1 && sources[0] instanceof Map) {
+		if (sources.length == 1 && sources[0] instanceof Map map) {
 
 			// support javascript objects here
-			final Map map = (Map)sources[0];
 
 			final String action  = DOMNode.objectToString(map.get(LogEventTraitDefinition.ACTION_PROPERTY));
 			final String message = DOMNode.objectToString(map.get(LogEventTraitDefinition.MESSAGE_PROPERTY));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.web.servlet;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,10 +42,11 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.PathHelper;
 import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -80,7 +82,6 @@ import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.Site;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
@@ -91,6 +92,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -282,9 +284,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
 
 							final NodeInterface node = findNodeByUuid(securityContext, uriParts[0]);
-							if (node != null && node.is(StructrTraits.DOM_ELEMENT)) {
+							if (node != null && node.is(StructrTraits.DOM_NODE)) {
 
-								rootElement = node.as(DOMElement.class);
+								rootElement = node.as(DOMNode.class);
 
 								renderContext.setIsPartialRendering(true);
 							}
@@ -362,7 +364,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 								final NodeInterface possibleRootNode = findNodeByUuid(securityContext, PathHelper.getName(path));
 
-								if (possibleRootNode.is(StructrTraits.DOM_NODE)) {
+								if (possibleRootNode != null && possibleRootNode.is(StructrTraits.DOM_NODE)) {
 									rootElement = possibleRootNode.as(DOMNode.class);
 								}
 							}
@@ -443,7 +445,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						// Page with Basic Auth found but not yet authenticated
 						case MustAuthenticate:
 
-							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pageTraits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "401", false).getFirst();
+							final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(pageTraits.key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), "401", false).getFirst();
 							if (errorPage != null && isVisibleForSite(request, errorPage.as(Page.class))) {
 
 								// set error page
@@ -973,7 +975,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
 
-		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+		response.getOutputStream().write(buffer.getBuffer().toString().getBytes(StandardCharsets.UTF_8));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();
 	}
@@ -993,7 +995,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private Page notFound(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
 		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY);
-		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "404", false).getAsList();
+		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).key(key, "404", false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
 
@@ -1015,7 +1017,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	private Page getErrorPageForStatus(final HttpServletResponse response, final SecurityContext securityContext) throws IOException, FrameworkException {
 
 		final PropertyKey<String> key        = Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY);
-		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).and(key, "" + response.getStatus(), false).getAsList();
+		final List<NodeInterface> errorPages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE).key(key, "" + response.getStatus(), false).getAsList();
 
 		for (final NodeInterface node : errorPages) {
 
@@ -1052,9 +1054,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			if (!possiblePropertyNamesForEntityResolving.isEmpty()) {
 
-				query.and();
+				// FIXME: default is and so we don't need the additional and() here?
+				//query.and();
 				resolvePossiblePropertyNamesForObjectResolution(query, name);
-				query.parent();
+				//query.parent();
 			}
 
 			return query.getFirst();
@@ -1128,7 +1131,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private DOMNode findPartialByName(final SecurityContext securityContext, final String name) throws FrameworkException {
 
-		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).andName(name).not().and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.PAGE).getAsList()) {
+		for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.DOM_NODE).name(name).not().key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.PAGE).getAsList()) {
 
 			final DOMNode potentialPartial = node.as(DOMNode.class);
 
@@ -1161,16 +1164,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final String name = PathHelper.getName(path);
 		attributes.put(nameKey, name);
 
+		// FIXME
+
 		// Find pages by path or name
 		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE)
 			.or()
-				.notBlank(pathKey)
-				.and(pathKey, path)
-				.parent()
-			.or()
-				.blank(pathKey)
-				.and(nameKey, name)
-				.parent()
+				.key(pathKey, path)
+				.key(nameKey, name)
 			.sort(pathKey)
 			.getAsList();
 
@@ -1260,7 +1260,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<NodeInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(StructrTraits.PRINCIPAL).and(confirmationKey, key).getAsList();
+				results = app.nodeQuery(StructrTraits.PRINCIPAL).key(confirmationKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1354,7 +1354,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<NodeInterface> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(StructrTraits.PRINCIPAL).and(confirmationKeyKey, key).getAsList();
+				results = app.nodeQuery(StructrTraits.PRINCIPAL).key(confirmationKeyKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1433,7 +1433,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final List<Linkable> list = new LinkedList<>();
 
-			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).and(pathPropertyForSearch, path).getResultStream()) {
+			for (final NodeInterface node : StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.LINKABLE).key(pathPropertyForSearch, path).getResultStream()) {
 
 				list.add(node.as(Linkable.class));
 			}
@@ -1491,7 +1491,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + "");
+			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds);
 			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
@@ -1602,7 +1602,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// 2b: stream file to response
 				final InputStream in = file.getInputStream();
-				final String contentType = file.getContentType();
+				// if the file is a dynamic file and we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
+				final String contentType = file.isTemplate() ? Optional.of(securityContext)
+						.map(SecurityContext::getResponse)
+						.map(ServletResponse::getContentType)
+						.orElse(file.getContentType()) : file.getContentType();;
 
 				if (contentType != null) {
 
@@ -1700,7 +1704,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), "onDownload");
 				if (method != null) {
 
-					method.execute(securityContext, file, Arguments.fromMap(callbackMap), new EvaluationHints());
+					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap), new EvaluationHints());
 				}
 
 			} catch (FrameworkException fex) {
@@ -1749,6 +1753,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	private void resolvePossiblePropertyNamesForObjectResolution(final Query query, final String name) {
 
+		final QueryGroup orGroup = query.or();
+
 		for (final String possiblePropertyName : possiblePropertyNamesForEntityResolving) {
 
 			final String[] parts = possiblePropertyName.split("\\.");
@@ -1777,28 +1783,28 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						try {
 
-							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance());
+							final PropertyConverter converter = key.inputConverter(SecurityContext.getSuperUserInstance(), false);
 							if (converter != null) {
 
 								// try converted value, fail silenty
-								query.or(key, converter.convert(name));
+								orGroup.key(key, converter.convert(name));
 
 							} else {
 
 								// try unconverted value, fail silently if it doesn't work
-								query.or(key, name);
+								orGroup.key(key, name);
 							}
 
 						} catch (FrameworkException ignore) { }
 
 					} else {
 
-						logger.warn("Unable to find property key {} of type {} defined in key {} used for object resolution.", new Object[] { keyName, className, possiblePropertyName } );
+						logger.warn("Unable to find property key {} of type {} defined in key {} used for object resolution.", keyName, className, possiblePropertyName);
 					}
 
 				} else {
 
-					logger.warn("Unable to find type {} defined in key {} used for object resolution.", new Object[] { className, possiblePropertyName } );
+					logger.warn("Unable to find type {} defined in key {} used for object resolution.", className, possiblePropertyName);
 				}
 			}
 		}
@@ -1818,19 +1824,19 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		// try the different methods..
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(pagePathKey, path).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(pagePathKey, path).key(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).and(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).and(basicAuthKey, true).sort(positionKey).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(Traits.of(StructrTraits.PAGE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).key(basicAuthKey, true).sort(positionKey).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(filePathKey, path).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).key(filePathKey, path).key(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage == null) {
-			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).and(basicAuthKey, true).getFirst();
+			possiblePage = StructrApp.getInstance().nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), PathHelper.getName(path)).key(basicAuthKey, true).getFirst();
 		}
 
 		if (possiblePage != null) {
@@ -1893,7 +1899,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if ("Basic".equals(authType)) {
 
-					final String value   = new String(Base64.decode(authValue), Charset.forName("utf-8"));
+					final String value   = new String(Base64.decode(authValue), StandardCharsets.UTF_8);
 					final String[] parts = value.split(":");
 
 					if (parts.length == 2) {
@@ -1951,7 +1957,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					final URI rel = uri.relativize(uri);
 
 					// concatenate path and query part
-					return URI.create(uri.getPath() + rel.toString()).toString();
+					return URI.create(uri.getPath() + rel).toString();
 
 				} else {
 

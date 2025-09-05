@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,12 +21,11 @@ package org.structr.core.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.GraphSearchAttribute;
@@ -105,7 +104,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
@@ -174,7 +173,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 		if (propertyKey != null) {
 
-			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 			if (inputConverter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {
@@ -195,11 +194,11 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValueIterable, boolean exactMatch, final Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<T> searchValueIterable, final boolean exactMatch, final QueryGroup query) {
 
 		final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
 
-		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), collectionProperty, searchValueIterable, occur, exactMatch);
+		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), collectionProperty, searchValueIterable, exactMatch);
 	}
 
 	@Override

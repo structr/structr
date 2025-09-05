@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -191,10 +191,9 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			query
 				.and()
 					.or()
-					.andTypes(Traits.of(StructrTraits.PAGE))
-					.andTypes(Traits.of(StructrTraits.FILE))
-					.parent()
-				.and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
+					.types(Traits.of(StructrTraits.PAGE))
+					.types(Traits.of(StructrTraits.FILE))
+				.key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
 
 			// Searching for pages needs super user context anyway
 			List<Linkable> results = query.getAsList();

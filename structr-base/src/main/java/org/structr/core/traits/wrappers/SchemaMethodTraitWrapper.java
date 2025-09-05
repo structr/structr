@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
@@ -36,7 +35,6 @@ import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implements SchemaMethod {
 
@@ -182,6 +180,11 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
+	public boolean wrapJsInMain() {
+		return wrappedObject.getProperty(traits.key(SchemaMethodTraitDefinition.WRAP_JS_IN_MAIN_PROPERTY));
+	}
+
+	@Override
 	public boolean isJava() {
 		return "java".equals(getCodeType());
 	}
@@ -210,6 +213,12 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 	@Override
 	public Class<LifecycleMethod> getMethodType() {
 
+		/**
+		 * This method determines whether a method is a lifecycle method,
+		 * which onDownload, onStructrLogin etc. are NOT, hence we ignore
+		 * them here.
+		 */
+
 		final AbstractSchemaNode parent = getSchemaNode();
 		final boolean hasParent         = (parent != null);
 		final String methodName         = getName();
@@ -236,9 +245,6 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 			typeBasedLifecycleMethods.put("onDelete",          OnDeletion.class);
 			typeBasedLifecycleMethods.put("afterDelete",       AfterDeletion.class);
 
-			final Set<String> fileLifecycleMethods                              = Set.of("onUpload", "onDownload");
-			final Set<String> userLifecycleMethods                              = Set.of("onOAuthLogin");
-
 			for (final Map.Entry<String, Class<? extends LifecycleMethod>> entry : typeBasedLifecycleMethods.entrySet()) {
 
 				final String lifecycleMethodPrefix = entry.getKey();
@@ -247,46 +253,6 @@ public class SchemaMethodTraitWrapper extends AbstractNodeTraitWrapper implement
 					return (Class)entry.getValue();
 				}
 			}
-
-			boolean inheritsFromFile = false;
-			boolean inheritsFromUser = false;
-
-			if (Traits.exists(parent.getName())) {
-
-				final Traits traits = Traits.of(parent.getName());
-
-				inheritsFromFile = traits.contains(StructrTraits.ABSTRACT_FILE);
-				inheritsFromUser = traits.contains(StructrTraits.USER);
-			}
-
-			if (inheritsFromFile) {
-
-				if (fileLifecycleMethods.contains(methodName)) {
-					// FIXME
-					return null;
-					//return OnUpload.class;
-				}
-			}
-
-			if (inheritsFromUser) {
-
-				if (userLifecycleMethods.contains(methodName)) {
-					// FIXME
-					return null;
-					//return true;
-				}
-			}
-
-		} else {
-
-			final Set<String> globalLifecycleMethods = Set.of("onStructrLogin", "onStructrLogout", "onAcmeChallenge");
-
-			if (globalLifecycleMethods.contains(methodName)) {
-				// FIXME
-				return null;
-				//return true;
-			}
-
 		}
 
 		return null;

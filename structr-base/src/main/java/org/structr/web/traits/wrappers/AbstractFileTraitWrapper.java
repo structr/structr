@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -172,18 +172,20 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 	}
 
 	@Override
-	public boolean includeInFrontendExport() {
+	public boolean includeInFrontendExport(final boolean recursive) {
 
 		if (wrappedObject.getProperty(traits.key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY))) {
 
 			return true;
 		}
 
-		final NodeInterface parent = getParent();
-		if (parent != null) {
+		if (recursive) {
 
-			// recurse
-			return parent.as(Folder.class).includeInFrontendExport();
+			final NodeInterface parent = getParent();
+			if (parent != null) {
+
+				return parent.as(Folder.class).includeInFrontendExport(true);
+			}
 		}
 
 		return false;
@@ -206,11 +208,11 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 
 			if (valid) {
 
-				logger.warn("File {} already exists, renaming to {}", new Object[] { originalPath, newName });
+				logger.warn("File {} already exists, renaming to {}", originalPath, newName);
 
 			} else {
 
-				logger.warn("File {} already existed. Tried renaming to {} and failed. Aborting.", new Object[] { originalPath, newName });
+				logger.warn("File {} already existed. Tried renaming to {} and failed. Aborting.", originalPath, newName);
 			}
 		}
 
@@ -282,7 +284,7 @@ public class AbstractFileTraitWrapper extends AbstractNodeTraitWrapper implement
 		if (filePath != null) {
 
 			final PropertyKey<String> pathKey = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
-			final List<NodeInterface> files   = StructrApp.getInstance().nodeQuery(StructrTraits.ABSTRACT_FILE).and(pathKey, filePath).getAsList();
+			final List<NodeInterface> files   = StructrApp.getInstance().nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, filePath).getAsList();
 
 			for (final NodeInterface file : files) {
 

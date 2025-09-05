@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -134,6 +134,14 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 	}
 
 	@Override
+	public boolean isFulltext() {
+
+		final Boolean isFulltext = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY));
+
+		return Boolean.TRUE.equals(isFulltext);
+	}
+
+	@Override
 	public boolean isReadOnly() {
 
 		final Boolean isReadOnly = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY));
@@ -147,6 +155,14 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 		final Boolean _isCachingEnabled = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY));
 
 		return Boolean.TRUE.equals(_isCachingEnabled);
+	}
+
+	@Override
+	public boolean isAbstract() {
+
+		final Boolean isAbstract = wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_ABSTRACT_PROPERTY));
+
+		return Boolean.TRUE.equals(isAbstract);
 	}
 
 	@Override
@@ -224,6 +240,23 @@ public class SchemaPropertyTraitWrapper extends AbstractNodeTraitWrapper impleme
 		}
 
 		return _writeFunction;
+	}
+
+	@Override
+	public boolean getWriteFunctionWrapJS() {
+
+        return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_WRAP_JS_PROPERTY));
+	}
+
+	@Override
+	public boolean getReadFunctionWrapJS() {
+
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_WRAP_JS_PROPERTY));
+	}
+
+	@Override
+	public boolean isSerializationDisabled() {
+		return wrappedObject.getProperty(traits.key(SchemaPropertyTraitDefinition.IS_SERIALIZATION_DISABLED_PROPERTY));
 	}
 
 	@Override

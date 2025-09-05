@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,7 @@ package org.structr.bolt;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections4.SetUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
@@ -73,6 +73,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected boolean success                           = false;
 	protected boolean isPing                            = false;
 	protected boolean logPrefetching                    = false;
+	protected boolean isRolledBack                      = false;
 
 	public SessionTransaction(final BoltDatabaseService db) {
 
@@ -125,6 +126,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	@Override
 	public long getTransactionId() {
 		return this.transactionId;
+	}
+
+	@Override
+	public boolean isRolledBack() {
+		return isRolledBack;
 	}
 
 	public static void flushCaches() {

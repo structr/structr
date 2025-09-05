@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.search.ArrayQuery;
-import org.structr.api.search.Occurrence;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -27,8 +26,8 @@ import org.structr.core.property.PropertyKey;
  */
 public class ArraySearchAttribute<T> extends PropertySearchAttribute<T> {
 
-	public ArraySearchAttribute(final PropertyKey<T> key, final T value, final Occurrence occur, final boolean isExactMatch) {
-		super(key, value, occur, isExactMatch);
+	public ArraySearchAttribute(final PropertyKey<T> key, final T value, final boolean isExactMatch) {
+		super(key, value, isExactMatch);
 	}
 
 	@Override

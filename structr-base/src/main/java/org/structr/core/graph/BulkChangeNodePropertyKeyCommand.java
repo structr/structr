@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,7 +75,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 							if (dbNode.hasProperty(newKey)) {
 
-								logger.error("Node {} has already a property with key {}", new Object[] { node, newKey });
+								logger.error("Node {} has already a property with key {}", node, newKey);
 								throw new IllegalStateException("Node has already a property of the new key");
 
 							}
@@ -94,7 +94,7 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
-					logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
+					logger.warn("Unable to set properties of node {}: {}", node.getUuid(), t.getMessage());
 				}
 
 				@Override

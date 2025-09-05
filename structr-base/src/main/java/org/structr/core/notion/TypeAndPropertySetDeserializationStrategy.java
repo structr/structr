@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
@@ -34,12 +35,12 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -86,9 +87,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			return (T) source;
 		}
 
-		if (source instanceof String && Settings.isValidUuid((String) source)) {
+		if (source instanceof String uuid && Settings.isValidUuid(uuid)) {
 
-			return getTypedResult((T)StructrApp.getInstance(securityContext).getNodeById((String) source), type);
+			return getTypedResult((T)StructrApp.getInstance(securityContext).getNodeById(uuid), type, uuid);
 
 		}
 
@@ -131,7 +132,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 						}
 					}
 
-					for (final NodeInterface n : app.nodeQuery(type).and(searchAttributes).getResultStream()) {
+					for (final NodeInterface n : app.nodeQuery(type).key(searchAttributes).getResultStream()) {
 						result.add((T)n);
 					}
 
@@ -161,7 +162,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 				case 1:
 
-					final T relatedNode = getTypedResult(result.get(0), type);
+					final T relatedNode = getTypedResult(result.get(0), type, null);
 					if (!attributes.isEmpty()) {
 
 						// set properties on related node?
@@ -185,9 +186,14 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 		return null;
 	}
 
-	private T getTypedResult(final T obj, String type) throws FrameworkException {
+	private T getTypedResult(final T obj, String type, final String uuid) throws FrameworkException {
 
-		if (!obj.getTraits().contains(type)) {
+		if (obj == null) {
+
+			throw new FrameworkException(404, "No " + type + " with UUID " + uuid + " found.", new IdNotFoundToken(type, uuid));
+		}
+
+		if (obj != null && !obj.getTraits().contains(type)) {
 			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 		}
 

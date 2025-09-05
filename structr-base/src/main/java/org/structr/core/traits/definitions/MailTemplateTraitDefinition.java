@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,12 +70,12 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, TEXT_PROPERTY, LOCALE_PROPERTY
+					TEXT_PROPERTY, LOCALE_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, TEXT_PROPERTY, LOCALE_PROPERTY
+					TEXT_PROPERTY, LOCALE_PROPERTY
 			)
 		);
 	}

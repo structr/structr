@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,6 +49,7 @@
 	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
 	padding: .5rem;
 	margin: 0 ! important;
+	cursor: move;
 }
 
 #schema-graph .node.selected {
@@ -196,12 +197,24 @@
 	top: .5rem;
 }
 
+#schema-graph .node {
+	cursor: pointer;
+}
+
 #schema-graph .node h2 {
 	margin: 6px 0;
 }
 
+#schema-graph .node:hover {
+	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.4));
+}
+
 #schema-graph ._jsPlumb_endpoint_anchor {
 	z-index: 9999;
+}
+
+#schema-graph rect {
+	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.1));
 }
 
 .schema b,

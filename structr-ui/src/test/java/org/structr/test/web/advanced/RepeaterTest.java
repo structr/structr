@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,7 +34,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.Content;
@@ -283,7 +282,7 @@ public class RepeaterTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final Page page1     = app.nodeQuery(StructrTraits.PAGE).getFirst().as(Page.class);
-			final DOMNode option = (DOMNode)page1.getElementsByTagName("option").get(0);
+			final DOMNode option = page1.getElementsByTagName("option").get(0);
 
 			option.setProperty(Traits.of("Option").key( "selectedValues"), "project.test");
 
@@ -319,7 +318,7 @@ public class RepeaterTest extends StructrUiTest {
 
 		final DOMElement child = page.createElement(tag);
 
-		parent.appendChild((DOMNode)child);
+		parent.appendChild(child);
 
 		if (content != null && content.length > 0) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -94,7 +94,7 @@ public class VirtualTypeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, FILTER_EXPRESSION_PROPERTY, SOURCE_TYPE_PROPERTY, POSITION_PROPERTY, PROPERTIES_PROPERTY
+					FILTER_EXPRESSION_PROPERTY, SOURCE_TYPE_PROPERTY, POSITION_PROPERTY, PROPERTIES_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -101,14 +101,17 @@ public class AppendChildCommand extends AbstractCommand {
 
 					parentDOMNode.appendChild(node);
 
+					TransactionCommand.registerNodeCallback(node, callback);
+
+					// send success
+					getWebSocket().send(webSocketData, true);
+
 				} catch (DOMException dex) {
 
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
 				}
 			}
-
-			TransactionCommand.registerNodeCallback(node, callback);
 
 		} else {
 

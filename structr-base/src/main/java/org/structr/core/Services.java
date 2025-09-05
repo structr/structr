@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,11 +35,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.helper.PathHelper;
 import org.structr.common.helper.VersionHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
+import org.structr.core.function.SetLogLevelFunction;
 import org.structr.core.graph.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
@@ -52,6 +54,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -66,7 +69,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private static final Logger logger                 = LoggerFactory.getLogger(Services.class.getName());
 
 	// singleton instance
-	private static String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
+	private static final String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;
@@ -215,6 +218,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 			logger.info("Reading {}..", Settings.ConfigFileName);
 			Settings.loadConfiguration(Settings.ConfigFileName);
 
+			SetLogLevelFunction.setLogLevel(Settings.LogLevel.getValue());
+
 			// this might be the first start with a new / upgraded version
 			// check if we need to do some migration maybe?
 
@@ -358,6 +363,26 @@ public class Services implements StructrServices, BroadcastReceiver {
 				RestartRequiredChangeHandler.logRestartRequiredMessage(setting);
 			}
 		});
+
+		Settings.LogLevel.setChangeHandler((setting, oldValue, newValue) -> {
+			SetLogLevelFunction.setLogLevel(newValue.toString());
+		});
+
+		Settings.DefaultUploadFolder.setChangeHandler((setting, oldValue, newValue) -> {
+
+			final String cleanedNewValue = PathHelper.removeRelativeParts(newValue.toString());
+
+			if (cleanedNewValue.equals("")) {
+
+				logger.info("{}: Unable to save value '{}'. Default upload folder path requires a folder or folder path. Uploading to the root folder is not allowed. Resetting to default.", setting.getKey(), newValue);
+
+				setting.setValue(setting.getDefaultValue());
+
+			} else {
+
+				setting.setValue(cleanedNewValue);
+			}
+		});
 	}
 
 	private void startServices() {
@@ -373,7 +398,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			final StopServiceForMaintenanceMode stopAnnotation  = (StopServiceForMaintenanceMode)serviceClass.getAnnotation(StopServiceForMaintenanceMode.class);
 			final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
 
-			if (maintenanceEnabled == false || (stopAnnotation == null && startAnnotation == null) || (stopAnnotation != null && startAnnotation != null)) {
+			if (!maintenanceEnabled || (stopAnnotation == null && startAnnotation == null) || (stopAnnotation != null && startAnnotation != null)) {
 
 				try {
 
@@ -423,7 +448,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private void joinCluster() {
 
 		// Connect to cluster if enabled
-		if (Settings.ClusterModeEnabled.getValue(false) == true) {
+		if (Settings.ClusterModeEnabled.getValue(false)) {
 
 			logger.info("Cluster mode enabled");
 
@@ -626,7 +651,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 								final StartServiceInMaintenanceMode startAnnotation = (StartServiceInMaintenanceMode)serviceClass.getAnnotation(StartServiceInMaintenanceMode.class);
 
-								if (maintenanceEnabled == false || startAnnotation != null) {
+								if (!maintenanceEnabled || startAnnotation != null) {
 
 									try {
 
@@ -768,16 +793,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 			logger.info("Creating {}..", serviceClass.getSimpleName());
 
 			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
-
-			if (licenseManager != null && !licenseManager.isValid(service)) {
-
-				logger.error("Configured service {} is not part of the currently licensed Structr Edition.", serviceClass.getSimpleName());
-				return new ServiceResult("Service is not part of the currently licensed Structr Edition", false);
-			}
-
-			final int retryDelay     = service.getRetryDelay();
-			int retryCount           = service.getRetryCount();
-			isVital                  = service.isVital();
+			final int retryDelay  = service.getRetryDelay();
+			int retryCount        = service.getRetryCount();
+			isVital               = service.isVital();
 
 			while (waitAndRetry && retryCount-- > 0) {
 
@@ -786,9 +804,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 				final ServiceResult result = service.initialize(this, serviceName);
 				if (result.isSuccess()) {
 
-					if (service instanceof RunnableService) {
-
-						RunnableService runnableService = (RunnableService) service;
+					if (service instanceof RunnableService runnableService) {
 
 						if (runnableService.runOnStartup()) {
 
@@ -829,7 +845,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 					if (retryCount > 0) {
 
 						logger.warn("Retrying in {} seconds..", retryDelay);
-						Thread.sleep(retryDelay * 1000);
+						Thread.sleep(retryDelay * 1000L);
 
 					} else {
 
@@ -844,7 +860,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.error("Exception occured when trying to start service " + serviceName, t);
 
-            if (!disableRetry && isVital) {
+                        if (!disableRetry && isVital) {
 
 				checkVitalService(serviceClass, t);
 
@@ -887,9 +903,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		try {
 
-			if (service instanceof RunnableService) {
-
-				RunnableService runnableService = (RunnableService) service;
+			if (service instanceof RunnableService runnableService) {
 
 				if (runnableService.isRunning()) {
 					logger.info("Stopping {}..", service.getName());
@@ -1268,8 +1282,8 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		if (t != null) {
 
-			logger.error("Vital service {} failed to start with {}, aborting.", service.getSimpleName(), t.getMessage() );
-			System.err.println("Vital service " + service.getSimpleName() + " failed to start with " + t.getMessage() + ", aborting.");
+			logger.error("Vital service {} failed to start with \"{}\", aborting.", service.getSimpleName(), t.getMessage() );
+			System.err.println("Vital service " + service.getSimpleName() + " failed to start with \"" + t.getMessage() + "\", aborting.");
 
 		} else {
 
@@ -1484,15 +1498,14 @@ public class Services implements StructrServices, BroadcastReceiver {
 				if (input != null) {
 
 					// consume response
-					final String responseText          = IOUtils.toString(input, "utf-8");
+					final String responseText          = IOUtils.toString(input, StandardCharsets.UTF_8);
 					final Map<String, Object> response = gson.fromJson(responseText, Map.class);
 
 					if (response != null) {
 
 						final Object result = response.get("result");
-						if (result instanceof List) {
+						if (result instanceof List list) {
 
-							final List list = (List)result;
 							if (!list.isEmpty()) {
 
 								final Object entry = list.get(0);
@@ -1509,7 +1522,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 				if (error != null) {
 
 					// consume error stream
-					IOUtils.toString(error, "utf-8");
+					IOUtils.toString(error, StandardCharsets.UTF_8);
 				}
 
 				http.disconnect();
@@ -1564,14 +1577,14 @@ public class Services implements StructrServices, BroadcastReceiver {
 				if (input != null) {
 
 					// consume response
-					IOUtils.toString(input, "utf-8");
+					IOUtils.toString(input, StandardCharsets.UTF_8);
 				}
 
 				final InputStream error = http.getErrorStream();
 				if (error != null) {
 
 					// consume error stream
-					IOUtils.toString(error, "utf-8");
+					IOUtils.toString(error, StandardCharsets.UTF_8);
 				}
 
 				http.disconnect();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -324,7 +324,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			} else {
 
-				root.add("rawResultCount", toJsonPrimitive(count));
+				root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
 			}
 
 		}

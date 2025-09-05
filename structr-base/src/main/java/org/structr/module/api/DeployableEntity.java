@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,5 +23,4 @@ import java.util.Map;
 public interface DeployableEntity {
 
 	 Map<String, Object> exportData();
-
 }

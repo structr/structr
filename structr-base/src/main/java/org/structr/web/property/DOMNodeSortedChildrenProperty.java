@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.web.property;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.AbstractReadOnlyCollectionProperty;
@@ -56,12 +55,7 @@ public class DOMNodeSortedChildrenProperty extends AbstractReadOnlyCollectionPro
 
 		if (obj != null && obj.is(StructrTraits.DOM_NODE)) {
 
-			try {
-				return obj.as(DOMNode.class).getChildNodes();
-
-			} catch (FrameworkException fex) {
-				fex.printStackTrace();
-			}
+			return obj.as(DOMNode.class).getChildren();
 		}
 
 		return null;

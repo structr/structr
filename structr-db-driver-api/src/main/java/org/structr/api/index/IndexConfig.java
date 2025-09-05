@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,15 +21,19 @@ package org.structr.api.index;
 /**
  * Combines entity type and create / drop flag for database index configurations.
  */
-public abstract class IndexConfig {
+public class IndexConfig {
 
-	protected boolean createOrDropIndex = false;
-	protected boolean isNodeIndex       = false;
+	protected final boolean createOrDropIndex;
+	protected final boolean isNodeIndex;
+	protected final boolean isFulltextIndex;
+	protected final boolean isTextIndex;
 
-	protected IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex) {
+	public IndexConfig(final boolean createOrDropIndex, final boolean isNodeIndex, final boolean  isTextIndex, final boolean isFulltextIndex) {
 
 		this.createOrDropIndex = createOrDropIndex;
 		this.isNodeIndex       = isNodeIndex;
+		this.isTextIndex       = isTextIndex;
+		this.isFulltextIndex   = isFulltextIndex;
 	}
 
 	public boolean createOrDropIndex() {
@@ -38,6 +42,14 @@ public abstract class IndexConfig {
 
 	public boolean isNodeIndex() {
 		return this.isNodeIndex;
+	}
+
+	public boolean isTextIndex() {
+		return this.isTextIndex;
+	}
+
+	public boolean isFulltextIndex() {
+		return this.isFulltextIndex;
 	}
 
 	public String getIndexDescriptionForStatement(final String typeName) {

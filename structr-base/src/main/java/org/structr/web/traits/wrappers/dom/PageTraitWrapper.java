@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -280,17 +280,15 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 		// step 2: do recursive import?
 		if (deep && domNode.hasChildNodes()) {
 
+			final Logger logger = LoggerFactory.getLogger(Page.class);
+
 			// FIXME: is it really a good idea to do the
 			// recursion inside of a transaction?
-			DOMNode child = domNode.getFirstChild();
-
-			while (child != null) {
+			for (final DOMNode child : domNode.getChildren()) {
 
 				// do not remove parent for child nodes
-				importNode(child, deep, false);
-				child = child.getNextSibling();
+				importNode(child, true, false);
 
-				final Logger logger = LoggerFactory.getLogger(Page.class);
 				logger.info("sibling is {}", child);
 			}
 
@@ -315,16 +313,10 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	public DOMNode adoptNode(final DOMNode domNode, final boolean removeParentFromSourceNode) throws FrameworkException {
 
-		if (domNode.hasChildNodes()) {
+		for (final DOMNode child : domNode.getChildren()) {
 
-			DOMNode child = domNode.getFirstChild();
-			while (child != null) {
-
-				// do not remove parent for child nodes
-				adoptNode(child, false);
-				child = child.getNextSibling();
-			}
-
+			// do not remove parent for child nodes
+			adoptNode(child, false);
 		}
 
 		// (Note that this step needs to be done last in
@@ -383,16 +375,41 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public Content createTextNode(final String text) {
-
+		// TODO: combine createTextNode, createTemplate and createComment
 		try {
 
 			final App app       = StructrApp.getInstance(getSecurityContext());
 			final Traits traits = Traits.of(StructrTraits.CONTENT);
 
 			// create new content element
-			final Content content = app.create(StructrTraits.CONTENT,
-				new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)
-			).as(Content.class);
+			final Content content = app.create(StructrTraits.CONTENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Content.class);
+
+			content.setOwnerDocument(this);
+
+			return content;
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+
+			// FIXME: what to do with the exception here?
+			final Logger logger = LoggerFactory.getLogger(Page.class);
+			logger.warn("", fex);
+		}
+
+		return null;
+	}
+
+	@Override
+	public Content createTemplate(final String text) {
+		// TODO: combine createTextNode, createTemplate and createComment
+		try {
+
+			final App app       = StructrApp.getInstance(getSecurityContext());
+			final Traits traits = Traits.of(StructrTraits.TEMPLATE);
+
+			// create new template element
+			final Template content = app.create(StructrTraits.TEMPLATE, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), text)).as(Template.class);
 
 			content.setOwnerDocument(this);
 
@@ -412,13 +429,13 @@ public class PageTraitWrapper extends DOMNodeTraitWrapper implements Page {
 
 	@Override
 	public Comment createComment(final String comment) {
-
+		// TODO: combine createTextNode, createTemplate and createComment
 		try {
 
 			final App app       = StructrApp.getInstance(getSecurityContext());
-			final Traits traits = Traits.of(StructrTraits.CONTENT);
+			final Traits traits = Traits.of(StructrTraits.COMMENT);
 
-			// create new content element
+			// create new comment element
 			final Comment commentNode = app.create(StructrTraits.COMMENT, new NodeAttribute(traits.key(ContentTraitDefinition.CONTENT_PROPERTY), comment)).as(Comment.class);
 
 			commentNode.setOwnerDocument(this);

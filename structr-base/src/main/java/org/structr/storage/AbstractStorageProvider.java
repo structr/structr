@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -93,8 +93,6 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 				// Move binary content from old sp to new sp
 				try (final InputStream is = this.getInputStream(); final OutputStream os = destinationStorageProvider.getOutputStream()) {
-
-					Thread.dumpStack();
 
 					IOUtils.copy(is, os);
 

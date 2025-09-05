@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,6 +31,8 @@ import org.structr.web.importer.Importer;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.List;
 
 /**
  *
@@ -75,11 +77,31 @@ public class SaveNodeCommand extends AbstractCommand {
 
 				} else {
 
-					app.delete(importedPage);
+					try {
 
-					throw new RuntimeException("TODO: pencil edit must be reimplemented");
+						final List<DOMNode> bodyList = importedPage.getElementsByTagName("body");
+						if (!bodyList.isEmpty()) {
+
+							final Page hostPage  = sourceNode.getOwnerDocument();
+							final DOMNode parent = bodyList.get(0).getFirstChild();
+
+							// skip first div (why is it there?)
+							if (parent != null) {
+
+								for (final DOMNode child : parent.getChildren()) {
+
+									hostPage.adoptNode(child);
+									sourceNode.appendChild(child);
+								}
+							}
+						}
+
+					} finally {
+
+						// make sure we delete the imported page
+						app.delete(importedPage);
+					}
 				}
-
 
 			} catch (Throwable t) {
 

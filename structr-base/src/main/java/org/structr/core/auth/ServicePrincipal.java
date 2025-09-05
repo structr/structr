@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,7 +48,7 @@ import java.util.*;
 public class ServicePrincipal implements Principal {
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
-	private SecurityContext securityContext = null;
+	private final SecurityContext securityContext = null;
 	private List<String> jwksReferenceIds   = null;
 	private List<Group> groups              = null;
 	private boolean isAdmin                 = false;
@@ -238,7 +238,7 @@ public class ServicePrincipal implements Principal {
 
 					for (final String id : jwksReferenceIds) {
 
-						for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.GROUP).and(jwksReferenceIdKey, id).getResultStream()) {
+						for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.GROUP).key(jwksReferenceIdKey, id).getResultStream()) {
 
 							groups.add(node.as(Group.class));
 						}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -293,9 +293,9 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		final PropertyKey<String> localeKey = traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY);
 
 		final List<NodeInterface> localizations = StructrApp.getInstance().nodeQuery(StructrTraits.LOCALIZATION)
-			.and(nameKey,   key)
-			.and(domainKey, domain)
-			.and(localeKey, locale)
+			.key(nameKey,   key)
+			.key(domainKey, domain)
+			.key(localeKey, locale)
 			.getAsList();
 
 		// nothing found

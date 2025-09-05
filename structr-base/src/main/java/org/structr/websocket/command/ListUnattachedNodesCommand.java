@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -97,8 +97,9 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 			.includeHidden()
 			.pageSize(pageSize)
 			.page(page)
-			.and(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), null)
-			.and(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), null);
+			.and()
+				.key(traits.key(DOMNodeTraitDefinition.OWNER_DOCUMENT_PROPERTY), null)
+				.key(traits.key(DOMNodeTraitDefinition.PARENT_PROPERTY), null);
 
 		if (sortKey != null) {
 

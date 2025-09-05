@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -68,9 +68,8 @@ public class ImageConverter extends PropertyConverter {
 			Image img = null;
 
 			try {
-				if (source instanceof byte[]) {
+				if (source instanceof byte[] data) {
 
-					byte[] data      = (byte[]) source;
 					MagicMatch match = Magic.getMagicMatch(data);
 					String mimeType  = match.getMimeType();
 
@@ -84,9 +83,7 @@ public class ImageConverter extends PropertyConverter {
 
 					}
 
-				} else if (source instanceof String) {
-
-					String sourceString = (String) source;
+				} else if (source instanceof String sourceString) {
 
 					if (StringUtils.isNotBlank(sourceString)) {
 

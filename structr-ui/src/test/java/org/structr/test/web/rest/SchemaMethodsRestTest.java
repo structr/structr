@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,12 +29,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.ResourceAccessTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -345,7 +340,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).andName("TestType").getFirst();
+			final NodeInterface testType = app.nodeQuery(StructrTraits.SCHEMA_NODE).name("TestType").getFirst();
 
 			// create private method that is not exported via REST
 			app.create(StructrTraits.SCHEMA_METHOD,

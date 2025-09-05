@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,10 +24,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
@@ -59,7 +59,6 @@ public class GetOrCreateFunction extends CoreFunction {
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config    = StructrApp.getConfiguration();
 			final App app                         = StructrApp.getInstance(securityContext);
 			final PropertyMap properties          = new PropertyMap();
 
@@ -70,12 +69,6 @@ public class GetOrCreateFunction extends CoreFunction {
 
 				final String typeString = sources[0].toString();
 				type = Traits.of(typeString);
-
-				if (type == null) {
-
-					logger.warn("Error in get_or_create(): type \"{}\" not found.", typeString);
-					return ERROR_MESSAGE_TYPE_NOT_FOUND + typeString;
-				}
 			}
 
 			// exit gracefully instead of crashing..
@@ -88,7 +81,18 @@ public class GetOrCreateFunction extends CoreFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				properties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]));
+				final PropertyMap convertedProperties = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]);
+
+				// check property keys manually (not allowed to use generic properties here)
+				for (final PropertyKey key : convertedProperties.keySet()) {
+
+					if (key instanceof GenericProperty) {
+
+						throw new FrameworkException(422, "Unknown key `" + key.jsonName() + "`");
+					}
+				}
+
+				properties.putAll(convertedProperties);
 
 			} else {
 
@@ -105,10 +109,11 @@ public class GetOrCreateFunction extends CoreFunction {
 						throw new IllegalArgumentException();
 					}
 
-					final PropertyKey key = type.key(sources[c].toString());
+					final String keyName  = sources[c].toString();
+					final PropertyKey key = type.key(keyName);
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value                           = sources[c + 1];
 
 						if (inputConverter != null) {
@@ -117,11 +122,15 @@ public class GetOrCreateFunction extends CoreFunction {
 						}
 
 						properties.put(key, value);
+
+					} else {
+
+						throw new FrameworkException(422, "Unknown key `" + keyName + "`");
 					}
 				}
 			}
 
-			final GraphObject obj = app.nodeQuery(type.getName()).disableSorting().pageSize(1).and(properties).getFirst();
+			final GraphObject obj = app.nodeQuery(type.getName()).disableSorting().pageSize(1).and().key(properties).getFirst();
 			if (obj != null) {
 
 				// return existing object

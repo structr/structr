@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.memory;
 
-import org.structr.api.NotFoundException;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -47,6 +46,7 @@ public class MemoryTransaction implements Transaction {
 	private final long transactionId                                           = idCounter.incrementAndGet();
 	private MemoryDatabaseService db                                           = null;
 	private boolean failureOverride                                            = false;
+	private boolean isPing                                                     = false;
 	private boolean success                                                    = false;
 
 	public MemoryTransaction(final MemoryDatabaseService db) {
@@ -72,9 +72,14 @@ public class MemoryTransaction implements Transaction {
 	public boolean isSuccessful() {
 		return success;
 	}
+	@Override
+	public boolean isRolledBack() {
+		return false;
+	}
 
 	@Override
 	public void setIsPing(final boolean isPing) {
+		this.isPing = isPing;
 	}
 
 	@Override
@@ -251,5 +256,9 @@ public class MemoryTransaction implements Transaction {
 
 	@Override
 	public void prefetch2(String query, Set<String> outgoingKeys, Set<String> incomingKeys, final String id) {
+	}
+
+	public boolean isPing() {
+		return isPing;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,9 +24,9 @@ package org.structr.rest.api.parameter;
  */
 public class StaticParameter implements RESTParameter {
 
-	private boolean includeInSignature = false;
-	private String staticSignaturePart = null;
-	private String part                = null;
+	private final boolean includeInSignature;
+	private final String staticSignaturePart;
+	private final String part;
 
 	public StaticParameter(final String part, final boolean includeInSignature, final String staticSignaturePart) {
 

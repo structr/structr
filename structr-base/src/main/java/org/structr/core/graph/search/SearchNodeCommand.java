@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,24 +26,12 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 
 /**
- * Search for nodes by their attributes.
- * <p>
- * The execute method takes four parameters:
- * <p>
- * <ol>
- * <li>top node: search only below this node
- *     <p>if null, search everywhere (top node = root node)
- * <li>boolean include deleted and hidden: if true, return deleted and hidden nodes as well
- * <li>boolean public only: if true, return only public nodes
- * <li>List&lt;TextualSearchAttribute> search attributes: key/value pairs with search operator
- *    <p>if no TextualSearchAttribute is given, return any node matching the other
- *       search criteria
- * </ol>
+ *
  */
 public class SearchNodeCommand extends SearchCommand<Node, NodeInterface> {
 
 	@Override
-	public NodeFactory getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
+	public NodeFactory getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
 		return new NodeFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,9 @@
  */
 package org.structr.rest.service;
 
-import org.eclipse.jetty.server.session.AbstractSessionDataStore;
-import org.eclipse.jetty.server.session.SessionData;
+import org.apache.commons.collections.map.LRUMap;
+import org.eclipse.jetty.session.AbstractSessionDataStore;
+import org.eclipse.jetty.session.SessionData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -36,11 +37,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.SessionDataNodeTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 /**
  */
@@ -48,16 +45,15 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 
-	private static final Map<String, SessionData> anonymousSessionCache = new ConcurrentHashMap<>();
+	private static final Map<String, SessionData> anonymousSessionCache = Collections.synchronizedMap(new LRUMap(100_000));
 
 	@Override
 	public boolean doExists(final String id) throws Exception {
-
 		return exists(id);
 	}
 
 	@Override
-	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
+	public synchronized void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
 
 		assertInitialized();
 
@@ -68,12 +64,12 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore store");
 
-			final Traits sessionTraits = Traits.of(StructrTraits.SESSION_DATA_NODE);
-			final NodeInterface user   = AuthHelper.getPrincipalForSessionId(id);
+			final NodeInterface user = AuthHelper.getPrincipalForSessionId(id);
 
 			if (user != null) {
 
-				final NodeInterface node = getOrCreateSessionDataNode(app, sessionTraits, id);
+				final Traits sessionTraits = Traits.of(StructrTraits.SESSION_DATA_NODE);
+				final NodeInterface node   = getOrCreateSessionDataNode(app, sessionTraits, id);
 				if (node != null) {
 
 					final PropertyMap properties = new PropertyMap();
@@ -104,7 +100,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public boolean exists(final String id) throws Exception {
+	public synchronized boolean exists(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			return true;
@@ -118,7 +114,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore exists");
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(Traits.of(StructrTraits.SESSION_DATA_NODE).key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).key(Traits.of(StructrTraits.SESSION_DATA_NODE).key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
 
 			tx.success();
 
@@ -133,7 +129,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public SessionData load(final String id) throws Exception {
+	public synchronized SessionData load(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			return anonymousSessionCache.get(id);
@@ -149,7 +145,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			tx.prefetchHint("StructrSessionDataStore load");
 
 			final Traits traits      = Traits.of(StructrTraits.SESSION_DATA_NODE);
-			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).key(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
 			if (node != null) {
 
 				result = new SessionData(
@@ -174,7 +170,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public boolean delete(final String id) throws Exception {
+	public synchronized boolean delete(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			anonymousSessionCache.remove(id);
@@ -191,7 +187,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 			tx.prefetchHint("StructrSessionDataStore delete");
 
 			// delete nodes
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).key(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getAsList()) {
 
 				app.delete(node);
 			}
@@ -214,7 +210,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
+	public synchronized Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
 
 		final Date timeoutDate = new Date(System.currentTimeMillis() - sessionTimeout);
 
@@ -236,7 +232,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore doCheckExpired");
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).andRange(traits.key(SessionDataNodeTraitDefinition.LAST_ACCESSED_PROPERTY), new Date(0), timeoutDate).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).range(traits.key(SessionDataNodeTraitDefinition.LAST_ACCESSED_PROPERTY), new Date(0), timeoutDate).getAsList()) {
 
 				candidates.add(node.getProperty(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY)));
 			}
@@ -252,7 +248,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public Set<String> doGetExpired(final long sessionTimeout) {
+	public synchronized Set<String> doGetExpired(final long sessionTimeout) {
 		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
 
 		assertInitialized();
@@ -275,7 +271,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 			tx.prefetchHint("StructrSessionDataStore doGetExpired");
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).andRange(traits.key(SessionDataNodeTraitDefinition.LAST_ACCESSED_PROPERTY), new Date(0), timeoutDate).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.SESSION_DATA_NODE).range(traits.key(SessionDataNodeTraitDefinition.LAST_ACCESSED_PROPERTY), new Date(0), timeoutDate).getAsList()) {
 
 				candidates.add(node.getProperty(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY)));
 			}
@@ -291,7 +287,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public void doCleanOrphans(long timeout) {
+	public synchronized void doCleanOrphans(long timeout) {
 
 		for (final String id : doGetExpired(timeout)) {
 
@@ -321,7 +317,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 	private NodeInterface getOrCreateSessionDataNode(final App app, final Traits traits, final String id) throws FrameworkException {
 
-		NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).and(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
+		NodeInterface node = app.nodeQuery(StructrTraits.SESSION_DATA_NODE).key(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id).getFirst();
 		if (node == null) {
 
 			node= app.create(StructrTraits.SESSION_DATA_NODE, new NodeAttribute<>(traits.key(SessionDataNodeTraitDefinition.SESSION_ID_PROPERTY), id));

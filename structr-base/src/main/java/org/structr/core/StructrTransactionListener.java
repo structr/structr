@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,12 +36,12 @@ import java.util.Map;
  */
 public interface StructrTransactionListener {
 
-	public void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents) throws FrameworkException;
-	public void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents);
+	void beforeCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents) throws FrameworkException;
+	void afterCommit(final SecurityContext securityContext, final Collection<ModificationEvent> modificationEvents);
 
-	default public void simpleBroadcast(final String messageName, final Map<String, Object> data) {
+	default void simpleBroadcast(final String messageName, final Map<String, Object> data) {
 		simpleBroadcast(messageName, data, null);
-	};
+	}
 
 	void simpleBroadcast(final String messageName, final Map<String, Object> data, final Predicate<String> sessionIdPredicate);
 }

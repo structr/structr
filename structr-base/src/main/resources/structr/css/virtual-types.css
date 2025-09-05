@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,7 @@
 #virtual-types-main {
 	display: none;
 	height: calc(100% - 3rem);
-	margin: 2rem;
+	margin: 0 2rem 2rem 2rem;
 }
 
 #virtual-types-list {

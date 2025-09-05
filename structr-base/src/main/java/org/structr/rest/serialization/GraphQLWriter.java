@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -244,7 +244,7 @@ public class GraphQLWriter {
 			final SecurityContext securityContext = writer.getSecurityContext();
 
 			try {
-				final PropertyConverter converter = key.inputConverter(securityContext);
+				final PropertyConverter converter = key.inputConverter(securityContext, false);
 				if (converter != null) {
 
 					Object convertedValue = null;

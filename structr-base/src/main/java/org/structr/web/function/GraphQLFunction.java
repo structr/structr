@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,7 +58,7 @@ public class GraphQLFunction extends UiAdvancedFunction {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
 			final String query  = sources[0].toString();
-			final boolean parse = (sources.length > 1) ? Boolean.TRUE.equals(sources[1]) : false;
+			final boolean parse = sources.length > 1 && Boolean.TRUE.equals(sources[1]);
 			final SecurityContext securityContext = ctx.getSecurityContext();
 
 			if (query != null && securityContext != null) {

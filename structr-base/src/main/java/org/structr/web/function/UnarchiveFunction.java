@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -64,7 +63,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 		try {
 
 			final File archiveFile = ((NodeInterface)sources[0]).as(File.class);
-			Folder parentFolder;
+			Folder parentFolder = null;
 
 			if (sources.length == 2 && sources[1] != null) {
 
@@ -77,7 +76,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 				props.put(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
-				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
+				//parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
 			}
 
 			FileHelper.unarchive(ctx.getSecurityContext(), archiveFile, parentFolder == null ? null : parentFolder.getUuid());

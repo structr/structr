@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,9 @@
  */
 package org.structr.web.resource;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
-import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -36,19 +28,24 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.auth.exception.PasswordChangeRequiredException;
-import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
+import org.structr.core.auth.exception.*;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  */
@@ -93,7 +90,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 			final App app = StructrApp.getInstance(ctx);
 			Principal user = null;
 
-			if (Settings.CallbacksOnLogin.getValue() == false) {
+			if (!Settings.CallbacksOnLogin.getValue()) {
 				ctx.disableInnerCallbacks();
 			}
 
@@ -120,19 +117,14 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 					if (ex.showQrCode()) {
 
-						try {
+						user = ex.getUser();
+						final Map<String, Object> hints = new HashMap();
 
-							user = ex.getUser();
-							final Map<String, Object> hints = new HashMap();
+						hints.put("MARGIN", 0);
+						hints.put("ERROR_CORRECTION", "M");
 
-							hints.put("MARGIN", 0);
-							hints.put("ERROR_CORRECTION", "M");
+						returnedMethodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(user.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes(StandardCharsets.ISO_8859_1)));
 
-							returnedMethodResult.addHeader("qrdata", Base64.getUrlEncoder().encodeToString(BarcodeFunction.getQRCode(user.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1")));
-
-						} catch (UnsupportedEncodingException uee) {
-							logger.warn("Charset ISO-8859-1 not supported!?", uee);
-						}
 					}
 
 					securityContext.getAuthenticator().doLogout(securityContext.getRequest());

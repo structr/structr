@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,7 +30,6 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
@@ -159,15 +158,15 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.OWNER_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY,
 					URL_PROPERTY, AUTHOR_PROPERTY, COMMENTS_PROPERTY, DESCRIPTION_PROPERTY, PUB_DATE_PROPERTY,
 					UPDATED_DATE_PROPERTY, CONTENTS_PROPERTY, ENCLOSURES_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
 					URL_PROPERTY, AUTHOR_PROPERTY, COMMENTS_PROPERTY, DESCRIPTION_PROPERTY, PUB_DATE_PROPERTY,
-					UPDATED_DATE_PROPERTY, CHECKSUM_PROPERTY, CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY,
-					CONTENTS_PROPERTY, ENCLOSURES_PROPERTY, FEED_PROPERTY
+					UPDATED_DATE_PROPERTY, CONTENTS_PROPERTY, ENCLOSURES_PROPERTY,
+					CHECKSUM_PROPERTY, CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, FEED_PROPERTY
 			)
 		);
 	}

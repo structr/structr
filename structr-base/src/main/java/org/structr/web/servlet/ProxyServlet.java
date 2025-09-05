@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,8 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.exception.ExceptionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -48,6 +48,7 @@ import org.structr.web.auth.UiAuthenticator;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
@@ -91,7 +92,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 			try {
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
@@ -176,7 +177,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 			if (StringUtils.isNotBlank(contentType)) {
 				final String[] contentTypeParts = contentType.split(";");
 				if (contentTypeParts.length == 2) {
-					charset = org.apache.commons.lang.StringUtils.trim(contentTypeParts[1]);
+					charset = org.apache.commons.lang3.StringUtils.trim(contentTypeParts[1]);
 				}
 			}
 
@@ -246,7 +247,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 
 			try {
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 

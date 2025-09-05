@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,15 @@ document.addEventListener("DOMContentLoaded", () => {
 	Structr.mainContainerOffscreen   = document.createElement('div');
 	Structr.functionBarOffscreen     = document.createElement('div');
 	Structr.dialogContainerOffscreen = document.createElement('div');
+
+	Structr.determineNotificationAreaVisibility();
+
+	/* Message-area: Hook up "Close All" button */
+	document.querySelector('#info-area #close-all-button').addEventListener('click', () => {
+		for (let confirmButton of document.querySelectorAll(`#info-area .${MessageBuilder.closeButtonClass}`)) {
+			confirmButton.dispatchEvent(new Event('click'));
+		}
+	});
 
 	document.querySelector('#logout_').addEventListener('click', (e) => {
 		e.stopPropagation();
@@ -74,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	StructrWS.init();
 
-	document.body.addEventListener('keyup', (event) => {
+	document.body.addEventListener('keyup', async (event) => {
 
 		let keyCode = event.keyCode;
 		let code    = event.code;
@@ -86,8 +95,9 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			_Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
+			await _Dialogs.custom.checkSaveOrCloseOnEscapeKeyPressed();
 		}
+
 		return false;
 	});
 
@@ -111,60 +121,21 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Ctrl-Alt-f
 		if ((code === 'KeyF' || keyCode === 70) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			_Favorites.toggleFavorites();
+			_Favorites.showFavorites();
 		}
 
 		// Ctrl-Alt-p
 		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Entities.showProperties(obj, null, true);
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
+
+			Structr.openPropertiesDialogForUserProvidedUUID();
 		}
 
 		// Ctrl-Alt-m
 		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Elements.openEditContentDialog(obj);
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
-		}
 
-		// Ctrl-Alt-g
-		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-			if (!uuid) {
-				// ESC or Cancel
-			} else if (_Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, (obj) => {
-					_Entities.showAccessControlDialog(obj);
-				});
-			} else {
-				new WarningMessage().text('Given string does not validate as a UUID').show();
-			}
-		}
-
-		// Ctrl-Alt-h
-		if ((code === 'KeyH' || keyCode === 72) && event.altKey && event.ctrlKey) {
-			event.preventDefault();
-			if (Structr.isModuleActive(_Schema)) {
-				_Schema.hideSelectedSchemaTypes();
-			}
+			Structr.openEditorDialogForUserProvidedUUID();
 		}
 
 		// Ctrl-Alt-e
@@ -177,25 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	window.addEventListener('resize', Structr.resize);
 
-	live('.dropdown-select', 'click', (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-
-		Structr.handleDropdownClick(e);
-
-		return false;
-	});
-
-	window.addEventListener('click', (e) => {
-		e.stopPropagation();
-
-		const menu           = e.target.closest('.dropdown-menu');
-		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
-
-		Structr.hideOpenDropdownsExcept(menuContainer);
-
-		return false;
-	});
+	Structr.dropdowns.initEventHandlers();
 });
 
 let Structr = {
@@ -207,6 +160,7 @@ let Structr = {
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
 	dynamicClassPrefix: 'org.structr.dynamic.',
 	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
+	notificationIconId: 'notifications-icon',
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
 	modules: {},
@@ -344,9 +298,13 @@ let Structr = {
 
 			_Console.initConsole();
 
-			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
+			document.querySelector('#header #terminal-icon').addEventListener('click', _Console.toggleConsole);
+			document.querySelector('#header #' + Structr.notificationIconId).addEventListener('click', () => {
 
-			_Favorites.initFavorites();
+				Structr.setForceShowNotificationAreaState(true);
+				Structr.determineNotificationAreaVisibility();
+			});
+
 		});
 	},
 	updateUsername: (name) => {
@@ -355,11 +313,18 @@ let Structr = {
 			$('#logout_').html(`Logout <span class="username">${name}</span>`);
 		}
 	},
+	getInstanceDisplayName: () => {
+
+		let name        = (Structr.instanceName === '')  ? '' : `${Structr.instanceName} `;
+		let stageString = (Structr.instanceStage === '') ? '' : `(${Structr.instanceStage})`;
+
+		return `${name}${stageString}${Structr.maintenance ? ' [MAINTENANCE]' : ''}`;
+	},
 	updateDocumentTitle: () => {
 
 		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
-
-		let instance = (Structr.instanceName === '' && Structr.instanceStage === '') ? '' : ` - ${Structr.instanceName} (${Structr.instanceStage})`;
+		let displayName     = Structr.getInstanceDisplayName();
+		let instance        = (displayName === '') ? '' : ` - ${displayName})`;
 
 		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
@@ -373,7 +338,6 @@ let Structr = {
 	},
 	doLogout: () => {
 
-		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
 
@@ -481,6 +445,7 @@ let Structr = {
 	getErrorMessageFromResponse: (response, useHtml = true, url) => {
 
 		let errorText = '';
+		let lineJoin  = (useHtml ? '<br>' : '\n');
 
 		if (response.errors && response.errors.length) {
 
@@ -490,7 +455,7 @@ let Structr = {
 
 			for (let error of uniqueErrors) {
 
-				let errorMsg = (error.type ? error.type : '');
+				let errorMsg = error.type ?? '';
 				if (error.property) {
 					errorMsg += `.${error.property}`;
 				}
@@ -510,7 +475,7 @@ let Structr = {
 				errorLines.push(errorMsg);
 			}
 
-			errorText = errorLines.join((useHtml ? '<br>' : '\n'));
+			errorText = errorLines.join(lineJoin);
 
 		} else {
 
@@ -518,17 +483,8 @@ let Structr = {
 				errorText = url + ': ';
 			}
 
-			errorText += response.code + (useHtml ? '<br>' : '\n');
-
-			for (let key in response) {
-				if (key !== 'code') {
-					if (useHtml) {
-						errorText += `<b>${key}</b>: ${response[key]}<br>`;
-					} else {
-						errorText += `${key}: ${response[key]}`;
-					}
-				}
-			}
+			errorText += response.code + lineJoin;
+			errorText += Object.entries(response).filter(([k, v]) => (k !== 'code' && v && v.length > 0)).map(([k, v]) => (useHtml) ? `<b>${k}</b>: ${v}` : `${k}: ${v}`).join(lineJoin);
 		}
 
 		return errorText;
@@ -605,7 +561,6 @@ let Structr = {
 				Structr.clearMain();
 				Structr.mainMenu.activateEntry(name);
 				Structr.modules[name].onload();
-				Structr.adaptUiToAvailableFeatures();
 			}
 
 			return moduleAllowsNavigation;
@@ -649,10 +604,9 @@ let Structr = {
 
 		return childNodes.length;
 	},
-	node: (id, prefix) => {
+	node: (id, prefix = '#id_', container = document) => {
 
-		let p    = prefix || '#id_';
-		let node = $($(p + id)[0]);
+		let node = $($(prefix + id, $(container))[0]);
 
 		return (node.length ? node : undefined);
 	},
@@ -831,13 +785,11 @@ let Structr = {
 
 				if (!Structr.isInMemoryDatabase) {
 
-					dbInfoEl.html(`<span>${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}</span>`);
+					dbInfoEl.html(`${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}`);
 
 				} else {
 
-					dbInfoEl.html('<span></span>');
-
-					Structr.appendInMemoryInfoToElement($('span', dbInfoEl));
+					Structr.appendInMemoryInfoToElement(dbInfoEl);
 
 					if (isLogin) {
 						new WarningMessage().text(Structr.inMemoryWarningText).requiresConfirmation().show();
@@ -853,18 +805,15 @@ let Structr = {
 				});
 			}
 
-			$('#header .structr-instance-name').text(envInfo.instanceName);
-			$('#header .structr-instance-stage').text(envInfo.instanceStage);
-
 			Structr.instanceName  = envInfo.instanceName;
 			Structr.instanceStage = envInfo.instanceStage;
+			Structr.maintenance   = (true === envInfo.maintenanceModeActive);
 			Structr.updateDocumentTitle();
 
-			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
+			let displayName = Structr.getInstanceDisplayName();
+			$('#header .structr-instance-name').text(displayName);
 
-			if (true === envInfo.maintenanceModeActive) {
-				$('#header .structr-instance-maintenance').text("MAINTENANCE");
-			}
+			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
 
 			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
 
@@ -874,11 +823,9 @@ let Structr = {
 				let build       = ui.build;
 				let date        = ui.date;
 				let versionInfo = `
-					<div>
-						<a target="_blank" href="https://structr.com/download">${ui.version}</a>
-						${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
-						${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
-					</div>
+					<span>${ui.version}</span>
+					${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
+					${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
 				`;
 
 				$('.structr-version').html(versionInfo);
@@ -899,8 +846,6 @@ let Structr = {
 			}
 
 			Structr.activeModules = envInfo.modules;
-
-			Structr.adaptUiToAvailableFeatures();
 
 			let userConfigMenu = Structr.mainMenu.getSavedMenuConfig();
 
@@ -967,25 +912,24 @@ let Structr = {
 		},
 		block: () => {
 
-			Structr.mainMenu.isBlocked = true;
-
-			for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
-				menuEntry.disabled = true;
-				menuEntry.classList.add('disabled');
-			}
+			Structr.mainMenu.setMenuBlockedState(true);
 		},
 		unblock: (timeoutInMs = 0) => {
 
 			window.setTimeout(() => {
 
-				Structr.mainMenu.isBlocked = false;
-
-				for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
-					menuEntry.disabled = false;
-					menuEntry.classList.remove('disabled');
-				}
+				Structr.mainMenu.setMenuBlockedState(false);
 
 			}, timeoutInMs);
+		},
+		setMenuBlockedState: (blocked) => {
+
+			Structr.mainMenu.isBlocked = blocked;
+
+			for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
+				menuEntry.disabled = blocked;
+				menuEntry.classList.toggle('disabled', blocked);
+			}
 		},
 		reset: () => {
 
@@ -1031,9 +975,9 @@ let Structr = {
 			element: el,
 			text: Structr.inMemoryWarningText,
 			customToggleIcon: 'database-warning-sign-icon',
-			customToggleIconClasses: ['ml-2'],
-			width: 20,
-			height: 20,
+			customToggleIconClasses: [],
+			width: 16,
+			height: 16,
 			noSpan: true,
 			helpElementCss: {
 				'border': '2px solid red',
@@ -1073,35 +1017,6 @@ let Structr = {
 	getActiveElementId: (element) => {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
-	adaptUiToAvailableFeatures: () => {
-		Structr.adaptUiToAvailableModules();
-		Structr.adaptUiToEdition();
-	},
-	adaptUiToAvailableModules: () => {
-		$('.module-dependent').each(function(idx, element) {
-			let el = $(element);
-
-			if (Structr.isModulePresent(el.data('structr-module'))) {
-				if (!el.is(':visible')) el.show();
-			} else {
-				el.hide();
-			}
-		});
-	},
-	adaptUiToEdition: () => {
-		$('.edition-dependent').each(function(idx, element) {
-			let el = $(element);
-
-			if (Structr.isAvailableInEdition(el.data('structr-edition'))) {
-				if (!el.is(':visible')) el.show();
-			} else {
-				el.hide();
-			}
-		});
-	},
-	isModulePresent: (moduleName) => {
-		return Structr.activeModules[moduleName] !== undefined;
-	},
 	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
 	},
@@ -1114,18 +1029,6 @@ let Structr = {
 	},
 	registerActionToRunAfterEnvInfoIsAvailable: (cb) => {
 		Structr.envInfoAvailableCallbacks.push(cb);
-	},
-	isAvailableInEdition: (requiredEdition) => {
-		switch (Structr.edition) {
-			case 'Enterprise':
-				return true;
-			case 'Small Business':
-				return ['Small Business', 'Basic', 'Community'].indexOf(requiredEdition) !== -1;
-			case 'Basic':
-				return ['Basic', 'Community'].indexOf(requiredEdition) !== -1;
-			case 'Community':
-				return ['Community'].indexOf(requiredEdition) !== -1;
-		};
 	},
 	updateMainHelpLink: (newUrl) => {
 		let helpLink = document.querySelector('#main-help a');
@@ -1223,20 +1126,6 @@ let Structr = {
 		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
 		return val;
 	},
-
-	// is only populated while sorting is active - needs to be clear afterwards
-	currentlyActiveSortable: undefined,
-	refreshPositionsForCurrentlyActiveSortable: () => {
-
-		if (Structr.currentlyActiveSortable) {
-
-			Structr.currentlyActiveSortable.sortable({ refreshPositions: true });
-
-			window.setTimeout(() => {
-				Structr.currentlyActiveSortable.sortable({ refreshPositions: false });
-			}, 500);
-		}
-	},
 	handleGenericMessage: (data) => {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
@@ -1264,21 +1153,21 @@ let Structr = {
 
 					let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
 
-					messageBuilder.title(titles[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().allowConfirmAll().text(texts[data.subtype]).show();
+					messageBuilder.title(titles[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().text(texts[data.subtype]).show();
 				}
 				break;
 
 			case "CSV_IMPORT_WARNING":
 
 				if (StructrWS.me.username === data.username) {
-					new WarningMessage().title(data.title).text(data.text).requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title(data.title).text(data.text).requiresConfirmation().show();
 				}
 				break;
 
 			case "CSV_IMPORT_ERROR":
 
 				if (StructrWS.me.username === data.username) {
-					new ErrorMessage().title(data.title).text(data.text).requiresConfirmation().allowConfirmAll().show();
+					new ErrorMessage().title(data.title).text(data.text).requiresConfirmation().show();
 				}
 				break;
 
@@ -1314,7 +1203,7 @@ let Structr = {
 					messageBuilder.title(`${data.jobtype} ${fileImportTitles[data.subtype]}`).text(fileImportTexts[data.subtype]).uniqueClass(`${data.jobtype}-import-status-${data.filepath}`);
 
 					if (data.subtype !== 'QUEUED') {
-						messageBuilder.updatesText().requiresConfirmation().allowConfirmAll();
+						messageBuilder.updatesText().requiresConfirmation();
 					}
 
 					messageBuilder.show();
@@ -1334,7 +1223,7 @@ let Structr = {
 						text += `<br>${data.stringvalue}`;
 					}
 
-					new ErrorMessage().title(`Exception while importing ${data.jobtype}`).text(`File: ${data.filepath}<br>${text}`).requiresConfirmation().allowConfirmAll().show();
+					new ErrorMessage().title(`Exception while importing ${data.jobtype}`).text(`File: ${data.filepath}<br>${text}`).requiresConfirmation().show();
 				}
 
 				if (Structr.isModuleActive(Importer)) {
@@ -1358,10 +1247,10 @@ let Structr = {
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
 					let messageBuilder = (data.subtype === 'END') ? new SuccessMessage() : new InfoMessage();
-					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).appendsText();
+					messageBuilder.title(scriptJobTitles[data.subtype]).text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).prependsText();
 
 					if (data.subtype !== 'QUEUED') {
-						messageBuilder.requiresConfirmation().allowConfirmAll();
+						messageBuilder.requiresConfirmation();
 					}
 
 					messageBuilder.show();
@@ -1439,7 +1328,9 @@ let Structr = {
 
 					if (isImport) {
 
-						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').updatesButtons();
+						finalMessage.specialInteractionButton('Reload Page', () => { location.reload(); }).updatesButtons();
+
+						Structr.cleanupAfterDeploymentImport();
 					}
 
 					finalMessage.show();
@@ -1494,7 +1385,7 @@ let Structr = {
 
 				} else if (data.subtype === 'WARNING') {
 
-					new WarningMessage().title("Certificate retrieval progress").text(data.message).uniqueClass('cert-retrieval').requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title("Certificate retrieval progress").text(data.message).uniqueClass('cert-retrieval').requiresConfirmation().show();
 				}
 
 				break;
@@ -1503,7 +1394,7 @@ let Structr = {
 
 				let enabled = data.enabled ? 'enabled' : 'disabled';
 
-				new WarningMessage().title(`Maintenance Mode ${enabled}`).text(`Maintenance Mode has been ${enabled}.<br><br> Redirecting...`).allowConfirmAll().show();
+				new WarningMessage().title(`Maintenance Mode ${enabled}`).text(`Maintenance Mode has been ${enabled}.<br><br> Redirecting...`).show();
 
 				window.setTimeout(() => {
 					location.href = data.baseUrl + location.pathname + location.search;
@@ -1511,22 +1402,22 @@ let Structr = {
 				break;
 
 			case "WARNING":
-				new WarningMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
+				new WarningMessage().title(data.title).text(data.message).requiresConfirmation().show();
 				break;
 
 			case "INFO":
-				new InfoMessage().title(data.title).text(data.message).requiresConfirmation().allowConfirmAll().show();
+				new InfoMessage().title(data.title).text(data.message).requiresConfirmation().show();
 				break;
 
 			case "SCRIPT_JOB_EXCEPTION":
-				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().allowConfirmAll().show();
+				new WarningMessage().title('Exception in Scheduled Job').text(data.message).requiresConfirmation().show();
 				break;
 
 			case "RESOURCE_ACCESS":
 
 				if (showResourceAccessPopups) {
 
-					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation().allowConfirmAll();
+					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation();
 
 					let createPermission = (permissionData) => {
 
@@ -1574,15 +1465,15 @@ let Structr = {
 
 					if (data.validUser === false) {
 
-						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>public</b> users', () => { createPermission({ visibleToPublicUsers: true, grantees: [] }) });
 
 					} else {
 
 						if (data.isServicePrincipal === false) {
-							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: 'read' }] }) }, 'Dismiss');
+							builder.specialInteractionButton(`Create and show permission for user <b>${data.username}</b>`, () => { createPermission({ grantees: [{ id: data.userid, allowed: ['read'] }] }) });
 						}
 
-						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show permission for <b>authenticated</b> users', () => { createPermission({ visibleToAuthenticatedUsers: true, grantees: [] }) });
 					}
 
 					builder.show();
@@ -1665,7 +1556,7 @@ let Structr = {
 
 									_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
 
-								}, 'Dismiss');
+								});
 
 							} else {
 
@@ -1686,15 +1577,15 @@ let Structr = {
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
 
-								}, 'Dismiss');
+								});
 							}
 
 							// show message
-							builder.allowConfirmAll().show();
+							builder.show();
 						});
 
 					} else {
-						new WarningMessage().title('Server-side Scripting Error').text(data.message).requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title('Server-side Scripting Error').text(data.message).requiresConfirmation().show();
 					}
 				}
 				break;
@@ -1728,7 +1619,7 @@ let Structr = {
 										break;
 								}
 
-								if (title != '') {
+								if (title !== '') {
 									builder.text(`${data.message}<br><br>Source: ${title}`);
 								}
 
@@ -1736,19 +1627,19 @@ let Structr = {
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
 
-								}, 'Dismiss');
+								});
 
-								builder.allowConfirmAll().show();
+								builder.show();
 							});
 
 						} else {
 
-							builder.allowConfirmAll().show();
+							builder.show();
 						}
 
 					} else {
 
-						builder.allowConfirmAll().show();
+						builder.show();
 					}
 				}
 				break;
@@ -1765,6 +1656,12 @@ let Structr = {
 			}
 		}
 	},
+	cleanupAfterDeploymentImport: () => {
+
+		_Elements.unselectEntity();	// selected entity could be in shadow page
+
+		_Pages.updateShadowPageAfterDeployment();
+	},
 	showReconnectDialog: () => {
 
 		let restoreDialogText = '';
@@ -1774,7 +1671,7 @@ let Structr = {
 		}
 
 		let reconnectDialog = `
-			<div id="reconnect-dialog">
+			<div id="reconnect-dialog" class="dialog">
 				<div class="flex flex-col gap-y-4 items-center justify-center">
 					<div class="flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')}
@@ -1793,7 +1690,7 @@ let Structr = {
 			</div>
 		`;
 
-		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
+		_Dialogs.basic.append(reconnectDialog);
 	},
 	getReconnectDialogElement: () => {
 		return document.getElementById('reconnect-dialog');
@@ -1803,92 +1700,185 @@ let Structr = {
 		let reconnectMessage = Structr.getReconnectDialogElement();
 		_Dialogs.basic.removeBlockerAround(reconnectMessage);
 	},
-	dropdownOpenEventName: 'dropdown-opened',
-	handleDropdownClick: (e) => {
 
-		let menu = e.target.closest('.dropdown-menu');
+	dropdowns: {
+		openEventName: 'dropdown-opened',
+		initEventHandlers: () => {
 
-		if (menu) {
+			live('.dropdown-select', 'click', (e) => {
+				e.stopPropagation();
+				e.preventDefault();
 
-			let container = menu.querySelector('.dropdown-menu-container');
+				Structr.dropdowns.handleDropdownClick(e);
 
-			Structr.showDropdownContainer(container);
-		}
-	},
-	showDropdownContainer: (container) => {
+				return false;
+			});
 
-		if (container) {
+			window.addEventListener('click', (e) => {
+				e.stopPropagation();
 
-			let isVisible = (container.dataset['visible'] === 'true');
+				const menu          = e.target.closest('.dropdown-menu');
+				const menuContainer = menu && menu.querySelector('.dropdown-menu-container');
 
-			if (isVisible) {
+				Structr.dropdowns.hideOpenDropdownsExcept(menuContainer);
 
-				Structr.hideDropdownContainer(container);
+				return false;
+			});
+		},
+		handleDropdownClick: (e) => {
 
-			} else {
+			let menu = e.target.closest('.dropdown-menu');
 
-				Structr.hideOpenDropdownsExcept(container);
+			if (menu) {
 
-				let btn           = container.closest('.dropdown-menu').querySelector('.dropdown-select');
-				let btnRect       = btn.getBoundingClientRect();
+				let container = menu.querySelector('.dropdown-menu-container');
 
-				// apply "fixed" first to prevent container overflow
-				if (btn.dataset['wantsFixed'] === 'true') {
-					/*
-                        this is important for the editor tools in a popup which need to break free from the popup dialog
-                    */
-					container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
-				}
+				Structr.dropdowns.showDropdownContainer(container);
+			}
+		},
+		showDropdownContainer: (container) => {
 
-				container.dataset['visible'] = 'true';
-				container.style.display      = 'block';
+			if (container) {
 
-				if (btn.dataset['preferredPositionX'] === 'left') {
+				let isVisible = (container.dataset['visible'] === 'true');
 
-					// position dropdown left of button
-					let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
-					container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
+				if (isVisible) {
+
+					Structr.dropdowns.hideDropdownContainer(container);
 
 				} else {
 
-					// allow positioning to change between openings
-					container.style.right = null;
+					Structr.dropdowns.hideOpenDropdownsExcept(container);
+
+					let btn     = container.closest('.dropdown-menu').querySelector('.dropdown-select');
+					let btnRect = btn.getBoundingClientRect();
+
+					// apply "fixed" first to prevent container overflow
+					if (btn.dataset['wantsFixed'] === 'true') {
+						/*
+							this is important for the editor tools in a popup which need to break free from the popup dialog
+						*/
+						container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
+					}
+
+					container.dataset['visible'] = 'true';
+					container.style.display      = 'block';
+
+					if (btn.dataset['preferredPositionX'] === 'left') {
+
+						// position dropdown left of button
+						let offsetParentRect  = btn.offsetParent.getBoundingClientRect();
+						container.style.right = `${(offsetParentRect.width + offsetParentRect.left) - btnRect.right}px`;
+
+					} else {
+
+						// allow positioning to change between openings
+						container.style.right = null;
+					}
+
+					if (btn.dataset['preferredPositionY'] === 'top') {
+
+						// position dropdown over activator button
+						container.style.bottom = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+
+					} else {
+
+						// allow positioning to change between openings
+						container.style.bottom = null;
+					}
+
+					container.dispatchEvent(new CustomEvent(Structr.dropdowns.openEventName, {
+						bubbles: true,
+						detail: container
+					}));
 				}
+			}
+		},
+		hideOpenDropdownsExcept: (exception) => {
 
-				if (btn.dataset['preferredPositionY'] === 'top') {
+			for (let container of document.querySelectorAll('.dropdown-menu-container')) {
 
-					// position dropdown over activator button
-					container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+				if (container !== exception) {
+					Structr.dropdowns.hideDropdownContainer(container);
+				}
+			}
+		},
+		hideDropdownContainer: (container) => {
+
+			container.dataset['visible'] = null;
+			container.style.display      = 'none';
+			container.style.position     = null;
+			container.style.bottom       = null;
+			container.style.top          = null;
+		},
+	},
+	determineNotificationAreaVisibility: () => {
+
+		let shouldHide = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+		let infoArea = document.querySelector('#info-area');
+		infoArea.classList.toggle('hidden', shouldHide);
+	},
+	setForceShowNotificationAreaState: (forceShowState = false) => {
+
+		if (forceShowState) {
+
+			// double check if there are messages to show
+			let messageArea  = document.querySelector('#info-area #messages');
+			let messageCount = messageArea.querySelectorAll('.message').length;
+
+			let hasMessages = (messageCount > 0);
+
+			forceShowState = forceShowState && hasMessages;
+		}
+
+		let infoArea = document.querySelector('#info-area');
+		infoArea.classList.toggle('force-show', forceShowState);
+	},
+	openPropertiesDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the properties dialog').then(uuid => {
+			Command.get(uuid, null, (obj) => {
+				_Entities.showProperties(obj, null, true);
+			});
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
+			}
+		});
+	},
+	openEditorDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID for which you want to open the content/template edit dialog', async (uuid) => {
+
+			let validationResult = await _Dialogs.readUUIDFromUser.defaultUUIDValidationPromise(uuid);
+
+			if (validationResult.allow) {
+
+				// basic UUID validation passed, validate further
+				let obj = await Command.getPromise(uuid, null);
+
+				if (obj.isContent === true) {
+
+					validationResult.value = obj;
 
 				} else {
 
-					// allow positioning to change between openings
-					container.style.bottom = null;
+					validationResult.allow = false;
+					validationResult.invalidMessage = 'Given UUID does not resolve to a content element. It is of type: ' + obj.type;
 				}
-
-				container.dispatchEvent(new CustomEvent(Structr.dropdownOpenEventName, {
-					bubbles: true,
-					detail: container
-				}));
 			}
-		}
-	},
-	hideOpenDropdownsExcept: (exception) => {
 
-		for (let container of document.querySelectorAll('.dropdown-menu-container')) {
+			return validationResult;
 
-			if (container != exception) {
-				Structr.hideDropdownContainer(container);
+		}).then(obj => {
+
+			_Elements.openEditContentDialog(obj);
+
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
 			}
-		}
-	},
-	hideDropdownContainer: (container) => {
-
-		container.dataset['visible'] = null;
-		container.style.display      = 'none';
-		container.style.position     = null;
-		container.style.bottom       = null;
-		container.style.top          = null;
+		});
 	},
 
 	/* basically only exists to get rid of repeating strings. is also used to filter out internal keys from dialogs */
@@ -1906,12 +1896,21 @@ let Structr = {
 
 	templates: {
 		mainBody: config => `
-			<div id="info-area"></div>
-			<div id="header">
 
-				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo'])}
+			<div id="info-area">
+				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
+					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
+				</div>
+				<div id="messages" class="py-1"></div>
+			</div>
 
-				<div id="menu" class="menu">
+			<div id="header" class="flex gap-x-4 items-center">
+
+				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo', 'mb-1', 'ml-8'])}
+
+				${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mx-2', 'mt-1']), 'Toggle Console')}
+
+				<div id="menu" class="menu mt-1">
 					<ul>
 						<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
 
@@ -1925,40 +1924,45 @@ let Structr = {
 								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
 								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
 								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
-								<li data-name="Flows" class="module-dependent" data-structr-module="api-builder"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
+								<li data-name="Flows"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
 								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
 								<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
-								<li data-name="Virtual Types" class="module-dependent" data-structr-module="api-builder"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
-								<li data-name="Mail Templates" class="edition-dependent" data-structr-edition="Enterprise"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
+								<li data-name="Virtual Types"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
+								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
 								<li data-name="Login"><a id="logout_" href="javascript:void(0)">Login</a></li>
 							</ul>
 						</li>
 					</ul>
 				</div>
-				<div class="structr-instance-info">
-					<div class="structr-instance">
-						<span class="structr-instance-db"></span>
+
+				<div class="structr-instance-info ml-auto">
+					<div class="structr-instance flex gap-2 items-center">
+						<span class="structr-instance-db flex"></span>
 						<span class="structr-instance-name"></span>
-						<span class="structr-instance-stage"></span>
-						<span class="structr-instance-maintenance"></span>
 					</div>
-					<div class="structr-version flex items-center h-4"></div>
+					<div class="structr-version flex gap-1 items-center justify-end"></div>
 				</div>
+
+				<div class="relative flex ml-2 mr-6">
+					${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Show notifications')}
+					<div class="absolute flex items-center rounded-full h-4 -top-3 -right-3 text-white bg-red">
+						<div data-notification-count class="px-2 text-xs hidden"></div>
+					</div>
+				</div>
+
 				<div id="main-help">
 					<a target="_blank" href="https://support.structr.com/knowledge-graph"></a>
 				</div>
 			</div>
 
 			<div class="hidden" id="structr-console"></div>
-			<div class="hidden" id="structr-favorites"></div>
 
 			<div id="function-bar"></div>
 			<div id="main"></div>
 
 			<div id="custom-context-menu-container"></div>
 		`,
-		defaultDialogMarkup: config => ``,
 		loginDialogMarkup: `
 			<div id="login" class="dialog p-6 text-left">
 
@@ -1998,7 +2002,7 @@ let Structr = {
 					<div class="mb-4 w-full text-center">Or continue with:</div>
 
 					${_Dialogs.loginDialog.getOauthProviders().map(({ name, uriPart, iconId })  => `
-						<button id="sso-login-${uriPart}" onclick="javascript:document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
+						<button id="sso-login-${uriPart}" onclick="document.location='${_Dialogs.loginDialog.getSSOUriForURIPart(uriPart)}';" class="btn w-full mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green hidden gap-2 items-center justify-center p-3 mb-2">
 							${_Icons.getSvgIcon(iconId)}
 							${name}
 						</button>
@@ -2012,7 +2016,7 @@ let Structr = {
 
 						<div id="two-factor-qr-code" class="col-span-2 text-center" style="display: none;">
 							<div>
-								<img>
+								<img alt="Two-Factor-Authentication QR Code">
 							</div>
 							<div class="mt-2 mb-3">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
 						</div>
@@ -2045,7 +2049,7 @@ let Structr = {
 		autoScriptTextArea: config => `
 			<div id="${config.wrapperId ?? ''}" class="flex ${config.wrapperClassString ?? ''}" title="Auto-script environment">
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-l">\${</span>
-				<textarea id="${config.textareaId ?? ''}" type="text" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
+				<textarea id="${config.textareaId ?? ''}" class="block flex-grow rounded-none px-1.5 py-2 border-0 border-y border-solid border-gray-input ${config.textareaClassString ?? ''}" placeholder="${config.placeholder ?? ''}" ${config.textareaAttributeString ?? ''}></textarea>
 				<span class="inline-flex items-center bg-gray px-2 w-4 justify-center select-none border border-solid border-gray-input rounded-r">}</span>
 			</div>
 		`
@@ -2340,7 +2344,7 @@ class LifecycleMethods {
 		{
 			name: 'onDelete',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.',
+			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes. (Linked nodes can not be accessed. Use <code>retrieve("modifications")</code> for that.)',
 			isPrefix: true
 		},
 		{
@@ -2406,6 +2410,7 @@ class MessageBuilder {
 		error: 'error',
 		info: 'info'
 	});
+	static closeButtonClass = 'close-message-button';
 
 	constructor (typeClass) {
 
@@ -2419,15 +2424,14 @@ class MessageBuilder {
 		this.params = {
 			text: 'Default message',
 			delayDuration: 3000,
-			confirmButtonText: 'Confirm',
-			allowConfirmAll: false,
-			confirmAllButtonText: 'Confirm all...',
 			uniqueClass: undefined,
 			uniqueCount: 1,
 			updatesText: false,
 			updatesButtons: false,
 			appendsText: false,
+			prependsText: false,
 			appendSelector: '',
+			prependSelector: '',
 			replacesElement: false,
 			replacesSelector: '',
 			replaceInParentSelector: '',
@@ -2436,16 +2440,8 @@ class MessageBuilder {
 		};
 	}
 
-	requiresConfirmation(confirmButtonText = this.params.confirmButtonText) {
+	requiresConfirmation() {
 		this.params.requiresConfirmation = true;
-		this.params.confirmButtonText = confirmButtonText;
-		return this;
-	};
-
-	allowConfirmAll(confirmAllButtonText = this.params.confirmAllButtonText) {
-		this.params.allowConfirmAll = true;
-		this.params.confirmAllButtonText = confirmAllButtonText;
-
 		return this;
 	};
 
@@ -2466,27 +2462,19 @@ class MessageBuilder {
 
 	appendButtons(buttonElement) {
 
-		if (this.params.requiresConfirmation === true) {
+		// message should not automatically be removed if:
+		// - it is not configured as such
+		// - the whole area is not shown
+		let shouldStayOpen = (this.params.requiresConfirmation === true) || (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
 
-			let confirmationButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirm hover:border-gray-666 mb-2">${this.params.confirmButtonText}</button>`);
-			buttonElement.appendChild(confirmationButton);
+		if (shouldStayOpen === true) {
 
-			confirmationButton.addEventListener('click', (e) => {
-				e.target.closest('button').remove();
+			let closeButton = buttonElement.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
+
+			closeButton.classList.remove('hidden');
+			closeButton.addEventListener('click', (e) => {
 				this.dismiss();
 			});
-
-			if (this.params.allowConfirmAll === true) {
-
-				let confirmAllButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirmAll hover:border-gray-666 mb-2">${this.params.confirmAllButtonText}</button>`);
-				buttonElement.appendChild(confirmAllButton);
-
-				confirmAllButton.addEventListener('click', () => {
-					for (let confirmButton of document.querySelectorAll(`#info-area button.confirm`)) {
-						confirmButton.click();
-					}
-				});
-			}
 
 		} else {
 
@@ -2501,7 +2489,7 @@ class MessageBuilder {
 
 		for (let btn of this.params.specialInteractionButtons) {
 
-			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mb-2">${btn.text}</button>`);
+			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mr-0">${btn.text}</button>`);
 			buttonElement.appendChild(specialBtn);
 
 			specialBtn.addEventListener('click', () => {
@@ -2516,7 +2504,7 @@ class MessageBuilder {
 	show() {
 
 		let uniqueMessageAlreadyPresented = false;
-		let allClasses                    = ['message', 'break-word', 'flex', 'rounded-md', 'pt-5', 'pl-5', 'pr-3', 'pb-3', 'm-1', this.typeClass, this.params.uniqueClass];
+		let allClasses                    = ['message', 'relative', 'break-word', 'flex', 'rounded-md', 'p-4', 'm-1', this.typeClass, this.params.uniqueClass];
 
 		if (this.params.uniqueClass) {
 
@@ -2550,6 +2538,16 @@ class MessageBuilder {
 					}
 
 					messageTextElement.innerHTML = this.params.text;
+
+				} else if (this.params.prependsText) {
+
+					if (titleElement) {
+						titleElement.innerHTML = this.params.title;
+					}
+
+					let prependTarget = (this.params.appendSelector === '') ? messageTextElement : (messageTextElement.querySelector(this.params.prependSelector) ?? messageTextElement);
+
+					prependTarget.insertAdjacentHTML('afterbegin', this.params.text);
 
 				} else if (this.params.appendsText) {
 
@@ -2596,23 +2594,26 @@ class MessageBuilder {
 
 			let message = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="${allClasses.join(' ')}" id="${this.params.msgId}" data-unique-count="${this.params.uniqueCount}">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer', 'absolute', 'top-3', 'right-3']))}
 					<div class="message-icon flex-shrink-0 mr-2">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
 						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg title">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
-						<div class="message-text overflow-y-auto">
+						<div class="message-text mb-2 overflow-y-auto">
 							${this.params.text}
 						</div>
-						<div class="message-buttons text-right mt-2"></div>
+						<div class="message-buttons flex gap-2 justify-end"></div>
 					</div>
 				</div>
 			`);
 
 			this.appendButtons(message.querySelector('.message-buttons'));
 
-			document.querySelector('#info-area').appendChild(message);
+			document.querySelector('#info-area #messages').appendChild(message);
 		}
+
+		this.updateNotificationIcon();
 	};
 
 	dismiss() {
@@ -2620,22 +2621,41 @@ class MessageBuilder {
 		let msgElement = document.querySelector(`#${this.params.msgId}`);
 
 		if (msgElement) {
+
 			msgElement.addEventListener('animationend', () => {
 				_Helpers.fastRemoveElement(msgElement);
+
+				this.updateNotificationIcon();
 			});
 
 			msgElement.classList.add('dismissed');
 		}
 	};
 
-	specialInteractionButton(buttonText, callback, confirmButtonText) {
+	updateNotificationIcon() {
+
+		let messageArea  = document.querySelector('#info-area #messages');
+		let messageCount = messageArea.querySelectorAll('.message').length;
+		let notificationCountElement = document.querySelector('[data-notification-count]');
+
+		let hasMessages = (messageCount > 0);
+
+		notificationCountElement.textContent = (hasMessages ? messageCount : '');
+		notificationCountElement.classList.toggle('hidden', !hasMessages);
+
+		if (!hasMessages) {
+			Structr.setForceShowNotificationAreaState(false);
+		}
+	}
+
+	specialInteractionButton(buttonText, callback) {
 
 		this.params.specialInteractionButtons.push({
 			text: buttonText,
 			action: callback
 		});
 
-		return this.requiresConfirmation(confirmButtonText);
+		return this.requiresConfirmation();
 	};
 
 	uniqueClass(className) {
@@ -2664,6 +2684,12 @@ class MessageBuilder {
 	appendsText(selector = '') {
 		this.params.appendsText    = true;
 		this.params.appendSelector = selector;
+		return this;
+	};
+
+	prependsText(selector = '') {
+		this.params.prependsText    = true;
+		this.params.prependSelector = selector;
 		return this;
 	};
 
@@ -2868,7 +2894,7 @@ let UISettings = {
 					<div class="flex items-center">
 						<label class="flex items-center p-1">
 							${setting.text}
-							<select class="mr-2 ${setting.inputCssClass ?? ''}">
+							<select class="ml-2 ${setting.inputCssClass ?? ''}">
 								${Object.values(setting.possibleValues).map(option => `<option value="${option.value}">${option.text}</option>`)}
 							</select>
 						</label>
@@ -2900,20 +2926,30 @@ let UISettings = {
 		global: {
 			title: 'Global',
 			settings: {
+				hideAllPopupMessagesKey: {
+					text: 'Hide notifications area',
+					storageKey: 'hideNotificationMessages' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					infoText: 'Controls visibility of the notification area. Messages will still be appended and can be shown by changing this or by clicking the bell icon in the menu bar.',
+					onUpdate: () => {
+						Structr.determineNotificationAreaVisibility();
+					}
+				},
 				showScriptingErrorPopupsKey: {
-					text: 'Show popups for scripting errors',
+					text: 'Show notifications for scripting errors',
 					storageKey: 'showScriptingErrorPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				showResourceAccessPermissionWarningPopupsKey: {
-					text: 'Show popups for resource access permission warnings',
+					text: 'Show notifications for resource access permission warnings',
 					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				showDeprecationWarningPopupsKey: {
-					text: 'Show popups for deprecation warnings',
+					text: 'Show notifications for deprecation warnings',
 					storageKey: 'showDeprecationWarningPopups' + location.port,
 					defaultValue: true,
 					type: 'checkbox'

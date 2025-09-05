@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -400,7 +400,6 @@ public class Deployment2Test extends DeploymentTestBase {
 			file1.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			file1.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
 			file1.setProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY), true);
-			file1.setProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY), true);
 
 			file2.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true);
 			file2.setProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
@@ -420,22 +419,16 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface file1 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName1).getFirst();
-			final NodeInterface file2 = app.nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName2).getFirst();
+			final NodeInterface file1 = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName1).getFirst();
+			final NodeInterface file2 = app.nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.FILE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName2).getFirst();
 
-			assertNotNull("Invalid deployment result", file1);
+			// file1 used to have "useAsJavaScriptLibrary" flag and this used to test that such files were exported in a deployment export
+			assertNull("Invalid deployment result", file1);
 			assertNotNull("Invalid deployment result", file2);
-
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
-			assertTrue("Deployment import does not restore attributes correctly",  file1.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
-			assertFalse("Deployment import does not restore attributes correctly", file1.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY)));
 
 			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly",  file2.getProperty(Traits.of(StructrTraits.FILE).key(LinkableTraitDefinition.ENABLE_BASIC_AUTH_PROPERTY)));
-			assertFalse("Deployment import does not restore attributes correctly", file2.getProperty(Traits.of(StructrTraits.FILE).key(FileTraitDefinition.USE_AS_JAVASCRIPT_LIBRARY_PROPERTY)));
 			assertTrue("Deployment import does not restore attributes correctly" , file2.getProperty(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY)));
 
 			tx.success();
@@ -478,8 +471,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface template1 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template1").getFirst();
-			final NodeInterface template2 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).and(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template2").getFirst();
+			final NodeInterface template1 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template1").getFirst();
+			final NodeInterface template2 = app.nodeQuery(StructrTraits.MAIL_TEMPLATE).key(Traits.of(StructrTraits.MAIL_TEMPLATE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "template2").getFirst();
 
 			assertNotNull("Invalid deployment result", template1);
 			assertNotNull("Invalid deployment result", template2);
@@ -536,8 +529,8 @@ public class Deployment2Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization1").getFirst();
-			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).and(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization2").getFirst();
+			final NodeInterface localization1 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization1").getFirst();
+			final NodeInterface localization2 = app.nodeQuery(StructrTraits.LOCALIZATION).key(Traits.of(StructrTraits.LOCALIZATION).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "localization2").getFirst();
 
 			assertNotNull("Invalid deployment result", localization1);
 			assertNotNull("Invalid deployment result", localization2);

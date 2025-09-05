@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -153,7 +153,7 @@ public class CypherTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				List result = app.relationshipQuery().uuid(uuid).getAsList();
+				List result = app.relationshipQuery().and().uuid(uuid).getAsList();
 
 				assertEquals("Relationship should have been deleted", 0, result.size());
 

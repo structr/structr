@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.test.web.advanced;
 
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -167,8 +168,8 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "method1").getFirst();
-			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "method2").getFirst();
+			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "method1").getFirst();
+			final NodeInterface method2 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "method2").getFirst();
 
 			assertNotNull("Invalid deployment result", method1);
 			assertNotNull("Invalid deployment result", method2);
@@ -245,7 +246,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface div = app.nodeQuery().andName("WidgetTestPage-Div").getFirst();
+			NodeInterface div = app.nodeQuery().and().name("WidgetTestPage-Div").getFirst();
 
 			assertEquals(1, div.as(DOMNode.class).treeGetChildCount());
 
@@ -319,7 +320,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			DOMNode div = app.nodeQuery("Div").andName("WidgetTestPage-Div").getFirst().as(DOMNode.class);
+			DOMNode div = app.nodeQuery("Div").name("WidgetTestPage-Div").getFirst().as(DOMNode.class);
 
 			assertEquals(2, div.treeGetChildCount());
 
@@ -332,8 +333,8 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			DOMNode clonedNode = obj;
 
-			assertEquals(0, clonedNode.getChildNodes().size());
-			assertEquals(3, app.nodeQuery("Div").andName("TestComponent").getAsList().size());
+			assertEquals(0, Iterables.toList(clonedNode.getChildren()).size());
+			assertEquals(3, app.nodeQuery("Div").name("TestComponent").getAsList().size());
 
 			tx.success();
 
@@ -412,10 +413,7 @@ public class Deployment3Test extends DeploymentTestBase {
 
 			try {
 
-				final DOMNode newNode = page.createTextNode("#template");
-				newNode.unlockSystemPropertiesOnce();
-
-				newNode.setProperty(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE);
+				final DOMNode newNode = page.createTemplate("#template");
 
 				// append template
 				div.appendChild(newNode);
@@ -511,7 +509,7 @@ public class Deployment3Test extends DeploymentTestBase {
 		// check
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName("filesystem").getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name("filesystem").getFirst();
 
 			assertNotNull("Invalid deployment result - empty folder from export was not imported!", folder);
 

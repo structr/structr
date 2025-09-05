@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -83,9 +83,9 @@ public class Importer {
 
 	private static final Logger logger = LoggerFactory.getLogger(Importer.class.getName());
 
-	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList(new String[]{"link"}));
-	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList(new String[]{"#declaration", "#doctype"}));
-	private static final Set<String> srcElements        = new LinkedHashSet<>(Arrays.asList(new String[]{"img", "script", "audio", "video", "input", "source", "track"}));
+	private static final Set<String> hrefElements       = new LinkedHashSet<>(Arrays.asList("link"));
+	private static final Set<String> ignoreElementNames = new LinkedHashSet<>(Arrays.asList("#declaration", "#doctype"));
+	private static final Set<String> srcElements        = new LinkedHashSet<>(Arrays.asList("img", "script", "audio", "video", "input", "source", "track"));
 
 	private static final Map<String, String> contentTypeForExtension = new HashMap<>();
 
@@ -118,7 +118,7 @@ public class Importer {
 	private String code;
 	private String tableChildElement;
 
-	private Map<String, Linkable> alreadyDownloaded = new HashMap<>();
+	private final Map<String, Linkable> alreadyDownloaded = new HashMap<>();
 
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new HashMap<>();
 
@@ -264,7 +264,7 @@ public class Importer {
 		} else {
 
 			if (!isDeployment) {
-				logger.info("##### Start fetching {} for page {} #####", new Object[]{address, name});
+				logger.info("##### Start fetching {} for page {} #####", address, name);
 			}
 
 			final Map<String, Object> responseData = HttpHelper.get(address);
@@ -296,7 +296,7 @@ public class Importer {
 			createChildNodes(parsedDocument, page, page);
 
 			if (!isDeployment) {
-				logger.info("##### Finished fetching {} for page {} #####", new Object[]{address, name});
+				logger.info("##### Finished fetching {} for page {} #####", address, name);
 			}
 		}
 
@@ -514,9 +514,8 @@ public class Importer {
 				continue;
 			}
 
-			if (node instanceof Element) {
+			if (node instanceof Element el) {
 
-				final Element el          = ((Element) node);
 				final Set<String> classes = el.classNames();
 
 				for (String cls : classes) {
@@ -656,7 +655,7 @@ public class Importer {
 
 					if (DeployCommand.isUuid(src)) {
 
-						template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
+						template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
 
 						if (template == null) {
 
@@ -668,7 +667,7 @@ public class Importer {
 						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
 						if (uuidAtEnd != null) {
 
-							template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
+							template = StructrApp.getInstance().nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
 
 							if (template == null) {
 
@@ -751,7 +750,7 @@ public class Importer {
 					DOMNode component = null;
 					if (DeployCommand.isUuid(src)) {
 
-						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
+						final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), src).getFirst();
 						if (n != null) {
 
 							component = n.as(DOMNode.class);
@@ -763,7 +762,7 @@ public class Importer {
 
 						if (uuidAtEnd != null) {
 
-							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).and(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
+							final NodeInterface n = app.nodeQuery(StructrTraits.DOM_NODE).key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuidAtEnd).getFirst();
 							if (n != null) {
 
 								component = n.as(DOMNode.class);
@@ -874,7 +873,7 @@ public class Importer {
 
 								int l = DATA_META_PREFIX.length();
 
-								String upperCaseKey = WordUtils.capitalize(key.substring(l), new char[]{'-'}).replaceAll("-", "");
+								String upperCaseKey = WordUtils.capitalize(key.substring(l), '-').replaceAll("-", "");
 								String camelCaseKey = key.substring(l, l + 1).concat(upperCaseKey.substring(1));
 
 								if (value != null) {
@@ -883,7 +882,7 @@ public class Importer {
 									if (newNodeType.hasKey(camelCaseKey)) {
 
 										final PropertyKey actualKey       = newNodeType.key(camelCaseKey);
-										final PropertyConverter converter = actualKey.inputConverter(securityContext);
+										final PropertyConverter converter = actualKey.inputConverter(securityContext, false);
 
 										if (converter != null) {
 
@@ -915,11 +914,11 @@ public class Importer {
 								if (newNodeType.hasKey(key)) {
 
 									final PropertyKey propertyKey = newNodeType.key(key);
-									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+									final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 
 									if (value != null && inputConverter != null) {
 
-										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext).convert(value));
+										newNodeProperties.put(propertyKey, propertyKey.inputConverter(securityContext, false).convert(value));
 
 									} else {
 
@@ -1091,7 +1090,7 @@ public class Importer {
 					final DOMNode parentDOMNode = parent.as(DOMNode.class);
 
 					// special handling for <head> elements
-					if (newNode.is("Head") && parent.is("Body")) {
+					if (newNode.is(StructrTraits.HEAD) && parent.is(StructrTraits.BODY)) {
 
 						final DOMNode html = parentDOMNode.getParent();
 						html.insertBefore(newNode, parentDOMNode);
@@ -1139,7 +1138,7 @@ public class Importer {
 		final PropertyKey<Long> checksumKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
 		final PropertyKey<String> pathKey   = Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
 
-		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).and(pathKey, path).and(checksumKey, checksum).getFirst();
+		final NodeInterface node = app.nodeQuery(StructrTraits.FILE).key(pathKey, path).key(checksumKey, checksum).getFirst();
 		if (node != null) {
 
 			return node.as(File.class);
@@ -1200,20 +1199,20 @@ public class Importer {
 
 			}
 
-			logger.warn("Unable to download from {} {}", new Object[]{originalUrl, downloadAddress});
+			logger.warn("Unable to download from {} {}", originalUrl, downloadAddress);
 
 			try {
 				// Try alternative baseUrl with trailing "/"
 				if (address.endsWith("/")) {
 
 					// don't append a second slash!
-					logger.info("Starting download from alternative URL {} {} {}", new Object[]{originalUrl, address, downloadAddress});
+					logger.info("Starting download from alternative URL {} {} {}", originalUrl, address, downloadAddress);
 					downloadUrl = new URL(new URL(originalUrl, address), downloadAddress);
 
 				} else {
 
 					// append a slash
-					logger.info("Starting download from alternative URL {} {} {}", new Object[]{originalUrl, address.concat("/"), downloadAddress});
+					logger.info("Starting download from alternative URL {} {} {}", originalUrl, address.concat("/"), downloadAddress);
 					downloadUrl = new URL(new URL(originalUrl, address.concat("/")), downloadAddress);
 				}
 
@@ -1258,7 +1257,7 @@ public class Importer {
 
 
 		logger.info("Download URL: {}, address: {}, cleaned address: {}, filename: {}",
-			new Object[]{downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName});
+			downloadUrl, address, StringUtils.substringBeforeLast(address, "/"), fileName);
 
 		String relativePath = StringUtils.substringAfter(downloadUrl.toString(), StringUtils.substringBeforeLast(address, "/"));
 		if (StringUtils.isBlank(relativePath)) {
@@ -1448,7 +1447,7 @@ public class Importer {
 		final PropertyKey<NodeInterface> parentKey        = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.PARENT_PROPERTY);
 		final ShadowDocument shadowDocument               = CreateComponentCommand.getOrCreateHiddenDocument();
 
-		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).andName(name).and(ownerDocumentKey, shadowDocument).getAsList()) {
+		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_NODE).name(name).key(ownerDocumentKey, shadowDocument).getAsList()) {
 
 			// only return toplevel nodes in shared components
 			if (n.getProperty(parentKey) == null) {
@@ -1469,7 +1468,7 @@ public class Importer {
 		final PropertyKey<NodeInterface> sharedComponentKey = traits.key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 		final PropertyKey<String> nameKey                   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
 
-		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.TEMPLATE).andName(name).and().notBlank(nameKey).getAsList()) {
+		for (final NodeInterface n : StructrApp.getInstance().nodeQuery(StructrTraits.TEMPLATE).name(name).notBlank(nameKey).getAsList()) {
 
 			// IGNORE everything that REFERENCES a shared component!
 			if (n.getProperty(sharedComponentKey) == null) {
@@ -1574,9 +1573,7 @@ public class Importer {
 
 			return ((TextNode) node).getWholeText();
 
-		} else if (node instanceof Element) {
-
-			final Element el = (Element) node;
+		} else if (node instanceof Element el) {
 
 			final boolean prettyPrintBackup = el.ownerDocument().outputSettings().prettyPrint();
 

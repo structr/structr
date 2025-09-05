@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,7 +58,7 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 			final String relationship       = graphQuery.getRelationship();
 			final String otherLabel         = graphQuery.getOtherLabel();
 			final Set<Object> actual        = new LinkedHashSet<>();
-			final Set<Object> expected      = graphQuery.getValues();
+			final Set<Object> expected      = getPrimitiveValues(graphQuery.getValues());
 			final RelationshipType relType  = RelationshipType.forName(relationship);
 			final List<Relationship> rels   = Iterables.toList(node.getRelationships(direction, relType));
 
@@ -73,24 +73,11 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 
 						if (new LabelPredicate<>(otherLabel).accept(otherNode)) {
 
-							actual.add(otherNode.getProperty(notionPropertyName));
+							actual.add(getPrimitiveValue(otherNode.getProperty(notionPropertyName)));
 						}
 					}
 
-					switch (graphQuery.getOccurrence()) {
-
-						case CONTAINS:
-						case REQUIRED:
-						case OPTIONAL:
-							actual.retainAll(expected);
-							return !actual.isEmpty();
-
-						case EXACT:
-							return actual.containsAll(expected) && actual.size() == expected.size();
-
-						default:
-							break;
-					}
+					return actual.containsAll(expected) && actual.size() == expected.size();
 
 				} else {
 
@@ -101,11 +88,9 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 
 						if (new LabelPredicate<>(otherLabel).accept(otherNode)) {
 
-							actual.add(otherNode.getProperty(notionPropertyName));
+							actual.add(getPrimitiveValue(otherNode.getProperty(notionPropertyName)));
 						}
 					}
-
-					boolean accept = true;
 
 					for (final Object expectedValue : expected) {
 
@@ -125,26 +110,44 @@ public class GraphPredicate<T extends PropertyContainer> implements Predicate<T>
 									final boolean contains    = lowerValue.contains(expectedString);
 
 									if (contains) {
-
-										switch (graphQuery.getOccurrence()) {
-
-											case REQUIRED:
-											case CONTAINS:
-												return true;
-										}
+										return true;
 									}
-
-									accept &= contains;
 								}
 							}
+
+						} else {
+
+							return actual.containsAll(expected);
 						}
 					}
 
-					return accept;
+					return false;
 				}
 			}
 		}
 
 		return false;
+	}
+
+	// ----- private methods -----
+	private Object getPrimitiveValue(final Object value) {
+
+		if (value instanceof Number n) {
+			return n.doubleValue();
+		}
+
+		return value;
+	}
+
+	private Set<Object> getPrimitiveValues(final Set<Object> values) {
+
+		final Set set = new LinkedHashSet();
+
+		for (final Object o : values) {
+
+			set.add(getPrimitiveValue(o));
+		}
+
+		return set;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,13 +21,11 @@ package org.structr.websocket.command;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
-import org.structr.schema.SchemaService;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
-
-import org.structr.core.graph.TransactionCommand;
+import java.util.List;
 
 /**
  * Websocket command to retrieve a single graph object by id.
@@ -72,6 +70,8 @@ public class GetCommand extends AbstractCommand {
 			// Not necessary to send a 404 here
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
+			webSocketData.setResult(List.of());
+			getWebSocket().send(webSocketData, true);
 		}
 	}
 

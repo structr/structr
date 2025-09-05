@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,10 +30,10 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets the properties found in the property set on all nodes matching the type.
@@ -94,7 +94,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 						PropertyKey propertyKey = node.getTraits().key(key);
 						if (propertyKey != null) {
 
-							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 							if (inputConverter != null) {
 
 								try {
@@ -127,7 +127,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 			@Override
 			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
-				logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
+				logger.warn("Unable to set properties of node {}: {}", node.getUuid(), t.getMessage());
 			}
 
 			@Override

@@ -5,4 +5,4 @@ $.store('testStore', {
 
 let x = $.retrieve('testStore');
 
-return (x['2'] === 'valueAtTwo');
+(x['2'] === 'valueAtTwo');

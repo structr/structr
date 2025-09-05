@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,9 +45,9 @@ import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.Collections;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  * List data source equivalent to a rest resource.

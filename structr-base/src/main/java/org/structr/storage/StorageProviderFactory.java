@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,16 +28,15 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 public abstract class StorageProviderFactory {
 
@@ -112,6 +111,10 @@ public abstract class StorageProviderFactory {
 		}
 
 		return getDefaultStorageProvider(file);
+	}
+
+	public static Class<? extends StorageProvider> getDefaultStorageProviderClass() {
+		return LocalFSStorageProvider.class;
 	}
 
 	public static StorageProvider getDefaultStorageProvider(final AbstractFile file) {

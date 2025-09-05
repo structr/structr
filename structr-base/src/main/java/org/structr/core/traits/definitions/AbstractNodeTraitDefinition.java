@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,10 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.core.property.PropertyKey;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
-import org.apache.poi.ss.formula.functions.T;
-import org.structr.core.property.PropertyKey;
 
 public abstract class AbstractNodeTraitDefinition extends AbstractTraitDefinition {
 

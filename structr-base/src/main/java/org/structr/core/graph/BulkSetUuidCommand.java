@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,9 +26,9 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Map;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets a new UUID on each graph object of the given type. For nodes, set type,
@@ -131,7 +131,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 					} catch (FrameworkException fex) {
 
-						logger.warn("Unable to set UUID of relationship {}: {}", new Object[] { rel, fex.getMessage() });
+						logger.warn("Unable to set UUID of relationship {}: {}", rel, fex.getMessage());
 					}
 
 					return true;

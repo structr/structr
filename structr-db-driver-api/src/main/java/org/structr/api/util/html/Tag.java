@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.api.util.html;
 
-import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.attr.Context;
 import org.structr.api.util.html.attr.Css;
 import org.structr.api.util.html.attr.Id;
@@ -26,8 +25,8 @@ import org.structr.api.util.html.attr.Id;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.List;
 import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,6 @@ public abstract class FlowDeploymentHandler {
 	public static void exportDeploymentData (final Path target, final Gson gson) throws FrameworkException {
 		new FlowTreeDeploymentHandler().doExport(target, gson);
 	}
-
 
 	public static void importDeploymentData (final Path source, final Gson gson) throws FrameworkException {
 

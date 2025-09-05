@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,14 @@
  */
 package org.structr.rest.service;
 
-import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.core.auth.Authenticator;
-import org.structr.schema.compiler.NodeExtender;
+
+import java.lang.reflect.InvocationTargetException;
 
 
 /**
@@ -98,28 +98,12 @@ public class StructrHttpServiceConfig {
 	// ----- private methods -----
 	private Class loadClass(final String name) {
 
-		ClassLoader loader = NodeExtender.getClassLoader();
-		Class loadedClass  = null;
-
-		if (loader == null) {
-			loader = getClass().getClassLoader();
-		}
-
 		try {
 
-			loadedClass = Class.forName(name, true, loader);
+			return Class.forName(name);
 
 		} catch (Throwable ignore) {}
 
-		if (loadedClass == null) {
-
-			try {
-
-				loadedClass = Class.forName(name);
-
-			} catch (Throwable ignore) {}
-		}
-
-		return loadedClass;
+		return null;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,18 +37,18 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
 import org.structr.web.maintenance.DeployCommand;
-
-import java.util.*;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
+
+import java.util.*;
 
 /**
  *
  */
 public class DeploymentCommentHandler implements CommentHandler {
 
-	private static final Set<Character> separators     = new LinkedHashSet<>(Arrays.asList(new Character[] { ',', ';', '(', ')', ' ', '\t', '\n', '\r' } ));
+	private static final Set<Character> separators     = new LinkedHashSet<>(Arrays.asList(',', ';', '(', ')', ' ', '\t', '\n', '\r'));
 	private static final Logger logger                 = LoggerFactory.getLogger(DeploymentCommentHandler.class.getName());
 	private static final Map<String, Handler> handlers = new LinkedHashMap<>();
 
@@ -92,7 +92,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 			if (node.is(StructrTraits.LINK_SOURCE)) {
 
-				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
+				final NodeInterface file = StructrApp.getInstance().nodeQuery(StructrTraits.LINKABLE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), parameters).getFirst();
 				if (file != null) {
 
 					final LinkSource linkSource = node.as(LinkSource.class);
@@ -135,7 +135,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 		handlers.put("owner", (final Page page, final DOMNode node, final String name) -> {
 
-			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(name).getAsList();
+			final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(name).getAsList();
 
 			if (principals.isEmpty()) {
 
@@ -156,7 +156,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 			final String[] parts  = parameters.split("[,]+");
 			if (parts.length == 2) {
 
-				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).andName(parts[0]).getAsList();
+				final List<NodeInterface> principals = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(parts[0]).getAsList();
 
 				if (principals.isEmpty()) {
 
@@ -275,7 +275,7 @@ public class DeploymentCommentHandler implements CommentHandler {
 
 				} else {
 
-					logger.warn("Unknown token {}, expected one of {}.", new Object[] { token, handlers.keySet() });
+					logger.warn("Unknown token {}, expected one of {}.", token, handlers.keySet());
 					break;
 				}
 			}

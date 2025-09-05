@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,11 @@
  */
 package org.structr.autocomplete;
 
-import java.util.List;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+
+import java.util.List;
 
 /**
  *

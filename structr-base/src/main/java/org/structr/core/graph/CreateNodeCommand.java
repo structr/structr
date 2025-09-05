@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.DatabaseService;
+import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -36,14 +37,14 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-
-import java.util.*;
-import java.util.Map.Entry;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Creates a new node in the database with the given properties.
@@ -100,7 +101,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 			final Traits nodeType         = Traits.of(typeObject.toString());
 			final String typeName         = nodeType.getName();
 			final Set<String> labels      = nodeType.getLabels();
-			final CreationContainer tmp   = new CreationContainer(true);
+			final CreationContainer tmp   = new CreationContainer(nodeType, true);
 			final Date now                = new Date();
 			final boolean isCreation      = true;
 
@@ -190,7 +191,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 					final Object value    = entry.getValue();
 
 					if (!key.isUnvalidated()) {
-						TransactionCommand.nodeModified(securityContext.getCachedUser(), (NodeInterface)node, key, null, value);
+						TransactionCommand.nodeModified(securityContext.getCachedUser(), node, key, null, value);
 					}
 				}
 
@@ -236,7 +237,7 @@ public class CreateNodeCommand extends NodeServiceCommand {
 		final Map<String, Object> securityProperties              = new HashMap<>();
 		final String newUuid                                      = (String)properties.get("id");
 
-		if (user != null && user.shouldSkipSecurityRelationships() == false) {
+		if (user != null && !user.shouldSkipSecurityRelationships()) {
 
 			final Traits securityTraits                       = Traits.of(StructrTraits.SECURITY);
 			final PropertyKey<String> internalTimestampKey    = securityTraits.key(RelationshipInterfaceTraitDefinition.INTERNAL_TIMESTAMP_PROPERTY);
@@ -290,6 +291,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				throw new FrameworkException(422, dex.getMessage());
 			} catch (ConstraintViolationException qex) {
 				throw new FrameworkException(422, qex.getMessage());
+			} catch (UnknownDatabaseException udbex) {
+				throw new FrameworkException(422, udbex.getMessage());
 			}
 
 
@@ -303,6 +306,8 @@ public class CreateNodeCommand extends NodeServiceCommand {
 				throw new FrameworkException(422, dex.getMessage());
 			} catch (ConstraintViolationException qex) {
 				throw new FrameworkException(422, qex.getMessage());
+			} catch (UnknownDatabaseException udbex) {
+				throw new FrameworkException(422, udbex.getMessage());
 			}
 		}
 	}

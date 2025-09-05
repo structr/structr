@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
@@ -59,18 +59,19 @@ public class ListFilesCommand extends AbstractCommand {
 		final int page                        = webSocketData.getPage();
 		final PropertyKey sortProperty        = type.key(sortKey);
 
-		final Query<NodeInterface> query = StructrApp.getInstance(securityContext)
+		final QueryGroup<NodeInterface> query = StructrApp.getInstance(securityContext)
 			.nodeQuery(rawType)
 			.includeHidden()
 			.sort(sortProperty, "desc".equals(sortOrder))
-			.and(type.key(AbstractFileTraitDefinition.PARENT_PROPERTY), null)
 			.page(page)
-			.pageSize(pageSize);
+			.pageSize(pageSize)
+			.and()
+			.key(type.key(AbstractFileTraitDefinition.PARENT_PROPERTY), null);
 
 		// for image lists, suppress thumbnails
 		if (type.contains(StructrTraits.IMAGE)) {
 
-			query.and(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
+			query.key(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
 		}
 
 		try {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -56,10 +56,10 @@ public class RestScriptingTest extends StructrRestTestBase {
 			type.addMethod("getNowJavascript",    "{ return $.now; }").setIsStatic(true);
 			type.addMethod("getNowStructrscript", "now").setIsStatic(true);
 
-			type.addMethod("test1", "{ return { test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test1", "{ return ({ test1: new Date(), test2: $.now, test3: $.Test.getDate(), test4: $.Test.getNowJavascript(), test5: $.Test.getNowStructrscript() }); }").setIsStatic(true);
 			type.addMethod("test2", "{ return $.Test.test1(); }").setIsStatic(true);
 			type.addMethod("test3", "{ return $.Test.test2(); }").setIsStatic(true);
-			type.addMethod("test4", "{ return { test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }; }").setIsStatic(true);
+			type.addMethod("test4", "{ return ({ test1: typeof new Date(), test2: typeof $.now, test3: typeof $.Test.getDate(), test4: typeof $.Test.getNowJavascript(), test5: typeof $.Test.getNowStructrscript() }); }").setIsStatic(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -140,7 +140,7 @@ public class RestScriptingTest extends StructrRestTestBase {
 			// create test group
 			JsonSchema schema       = StructrSchema.createFromDatabase(app);
 			final JsonType type     = schema.addType("API");
-			final JsonMethod method = type.addMethod("doTest", "{ $.create('Group', { name: 'Test' }); $.rollbackTransaction(); return { errorCode: 42, obj1: { key1: 'value1', key2: 22, list: [ 1, 2, 3 ] } } }");
+			final JsonMethod method = type.addMethod("doTest", "{ $.create('Group', { name: 'Test' }); $.rollbackTransaction(); return ({ errorCode: 42, obj1: { key1: 'value1', key2: 22, list: [ 1, 2, 3 ] } }) }");
 
 			method.setIsStatic(true);
 			method.setReturnRawResult(true);
@@ -193,7 +193,7 @@ public class RestScriptingTest extends StructrRestTestBase {
 
 			final JsonType type = schema.addType("API");
 			type.addMethod("test1", "'static structr script method'"        ).setIsStatic(true).setReturnRawResult(true);
-			type.addMethod("test2", "{ return 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
+			type.addMethod("test2", "{ 'static javascript method'; }").setIsStatic(true).setReturnRawResult(true);
 
 			StructrSchema.replaceDatabaseSchema(app, schema);
 
@@ -279,5 +279,52 @@ public class RestScriptingTest extends StructrRestTestBase {
 				.statusCode(200)
 				.when()
 				.post("/API/calledTestMethod");
+	}
+
+	@Test
+	public void testRequestParameterAccess() {
+
+		try (final Tx tx = app.tx()) {
+
+			JsonSchema schema       = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("RequestTest");
+			final JsonMethod method = type.addMethod("doTest", "{ return Object.entries($.request); }");
+
+			method.setIsStatic(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", hasSize(0))
+				.body("result_count", equalTo(0))
+				.body("page_count", equalTo(0))
+				.statusCode(200)
+				.when()
+				.post("/RequestTest/doTest");
+
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.body("result", hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("page_count", equalTo(1))
+				.body("result[0][0]", equalTo("a"))
+				.body("result[0][1]", equalTo("b"))
+				.statusCode(200)
+				.when()
+				.post("/RequestTest/doTest?a=b");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,11 @@ public class NotPredicate<T extends PropertyContainer, V> implements Predicate<T
 
 	public NotPredicate(final Predicate<T> predicate) {
 		this.predicate = predicate;
+	}
+
+	@Override
+	public String toString() {
+		return "Not(" + predicate + ")";
 	}
 
 	@Override

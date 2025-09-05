@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.graph.NodeInterface;
@@ -73,5 +74,28 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+				PropertyView.Public,
+				newSet(
+						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
+				),
+
+				PropertyView.Ui,
+				newSet(
+						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
+				),
+
+				PropertyView.Schema,
+				newSet(
+						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
+				)
+		);
 	}
 }

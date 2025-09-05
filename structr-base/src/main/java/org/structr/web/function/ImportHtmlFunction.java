@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,9 +49,8 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 			final DOMElement parent = n.as(DOMElement.class);
 
-			if (sources[1] instanceof String) {
+			if (sources[1] instanceof String source) {
 
-				final String source     = (String) sources[1];
 				final Importer importer = new Importer(ctx.getSecurityContext(), source, null, null, false, false, false, false);
 
 				/*

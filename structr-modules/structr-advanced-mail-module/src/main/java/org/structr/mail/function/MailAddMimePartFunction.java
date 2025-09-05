@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,15 +20,15 @@ package org.structr.mail.function;
 
 import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.error.FrameworkException;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.net.MalformedURLException;
-import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.common.helper.DynamicMailAttachment;
 
 public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 

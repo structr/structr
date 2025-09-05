@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -145,7 +146,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						// create a child text node if content is given
 						if (StringUtils.isNotBlank(childContent)) {
 
-							final DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+							final DOMNode childNode = document.createTextNode(childContent);
 
 							newNode.appendChild(childNode);
 
@@ -162,6 +163,11 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					}
 
 					tx.success();
+
+					TransactionCommand.registerNodeCallback(newNode, callback);
+
+					// send success
+					getWebSocket().send(webSocketData, true);
 
 				} catch (FrameworkException fex) {
 
@@ -208,7 +214,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					Object convertedValue = val;
 
-					PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
+					PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance(), false);
 					if (inputConverter != null) {
 
 						convertedValue = inputConverter.convert(val);
@@ -273,15 +279,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					break;
 
 				case "#template":
-					newNode = document.createTextNode("#template");
-					try {
-
-						newNode.unlockSystemPropertiesOnce();
-						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), StructrTraits.TEMPLATE));
-
-					} catch (FrameworkException fex) {
-						logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
-					}
+					newNode = document.createTemplate("#template");
 					break;
 
 				case "custom":

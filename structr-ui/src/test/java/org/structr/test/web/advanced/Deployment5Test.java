@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,9 +38,11 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
@@ -50,6 +52,7 @@ import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.web.traits.definitions.html.Option;
 import org.structr.web.traits.definitions.html.Select;
 import org.structr.websocket.command.CreateComponentCommand;
+import org.structr.websocket.command.RemoveCommand;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -82,10 +85,10 @@ public class Deployment5Test extends DeploymentTestBase {
 			// create schema grant object
 			app.create(StructrTraits.SCHEMA_GRANT,
 				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.MAIL_TEMPLATE),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("principal"),            group),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowRead"),            true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowWrite"),           true),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key("allowDelete"),          true)
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY),               group),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY),              true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY),             true),
+				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY),            true)
 			);
 
 			// create MailTemplate instances
@@ -102,7 +105,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test1: verify that user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).name("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
@@ -146,7 +149,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test2: verify that new user is allowed to access MailTemplates
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).andName("tester").getFirst();
+			final NodeInterface user          = app.nodeQuery(StructrTraits.USER).name("tester").getFirst();
 			final SecurityContext userContext = SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
 
 			for (final NodeInterface template : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getAsList()) {
@@ -196,9 +199,9 @@ public class Deployment5Test extends DeploymentTestBase {
 			createElement(page1, head1, "title", "test52_1");
 
 			final DOMElement body1 =  createElement(page1, html1, "body");
-			final DOMElement div1   =  createElement(page1, body1, "div");
-			final DOMElement sel1 = createElement(page1, div1,  "select");
-			final DOMElement opt1 = createElement(page1, sel1,  "option", "${group.name}");
+			final DOMElement div1  =  createElement(page1, body1, "div");
+			final DOMElement sel1  = createElement(page1, div1,  "select");
+			final DOMElement opt1  = createElement(page1, sel1,  "option", "${group.name}");
 
 			sel1.setProperty(Traits.of(StructrTraits.SELECT).key(Select.MULTIPLE_PROPERTY), "multiple");
 
@@ -221,6 +224,7 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check HTML result before roundtrip
 		RestAssured
 			.given()
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -429,53 +433,6 @@ public class Deployment5Test extends DeploymentTestBase {
 		compare(calculateHash(), true);
 	}
 
-	/* disabled, no support for pure Java methods any more
-	public void test55JavaSchemaMethods() {
-
-		// setup
-		try (final Tx tx = app.tx()) {
-
-			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
-
-			// a customer
-			final JsonType customer = sourceSchema.addType("Customer");
-
-			customer.addMethod("test", "System.out.println(parameters); return null;").setCodeType("java");
-
-			StructrSchema.replaceDatabaseSchema(app, sourceSchema);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("", fex);
-			fail("Unexpected exception.");
-		}
-
-		// test
-		doImportExportRoundtrip(true);
-
-		// check
-		try (final Tx tx = app.tx()) {
-
-			final NodeInterface method1 = app.nodeQuery(StructrTraits.SCHEMA_METHOD).and(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "test").getFirst();
-
-			assertNotNull("Invalid deployment result", method1);
-
-			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY)));
-			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY)));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fail("Unexpected exception.");
-		}
-
-		// test
-		compare(calculateHash(), true);
-	}
-	*/
-
 	@Test
 	public void test56RenamedFileAndFolderInNewerVersionOfDeploymentExport() {
 
@@ -520,10 +477,10 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v2FolderName).getFirst();
 				folder.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FolderName);
 
-				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v2FileName).getFirst();
 				file.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), v1FileName);
 
 				tx.success();
@@ -536,8 +493,8 @@ public class Deployment5Test extends DeploymentTestBase {
 
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v1FolderName).getFirst();
-				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v1FileName).getFirst();
+				final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v1FolderName).getFirst();
+				final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v1FileName).getFirst();
 
 				assertNotNull("Folder rename did not work", folder);
 				assertNotNull("File rename did not work", file);
@@ -556,11 +513,11 @@ public class Deployment5Test extends DeploymentTestBase {
 		// check that the correct file/folder name is set
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).andName(v2FolderName).getFirst();
+			final NodeInterface folder = app.nodeQuery(StructrTraits.FOLDER).name(v2FolderName).getFirst();
 
 			assertNotNull("Invalid deployment result", folder);
 
-			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).andName(v2FileName).getFirst();
+			final NodeInterface file = app.nodeQuery(StructrTraits.FILE).name(v2FileName).getFirst();
 
 			assertNotNull("Invalid deployment result", file);
 
@@ -644,5 +601,167 @@ public class Deployment5Test extends DeploymentTestBase {
 		final String hash2 = calculateHash();
 
 		assertEquals("Invalid deployment roundtrip result for dynamic file", hash1, hash2);
+	}
+
+	@Test
+	public void test59NewlinesInRepeaterCode() {
+
+		final String multilineQuery =
+			"""
+			{
+				[
+					{ name: 'Test1' },
+					{ name: 'Test2' },
+					{ name: 'Test3' },
+					{ name: 'Test4' }
+				];
+			}
+			""";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			// create first page
+			final Page page1 = Page.createNewPage(securityContext,   "test59");
+			final DOMElement html1 = createElement(page1, page1, "html");
+			final DOMElement head1 = createElement(page1, html1, "head");
+			createElement(page1, head1, "title", "test59");
+
+			final DOMElement body1 = createElement(page1, html1, "body");
+			final DOMElement div1  = createElement(page1, body1, "div");
+			final Content content  = createContent(page1, div1, "${group.name}");
+
+			div1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), multilineQuery);
+			div1.setProperty(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "group");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// check HTML result before roundtrip
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+			.body("html.body.div[0]", Matchers.equalTo("Test1"))
+			.body("html.body.div[1]", Matchers.equalTo("Test2"))
+			.body("html.body.div[2]", Matchers.equalTo("Test3"))
+			.body("html.body.div[3]", Matchers.equalTo("Test4"))
+			.statusCode(200)
+			.when()
+			.get("/test59");
+
+		// test roundtrip
+		compare(calculateHash(), true);
+
+		// user must be created again
+		createAdminUser();
+
+		// wait for transaction to settle
+		try { Thread.sleep(1000); } catch (Throwable t) {}
+
+		RestAssured.basePath = "/";
+
+		// check HTML result after roundtrip
+		RestAssured
+			.given()
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.expect()
+			.body("html.body.div[0]", Matchers.equalTo("Test1"))
+			.body("html.body.div[1]", Matchers.equalTo("Test2"))
+			.body("html.body.div[2]", Matchers.equalTo("Test3"))
+			.body("html.body.div[3]", Matchers.equalTo("Test4"))
+			.statusCode(200)
+			.when()
+			.get("/test59");
+
+		// check that the function query property value is identical
+		try (final Tx tx = app.tx()) {
+
+			final DOMElement div = app.nodeQuery("Div").getFirst().as(DOMElement.class);
+
+			assertEquals("Invalid deployment roundtrip result: function query has changed!", multilineQuery, div.getFunctionQuery());
+
+			System.out.println(div.getFunctionQuery());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+	}
+
+	@Test
+	public void test60PreventDeploymentExportOfNestedTemplatesInTrash() {
+
+		String template2UUID = null;
+		String template3UUID = null;
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext,   "test60");
+			final DOMElement html = createElement(page, page, "html");
+			final DOMElement head = createElement(page, html, "head");
+			createElement(page, head, "title", "test05");
+
+			final DOMElement body = createElement(page, html, "body");
+			final DOMElement div1  = createElement(page, body, "div");
+
+			final Template template1 = createTemplate(page, div1, "template1");
+			final Template template2 = createTemplate(page, template1, "template2");
+			final Template template3 = createTemplate(page, template2, "template3");
+
+			template2UUID = template2.getUuid();
+			template3UUID = template3.getUuid();
+
+			// remove pageId from node and all children ("move to trash")
+			template2.getParent().removeChild(template2);
+			RemoveCommand.recursivelyRemoveNodesFromPage(template2, securityContext);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		compare(calculateHash(), true);
+
+		try (final Tx tx = app.tx()) {
+
+			// make sure that the templates from the trash were not exported/imported
+
+			assertNotNull(template2UUID);
+			assertNotNull(template3UUID);
+
+			final NodeInterface n1 = app.getNodeById(template2UUID);
+			assertEquals("Template node should not be exported if it is in the trash", null, n1);
+
+			final NodeInterface n2 = app.getNodeById(template3UUID);
+			assertEquals("Template node should not be exported if it is in the trash as a child of another node", null, n2);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
 	}
 }

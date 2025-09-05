@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,11 +24,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -105,10 +105,9 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, SUBJECT_PROPERTY,
-				FROM_PROPERTY, FROM_MAIL_PROPERTY, TO_PROPERTY, CC_PROPERTY, BCC_PROPERTY, REPLY_TO_PROPERTY,
-				CONTENT_PROPERTY, HTML_CONTENT_PROPERTY, FOLDER_PROPERTY, HEADER_PROPERTY, MESSAGE_ID_PROPERTY, IN_REPLY_TO_PROPERTY,
-				RECEIVED_DATE_PROPERTY, SENT_DATE_PROPERTY
+					SUBJECT_PROPERTY, FROM_PROPERTY, FROM_MAIL_PROPERTY, TO_PROPERTY, CC_PROPERTY, BCC_PROPERTY, REPLY_TO_PROPERTY,
+					CONTENT_PROPERTY, HTML_CONTENT_PROPERTY, FOLDER_PROPERTY, HEADER_PROPERTY, MESSAGE_ID_PROPERTY, IN_REPLY_TO_PROPERTY,
+					RECEIVED_DATE_PROPERTY, SENT_DATE_PROPERTY
 			)
 		);
 	}

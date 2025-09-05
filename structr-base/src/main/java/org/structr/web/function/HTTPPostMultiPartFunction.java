@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -101,7 +101,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 			InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
 			builder.addPart(partKey, inputStreamBody);
 
-		} else if (abstractFile.is("folder")) {
+		} else if (abstractFile.is(StructrTraits.FOLDER)) {
 
 			final Folder folder = (Folder) abstractFile;
 			for (File folderFile : folder.getFiles()) {

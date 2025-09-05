@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -93,17 +93,9 @@ public class StructrBinding implements ProxyObject {
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
 
-			case "batch":
-				logger.warn("The batch() function has been renamed to doInNewTransaction() to better communicate the semantics. Using batch() is deprecated as it will be removed in future versions.");
-				// no break or return here, we want the below result to be returned!
-
 			case "do_in_new_transaction":
 			case "doInNewTransaction":
 				return new DoInNewTransactionFunction(actionContext, entity);
-
-			case "include_js":
-			case "includeJs":
-				return new IncludeJSFunction(actionContext);
 
 			case "do_privileged":
 			case "doPrivileged":
@@ -146,7 +138,18 @@ public class StructrBinding implements ProxyObject {
 
 				return new UserDefinedFunctionWrapper(actionContext);
 
+			case "_functions":
+
+				return new FunctionBinding(actionContext, entity);
+
 			default:
+
+				// look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
+
+					return method.getProxyExecutable(actionContext, null);
+				}
 
 				// look for built-in function with the given name first (because it is fast)
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
@@ -170,13 +173,6 @@ public class StructrBinding implements ProxyObject {
 					return new StaticTypeWrapper(actionContext, Traits.of(name));
 				}
 
-				// look for user-defined function with the given name
-				final AbstractMethod method = Methods.resolveMethod(null, name);
-				if (method != null) {
-
-					return method.getProxyExecutable(actionContext, null);
-				}
-
 				try {
 
 					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, new EvaluationHints(), 1, 1));
@@ -196,9 +192,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("this");
 		keys.add("me");
 		keys.add("predicate");
-		keys.add("batch");
 		keys.add("doInNewTransaction");
-		keys.add("includeJs");
 		keys.add("doPrivileged");
 		keys.add("request");
 		keys.add("session");

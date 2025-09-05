@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -50,10 +50,9 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE) && sources[1] instanceof Number) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE) && sources[1] instanceof Number editMode) {
 
 				final DOMNode node    = n.as(DOMNode.class);
-				final Number editMode = (Number)sources[1];
 				final EditMode mode   = RenderContext.editMode(Integer.toString(editMode.intValue()));
 				final String content  = node.getContent(mode);
 

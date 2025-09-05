@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,15 +20,12 @@ package org.structr.web.common;
 
 import org.structr.api.service.LicenseManager;
 import org.structr.core.datasources.DataSources;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -52,12 +49,12 @@ public class UiModule implements StructrModule {
 	}
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
-		DataSources.put(true, "ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
-		DataSources.put(true, "ui", "restDataSource",               new RestDataSource());
-		DataSources.put(true, "ui", "cypherDataSource",             new CypherGraphDataSource());
-		DataSources.put(true, "ui", "functionDataSource",           new FunctionDataSource(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
+		DataSources.put("ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
+		DataSources.put("ui", "restDataSource",               new RestDataSource());
+		DataSources.put("ui", "cypherDataSource",             new CypherGraphDataSource());
+		DataSources.put("ui", "functionDataSource",           new FunctionDataSource(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
 
 		StructrTraits.registerRelationshipType(StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION,              new AbstractFileCONFIGURED_BYStorageConfiguration());
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING,                     new ActionMappingPARAMETERParameterMapping());
@@ -294,7 +291,6 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new CreateFolderPathFunction());
 		Functions.put(licenseManager, new CreateZipFunction());
 		Functions.put(licenseManager, new UnarchiveFunction());
-		Functions.put(licenseManager, new ScheduleFunction());
 		Functions.put(licenseManager, new MaintenanceFunction());
 		Functions.put(licenseManager, new BarcodeFunction());
 		Functions.put(licenseManager, new JobInfoFunction());
@@ -320,6 +316,9 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new GraphQLFunction());
 
 		Functions.put(licenseManager, new SystemInfoFunction());
+
+		Functions.put(licenseManager, new ValidateEmailFunction());
+		Functions.put(licenseManager, new IsValidEmailFunction());
 	}
 
 	@Override
@@ -334,23 +333,6 @@ public class UiModule implements StructrModule {
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

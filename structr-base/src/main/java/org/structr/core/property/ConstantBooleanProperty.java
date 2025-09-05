@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -98,7 +98,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

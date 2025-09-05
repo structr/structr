@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.feed.entity.RemoteDocument;
 import org.structr.feed.traits.definitions.RemoteDocumentTraitDefinition;
-import org.structr.feed.traits.relationship.AbstractFeedItemTraitDefinition;
 import org.structr.rest.common.HttpHelper;
 
 import java.io.InputStream;

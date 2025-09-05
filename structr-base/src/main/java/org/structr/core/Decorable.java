@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,6 @@ package org.structr.core;
  */
 public interface Decorable<T> {
 	
-	public void addDecorator(Decorator<T> d);
-	public void removeDecorator(Decorator<T> d);
+	void addDecorator(Decorator<T> d);
+	void removeDecorator(Decorator<T> d);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.schema.action.ActionContext;
 import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -85,7 +86,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 				ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", baos);
 
-				return baos.toString("ISO-8859-1");
+				return baos.toString(StandardCharsets.ISO_8859_1);
 
 			} catch(WriterException we) {
 

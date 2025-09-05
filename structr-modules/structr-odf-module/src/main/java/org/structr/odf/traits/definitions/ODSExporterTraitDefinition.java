@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -97,7 +97,7 @@ public class ODSExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		try {
 
 			final App app = StructrApp.getInstance();
-			final ResultStream result = app.nodeQuery(StructrTraits.NODE_INTERFACE).and(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
+			final ResultStream result = app.nodeQuery(StructrTraits.NODE_INTERFACE).key(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getResultStream();
 			final ResultStream transformedResult = transformation.transformOutput(securityContext, StructrTraits.NODE_INTERFACE, result);
 
 			Map<String, Object> nodeProperties = new HashMap<>();

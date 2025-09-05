@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
@@ -41,6 +42,7 @@ public class ScriptMethod extends AbstractMethod {
 	private boolean isPrivateMethod = false;
 	private boolean isStaticMethod  = false;
 	private boolean returnRawResult = false;
+	private boolean wrapJsInMain = true;
 	private String httpVerb         = null;
 
 	public ScriptMethod(final SchemaMethod method) {
@@ -55,6 +57,7 @@ public class ScriptMethod extends AbstractMethod {
 		this.isStaticMethod  = method.isStaticMethod();
 		this.returnRawResult = method.returnRawResult();
 		this.httpVerb        = method.getHttpVerb();
+		this.wrapJsInMain = method.wrapJsInMain();
 
 		final AbstractSchemaNode declaringClass = method.getSchemaNode();
 		if (declaringClass == null) {
@@ -93,14 +96,14 @@ public class ScriptMethod extends AbstractMethod {
 
 			if ("js".equals(splitSource[0])) {
 
-				snippet = new Snippet(name, splitSource[1]);
+				snippet = new Snippet(name, splitSource[1], true);
 			} else {
 
 				snippet = new Snippet(name, splitSource[1], false);
 			}
 
-                        snippet.setEngineName(splitSource[0]);
-	        }
+			snippet.setEngineName(splitSource[0]);
+		}
 
 		return snippet;
 	}
@@ -132,7 +135,11 @@ public class ScriptMethod extends AbstractMethod {
 
 		try {
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid);
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(this.wrapJsInMain)
+					.build();
+
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, scriptConfig);
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());
@@ -142,40 +149,4 @@ public class ScriptMethod extends AbstractMethod {
 
 		return null;
 	}
-
-	/*
-
-		There are some instances of exported methods that must be called with non-map parameters.
-		We need to support this, but we should warn about it.
-
-		Example:
-
-		type.addMethod("sendMessage")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("topic", String.class.getName())
-			.addParameter("message", String.class.getName())
-			.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-	*/
-
-	/*
-
-	protected Map<String, Object> convertArguments(final Map<String, Object> restInput) throws FrameworkException {
-
-		final Map<String, Object> convertedArguments = new LinkedHashMap<>();
-		final Map<String, String> declaredParameters = method.getParameters();
-
-		for (final String name : restInput.keySet()) {
-
-			final String type  = declaredParameters.get(name);
-			final Object input = restInput.get(name);
-
-			convertedArguments.put(name, convert(input, type));
-		}
-
-		return convertedArguments;
-	}
-	*/
 }

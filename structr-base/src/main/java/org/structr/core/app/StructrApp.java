@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,6 +38,7 @@ import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.graph.*;
+import org.structr.core.graph.search.FulltextSearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.PropertyMap;
@@ -187,11 +188,14 @@ public class StructrApp implements App {
 		final Identity nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
-			final Query<NodeInterface> query = nodeQuery().uuid(uuid);
+			final Query<NodeInterface> query = nodeQuery();
+			QueryGroup<NodeInterface> and    = query.and();
+
+			and.uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
-				query.andType(type);
+				and.type(type);
 			}
 
 			final NodeInterface entity = query.getFirst();
@@ -206,7 +210,12 @@ public class StructrApp implements App {
 		} else {
 
 			try {
-				return nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+
+				final NodeInterface node = nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+				if (node != null && (type == null || node.is(type))) {
+
+					return node;
+				}
 
 			} catch (NotFoundException ignore) {
 				nodeUuidMap.remove(uuid);
@@ -231,12 +240,12 @@ public class StructrApp implements App {
 		final Identity id = getRelFromCache(uuid);
 		if (id == null) {
 
-			final Query<RelationshipInterface> query = relationshipQuery().uuid(uuid);
+			final QueryGroup<RelationshipInterface> query = relationshipQuery().and().uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
 
-				query.andType(type);
+				query.type(type);
 
 			} else {
 
@@ -250,7 +259,7 @@ public class StructrApp implements App {
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				relUuidMap.put(uuid, container.getId());
-				return (RelationshipInterface)entity;
+				return entity;
 			}
 
 		} else {
@@ -267,13 +276,23 @@ public class StructrApp implements App {
 	}
 
 	@Override
+	public Map<RelationshipInterface, Double> getRelationshipsFromFulltextIndex(final String indexName, final String searchTerm, int pageSize, int page) throws FrameworkException {
+		return command(FulltextSearchCommand.class).getRelationships(indexName, searchTerm, pageSize, page);
+	}
+
+	@Override
+	public Map<NodeInterface, Double> getNodesFromFulltextIndex(final String indexName, final String searchTerm, int page, int pageSize) throws FrameworkException {
+		return command(FulltextSearchCommand.class).getNodes(indexName, searchTerm, pageSize, page);
+	}
+
+	@Override
 	public Query<NodeInterface> nodeQuery() {
 		return command(SearchNodeCommand.class);
 	}
 
 	@Override
-	public Query<NodeInterface> nodeQuery(final String type) {
-		return command(SearchNodeCommand.class).andType(type);
+	public QueryGroup<NodeInterface> nodeQuery(final String type) {
+		return command(SearchNodeCommand.class).and().type(type);
 	}
 
 	@Override
@@ -282,8 +301,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public Query<RelationshipInterface> relationshipQuery(final String type) {
-		return command(SearchRelationshipCommand.class).andType(type);
+	public QueryGroup<RelationshipInterface> relationshipQuery(final String type) {
+		return command(SearchRelationshipCommand.class).and().type(type);
 	}
 
 	@Override
@@ -336,7 +355,7 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException {
-		((MaintenanceCommand)Services.getInstance().command(securityContext, commandClass)).execute(propertySet);
+		Services.getInstance().command(securityContext, commandClass).execute(propertySet);
 	}
 
 	@Override

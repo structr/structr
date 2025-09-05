@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -349,7 +349,7 @@ public final class PropertyContainerTraitDefinition extends AbstractNodeTraitDef
 
 	private static void setPropertiesInternal(final GraphObject graphObject, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 
-		final CreationContainer container = new CreationContainer(graphObject);
+		final CreationContainer container = new CreationContainer(graphObject.getTraits(), graphObject);
 		final Traits traits               = graphObject.getTraits();
 
 		boolean atLeastOnePropertyChanged = false;

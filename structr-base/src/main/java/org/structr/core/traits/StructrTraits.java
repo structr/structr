@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -60,12 +60,10 @@ public class StructrTraits {
 	public static final String LOCALIZATION                        = "Localization";
 	public static final String LOCATION                            = "Location";
 	public static final String MAIL_TEMPLATE                       = "MailTemplate";
-	public static final String PERSON                              = "Person";
 	public static final String SESSION_DATA_NODE                   = "SessionDataNode";
 	public static final String SCHEMA_METHOD_PARAMETER             = "SchemaMethodParameter";
 	public static final String CORS_SETTING                        = "CorsSetting";
 	public static final String RESOURCE_ACCESS                     = "ResourceAccess";
-	public static final String DYNAMIC_RESOURCE_ACCESS             = "DynamicResourceAccess";
 	public static final String EMAIL_MESSAGE                       = "EMailMessage";
 	public static final String MAILBOX                             = "Mailbox";
 	public static final String WIDGET                              = "Widget";

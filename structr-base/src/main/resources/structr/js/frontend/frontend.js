@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -62,9 +62,9 @@ export class Frontend {
 				continue;
 			}
 
-            if (key.startsWith('structr') && key != 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
-				continue;
-            }
+//            if (key.startsWith('structr') && key !== 'structrTarget' && key !== 'structrIdExpression' && key !== 'structrMethod') {
+//				continue;
+//            }
 
 			resolved[key] = this.resolveValue(key, value, data, event, target);
 
@@ -205,6 +205,12 @@ export class Frontend {
 
 			if (element.value.length) {
 
+				if (element.type === 'datetime-local') {
+
+					// converts local date format without offset to ISO
+					return new Date(element.value).toISOString();
+				}
+
 				// all other node types
 				return element.value;
 			}
@@ -276,7 +282,7 @@ export class Frontend {
 
 		if (success) {
 			mode = element.dataset.structrSuccessNotifications;
-			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : '') + ')';
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:green">' + statusText + '</div>';
 			delay = element.dataset.structrSuccessNotificationsDelay;
 
@@ -286,7 +292,7 @@ export class Frontend {
 			}
 		} else {
 			mode = element.dataset.structrFailureNotifications;
-			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : '') + ')';
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:red">' + statusText + '<br>';
 			delay = element.dataset.structrFailureNotificationsDelay;
 
@@ -362,7 +368,56 @@ export class Frontend {
 			default:
 				// Default is do nothing
 		}
+	}
 
+	async handleReloadTargetString(targetString, element, parameters, status, options) {
+
+		let colonPosition = targetString.indexOf(':');
+		if (colonPosition !== -1) {
+
+			let moduleName = targetString.substring(0, colonPosition);
+			let module     = await import(`/structr/js/frontend/modules/reload-target-handlers/${moduleName}.js`);
+			if (module) {
+
+				if (module.Handler) {
+
+					let handler = new module.Handler(this);
+
+					if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
+
+						handler.handleReloadTarget(targetString.substring(colonPosition + 1), element, parameters, status, options);
+
+					} else {
+
+						throw `Handler class for behaviour "${moduleName}" has no method "handleReloadTarget".`;
+					}
+
+				} else {
+
+					throw `Module for behaviour "${moduleName}" has no class "Handler".`;
+				}
+
+			} else {
+
+				throw `No module found for behaviour "${moduleName}".`;
+			}
+
+		} else if (targetString === 'none') {
+
+			// do nothing
+			return;
+
+		} else if (targetString === 'sign-out') {
+
+			// sign-out and reload
+			fetch('/structr/logout', { method: 'POST' }).then((response) => {
+				location.reload();
+			});
+
+		} else {
+
+			this.reloadPartial(targetString, parameters, element);
+		}
 	}
 
 	async processFollowUpActions(element, parameters, status, options) {
@@ -373,53 +428,9 @@ export class Frontend {
 
 			let successTargets = element.dataset.structrSuccessTarget;
 
-			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+			for (let successTarget of successTargets.split(',').map(t => t.trim() ).filter(t => t.length > 0 )) {
 
-				if (successTarget.indexOf(':') !== -1) {
-
-					let moduleName = successTarget.substring(0, successTarget.indexOf(':'));
-					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
-					if (module) {
-
-						if (module.Handler) {
-
-							let handler = new module.Handler(this);
-
-							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
-
-								handler.handleReloadTarget(successTarget, element, parameters, status, options);
-
-							} else {
-
-								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
-							}
-
-						} else {
-
-							throw `Module for behaviour ${moduleName} has no class "Handler".`;
-						}
-
-					} else {
-
-						throw `No module found for behaviour ${moduleName}.`;
-					}
-
-				} else if (successTarget === 'none') {
-
-					// do nothing
-					return;
-
-				} else if (successTarget === 'sign-out') {
-
-					// sign-out and reload
-					fetch('/structr/logout', { method: 'POST' }).then((response) => {
-						location.reload();
-					});
-
-				} else {
-
-					this.reloadPartial(successTarget, parameters, element);
-				}
+				this.handleReloadTargetString(successTarget, element, parameters, status, options);
 			}
 
 		} else if (!success && element.dataset.structrFailureTarget) {
@@ -428,51 +439,7 @@ export class Frontend {
 
 			for (let failureTarget of failureTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
 
-				if (failureTarget.indexOf(':') !== -1) {
-
-					let moduleName = failureTarget.substring(0, failureTarget.indexOf(':'));
-					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
-					if (module) {
-
-						if (module.Handler) {
-
-							let handler = new module.Handler(this);
-
-							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
-
-								handler.handleReloadTarget(failureTarget, element, parameters, status, options);
-
-							} else {
-
-								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
-							}
-
-						} else {
-
-							throw `Module for behaviour ${moduleName} has no class "Handler".`;
-						}
-
-					} else {
-
-						throw `No module found for behaviour ${moduleName}.`;
-					}
-
-				} else if (failureTarget === 'sign-out') {
-
-					// sign-out and reload
-					fetch('/structr/logout', { method: 'POST' }).then((response) => {
-						location.reload();
-					});
-
-				} else if (failureTarget === 'none') {
-
-					// do nothing
-					return;
-
-				} else {
-
-					this.reloadPartial(failureTarget, parameters, element);
-				}
+				this.handleReloadTargetString(failureTarget, element, parameters, status, options);
 			}
 
 		} else {
@@ -480,7 +447,6 @@ export class Frontend {
 			// Default is do nothing
 			//window.location.reload();
 		}
-
 	}
 
 	isSuccess = status => status < 300;
@@ -795,7 +761,7 @@ export class Frontend {
 
 
 			// Dialog
-			if(data.structrDialogType === 'okcancel') {
+			if (data.structrDialogType === 'okcancel') {
 
 				let dialogMessage = data.structrDialogTitle + '\n\n' + data.structrDialogText;
 				if(!window.confirm(dialogMessage)) {
@@ -805,10 +771,6 @@ export class Frontend {
 			}
 
 			this.fireEvent('start', { target: target, data: data, event: event });
-
-			// server-side
-			// store event type in htmlEvent property
-			data.htmlEvent = event.type;
 
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
 				body: JSON.stringify(this.resolveData(event, target)),

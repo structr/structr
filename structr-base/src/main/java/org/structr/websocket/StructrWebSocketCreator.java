@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,10 +19,17 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
-import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
-import org.eclipse.jetty.websocket.server.JettyServerUpgradeResponse;
-import org.eclipse.jetty.websocket.server.JettyWebSocketCreator;
+import org.eclipse.jetty.ee10.servlet.ServletApiRequest;
+import org.eclipse.jetty.ee10.servlet.ServletChannel;
+import org.eclipse.jetty.ee10.servlet.ServletContextRequest;
+import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.util.Callback;
+import org.eclipse.jetty.websocket.server.ServerUpgradeRequest;
+import org.eclipse.jetty.websocket.server.ServerUpgradeResponse;
+import org.eclipse.jetty.websocket.server.WebSocketCreator;
 import org.structr.core.auth.Authenticator;
+
+import java.lang.reflect.Field;
 
 ;
 
@@ -31,13 +38,13 @@ import org.structr.core.auth.Authenticator;
  *
  *
  */
-public class StructrWebSocketCreator implements JettyWebSocketCreator {
+public class StructrWebSocketCreator implements WebSocketCreator {
 
 	private static final String STRUCTR_PROTOCOL = "structr";
 
-	private WebsocketController syncController = null;
-	private Authenticator authenticator        = null;
-	private Gson gson                          = null;
+	private final WebsocketController syncController;
+	private final Authenticator authenticator;
+	private final Gson gson;
 
 	public StructrWebSocketCreator(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
@@ -47,22 +54,36 @@ public class StructrWebSocketCreator implements JettyWebSocketCreator {
 	}
 
 	@Override
-	public Object createWebSocket(final JettyServerUpgradeRequest request, final JettyServerUpgradeResponse response) {
+	public Object createWebSocket(final ServerUpgradeRequest request, final ServerUpgradeResponse response, final Callback callback) throws Exception {
 
-		for (String subprotocol : request.getSubProtocols()) {
+		if (request.getSubProtocols().contains(STRUCTR_PROTOCOL)) {
 
-			if (STRUCTR_PROTOCOL.equals(subprotocol)) {
+			response.setAcceptedSubProtocol(STRUCTR_PROTOCOL);
 
-				response.setAcceptedSubProtocol(subprotocol);
+			StructrWebSocket webSocket = new StructrWebSocket(syncController, gson, authenticator);
 
-				StructrWebSocket webSocket = new StructrWebSocket(syncController, gson, authenticator);
-				webSocket.setRequest(request.getHttpServletRequest());
+			final ServletChannel servletChannel = Request.get(request, ServletContextRequest.class, ServletContextRequest::getServletChannel);
+			if (servletChannel != null) {
 
-				return webSocket;
+				servletChannel.associate(request, response, callback);
+
+				final ServletContextRequest contextRequest = servletChannel.getServletContextRequest();
+				final ServletApiRequest apiRequest         = contextRequest.getServletApiRequest();
+
+				// clear servletChannel so we get the real Request object
+				final Field field = apiRequest.getClass().getDeclaredField("_servletChannel");
+				field.setAccessible(true);
+				field.set(apiRequest, null);
+
+				// initialize cookies
+				apiRequest.getCookies();
+
+				webSocket.setRequest(apiRequest);
 			}
+
+			return webSocket;
 		}
 
 		return null;
 	}
-
 }

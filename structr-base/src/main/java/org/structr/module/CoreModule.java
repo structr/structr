@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,20 +19,18 @@
 package org.structr.module;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.*;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
+import org.structr.web.function.ScheduleFunction;
 
 import java.util.Set;
 
 public class CoreModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerBaseType(new PropertyContainerTraitDefinition());
 		StructrTraits.registerBaseType(new GraphObjectTraitDefinition());
@@ -63,7 +61,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.LOCALIZATION,             new LocalizationTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.LOCATION,                 new LocationTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.MAIL_TEMPLATE,            new MailTemplateTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.PERSON,                   new PersonTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        new SessionDataNodeTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_GRANT,             new SchemaReloadingNodeTraitDefinition(), new SchemaGrantTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.ABSTRACT_SCHEMA_NODE,     new AbstractSchemaNodeTraitDefinition());
@@ -75,7 +72,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.SCHEMA_VIEW,              new SchemaReloadingNodeTraitDefinition(), new SchemaViewTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.CORS_SETTING,             new CorsSettingTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.RESOURCE_ACCESS,          new ResourceAccessTraitDefinition(StructrTraits.RESOURCE_ACCESS));
-		StructrTraits.registerNodeType(StructrTraits.DYNAMIC_RESOURCE_ACCESS,  new ResourceAccessTraitDefinition(StructrTraits.DYNAMIC_RESOURCE_ACCESS));
 		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        new SessionDataNodeTraitDefinition());
 
 	}
@@ -168,6 +164,8 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new TimerFunction());
 		Functions.put(licenseManager, new StrReplaceFunction());
 		Functions.put(licenseManager, new SearchFunction());
+		Functions.put(licenseManager, new SearchFulltextFunction());
+		Functions.put(licenseManager, new SearchRelationshipsFulltextFunction());
 		Functions.put(licenseManager, new IncomingFunction());
 		Functions.put(licenseManager, new OutgoingFunction());
 		Functions.put(licenseManager, new HasRelationshipFunction());
@@ -197,11 +195,14 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new PrefetchFunction());
 		Functions.put(licenseManager, new AddLabelsFunction());
 		Functions.put(licenseManager, new RemoveLabelsFunction());
+		Functions.put(licenseManager, new ScheduleFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());
 		Functions.put(licenseManager, new DeleteCacheValueFunction());
 		Functions.put(licenseManager, new InvalidateCacheValueFunction());
+		Functions.put(licenseManager, new SetLogLevelFunction());
+
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(licenseManager, new SetFunction());
@@ -222,23 +223,6 @@ public class CoreModule implements StructrModule {
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

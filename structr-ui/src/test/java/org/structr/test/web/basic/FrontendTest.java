@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,7 +45,7 @@ public abstract class FrontendTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			user = app.nodeQuery(StructrTraits.USER).andName("admin").getFirst();
+			user = app.nodeQuery(StructrTraits.USER).name("admin").getFirst();
 			user.setProperty(Traits.of(StructrTraits.USER).key(UserTraitDefinition.LOCAL_STORAGE_PROPERTY), null);
 			tx.success();
 

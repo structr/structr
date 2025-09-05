@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -28,8 +29,8 @@ import org.structr.schema.action.ActionContext;
 
 import java.io.StringWriter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
-import org.structr.common.PropertyView;
 
 public class ToJsonFunction extends UiCommunityFunction {
 
@@ -73,10 +74,9 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)obj);
 
-				} else if (obj instanceof Iterable) {
+				} else if (obj instanceof Iterable list) {
 
 					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, Settings.JsonIndentation.getValue(), outputDepth, true, serializeNulls);
-					final Iterable list                    = (Iterable)obj;
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", list), null, false);
 
@@ -87,7 +87,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
 
-					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", Arrays.asList(map)), null, false);
+					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", List.of(map)), null, false);
 
 				} else if (obj instanceof String) {
 

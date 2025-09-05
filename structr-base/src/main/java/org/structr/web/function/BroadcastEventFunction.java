@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -49,8 +49,8 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 			final String name             = sources[0].toString();
 			final String message          = sources[1].toString();
-			final Boolean authenticated   = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean)sources[2] : true;
-			final Boolean anonymous       = (sources.length > 3 && sources[3] instanceof Boolean) ? (boolean)sources[3] : false;
+			final Boolean authenticated   = sources.length <= 2 || !(sources[2] instanceof Boolean) || (boolean) sources[2];
+			final Boolean anonymous       = sources.length > 3 && sources[3] instanceof Boolean && (boolean) sources[3];
 
 			EventSourceServlet.broadcastEvent(name, message, authenticated, anonymous);
 

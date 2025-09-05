@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,12 @@ import org.structr.core.entity.AbstractRelationship;
 
 public class RelationshipVisibilitySearchAttribute<T> extends SearchAttribute<T> {
 
+	public RelationshipVisibilitySearchAttribute() {
+		super(null, null);
+	}
+
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 		return ((AbstractRelationship)entity).getSourceNode() != null && ((AbstractRelationship)entity).getTargetNode() != null;
 	}
 
@@ -38,5 +42,4 @@ public class RelationshipVisibilitySearchAttribute<T> extends SearchAttribute<T>
 	public boolean isExactMatch() {
 		return true;
 	}
-
 }

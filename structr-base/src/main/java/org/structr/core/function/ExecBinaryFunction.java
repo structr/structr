@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
-import java.util.Map;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -31,14 +29,16 @@ import org.structr.util.AbstractBinaryProcess;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ExecBinaryFunction extends ExecFunction {
 
-	public static final String ERROR_MESSAGE_EXEC_BINARY    = "Usage: ${exec_binary(outputStream, scriptConfigKey [, parameterArray [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', ['param1', 'param2'], 1)}";
-	public static final String ERROR_MESSAGE_EXEC_BINARY_JS = "Usage: ${{Structr.exec_binary(outputStream, scriptConfigKey [, parameterArray [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
+	public static final String ERROR_MESSAGE_EXEC_BINARY    = "Usage: ${exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}";
+	public static final String ERROR_MESSAGE_EXEC_BINARY_JS = "Usage: ${{Structr.exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
 
 	@Override
 	public String getName() {
@@ -47,7 +47,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public String getSignature() {
-		return "outputStream, scriptConfigKey [, parameterArray [, logBehaviour ] ]";
+		return "outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]";
 	}
 
 	@Override
@@ -157,7 +157,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the raw output directly into the output stream. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked.";
+		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the raw output directly into the output stream. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'masked' flag.";
 	}
 
 	private static class ScriptingProcess extends AbstractBinaryProcess<String> {

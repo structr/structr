@@ -1,7 +1,6 @@
 'use strict';
 
 import {FlowNode} from "./FlowNode.js";
-import {FlowAction} from "./FlowAction.js";
 import {FlowSockets} from "../FlowSockets.js";
 
 export class FlowNotNull extends FlowNode {

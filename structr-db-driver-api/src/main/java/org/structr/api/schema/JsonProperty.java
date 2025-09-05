@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,7 +43,10 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	boolean isRequired();
 	boolean isUnique();
 	boolean isIndexed();
+	boolean isFulltext();
 	boolean isReadOnly();
+	boolean isAbstract();
+	boolean isSerializationDisabled();
 	Set<String> getTransformators();
 	Set<String> getValidators();
 
@@ -51,13 +54,17 @@ public interface JsonProperty extends Comparable<JsonProperty> {
 	JsonProperty setCategory(final String category);
 	JsonProperty setFormat(final String format);
 	JsonProperty setName(final String name);
+	JsonProperty setAbstract(final boolean isAbstractMethod);
 	JsonProperty setRequired(final boolean isRequired);
 	JsonProperty setCompound(final boolean isCompoundUnique);
 	JsonProperty setUnique(final boolean isUnique);
 	JsonProperty setIndexed(final boolean isIndexed);
+	JsonProperty setIndexed(final boolean isIndexed, final boolean isFulltext);
 	JsonProperty setReadOnly(final boolean isReadOnly);
+	JsonProperty setSerializationDisabled(final boolean serializationDisabled);
 	JsonProperty setDefaultValue(final String defaultValue);
 
 	JsonProperty addValidator(final String fqcn);
 	JsonProperty addTransformer(final String fqcn);
+
 }

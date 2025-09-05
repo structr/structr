@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -76,7 +76,7 @@ public class RelationshipStartNode<T extends NodeInterface> extends AbstractRead
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 
 		if (notion != null) {
 			return notion.getEntityConverter(securityContext);

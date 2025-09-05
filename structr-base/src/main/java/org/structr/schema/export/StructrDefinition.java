@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,11 @@
 package org.structr.schema.export;
 
 import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonParameter;
 import org.structr.core.traits.Traits;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  *

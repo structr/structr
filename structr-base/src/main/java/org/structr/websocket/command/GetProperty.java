@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
@@ -50,7 +49,7 @@ public class GetProperty extends AbstractCommand {
 		if (obj != null) {
 
 			final PropertyKey propertyKey     = obj.getTraits().hasKey(key) ? obj.getTraits().key(key) : new GenericProperty(key);
-			final PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext());
+			final PropertyConverter converter = propertyKey.inputConverter(getWebSocket().getSecurityContext(), false);
 
 			Object value = obj.getProperty(propertyKey);
 			if (converter != null) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,6 +54,9 @@ public class CreateSimplePage extends AbstractCommand {
 			final Page page = Page.createSimplePage(securityContext, pageName);
 
 			TransactionCommand.registerNodeCallback(page, callback);
+
+			// send success
+			getWebSocket().send(webSocketData, true);
 
 		} catch (FrameworkException fex) {
 

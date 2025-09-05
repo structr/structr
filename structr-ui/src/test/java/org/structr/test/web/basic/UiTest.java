@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -116,7 +116,7 @@ public class UiTest extends StructrUiTest {
 			assertEquals(Integer.valueOf(200), tn.getWidth());
 			assertEquals(Integer.valueOf(48), tn.getHeight());  // cropToFit = false
 
-			assertEquals("image/" + Thumbnail.Format.jpeg, tn.getContentType());
+			assertEquals("image/" + Thumbnail.Format.png, tn.getContentType());
 
 			tx.success();
 

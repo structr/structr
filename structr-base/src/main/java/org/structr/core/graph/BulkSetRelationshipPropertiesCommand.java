@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,10 +29,10 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Sets the properties found in the property set on all relationships matching the type.
@@ -83,7 +83,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 								} catch (FrameworkException fex) {
 
-									logger.warn("Unable to set relationship property {} of relationship {} to {}: {}", new Object[] { propertyKey, rel.getUuid(), val, fex.getMessage() } );
+									logger.warn("Unable to set relationship property {} of relationship {} to {}: {}", propertyKey, rel.getUuid(), val, fex.getMessage());
 								}
 							}
 						}
@@ -94,7 +94,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-					logger.warn("Unable to set properties of relationship {}: {}", new Object[] { rel.getUuid(), t.getMessage() } );
+					logger.warn("Unable to set properties of relationship {}: {}", rel.getUuid(), t.getMessage());
 				}
 
 				@Override

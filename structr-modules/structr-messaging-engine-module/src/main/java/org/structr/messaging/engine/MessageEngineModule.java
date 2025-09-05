@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -47,8 +46,6 @@ import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFu
 import org.structr.messaging.implementation.pulsar.PulsarClient;
 import org.structr.messaging.traits.definitions.*;
 import org.structr.module.StructrModule;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -61,7 +58,7 @@ public class MessageEngineModule implements StructrModule {
 	private static final Logger logger = LoggerFactory.getLogger(MessageEngineModule.class.getName());
 
 	@Override
-	public void onLoad(LicenseManager licenseManager) {
+	public void onLoad() {
 
 		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, new MessageClientHASMessageSubscriber());
 
@@ -93,26 +90,6 @@ public class MessageEngineModule implements StructrModule {
 	@Override
 	public Set<String> getFeatures() {
 		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-		// nothing to do
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-		// nothing to do
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
-		return null;
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-		// nothing to do
 	}
 
 	@Override
@@ -148,7 +125,7 @@ public class MessageEngineModule implements StructrModule {
 			}
 
 
-			for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MESSAGE_CLIENT).andType(StructrTraits.MESSAGE_CLIENT).sort(nameKey).getAsList()) {
+			for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.MESSAGE_CLIENT).type(StructrTraits.MESSAGE_CLIENT).sort(nameKey).getAsList()) {
 
 				final MessageClient client      = clientNode.as(MessageClient.class);
 				final Map<String, Object> entry = new TreeMap<>();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,12 +37,12 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
-import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 /**
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
@@ -78,8 +78,7 @@ public class IncludeFunction extends UiCommunityFunction {
 			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).andName((String)sources[0]).getAsList();
-
+			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name((String)sources[0]).getAsList();
 
 			RenderContext innerCtx = null;
 			boolean useBuffer      = false;
@@ -112,7 +111,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				final DOMNode domNode = n.as(DOMNode.class);
 
-				// IGNORE everything that REFERENCES a shared component!
+				// IGNORE everything that REFERENCES a shared component! (or is in the trash)
 				if (n.getProperty(sharedCompKey) == null && !domNode.inTrash()) {
 
 					// the DOMNode is either a shared component OR a named node in the pages tree
@@ -123,7 +122,7 @@ public class IncludeFunction extends UiCommunityFunction {
 					} else {
 
 						// ERROR: we have found multiple DOMNodes with the same name
-						logger.warn("Ambiguous node name \"" + ((String)sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")");
+						logger.warn(getName() + "(): Ambiguous node name '" + sources[0] + "' (" + StringUtils.join(nodeList, ", ") + ")");
 						return "";
 					}
 				}
@@ -159,10 +158,9 @@ public class IncludeFunction extends UiCommunityFunction {
 
 			DOMNode.prefetchDOMNodes(node.getUuid());
 
-			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
+			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String dataKey) {
 
 				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);
-				final String dataKey                 = (String)sources[2];
 
 				innerCtx.setListSource(iterable);
 				node.renderNodeList(securityContext, innerCtx, 0, dataKey);
@@ -172,13 +170,9 @@ public class IncludeFunction extends UiCommunityFunction {
 				node.render(innerCtx, 0);
 			}
 
-			if (innerCtx.appLibRendered()) {
-				((RenderContext)ctx).setAppLibRendered(true);
-			}
-
 		} else {
 
-			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).andName((String)sources[0]).getFirst();
+			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).name((String)sources[0]).getFirst();
 			if (fileNode != null) {
 
 				final File file          = fileNode.as(File.class);
@@ -189,9 +183,8 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				if (contentType == null || StringUtils.isBlank(extension)) {
 
-					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", name, getParametersAsString(sources));
 					return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
-
 				}
 
 				if (contentType.startsWith("text/css")) {
@@ -225,13 +218,11 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				} else {
 
-					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", name, getParametersAsString(sources));
 					return "Don't know how to render content type or extension of  " + name + ".";
 
 				}
-
 			}
-
 		}
 
 		if (useBuffer) {
@@ -244,9 +235,5 @@ public class IncludeFunction extends UiCommunityFunction {
 			// output needs to be returned as a function result
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 		}
-	}
-
-	public static boolean isRenderContext (final ActionContext ctx) {
-		return (ctx instanceof RenderContext);
 	}
 }

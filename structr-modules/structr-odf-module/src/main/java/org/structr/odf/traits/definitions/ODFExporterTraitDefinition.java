@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -192,7 +192,7 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 		try {
 
 			final App app              = StructrApp.getInstance();
-			final Image result         = app.nodeQuery(StructrTraits.IMAGE).and(Traits.of(StructrTraits.IMAGE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getFirst().as(Image.class);
+			final Image result         = app.nodeQuery(StructrTraits.IMAGE).key(Traits.of(StructrTraits.IMAGE).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid).getFirst().as(Image.class);
 			final String imageName     = result.getName();
 			final String contentType   = result.getContentType();
 

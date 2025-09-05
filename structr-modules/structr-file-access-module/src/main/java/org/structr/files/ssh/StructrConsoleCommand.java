@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -113,7 +113,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			final App app = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).andName(userName).getFirst();
+				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).name(userName).getFirst();
 				if (userNode != null && userNode.is(StructrTraits.USER)) {
 
 					user = userNode.as(User.class);

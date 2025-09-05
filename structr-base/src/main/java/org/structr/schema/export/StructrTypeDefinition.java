@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,11 +36,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractSchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
-import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+import org.structr.core.traits.definitions.*;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
@@ -57,7 +53,7 @@ import java.util.Map.Entry;
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
-	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
+	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "fav", "schema", "ui"));
 	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
@@ -192,19 +188,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public boolean isVisibleForPublicUsers() {
-		return this.visibleToPublicUsers;
-	}
-
-	@Override
 	public JsonType setVisibleForPublicUsers() {
 		this.visibleToPublicUsers = true;
 		return this;
-	}
-
-	@Override
-	public boolean isVisibleForAuthenticatedUsers() {
-		return this.visibleToAuthenticatedUsers;
 	}
 
 	@Override
@@ -219,85 +205,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
 		newMethod.setSource(source);
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod addMethod(final String name) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
-
-		newMethod.setCodeType("java");
-		newMethod.setReturnType("void");
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
-
-		newMethod.setSource(implementation);
-		newMethod.setOverridesExisting(true);
-		newMethod.setCallSuper(callSuper);
-		newMethod.setCodeType("java");
-		newMethod.setReturnType("void");
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod addPropertyGetter(final String propertyName, final Class type) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "get" + StringUtils.capitalize(propertyName));
-
-		newMethod.setSource("return getProperty(" + propertyName + "Property);");
-
-		if (type.isArray()) {
-
-			newMethod.setReturnType(type.getPackageName() + "." +  type.getSimpleName());
-		} else {
-
-			newMethod.setReturnType(type.getName().replace("$", "."));
-		}
-
-		newMethod.setCodeType("java");
-
-		methods.add(newMethod);
-
-		// sort methods
-		Collections.sort(methods);
-
-		return newMethod;
-	}
-
-	@Override
-	public JsonMethod addPropertySetter(final String propertyName, final Class type) {
-
-		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, "set" + StringUtils.capitalize(propertyName));
-
-		newMethod.setSource("setProperty(" + propertyName + "Property, value);");
-		newMethod.addParameter("value", type.getName());
-		newMethod.setCodeType("java");
-		newMethod.addException("FrameworkException");
-		newMethod.setReturnType("void");
 
 		methods.add(newMethod);
 
@@ -438,18 +345,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		properties.add(encrypted);
 
 		return encrypted;
-	}
-
-	@Override
-	public JsonStringProperty addPasswordProperty(final String name, final String... views) {
-
-		final StructrPasswordProperty passwordProperty = new StructrPasswordProperty(this, name);
-
-		addPropertyNameToViews(name, views);
-
-		properties.add(passwordProperty);
-
-		return passwordProperty;
 	}
 
 	@Override
@@ -598,30 +493,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
-	public JsonCountProperty addCountProperty(final String name, final String... views) {
-
-		final StructrCountProperty countProperty = new StructrCountProperty(this, name);
-
-		addPropertyNameToViews(name, views);
-
-		properties.add(countProperty);
-
-		return countProperty;
-	}
-
-	@Override
-	public JsonScriptProperty addScriptProperty(final String name, final String... views) {
-
-		final StructrScriptProperty scriptProperty = new StructrScriptProperty(this, name);
-
-		addPropertyNameToViews(name, views);
-
-		properties.add(scriptProperty);
-
-		return scriptProperty;
-	}
-
-	@Override
 	public JsonFunctionProperty addFunctionProperty(final String name, final String... views) {
 
 		final StructrFunctionProperty functionProperty = new StructrFunctionProperty(this, name);
@@ -667,22 +538,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final String refName   = referencedProperty.getName();
 
 		final StructrReferenceProperty ref = new NotionReferenceProperty(this, name, reference, refType, refName);
-
-		addPropertyNameToViews(name, views);
-
-		properties.add(ref);
-
-		return ref;
-	}
-
-	@Override
-	public JsonReferenceProperty addIdReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views) {
-
-		final String reference = root.toJsonPointer(referencedProperty.getId());
-		final String refType   = referencedProperty.getType();
-		final String refName   = referencedProperty.getName();
-
-		final StructrReferenceProperty ref = new IdNotionReferenceProperty(this, name, reference, refType, refName);
 
 		addPropertyNameToViews(name, views);
 
@@ -1180,8 +1035,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		return isServiceClass;
 	}
 
-	public void setIsServiceClass() {
+	public JsonType setIsServiceClass() {
 		this.isServiceClass = true;
+		return this;
 	}
 
 	void initializeReferenceProperties() {

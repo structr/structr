@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -46,35 +46,18 @@ public interface JsonType extends Comparable<JsonType> {
 	boolean isInterface();
 	JsonType setIsInterface();
 
+	boolean isServiceClass();
+	JsonType setIsServiceClass();
+
 	boolean isChangelogDisabled();
 	JsonType setIsChangelogDisabled();
 
-	boolean isVisibleForPublicUsers();
 	JsonType setVisibleForPublicUsers();
-
-	boolean isVisibleForAuthenticatedUsers();
 	JsonType setVisibleForAuthenticatedUsers();
 
 	JsonMethod addMethod(final String name, final String source);
-	JsonMethod addMethod(final String name);
-
-	JsonMethod overrideMethod(final String name, final boolean callSuper, final String implementation);
-
-	JsonMethod addPropertyGetter(final String propertyName, final Class type);
-	JsonMethod addPropertySetter(final String propertyName, final Class type);
 
 	JsonType addTrait(final String name);
-
-	/*
-	JsonType setExtends(final JsonType superType);
-	JsonType setExtends(final URI externalReference);
-	JsonType setExtends(final Class staticType);
-	URI getExtends();
-
-	JsonType setImplements(final URI externalReference);
-	JsonType setImplements(final Class staticReference);
-	Set<URI> getImplements();
-	 */
 
 	Set<JsonProperty> getProperties();
 	Set<String> getRequiredProperties();
@@ -99,15 +82,12 @@ public interface JsonType extends Comparable<JsonType> {
 
 	JsonStringProperty addStringProperty(final String name, final String... views);
 	JsonStringProperty addEncryptedProperty(final String name, final String... views);
-	JsonStringProperty addPasswordProperty(final String name, final String... views);
 	JsonDateProperty addDateProperty(final String name, final String... views);
 	JsonIntegerProperty addIntegerProperty(final String name, final String... views);
 	JsonLongProperty addLongProperty(final String name, final String... views);
 	JsonDoubleProperty addDoubleProperty(final String name, final String... views);
 	JsonBooleanProperty addBooleanProperty(final String name, final String... views);
-	JsonScriptProperty addScriptProperty(final String name, final String...views);
 	JsonFunctionProperty addFunctionProperty(final String name, final String...views);
-	JsonLongProperty addCountProperty(final String name, final String... views);
 	JsonEnumProperty addEnumProperty(final String name, final String...views);
 	JsonDynamicProperty addCustomProperty(final String name, final String fqcn, final String... views);
 	JsonStringArrayProperty addStringArrayProperty(final String name, final String... views);
@@ -119,5 +99,4 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonByteArrayProperty addByteArrayProperty(final String name, final String... views);
 
 	JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
-	JsonReferenceProperty addIdReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 }

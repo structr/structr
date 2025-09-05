@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -135,9 +135,6 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<String, Set<String>> getViews() {
 
 		return Map.of(
-
-			PropertyView.Public,
-			newSet(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY),
 
 			PropertyView.Ui,
 			newSet(HOST_PROPERTY, USER_PROPERTY, OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY, PASSWORD_PROPERTY, FOLDERS_PROPERTY, MAIL_PROTOCOL_PROPERTY, PORT_PROPERTY, AVAILABLE_FOLDERS_ON_SERVER_PROPERTY)

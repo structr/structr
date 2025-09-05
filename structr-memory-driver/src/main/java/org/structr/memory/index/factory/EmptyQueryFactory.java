@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,7 @@ public class EmptyQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// not empty query is simple
 		query.addPredicate(new NullPredicate<>(predicate.getName()));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -239,7 +239,7 @@ let _VirtualTypes = {
 			name: 'Delete Virtual Type',
 			clickHandler: async () => {
 
-				let confirm = await _Dialogs.confirmation.showPromise(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`);
+				let confirm = await _Dialogs.confirmation.showPromise(`Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?`);
 
 				if (confirm === true) {
 

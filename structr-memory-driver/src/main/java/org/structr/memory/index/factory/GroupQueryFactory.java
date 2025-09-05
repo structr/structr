@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,13 +22,8 @@ import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.TypeQuery;
 import org.structr.memory.index.MemoryQuery;
 import org.structr.memory.index.predicate.Conjunction;
-
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -42,134 +37,38 @@ public class GroupQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
-		if (predicate instanceof GroupQuery) {
+		if (predicate instanceof GroupQuery group) {
 
-			final GroupQuery group   = (GroupQuery)predicate;
+			boolean newGroup = false;
 
-			// Filter type predicates since they require special handling
-			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
-			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> { return p instanceof TypeQuery; }).collect(Collectors.toList());
-			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> { return !(p instanceof TypeQuery); }).collect(Collectors.toList());
+			switch (group.getOperation()) {
 
-			if (!typePredicates.isEmpty()) {
-
-
-				switch (group.getOccurrence()) {
-
-					case REQUIRED:
-						query.beginGroup(Conjunction.And);
-						break;
-
-					case OPTIONAL:
-						query.beginGroup(Conjunction.Or);
-						break;
-
-					case FORBIDDEN:
-						query.beginGroup(Conjunction.Not);
-						break;
-				}
-
-				for (final QueryPredicate p : typePredicates) {
-
-					index.createQuery(p, query, isFirst);
-				}
-
-				query.endGroup();
-			}
-
-			// Apply any group and attribute predicates, if existent
-			if (!attributeAndGroupPredicates.isEmpty()) {
-
-				// Check if any child group contains elements
-				boolean allChildrenAreGroups = true;
-				boolean nonEmptyGroup        = false;
-
-				for (QueryPredicate p : attributeAndGroupPredicates) {
-
-					if (p instanceof GroupQuery) {
-
-						final List<QueryPredicate> containedPredicates = ((GroupQuery)p).getQueryPredicates();
-						if (containedPredicates.size() > 0) {
-
-							nonEmptyGroup = true;
-						}
-					} else {
-						allChildrenAreGroups = false;
-					}
-				}
-
-				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
-					checkOccur(query, predicate.getOccurrence(), isFirst);
-				}
-
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
+				case AND:
 					query.beginGroup(Conjunction.And);
-				}
-
-				boolean firstWithinGroup = true;
-
-				Iterator<QueryPredicate> it = attributeAndGroupPredicates.iterator();
-
-				while (it.hasNext()) {
-
-					if (index.createQuery(it.next(), query, firstWithinGroup)) {
-
-						firstWithinGroup = false;
-					}
-				}
-
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
-					query.endGroup();
-				}
-
-				if (allChildrenAreGroups && !nonEmptyGroup) {
-					return false;
-				} else {
-					return true;
-				}
-
-			}
-
-			return false;
-		}
-
-		return false;
-	}
-
-	/*
-	@Override
-	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
-
-		if (predicate instanceof GroupQuery) {
-
-			final GroupQuery group = (GroupQuery)predicate;
-
-			query.beginGroup();
-
-			switch (group.getOccurrence()) {
-
-				case REQUIRED:
-					query.and();
+					newGroup = true;
 					break;
-
-				case OPTIONAL:
-					query.or();
+				case OR:
+					query.beginGroup(Conjunction.Or);
+					newGroup = true;
 					break;
-
-				case FORBIDDEN:
+				case NOT:
 					query.not();
 					break;
 			}
 
+			// Apply all type queries first as they affect as different part of the query expression
 			for (final QueryPredicate p : group.getQueryPredicates()) {
 
 				index.createQuery(p, query, isFirst);
 			}
 
-			query.endGroup();
+			if (newGroup) {
+				query.endGroup();
+			}
+
+			return true;
 		}
 
 		return false;
 	}
-*/
 }

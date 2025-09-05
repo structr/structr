@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -61,12 +61,13 @@ public interface Page extends DOMNode {
 	DOMElement createElement(final String tag) throws FrameworkException;
 	DOMElement createElement(final String tag, final boolean suppressException) throws FrameworkException;
 	Content createTextNode(final String text);
+	Content createTemplate(final String text);
 	Comment createComment(final String comment);
 
 	void adoptNode(final DOMNode newHtmlNode) throws FrameworkException;
 	DOMNode importNode(final DOMNode node, final boolean deep) throws FrameworkException;
 
-	List<DOMNode> getElementsByTagName(final String head) throws FrameworkException;
+	List<DOMNode> getElementsByTagName(final String tagName) throws FrameworkException;
 
 	/**
 	 * Creates a new Page entity with the given name in the database.

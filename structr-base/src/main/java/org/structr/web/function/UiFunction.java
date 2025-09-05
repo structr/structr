@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,15 +19,11 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObjectMap;
-import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  *

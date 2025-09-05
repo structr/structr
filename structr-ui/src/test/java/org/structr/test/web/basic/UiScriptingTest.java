@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
@@ -45,6 +46,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.script.Scripting;
@@ -107,20 +109,20 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
-			.given()
-				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
-				.statusCode(200)
-				.body(equalTo("a"))
-			.when()
-				.get("/test?param=a");
+					.given()
+					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.expect()
+					.statusCode(200)
+					.body(equalTo("a"))
+					.when()
+					.get("/test?param=a");
 
 			tx.success();
 
@@ -139,16 +141,16 @@ public class UiScriptingTest extends StructrUiTest {
 			Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 			template.setContent("${if (\n" +
-				"	is_collection(request.param),\n" +
-				"	(\n" +
-				"		print('collection! '),\n" +
-				"		each(request.param, print(data))\n" +
-				"	),\n" +
-				"	(\n" +
-				"		print('single param!'),\n" +
-				"		print(request.param)\n" +
-				"	)\n" +
-				")}");
+					"	is_collection(request.param),\n" +
+					"	(\n" +
+					"		print('collection! '),\n" +
+					"		each(request.param, print(data))\n" +
+					"	),\n" +
+					"	(\n" +
+					"		print('single param!'),\n" +
+					"		print(request.param)\n" +
+					"	)\n" +
+					")}");
 
 			page.appendChild(template);
 
@@ -164,20 +166,20 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
-			.given()
-				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
-				.statusCode(200)
-				.body(equalTo("collection! abc"))
-			.when()
-				.get("/test?param=a&param=b&param=c");
+					.given()
+					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.expect()
+					.statusCode(200)
+					.body(equalTo("collection! abc"))
+					.when()
+					.get("/test?param=a&param=b&param=c");
 
 			tx.success();
 
@@ -189,20 +191,20 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
-			.given()
-				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
-				.statusCode(200)
-				.body(equalTo("single param!a"))
-			.when()
-				.get("/test?param=a");
+					.given()
+					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.expect()
+					.statusCode(200)
+					.body(equalTo("single param!a"))
+					.when()
+					.get("/test?param=a");
 
 			tx.success();
 
@@ -236,20 +238,20 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			RestAssured
-			.given()
-				//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
-				.statusCode(200)
-				.body(equalTo("abc"))
-			.when()
-				.get("/test?param=a&param=b&param=c");
+					.given()
+					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+					.expect()
+					.statusCode(200)
+					.body(equalTo("abc"))
+					.when()
+					.get("/test?param=a&param=b&param=c");
 
 			tx.success();
 
@@ -323,9 +325,9 @@ public class UiScriptingTest extends StructrUiTest {
 			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
-			test(p, text, "${{ return Structr.get('div').id; }}",    "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + div.getUuid() + "</p>", ctx);
-			test(p, text, "${{ return Structr.get('page').id; }}",   "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + page.getUuid() + "</p>", ctx);
-			test(p, text, "${{ return Structr.get('parent').id; }}", "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + p.getUuid() + "</p>", ctx);
+			test(p, text, "${{ Structr.get('div').id; }}",    "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${{ Structr.get('page').id; }}",   "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + page.getUuid() + "</p>", ctx);
+			test(p, text, "${{ Structr.get('parent').id; }}", "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + p.getUuid() + "</p>", ctx);
 
 			tx.success();
 
@@ -366,17 +368,17 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create parent folder
 			final NodeInterface parent = createTestNode(StructrTraits.FOLDER,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Parent"),
-				new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.FOLDERS_PROPERTY), folders)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Parent"),
+					new NodeAttribute<>(Traits.of(StructrTraits.FOLDER).key(FolderTraitDefinition.FOLDERS_PROPERTY), folders)
 			);
 
 			uuid = parent.getUuid();
 
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                    "testFunction"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),          "Function"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),          "this.folders")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                    "testFunction"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),          "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),          "this.folders")
 			);
 
 			createAdminUser();
@@ -392,7 +394,7 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured.basePath = "/structr/rest";
 		RestAssured
 
-			.given()
+				.given()
 				.contentType("application/json; charset=UTF-8")
 				.accept("application/json; properties=id,type,name,folders,testFunction")
 				.header("Range", "folders=0-10;testFunction=0-10")
@@ -404,11 +406,11 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("result.folders",      Matchers.hasSize(10))
 				.body("result.testFunction", Matchers.hasSize(10))
-			.when()
+				.when()
 				.get("/Folder/" + uuid + "/all");
 	}
 
@@ -441,10 +443,10 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create function property that returns folder children
 			app.create(StructrTraits.SCHEMA_PROPERTY,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                     "testFunction"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),           "Function"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),           "this.folders")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                     "testFunction"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY),           "Function"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),           "this.folders")
 			);
 
 			createAdminUser();
@@ -466,7 +468,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create view without property "folders"
-			final NodeInterface testFn = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).and(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER).andName("testFunction").getFirst();
+			final NodeInterface testFn = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY), StructrTraits.FOLDER).name("testFunction").getFirst();
 
 			app.create(StructrTraits.SCHEMA_VIEW,
 					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "someprops"),
@@ -477,7 +479,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create resource access grant for user
 			createTestNode(StructrTraits.RESOURCE_ACCESS,
-					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), "Folder/_Someprops"),
+					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.SIGNATURE_PROPERTY), "Folder/_id/_Someprops"),
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(ResourceAccessTraitDefinition.FLAGS_PROPERTY), 1L),
 					new NodeAttribute<>(Traits.of(StructrTraits.RESOURCE_ACCESS).key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
 			);
@@ -541,7 +543,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final DOMNode content = div.getFirstChild();
 
 			// setup repeater
-			content.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; return arr; }");
+			content.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "{ var arr = []; for (var i=0; i<10; i++) { arr.push({ name: 'test' + i }); }; arr; }");
 			content.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "test");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "${test.name}");
 
@@ -559,7 +561,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given()
+				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -568,13 +570,13 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1", Matchers.equalTo("Test"))
 				.body("html.body.div", Matchers.equalTo("test0test1test2test3test4test5test6test7test8test9"))
-			.when()
-			.get("/html/test");
+				.when()
+				.get("/html/test");
 	}
 
 	@Test
@@ -613,7 +615,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given()
+				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -622,7 +624,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("html.head.title",      Matchers.equalTo("Test"))
 				.body("html.body.h1",         Matchers.equalTo("Test"))
@@ -636,8 +638,8 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.body.div.div[7]", Matchers.equalTo("test7"))
 				.body("html.body.div.div[8]", Matchers.equalTo("test8"))
 				.body("html.body.div.div[9]", Matchers.equalTo("test9"))
-			.when()
-			.get("/html/test");
+				.when()
+				.get("/html/test");
 	}
 
 	@Test
@@ -674,7 +676,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given()
+				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -683,13 +685,13 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1",    Matchers.equalTo("Test"))
 				.body("html.body.div",   Matchers.equalTo(uuid))
-			.when()
-			.get("/test/" + uuid);
+				.when()
+				.get("/test/" + uuid);
 	}
 
 	@Test
@@ -729,7 +731,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given()
+				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -738,13 +740,13 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1",    Matchers.equalTo("Test"))
 				.body("html.body.div",   Matchers.equalTo(""))
-			.when()
-			.get("/html/test/" + uuid);
+				.when()
+				.get("/html/test/" + uuid);
 	}
 
 	@Test
@@ -758,8 +760,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create test user
 			tester = createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
 			).as(User.class);
 
 			tx.success();
@@ -770,8 +772,8 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception.");
 		}
 
-		final String script1              =  "${{ return Structr.find('User', 'name', 'admin'); }}\n";
-		final String script2              =  "${{ return Structr.doPrivileged(function() { return Structr.find('User', 'name', 'admin'); }); }}\n";
+		final String script1              =  "${{ Structr.find('User', 'name', 'admin'); }}\n";
+		final String script2              =  "${{ Structr.doPrivileged(function() { return Structr.find('User', 'name', 'admin'); }); }}\n";
 		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
 		final App app                     = StructrApp.getInstance(userContext);
 		final RenderContext renderContext = new RenderContext(userContext, new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
@@ -820,8 +822,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create test user
 			tester = createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "tester"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), "test")
 			).as(User.class);
 
 			// create test group
@@ -880,10 +882,10 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create admin user
 			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY),     "d7b5f5008fdf4066a1b9c2a74479ba5f"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY),     "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			tx.success();
@@ -899,10 +901,10 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// unprivileged call
-			final Object result1 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson({ name: 'Test' }); }}",        "test1");
-			final Object result2 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson([{ name: 'Test' }]); }}",      "test2");
-			final Object result3 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')[0]); }}", "test3");
-			final Object result4 = Scripting.evaluate(renderContext, null, "${{ return Structr.toJson(Structr.find('User')); }}",    "test4");
+			final Object result1 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson({ name: 'Test' }); }}",        "test1");
+			final Object result2 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson([{ name: 'Test' }]); }}",      "test2");
+			final Object result3 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson(Structr.find('User')[0]); }}", "test3");
+			final Object result4 = Scripting.evaluate(renderContext, null, "${{ Structr.toJson(Structr.find('User')); }}",    "test4");
 
 			assertEquals("Invalid result for Structr.toJson() on Javascript object", "{\n\t\"name\": \"Test\"\n}", result1);
 			assertEquals("Invalid result for Structr.toJson() on Javascript array",  "[\n\t{\n\t\t\"name\": \"Test\"\n\t}\n]", result2);
@@ -925,10 +927,10 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create admin user
 			createTestNode(StructrTraits.USER,
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY),     "d7b5f5008fdf4066a1b9c2a74479ba5f"),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD),
-				new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(GraphObjectTraitDefinition.ID_PROPERTY),     "d7b5f5008fdf4066a1b9c2a74479ba5f"),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), ADMIN_USERNAME),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.PASSWORD_PROPERTY), ADMIN_PASSWORD),
+					new NodeAttribute<>(Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY),  true)
 			);
 
 			final Page page = Page.createNewPage(securityContext, "testpage");
@@ -1001,7 +1003,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given()
+				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -1010,7 +1012,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("html.body.div[0].@class" , equalTo("test"))
 				.body("html.body.div[1].@class" , nullValue())
@@ -1023,8 +1025,8 @@ public class UiScriptingTest extends StructrUiTest {
 				.body("html.body.div[8].@class" , equalTo("other true"))
 				.body("html.body.div[9].@class" , equalTo(""))
 				.body("html.body.div[10].@class" , equalTo("${invalid_script(code.."))
-			.when()
-			.get("/testpage");
+				.when()
+				.get("/testpage");
 	}
 
 	@Test
@@ -1046,30 +1048,30 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create global schema method for JavaScript
 			app.create(StructrTraits.SCHEMA_METHOD,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTest1"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),
-					  "{"
-					+ "	var test = Structr.create('Test');\n"
-					+ "	var log  = '';\n"
-					+ "	var b1   = test.testBoolean1();\n"
-					+ "	var b2   = test.testBoolean2();\n"
-					+ "	var b3   = test.testBoolean3();\n"
-					+ "	var b4   = test.testBoolean4();\n"
-					+ "	Structr.log(b1 + ': ' + typeof b1);\n"
-					+ "	Structr.log(b2 + ': ' + typeof b2);\n"
-					+ "	Structr.log(b3 + ': ' + typeof b3);\n"
-					+ "	Structr.log(b4 + ': ' + typeof b4);\n"
-					+ "	if (b1) { log += 'b1 is true,'; }\n"
-					+ "	if (!b1) { log += 'b1 is false,'; }\n"
-					+ "	if (b2) { log += 'b2 is true,'; }\n"
-					+ "	if (!b2) { log += 'b2 is false,'; }\n"
-					+ "	if (b3) { log += 'b3 is true,'; }\n"
-					+ "	if (!b3) { log += 'b3 is false,'; }\n"
-					+ "	if (b4) { log += 'b4 is true,'; }\n"
-					+ "	if (!b4) { log += 'b4 is false,'; }\n"
-					+ "	test.log = log;\n"
-					+ "}"
-				)
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "globalTest1"),
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),
+							"{"
+									+ "	var test = Structr.create('Test');\n"
+									+ "	var log  = '';\n"
+									+ "	var b1   = test.testBoolean1();\n"
+									+ "	var b2   = test.testBoolean2();\n"
+									+ "	var b3   = test.testBoolean3();\n"
+									+ "	var b4   = test.testBoolean4();\n"
+									+ "	Structr.log(b1 + ': ' + typeof b1);\n"
+									+ "	Structr.log(b2 + ': ' + typeof b2);\n"
+									+ "	Structr.log(b3 + ': ' + typeof b3);\n"
+									+ "	Structr.log(b4 + ': ' + typeof b4);\n"
+									+ "	if (b1) { log += 'b1 is true,'; }\n"
+									+ "	if (!b1) { log += 'b1 is false,'; }\n"
+									+ "	if (b2) { log += 'b2 is true,'; }\n"
+									+ "	if (!b2) { log += 'b2 is false,'; }\n"
+									+ "	if (b3) { log += 'b3 is true,'; }\n"
+									+ "	if (!b3) { log += 'b3 is false,'; }\n"
+									+ "	if (b4) { log += 'b4 is true,'; }\n"
+									+ "	if (!b4) { log += 'b4 is false,'; }\n"
+									+ "	test.log = log;\n"
+									+ "}"
+					)
 			);
 
 			tx.success();
@@ -1110,7 +1112,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final DOMNode content = div.getFirstChild();
 
 			// setup scripting repeater
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "{${42}${print('123')}${{ return 'test'; }}$$${page.name}}${{ return 99; }}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "{${42}${print('123')}${{ 'test'; }}$$${page.name}}${{ 99; }}");
 
 			createAdminUser();
 
@@ -1126,7 +1128,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given()
+				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -1135,13 +1137,13 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1",    Matchers.equalTo("Test"))
 				.body("html.body.div",   Matchers.equalTo("{42.0123test$$test}99"))
-			.when()
-			.get("/html/test");
+				.when()
+				.get("/html/test");
 	}
 
 	@Test
@@ -1156,29 +1158,29 @@ public class UiScriptingTest extends StructrUiTest {
 			final DOMNode content = div.getFirstChild();
 
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY),
-				"${{ return ($.eq($.current,                $.get('current')))           ? 'A' : 'a'; }}" +
-				"${{ return ($.eq($.baseUrl,                $.get('baseUrl')))           ? 'B' : 'b'; }}" +
-				"${{ return ($.eq($.base_url,               $.get('base_url')))          ? 'C' : 'c'; }}" +
-				"${{ return ($.eq($.me,                     $.get('me')))                ? 'D' : 'd'; }}" +
-				"${{ return ($.eq($.host,                   $.get('host')))              ? 'E' : 'e'; }}" +
-				"${{ return ($.eq($.port,                   $.get('port')))              ? 'F' : 'f'; }}" +
-				"${{ return ($.eq($.pathInfo,               $.get('pathInfo')))          ? 'G' : 'g'; }}" +
-				"${{ return ($.eq($.path_info,              $.get('path_info')))         ? 'H' : 'h'; }}" +
-				"${{ return ($.eq($.queryString,            $.get('queryString')))       ? 'I' : 'i'; }}" +
-				"${{ return ($.eq($.query_string,           $.get('query_string')))      ? 'J' : 'j'; }}" +
-				"${{ return ($.eq($.parameterMap,           $.get('parameterMap')))      ? 'K' : 'k'; }}" +
-				"${{ return ($.eq($.parameter_map,          $.get('parameter_map')))     ? 'L' : 'l'; }}" +
-				"${{ return ($.eq($.remoteAddress,          $.get('remoteAddress')))     ? 'M' : 'm'; }}" +
-				"${{ return ($.eq($.remote_address,         $.get('remote_address')))    ? 'N' : 'n'; }}" +
-				"${{ return ($.eq($.statusCode,             $.get('statusCode')))        ? 'O' : 'o'; }}" +
-				"${{ return ($.eq($.status_code,            $.get('status_code')))       ? 'P' : 'p'; }}" +
+							"${{ ($.eq($.current,                $.get('current')))           ? 'A' : 'a'; }}" +
+							"${{ ($.eq($.baseUrl,                $.get('baseUrl')))           ? 'B' : 'b'; }}" +
+							"${{ ($.eq($.base_url,               $.get('base_url')))          ? 'C' : 'c'; }}" +
+							"${{ ($.eq($.me,                     $.get('me')))                ? 'D' : 'd'; }}" +
+							"${{ ($.eq($.host,                   $.get('host')))              ? 'E' : 'e'; }}" +
+							"${{ ($.eq($.port,                   $.get('port')))              ? 'F' : 'f'; }}" +
+							"${{ ($.eq($.pathInfo,               $.get('pathInfo')))          ? 'G' : 'g'; }}" +
+							"${{ ($.eq($.path_info,              $.get('path_info')))         ? 'H' : 'h'; }}" +
+							"${{ ($.eq($.queryString,            $.get('queryString')))       ? 'I' : 'i'; }}" +
+							"${{ ($.eq($.query_string,           $.get('query_string')))      ? 'J' : 'j'; }}" +
+							"${{ ($.eq($.parameterMap,           $.get('parameterMap')))      ? 'K' : 'k'; }}" +
+							"${{ ($.eq($.parameter_map,          $.get('parameter_map')))     ? 'L' : 'l'; }}" +
+							"${{ ($.eq($.remoteAddress,          $.get('remoteAddress')))     ? 'M' : 'm'; }}" +
+							"${{ ($.eq($.remote_address,         $.get('remote_address')))    ? 'N' : 'n'; }}" +
+							"${{ ($.eq($.statusCode,             $.get('statusCode')))        ? 'O' : 'o'; }}" +
+							"${{ ($.eq($.status_code,            $.get('status_code')))       ? 'P' : 'p'; }}" +
 //				"${{ return ($.eq($.now,                    $.get('now')))               ? 'Q' : 'q'; }}" +
-				"${{ return ($.eq($.this,                   $.get('this')))              ? 'R' : 'r'; }}" +
-				"${{ return ($.eq($.locale,                 $.get('locale')))            ? 'S' : 's'; }}" +
-				"${{ return ($.eq($.tenantIdentifier,       $.get('tenantIdentifier')))  ? 'T' : 't'; }}" +
-				"${{ return ($.eq($.tenant_identifier,      $.get('tenant_identifier'))) ? 'U' : 'u'; }}" +
-				"${{ return ($.eq($.request.myParam,        'myValue'))                  ? 'V' : 'v'; }}" +
-				"${{ return ($.eq($.get('request').myParam, 'myValue'))                  ? 'W' : 'w'; }}"
+							"${{ ($.eq($.this,                   $.get('this')))              ? 'R' : 'r'; }}" +
+							"${{ ($.eq($.locale,                 $.get('locale')))            ? 'S' : 's'; }}" +
+							"${{ ($.eq($.tenantIdentifier,       $.get('tenantIdentifier')))  ? 'T' : 't'; }}" +
+							"${{ ($.eq($.tenant_identifier,      $.get('tenant_identifier'))) ? 'U' : 'u'; }}" +
+							"${{ ($.eq($.request.myParam,        'myValue'))                  ? 'V' : 'v'; }}" +
+							"${{ ($.eq($.get('request').myParam, 'myValue'))                  ? 'W' : 'w'; }}"
 			);
 
 			// create admin user
@@ -1198,7 +1200,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given()
+				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
@@ -1207,13 +1209,13 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-			.expect()
+				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
 				.body("html.body.h1",    Matchers.equalTo("Test"))
 				.body("html.body.div",   Matchers.equalTo("ABCDEFGHIJKLMNOPRSTUVW"))
-			.when()
-			.get("/test/" + userId + "?myParam=myValue&locale=de_DE");
+				.when()
+				.get("/test/" + userId + "?myParam=myValue&locale=de_DE");
 	}
 
 	@Test
@@ -1456,7 +1458,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 			Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(Traits.of(StructrTraits.PAGE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
-			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } return $.session['test']; }}";
+			String script = "${{ let session = $.session; if ($.empty(session['test'])) { session['test'] = 123; } else { session['test'] = 456; } $.session['test']; }}";
 			template1.setContent(script);
 			template2.setContent(script);
 
@@ -1507,20 +1509,23 @@ public class UiScriptingTest extends StructrUiTest {
 		final String test3PageName = "test_structrscript_output_order_print_render";
 		final String test4PageName = "test_structrscript_output_order_print_include_child";
 
+		final PropertyKey<String> namePropertyKey             = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<Boolean> visibleToPublicPropertyKey = Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+
 		try (final Tx tx = app.tx()) {
 
 			// Test 1: JavaScript: print - render - print
 			{
 
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test1PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute<>(namePropertyKey, test1PageName), new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
 
 				template1.setContent("${{\n" +
-					"	$.print('TEST1 BEFORE');\n" +
-					"	$.render($.children);\n" +
-					"	$.print('AFTER');\n" +
-					"}}");
+						"	$.print('TEST1 BEFORE');\n" +
+						"	$.render($.children);\n" +
+						"	$.print('AFTER');\n" +
+						"}}");
 
 				template2.setContent("-X-");
 				template1.appendChild(template2);
@@ -1528,37 +1533,39 @@ public class UiScriptingTest extends StructrUiTest {
 				page.appendChild(template1);
 			}
 
-			// Test 2: JavaScript: print - include_child - print
+			// Test 2: JavaScript: print - include_child - print (with unnamed elements as children that should not be rendered and not cause problems)
 			{
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute<>(namePropertyKey, test2PageName), new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(namePropertyKey, "MY_CHILD"), new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
+				final DOMNode unnamedDiv = app.create(StructrTraits.DIV, new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(DOMNode.class);
 
 				template1.setContent("${{\n" +
-					"	$.print('TEST2 BEFORE');\n" +
-					"	$.include_child('MY_CHILD');\n" +
-					"	$.print('AFTER');\n" +
-					"}}");
-
+						"	$.print('TEST2 BEFORE');\n" +
+						"	$.include_child('MY_CHILD');\n" +
+						"	$.print('AFTER');\n" +
+						"}}");
 				template2.setContent("-X-");
+
 				template1.appendChild(template2);
+				template1.appendChild(unnamedDiv);
 
 				page.appendChild(template1);
 			}
 
 			// Test 3: StructrScript: print - render - print
 			{
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test3PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute<>(namePropertyKey, test3PageName), new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
 
 				template1.setContent("${\n" +
-					"	(\n" +
-					"		print('TEST3 BEFORE'),\n" +
-					"		render(children),\n" +
-					"		print('AFTER')\n" +
-					"	)\n" +
-					"}");
+						"	(\n" +
+						"		print('TEST3 BEFORE'),\n" +
+						"		render(children),\n" +
+						"		print('AFTER')\n" +
+						"	)\n" +
+						"}");
 
 				template2.setContent("-X-");
 				template1.appendChild(template2);
@@ -1568,17 +1575,17 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// Test 4: StructrScript: print - include_child - print
 			{
-				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test4PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
-				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
-				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "MY_CHILD"), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
+				final Page page          = app.create(StructrTraits.PAGE, new NodeAttribute<>(namePropertyKey, test4PageName), new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Page.class);
+				final Template template1 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
+				final Template template2 = app.create(StructrTraits.TEMPLATE, new NodeAttribute<>(namePropertyKey, "MY_CHILD"), new NodeAttribute<>(visibleToPublicPropertyKey, true)).as(Template.class);
 
 				template1.setContent("${\n" +
-					"	(\n" +
-					"		print('TEST4 BEFORE'),\n" +
-					"		include_child('MY_CHILD'),\n" +
-					"		print('AFTER')\n" +
-					"	)\n" +
-					"}");
+						"	(\n" +
+						"		print('TEST4 BEFORE'),\n" +
+						"		include_child('MY_CHILD'),\n" +
+						"		print('AFTER')\n" +
+						"	)\n" +
+						"}");
 
 				template2.setContent("-X-");
 				template1.appendChild(template2);
@@ -1595,20 +1602,20 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		RestAssured
-			.expect().statusCode(200).body(equalTo("TEST1 BEFORE-X-AFTER"))
-			.when().get("/" + test1PageName);
+				.expect().statusCode(200).body(equalTo("TEST1 BEFORE-X-AFTER"))
+				.when().get("/" + test1PageName);
 
 		RestAssured
-			.expect().statusCode(200).body(equalTo("TEST2 BEFORE-X-AFTER"))
-			.when().get("/" + test2PageName);
+				.expect().statusCode(200).body(equalTo("TEST2 BEFORE-X-AFTER"))
+				.when().get("/" + test2PageName);
 
 		RestAssured
-			.expect().statusCode(200).body(equalTo("TEST3 BEFORE-X-AFTER"))
-			.when().get("/" + test3PageName);
+				.expect().statusCode(200).body(equalTo("TEST3 BEFORE-X-AFTER"))
+				.when().get("/" + test3PageName);
 
 		RestAssured
-			.expect().statusCode(200).body(equalTo("TEST4 BEFORE-X-AFTER"))
-			.when().get("/" + test4PageName);
+				.expect().statusCode(200).body(equalTo("TEST4 BEFORE-X-AFTER"))
+				.when().get("/" + test4PageName);
 	}
 
 	@Test
@@ -1625,10 +1632,10 @@ public class UiScriptingTest extends StructrUiTest {
 				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
 				template.setContent("${(\n" +
-					"	print('BEFORE'),\n" +
-					"	'-implicit-return-',\n" +
-					"	print('AFTER')\n" +
-					")}");
+						"	print('BEFORE'),\n" +
+						"	'-implicit-return-',\n" +
+						"	print('AFTER')\n" +
+						")}");
 
 				page.appendChild(template);
 			}
@@ -1638,11 +1645,11 @@ public class UiScriptingTest extends StructrUiTest {
 				final Page page         = app.create(StructrTraits.PAGE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), test2PageName), new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Page.class);
 				final Template template = app.create(StructrTraits.TEMPLATE, new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY), true)).as(Template.class);
 
-				template.setContent("${{\n" +
-					"	$.print('BEFORE');\n" +
-					"	return 'X';\n" +
-					"	$.print('AFTER');\n" +
-					"}}");
+				template.setContent("${{ (() => {\n" +
+						"	$.print('BEFORE');\n" +
+						"	return 'X';\n" +
+						"	$.print('AFTER');\n" +
+						"})(); }}");
 
 				page.appendChild(template);
 			}
@@ -1656,12 +1663,12 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured.basePath = "/";
 
 		RestAssured
-			.expect().statusCode(200).body(equalTo("BEFOREAFTER-implicit-return-"))
-			.when().get("/" + test1PageName);
+				.expect().statusCode(200).body(equalTo("BEFOREAFTER-implicit-return-"))
+				.when().get("/" + test1PageName);
 
 		RestAssured
-			.expect().statusCode(200).body(equalTo("BEFOREX"))
-			.when().get("/" + test2PageName);
+				.expect().statusCode(200).body(equalTo("BEFOREX"))
+				.when().get("/" + test2PageName);
 	}
 
 	@Test
@@ -1670,52 +1677,52 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testSinglePrintJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); }")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMultiPrintJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint1'); $.print('testPrint2'); }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint1'); $.print('testPrint2'); }")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testPrintReturnJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); return 'returnValue'; }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); return 'returnValue'; }")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testPrintReturnUnreachablePrintJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); return 'returnValue'; $.print('unreachable print'); }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ $.print('testPrint'); return 'returnValue'; $.print('unreachable print'); }")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testSinglePrintSS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "print('testPrint')")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "print('testPrint')")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testMultiPrintSS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint1'), print('testPrint2'))")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint1'), print('testPrint2'))")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testPrintReturnSS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint'), 'implicitStructrScriptReturn')")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint'), 'implicitStructrScriptReturn')")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testPrintImplicitReturnPrintSS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint1'), 'implicitStructrScriptReturn', print('testPrint2'))")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint1'), 'implicitStructrScriptReturn', print('testPrint2'))")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testPrintImplicitReturnPrintMixedSS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint1'), 'implicitStructrScriptReturn1', print('testPrint2'), 'implicitStructrScriptReturn2'), print('testPrint2')")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "(print('testPrint1'), 'implicitStructrScriptReturn1', print('testPrint2'), 'implicitStructrScriptReturn2'), print('testPrint2')")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testIncludeJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.include('namedDOMNode'); return val; }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.include('namedDOMNode'); return val; }")
 			);
 
 			// can not yield result - schema method has no children
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testIncludeChildJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.include_child('namedDOMNode'); return val; }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.include_child('namedDOMNode'); return val; }")
 			);
 
 			app.create(StructrTraits.SCHEMA_METHOD, new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testRenderJS"),
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); return val; }")
+					new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ let val = $.render($.find('DOMNode', 'name', 'namedDOMNode')); return val; }")
 			);
 
 			{
@@ -1742,20 +1749,20 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testSinglePrintJS'); }}", "test"));
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testMultiPrintJS'); }}", "test"));
-			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem)", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintReturnJS'); }}", "test"));
-			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem). also unreachable statements should not have any effect!", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintReturnUnreachablePrintJS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintJS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintJS'); }}", "test"));
+			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem)", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnJS'); }}", "test"));
+			assertEquals("a javascript method should favor printed results instead of return value (quirky as that might seem). also unreachable statements should not have any effect!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnUnreachablePrintJS'); }}", "test"));
 
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testSinglePrintSS'); }}", "test"));
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testMultiPrintSS'); }}", "test"));
-			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintReturnSS'); }}", "test"));
-			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintImplicitReturnPrintSS'); }}", "test"));
-			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem) AND also concatenate all implicit results", "implicitStructrScriptReturn1implicitStructrScriptReturn2", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testPrintImplicitReturnPrintMixedSS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint", Scripting.evaluate(renderContext, null, "${{ Structr.call('testSinglePrintSS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "testPrint1testPrint2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testMultiPrintSS'); }}", "test"));
+			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintReturnSS'); }}", "test"));
+			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem)", "implicitStructrScriptReturn", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintImplicitReturnPrintSS'); }}", "test"));
+			assertEquals("a structrscript method should favor the implicit return value instead of printed values (quirky as that might seem) AND also concatenate all implicit results", "implicitStructrScriptReturn1implicitStructrScriptReturn2", Scripting.evaluate(renderContext, null, "${{ Structr.call('testPrintImplicitReturnPrintMixedSS'); }}", "test"));
 
-			assertEquals("include() in a schema method should return the rendered output of the named node!", "-X-", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testIncludeJS'); }}", "test"));
-			assertEquals("include_child() should not work in a schema method because it has no children!", "", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testIncludeChildJS'); }}", "test"));
-			assertEquals("render() in a schema method should return the rendered output of the given nodes!", "-X-", Scripting.evaluate(renderContext, null, "${{ return Structr.call('testRenderJS'); }}", "test"));
+			assertEquals("include() in a schema method should return the rendered output of the named node!", "-X-", Scripting.evaluate(renderContext, null, "${{ Structr.call('testIncludeJS'); }}", "test"));
+			assertEquals("include_child() should not work in a schema method because it has no children!", "", Scripting.evaluate(renderContext, null, "${{ Structr.call('testIncludeChildJS'); }}", "test"));
+			assertEquals("render() in a schema method should return the rendered output of the given nodes!", "-X-", Scripting.evaluate(renderContext, null, "${{ Structr.call('testRenderJS'); }}", "test"));
 
 			tx.success();
 
@@ -1800,8 +1807,8 @@ public class UiScriptingTest extends StructrUiTest {
 
 			app.create(projectType, "Project 1");
 			app.create(projectType,
-				new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project 2"),
-				new NodeAttribute<>(Traits.of(projectType).key("raiseError"), true)
+					new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Project 2"),
+					new NodeAttribute<>(Traits.of(projectType).key("raiseError"), true)
 			);
 
 			for (int i=0; i<5; i++) {
@@ -1818,7 +1825,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface project1 = app.nodeQuery(projectType).andName("Project 1").getFirst();
+			final NodeInterface project1 = app.nodeQuery(projectType).name("Project 1").getFirst();
 			invokeMethod(securityContext, project1, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
@@ -1829,7 +1836,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
+			final NodeInterface project2 = app.nodeQuery(projectType).name("Project 2").getFirst();
 			invokeMethod(securityContext, project2, "doTest", new LinkedHashMap<>(), false, new EvaluationHints());
 
 			tx.success();
@@ -1840,7 +1847,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final GraphObject project2 = app.nodeQuery(projectType).andName("Project 2").getFirst();
+			final GraphObject project2 = app.nodeQuery(projectType).name("Project 2").getFirst();
 			final List tasks           = Iterables.toList((Iterable)project2.getProperty(Traits.of(projectType).key("tasks")));
 
 			assertEquals("Project should not have tasks after a failed assertion rolls back the transaction", 0, tasks.size());
@@ -1881,6 +1888,40 @@ public class UiScriptingTest extends StructrUiTest {
 			logger.warn("", ex);
 			fail("Unexpected exception.");
 		}
+	}
+
+	@Test
+	public void testNestedScheduleFunction() {
+
+		final ActionContext ctx = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			ScriptTestHelper.testExternalScript(ctx, UiScriptingTest.class.getResourceAsStream("/test/scripting/testNestedSchedule.js"));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+			// Gives scheduled tasks a moment to process
+			Thread.sleep(1000);
+
+			final Object storeResult = Services.getInstance().getApplicationStore().get("scheduleTestValidationPassed");
+			assertTrue(storeResult != null && ((org.graalvm.polyglot.Value) storeResult).asBoolean());
+
+			tx.success();
+		} catch (FrameworkException fex) {
+
+			fail("Unexpected exception");
+		} catch (InterruptedException ex) {
+
+			fail("Test was interrupted");
+		}
+
 	}
 
 
@@ -1955,7 +1996,7 @@ public class UiScriptingTest extends StructrUiTest {
 		// modify function
 		try (final Tx tx = app.tx()) {
 
-			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_METHOD).andName("userDefinedFunction").getFirst();
+			final NodeInterface node = app.nodeQuery(StructrTraits.SCHEMA_METHOD).name("userDefinedFunction").getFirst();
 
 			node.as(SchemaMethod.class).setSource("{ return 'after change' }");
 
@@ -2128,11 +2169,6 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		@Override
-		public boolean isRequestedSessionIdFromUrl() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
 		public boolean authenticate(HttpServletResponse httpServletResponse) throws IOException, ServletException {
 			return false;
 		}
@@ -2288,11 +2324,6 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		@Override
-		public String getRealPath(String path) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
 		public int getRemotePort() {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
@@ -2346,6 +2377,21 @@ public class UiScriptingTest extends StructrUiTest {
 		public DispatcherType getDispatcherType() {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
+
+		@Override
+		public String getRequestId() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public String getProtocolRequestId() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
+
+		@Override
+		public ServletConnection getServletConnection() {
+			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		}
 	}
 
 	public class ResponseMockUp implements HttpServletResponse {
@@ -2367,16 +2413,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 		@Override
 		public String encodeRedirectURL(String url) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public String encodeUrl(String url) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public String encodeRedirectUrl(String url) {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
@@ -2427,11 +2463,6 @@ public class UiScriptingTest extends StructrUiTest {
 
 		@Override
 		public void setStatus(int sc) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-		}
-
-		@Override
-		public void setStatus(int sc, String sm) {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 

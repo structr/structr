@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,6 +32,7 @@ import org.structr.core.traits.Traits;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.net.URI;
@@ -40,7 +41,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 /**
  *
@@ -188,7 +188,7 @@ public class StructrSSHFile implements Path {
 
 		} else {
 
-			final Iterable<NodeInterface> folders = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), null).getResultStream();
+			final Iterable<NodeInterface> folders = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FOLDER).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), null).getResultStream();
 
 			return Iterables.map(n -> n.as(Folder.class), folders);
 		}
@@ -202,7 +202,7 @@ public class StructrSSHFile implements Path {
 
 		} else {
 
-			final Iterable<NodeInterface> files = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FILE).and(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), null).getResultStream();
+			final Iterable<NodeInterface> files = StructrApp.getInstance(getSecurityContext()).nodeQuery(StructrTraits.FILE).key(Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PARENT_PROPERTY), null).getResultStream();
 
 			return Iterables.map(n -> n.as(File.class), files);
 		}

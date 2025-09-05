@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,16 +26,16 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.entity.StorageConfigurationEntry;
+import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
+import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.web.traits.definitions.StorageConfigurationEntryTraitDefinition;
-import org.structr.web.traits.definitions.StorageConfigurationTraitDefinition;
 
 /**
  * Storage container for mount configuration entries.
@@ -82,7 +82,14 @@ public class StorageConfigurationTraitWrapper extends AbstractNodeTraitWrapper i
 
 		try {
 
-			Class<?> foundClass = Class.forName(this.getProvider());
+			Class<?> foundClass = this.getProvider() != null ? Class.forName(this.getProvider()) : null;
+
+
+			if (foundClass == null) {
+
+				return StorageProviderFactory.getDefaultStorageProviderClass();
+			}
+
 			if (StorageProvider.class.isAssignableFrom(foundClass)) {
 
 				return foundClass.asSubclass(StorageProvider.class);

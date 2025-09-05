@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,13 +58,13 @@
 	margin-top: 1rem;
 }
 
-#users-list .node,
-#groups-list .node {
-	line-height: 2rem;
+.node-container {
+	height: 2.5rem;
+	align-content: center;
 }
 
-input.max-w-75 {
-	max-width: 75%;
+.user .typeIcon {
+	margin-left: 20px !important;
 }
 
 .security-module-table {

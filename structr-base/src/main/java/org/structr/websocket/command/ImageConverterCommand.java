@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -46,7 +46,7 @@ public class ImageConverterCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final String originalImageId          = webSocketData.getId();
-		final Image originalImage             = (Image) getNode(originalImageId);
+		final Image originalImage             = getNodeAs(originalImageId, Image.class, StructrTraits.IMAGE);
 
 		final String format = webSocketData.getNodeDataStringValue("format");
 		final int width     = webSocketData.getNodeDataIntegerValue("width");

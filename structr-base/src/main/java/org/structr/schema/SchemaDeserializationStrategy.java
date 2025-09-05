@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,10 +35,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -130,7 +130,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 						identifyingKeyValues.put(key, attributes.get(key));
 					}
 
-					result.addAll((List)app.nodeQuery(type).and(identifyingKeyValues).getAsList());
+					result.addAll((List)app.nodeQuery(type).key(identifyingKeyValues).getAsList());
 
 				}
 			}

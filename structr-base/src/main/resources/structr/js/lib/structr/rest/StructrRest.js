@@ -2,7 +2,7 @@
 
 let debug = false;
 
-import { Rest } from './Rest.js';
+import {Rest} from './Rest.js';
 
 export class StructrRest {
 

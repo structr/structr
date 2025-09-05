@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,23 +37,23 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-
-import java.io.File;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+
+import java.io.File;
 
 /**
  * The graph/node service.
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger      = LoggerFactory.getLogger(NodeService.class.getName());
-	private StructrServices servicesParent  = null;
-	private DatabaseService databaseService = null;
-	private Index<Node> nodeIndex           = null;
-	private Index<Relationship> relIndex    = null;
-	private String filesPath                = null;
-	private boolean isInitialized           = false;
+	private static final Logger logger                            = LoggerFactory.getLogger(NodeService.class.getName());
+	private StructrServices servicesParent                        = null;
+	private DatabaseService databaseService                       = null;
+	private Index<Node> nodeIndex                                 = null;
+	private Index<Relationship> relIndex                          = null;
+	private String filesPath                                      = null;
+	private boolean isInitialized                                 = false;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -94,8 +94,8 @@ public class NodeService implements SingletonService {
 				// index creation transaction
 				try ( final Transaction tx = databaseService.beginTx() ) {
 
-					nodeIndex = databaseService.nodeIndex();
-					relIndex  = databaseService.relationshipIndex();
+					nodeIndex     = databaseService.nodeIndex();
+					relIndex      = databaseService.relationshipIndex();
 
 					tx.success();
 

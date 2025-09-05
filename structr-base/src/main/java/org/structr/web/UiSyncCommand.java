@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,10 +32,10 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.web.entity.dom.DOMNode;
-
-import java.util.*;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
+
+import java.util.*;
 
 /**
  *
@@ -103,7 +103,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 		try (final Tx tx = app.tx()) {
 
 			// collect folders that are marked for export
-			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).and(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true).getResultStream()) {
+			for (final NodeInterface folder : app.nodeQuery(StructrTraits.FOLDER).key(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY), true).getResultStream()) {
 
 				collectDataRecursively(app, folder, nodes, rels, filePaths);
 			}

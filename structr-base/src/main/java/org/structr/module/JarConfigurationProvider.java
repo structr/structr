@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -152,9 +152,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				
 				modules.add(loadResource(resourcePath));
 				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			} catch (IOException ignore) {}
 		}
 
 		logger.info("{} JARs scanned", resourcePaths.size());
@@ -220,13 +218,10 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				structrModule.registerModuleFunctions(licenseManager);
 			} catch (Throwable t) {}
 
-			if (coreModules.contains(moduleName) || licenseManager == null || licenseManager.isModuleLicensed(moduleName)) {
+			modules.put(moduleName, structrModule);
+			logger.info("Activating module {}", moduleName);
 
-				modules.put(moduleName, structrModule);
-				logger.info("Activating module {}", moduleName);
-
-				structrModule.onLoad(licenseManager);
-			}
+			structrModule.onLoad();
 		}
 	}
 
@@ -296,58 +291,28 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private ClasspathResource loadResource(String resource) throws IOException {
 
 		// create module
-		final ClasspathResource ret   = new ClasspathResource(resource);
-		final Set<String> classes = ret.getClasses();
+		final ClasspathResource ret = new ClasspathResource(resource);
+		final Set<String> classes   = ret.getClasses();
+		final File file             = new File(resource);
 
-		if (resource.endsWith(".jar") || resource.endsWith(".war")) {
+		if (file.exists()) {
 
-			try (final JarFile jarFile   = new JarFile(new File(resource), true)) {
+			if (resource.endsWith(".jar") || resource.endsWith(".war")) {
 
-				final Manifest manifest = jarFile.getManifest();
-				if (manifest != null) {
+				try (final JarFile jarFile = new JarFile(file, true)) {
 
-					final Attributes attrs  = manifest.getAttributes("Structr");
-					if (attrs != null) {
+					final Manifest manifest = jarFile.getManifest();
+					if (manifest != null) {
 
-						final String name = attrs.getValue("Structr-Module-Name");
+						final Attributes attrs = manifest.getAttributes("Structr");
+						if (attrs != null) {
 
-						// only scan and load modules that are licensed
-						if (name != null) {
+							final String name = attrs.getValue("Structr-Module-Name");
 
-							if (licenseManager == null || licenseManager.isModuleLicensed(name)) {
+							// only scan and load modules that are licensed
+							if (name != null) {
 
-								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
-
-									final JarEntry entry = entries.nextElement();
-									final String entryName = entry.getName();
-
-									if (entryName.endsWith(".class")) {
-
-										// cat entry > /dev/null (necessary to get signers below)
-										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
-
-										// verify module
-										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
-
-											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
-
-											// add class entry to Module
-											classes.add(fqcn);
-
-											if (licenseManager != null) {
-												// store licensing information
-												licenseManager.addLicensedClass(fqcn);
-											}
-										}
-									}
-								}
-
-							} else {
-
-								// module is not licensed, only load functions as unlicensed
-
-								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements();) {
+								for (final Enumeration<? extends JarEntry> entries = jarFile.entries(); entries.hasMoreElements(); ) {
 
 									final JarEntry entry = entries.nextElement();
 									final String entryName = entry.getName();
@@ -357,49 +322,28 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 										// cat entry > /dev/null (necessary to get signers below)
 										IOUtils.copy(jarFile.getInputStream(entry), new ByteArrayOutputStream(65535));
 
-										// verify module
-										if (licenseManager == null || licenseManager.isValid(entry.getCodeSigners())) {
+										final String fileEntry = entry.getName().replaceAll("[/]+", ".");
+										final String fqcn = fileEntry.substring(0, fileEntry.length() - 6);
 
-											final String fileEntry = entry.getName().replaceAll("[/]+", ".");
-											final String fqcn      = fileEntry.substring(0, fileEntry.length() - 6);
-
-											try {
-
-												final Class clazz   = Class.forName(fqcn);
-												final int modifiers = clazz.getModifiers();
-
-												// register entity classes
-												if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
-
-													// we need to make sure that a module is initialized exactly once
-													final StructrModule structrModule = (StructrModule) clazz.getDeclaredConstructor().newInstance();
-
-													structrModule.registerModuleFunctions(licenseManager);
-
-												}
-
-											} catch (Throwable t) {
-												//t.printStackTrace();
-												//logger.warn("Error trying to load class {}: {}",  fqcn, t.getMessage());
-											}
-										}
+										// add class entry to Module
+										classes.add(fqcn);
 									}
 								}
 							}
 						}
 					}
 				}
+
+			} else if (resource.endsWith(classesDir)) {
+
+				// this is for testing only!
+				addClassesRecursively(file, classesDir, classes);
+
+			} else if (resource.endsWith(testClassesDir)) {
+
+				// this is for testing only!
+				addClassesRecursively(file, testClassesDir, classes);
 			}
-
-		} else if (resource.endsWith(classesDir)) {
-
-			// this is for testing only!
-			addClassesRecursively(new File(resource), classesDir, classes);
-
-		} else if (resource.endsWith(testClassesDir)) {
-
-			// this is for testing only!
-			addClassesRecursively(new File(resource), testClassesDir, classes);
 		}
 
 		return ret;
