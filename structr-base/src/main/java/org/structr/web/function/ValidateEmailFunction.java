@@ -4,38 +4,33 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.mail.function;
+package org.structr.web.function;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import org.structr.common.error.FrameworkException;
-import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class IsValidEmailFunction extends AdvancedMailModuleFunction {
+public class ValidateEmailFunction extends UiAdvancedFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${is_valid_email(address)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ $.is_valid_email(address) }}";
-
-	public IsValidEmailFunction(final AdvancedMailModule parent) {
-		super(parent);
-	}
+	public final String ERROR_MESSAGE    = "Usage: ${validate_email(address)}";
+	public final String ERROR_MESSAGE_JS = "Usage: ${{ $.validate_email(address) }}";
 
 	@Override
 	public String getName() {
-		return "is_valid_email";
+		return "validate_email";
 	}
 
 	@Override
@@ -52,18 +47,7 @@ public class IsValidEmailFunction extends AdvancedMailModuleFunction {
 
 			final String email = sources[0].toString();
 
-			try {
-
-				final InternetAddress address = new InternetAddress(email);
-				address.validate();
-
-				// only accept if parsed address is equal to supplied address (even leading or trailing whitespace lets this validation fail)
-				return (address.getAddress().equals(email));
-
-			} catch (AddressException ex) {
-
-				return false;
-			}
+			return getEmailValidationErrorMessageOrNull(email);
 
 		} catch (IllegalArgumentException e) {
 
@@ -79,6 +63,21 @@ public class IsValidEmailFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Checks if the given address conforms to the syntax rules of RFC 822. The current implementation checks many, but not all, syntax rules. Only email addresses without personal name are accepted and leading/trailing fails validation.";
+		return "Validates the given address against the syntax rules of RFC 822. The current implementation checks many, but not all, syntax rules. If it is a valid email according to the RFC, nothing is returned. Otherwise the error text is returned.";
+	}
+
+	public static String getEmailValidationErrorMessageOrNull(final String email) {
+
+		try {
+
+			final InternetAddress address = new InternetAddress(email);
+			address.validate();
+
+			return null;
+
+		} catch (AddressException ex) {
+
+			return ex.getMessage();
+		}
 	}
 }
