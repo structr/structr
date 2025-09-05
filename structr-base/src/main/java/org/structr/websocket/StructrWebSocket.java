@@ -20,6 +20,7 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.EOFException;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.session.ManagedSession;
@@ -163,16 +164,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	@Override
 	public void onWebSocketError(Throwable t) {
 
-		if (QuietException.isQuiet(t)) {
-			// ignore exceptions which (by jettys standards) should be handled less verbosely
-		} else if (t.getCause() instanceof TimeoutException) {
-			// also ignore timeoutexceptions
-		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
-			// also ignore simple "Closed" exception
-		} else {
-
-			logger.warn("Unable to send websocket message to remote client: {}", t);
-		}
+		handleWebSocketException(t);
 	}
 
 	@Override
@@ -423,16 +415,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 		} catch (Throwable t) {
 
-			if (QuietException.isQuiet(t)) {
-				// ignore exceptions which (by jettys standards) should be handled less verbosely
-			} else if (t.getCause() instanceof TimeoutException) {
-				// also ignore timeoutexceptions
-			} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
-				// also ignore simple "Closed" exception
-			} else {
-
-				logger.warn("Unable to send websocket message to remote client: {}", t);
-			}
+			handleWebSocketException(t);
 		}
 	}
 
@@ -619,5 +602,22 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		logger.debug("Session ID of security context " + securityContext + " set to " + sessionId);
 
 		timedOut = false;
+	}
+
+	private void handleWebSocketException(Throwable t) {
+
+		if (QuietException.isQuiet(t)) {
+			// ignore exceptions which (by jettys standards) should be handled less verbosely
+		} else if (t.getCause() instanceof TimeoutException) {
+			// also ignore timeoutexceptions
+		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
+			// also ignore simple "Closed" exception
+		} else if (t instanceof EOFException && t.getMessage().equals("Reset cancel_stream_error")) {
+			// also ignore EOFExceptions that happen on page close
+		} else {
+
+			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
+
+		}
 	}
 }
