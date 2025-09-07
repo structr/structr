@@ -19,33 +19,18 @@
 document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
-
-	Command.getApplicationConfigurationDataNodesGroupedByUser('layout', (grouped) => {
-		_Schema.storedLayouts = grouped;
-	});
 });
 
 let _Schema = {
 	_moduleName: 'schema',
 	isReloading: false,
-	storedLayouts: [],
 	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
 	nodeData: {},
-	nodePositions: undefined,
 	availableTypeNames: [],
-	hiddenSchemaNodes: [],
-	hiddenSchemaNodesKey: 'structrHiddenSchemaNodes_' + location.port,
-	schemaPositionsKey: 'structrSchemaPositions_' + location.port,
-	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
-	showSchemaInheritanceArrowsKey: 'structrShowSchemaInheritance_' + location.port,
-	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
-	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
-	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
-	schemaZoomLevelKey: '_schema_' + location.port + 'zoomLevel',
-	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
-	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
+
+
 	currentNodeDialogId: null,
 	onload: () => {
 
@@ -67,9 +52,6 @@ let _Schema = {
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
 		});
 	},
-	getLeftResizerKey: () => {
-		return null;
-	},
 	reload: (callback) => {
 
 		_Schema.clearTypeInfoCache();
@@ -79,69 +61,27 @@ let _Schema = {
 		}
 
 		_Schema.isReloading = true;
-		//_Schema.storePositions();	/* CHM: don't store positions on every reload, let automatic positioning do its job.. */
 
 		_Helpers.fastRemoveAllChildren(_Schema.ui.canvas[0]);
 		_Schema.init(callback);
 		Structr.resize();
 	},
-	storePositions: () => {
-
-		let min = {
-			left: null,
-			top: null
-		};
-
-		let rawPositions = [..._Schema.ui.canvas[0].querySelectorAll('.node')].map(n => {
-
-			let type = n.dataset.type;
-			let left = parseFloat(n.style.left);
-			let top  = parseFloat(n.style.top)
-
-			min.left = Math.min((min.left ?? left), left);
-			min.top  = Math.min((min.top ?? top), top);
-
-			return [type, { top, left }];
-		});
-
-		// because of panzoom, we can move nodes anywhere... find the minimum top/left and subtract it everywhere
-		_Schema.nodePositions = Object.fromEntries(rawPositions.map(([k, v]) => [k, { top: v.top - min.top, left: v.left - min.left}]));
-
-		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
-	},
-	storePositionsNewLayout: () => {
-		for (let n of document.querySelectorAll('rect.node')) {
-			let type = n.dataset.type;
-			let obj = {
-				left: n.x.baseVal.value,
-				top: n.y.baseVal.value
-			};
-			//obj.left = (obj.left) / _Schema.ui.zoomLevel;
-			//obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
-			_Schema.nodePositions[type] = obj;
-		}
-		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
-	},
-	clearPositions: () => {
-		LSWrapper.removeItem(_Schema.schemaPositionsKey);
-		_Schema.reload();
-	},
 	init: (callback) => {
 
 		_Schema.schemaLoading            = false;
-		_Schema.ui.connectorStyle        = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.ui.zoomLevel             = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
-		_Schema.ui.showInheritanceArrows = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true) ?? true;
+		_Schema.ui.connectorStyle        = LSWrapper.getItem(_Schema.ui.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.ui.zoomLevel             = parseFloat(LSWrapper.getItem(_Schema.ui.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.showInheritanceArrows = LSWrapper.getItem(_Schema.ui.showSchemaInheritanceArrowsKey, true) ?? true;
 
 		Structr.setFunctionBarHTML(_Schema.templates.functions());
 
 		UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
-		_Schema.activateDisplayDropdownTools();
+		_Schema.ui.activateDisplayDropdownTools();
 		_Schema.activateAdminTools();
 
 		document.getElementById('hide-selected-types').addEventListener('click', _Schema.ui.selection.hideSelectedSchemaTypes);
-		_Schema.ui.updateHideSelectedTypesButton();
+		_Schema.ui.selection.updateHideSelectedTypesButton();
 
 		document.getElementById('create-type').addEventListener('click', _Schema.nodes.showCreateTypeDialog);
 		document.getElementById('user-defined-functions').addEventListener('click', _Schema.methods.showUserDefinedMethods);
@@ -206,10 +146,10 @@ let _Schema = {
 
 			Structr.mainMenu.unblock(500);
 
-			let showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey, true);
+			let showSchemaOverlays = LSWrapper.getItem(_Schema.ui.showSchemaOverlaysKey, true);
 			_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
 
-			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceArrowsKey, true);
+			let showSchemaInheritance = LSWrapper.getItem(_Schema.ui.showSchemaInheritanceArrowsKey, true);
 			_Schema.ui.updateInheritanceArrowsVisibility(showSchemaInheritance);
 
 			if (typeof callback === "function") {
@@ -233,6 +173,7 @@ let _Schema = {
 
 		await _Schema.nodes.loadNodes();
 		await _Schema.relationships.loadRels();
+
 	},
 	processSchemaRecompileNotification: () => {
 
@@ -266,18 +207,6 @@ let _Schema = {
 
 			_Schema.reload();
 		}
-	},
-	getFirstSchemaLayoutOrFalse: async () => {
-
-		let response = await fetch(`${Structr.rootUrl}ApplicationConfigurationDataNode/ui?configType=layout&${Structr.getRequestParameterName('pageSize')}=1&${Structr.getRequestParameterName('order')}=desc&${Structr.getRequestParameterName('sort')}=createdDate`);
-		let data     = await response.json();
-
-		if (data.result?.length > 0) {
-
-			return data.result[0];
-		}
-
-		return false;
 	},
 	openEditDialog: (id, targetView, callback) => {
 
@@ -560,14 +489,9 @@ let _Schema = {
 		},
 		loadNodes: async () => {
 
-			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+			_Schema.ui.visibility.restoreSavedHiddenSchemaNodes();
 
-			let schemaLayout = await _Schema.getFirstSchemaLayoutOrFalse();
-
-			if (schemaLayout && schemaLayout.content && (_Schema.hiddenSchemaNodes === null)) {
-
-				_Schema.applySavedLayoutConfiguration(schemaLayout, true);
-			}
+			await _Schema.ui.layouts.restoreFirstAvailableSchemaLayout();
 
 			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
 			if (response.ok) {
@@ -578,12 +502,13 @@ let _Schema = {
 				let hierarchy        = {};
 				let x = 0, y = 0;
 
-				if (_Schema.hiddenSchemaNodes === null) {
-					_Schema.hiddenSchemaNodes = data.result.filter(entity => entity.isBuiltinType).map(entity => entity.name);
-					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+				if (_Schema.ui.visibility.hiddenSchemaNodes === null) {
+
+					let hiddenTypes = data.result.filter(entity => entity.isBuiltinType).map(entity => entity.name);
+					_Schema.ui.visibility.saveHiddenTypes(hiddenTypes);
 				}
 
-				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey, {});
+				_Schema.ui.layouts.nodePositions = LSWrapper.getItem(_Schema.ui.layouts.getSchemaPositionsKey(), {});
 
 				_Schema.availableTypeNames = [];
 
@@ -626,7 +551,7 @@ let _Schema = {
 
 						_Schema.nodeData[entity.id] = entity;
 
-						if (!(_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1)) {
+						if (!_Schema.ui.visibility.isTypeHidden(entity.name)) {
 
 							let id = 'id_' + entity.id;
 							_Schema.ui.canvas.append(`
@@ -652,6 +577,7 @@ let _Schema = {
 							if (!entity.isBuiltinType) {
 
 								node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
+
 									let confirm = await _Dialogs.confirmation.showPromise(`
 										<h3>Delete schema node '${entity.name}'?</h3>
 										<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
@@ -659,12 +585,12 @@ let _Schema = {
 
 									if (confirm === true) {
 
-										await _Schema.deleteNode(entity.id);
+										await _Schema.nodes.deleteNode(entity.id);
 									}
 								});
 							}
 
-							let nodePosition = _Schema.nodePositions[entity.name];
+							let nodePosition = _Schema.ui.layouts.nodePositions[entity.name];
 
 							if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
 
@@ -672,7 +598,7 @@ let _Schema = {
 
 								let count = 0;
 
-								while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+								while (_Schema.ui.overlapsExistingNodes(nodePosition) && count++ < 1000) {
 									x++;
 									nodePosition = _Schema.ui.calculateNodePosition(x, y);
 								}
@@ -705,14 +631,14 @@ let _Schema = {
 				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
 
 					let sourceEntity = _Schema.nodeData[sourceId];
-					let sourceHidden = _Schema.hiddenSchemaNodes.includes(sourceEntity?.name);
+					let sourceHidden = _Schema.ui.visibility.isTypeHidden(sourceEntity?.name);
 
 					if (sourceEntity && !sourceHidden) {
 
 						for (let targetId of targetIds) {
 
 							let targetEntity = _Schema.nodeData[targetId];
-							let targetHidden = _Schema.hiddenSchemaNodes.includes(targetEntity?.name);
+							let targetHidden = _Schema.ui.visibility.isTypeHidden(targetEntity?.name);
 
 							if (targetEntity && !targetHidden) {
 
@@ -832,6 +758,22 @@ let _Schema = {
 			discardButton.addEventListener('click', (e) => {
 				_Dialogs.custom.dialogCancelBaseAction();
 			});
+		},
+		deleteNode: async (id) => {
+
+			let response = await fetch(`${Structr.rootUrl}SchemaNode/${id}`, {
+				method: 'DELETE'
+			});
+			let data = await response.json();
+
+			if (response.ok) {
+
+				_Schema.reload();
+
+			} else {
+
+				Structr.errorFromResponse(data);
+			}
 		},
 		populateBasicTypeInfo: (container, entity) => {
 
@@ -1052,7 +994,10 @@ let _Schema = {
 
 			for (let res of data.result) {
 
-				if (!_Schema.nodeData[res.sourceId] || !_Schema.nodeData[res.targetId] || _Schema.hiddenSchemaNodes.indexOf(_Schema.nodeData[res.sourceId].name) > -1 || _Schema.hiddenSchemaNodes.indexOf(_Schema.nodeData[res.targetId].name) > -1) {
+				let sourceHidden = _Schema.ui.visibility.isTypeHidden(_Schema.nodeData[res.sourceId].name);
+				let targetHidden = _Schema.ui.visibility.isTypeHidden(_Schema.nodeData[res.targetId].name);
+
+				if (!_Schema.nodeData[res.sourceId] || !_Schema.nodeData[res.targetId] || sourceHidden || targetHidden) {
 
 					// relationship is not displayed
 
@@ -4207,25 +4152,6 @@ let _Schema = {
 		}
 	},
 	resize: () => {},
-	dialogSizeChanged: () => {
-		_Editors.resizeVisibleEditors();
-	},
-	deleteNode: async (id) => {
-
-		let response = await fetch(`${Structr.rootUrl}SchemaNode/${id}`, {
-			method: 'DELETE'
-		});
-		let data = await response.json();
-
-		if (response.ok) {
-
-			_Schema.reload();
-
-		} else {
-
-			Structr.errorFromResponse(data);
-		}
-	},
 	activateAdminTools: () => {
 
 		let registerSchemaToolButtonAction = (btn, target, connectedSelectElement, getPayloadFunction) => {
@@ -4321,396 +4247,7 @@ let _Schema = {
 			return (type === 'allRels') ? { allRels: true } : { relType: type };
 		});
 	},
-	activateDisplayDropdownTools: () => {
 
-		document.getElementById('schema-tools').addEventListener('click', (e) => {
-			_Schema.openTypeVisibilityDialog();
-		});
-
-		document.getElementById('schema-show-overlays').addEventListener('change', (e) => {
-			_Schema.ui.updateOverlayVisibility(e.target.checked);
-		});
-
-		document.getElementById('schema-show-inheritance').addEventListener('change', (e) => {
-			_Schema.ui.updateInheritanceArrowsVisibility(e.target.checked);
-		});
-
-		for (let edgeStyleOption of document.querySelectorAll('.edge-style')) {
-
-			edgeStyleOption.addEventListener('click', (e) => {
-				e.stopPropagation();
-				e.preventDefault();
-
-				const el       = e.target;
-				const newStyle = el.innerText.trim();
-
-				_Schema.ui.connectorStyle = newStyle;
-				LSWrapper.setItem(_Schema.schemaConnectorStyleKey, newStyle);
-
-				_Schema.reload();
-
-				return false;
-			});
-		}
-
-		let activateLayoutFunctions = async () => {
-
-			let layoutSelector        = document.querySelector('#saved-layout-selector');
-			let layoutNameInput       = document.querySelector('#layout-name');
-			let createNewLayoutButton = document.querySelector('#create-new-layout');
-			let saveLayoutButton      = document.querySelector('#save-layout');
-			let loadLayoutButton      = document.querySelector('#load-layout');
-			let deleteLayoutButton    = document.querySelector('#delete-layout');
-
-			let layoutSelectorChangeHandler = () => {
-
-				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
-
-				if (!selectedOption) {
-
-					_Helpers.disableElements(true, saveLayoutButton, loadLayoutButton, deleteLayoutButton);
-
-				} else {
-
-					_Helpers.enableElement(loadLayoutButton);
-
-					let optGroup    = selectedOption.closest('optgroup');
-					let username    = optGroup.label;
-					let isOwnerless = (optGroup.dataset['ownerless'] === 'true');
-
-					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton, deleteLayoutButton);
-				}
-			};
-			layoutSelectorChangeHandler();
-
-			layoutSelector.addEventListener('change', layoutSelectorChangeHandler);
-
-			saveLayoutButton.addEventListener('click', async () => {
-
-				let selectedLayout = layoutSelector.value;
-				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
-
-				let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>Overwrite stored schema layout "${selectedOption.text}"?</h3>
-				`);
-
-				if (confirm === true) {
-
-					Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, (data) => {
-
-						if (!data.error) {
-
-							new SuccessMessage().text("Layout saved").show();
-
-							_Helpers.blinkGreen(layoutSelector);
-
-						} else {
-
-							new ErrorMessage().title(data.error).text(data.message).show();
-						}
-					});
-				}
-			});
-
-			loadLayoutButton.addEventListener('click', () => {
-				_Schema.restoreLayout(layoutSelector.value);
-			});
-
-			deleteLayoutButton.addEventListener('click', async () => {
-
-				let selectedLayout = layoutSelector.value;
-				let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
-
-				let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>Delete stored schema layout "${selectedOption.text}"?</h3>
-				`);
-
-				if (confirm === true) {
-
-					Command.deleteNode(selectedLayout, false, async () => {
-						await _Schema.updateGroupedLayoutSelector(layoutSelector);
-						layoutSelectorChangeHandler();
-						_Helpers.blinkGreen(layoutSelector);
-					});
-				}
-			});
-
-			createNewLayoutButton.addEventListener('click', () => {
-
-				let layoutName = layoutNameInput.value;
-
-				if (layoutName && layoutName.length) {
-
-					Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.getSchemaLayoutConfiguration()), async (data) => {
-
-						if (!data.error) {
-
-							new SuccessMessage().text("Layout saved").show();
-
-							await _Schema.updateGroupedLayoutSelector(layoutSelector);
-							layoutSelectorChangeHandler();
-							layoutNameInput.value = '';
-
-							_Helpers.blinkGreen(layoutSelector);
-
-						} else {
-
-							new ErrorMessage().title(data.error).text(data.message).show();
-						}
-					});
-
-				} else {
-					Structr.error('Schema layout name is required.');
-				}
-			});
-
-			await _Schema.updateGroupedLayoutSelector(layoutSelector);
-			layoutSelectorChangeHandler();
-		};
-		activateLayoutFunctions();
-
-		document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
-			_Schema.clearPositions();
-		});
-
-		document.getElementById('new-auto-layout').addEventListener('click', (e) => {
-			_Schema.newAutoLayout();
-			Structr.dropdowns.hideOpenDropdownsExcept();
-		});
-	},
-	updateGroupedLayoutSelector: async (layoutSelector) => {
-
-		return new Promise((resolve, reject) => {
-
-			Command.getApplicationConfigurationDataNodesGroupedByUser('layout', (grouped) => {
-
-				let html = '<option selected value="" disabled>-- Select Layout --</option>';
-
-				if (grouped.length === 0) {
-
-					html += '<option value="" disabled>no layouts available</option>';
-
-				} else {
-
-					html += grouped.map(group => `
-						<optgroup data-ownerless="${group.ownerless}" label="${group.label}">
-							${group.configs.map(layout => `
-								<option value="${layout.id}">${layout.name}</option>
-							`).join('')}
-						</optgroup>
-					`).join('');
-				}
-
-				layoutSelector.innerHTML = html;
-
-				resolve();
-			});
-		});
-	},
-	restoreLayout: (selectedLayout) => {
-
-		if (selectedLayout) {
-
-			Command.getApplicationConfigurationDataNode(selectedLayout, (data) => {
-				_Schema.applySavedLayoutConfiguration(data);
-			});
-		}
-	},
-	applySavedLayoutConfiguration: (data, initialRestore = false) => {
-
-		try {
-
-			let loadedConfig = JSON.parse(data.content);
-
-			if (loadedConfig._version) {
-
-				switch (loadedConfig._version) {
-					case 2: {
-
-						_Schema.ui.zoomLevel = loadedConfig.zoom;
-						LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
-						_Schema.ui.panzoomInstance.zoom(_Schema.ui.zoomLevel);
-						_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
-
-						_Schema.ui.updateOverlayVisibility(loadedConfig.showRelLabels);
-
-						let hiddenTypes = loadedConfig.hiddenTypes;
-
-						// Filter out types that do not exist in the schema (if types are available already!)
-						if (_Schema.availableTypeNames.length > 0) {
-							hiddenTypes = hiddenTypes.filter((typeName) => {
-								return (_Schema.availableTypeNames.indexOf(typeName) !== -1);
-							});
-						}
-						_Schema.hiddenSchemaNodes = hiddenTypes;
-						LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-
-						// update the list in the visibility table
-						$('#schema-options-table input.toggle-type').prop('checked', true);
-						for (let hiddenType of _Schema.hiddenSchemaNodes) {
-							$(`#schema-options-table input.toggle-type[data-structr-type="${hiddenType}"]`).prop('checked', false);
-						}
-
-						let connectorStyle = loadedConfig.connectorStyle;
-						$('#connector-style').val(connectorStyle);
-						_Schema.ui.connectorStyle = connectorStyle;
-						LSWrapper.setItem(_Schema.schemaConnectorStyleKey, connectorStyle);
-
-						let positions = loadedConfig.positions;
-						LSWrapper.setItem(_Schema.schemaPositionsKey, positions);
-						_Schema.applyNodePositions(positions);
-					}
-					break;
-
-					default:
-						Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
-				}
-			}
-
-			LSWrapper.save();
-
-			if (initialRestore === true) {
-				new SuccessMessage().text(`No saved schema layout detected, loaded "${data.name}"`).show();
-			} else {
-				_Schema.reload();
-			}
-
-		} catch (e) {
-
-			Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
-		}
-	},
-	applyNodePositions: (positions) => {
-
-		for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
-
-			let type = n.dataset.type;
-
-			if (positions[type]) {
-				n.style.top = positions[type].top + 'px';
-				n.style.left = positions[type].left + 'px';
-			}
-		}
-	},
-	getSchemaLayoutConfiguration: () => {
-		return {
-			_version:       2,
-			positions:      _Schema.nodePositions,
-			hiddenTypes:    _Schema.hiddenSchemaNodes,
-			zoom:           _Schema.ui.zoomLevel,
-			connectorStyle: _Schema.ui.connectorStyle,
-			showRelLabels:  $('#schema-show-overlays').prop('checked')
-		};
-	},
-	openTypeVisibilityDialog: () => {
-
-		let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
-
-		let contentEl = _Helpers.createSingleDOMElementFromHTML('<div class="code-tabs flex flex-col h-full overflow-hidden"></div>');
-		dialogText.appendChild(contentEl);
-
-		let customView = 'id,name,isBuiltinType,category';
-		// TODO: Use helper function to fetch all types rather than only schema nodes
-		Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
-
-			contentEl.insertAdjacentHTML('beforeend', `
-				<div class="tab overflow-y-auto">
-					<table class="props schema-visibility-table">
-						<tr>
-							<th class="toggle-column-header">
-								<div class="flex items-center gap-3">
-									<span>Visible</span>
-									<div class="flex items-center gap-1">
-										${_Icons.getSvgIcon(_Icons.iconInvertSelection, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'invert-all-types', 'invert-icon']), 'Invert all')}
-										<input type="checkbox" title="Toggle all" class="toggle-all-types">
-									</div>
-								</div>
-							</th>
-							<th>Type</th>
-						</tr>
-						${schemaNodes.map(schemaNode => {
-							let isHidden = (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1);
-							return `<tr><td><input class="toggle-type" data-structr-type="${schemaNode.name}" type="checkbox" ${(isHidden ? '' : 'checked')}></td><td>${schemaNode.name}</td></tr>`;
-						}).join('')}
-					</table>
-				</div>
-			`);
-
-			for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
-
-				toggleAllCb.addEventListener('change', () => {
-
-					let typeTable = toggleAllCb.closest('table');
-					let checked   = toggleAllCb.checked;
-
-					for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
-						checkbox.checked = checked;
-					}
-					_Schema.updateHiddenSchemaTypes();
-					_Schema.reload();
-				});
-			}
-
-			for (let invertAllCb of contentEl.querySelectorAll('.invert-all-types')) {
-
-				invertAllCb.addEventListener('click', () => {
-
-					let typeTable = invertAllCb.closest('table');
-
-					for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
-						checkbox.checked = !checkbox.checked;
-					}
-					_Schema.updateHiddenSchemaTypes();
-					_Schema.reload();
-				});
-			}
-
-			let handleToggleVisibility = (e) => {
-				e.stopPropagation();
-
-				let inp = e.target.closest('tr').querySelector('.toggle-type');
-				if (inp !== e.target) {
-					inp.checked = !inp.checked;
-				}
-
-				_Schema.updateHiddenSchemaTypes();
-				_Schema.reload();
-			};
-
-			for (let el of contentEl.querySelectorAll('td .toggle-type, .schema-visibility-table td')) {
-				el.addEventListener('click', handleToggleVisibility);
-			}
-
-		}, false, null, customView);
-
-	},
-	updateHiddenSchemaTypes: () => {
-
-		let hiddenTypes = [];
-
-		for (let checkbox of document.querySelectorAll('.schema-visibility-table input.toggle-type')) {
-			let typeName = checkbox.dataset['structrType'];
-			let visible  = checkbox.checked;
-
-			if (!visible) {
-				hiddenTypes.push(typeName);
-			}
-		}
-
-		_Schema.hiddenSchemaNodes = hiddenTypes;
-		LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-	},
-	overlapsExistingNodes: (position) => {
-		if (!position) {
-			return false;
-		}
-		let overlaps = false;
-		for (let node of _Schema.ui.canvas[0].querySelectorAll('.node.schema.compact')) {
-			let offset = $(node).offset();
-			overlaps |= (Math.abs(position.left - offset.left) < 20 && Math.abs(position.top - offset.top) < 20);
-		}
-		return overlaps;
-	},
 	typeInfoCache: {},
 	clearTypeInfoCache: () => {
 		_Schema.typeInfoCache = {};
@@ -4737,15 +4274,28 @@ let _Schema = {
 
 			Command.getSchemaInfo(type, (schemaInfo) => {
 
-				let typeInfo = {};
-				for (let prop of schemaInfo) {
-					typeInfo[prop.jsonName] = prop;
-				}
+				let typeProperties = Object.fromEntries(schemaInfo.map(prop => [prop.jsonName, prop]));
+				_Schema.typeInfoCache[type] = typeProperties;
 
-				_Schema.typeInfoCache[type] = typeInfo;
-
-				callback(typeInfo);
+				callback(typeProperties);
 			});
+		}
+	},
+
+	schemaInfoCache: {},
+	populateBasicSchemaInformation: async () => {
+
+		let response = await fetch(`${Structr.rootUrl}_schema`);
+
+		if (response.ok) {
+
+			let data     = await response.json();
+			let typeInfo = data.result ?? [];
+
+			let basicSchemaInfo = Object.fromEntries(typeInfo.map(type => [type.name, type]));
+			console.log(basicSchemaInfo);
+
+			_Schema.schemaInfoCache = basicSchemaInfo;
 		}
 	},
 	getDerivedTypeNames: async (searchTrait, blacklist = []) => {
@@ -4794,6 +4344,10 @@ let _Schema = {
 		zoomLevel: undefined,
 		relHighlightColor: 'red',
 		maxZ: 0,
+		schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
+		schemaZoomLevelKey: '_schema_' + location.port + 'zoomLevel',
+		showSchemaInheritanceArrowsKey: 'structrShowSchemaInheritance_' + location.port,
+		showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
 		initPanZoom: () => {
 
 			const schemaContainer     = document.getElementById('schema-container');
@@ -4846,7 +4400,7 @@ let _Schema = {
 				_Schema.ui.zoomLevel = panzoom.getScale();
 				_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
 
-				LSWrapper.setItem(_Schema.schemaZoomLevelKey, _Schema.ui.zoomLevel);
+				LSWrapper.setItem(_Schema.ui.schemaZoomLevelKey, _Schema.ui.zoomLevel);
 			});
 		},
 		nodeDrag: {
@@ -4922,14 +4476,6 @@ let _Schema = {
 				});
 			}
 		},
-		updateHideSelectedTypesButton: () => {
-
-			let disabled = (_Schema.ui.selection.selectedNodes.length === 0);
-
-			let btn = document.getElementById('hide-selected-types');
-			btn.classList.toggle('disabled', disabled);
-			btn.disabled = disabled;
-		},
 		selection: {
 			selectionInProgress: false,
 			selectedRel: undefined,
@@ -4966,7 +4512,7 @@ let _Schema = {
 
 				_Schema.ui.selection.deselectRel();
 
-				_Schema.ui.updateHideSelectedTypesButton();
+				_Schema.ui.selection.updateHideSelectedTypesButton();
 			},
 			selectionStart: (e) => {
 
@@ -5032,7 +4578,7 @@ let _Schema = {
 					}
 				}
 
-				_Schema.ui.updateHideSelectedTypesButton();
+				_Schema.ui.selection.updateHideSelectedTypesButton();
 			},
 			isNodeInSelection: ($el, selectionRect) => {
 
@@ -5067,7 +4613,7 @@ let _Schema = {
 					});
 				}
 
-				_Schema.ui.updateHideSelectedTypesButton();
+				_Schema.ui.selection.updateHideSelectedTypesButton();
 			},
 			selectRel: (rel) => {
 
@@ -5101,20 +4647,515 @@ let _Schema = {
 
 				if (_Schema.ui.selection.selectedNodes.length > 0) {
 
-					for (let n of _Schema.ui.selection.selectedNodes) {
-						_Schema.hiddenSchemaNodes.push(n.name);
-					}
+					let hiddenTypes = [..._Schema.ui.visibility.hiddenSchemaNodes].concat(_Schema.ui.selection.selectedNodes.map(n => n.name));
+					_Schema.ui.visibility.saveHiddenTypes(hiddenTypes);
 
-					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 					_Schema.reload();
 				}
 
-				_Schema.ui.updateHideSelectedTypesButton();
+				_Schema.ui.selection.updateHideSelectedTypesButton();
+			},
+			updateHideSelectedTypesButton: () => {
+
+				let disabled = (_Schema.ui.selection.selectedNodes.length === 0);
+
+				let btn = document.getElementById('hide-selected-types');
+				btn.classList.toggle('disabled', disabled);
+				btn.disabled = disabled;
+			}
+		},
+		layouts: {
+			nodePositions: undefined,
+			getSchemaPositionsKey: () => 'structrSchemaPositions_' + location.port,
+			updateGroupedLayoutSelector: async (layoutSelector) => {
+
+				return new Promise((resolve, reject) => {
+
+					Command.getApplicationConfigurationDataNodesGroupedByUser('layout', (grouped) => {
+
+						let html = '<option selected value="" disabled>-- Select Layout --</option>';
+
+						if (grouped.length === 0) {
+
+							html += '<option value="" disabled>no layouts available</option>';
+
+						} else {
+
+							html += grouped.map(group => `
+						<optgroup data-ownerless="${group.ownerless}" label="${group.label}">
+							${group.configs.map(layout => `
+								<option value="${layout.id}">${layout.name}</option>
+							`).join('')}
+						</optgroup>
+					`).join('');
+						}
+
+						layoutSelector.innerHTML = html;
+
+						resolve();
+					});
+				});
+			},
+			restoreLayout: (selectedLayout) => {
+
+				if (selectedLayout) {
+
+					Command.getApplicationConfigurationDataNode(selectedLayout, (data) => {
+						_Schema.ui.layouts.applySavedLayoutConfiguration(data);
+					});
+				}
+			},
+			restoreFirstAvailableSchemaLayout: async () => {
+
+				let response = await fetch(`${Structr.rootUrl}ApplicationConfigurationDataNode/ui?configType=layout&${Structr.getRequestParameterName('pageSize')}=1&${Structr.getRequestParameterName('order')}=desc&${Structr.getRequestParameterName('sort')}=createdDate`);
+				let data     = await response.json();
+
+				if (data.result?.length > 0) {
+
+					let schemaLayout = data.result[0];
+
+					if (schemaLayout && schemaLayout.content && (_Schema.ui.visibility.hiddenSchemaNodes === null)) {
+
+						_Schema.ui.layouts.applySavedLayoutConfiguration(schemaLayout, true);
+					}
+				}
+			},
+			applySavedLayoutConfiguration: (data, isInitialRestore = false) => {
+
+				try {
+
+					let loadedConfig = JSON.parse(data.content);
+
+					if (loadedConfig._version) {
+
+						switch (loadedConfig._version) {
+							case 2: {
+
+								_Schema.ui.zoomLevel = loadedConfig.zoom;
+								LSWrapper.setItem(_Schema.ui.schemaZoomLevelKey, _Schema.ui.zoomLevel);
+								_Schema.ui.panzoomInstance.zoom(_Schema.ui.zoomLevel);
+								_Schema.ui.jsPlumbInstance.setZoom(_Schema.ui.zoomLevel);
+
+								_Schema.ui.updateOverlayVisibility(loadedConfig.showRelLabels);
+								_Schema.ui.updateInheritanceArrowsVisibility(loadedConfig.showInheritanceArrows ?? true);
+
+								let hiddenTypes = loadedConfig.hiddenTypes;
+
+								// TODO: process hidden types to translate them to VISIBILITY_CONFIG
+								_Schema.ui.visibility.visibilityConfig = {};
+								/**
+								 * {
+								 *     typeName: visible,
+								 * }
+								 * this way we know if a type is new and can SHOW it if it is CUSTOM and HIDE it if it is BUILTIN
+								 */
+
+
+
+
+								// Filter out types that do not exist in the schema (if types are available already!)
+								if (_Schema.availableTypeNames.length > 0) {
+									hiddenTypes = hiddenTypes.filter((typeName) => {
+										return (_Schema.availableTypeNames.indexOf(typeName) !== -1);
+									});
+								}
+								_Schema.ui.visibility.saveHiddenTypes(hiddenTypes);
+
+								let connectorStyle = loadedConfig.connectorStyle;
+								$('#connector-style').val(connectorStyle);
+								_Schema.ui.connectorStyle = connectorStyle;
+								LSWrapper.setItem(_Schema.ui.schemaConnectorStyleKey, connectorStyle);
+
+								let positions = loadedConfig.positions;
+								LSWrapper.setItem(_Schema.ui.layouts.getSchemaPositionsKey(), positions);
+								_Schema.ui.layouts.applyNodePositions(positions);
+
+								// TODO: Automatically update current layout and save it back
+							}
+								break;
+
+							default:
+								Structr.error('Cannot restore layout: Unknown layout version - was this layout created with a newer version of structr than the one currently running?');
+						}
+					}
+
+					LSWrapper.save();
+
+					if (isInitialRestore === true) {
+						new SuccessMessage().text(`No saved schema layout detected, loaded "${data.name}"`).show();
+					} else {
+						_Schema.reload();
+					}
+
+				} catch (e) {
+
+					Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
+				}
+			},
+			getSchemaLayoutConfiguration: () => {
+
+				// TODO: transform all types to { visibleTypes: [], otherTypes: [] }
+				_Schema.schemaInfoCache
+
+				return {
+					_version:       3,
+					positions:      _Schema.ui.layouts.nodePositions,
+					zoom:           _Schema.ui.zoomLevel,
+					connectorStyle: _Schema.ui.connectorStyle,
+
+					// TODO: only save SHOWN types instead of HIDDEN types (makes it safe for new versions where new types would otherwise show up)
+					hiddenTypes:    _Schema.ui.visibility.hiddenSchemaNodes,
+
+					visibleTypes: [],
+					otherTypes: [],
+
+					showRelLabels: (document.querySelector('#schema-show-overlays')?.checked ?? true),
+					showInheritanceArrows: (document.querySelector('#schema-show-inheritance')?.checked ?? true)
+				};
+			},
+			applyNodePositions: (positions) => {
+
+				for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
+
+					let type = n.dataset.type;
+
+					if (positions[type]) {
+						n.style.top = positions[type].top + 'px';
+						n.style.left = positions[type].left + 'px';
+					}
+				}
+			},
+			storePositions: () => {
+
+				let min = {
+					left: null,
+					top: null
+				};
+
+				let rawPositions = [..._Schema.ui.canvas[0].querySelectorAll('.node')].map(n => {
+
+					let type = n.dataset.type;
+					let left = parseFloat(n.style.left);
+					let top  = parseFloat(n.style.top)
+
+					min.left = Math.min((min.left ?? left), left);
+					min.top  = Math.min((min.top ?? top), top);
+
+					return [type, { top, left }];
+				});
+
+				// because of panzoom, we can move nodes anywhere... find the minimum top/left and subtract it everywhere
+				_Schema.ui.layouts.nodePositions = Object.fromEntries(rawPositions.map(([k, v]) => [k, { top: v.top - min.top, left: v.left - min.left}]));
+
+				LSWrapper.setItem(_Schema.ui.layouts.getSchemaPositionsKey(), _Schema.ui.layouts.nodePositions);
+			},
+			storePositionsNewLayout: () => {
+
+				for (let n of document.querySelectorAll('rect.node')) {
+
+					let type = n.dataset.type;
+					let obj = {
+						left: n.x.baseVal.value,
+						top: n.y.baseVal.value
+					};
+					//obj.left = (obj.left) / _Schema.ui.zoomLevel;
+					//obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
+					_Schema.ui.layouts.nodePositions[type] = obj;
+				}
+				LSWrapper.setItem(_Schema.ui.layouts.getSchemaPositionsKey(), _Schema.ui.layouts.nodePositions);
+			},
+			clearPositions: () => {
+				LSWrapper.removeItem(_Schema.ui.layouts.getSchemaPositionsKey());
+				_Schema.reload();
 			},
 		},
+		visibility: {
+			hiddenSchemaNodes: [],
+			visibilityConfig: {
+				// typeName: visible,...
+			},
+			getHiddenSchemaNodesKey: () => 'structrHiddenSchemaNodes_' + location.port,
+
+			openTypeVisibilityDialog: () => {
+
+				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
+
+				let contentEl = _Helpers.createSingleDOMElementFromHTML('<div class="code-tabs flex flex-col h-full overflow-hidden"></div>');
+				dialogText.appendChild(contentEl);
+
+				let customView = 'id,name,isBuiltinType,category';
+				// TODO: Use helper function to fetch all types rather than only schema nodes
+				Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
+
+					contentEl.insertAdjacentHTML('beforeend', `
+						<div class="tab overflow-y-auto">
+							<table class="props schema-visibility-table">
+								<tr>
+									<th class="toggle-column-header">
+										<div class="flex items-center gap-3">
+											<span>Visible</span>
+											<div class="flex items-center gap-1">
+												${_Icons.getSvgIcon(_Icons.iconInvertSelection, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'invert-all-types', 'invert-icon']), 'Invert all')}
+												<input type="checkbox" title="Toggle all" class="toggle-all-types">
+											</div>
+										</div>
+									</th>
+									<th>Type</th>
+								</tr>
+								${schemaNodes.map(schemaNode => {
+									let isHidden = (_Schema.ui.visibility.hiddenSchemaNodes.indexOf(schemaNode.name) > -1);
+									return `<tr><td><input class="toggle-type" data-structr-type="${schemaNode.name}" type="checkbox" ${(isHidden ? '' : 'checked')}></td><td>${schemaNode.name}</td></tr>`;
+								}).join('')}
+							</table>
+						</div>
+					`);
+
+					for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
+
+						toggleAllCb.addEventListener('change', () => {
+
+							let typeTable = toggleAllCb.closest('table');
+							let checked   = toggleAllCb.checked;
+
+							for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
+								checkbox.checked = checked;
+							}
+							_Schema.ui.visibility.updateHiddenSchemaTypes();
+							_Schema.reload();
+						});
+					}
+
+					for (let invertAllCb of contentEl.querySelectorAll('.invert-all-types')) {
+
+						invertAllCb.addEventListener('click', () => {
+
+							let typeTable = invertAllCb.closest('table');
+
+							for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
+								checkbox.checked = !checkbox.checked;
+							}
+							_Schema.ui.visibility.updateHiddenSchemaTypes();
+							_Schema.reload();
+						});
+					}
+
+					let handleToggleVisibility = (e) => {
+						e.stopPropagation();
+
+						let inp = e.target.closest('tr').querySelector('.toggle-type');
+						if (inp !== e.target) {
+							inp.checked = !inp.checked;
+						}
+
+						_Schema.ui.visibility.updateHiddenSchemaTypes();
+						_Schema.reload();
+					};
+
+					for (let el of contentEl.querySelectorAll('td .toggle-type, .schema-visibility-table td')) {
+						el.addEventListener('click', handleToggleVisibility);
+					}
+
+				}, false, null, customView);
+
+			},
+			updateHiddenSchemaTypes: () => {
+
+				let hiddenTypes = [];
+
+				for (let checkbox of document.querySelectorAll('.schema-visibility-table input.toggle-type')) {
+
+					let typeName = checkbox.dataset['structrType'];
+					let visible  = checkbox.checked;
+
+					if (!visible) {
+						hiddenTypes.push(typeName);
+					}
+				}
+
+				_Schema.ui.visibility.saveHiddenTypes(hiddenTypes);
+			},
+			isTypeHidden: (name) => {
+
+				return (_Schema.ui.visibility.hiddenSchemaNodes ?? []).includes(name);
+
+				// TODO: replace above with this
+				if (_Schema.ui.visibility.visibilityConfig[name] === undefined) {
+					// if it is builtin, it is hidden
+					return (_Schema.schemaInfoCache[name].isBuiltin === true);
+				}
+
+				return !_Schema.ui.visibility.visibilityConfig[name];
+			},
+			saveHiddenTypes: (hiddenTypes) => {
+				_Schema.ui.visibility.hiddenSchemaNodes = hiddenTypes;
+				LSWrapper.setItem(_Schema.ui.visibility.getHiddenSchemaNodesKey(), JSON.stringify(_Schema.ui.visibility.hiddenSchemaNodes));
+			},
+			restoreSavedHiddenSchemaNodes: () => {
+				_Schema.ui.visibility.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.ui.visibility.getHiddenSchemaNodesKey()));
+			}
+		},
+		activateDisplayDropdownTools: () => {
+
+			document.getElementById('schema-tools').addEventListener('click', (e) => {
+				_Schema.ui.visibility.openTypeVisibilityDialog();
+			});
+
+			document.getElementById('schema-show-overlays').addEventListener('change', (e) => {
+				_Schema.ui.updateOverlayVisibility(e.target.checked);
+			});
+
+			document.getElementById('schema-show-inheritance').addEventListener('change', (e) => {
+				_Schema.ui.updateInheritanceArrowsVisibility(e.target.checked);
+			});
+
+			for (let edgeStyleOption of document.querySelectorAll('.edge-style')) {
+
+				edgeStyleOption.addEventListener('click', (e) => {
+					e.stopPropagation();
+					e.preventDefault();
+
+					const el       = e.target;
+					const newStyle = el.innerText.trim();
+
+					_Schema.ui.connectorStyle = newStyle;
+					LSWrapper.setItem(_Schema.ui.schemaConnectorStyleKey, newStyle);
+
+					_Schema.reload();
+
+					return false;
+				});
+			}
+
+			let activateLayoutFunctions = async () => {
+
+				let layoutSelector        = document.querySelector('#saved-layout-selector');
+				let layoutNameInput       = document.querySelector('#layout-name');
+				let createNewLayoutButton = document.querySelector('#create-new-layout');
+				let saveLayoutButton      = document.querySelector('#save-layout');
+				let loadLayoutButton      = document.querySelector('#load-layout');
+				let deleteLayoutButton    = document.querySelector('#delete-layout');
+
+				let layoutSelectorChangeHandler = () => {
+
+					let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
+
+					if (!selectedOption) {
+
+						_Helpers.disableElements(true, saveLayoutButton, loadLayoutButton, deleteLayoutButton);
+
+					} else {
+
+						_Helpers.enableElement(loadLayoutButton);
+
+						let optGroup    = selectedOption.closest('optgroup');
+						let username    = optGroup.label;
+						let isOwnerless = (optGroup.dataset['ownerless'] === 'true');
+
+						_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton, deleteLayoutButton);
+					}
+				};
+
+				layoutSelector.addEventListener('change', layoutSelectorChangeHandler);
+
+				saveLayoutButton.addEventListener('click', async () => {
+
+					let selectedLayout = layoutSelector.value;
+					let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
+
+					let confirm = await _Dialogs.confirmation.showPromise(`
+					<h3>Overwrite stored schema layout "${selectedOption.text}"?</h3>
+				`);
+
+					if (confirm === true) {
+
+						Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.ui.layouts.getSchemaLayoutConfiguration()), false, (data) => {
+
+							if (!data.error) {
+
+								new SuccessMessage().text("Layout saved").show();
+
+								_Helpers.blinkGreen(layoutSelector);
+
+							} else {
+
+								new ErrorMessage().title(data.error).text(data.message).show();
+							}
+						});
+					}
+				});
+
+				loadLayoutButton.addEventListener('click', () => {
+					_Schema.ui.layouts.restoreLayout(layoutSelector.value);
+				});
+
+				deleteLayoutButton.addEventListener('click', async () => {
+
+					let selectedLayout = layoutSelector.value;
+					let selectedOption = layoutSelector.querySelector(':checked:not(:disabled)');
+
+					let confirm = await _Dialogs.confirmation.showPromise(`
+						<h3>Delete stored schema layout "${selectedOption.text}"?</h3>
+					`);
+
+					if (confirm === true) {
+
+						Command.deleteNode(selectedLayout, false, async () => {
+							await _Schema.ui.layouts.updateGroupedLayoutSelector(layoutSelector);
+							layoutSelectorChangeHandler();
+							_Helpers.blinkGreen(layoutSelector);
+						});
+					}
+				});
+
+				createNewLayoutButton.addEventListener('click', () => {
+
+					let layoutName = layoutNameInput.value;
+
+					if (layoutName && layoutName.length) {
+
+						Command.createApplicationConfigurationDataNode('layout', layoutName, JSON.stringify(_Schema.ui.layouts.getSchemaLayoutConfiguration()), async (data) => {
+
+							if (!data.error) {
+
+								new SuccessMessage().text("Layout saved").show();
+
+								await _Schema.ui.layouts.updateGroupedLayoutSelector(layoutSelector);
+								layoutSelectorChangeHandler();
+								layoutNameInput.value = '';
+
+								_Helpers.blinkGreen(layoutSelector);
+
+							} else {
+
+								new ErrorMessage().title(data.error).text(data.message).show();
+							}
+						});
+
+					} else {
+
+						layoutNameInput.setCustomValidity('Schema layout name is required.');
+						layoutNameInput.reportValidity();
+					}
+				});
+
+				await _Schema.ui.layouts.updateGroupedLayoutSelector(layoutSelector);
+				layoutSelectorChangeHandler();
+			};
+			activateLayoutFunctions();
+
+			document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
+				_Schema.clearPositions();
+			});
+
+			document.getElementById('new-auto-layout').addEventListener('click', (e) => {
+				_Schema.newAutoLayout();
+				Structr.dropdowns.hideOpenDropdownsExcept();
+			});
+		},
 		updateOverlayVisibility: (show) => {
+
 			_Schema.ui.showSchemaOverlays = show;
-			LSWrapper.setItem(_Schema.showSchemaOverlaysKey, show);
+			LSWrapper.setItem(_Schema.ui.showSchemaOverlaysKey, show);
 
 			$('#schema-show-overlays').prop('checked', show);
 			if (show) {
@@ -5126,7 +5167,7 @@ let _Schema = {
 		updateInheritanceArrowsVisibility: (showArrows) => {
 
 			_Schema.ui.showInheritanceArrows = showArrows;
-			LSWrapper.setItem(_Schema.showSchemaInheritanceArrowsKey, showArrows);
+			LSWrapper.setItem(_Schema.ui.showSchemaInheritanceArrowsKey, showArrows);
 
 			$('#schema-show-inheritance').prop('checked', showArrows);
 			_Schema.ui.canvas[0]?.classList.toggle('hide-inheritance-arrows', !showArrows)
@@ -5149,6 +5190,17 @@ let _Schema = {
 				left: calculatedX,
 				top: calculatedY
 			};
+		},
+		overlapsExistingNodes: (position) => {
+			if (!position) {
+				return false;
+			}
+			let overlaps = false;
+			for (let node of _Schema.ui.canvas[0].querySelectorAll('.node.schema.compact')) {
+				let offset = $(node).offset();
+				overlaps |= (Math.abs(position.left - offset.left) < 20 && Math.abs(position.top - offset.top) < 20);
+			}
+			return overlaps;
 		}
 	},
 	markElementAsChanged: (element, hasClass) => {
@@ -5284,7 +5336,6 @@ let _Schema = {
 					});
 				}
 			}
-
 		}
 
 		let container = document.querySelector('#schema-graph');
