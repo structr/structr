@@ -425,6 +425,7 @@ let Structr = {
 		_Helpers.requestAnimationFrameWrapper(Structr.prevAnimFrameReqId_resize, () => {
 
 			_Dialogs.custom.resizeDialog();
+			_Editors.resizeVisibleEditors();
 
 			if (StructrWS.user) {
 
