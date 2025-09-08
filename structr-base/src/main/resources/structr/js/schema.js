@@ -27,7 +27,6 @@ let _Schema = {
 	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
-	nodeData: {},
 	currentNodeDialogId: null,
 	onload: () => {
 
@@ -211,7 +210,7 @@ let _Schema = {
 		Command.get(id, null, (entity) => {
 
 			let isRelationship = (entity.type === "SchemaRelationshipNode");
-			let title          = isRelationship ? `(:${_Schema.nodeData[entity.sourceId].name})—[:${entity.relationshipType}]—►(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
+			let title          = isRelationship ? `(:${_Schema.caches.nodeData[entity.sourceId].name})—[:${entity.relationshipType}]—►(:${_Schema.caches.nodeData[entity.targetId].name})` : entity.name;
 
 			let callbackCancel = () => {
 
@@ -238,7 +237,7 @@ let _Schema = {
 			let tabControls;
 
 			if (isRelationship) {
-				tabControls = _Schema.relationships.loadRelationship(entity, mainTabs, contentEl, _Schema.nodeData[entity.sourceId], _Schema.nodeData[entity.targetId], targetView, callbackCancel);
+				tabControls = _Schema.relationships.loadRelationship(entity, mainTabs, contentEl, _Schema.caches.nodeData[entity.sourceId], _Schema.caches.nodeData[entity.targetId], targetView, callbackCancel);
 			} else {
 				tabControls = _Schema.nodes.loadNode(entity, mainTabs, contentEl, targetView, callbackCancel);
 			}
@@ -487,137 +486,30 @@ let _Schema = {
 			if (response.ok) {
 
 				let data             = await response.json();
-				let entities         = {};
 				let inheritanceObject = _Schema.nodes.populateInheritancePairMap(data.result);
-				let hierarchy        = {};
-				let x = 0, y = 0;
 
 				for (let entity of data.result) {
 
 					_Schema.caches.customTypeNames.push(entity.name);
 
-					let level   = 0;
-					let outs    = entity.relatedTo ? entity.relatedTo.length : 0;
-					let ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
-					let hasRels = (outs > 0 || ins > 0);
+					_Schema.caches.nodeData[entity.id] = entity;
 
-					if (ins === 0 && outs === 0) {
+					if (_Schema.ui.visibility.isTypeVisible(entity.name)) {
 
-						// no rels => push down
-						//level += 100;
-
-					} else {
-
-						if (outs === 0) {
-							level += 10;
-						}
-
-						level += ins;
+						_Schema.nodes.addTypeToCanvas(entity);
 					}
-
-					if (entity.isBuiltinType && !hasRels) {
-						level += 10;
-					}
-
-					hierarchy[level] ??= [];
-					hierarchy[level].push(entity);
-
-					entities[entity.id] = entity.id;
-				}
-
-				for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
-
-					for (let entity of entitiesAtHierarchyLevel) {
-
-						_Schema.nodeData[entity.id] = entity;
-
-						if (_Schema.ui.visibility.isTypeVisible(entity.name)) {
-
-							let id = 'id_' + entity.id;
-							_Schema.ui.canvas.append(`
-								<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}" data-type="${entity.name}">
-									<b>${entity.name}</b>
-									<div class="icons-container flex items-center">
-										${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']), 'Edit type')}
-										${(entity.isBuiltinType ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon']), 'Delete type'))}
-									</div>
-								</div>
-							`);
-
-							let node = $('#' + id);
-
-							node[0].addEventListener('mousedown', () => {
-								node[0].style.zIndex = ++_Schema.ui.maxZ;
-							});
-
-							node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
-								_Schema.openEditDialog(entity.id);
-							});
-
-							if (!entity.isBuiltinType) {
-
-								node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
-
-									let confirm = await _Dialogs.confirmation.showPromise(`
-										<h3>Delete schema node '${entity.name}'?</h3>
-										<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
-									`);
-
-									if (confirm === true) {
-
-										await _Schema.nodes.deleteNode(entity.id);
-									}
-								});
-							}
-
-							let nodePosition = _Schema.ui.layouts.nodePositions[entity.name];
-
-							if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
-
-								nodePosition = _Schema.ui.calculateNodePosition(x, y);
-
-								let count = 0;
-
-								while (_Schema.ui.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-									x++;
-									nodePosition = _Schema.ui.calculateNodePosition(x, y);
-								}
-							}
-
-							node[0].style.top  = nodePosition.top + 'px';
-							node[0].style.left = nodePosition.left + 'px';
-
-							_Schema.nodeData[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
-								anchor: "Top",
-								maxConnections: -1,
-								isTarget: true,
-								deleteEndpointsOnDetach: false
-							});
-							_Schema.nodeData[entity.id + '_bottom'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
-								anchor: "Bottom",
-								maxConnections: -1,
-								isSource: true,
-								deleteEndpointsOnDetach: false
-							});
-
-							x++;
-						}
-					}
-
-					y++;
-					x = 0;
 				}
 
 				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
 
-					let sourceEntity  = _Schema.nodeData[sourceId];
+					let sourceEntity  = _Schema.caches.nodeData[sourceId];
 					let sourceVisible = _Schema.ui.visibility.isTypeVisible(sourceEntity?.name);
 
 					if (sourceEntity && sourceVisible) {
 
 						for (let targetId of targetIds) {
 
-							let targetEntity  = _Schema.nodeData[targetId];
+							let targetEntity  = _Schema.caches.nodeData[targetId];
 							let targetVisible = _Schema.ui.visibility.isTypeVisible(targetEntity?.name);
 
 							if (targetEntity && targetVisible) {
@@ -643,6 +535,94 @@ let _Schema = {
 
 				throw new Error("Loading of Schema nodes failed");
 			}
+		},
+		addTypeToCanvas: (entity) => {
+
+			let id = 'id_' + entity.id;
+
+			_Schema.ui.canvas.append(`
+				<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}" data-type="${entity.name}">
+					<b>${entity.name}</b>
+					<div class="icons-container flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']), 'Edit type')}
+						${(entity.isBuiltinType ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon']), 'Delete type'))}
+					</div>
+				</div>
+			`);
+
+			let node = $('#' + id);
+
+			node[0].addEventListener('mousedown', () => {
+				node[0].style.zIndex = ++_Schema.ui.maxZ;
+			});
+
+			node[0].querySelector('.edit-type-icon')?.addEventListener('click', (e) => {
+				_Schema.openEditDialog(entity.id);
+			});
+
+			if (entity.isBuiltinType !== true) {
+
+				node[0].querySelector('.delete-type-icon')?.addEventListener('click', async () => {
+
+					// TODO: for overridden builtin types, this message should be slightly different
+
+					let confirm = await _Dialogs.confirmation.showPromise(`
+						<h3>Delete schema node '${entity.name}'?</h3>
+						<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
+					`);
+
+					if (confirm === true) {
+
+						await _Schema.nodes.deleteNode(entity.id);
+					}
+				});
+			}
+
+			let nodePosition = _Schema.ui.layouts.nodePositions[entity.name];
+
+			let jumpBetweenAttempts = {
+				x: 200,
+				y: 200
+			};
+			let distanceFromEdge = {
+				left: 40,
+				top: 20
+			};
+			let maxX = 2000;
+
+			if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
+
+				nodePosition = Object.assign({}, distanceFromEdge);
+
+				let count = 0;
+				let otherNodeRects = _Schema.ui.getAllNodeRects();
+
+				while (_Schema.ui.overlapsExistingNodes(nodePosition, otherNodeRects) && (count++ < 100)) {
+
+					nodePosition.left += jumpBetweenAttempts.x;
+
+					if (nodePosition.left > maxX) {
+						nodePosition.left = distanceFromEdge.left;
+						nodePosition.top += jumpBetweenAttempts.y;
+					}
+				}
+			}
+
+			node[0].style.top  = nodePosition.top + 'px';
+			node[0].style.left = nodePosition.left + 'px';
+
+			_Schema.caches.nodeConnectors[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
+				anchor: "Top",
+				maxConnections: -1,
+				isTarget: true,
+				deleteEndpointsOnDetach: false
+			});
+			_Schema.caches.nodeConnectors[entity.id + '_bottom'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
+				anchor: "Bottom",
+				maxConnections: -1,
+				isSource: true,
+				deleteEndpointsOnDetach: false
+			});
 		},
 		loadNode: (entity, mainTabs, contentDiv, targetView = 'general', callbackCancel) => {
 
@@ -977,10 +957,10 @@ let _Schema = {
 
 			for (let res of data.result) {
 
-				let sourceHidden = !_Schema.ui.visibility.isTypeVisible(_Schema.nodeData[res.sourceId].name);
-				let targetHidden = !_Schema.ui.visibility.isTypeVisible(_Schema.nodeData[res.targetId].name);
+				let sourceHidden = !_Schema.ui.visibility.isTypeVisible(_Schema.caches.nodeData[res.sourceId].name);
+				let targetHidden = !_Schema.ui.visibility.isTypeVisible(_Schema.caches.nodeData[res.targetId].name);
 
-				if (!_Schema.nodeData[res.sourceId] || !_Schema.nodeData[res.targetId] || sourceHidden || targetHidden) {
+				if (!_Schema.caches.nodeData[res.sourceId] || !_Schema.caches.nodeData[res.targetId] || sourceHidden || targetHidden) {
 
 					// relationship is not displayed
 
@@ -1002,8 +982,8 @@ let _Schema = {
 					let offset =     0.2 * relCnt[relIndex];
 
 					_Schema.ui.jsPlumbInstance.connect({
-						source: _Schema.nodeData[`${res.sourceId}_bottom`],
-						target: _Schema.nodeData[`${res.targetId}_top`],
+						source: _Schema.caches.nodeConnectors[`${res.sourceId}_bottom`],
+						target: _Schema.caches.nodeConnectors[`${res.targetId}_top`],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
 						connector: [_Schema.ui.connectorStyle, { curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
@@ -1023,7 +1003,7 @@ let _Schema = {
 							}],
 							["Label", {
 								cssClass: "label rel-type",
-								label: `<div id="rel_${res.id}" class="flex items-center" data-name="${res.name}" data-source-type="${_Schema.nodeData[res.sourceId].name}" data-target-type="${_Schema.nodeData[res.targetId].name}">
+								label: `<div id="rel_${res.id}" class="flex items-center" data-name="${res.name}" data-source-type="${_Schema.caches.nodeData[res.sourceId].name}" data-target-type="${_Schema.caches.nodeData[res.targetId].name}">
 											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
 											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship')}
 											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']), 'Delete relationship'))}
@@ -1293,8 +1273,8 @@ let _Schema = {
 
 			_Schema.relationships.appendCascadingDeleteHelpText(dialogText);
 
-			let sourceTypeName = _Schema.nodeData[sourceId].name;
-			let targetTypeName = _Schema.nodeData[targetId].name;
+			let sourceTypeName = _Schema.caches.nodeData[sourceId].name;
+			let targetTypeName = _Schema.caches.nodeData[targetId].name;
 
 			dialogText.querySelector('#source-type-name').textContent = sourceTypeName;
 			dialogText.querySelector('#target-type-name').textContent = targetTypeName;
@@ -2585,13 +2565,13 @@ let _Schema = {
 				relatedNodeId: relatedNodeId
 			};
 
-			if (!_Schema.nodeData[relatedNodeId]) {
+			if (!_Schema.caches.nodeData[relatedNodeId]) {
 				Command.get(relatedNodeId, 'name', (data) => {
 					tplConfig.relatedNodeType = data.name;
 					renderRemoteProperty(tplConfig);
 				});
 			} else {
-				tplConfig.relatedNodeType = _Schema.nodeData[relatedNodeId].name;
+				tplConfig.relatedNodeType = _Schema.caches.nodeData[relatedNodeId].name;
 				renderRemoteProperty(tplConfig);
 			}
 		},
@@ -4230,9 +4210,10 @@ let _Schema = {
 			return (type === 'allRels') ? { allRels: true } : { relType: type };
 		});
 	},
-
 	caches: {
 		customTypeNames: [],
+		nodeData: {},
+		nodeConnectors: {},
 
 		_schema: {},
 		populateBasicSchemaInformation: async () => {
@@ -4287,7 +4268,6 @@ let _Schema = {
 			}
 		},
 	},
-
 	getDerivedTypeNames: async (searchTrait, blacklist = []) => {
 
 		let response = await fetch(`${Structr.rootUrl}_schema`);
@@ -4699,7 +4679,7 @@ let _Schema = {
 				_Schema.ui.showSchemaOverlays      = true;
 				_Schema.ui.showInheritanceArrows   = true;
 				_Schema.ui.layouts.nodePositions   = {};
-				_Schema.ui.visibility.visibleTypes = [Object.values(_Schema.caches._schema).filter(type => (type.isBuiltin === false)).map(type => type.name)];
+				_Schema.ui.visibility.visibleTypes = Object.values(_Schema.caches._schema).filter(type => (type.isBuiltin === false && type.isRel === false)).map(type => type.name);
 
 				// Then check localstorage or load from server
 				let savedLayoutData = LSWrapper.getItem(_Schema.ui.getSavedSchemaLayoutKey());
@@ -4756,7 +4736,7 @@ let _Schema = {
 							let allTypes    = new Set(Object.keys(_Schema.caches._schema));
 
 							// create list of builtin types (that are not available as schema nodes --> overridden builtin type)
-							let builtinTypes = new Set(Object.values(_Schema.caches._schema).filter(type => (type.isBuiltin === true)).map(type => type.name)).difference(new Set(_Schema.caches.customTypeNames));
+							let builtinTypes = new Set(Object.values(_Schema.caches._schema).filter(type => (type.isBuiltin === true)).map(type => type.name)).difference(new Set(Object.values(_Schema.caches.nodeData).map(type => type.name)));
 
 							let visibleTypes = [...allTypes.difference(hiddenTypes).difference(builtinTypes)];
 							_Schema.ui.visibility.setVisibleTypes(visibleTypes);
@@ -4821,7 +4801,7 @@ let _Schema = {
 
 					let type = n.dataset.type;
 					let left = parseFloat(n.style.left);
-					let top  = parseFloat(n.style.top)
+					let top  = parseFloat(n.style.top);
 
 					min.left = Math.min((min.left ?? left), left);
 					min.top  = Math.min((min.top ?? top), top);
@@ -4842,16 +4822,17 @@ let _Schema = {
 
 				let positions = [...document.querySelectorAll('rect.node')].map(n => {
 
+					let type = n.dataset.type;
 					let obj = {
 						left: n.x.baseVal.value,
 						top: n.y.baseVal.value
 					};
 					//obj.left = (obj.left) / _Schema.ui.zoomLevel;
 					//obj.top  = (obj.top)  / _Schema.ui.zoomLevel;
-					return obj;
+					return [type, obj];
 				});
 
-				_Schema.ui.layouts.saveNodePositions(positions);
+				_Schema.ui.layouts.saveNodePositions(Object.fromEntries(positions));
 			},
 			clearPositions: () => {
 
@@ -5159,34 +5140,37 @@ let _Schema = {
 
 			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 		},
-		getNodeXPosition: (x, y) => {
-			return (x * 300) + ((y % 2) * 150) + 140;
+		getAllNodeRects: () => {
+
+			let breathingRoom = 20;
+
+			// do this fewer times because getBoundClientRect causes a force redraw
+			return [..._Schema.ui.canvas[0].querySelectorAll('.node')].map(node => {
+
+				let nodeRect = {
+					left: parseFloat(node.style.left) - breathingRoom,
+					top:  parseFloat(node.style.top) - breathingRoom,
+				};
+
+				let rect = node.getBoundingClientRect();
+
+				nodeRect.right  = nodeRect.left + rect.width + 2*breathingRoom;
+				nodeRect.bottom = nodeRect.top + rect.height + 2*breathingRoom;
+
+				return nodeRect;
+			});
 		},
-		getNodeYPosition: (y) => {
-			return (y * 150) + 150;
-		},
-		calculateNodePosition: (x, y) => {
-			let calculatedX = _Schema.ui.getNodeXPosition(x, y);
-			if (calculatedX > 1500) {
-				y++;
-				x = 0;
-				calculatedX = _Schema.ui.getNodeXPosition(x, y);
-			}
-			let calculatedY = _Schema.ui.getNodeYPosition(y);
-			return {
-				left: calculatedX,
-				top: calculatedY
-			};
-		},
-		overlapsExistingNodes: (position) => {
+		overlapsExistingNodes: (position, otherNodeRects) => {
+
 			if (!position) {
 				return false;
 			}
-			let overlaps = false;
-			for (let node of _Schema.ui.canvas[0].querySelectorAll('.node.schema.compact')) {
-				let offset = $(node).offset();
-				overlaps |= (Math.abs(position.left - offset.left) < 20 && Math.abs(position.top - offset.top) < 20);
-			}
+
+			let overlaps = otherNodeRects.some(rect => {
+
+				return (position.left >= rect.left && position.left <= rect.right && position.top >= rect.top && position.top <= rect.bottom);
+			});
+
 			return overlaps;
 		},
 		newAutoLayout: async () => {
@@ -5215,7 +5199,7 @@ let _Schema = {
 
 			for (let n of nodes.result) {
 
-				_Schema.nodeData['id_' + n.id] = n;
+				_Schema.caches.nodeData[n.id] = n;
 
 				let width  = (n.name.length * 12) + 20; // n.clientWidth;
 				let height = 20; // n.clientHeight;
@@ -5259,7 +5243,7 @@ let _Schema = {
 
 				for (let node of input.children) {
 
-					let data = _Schema.nodeData[node.id.substring(3)];
+					let data = _Schema.caches.nodeData[node.id.substring(3)];
 					if (data) {
 
 						if (data?.extendsClass?.id) {
@@ -5322,18 +5306,15 @@ let _Schema = {
 
 			let container = document.querySelector('#schema-graph');
 
-			container.innerText = '';
+			_Helpers.fastRemoveAllChildren(container);
 
-			_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), _Schema.storePositionsNewLayout);
+			_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), () => {
 
-			/*
-			// todo: implement click handler for nodes
-			nodes[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
-				_Schema.openEditDialog(entity.id);
+				// only store positions and then instantly reload to use display code
+				_Schema.ui.layouts.storePositionsNewLayout();
+
+				_Schema.reload();
 			});
-			*/
-
-
 		}
 	},
 	markElementAsChanged: (element, hasClass) => {
