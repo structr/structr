@@ -2133,16 +2133,16 @@ let _TreeHelper = {
 
 			} else {
 
-				// no anchor found
+				// no anchor found: replace closed icon with open icon if state is open
 				if (node.data.svgIcon && newStateIsOpen) {
 
-					if (
-						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderOpen}"`) !== -1 ||
-						node.data.svgIcon.indexOf(`"#${_Icons.iconFolderClosed}"`) !== -1 ||
-						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderOpen}"`) !== -1 ||
-						node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderClosed}"`) !== -1
-					) {
-						node.data.svgIcon = _Icons.getSvgIcon(_Icons.iconFolderOpen);
+					if (node.data.svgIcon.indexOf(`"#${_Icons.iconFolderClosed}"`) > -1) {
+
+						node.data.svgIcon = node.data.svgIcon.replace(`href="#${_Icons.iconFolderClosed}"`, `href="#${_Icons.iconFolderOpen}"`);
+
+					} else if (node.data.svgIcon.indexOf(`"#${_Icons.iconMountedFolderClosed}"`) > -1) {
+
+						node.data.svgIcon = node.data.svgIcon.replace(`href="#${_Icons.iconMountedFolderClosed}"`, `href="#${_Icons.iconMountedFolderOpen}"`);
 					}
 				}
 			}
