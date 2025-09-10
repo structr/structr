@@ -485,18 +485,38 @@ let _Schema = {
 			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
 			if (response.ok) {
 
-				let data             = await response.json();
+				let data              = await response.json();
 				let inheritanceObject = _Schema.nodes.populateInheritancePairMap(data.result);
 
-				for (let entity of data.result) {
+				_Schema.caches.nodeData = Object.fromEntries(data.result.map(node => [node.id, node]));
+				let nameToSchemaNodeMap = Object.fromEntries(data.result.map(node => [node.name, node]));
+				let initialPosition     = { left: 40, top: 20 };
 
-					_Schema.caches.customTypeNames.push(entity.name);
+				// TODO: first add custom types, then add builtin types (this will only really make a difference if the layout is cleared)
 
-					_Schema.caches.nodeData[entity.id] = entity;
+				let customTypeNames = data.result.map(type => type.name).sort();
+				let otherNodeTypes  = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass && !customTypeNames.includes(type.name));
 
-					if (_Schema.ui.visibility.isTypeVisible(entity.name)) {
+				let firstCustomThenBuiltinTypeNames = [...customTypeNames, ...otherNodeTypes.map(type => type.name).sort()];
 
-						_Schema.nodes.addTypeToCanvas(entity);
+				for (let typeName of firstCustomThenBuiltinTypeNames) {
+
+					if (_Schema.ui.visibility.isTypeVisible(typeName)) {
+
+						let customSchemaNode = nameToSchemaNodeMap[typeName];
+
+						if (customSchemaNode) {
+
+							initialPosition = _Schema.nodes.addTypeToCanvas(customSchemaNode, initialPosition);
+
+						} else {
+
+							initialPosition = _Schema.nodes.addTypeToCanvas({
+								id: '_fake_' + typeName,
+								name: typeName,
+								isBuiltinType: true
+							}, initialPosition);
+						}
 					}
 				}
 
@@ -536,11 +556,11 @@ let _Schema = {
 				throw new Error("Loading of Schema nodes failed");
 			}
 		},
-		addTypeToCanvas: (entity) => {
+		addTypeToCanvas: (entity, initialPosition) => {
 
 			let id = 'id_' + entity.id;
 
-			_Schema.ui.canvas.append(`
+			let node = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}" data-type="${entity.name}">
 					<b>${entity.name}</b>
 					<div class="icons-container flex items-center">
@@ -549,67 +569,55 @@ let _Schema = {
 					</div>
 				</div>
 			`);
+			_Schema.ui.canvas[0].appendChild(node);
 
-			let node = $('#' + id);
-
-			node[0].addEventListener('mousedown', () => {
-				node[0].style.zIndex = ++_Schema.ui.maxZ;
+			node.addEventListener('mousedown', () => {
+				node.style.zIndex = ++_Schema.ui.maxZ;
 			});
 
-			node[0].querySelector('.edit-type-icon')?.addEventListener('click', (e) => {
+			node.querySelector('.edit-type-icon')?.addEventListener('click', (e) => {
 				_Schema.openEditDialog(entity.id);
 			});
 
-			if (entity.isBuiltinType !== true) {
+			node.querySelector('.delete-type-icon')?.addEventListener('click', async () => {
 
-				node[0].querySelector('.delete-type-icon')?.addEventListener('click', async () => {
+				// TODO: for overridden builtin types, this message should be slightly different
 
-					// TODO: for overridden builtin types, this message should be slightly different
+				let confirm = await _Dialogs.confirmation.showPromise(`
+					<h3>Delete schema node '${entity.name}'?</h3>
+					<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
+				`);
 
-					let confirm = await _Dialogs.confirmation.showPromise(`
-						<h3>Delete schema node '${entity.name}'?</h3>
-						<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
-					`);
+				if (confirm === true) {
 
-					if (confirm === true) {
+					await _Schema.nodes.deleteNode(entity.id);
+				}
+			});
 
-						await _Schema.nodes.deleteNode(entity.id);
-					}
-				});
-			}
+			let nodePosition        = _Schema.ui.layouts.nodePositions[entity.name];
+			let jumpBetweenAttempts = { x: 200, y: 200 };
+			let maxX                = window.innerWidth;
 
-			let nodePosition = _Schema.ui.layouts.nodePositions[entity.name];
+			if ((nodePosition?.left ?? 0) === 0 && (nodePosition?.top ?? 0) === 0) {
 
-			let jumpBetweenAttempts = {
-				x: 200,
-				y: 200
-			};
-			let distanceFromEdge = {
-				left: 40,
-				top: 20
-			};
-			let maxX = 2000;
-
-			if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
-
-				nodePosition = Object.assign({}, distanceFromEdge);
+				nodePosition = Object.assign({}, initialPosition);
 
 				let count = 0;
 				let otherNodeRects = _Schema.ui.getAllNodeRects();
 
-				while (_Schema.ui.overlapsExistingNodes(nodePosition, otherNodeRects) && (count++ < 100)) {
+				while (_Schema.ui.overlapsExistingNodes(nodePosition, otherNodeRects) && (count++ < 1000)) {
 
 					nodePosition.left += jumpBetweenAttempts.x;
 
 					if (nodePosition.left > maxX) {
-						nodePosition.left = distanceFromEdge.left;
+						nodePosition.left = initialPosition.left;
 						nodePosition.top += jumpBetweenAttempts.y;
 					}
 				}
 			}
 
-			node[0].style.top  = nodePosition.top + 'px';
-			node[0].style.left = nodePosition.left + 'px';
+			node.style.top  = nodePosition.top + 'px';
+			node.style.left = nodePosition.left + 'px';
 
 			_Schema.caches.nodeConnectors[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
 				anchor: "Top",
@@ -623,6 +631,8 @@ let _Schema = {
 				isSource: true,
 				deleteEndpointsOnDetach: false
 			});
+
+			return initialPosition;
 		},
 		loadNode: (entity, mainTabs, contentDiv, targetView = 'general', callbackCancel) => {
 
@@ -4211,11 +4221,21 @@ let _Schema = {
 		});
 	},
 	caches: {
-		customTypeNames: [],
 		nodeData: {},
+		getCustomTypeNames: () => {
+			return Object.values(_Schema.caches.nodeData).map(type => type.name).sort();
+		},
 		nodeConnectors: {},
 
 		_schema: {},
+		getFilteredSchemaTypes: async (filterFn) => {
+
+			if (!_Schema.caches._schema) {
+				await _Schema.caches.populateBasicSchemaInformation();
+			}
+
+			return Object.values(_Schema.caches._schema).filter(filterFn);
+		},
 		populateBasicSchemaInformation: async () => {
 
 			let response = await fetch(`${Structr.rootUrl}_schema`);
@@ -4666,8 +4686,8 @@ let _Schema = {
 
 				if (appConfigDataNodeId) {
 
-					Command.getApplicationConfigurationDataNode(appConfigDataNodeId, (node) => {
-						_Schema.ui.layouts.applyLayoutFromApplicationConfigurationDataNode(node);
+					Command.getApplicationConfigurationDataNode(appConfigDataNodeId, async (node) => {
+						await _Schema.ui.layouts.applyLayoutFromApplicationConfigurationDataNode(node);
 					});
 				}
 			},
@@ -4679,13 +4699,13 @@ let _Schema = {
 				_Schema.ui.showSchemaOverlays      = true;
 				_Schema.ui.showInheritanceArrows   = true;
 				_Schema.ui.layouts.nodePositions   = {};
-				_Schema.ui.visibility.visibleTypes = Object.values(_Schema.caches._schema).filter(type => (type.isBuiltin === false && type.isRel === false)).map(type => type.name);
+				_Schema.ui.visibility.visibleTypes = (await _Schema.caches.getFilteredSchemaTypes(type => (type.isBuiltin === false && type.isRel === false))).map(type => type.name);
 
 				// Then check localstorage or load from server
 				let savedLayoutData = LSWrapper.getItem(_Schema.ui.getSavedSchemaLayoutKey());
 				if (savedLayoutData) {
 
-					_Schema.ui.layouts.applyLayout(savedLayoutData, true);
+					await _Schema.ui.layouts.applyLayout(savedLayoutData, true);
 
 				} else {
 
@@ -4694,20 +4714,20 @@ let _Schema = {
 
 					if (data.result?.length > 0) {
 
-						_Schema.ui.layouts.applyLayoutFromApplicationConfigurationDataNode(data.result[0], true);
+						await _Schema.ui.layouts.applyLayoutFromApplicationConfigurationDataNode(data.result[0], true);
 					}
 				}
 			},
 			saveCurrentSchemaLayoutToLocalstorage: () => {
 				LSWrapper.setItem(_Schema.ui.getSavedSchemaLayoutKey(), _Schema.ui.layouts.getCurrentSchemaLayoutConfiguration());
 			},
-			applyLayoutFromApplicationConfigurationDataNode: (node, isInitialRestore = false) => {
+			applyLayoutFromApplicationConfigurationDataNode: async (node, isInitialRestore = false) => {
 
 				try {
 
 					let loadedConfig = JSON.parse(node.content);
 
-					_Schema.ui.layouts.applyLayout(loadedConfig, isInitialRestore);
+					await _Schema.ui.layouts.applyLayout(loadedConfig, isInitialRestore);
 
 					if (isInitialRestore === true) {
 						new SuccessMessage().text(`No saved schema layout detected, loaded "${data.name}"`).show();
@@ -4718,7 +4738,7 @@ let _Schema = {
 					Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 				}
 			},
-			applyLayout: (layoutData, isInitialRestore = false) => {
+			applyLayout: async (layoutData, isInitialRestore = false) => {
 
 				if (layoutData._version) {
 
@@ -4736,9 +4756,11 @@ let _Schema = {
 							let allTypes    = new Set(Object.keys(_Schema.caches._schema));
 
 							// create list of builtin types (that are not available as schema nodes --> overridden builtin type)
-							let builtinTypes = new Set(Object.values(_Schema.caches._schema).filter(type => (type.isBuiltin === true)).map(type => type.name)).difference(new Set(Object.values(_Schema.caches.nodeData).map(type => type.name)));
+							let allBuiltinTypeNames       = (await _Schema.caches.getFilteredSchemaTypes(type => (type.isBuiltin === true))).map(type => type.name);
+							let customTypeNames           = _Schema.caches.getCustomTypeNames();
+							let notOverriddenBuiltinTypes = new Set(allBuiltinTypeNames).difference(new Set(customTypeNames));
 
-							let visibleTypes = [...allTypes.difference(hiddenTypes).difference(builtinTypes)];
+							let visibleTypes = [...allTypes.difference(hiddenTypes).difference(notOverriddenBuiltinTypes)];
 							_Schema.ui.visibility.setVisibleTypes(visibleTypes);
 						}
 						break;
@@ -4840,6 +4862,149 @@ let _Schema = {
 
 				_Schema.reload();
 			},
+			newAutoLayout: async () => {
+
+				let index    = {};
+				let relCount = {};
+
+				let input = {
+					id: 'root',
+					children: [],
+					edges: [],
+					layoutOptions: {
+						'elk.algorithm':                                       'layered',
+						'elk.direction':                                       'DOWN',
+						'elk.edgeWidth':                                       4,
+						'elk.edgeLabels.inline':                               true,
+						'elk.edgeLabels.placement':                            'CENTER',
+						'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
+						'elk.layered.edgeLabels.sideSelection':                'ALWAYS_UP',
+						'elk.layered.spacing.edgeNodeBetweenLayers':           40,
+					}
+				};
+
+				let nodeResponse = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
+				let nodes = await nodeResponse.json();
+
+				for (let n of nodes.result) {
+
+					_Schema.caches.nodeData[n.id] = n;
+
+					let width  = (n.name.length * 12) + 20; // n.clientWidth;
+					let height = 20; // n.clientHeight;
+
+					index[n.id] = true;
+
+					let item = {
+						id: 'id_' + n.id,
+						width: width,
+						height: height + 10,
+						labels: [
+							{ text: n.name }
+						],
+						ports: [
+							{
+								id: 'id_' + n.id + '_NORTH',
+								layoutOptions: { 'port.side': 'NORTH' }
+							},
+							{
+								id: 'id_' + n.id + '_SOUTH',
+								layoutOptions: { 'port.side': 'SOUTH' }
+							},
+						],
+						layoutOptions: {
+							portConstraints: 'FIXED_SIDE'
+						}
+					};
+
+					input.children.push(item);
+				}
+
+				// rels
+				let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
+				let data     = await response.json();
+
+				// inheritance
+				let includeInheritance = false;
+				let inheritanceRels    = [];
+
+				if (includeInheritance) {
+
+					for (let node of input.children) {
+
+						let data = _Schema.caches.nodeData[node.id.substring(3)];
+						if (data) {
+
+							if (data?.extendsClass?.id) {
+
+								let id = data.extendsClass.id;
+
+								if (index[id]) {
+
+									/*
+																inheritanceRels.push({
+																	source: 'id_' + id,
+																	target: node.id
+																});
+																 *
+									 */
+
+									input.edges.push({
+										id:      node.id + 'extends' + id,
+										sources: [ 'id_' + id + '_SOUTH' ],
+										targets: [ node.id + '_NORTH' ],
+										//sources: [ 'id_' + id ],
+										//targets: [ node.id ]
+										labels: [
+											{ text: 'EXTENDS' }
+										]
+									});
+								}
+							}
+						}
+					}
+
+				} else {
+
+					for (let res of data.result) {
+
+						if (index[res.sourceId] === true && index[res.targetId] === true) {
+
+							let s = 'id_' + res.sourceId;
+							let t = 'id_' + res.targetId;
+
+							if (!relCount[s]) { relCount[s] = 0; }
+							if (!relCount[t]) { relCount[t] = 0; }
+
+							relCount[s]++;
+							relCount[t]++;
+
+							input.edges.push({
+								id:      res.id,
+								//sources: [ 'id_' + res.sourceId + '_SOUTH' ],
+								//targets: [ 'id_' + res.targetId + '_NORTH' ],
+								sources: [ s ],
+								targets: [ t ],
+								labels: [
+									{ text: res.relationshipType, width: (res.relationshipType.length * 12) + 20, height: 23 }
+								]
+							});
+						}
+					}
+				}
+
+				let container = document.querySelector('#schema-graph');
+
+				_Helpers.fastRemoveAllChildren(container);
+
+				_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), () => {
+
+					// only store positions and then instantly reload to use display code
+					_Schema.ui.layouts.storePositionsNewLayout();
+
+					_Schema.reload();
+				});
+			}
 		},
 		visibility: {
 			visibleTypes: [],
@@ -4852,86 +5017,137 @@ let _Schema = {
 
 				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 			},
-			openTypeVisibilityDialog: () => {
+			openTypeVisibilityDialog: async () => {
+
+				let customTypeNames = _Schema.caches.getCustomTypeNames();
+				let htmlTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('DOMNode'))).map(type => type.name).sort();
+				let fileTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('AbstractFile'))).map(type => type.name).sort();
+				let flowTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('FlowBaseNode'))).map(type => type.name).sort();
+				let schemaTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('SchemaReloadingNode'))).map(type => type.name).sort();
+				let otherTypeNames  = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...schemaTypeNames]))].sort();
+
+				let visibilityTables = [
+					{
+						caption: "Custom Types",
+						types: customTypeNames
+					},
+					{
+						caption: "HTML Types",
+						types: htmlTypeNames
+					},
+					{
+						caption: "File Types",
+						types: fileTypeNames
+					},
+					{
+						caption: "Flow Types",
+						types: flowTypeNames
+					},
+					{
+						caption: "Schema Types",
+						types: schemaTypeNames
+					},
+					{
+						caption: "Other Types",
+						types: otherTypeNames
+					}
+				];
 
 				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
 
 				let contentEl = _Helpers.createSingleDOMElementFromHTML('<div class="code-tabs flex flex-col h-full overflow-hidden"></div>');
 				dialogText.appendChild(contentEl);
 
-				let customView = 'id,name,isBuiltinType,category';
+				let tabsHtml = `
+					<div class="data-tabs level-two">
+						<ul id="vis-tabs">
+							${visibilityTables.map(visType => `<li class="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('')}
+						</ul>
+					</div>
+				`;
 
-
-				// TODO: Use helper function to fetch all types rather than only schema nodes
-				Command.query('SchemaNode', 2000, 1, 'name', 'asc', { isServiceClass: false }, (schemaNodes) => {
-
-					contentEl.insertAdjacentHTML('beforeend', `
-						<div class="tab overflow-y-auto">
-							<table class="props schema-visibility-table">
-								<tr>
-									<th class="toggle-column-header">
-										<div class="flex items-center gap-3">
-											<span>Visible</span>
-											<div class="flex items-center gap-1">
-												${_Icons.getSvgIcon(_Icons.iconInvertSelection, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'invert-all-types', 'invert-icon']), 'Invert all')}
-												<input type="checkbox" title="Toggle all" class="toggle-all-types">
-											</div>
+				let tabContentsHtml = visibilityTables.map(visType => `
+					<div class="tab overflow-y-auto" data-name="${visType.caption}">
+						<table class="props schema-visibility-table">
+							<tr>
+								<th class="toggle-column-header">
+									<div class="flex items-center gap-3">
+										<span>Visible</span>
+										<div class="flex items-center gap-1">
+											${_Icons.getSvgIcon(_Icons.iconInvertSelection, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'invert-all-types', 'invert-icon']), 'Invert all')}
+											<input type="checkbox" title="Toggle all" class="toggle-all-types">
 										</div>
-									</th>
-									<th>Type</th>
-								</tr>
-								${schemaNodes.map(schemaNode => `<tr><td><input class="toggle-type" data-structr-type="${schemaNode.name}" type="checkbox" ${(_Schema.ui.visibility.isTypeVisible(schemaNode.name) ? 'checked' : '')}></td><td>${schemaNode.name}</td></tr>`	).join('')}
-							</table>
-						</div>
-					`);
+									</div>
+								</th>
+								<th>Type</th>
+							</tr>
+							${visType.types.map(name => `<tr><td><input class="toggle-type" data-structr-type="${name}" type="checkbox" ${(_Schema.ui.visibility.isTypeVisible(name) ? 'checked' : '')}></td><td>${name}</td></tr>`).join('')}
+						</table>
+					</div>
+				`).join('');
 
-					for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
+				contentEl.insertAdjacentHTML('beforeend', tabsHtml + tabContentsHtml);
 
-						toggleAllCb.addEventListener('change', () => {
+				let activateTab = (tabName) => {
+					[...contentEl.querySelectorAll('div.tab')].forEach(tab => tab.style.display = 'none');
+					[...contentEl.querySelectorAll('li.tab')].forEach(li => li.classList.remove('active'));
+					contentEl.querySelector('div.tab[data-name="' + tabName + '"]').style.display = 'block';
+					contentEl.querySelector('li.tab[data-name="' + tabName + '"]').classList.add('active');
+				};
 
-							let typeTable = toggleAllCb.closest('table');
-							let checked   = toggleAllCb.checked;
+				for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
 
-							for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
-								checkbox.checked = checked;
-							}
-							_Schema.ui.visibility.updateVisibleSchemaTypes();
-							_Schema.reload();
-						});
-					}
+					toggleAllCb.addEventListener('change', () => {
 
-					for (let invertAllCb of contentEl.querySelectorAll('.invert-all-types')) {
+						let typeTable = toggleAllCb.closest('table');
+						let checked   = toggleAllCb.checked;
 
-						invertAllCb.addEventListener('click', () => {
-
-							let typeTable = invertAllCb.closest('table');
-
-							for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
-								checkbox.checked = !checkbox.checked;
-							}
-							_Schema.ui.visibility.updateVisibleSchemaTypes();
-							_Schema.reload();
-						});
-					}
-
-					let handleToggleVisibility = (e) => {
-						e.stopPropagation();
-
-						let inp = e.target.closest('tr').querySelector('.toggle-type');
-						if (inp !== e.target) {
-							inp.checked = !inp.checked;
+						for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
+							checkbox.checked = checked;
 						}
-
 						_Schema.ui.visibility.updateVisibleSchemaTypes();
 						_Schema.reload();
-					};
+					});
+				}
 
-					for (let el of contentEl.querySelectorAll('td .toggle-type, .schema-visibility-table td')) {
-						el.addEventListener('click', handleToggleVisibility);
+				for (let invertAllCb of contentEl.querySelectorAll('.invert-all-types')) {
+
+					invertAllCb.addEventListener('click', () => {
+
+						let typeTable = invertAllCb.closest('table');
+
+						for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
+							checkbox.checked = !checkbox.checked;
+						}
+						_Schema.ui.visibility.updateVisibleSchemaTypes();
+						_Schema.reload();
+					});
+				}
+
+				let handleToggleVisibility = (e) => {
+					e.stopPropagation();
+
+					let inp = e.target.closest('tr').querySelector('.toggle-type');
+					if (inp !== e.target) {
+						inp.checked = !inp.checked;
 					}
 
-				}, false, null, customView);
+					_Schema.ui.visibility.updateVisibleSchemaTypes();
+					_Schema.reload();
+				};
 
+				for (let el of contentEl.querySelectorAll('td .toggle-type, .schema-visibility-table td')) {
+					el.addEventListener('click', handleToggleVisibility);
+				}
+
+				for (let tab of contentEl.querySelectorAll('li.tab[data-name]')) {
+					tab.addEventListener('click', (e) => {
+						e.stopPropagation();
+						activateTab(tab.dataset['name']);
+					});
+				}
+
+				activateTab(visibilityTables[0].caption);
 			},
 			updateVisibleSchemaTypes: () => {
 
@@ -5095,11 +5311,11 @@ let _Schema = {
 			activateLayoutFunctions();
 
 			document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
-				_Schema.clearPositions();
+				_Schema.ui.layouts.clearPositions();
 			});
 
 			document.getElementById('new-auto-layout').addEventListener('click', (e) => {
-				_Schema.ui.newAutoLayout();
+				_Schema.ui.layouts.newAutoLayout();
 				Structr.dropdowns.hideOpenDropdownsExcept();
 			});
 		},
@@ -5148,6 +5364,7 @@ let _Schema = {
 			return [..._Schema.ui.canvas[0].querySelectorAll('.node')].map(node => {
 
 				let nodeRect = {
+					// use style left/top because we don't want screen coordinates
 					left: parseFloat(node.style.left) - breathingRoom,
 					top:  parseFloat(node.style.top) - breathingRoom,
 				};
@@ -5172,149 +5389,6 @@ let _Schema = {
 			});
 
 			return overlaps;
-		},
-		newAutoLayout: async () => {
-
-			let index    = {};
-			let relCount = {};
-
-			let input = {
-				id: 'root',
-				children: [],
-				edges: [],
-				layoutOptions: {
-					'elk.algorithm':                                       'layered',
-					'elk.direction':                                       'DOWN',
-					'elk.edgeWidth':                                       4,
-					'elk.edgeLabels.inline':                               true,
-					'elk.edgeLabels.placement':                            'CENTER',
-					'elk.layered.edgeLabels.centerLabelPlacementStrategy': 'SPACE_EFFICIENT_LAYER',
-					'elk.layered.edgeLabels.sideSelection':                'ALWAYS_UP',
-					'elk.layered.spacing.edgeNodeBetweenLayers':           40,
-				}
-			};
-
-			let nodeResponse = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
-			let nodes = await nodeResponse.json();
-
-			for (let n of nodes.result) {
-
-				_Schema.caches.nodeData[n.id] = n;
-
-				let width  = (n.name.length * 12) + 20; // n.clientWidth;
-				let height = 20; // n.clientHeight;
-
-				index[n.id] = true;
-
-				let item = {
-					id: 'id_' + n.id,
-					width: width,
-					height: height + 10,
-					labels: [
-						{ text: n.name }
-					],
-					ports: [
-						{
-							id: 'id_' + n.id + '_NORTH',
-							layoutOptions: { 'port.side': 'NORTH' }
-						},
-						{
-							id: 'id_' + n.id + '_SOUTH',
-							layoutOptions: { 'port.side': 'SOUTH' }
-						},
-					],
-					layoutOptions: {
-						portConstraints: 'FIXED_SIDE'
-					}
-				};
-
-				input.children.push(item);
-			}
-
-			// rels
-			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
-			let data     = await response.json();
-
-			// inheritance
-			let includeInheritance = false;
-			let inheritanceRels    = [];
-
-			if (includeInheritance) {
-
-				for (let node of input.children) {
-
-					let data = _Schema.caches.nodeData[node.id.substring(3)];
-					if (data) {
-
-						if (data?.extendsClass?.id) {
-
-							let id = data.extendsClass.id;
-
-							if (index[id]) {
-
-								/*
-															inheritanceRels.push({
-																source: 'id_' + id,
-																target: node.id
-															});
-															 *
-								 */
-
-								input.edges.push({
-									id:      node.id + 'extends' + id,
-									sources: [ 'id_' + id + '_SOUTH' ],
-									targets: [ node.id + '_NORTH' ],
-									//sources: [ 'id_' + id ],
-									//targets: [ node.id ]
-									labels: [
-										{ text: 'EXTENDS' }
-									]
-								});
-							}
-						}
-					}
-				}
-
-			} else {
-
-				for (let res of data.result) {
-
-					if (index[res.sourceId] === true && index[res.targetId] === true) {
-
-						let s = 'id_' + res.sourceId;
-						let t = 'id_' + res.targetId;
-
-						if (!relCount[s]) { relCount[s] = 0; }
-						if (!relCount[t]) { relCount[t] = 0; }
-
-						relCount[s]++;
-						relCount[t]++;
-
-						input.edges.push({
-							id:      res.id,
-							//sources: [ 'id_' + res.sourceId + '_SOUTH' ],
-							//targets: [ 'id_' + res.targetId + '_NORTH' ],
-							sources: [ s ],
-							targets: [ t ],
-							labels: [
-								{ text: res.relationshipType, width: (res.relationshipType.length * 12) + 20, height: 23 }
-							]
-						});
-					}
-				}
-			}
-
-			let container = document.querySelector('#schema-graph');
-
-			_Helpers.fastRemoveAllChildren(container);
-
-			_Pages.layout.createSVGDiagram(container, input, new SchemaNodesFormatter(inheritanceRels), () => {
-
-				// only store positions and then instantly reload to use display code
-				_Schema.ui.layouts.storePositionsNewLayout();
-
-				_Schema.reload();
-			});
 		}
 	},
 	markElementAsChanged: (element, hasClass) => {
