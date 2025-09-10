@@ -107,16 +107,53 @@ let _Schema = {
 
 			$('.node').css({ zIndex: ++_Schema.ui.maxZ });
 
-			_Schema.ui.jsPlumbInstance.bind('connection', (info, originalEvent) => {
+			_Schema.ui.jsPlumbInstance.bind('connection', async (info, originalEvent) => {
 
 				if (info.connection.scope === 'jsPlumb_DefaultScope') {
 
 					if (originalEvent) {
 
-						_Schema.relationships.showCreateRelationshipDialog(info);
+						let sourceId = Structr.getIdFromPrefixIdString(info.sourceId, 'id_');
+						let targetId = Structr.getIdFromPrefixIdString(info.targetId, 'id_');
+
+						let sourceTypeIsBuiltin = sourceId.contains('fake_');
+						let targetTypeIsBuiltin = targetId.contains('fake_');
+
+						if (sourceTypeIsBuiltin || targetTypeIsBuiltin) {
+
+							let confirm = await _Dialogs.confirmation.showPromise('Override builtin type(s) to add relationship?');
+
+							if (confirm === true) {
+
+								if (sourceTypeIsBuiltin) {
+
+									let data = await _Schema.nodes.createTypeDefinition({ name: Structr.getIdFromPrefixIdString(sourceId, 'fake_') });
+									sourceId = data.result[0];
+								}
+
+								if (targetTypeIsBuiltin) {
+
+									let data = await _Schema.nodes.createTypeDefinition({ name: Structr.getIdFromPrefixIdString(targetId, 'fake_') });
+									targetId = data.result[0];
+								}
+
+								_Schema.reload(() => {
+									_Schema.relationships.showCreateRelationshipDialog(sourceId, targetId, info.connection);
+								});
+
+							} else {
+
+								_Schema.ui.jsPlumbInstance.detach(info.connection);
+							}
+
+						} else {
+
+							_Schema.relationships.showCreateRelationshipDialog(sourceId, targetId, info.connection);
+						}
 					}
 
 				} else {
+
 					new WarningMessage().text('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
 					_Schema.reload();
 				}
@@ -485,18 +522,13 @@ let _Schema = {
 			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc&isServiceClass=false`);
 			if (response.ok) {
 
-				let data              = await response.json();
-				let inheritanceObject = _Schema.nodes.populateInheritancePairMap(data.result);
-
-				_Schema.caches.nodeData = Object.fromEntries(data.result.map(node => [node.id, node]));
-				let nameToSchemaNodeMap = Object.fromEntries(data.result.map(node => [node.name, node]));
-				let initialPosition     = { left: 40, top: 20 };
-
-				// TODO: first add custom types, then add builtin types (this will only really make a difference if the layout is cleared)
-
-				let customTypeNames = data.result.map(type => type.name).sort();
-				let otherNodeTypes  = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass && !customTypeNames.includes(type.name));
-
+				let data                            = await response.json();
+				let inheritanceObject               = _Schema.nodes.populateInheritancePairMap(data.result);
+				_Schema.caches.nodeData             = Object.fromEntries(data.result.map(node => [node.id, node]));
+				let nameToSchemaNodeMap             = Object.fromEntries(data.result.map(node => [node.name, node]));
+				let initialPosition                 = { left: 40, top: 20 };
+				let customTypeNames                 = data.result.map(type => type.name).sort();
+				let otherNodeTypes                  = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass && !customTypeNames.includes(type.name));
 				let firstCustomThenBuiltinTypeNames = [...customTypeNames, ...otherNodeTypes.map(type => type.name).sort()];
 
 				for (let typeName of firstCustomThenBuiltinTypeNames) {
@@ -512,7 +544,7 @@ let _Schema = {
 						} else {
 
 							initialPosition = _Schema.nodes.addTypeToCanvas({
-								id: '_fake_' + typeName,
+								id: 'fake_' + typeName,
 								name: typeName,
 								isBuiltinType: true
 							}, initialPosition);
@@ -575,17 +607,38 @@ let _Schema = {
 				node.style.zIndex = ++_Schema.ui.maxZ;
 			});
 
-			node.querySelector('.edit-type-icon')?.addEventListener('click', (e) => {
-				_Schema.openEditDialog(entity.id);
+			node.querySelector('.edit-type-icon')?.addEventListener('click', async (e) => {
+
+				if (entity.isBuiltinType) {
+
+					let confirm = await _Dialogs.confirmation.showPromise("Override builtin type to add functionality?");
+
+					if (confirm === true) {
+
+						let data = await _Schema.nodes.createTypeDefinition({
+							name: entity.name
+						});
+
+						let id = data.result[0];
+
+						_Schema.openEditDialog(id);
+						_Schema.reload();
+					}
+
+				} else {
+
+					_Schema.openEditDialog(entity.id);
+				}
 			});
 
 			node.querySelector('.delete-type-icon')?.addEventListener('click', async () => {
 
-				// TODO: for overridden builtin types, this message should be slightly different
+				let thisSchemaType = (await _Schema.caches.getFilteredSchemaTypes(type => type.name === entity.name))[0];
+				let isOverridden   = thisSchemaType.isBuiltin;
 
 				let confirm = await _Dialogs.confirmation.showPromise(`
-					<h3>Delete schema node '${entity.name}'?</h3>
-					<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
+					<h3>Delete ${isOverridden ? 'override for' : ''} schema type '${entity.name}'?</h3>
+					<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed. ${isOverridden ? 'The builtin type will still afterwards.' : ''}</p>
 				`);
 
 				if (confirm === true) {
@@ -1272,10 +1325,7 @@ let _Schema = {
 
 			return allow;
 		},
-		showCreateRelationshipDialog: (info) => {
-
-			let sourceId = Structr.getIdFromPrefixIdString(info.sourceId, 'id_');
-			let targetId = Structr.getIdFromPrefixIdString(info.targetId, 'id_');
+		showCreateRelationshipDialog: (sourceId, targetId, connection) => {
 
 			let { dialogText } = _Dialogs.custom.openDialog("Create Relationship", ['schema-edit-dialog']);
 
@@ -1366,7 +1416,7 @@ let _Schema = {
 					_Schema.currentNodeDialogId = null;
 
 					_Schema.ui.jsPlumbInstance.repaintEverything();
-					_Schema.ui.jsPlumbInstance.detach(info.connection);
+					_Schema.ui.jsPlumbInstance.detach(connection);
 
 					_Dialogs.custom.dialogCancelBaseAction();
 				});
@@ -5020,37 +5070,19 @@ let _Schema = {
 			openTypeVisibilityDialog: async () => {
 
 				let customTypeNames = _Schema.caches.getCustomTypeNames();
-				let htmlTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('DOMNode'))).map(type => type.name).sort();
 				let fileTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('AbstractFile'))).map(type => type.name).sort();
+				let htmlTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('DOMNode'))).map(type => type.name).sort();
 				let flowTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('FlowBaseNode'))).map(type => type.name).sort();
 				let schemaTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('SchemaReloadingNode'))).map(type => type.name).sort();
 				let otherTypeNames  = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...schemaTypeNames]))].sort();
 
 				let visibilityTables = [
-					{
-						caption: "Custom Types",
-						types: customTypeNames
-					},
-					{
-						caption: "HTML Types",
-						types: htmlTypeNames
-					},
-					{
-						caption: "File Types",
-						types: fileTypeNames
-					},
-					{
-						caption: "Flow Types",
-						types: flowTypeNames
-					},
-					{
-						caption: "Schema Types",
-						types: schemaTypeNames
-					},
-					{
-						caption: "Other Types",
-						types: otherTypeNames
-					}
+					{ caption: "Custom Types", types: customTypeNames },
+					{ caption: "File Types",   types: fileTypeNames   },
+					{ caption: "HTML Types",   types: htmlTypeNames   },
+					{ caption: "Flow Types",   types: flowTypeNames   },
+					{ caption: "Schema Types", types: schemaTypeNames },
+					{ caption: "Other Types",  types: otherTypeNames  }
 				];
 
 				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
@@ -5081,7 +5113,7 @@ let _Schema = {
 								</th>
 								<th>Type</th>
 							</tr>
-							${visType.types.map(name => `<tr><td><input class="toggle-type" data-structr-type="${name}" type="checkbox" ${(_Schema.ui.visibility.isTypeVisible(name) ? 'checked' : '')}></td><td>${name}</td></tr>`).join('')}
+							${visType.types.map(name => `<tr class="cursor-pointer"><td><input class="toggle-type" data-structr-type="${name}" type="checkbox" ${(_Schema.ui.visibility.isTypeVisible(name) ? 'checked' : '')}></td><td>${name}</td></tr>`).join('')}
 						</table>
 					</div>
 				`).join('');
