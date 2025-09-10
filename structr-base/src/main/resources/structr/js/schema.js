@@ -116,8 +116,8 @@ let _Schema = {
 						let sourceId = Structr.getIdFromPrefixIdString(info.sourceId, 'id_');
 						let targetId = Structr.getIdFromPrefixIdString(info.targetId, 'id_');
 
-						let sourceTypeIsBuiltin = sourceId.contains('fake_');
-						let targetTypeIsBuiltin = targetId.contains('fake_');
+						let sourceTypeIsBuiltin = sourceId.contains(_Schema.nodes.builtinTypePlaceholderPrefix);
+						let targetTypeIsBuiltin = targetId.contains(_Schema.nodes.builtinTypePlaceholderPrefix);
 
 						if (sourceTypeIsBuiltin || targetTypeIsBuiltin) {
 
@@ -127,13 +127,13 @@ let _Schema = {
 
 								if (sourceTypeIsBuiltin) {
 
-									let data = await _Schema.nodes.createTypeDefinition({ name: Structr.getIdFromPrefixIdString(sourceId, 'fake_') });
+									let data = await _Schema.nodes.createTypeDefinition({ name: Structr.getIdFromPrefixIdString(sourceId, _Schema.nodes.builtinTypePlaceholderPrefix) });
 									sourceId = data.result[0];
 								}
 
 								if (targetTypeIsBuiltin) {
 
-									let data = await _Schema.nodes.createTypeDefinition({ name: Structr.getIdFromPrefixIdString(targetId, 'fake_') });
+									let data = await _Schema.nodes.createTypeDefinition({ name: Structr.getIdFromPrefixIdString(targetId, _Schema.nodes.builtinTypePlaceholderPrefix) });
 									targetId = data.result[0];
 								}
 
@@ -507,6 +507,7 @@ let _Schema = {
 		}
 	},
 	nodes: {
+		builtinTypePlaceholderPrefix: 'builtin_placeholder_',
 		populateInheritancePairMap: (list) => {
 
 			let nameKeyedList = Object.fromEntries(list.map(entity => {
@@ -544,7 +545,7 @@ let _Schema = {
 						} else {
 
 							initialPosition = _Schema.nodes.addTypeToCanvas({
-								id: 'fake_' + typeName,
+								id: _Schema.nodes.builtinTypePlaceholderPrefix + typeName,
 								name: typeName,
 								isBuiltinType: true
 							}, initialPosition);
