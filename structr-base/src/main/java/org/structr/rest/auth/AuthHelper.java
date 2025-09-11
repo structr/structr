@@ -47,10 +47,7 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Utility class for authentication.
@@ -97,6 +94,41 @@ public class AuthHelper {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Find a {@link Principal} with matching password and one of the given keys or name
+	 *
+	 * @param keys
+	 * @param value
+	 * @param password
+	 * @return
+	 * @throws FrameworkException
+	 */
+	public static Principal getPrincipalForKeysAndPassword(final Set<PropertyKey<String>> keys, final String value, final String password) throws FrameworkException {
+
+		Principal principal  = null;
+
+		for (final PropertyKey<String> key : keys) {
+
+			try {
+				principal = getPrincipalForPassword(key, value, password);
+
+			} catch (final AuthenticationException aex) {
+
+				final String keyMessage = ("name".equals(key.dbName())) ? "name" : "name OR " + key.dbName();
+				logger.info("No principal found for {} '{}'", keyMessage, value);
+
+			}
+
+		}
+
+		if (principal == null) {
+			throw new AuthenticationException(STANDARD_ERROR_MSG);
+		}
+
+		return principal;
+
 	}
 
 	/**
