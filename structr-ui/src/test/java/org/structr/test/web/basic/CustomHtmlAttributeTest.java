@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMElement;
@@ -46,10 +48,12 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 			// create a page
 			final Page newPage = Page.createNewPage(securityContext, "customAttributeTestPage");
 
-			final DOMElement html    = createElement(newPage, newPage, "html");
-			final DOMElement head    = createElement(newPage, html, "head");
-			final DOMElement title  = createElement(newPage, head, "title", "Test Page for custom html attributes");
-			final DOMElement body    = createElement(newPage, html, "body");
+			final DOMElement html  = createElement(newPage, newPage, "html");
+			final DOMElement head  = createElement(newPage, html, "head");
+			final DOMElement title = createElement(newPage, head, "title", "Test Page for custom html attributes");
+			final DOMElement body  = createElement(newPage, html, "body");
+
+			final PropertyKey<String> classKey = Traits.of("Div").key("_html_class");
 
 			final DOMElement div1     = createElement(newPage, body, "div", "DIV with old-style data attribute");
 			div1.setProperty(new GenericProperty<String>("data-test-attribute-old-style"), "old-style data attribute");
@@ -59,6 +63,18 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 
 			final DOMElement div3     = createElement(newPage, body, "div", "DIV with data-attribute as new-style custom html attribute");
 			div3.setProperty(new GenericProperty<String>("_custom_html_data-test-attribute-new-style"), "new-style custom data-attribute");
+
+			final DOMElement div4     = createElement(newPage, body, "div", "DIV with empty string as (old-style) custom data-attribute and class attribute");
+			div4.setProperty(new GenericProperty<String>("data-test-attribute-old-style"), "");
+			div4.setProperty(classKey, "");
+
+			final DOMElement div5     = createElement(newPage, body, "div", "DIV with empty string as (new-style) custom attribute and class attribute");
+			div5.setProperty(new GenericProperty<String>("_custom_html_test-attribute-new-style"), "");
+			div5.setProperty(classKey, "");
+
+			final DOMElement div6     = createElement(newPage, body, "div", "DIV with empty string as (new-style) custom data-attribute and class attribute");
+			div6.setProperty(new GenericProperty<String>("_custom_html_data-test-attribute-new-style"), "");
+			div6.setProperty(classKey, "");
 
 
 			final RenderContext renderContext = new RenderContext(securityContext);
@@ -76,6 +92,9 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 					"		<div data-test-attribute-old-style=\"old-style data attribute\">DIV with old-style data attribute</div>\n" +
 					"		<div test-attribute-new-style=\"new-style custom attribute\">DIV with new-style custom html attribute</div>\n" +
 					"		<div data-test-attribute-new-style=\"new-style custom data-attribute\">DIV with data-attribute as new-style custom html attribute</div>\n" +
+					"		<div class=\"\" data-test-attribute-old-style=\"\">DIV with empty string as (old-style) custom data-attribute and class attribute</div>\n" +
+					"		<div class=\"\" test-attribute-new-style=\"\">DIV with empty string as (new-style) custom attribute and class attribute</div>\n" +
+					"		<div class=\"\" data-test-attribute-new-style=\"\">DIV with empty string as (new-style) custom data-attribute and class attribute</div>\n" +
 					"	</body>\n" +
 					"</html>";
 
@@ -86,7 +105,6 @@ public class CustomHtmlAttributeTest extends StructrUiTest {
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
 		}
-
 	}
 
 	private DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
