@@ -62,7 +62,6 @@ import java.util.Locale;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.*;
 
-
 public class DOMAndPageTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(DOMAndPageTest.class.getName());
@@ -189,9 +188,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");
-
 		}
-
 	}
 
 	@Test
@@ -407,9 +404,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
-
 		}
-
 	}
 
 	@Test
@@ -473,9 +468,7 @@ public class DOMAndPageTest extends StructrUiTest {
 			logger.warn("", fex);
 
 			fail("Unexpected exception");
-
 		}
-
 	}
 
 	@Test
@@ -762,9 +755,7 @@ public class DOMAndPageTest extends StructrUiTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected Exception");
-
 		}
-
 	}
 
 	@Test
