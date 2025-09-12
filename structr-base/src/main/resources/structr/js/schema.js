@@ -454,7 +454,6 @@ let _Schema = {
 
 				} else {
 
-					// save data
 					let data = _Schema.bulkDialogsGeneral.getPayloadFromBulkInfo(bulkInfo);
 
 					let response = await fetch(Structr.rootUrl + schemaNode.id, {
@@ -465,10 +464,16 @@ let _Schema = {
 					if (Structr.isModuleActive(_Schema)) {
 
 						// Schema reload is only necessary for changes in the "basic" tab for types (name and inheritedTraits) and relationships (relType and cardinality)
-						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.inheritedTraits)
-						let relChangeRequiresReload  = (bulkInfo?.basic?.changes?.relationshipType || bulkInfo?.basic?.changes?.sourceMultiplicity || bulkInfo?.basic?.changes?.targetMultiplicity)
+						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.inheritedTraits);
+						let relChangeRequiresReload  = (bulkInfo?.basic?.changes?.relationshipType || bulkInfo?.basic?.changes?.sourceMultiplicity || bulkInfo?.basic?.changes?.targetMultiplicity);
+
+						if (schemaNode.type === 'SchemaNode' && bulkInfo?.basic?.changes?.name) {
+							// keep schema node visible after changing its name
+							_Schema.ui.visibility.setTypeVisibility(bulkInfo?.basic?.changes?.name, true);
+						}
 
 						if (typeChangeRequiresReload || relChangeRequiresReload) {
+
 							_Schema.reload();
 						}
 					}
@@ -773,7 +778,6 @@ let _Schema = {
 					}, rejectData => {
 						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
 					});
-
 				}
 			});
 
@@ -996,8 +1000,7 @@ let _Schema = {
 
 						if (response.ok) {
 
-
-							_Schema.ui.visibility.visibleTypes.push(data.name);
+							_Schema.ui.visibility.setTypeVisibility(data.name, true);
 
 							resolve(responseData);
 
@@ -5068,15 +5071,27 @@ let _Schema = {
 
 				_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 			},
+			setTypeVisibility: (typeName, isVisible) => {
+
+				let visibleTypes = new Set(_Schema.ui.visibility.visibleTypes);
+
+				if (isVisible) {
+					visibleTypes.add(typeName);
+				} else {
+					visibleTypes.delete(typeName);
+				}
+
+				_Schema.ui.visibility.setVisibleTypes([...visibleTypes]);
+			},
 			openTypeVisibilityDialog: async () => {
 
 				let customTypeNames    = _Schema.caches.getCustomTypeNames();
-				let fileTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('AbstractFile'))).map(type => type.name).sort();
-				let principalTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('Principal'))).map(type => type.name).sort();
-				let htmlTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('DOMNode'))).map(type => type.name).sort();
-				let flowTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('FlowBaseNode'))).map(type => type.name).sort();
-				let schemaTypeNames    = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('SchemaReloadingNode'))).map(type => type.name).sort();
-				let otherTypeNames     = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...principalTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...schemaTypeNames]))].sort();
+				let fileTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('AbstractFile'))).map(type => type.name).sort();
+				let principalTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('Principal'))).map(type => type.name).sort();
+				let htmlTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('DOMNode'))).map(type => type.name).sort();
+				let flowTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('FlowBaseNode'))).map(type => type.name).sort();
+				let schemaTypeNames    = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && type.traits.includes('SchemaReloadingNode'))).map(type => type.name).sort();
+				let otherTypeNames     = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.isBuiltin && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...principalTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...schemaTypeNames]))].sort();
 
 				let visibilityTables = [
 					{ caption: "Custom Types",     types: customTypeNames    },
@@ -5130,6 +5145,23 @@ let _Schema = {
 					contentEl.querySelector('li.tab[data-name="' + tabName + '"]').classList.add('active');
 				};
 
+				let updateVisibleSchemaTypes = () => {
+
+					let visibleTypes = [];
+
+					for (let checkbox of document.querySelectorAll('.schema-visibility-table input.toggle-type')) {
+
+						let typeName = checkbox.dataset['structrType'];
+						let visible  = checkbox.checked;
+
+						if (visible) {
+							visibleTypes.push(typeName);
+						}
+					}
+
+					_Schema.ui.visibility.setVisibleTypes(visibleTypes);
+				};
+
 				for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
 
 					toggleAllCb.addEventListener('change', () => {
@@ -5140,7 +5172,7 @@ let _Schema = {
 						for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
 							checkbox.checked = checked;
 						}
-						_Schema.ui.visibility.updateVisibleSchemaTypes();
+						updateVisibleSchemaTypes();
 						_Schema.reload();
 					});
 				}
@@ -5154,7 +5186,7 @@ let _Schema = {
 						for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
 							checkbox.checked = !checkbox.checked;
 						}
-						_Schema.ui.visibility.updateVisibleSchemaTypes();
+						updateVisibleSchemaTypes();
 						_Schema.reload();
 					});
 				}
@@ -5167,7 +5199,7 @@ let _Schema = {
 						inp.checked = !inp.checked;
 					}
 
-					_Schema.ui.visibility.updateVisibleSchemaTypes();
+					updateVisibleSchemaTypes();
 					_Schema.reload();
 				};
 
@@ -5184,27 +5216,12 @@ let _Schema = {
 
 				activateTab(visibilityTables[0].caption);
 			},
-			updateVisibleSchemaTypes: () => {
-
-				let visibleTypes = [];
-
-				for (let checkbox of document.querySelectorAll('.schema-visibility-table input.toggle-type')) {
-
-					let typeName = checkbox.dataset['structrType'];
-					let visible  = checkbox.checked;
-
-					if (visible) {
-						visibleTypes.push(typeName);
-					}
-				}
-
-				_Schema.ui.visibility.setVisibleTypes(visibleTypes);
-			}
 		},
 		activateDisplayDropdownTools: () => {
 
 			document.getElementById('schema-tools').addEventListener('click', (e) => {
 				_Schema.ui.visibility.openTypeVisibilityDialog();
+				Structr.dropdowns.hideOpenDropdownsExcept();
 			});
 
 			document.getElementById('schema-show-overlays').addEventListener('change', (e) => {
