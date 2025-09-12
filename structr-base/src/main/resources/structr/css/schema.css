@@ -243,10 +243,6 @@
 	border-bottom: .1rem dashed var(--gray-999);
 }
 
-.schema.light b {
-	color: var(--gray-999);
-}
-
 .schema-visibility-table .toggle-column-header {
 	width: 6rem;
 	text-align: left;
