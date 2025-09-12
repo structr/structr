@@ -513,6 +513,7 @@ let _Schema = {
 	},
 	nodes: {
 		builtinTypePlaceholderPrefix: 'builtin_placeholder_',
+		getIdForBuiltinTypePlacerHolder: typeName => _Schema.nodes.builtinTypePlaceholderPrefix + typeName,
 		populateInheritancePairMap: (list) => {
 
 			let nameKeyedList = Object.fromEntries(list.map(entity => {
@@ -550,7 +551,7 @@ let _Schema = {
 						} else {
 
 							initialPosition = _Schema.nodes.addTypeToCanvas({
-								id: _Schema.nodes.builtinTypePlaceholderPrefix + typeName,
+								id: _Schema.nodes.getIdForBuiltinTypePlacerHolder(typeName),
 								name: typeName,
 								isBuiltinType: true
 							}, initialPosition);
@@ -558,6 +559,7 @@ let _Schema = {
 					}
 				}
 
+				// draw inheritance arrows
 				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
 
 					let sourceEntity  = _Schema.caches.nodeData[sourceId];
@@ -599,7 +601,7 @@ let _Schema = {
 			let id = 'id_' + entity.id;
 
 			let node = _Helpers.createSingleDOMElementFromHTML(`
-				<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}" data-type="${entity.name}">
+				<div class="schema node compact${(entity.isBuiltinType ? ' text-gray-999' : '')}" id="${id}" data-type="${entity.name}">
 					<b>${entity.name}</b>
 					<div class="icons-container flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']), 'Edit type')}
@@ -644,7 +646,7 @@ let _Schema = {
 
 				let confirm = await _Dialogs.confirmation.showPromise(`
 					<h3>Delete ${isOverridden ? 'override for' : ''} schema type '${entity.name}'?</h3>
-					<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed. ${isOverridden ? 'The builtin type will still afterwards.' : ''}</p>
+					<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed. ${isOverridden ? 'The builtin type will still exist afterwards.' : ''}</p>
 				`);
 
 				if (confirm === true) {
@@ -1019,96 +1021,122 @@ let _Schema = {
 			let response = await fetch(`${Structr.rootUrl}SchemaRelationshipNode`);
 			let data     = await response.json();
 
-			let existingRels = {};
-			let relCnt       = {};
+			let relCnt   = {};
 
 			for (let res of data.result) {
 
-				let sourceHidden = !_Schema.ui.visibility.isTypeVisible(_Schema.caches.nodeData[res.sourceId].name);
-				let targetHidden = !_Schema.ui.visibility.isTypeVisible(_Schema.caches.nodeData[res.targetId].name);
+				let sourceName    = _Schema.caches.nodeData[res.sourceId].name;
+				let targetName    = _Schema.caches.nodeData[res.targetId].name;
+				let sourceVisible = _Schema.ui.visibility.isTypeVisible(sourceName);
+				let targetVisible = _Schema.ui.visibility.isTypeVisible(targetName);
 
-				if (!_Schema.caches.nodeData[res.sourceId] || !_Schema.caches.nodeData[res.targetId] || sourceHidden || targetHidden) {
+				if (sourceVisible && targetVisible) {
 
-					// relationship is not displayed
-
-				} else {
-
-					let relIndex = `${res.sourceId}-${res.targetId}`;
-					if (relCnt[relIndex] === undefined) {
-						relCnt[relIndex] = 0;
-					} else {
-						relCnt[relIndex]++;
-					}
-
-					existingRels[relIndex] = true;
-					if (res.targetId !== res.sourceId && existingRels[`${res.targetId}-${res.sourceId}`]) {
-						relCnt[relIndex] += existingRels[`${res.targetId}-${res.sourceId}`];
-					}
-
-					let stub   = 30 + 80 * relCnt[relIndex];
-					let offset =     0.2 * relCnt[relIndex];
-
-					_Schema.ui.jsPlumbInstance.connect({
-						source: _Schema.caches.nodeConnectors[`${res.sourceId}_bottom`],
-						target: _Schema.caches.nodeConnectors[`${res.targetId}_top`],
-						deleteEndpointsOnDetach: false,
-						scope: res.id,
-						connector: [_Schema.ui.connectorStyle, { curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
-						paintStyle: { lineWidth: 4, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
-						overlays: [
-							["Label", {
-								cssClass: "label multiplicity",
-								label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
-								location: Math.min(.2 + offset, .4),
-								id: "sourceMultiplicity"
-							}],
-							["Label", {
-								cssClass: "label multiplicity",
-								label: res.targetMultiplicity ? res.targetMultiplicity : '*',
-								location: Math.max(.8 - offset, .6),
-								id: "targetMultiplicity"
-							}],
-							["Label", {
-								cssClass: "label rel-type",
-								label: `<div id="rel_${res.id}" class="flex items-center" data-name="${res.name}" data-source-type="${_Schema.caches.nodeData[res.sourceId].name}" data-target-type="${_Schema.caches.nodeData[res.targetId].name}">
-											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
-											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship')}
-											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']), 'Delete relationship'))}
-										</div>`,
-								location: .5,
-								id: "label"
-							}]
-						]
-					});
-
-					let relTypeOverlay = $('#rel_' + res.id);
-
-					if (res.relationshipType === _Schema.initialRelType) {
-
-						relTypeOverlay.css({
-							width: "80px"
-						});
-						relTypeOverlay.parent().addClass('schema-reltype-warning');
-
-						_Helpers.appendInfoTextToElement({
-							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
-							element: $('span', relTypeOverlay),
-							customToggleIcon: _Icons.iconWarningYellowFilled,
-							customToggleIconClasses: ['ml-2'],
-							appendToElement: $('#schema-container')
-						});
-					}
-
-					relTypeOverlay.find('.edit-relationship-icon').on('click', () => {
-						_Schema.openEditDialog(res.id);
-					});
-
-					relTypeOverlay.find('.delete-relationship-icon').on('click', () => {
-						_Schema.relationships.askDeleteRelationship(res.id, res.relationshipType);
-						return false;
-					});
+					_Schema.relationships.addRelationshipToCanvas(res, sourceName, targetName, relCnt);
 				}
 			}
+
+			// draw relationships for visible builtin types
+			let builtinRelationships = await _Schema.caches.getFilteredSchemaTypes(type => type.isRel && type.isBuiltin && type.relInfo);
+			let schemaNodes          = Object.values(_Schema.caches.nodeData);
+
+			for (let builtinRel of builtinRelationships) {
+
+				let sourceType = builtinRel.relInfo.sourceType;
+				let targetType = builtinRel.relInfo.targetType;
+
+				if (_Schema.ui.visibility.isTypeVisible(sourceType) && _Schema.ui.visibility.isTypeVisible(targetType)) {
+
+					let sourceNode  = schemaNodes.filter(type => type.name === sourceType)[0];
+					let targetNode  = schemaNodes.filter(type => type.name === targetType)[0];
+
+					let relObj = Object.assign({
+						id: builtinRel.name,
+						name: builtinRel.name,
+						isPartOfBuiltInSchema: true,
+						permissionPropagation: 'None',
+						sourceId: (sourceNode?.id ?? _Schema.nodes.getIdForBuiltinTypePlacerHolder(sourceType)),
+						targetId: (targetNode?.id ?? _Schema.nodes.getIdForBuiltinTypePlacerHolder(targetType))
+					}, builtinRel.relInfo)
+
+					_Schema.relationships.addRelationshipToCanvas(relObj, sourceType, targetType, relCnt);
+				}
+			}
+		},
+		addRelationshipToCanvas: (relationship, sourceName, targetName, relCnt) => {
+
+			let relIndex = `${relationship.sourceId}-${relationship.targetId}`;
+			if (relCnt[relIndex] === undefined) {
+				relCnt[relIndex] = 0;
+			} else {
+				relCnt[relIndex]++;
+			}
+
+			let stub   = 30 + 80 * relCnt[relIndex];
+			let offset =     0.2 * relCnt[relIndex];
+
+			let relTypeIsDefaultType = (relationship.relationshipType === _Schema.initialRelType);
+			let textColorClass       = (relationship.isPartOfBuiltInSchema ? 'text-gray-ddd' : '');
+
+			_Schema.ui.jsPlumbInstance.connect({
+				source: _Schema.caches.nodeConnectors[`${relationship.sourceId}_bottom`],
+				target: _Schema.caches.nodeConnectors[`${relationship.targetId}_top`],
+				deleteEndpointsOnDetach: false,
+				scope: relationship.id,
+				connector: [_Schema.ui.connectorStyle, { curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
+				paintStyle: { lineWidth: 4, strokeStyle: (relationship.permissionPropagation !== 'None') ? "#ffad25" : "#81ce25" },
+				overlays: [
+					["Label", {
+						cssClass: 'label multiplicity',
+						label: `<span class="${textColorClass}">${relationship.sourceMultiplicity ?? '*'}</span>`,
+						location: Math.min(.2 + offset, .4),
+						id: "sourceMultiplicity"
+					}],
+					["Label", {
+						cssClass: 'label multiplicity',
+						label: `<span class="${textColorClass}">${relationship.targetMultiplicity ?? '*'}</span>`,
+						location: Math.max(.8 - offset, .6),
+						id: "targetMultiplicity"
+					}],
+					["Label", {
+						cssClass: "label rel-type",
+						label: `<div id="rel_${relationship.id}" class="flex items-center ${textColorClass}" data-name="${relationship.name}" data-source-type="${sourceName}" data-target-type="${targetName}">
+							${(relTypeIsDefaultType ? '<span>&nbsp;</span>' : relationship.relationshipType)}
+							${relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship')}
+							${(relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']), 'Delete relationship'))}
+						</div>`,
+						location: .5,
+						id: "label"
+					}]
+				]
+			});
+
+			let relTypeOverlay = $('#rel_' + relationship.id);
+
+			if (relTypeIsDefaultType) {
+
+				relTypeOverlay.css({
+					width: "80px"
+				});
+				relTypeOverlay.parent().addClass('schema-reltype-warning');
+
+				_Helpers.appendInfoTextToElement({
+					text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
+					element: $('span', relTypeOverlay),
+					customToggleIcon: _Icons.iconWarningYellowFilled,
+					customToggleIconClasses: ['ml-2'],
+					appendToElement: $('#schema-container')
+				});
+			}
+
+			relTypeOverlay.find('.edit-relationship-icon')?.on('click', () => {
+				_Schema.openEditDialog(relationship.id);
+			});
+
+			relTypeOverlay.find('.delete-relationship-icon')?.on('click', () => {
+				_Schema.relationships.askDeleteRelationship(relationship.id, relationship.relationshipType);
+				return false;
+			});
 		},
 		loadRelationship: (entity, tabsContainer, contentDiv, sourceNode, targetNode, targetView, callbackCancel) => {
 
@@ -4323,6 +4351,11 @@ let _Schema = {
 
 			if (!type || type.length === 0) {
 				console.warn('Refusing to fetch type info without a type');
+				return;
+			}
+
+			if (!callback) {
+				console.warn('Refusing to fetch type info without a callback');
 				return;
 			}
 

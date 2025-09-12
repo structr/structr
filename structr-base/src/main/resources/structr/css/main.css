@@ -4159,6 +4159,9 @@ ul.combined-input-select-field li:hover {
 .text-gray-ddd {
 	color: var(--gray-ddd);
 }
+.text-gray-999 {
+	color: var(--gray-999);
+}
 .font-medium {
 	font-weight: 500;
 }
