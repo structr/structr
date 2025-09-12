@@ -2671,7 +2671,7 @@ let _Crud = {
 			return displayName;
 		},
 		getCSSSelectorForKey: (key) => `[data-key="${key}"]`,
-		// TODO: _Schema.getTypeInfo is pretty similar... merge and make global so that schema information is always present and loaded at the beginning (and only ever re-requested if the schema changes)
+		// TODO: _Schema.caches.getTypeInfo is pretty similar... merge and make global so that schema information is always present and loaded at the beginning (and only ever re-requested if the schema changes)
 		ensureTypeInfoIsLoaded: (type, successCallback, failureCallback) => {
 
 			let url = `${Structr.rootUrl}_schema/${type}`;

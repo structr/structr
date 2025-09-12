@@ -1673,7 +1673,7 @@ let _Files = {
 	},
 	openMountDialog: () => {
 
-		_Schema.getTypeInfo('Folder', (typeInfo) => {
+		_Schema.caches.getTypeInfo('Folder', (typeInfo) => {
 
 			let { dialogText } = _Dialogs.custom.openDialog('Mount Folder', null, ['show-dialog-title']);
 
