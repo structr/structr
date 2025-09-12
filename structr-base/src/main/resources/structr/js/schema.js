@@ -5070,20 +5070,22 @@ let _Schema = {
 			},
 			openTypeVisibilityDialog: async () => {
 
-				let customTypeNames = _Schema.caches.getCustomTypeNames();
-				let fileTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('AbstractFile'))).map(type => type.name).sort();
-				let htmlTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('DOMNode'))).map(type => type.name).sort();
-				let flowTypeNames   = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('FlowBaseNode'))).map(type => type.name).sort();
-				let schemaTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('SchemaReloadingNode'))).map(type => type.name).sort();
-				let otherTypeNames  = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...schemaTypeNames]))].sort();
+				let customTypeNames    = _Schema.caches.getCustomTypeNames();
+				let fileTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('AbstractFile'))).map(type => type.name).sort();
+				let principalTypeNames = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('Principal'))).map(type => type.name).sort();
+				let htmlTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('DOMNode'))).map(type => type.name).sort();
+				let flowTypeNames      = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('FlowBaseNode'))).map(type => type.name).sort();
+				let schemaTypeNames    = (await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && type.traits.includes('SchemaReloadingNode'))).map(type => type.name).sort();
+				let otherTypeNames     = [...new Set((await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass)).map(type => type.name)).difference(new Set([...customTypeNames, ...principalTypeNames, ...htmlTypeNames, ...fileTypeNames, ...flowTypeNames, ...schemaTypeNames]))].sort();
 
 				let visibilityTables = [
-					{ caption: "Custom Types", types: customTypeNames },
-					{ caption: "File Types",   types: fileTypeNames   },
-					{ caption: "HTML Types",   types: htmlTypeNames   },
-					{ caption: "Flow Types",   types: flowTypeNames   },
-					{ caption: "Schema Types", types: schemaTypeNames },
-					{ caption: "Other Types",  types: otherTypeNames  }
+					{ caption: "Custom Types",     types: customTypeNames    },
+					{ caption: "User/Group Types", types: principalTypeNames },
+					{ caption: "File Types",       types: fileTypeNames      },
+					{ caption: "HTML Types",       types: htmlTypeNames      },
+					{ caption: "Flow Types",       types: flowTypeNames      },
+					{ caption: "Schema Types",     types: schemaTypeNames    },
+					{ caption: "Other Types",      types: otherTypeNames     }
 				];
 
 				let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility');
