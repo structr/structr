@@ -128,6 +128,7 @@ public class UnarchiveCommand extends AbstractCommand {
 
 			// send WS message to all clients about start of extraction
 			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of(
+					"id", file.getUuid(),
 					"file", file.getPath(),
 					"status", "START"
 			)).build(), true);
@@ -135,9 +136,8 @@ public class UnarchiveCommand extends AbstractCommand {
 			// no transaction here since this is a bulk command
 			FileHelper.unarchive(securityContext, file, parentFolderId);
 
-			getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
-
 			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of(
+					"id", file.getUuid(),
 					"file", file.getPath(),
 					"status", "SUCCESS"
 			)).build(), true);
@@ -151,8 +151,11 @@ public class UnarchiveCommand extends AbstractCommand {
 			try (final Tx tx = app.tx()) {
 
 				// return error message
-				getWebSocket().send(MessageBuilder.status().code(400).message("Could not extract archive: ".concat((msg != null) ? msg : "")).build(), true);
-				getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", false).build(), true);
+				getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of(
+						"id", webSocketData.getId(),
+						"status", "ERROR",
+						"error", "Could not extract archive: ".concat((msg != null) ? msg : "")
+				)).build(), true);
 
 				tx.success();
 

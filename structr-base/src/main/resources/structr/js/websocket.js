@@ -629,6 +629,10 @@ let StructrWS = {
 
 			StructrModel.callCallback(data.callback, result);
 
+		} else if (command === 'UNARCHIVE') {
+
+			_Files.handleUnarchiveMessage(data.data);
+
 		} else {
 
 			console.log('Received unknown command: ' + command);

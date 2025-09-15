@@ -1218,59 +1218,49 @@ let _Files = {
 	},
 	extractArchive: (file, createFolder = false) => {
 
-		let message = `
-			<div class="flex items-center justify-center">
-				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
-				<div>Extracting archive - please stand by...</div>
-			</div>
-			<p>
-				Extraction will run in the background.<br>
-				You can safely close this popup and work during this operation.<br>
-				You will be notified when the extraction has finished.
-			</p>
-		`;
-
-		let { messageEl, closeButton } = _Dialogs.tempInfoBox.show(message);
-
-		closeButton.style.display = 'none';
-
-		window.setTimeout(() => {
-			closeButton.style.display = null;
-		}, 500);
-
 		let parentFolder = (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined);
 
-		Command.unarchive(file.id, parentFolder, createFolder, (data) => {
+		Command.unarchive(file.id, parentFolder, createFolder);
+	},
+	handleUnarchiveMessage: (data) => {
 
-			let dialogClosed = (messageEl.offsetParent === null);
+		let uniqueClass = "file_" + data.id;
+		console.log(uniqueClass);
 
-			if (data.success === true) {
+		switch (data.status) {
+			case "START":
+				new InfoMessage().uniqueClass(uniqueClass).title("Extracting file").text(`
+					<div class="flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
+						<span>
+							Extracting <span>${data.file}</span>  in the background.<br>
+							You will be notified when the extraction has finished.
+						</span>
+					</div>
+				`).show();
+				break;
 
-				_Files.refreshTree();
+			case "SUCCESS":
+				new SuccessMessage().uniqueClass(uniqueClass).updatesText().title("Extracting file finished").text(`
+					Extraction of '${data.file}' finished successfully.
+				`).show();
 
-				if (dialogClosed) {
-
-					new SuccessMessage().text("Extracting '" + file.name + "' finished.").show();
-
-				} else {
-
-					_Helpers.fastRemoveAllChildren(messageEl);
-					messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['mr-2', 'icon-green'])} Extraction of '${data.filename}' finished successfully.</div>`);
+				if (Structr.isModuleActive(_Files)) {
+					_Files.refreshTree();
 				}
+				break;
 
-			} else {
+			case "ERROR":
+				new ErrorMessage().uniqueClass(uniqueClass).updatesText().title("Extraction failed").text(`
+					Extraction of archive failed.<br>
+					Error: ${data.error}<br>
+					More information can be found in the server log file.
+				`).show();
+				break;
 
-				if (dialogClosed) {
-
-					new ErrorMessage().text("Extracting '" + file.name + "' failed - please see the log for more details.").requiresConfirmation().show();
-
-				} else {
-
-					_Helpers.fastRemoveAllChildren(messageEl);
-					messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed.</div>`);
-				}
-			}
-		});
+			default:
+				console.log("Received unknown status in UNARCHIVE message: ", data);
+		}
 	},
 	editImage: (image) => {
 
