@@ -5180,64 +5180,55 @@ let _Schema = {
 
 				let updateVisibleSchemaTypes = () => {
 
-					let visibleTypes = [];
-
-					for (let checkbox of document.querySelectorAll('.schema-visibility-table input.toggle-type')) {
-
-						let typeName = checkbox.dataset['structrType'];
-						let visible  = checkbox.checked;
-
-						if (visible) {
-							visibleTypes.push(typeName);
-						}
-					}
+					let visibleTypes = [...document.querySelectorAll('.schema-visibility-table input.toggle-type')].filter(checkbox => checkbox.checked).map(checkbox => checkbox.dataset['structrType']);
 
 					_Schema.ui.visibility.setVisibleTypes(visibleTypes);
+
+					_Schema.reload();
+				};
+
+				let setIdenticalCheckboxesForOverriddenTypes = (type, visible) => {
+
+					for (let checkbox of contentEl.querySelectorAll(`input.toggle-type[data-structr-type="${type}"]`)) {
+						checkbox.checked = visible;
+					}
+				};
+
+				let bulkChangeHandler = (table, transformFn) => {
+
+					for (let checkbox of table.querySelectorAll('.toggle-type')) {
+						checkbox.checked = transformFn(checkbox.checked);
+
+						setIdenticalCheckboxesForOverriddenTypes(checkbox.dataset.structrType, checkbox.checked);
+					}
+
+					updateVisibleSchemaTypes();
 				};
 
 				for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
 
-					toggleAllCb.addEventListener('change', () => {
-
-						let typeTable = toggleAllCb.closest('table');
-						let checked   = toggleAllCb.checked;
-
-						for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
-							checkbox.checked = checked;
-						}
-						updateVisibleSchemaTypes();
-						_Schema.reload();
-					});
+					toggleAllCb.addEventListener('change', () => bulkChangeHandler(toggleAllCb.closest('table'), () => toggleAllCb.checked));
 				}
 
 				for (let invertAllCb of contentEl.querySelectorAll('.invert-all-types')) {
 
-					invertAllCb.addEventListener('click', () => {
-
-						let typeTable = invertAllCb.closest('table');
-
-						for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
-							checkbox.checked = !checkbox.checked;
-						}
-						updateVisibleSchemaTypes();
-						_Schema.reload();
-					});
+					invertAllCb.addEventListener('click', () => bulkChangeHandler(invertAllCb.closest('table'), checked => !checked));
 				}
 
-				let handleToggleVisibility = (e) => {
-					e.stopPropagation();
-
-					let inp = e.target.closest('tr').querySelector('.toggle-type');
-					if (inp !== e.target) {
-						inp.checked = !inp.checked;
-					}
-
-					updateVisibleSchemaTypes();
-					_Schema.reload();
-				};
-
 				for (let el of contentEl.querySelectorAll('td .toggle-type, .schema-visibility-table td')) {
-					el.addEventListener('click', handleToggleVisibility);
+
+					el.addEventListener('click', (e) => {
+						e.stopPropagation();
+
+						let checkbox = e.target.closest('tr').querySelector('.toggle-type');
+						if (checkbox !== e.target) {
+							checkbox.checked = !checkbox.checked;
+
+							setIdenticalCheckboxesForOverriddenTypes(checkbox.dataset.structrType, checkbox.checked);
+						}
+
+						updateVisibleSchemaTypes();
+					});
 				}
 
 				for (let tab of contentEl.querySelectorAll('li.tab[data-name]')) {
