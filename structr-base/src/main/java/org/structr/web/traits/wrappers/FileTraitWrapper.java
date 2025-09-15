@@ -218,6 +218,14 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 	}
 
 	@Override
+	public java.io.File getFileOnDisk() {
+
+		final LocalFSHelper helper = new LocalFSHelper(getStorageConfiguration());
+
+		return helper.getFileOnDisk(this);
+	}
+
+	@Override
 	public InputStream getInputStream() {
 
 		final Logger logger = LoggerFactory.getLogger(File.class);

@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command;
 
+import java.util.Map;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -125,10 +126,21 @@ public class UnarchiveCommand extends AbstractCommand {
 				tx.success();
 			}
 
+			// send WS message to all clients about start of extraction
+			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of(
+					"file", file.getPath(),
+					"status", "START"
+			)).build(), true);
+
 			// no transaction here since this is a bulk command
 			FileHelper.unarchive(securityContext, file, parentFolderId);
 
 			getWebSocket().send(MessageBuilder.finished().callback(callback).data("success", true).data("filename", fileName).build(), true);
+
+			getWebSocket().send(MessageBuilder.forName(getCommand()).data(Map.of(
+					"file", file.getPath(),
+					"status", "SUCCESS"
+			)).build(), true);
 
 		} catch (Throwable t) {
 
