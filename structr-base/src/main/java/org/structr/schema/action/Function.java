@@ -569,16 +569,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
-	protected static String serialize(final Gson gson, final Map<String, Object> map) {
-		return gson.toJson(map, new TypeToken<Map<String, String>>() {
-		}.getType());
-	}
-
-	protected static Map<String, Object> deserialize(final Gson gson, final String source) {
-		return gson.fromJson(source, new TypeToken<Map<String, Object>>() {
-		}.getType());
-	}
-
 	protected static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
 
 		if (depth > 20) {

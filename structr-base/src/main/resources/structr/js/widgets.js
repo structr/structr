@@ -541,7 +541,7 @@ let _Widgets = {
 		if (isLocalWidget) {
 
 			// allow editing of selectors property
-			_Schema.getTypeInfo(entity.type, (typeInfo) => {
+			_Schema.caches.getTypeInfo(entity.type, (typeInfo) => {
 				_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
 			});
 

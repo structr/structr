@@ -512,10 +512,9 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 							if (value != null) {
 
-								String key = attribute.jsonName().substring(PropertyView.Html.length());
+								final String key = attribute.jsonName().substring(PropertyView.Html.length());
 
 								out.append(" ").append(key).append("=\"").append(value).append("\"");
-
 							}
 						}
 

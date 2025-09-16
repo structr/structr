@@ -71,6 +71,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 	private static final StringProperty sourceMultiplicityProperty      = new StringProperty("sourceMultiplicity");
 	private static final StringProperty targetMultiplicityProperty      = new StringProperty("targetMultiplicity");
 	private static final StringProperty relationshipTypeProperty        = new StringProperty("relationshipType");
+	public static final GenericProperty<String> relationShipSourceType  = new GenericProperty<>("sourceType");
+	public static final GenericProperty<String> relationShipTargetType  = new GenericProperty<>("targetType");
 
 	public enum UriPart {
 		_schema
@@ -111,13 +113,15 @@ public class SchemaResource extends ExactMatchEndpoint {
 				String url = "/".concat(rawType);
 
 				schema.setProperty(urlProperty, url);
+
+				// TODO: why are all equal - can we remove 2?
 				schema.setProperty(typeProperty, type.getName());
 				schema.setProperty(nameProperty, type.getName());
 				schema.setProperty(classNameProperty, type.getName());
+
 				schema.setProperty(traitsProperty, type.getAllTraits());
 				schema.setProperty(isBuiltinProperty, type.isBuiltinType());
 				schema.setProperty(isServiceClassProperty, type.isServiceClass());
-				//schema.setProperty(extendsClassNameProperty, type.getSuperclass().getName());
 				schema.setProperty(isRelProperty, type.isRelationshipType());
 				schema.setProperty(isAbstractProperty, type.isAbstract());
 				schema.setProperty(isInterfaceProperty, type.isInterface());
@@ -194,24 +198,15 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 	public static GraphObjectMap relationToMap(final ConfigurationProvider config, final Relation relation) {
 
+		final String sourceType  = relation.getSourceType();
+		final String targetType  = relation.getTargetType();
 		final GraphObjectMap map = new GraphObjectMap();
-
-		/**
-		 * what we need here:
-		 * id,
-		 * sourceMultiplicity,
-		 * targetMultiplicity,
-		 * relationshipType,
-		 *
-		 */
 
 		map.put(sourceMultiplicityProperty, multiplictyToString(relation.getSourceMultiplicity()));
 		map.put(targetMultiplicityProperty, multiplictyToString(relation.getTargetMultiplicity()));
-		map.put(typeProperty,               relation.getClass().getSimpleName());
 		map.put(relationshipTypeProperty,   relation.name());
-
-		final String sourceType = relation.getSourceType();
-		final String targetType = relation.getTargetType();
+		map.put(relationShipSourceType,     sourceType);
+		map.put(relationShipTargetType,     targetType);
 
 		/*
 

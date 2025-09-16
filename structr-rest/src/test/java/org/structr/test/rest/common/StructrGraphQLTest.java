@@ -52,9 +52,6 @@ public abstract class StructrGraphQLTest extends StructrRestTestBase {
 		Settings.BasePath.setValue(basePath);
 		Settings.FilesPath.setValue(basePath + "/files");
 
-		Settings.RelationshipCacheSize.setValue(1000);
-		Settings.NodeCacheSize.setValue(1000);
-
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
 

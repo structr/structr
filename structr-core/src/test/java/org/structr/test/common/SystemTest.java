@@ -1280,8 +1280,6 @@ public class SystemTest extends StructrTest {
 		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet", Settings.Servlets.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());
 		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.SchemaAutoMigration.getValue());
-		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.LogSchemaOutput.getValue());
-		assertEquals("Invalid configuration setting result", Integer.valueOf(112233), Settings.NodeCacheSize.getValue());
 
 		// config setting will not be found
 		assertNull("Invalid configuration setting result", Settings.getBooleanSetting("deployment.export.exportfileuuids"));
@@ -1305,8 +1303,6 @@ public class SystemTest extends StructrTest {
 		}
 
 		tmpConfig.deleteOnExit();
-
-		Settings.LogSchemaOutput.setValue(false);
 	}
 
 	@Test

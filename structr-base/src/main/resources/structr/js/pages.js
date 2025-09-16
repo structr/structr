@@ -1078,7 +1078,7 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.general());
 				let generalContainer = document.querySelector('#center-pane .general-container');
 
-				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
 
 					if (dialogConfig) {
 						dialogConfig.appendDialogForEntityToContainer($(generalContainer), obj, typeInfo).then(() => {
@@ -1094,7 +1094,7 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.properties());
 				let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
 
 					_Entities.listProperties(obj, '_html_', $(propertiesContainer), typeInfo, (properties) => {
 
@@ -1116,7 +1116,7 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.properties());
 				let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
 
 					_Entities.listProperties(obj, 'ui', $(propertiesContainer), typeInfo, (properties) => {
 
@@ -1171,7 +1171,7 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.events());
 				let eventsContainer = document.querySelector('#center-pane .events-container');
 
-				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
 					_Pages.eventActionMappingDialog(obj, eventsContainer, typeInfo);
 				});
 				break;
@@ -1181,7 +1181,7 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.security());
 				let securityContainer = document.querySelector('#center-pane .security-container');
 
-				_Schema.getTypeInfo(obj.type, (typeInfo) => {
+				_Schema.caches.getTypeInfo(obj.type, (typeInfo) => {
 					_Entities.accessControlDialog(obj, $(securityContainer), typeInfo);
 				});
 				break;

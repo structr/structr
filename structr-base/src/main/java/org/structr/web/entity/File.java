@@ -61,6 +61,8 @@ public interface File extends AbstractFile, DataSource {
 	String getPath();
 	String getDiskFilePath(final SecurityContext securityContext);
 
+	java.io.File getFileOnDisk();
+
 	int getNumberOrDefault(Map<String, Object> data, String key, int defaultValue);
 
 	void checkMoveBinaryContents(final NodeInterface newProvider);

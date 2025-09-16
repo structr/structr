@@ -229,7 +229,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 							if (depth == 0 && isPartial) {
 
 								renderContext.setPage(node.getClosestPage());
-
 							}
 
 							final GraphObject dataObject = renderContext.getDataNode(subKey); // renderContext.getSourceDataObject();
@@ -264,10 +263,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 													renderContext.putDataObject(subKey, graphObject);
 													node.renderContent(renderContext, depth);
-
 												}
 											}
-
 										}
 
 									} else {
@@ -289,13 +286,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 															renderContext.putDataObject(subKey, (GraphObject) o);
 															node.renderContent(renderContext, depth);
-
 														}
 													}
 												}
 											}
 										}
-
 									}
 
 									// reset data node in render context
@@ -306,7 +301,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 									renderContext.setListSource(listData);
 									node.renderNodeList(securityContext, renderContext, depth, subKey);
-
 								}
 							}
 
@@ -451,7 +445,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 							value = DOMNode.escapeForHtmlAttributes(value);
 						}
 
-						if (StringUtils.isNotBlank(value)) {
+						if (value != null) {
 
 							if (key instanceof CustomHtmlAttributeProperty chap) {
 

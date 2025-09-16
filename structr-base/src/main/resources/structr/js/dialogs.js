@@ -250,34 +250,6 @@ let _Dialogs = {
 			document.querySelector('#passwordField').focus();
 		}
 	},
-	tempInfoBox: {
-		show: (messageHtml = '') => {
-
-			let tempInfoMessage = `
-				<div class="dialog text-center">
-					<div class="infoHeading"></div>
-					<div class="infoMsg min-h-20">
-						${messageHtml}
-					</div>
-					<div class="flex justify-end">
-						<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
-					</div>
-				</div>
-			`;
-			let messageDiv  = _Dialogs.basic.append(tempInfoMessage);
-			let closeButton = messageDiv.querySelector('.closeButton');
-
-			closeButton.addEventListener('click', (e) => {
-				_Dialogs.basic.removeBlockerAround(messageDiv);
-			});
-
-			return {
-				headingEl: messageDiv.querySelector('.infoHeading'),
-				messageEl: messageDiv.querySelector('.infoMsg'),
-				closeButton: closeButton
-			};
-		},
-	},
 	confirmation: {
 		showPromise: (text, highlightedOption = true) => {
 

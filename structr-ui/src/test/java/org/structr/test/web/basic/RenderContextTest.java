@@ -150,15 +150,12 @@ public class RenderContextTest extends StructrUiTest {
 
 			tx.success();
 
-
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
 
 			fail("Unexpected exception");
 		}
-
-
 	}
 
 	@Test
@@ -777,19 +774,17 @@ public class RenderContextTest extends StructrUiTest {
 			ctx.setConstant("user", user);
 			ctx.setConstant("test", test);
 
-                        assertEquals("Invalid any() result",   "true", Scripting.replaceVariables(ctx, null, "${any(user.groups, is_allowed(data, test, 'read'))}"));
-                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(user.groups, is_allowed(data, test, 'read'))}"));
-                        assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(user.groups, is_allowed(data, test, 'read'))}"));
+			assertEquals("Invalid any() result",   "true", Scripting.replaceVariables(ctx, null, "${any(user.groups, is_allowed(data, test, 'read'))}"));
+			assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(user.groups, is_allowed(data, test, 'read'))}"));
+			assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(user.groups, is_allowed(data, test, 'read'))}"));
 
 			tx.success();
 
 		} catch (FrameworkException ex) {
 
-                        logger.warn("", ex);
-                        fail("Unexpected exception");
-
-                }
-
+			logger.warn("", ex);
+			fail("Unexpected exception");
+		}
 	}
 
 	@Test
@@ -808,38 +803,36 @@ public class RenderContextTest extends StructrUiTest {
 			//      0  == false
 			//  "test" == false
 
-                        assertEquals("Invalid any() result",   "true", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, true), data)}"));
-                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, false), data)}"));
-                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 1), data)}"));
-                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 0), data)}"));
-                        assertEquals("Invalid any() result",  "true", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'true'), data)}"));
-                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'false'), data)}"));
-                        assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'test'), data)}"));
+			assertEquals("Invalid any() result",   "true", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, true), data)}"));
+			assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, false), data)}"));
+			assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 1), data)}"));
+			assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 0), data)}"));
+			assertEquals("Invalid any() result",  "true", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'true'), data)}"));
+			assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'false'), data)}"));
+			assertEquals("Invalid any() result",  "false", Scripting.replaceVariables(ctx, null, "${any(merge(false, false, false, 'test'), data)}"));
 
-                        assertEquals("Invalid all() result",   "true", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true), data)}"));
-                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, false), data)}"));
-                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 1), data)}"));
-                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 0), data)}"));
-                        assertEquals("Invalid all() result",   "true", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'true'), data)}"));
-                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'false'), data)}"));
-                        assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'test'), data)}"));
+			assertEquals("Invalid all() result",   "true", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true), data)}"));
+			assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, false), data)}"));
+			assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 1), data)}"));
+			assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 0), data)}"));
+			assertEquals("Invalid all() result",   "true", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'true'), data)}"));
+			assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'false'), data)}"));
+			assertEquals("Invalid all() result",  "false", Scripting.replaceVariables(ctx, null, "${all(merge(true, true, true, true, 'test'), data)}"));
 
-                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false), data)}"));
-                        assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, true), data)}"));
-                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 1), data)}"));
-                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 0), data)}"));
-                        assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'true'), data)}"));
-                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'false'), data)}"));
-                        assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'test'), data)}"));
+			assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false), data)}"));
+			assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, true), data)}"));
+			assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 1), data)}"));
+			assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 0), data)}"));
+			assertEquals("Invalid none() result", "false", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'true'), data)}"));
+			assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'false'), data)}"));
+			assertEquals("Invalid none() result",  "true", Scripting.replaceVariables(ctx, null, "${none(merge(false, false, false, 'test'), data)}"));
 
 			tx.success();
 
 		} catch (FrameworkException ex) {
 
-                        logger.warn("", ex);
-                        fail("Unexpected exception");
-
-                }
-
+			logger.warn("", ex);
+			fail("Unexpected exception");
+		}
 	}
 }

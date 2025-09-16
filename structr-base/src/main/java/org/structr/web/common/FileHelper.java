@@ -987,7 +987,7 @@ public class FileHelper {
 			// ZIP needs special treatment to support "unsupported feature data descriptor"
 			case ArchiveStreamFactory.ZIP: {
 
-				java.io.File zipFileOnDisk = Paths.get(URI.create("file://" + file.getDiskFilePath(securityContext))).toFile();
+				java.io.File zipFileOnDisk = file.getFileOnDisk();
 				ZipFile zipFile = new ZipFile(zipFileOnDisk);
 
 				logger.info("Zip archive format detected");

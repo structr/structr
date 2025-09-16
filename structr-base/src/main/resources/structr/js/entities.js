@@ -435,7 +435,7 @@ let _Entities = {
 					activeView = activeViewOverride;
 				}
 
-				_Schema.getTypeInfo(entity.type, (typeInfo) => {
+				_Schema.caches.getTypeInfo(entity.type, (typeInfo) => {
 
 					let dialogTitle = 'Edit properties';
 
@@ -2739,7 +2739,7 @@ let _Entities = {
 
 				let customContainer = $('div#custom-properties-container', el);
 
-				_Schema.getTypeInfo(entity.type, (typeInfo) => {
+				_Schema.caches.getTypeInfo(entity.type, (typeInfo) => {
 
 					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (propertiesInfo) => {
 
