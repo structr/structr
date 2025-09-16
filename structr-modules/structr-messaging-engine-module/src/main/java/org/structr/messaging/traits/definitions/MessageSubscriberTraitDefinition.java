@@ -35,6 +35,7 @@ import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -84,7 +85,7 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -121,9 +122,9 @@ public class MessageSubscriberTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> clientsProperty = new StartNodes(CLIENTS_PROPERTY, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
+		final Property<Iterable<NodeInterface>> clientsProperty = new StartNodes(traitsInstance, CLIENTS_PROPERTY, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 		final Property<String> topicProperty                    = new StringProperty(TOPIC_PROPERTY).indexed();
 		final Property<String> callbackProperty                 = new StringProperty(CALLBACK_PROPERTY);
 

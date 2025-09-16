@@ -44,10 +44,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -187,7 +184,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -970,14 +967,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes(RELOAD_SOURCES_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
-		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes(RELOAD_TARGETS_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
-		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes(TRIGGERED_ACTIONS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes(traitsInstance, RELOAD_SOURCES_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes(traitsInstance, RELOAD_TARGETS_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes(traitsInstance, TRIGGERED_ACTIONS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 
 		// FIXME ? why does DOMElement have parameter mappings? they are/should be attached to ActionMapping nodes (it is also not defined on ParameterMapping...)
-		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes(PARAMETER_MAPPINGS_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
+		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes(traitsInstance, PARAMETER_MAPPINGS_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
 		final Property<String> tagProperty                  = new StringProperty(TAG_PROPERTY).indexed().category(PAGE_CATEGORY);
 		final Property<String> pathProperty                 = new StringProperty(PATH_PROPERTY).indexed();

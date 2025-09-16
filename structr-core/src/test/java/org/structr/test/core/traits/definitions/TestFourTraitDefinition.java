@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Date;
@@ -35,9 +36,9 @@ public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> testOne             = new StartNode("testOne", "OneFourOneToOne");
+		final Property<NodeInterface> testOne             = new StartNode(traitsInstance, "testOne", "OneFourOneToOne");
 		final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class).indexed();
 		final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
 		final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();

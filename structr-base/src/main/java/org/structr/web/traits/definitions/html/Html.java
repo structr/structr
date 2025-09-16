@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -72,7 +73,7 @@ public class Html extends GenericHtmlElementTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> manifestProperty = new StringProperty(MANIFEST_PROPERTY);
 		final PropertyKey<String> customOpeningTag = new StringProperty(CUSTOM_OPENING_TAG_PROPERTY);

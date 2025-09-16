@@ -29,10 +29,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -59,7 +56,7 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of(
 
 			IsValid.class,
@@ -100,10 +97,10 @@ public class ParameterMappingTraitDefinition extends AbstractNodeTraitDefinition
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> actionMappingProperty = new StartNode(ACTION_MAPPING_PROPERTY, StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
-		final Property<NodeInterface> inputElement          = new StartNode(INPUT_ELEMENT_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
+		final Property<NodeInterface> actionMappingProperty = new StartNode(traitsInstance, ACTION_MAPPING_PROPERTY, StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
+		final Property<NodeInterface> inputElement          = new StartNode(traitsInstance, INPUT_ELEMENT_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
 		// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
 		final Property<String> parameterType    = new StringProperty(PARAMETER_TYPE_PROPERTY).hint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");

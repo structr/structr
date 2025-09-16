@@ -27,6 +27,7 @@ import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.schema.action.EvaluationHints;
 
@@ -82,7 +83,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<Integer> anInt = new IntProperty("anInt").indexed();
 		final Property<Long> aLong    = new LongProperty("aLong").indexed();

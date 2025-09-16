@@ -21,6 +21,7 @@ package org.structr.test.rest.traits.definitions.relationships;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.test.rest.common.TestEnum;
@@ -39,7 +40,7 @@ public class TwoOneOneToMany extends AbstractRelationshipTraitDefinition impleme
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>   startNodeId         = new SourceId("startNodeId");
 		final Property<String>   endNodeId           = new TargetId("endNodeId");

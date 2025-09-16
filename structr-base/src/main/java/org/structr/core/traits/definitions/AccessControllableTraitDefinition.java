@@ -39,6 +39,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.accesscontrollable.*;
@@ -61,7 +62,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of(
 
 			OnModification.class,         new OnModificationActionVoid(AccessControllableTraitDefinition::clearCaches),

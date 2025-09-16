@@ -25,6 +25,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -48,7 +49,7 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -72,9 +73,9 @@ public class StorageConfigurationEntryTraitDefinition extends AbstractNodeTraitD
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> configurationProperty = new StartNode(CONFIGURATION_PROPERTY, StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
+		final Property<NodeInterface> configurationProperty = new StartNode(traitsInstance, CONFIGURATION_PROPERTY, StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
 		final Property<String> nameProperty                 = new StringProperty(NAME_PROPERTY);
 		final Property<String> valueProperty                = new EncryptedStringProperty(VALUE_PROPERTY);
 

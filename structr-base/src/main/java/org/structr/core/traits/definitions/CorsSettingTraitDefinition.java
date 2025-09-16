@@ -28,6 +28,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.CorsSettingTraitWrapper;
@@ -56,7 +57,7 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of(
 
 			IsValid.class,
@@ -82,7 +83,7 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>               requestUri        = new StringProperty(REQUEST_URI_PROPERTY).indexed();
 		final Property<String>               acceptedOrigins   = new StringProperty(ACCEPTED_ORIGINS_PROPERTY).indexed();

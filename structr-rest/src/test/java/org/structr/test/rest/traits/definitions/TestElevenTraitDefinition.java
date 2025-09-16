@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
@@ -37,10 +38,10 @@ public class TestElevenTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> testTwos    = new EndNodes("test_twos", "ElevenTwoOneToMany");
-		final Property<Iterable<NodeInterface>> testTwosAlt = new EndNodes("testTwos", "ElevenTwoOneToMany");
+		final Property<Iterable<NodeInterface>> testTwos    = new EndNodes(traitsInstance, "test_twos", "ElevenTwoOneToMany");
+		final Property<Iterable<NodeInterface>> testTwosAlt = new EndNodes(traitsInstance, "testTwos", "ElevenTwoOneToMany");
 
 		return newSet(
 			testTwos, testTwosAlt

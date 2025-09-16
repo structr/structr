@@ -2725,6 +2725,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		return RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.body(query)
 
 			.expect()

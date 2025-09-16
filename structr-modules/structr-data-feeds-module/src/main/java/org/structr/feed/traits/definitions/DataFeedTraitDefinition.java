@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -61,7 +62,7 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 			IsValid.class,
@@ -141,9 +142,9 @@ public class DataFeedTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes(ITEMS_PROPERTY, StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
+		final Property<Iterable<NodeInterface>> itemsProperty = new EndNodes(traitsInstance, ITEMS_PROPERTY, StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
 		final Property<String> urlProperty                    = new StringProperty(URL_PROPERTY).indexed().notNull();
 		final Property<String> feedTypeProperty               = new StringProperty(FEED_TYPE_PROPERTY);
 		final Property<String> descriptionProperty            = new StringProperty(DESCRIPTION_PROPERTY);

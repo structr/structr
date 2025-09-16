@@ -29,11 +29,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.*;
+import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
@@ -72,7 +75,7 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance) {
 
 		final Map<Class, LifecycleMethod> methods = new LinkedHashMap<>();
 
@@ -84,9 +87,6 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 					graphObject.as(AbstractSchemaNode.class).checkInheritanceConstraints();
-
-					// register transaction post processing that recreates the schema information
-					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));
 				}
 			}
 		);
@@ -99,9 +99,6 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 				public void onModification(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 					graphObject.as(AbstractSchemaNode.class).checkInheritanceConstraints();
-
-					// register transaction post processing that recreates the schema information
-					TransactionCommand.postProcess("createDefaultProperties", new CreateBuiltInSchemaEntities(graphObject.as(AbstractSchemaNode.class)));
 				}
 			}
 		);
@@ -115,11 +112,11 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> schemaProperties = new EndNodes(SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_NODE_PROPERTY);
-		final Property<Iterable<NodeInterface>> schemaMethods    = new EndNodes(SCHEMA_METHODS_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD);
-		final Property<Iterable<NodeInterface>> schemaViews      = new EndNodes(SCHEMA_VIEWS_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW);
+		final Property<Iterable<NodeInterface>> schemaProperties = new EndNodes(traitsInstance, SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_NODE_PROPERTY);
+		final Property<Iterable<NodeInterface>> schemaMethods    = new EndNodes(traitsInstance, SCHEMA_METHODS_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD);
+		final Property<Iterable<NodeInterface>> schemaViews      = new EndNodes(traitsInstance, SCHEMA_VIEWS_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW);
 		final Property<String[]> tags                            = new ArrayProperty(TAGS_PROPERTY, String.class).indexed();
 		final Property<Boolean> includeInOpenAPI                 = new BooleanProperty(INCLUDE_IN_OPEN_API_PROPERTY).indexed();
 		final Property<Boolean> changelogDisabled                = new BooleanProperty(CHANGELOG_DISABLED_PROPERTY);
@@ -163,66 +160,47 @@ public final class AbstractSchemaNodeTraitDefinition extends AbstractNodeTraitDe
 		return null;
 	}
 
-	private static class CreateBuiltInSchemaEntities implements TransactionPostProcess {
+	public static void createViewNodesForClass(final TraitsInstance traitsInstance, final AbstractSchemaNode schemaNode, final String type) throws FrameworkException {
 
-		private AbstractSchemaNode node = null;
+		final Set<String> existingViewNames = Iterables.toList(schemaNode.getSchemaViews()).stream().map(v -> v.getName()).collect(Collectors.toSet());
+		final Traits traits                 = traitsInstance.getTraits(type);
 
-		public CreateBuiltInSchemaEntities(final AbstractSchemaNode node) {
-			this.node = node;
-		}
+		for (final String view : traits.getViewNames()) {
 
-		@Override
-		public boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-			final String type = node.getClassName();
-
-			createViewNodesForClass(node, type);
-
-			return true;
-		}
-
-		private static void createViewNodesForClass(final AbstractSchemaNode schemaNode, final String type) throws FrameworkException {
-
-			final Set<String> existingViewNames = Iterables.toList(schemaNode.getSchemaViews()).stream().map(v -> v.getName()).collect(Collectors.toSet());
-			final Traits traits                 = Traits.of(type);
-
-			for (final String view : traits.getViewNames()) {
-
-				// Don't create duplicate and internal views
-				if (existingViewNames.contains(view)) {
-					continue;
-				}
-
-				final Set<String> viewPropertyNames  = new HashSet<>();
-				final List<NodeInterface> properties = new LinkedList<>();
-
-				// collect names of properties in the given view
-				for (final PropertyKey key : traits.getPropertyKeysForView(view)) {
-
-					if (!key.isDynamic()) {
-						viewPropertyNames.add(key.jsonName());
-					}
-				}
-
-				// collect schema properties that match the view
-				// if parentNode is set, we're adding inherited properties from the parent node
-				for (final SchemaProperty schemaProperty : schemaNode.getSchemaProperties()) {
-
-					final String schemaPropertyName = schemaProperty.getName();
-					if (viewPropertyNames.contains(schemaPropertyName)) {
-
-						properties.add(schemaProperty);
-					}
-				}
-
-				// create view node
-				StructrApp.getInstance(schemaNode.getSecurityContext()).create(StructrTraits.SCHEMA_VIEW,
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY),       schemaNode),
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           view),
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_PROPERTIES_PROPERTY), properties),
-						new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.IS_BUILTIN_VIEW_PROPERTY),   true)
-				);
+			// Don't create duplicate and internal views
+			if (existingViewNames.contains(view)) {
+				continue;
 			}
+
+			final Set<String> viewPropertyNames  = new HashSet<>();
+			final List<NodeInterface> properties = new LinkedList<>();
+
+			// collect names of properties in the given view
+			for (final PropertyKey key : traits.getPropertyKeysForView(view)) {
+
+				if (!key.isDynamic()) {
+					viewPropertyNames.add(key.jsonName());
+				}
+			}
+
+			// collect schema properties that match the view
+			// if parentNode is set, we're adding inherited properties from the parent node
+			for (final SchemaProperty schemaProperty : schemaNode.getSchemaProperties()) {
+
+				final String schemaPropertyName = schemaProperty.getName();
+				if (viewPropertyNames.contains(schemaPropertyName)) {
+
+					properties.add(schemaProperty);
+				}
+			}
+
+			// create view node
+			StructrApp.getInstance(schemaNode.getSecurityContext()).create(StructrTraits.SCHEMA_VIEW,
+					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY),       schemaNode),
+					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(NodeInterfaceTraitDefinition.NAME_PROPERTY),           view),
+					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_PROPERTIES_PROPERTY), properties),
+					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.IS_BUILTIN_VIEW_PROPERTY),   true)
+			);
 		}
 	}
 }

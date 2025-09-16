@@ -21,6 +21,7 @@ package org.structr.test.traits.definitions;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.test.entity.CsvTestEnum;
 import org.structr.test.entity.CsvTestTwo;
@@ -50,7 +51,7 @@ public class CsvTestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class).indexed();
 		final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();

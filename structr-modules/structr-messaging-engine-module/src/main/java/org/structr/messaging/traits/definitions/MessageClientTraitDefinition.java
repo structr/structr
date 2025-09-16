@@ -35,6 +35,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.messaging.engine.entities.MessageClient;
@@ -173,9 +174,9 @@ public class MessageClientTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> subscribersProperty = new EndNodes(SUBSCRIBERS_PROPERTY, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
+		final Property<Iterable<NodeInterface>> subscribersProperty = new EndNodes(traitsInstance, SUBSCRIBERS_PROPERTY, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 
 		return newSet(
 			subscribersProperty

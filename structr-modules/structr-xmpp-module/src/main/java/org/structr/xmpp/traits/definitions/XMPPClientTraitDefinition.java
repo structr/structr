@@ -33,6 +33,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -71,7 +72,7 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -354,9 +355,9 @@ public class XMPPClientTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> pendingRequestsProperty = new EndNodes(PENDING_REQUESTS_PROPERTY, StructrTraits.XMPP_CLIENT_REQUEST);
+		final Property<Iterable<NodeInterface>> pendingRequestsProperty = new EndNodes(traitsInstance, PENDING_REQUESTS_PROPERTY, StructrTraits.XMPP_CLIENT_REQUEST);
 		final Property<String> xmppHandleProperty                       = new FunctionProperty(XMPP_HANDLE_PROPERTY).readFunction("concat(this.xmppUsername, '@', this.xmppHost)").typeHint("String").indexed();
 		final Property<String> xmppUsernameProperty                     = new StringProperty(XMPP_USERNAME_PROPERTY).indexed();
 		final Property<String> xmppPasswordProperty                     = new StringProperty(XMPP_PASSWORD_PROPERTY);

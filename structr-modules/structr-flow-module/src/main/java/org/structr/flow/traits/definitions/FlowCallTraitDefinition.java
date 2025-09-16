@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -29,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -39,11 +39,12 @@ import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.*;
 import org.structr.flow.traits.operations.ActionOperations;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.flow.traits.operations.GetExportData;
+import java.util.TreeMap;
 
 public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -164,11 +165,11 @@ public class FlowCallTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
-		final Property<Iterable<NodeInterface>> parameters = new StartNodes(PARAMETERS_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
-		final Property<NodeInterface> flow                 = new EndNode(FLOW_PROPERTY, StructrTraits.FLOW_CALL_CONTAINER);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> parameters = new StartNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
+		final Property<NodeInterface> flow                 = new EndNode(traitsInstance, FLOW_PROPERTY, StructrTraits.FLOW_CALL_CONTAINER);
 
 		return newSet(
 			dataTarget,

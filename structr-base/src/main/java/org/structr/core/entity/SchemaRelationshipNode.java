@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.graphobject.IsValid;
 
 import java.util.List;
@@ -86,9 +87,9 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	void setSourceJsonName(final String sourcePropertyName) throws FrameworkException;
 	void setTargetJsonName(final String targetPropertyName) throws FrameworkException;
 
-	TraitDefinition[] getTraitDefinitions();
+	TraitDefinition[] getTraitDefinitions(final TraitsInstance traitsInstance);
 
-	PropertyKey createKey(final SchemaNode entity, final boolean outgoing) throws FrameworkException;
+	PropertyKey createKey(final TraitsInstance traitsInstance, final SchemaNode entity, final boolean outgoing) throws FrameworkException;
 	List<IsValid> createValidators(final SchemaNode entity) throws FrameworkException;
 
 	// ----- public static methods -----

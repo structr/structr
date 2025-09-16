@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +36,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -44,14 +44,14 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
-import org.structr.flow.impl.FlowSwitchCase;
 import org.structr.flow.impl.FlowTypeQuery;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.flow.traits.operations.GetExportData;
+import java.util.TreeMap;
 
 public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -144,9 +144,9 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 		final Property<String> dataType                    = new StringProperty(DATA_TYPE_PROPERTY);
 
 		return newSet(

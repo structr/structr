@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Date;
@@ -35,16 +36,16 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> manyToManyTestOnes                  = new EndNodes("manyToManyTestOnes", "SixOneManyToMany");
-		final Property<Iterable<NodeInterface>> oneToManyTestOnes                   = new EndNodes("oneToManyTestOnes",  "SixOneOneToMany");
-		final Property<NodeInterface>           oneToOneTestThree                   = new EndNode("oneToOneTestThree",    "SixThreeOneToOne");
-		final Property<Iterable<NodeInterface>> oneToManyTestThrees                 = new EndNodes("oneToManyTestThrees", "SixThreeOneToMany");
-		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeOut       = new EndNodes("oneToManyTestThreesCascadeOut",       "SixThreeOneToManyCascadeOutgoing");
-		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeIn        = new EndNodes("oneToManyTestThreesCascadeIn",        "SixThreeOneToManyCascadeIncoming");
-		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeBoth      = new EndNodes("oneToManyTestThreesCascadeBoth",      "SixThreeOneToManyCascadeBoth");
-		final Property<Iterable<NodeInterface>> oneToManyTestNinesCascadeConstraint = new EndNodes("oneToManyTestNinesCascadeConstraint", "SixNineOneToManyCascadeConstraint");
+		final Property<Iterable<NodeInterface>> manyToManyTestOnes                  = new EndNodes(traitsInstance, "manyToManyTestOnes", "SixOneManyToMany");
+		final Property<Iterable<NodeInterface>> oneToManyTestOnes                   = new EndNodes(traitsInstance, "oneToManyTestOnes",  "SixOneOneToMany");
+		final Property<NodeInterface>           oneToOneTestThree                   = new EndNode(traitsInstance, "oneToOneTestThree",    "SixThreeOneToOne");
+		final Property<Iterable<NodeInterface>> oneToManyTestThrees                 = new EndNodes(traitsInstance, "oneToManyTestThrees", "SixThreeOneToMany");
+		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeOut       = new EndNodes(traitsInstance, "oneToManyTestThreesCascadeOut",       "SixThreeOneToManyCascadeOutgoing");
+		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeIn        = new EndNodes(traitsInstance, "oneToManyTestThreesCascadeIn",        "SixThreeOneToManyCascadeIncoming");
+		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeBoth      = new EndNodes(traitsInstance, "oneToManyTestThreesCascadeBoth",      "SixThreeOneToManyCascadeBoth");
+		final Property<Iterable<NodeInterface>> oneToManyTestNinesCascadeConstraint = new EndNodes(traitsInstance, "oneToManyTestNinesCascadeConstraint", "SixNineOneToManyCascadeConstraint");
 		final Property<Integer>                 index                               = new IntProperty("index").indexed();
 		final Property<Date>                    date                                = new DateProperty("date").indexed();
 

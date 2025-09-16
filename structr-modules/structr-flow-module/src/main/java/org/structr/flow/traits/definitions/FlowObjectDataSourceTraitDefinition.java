@@ -28,6 +28,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.KeyValue;
@@ -96,9 +97,9 @@ public class FlowObjectDataSourceTraitDefinition extends AbstractNodeTraitDefini
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> keyValueSources = new StartNodes(KEY_VALUE_SOURCES_PROPERTY, StructrTraits.FLOW_KEY_VALUE_OBJECT_INPUT);
+		final Property<Iterable<NodeInterface>> keyValueSources = new StartNodes(traitsInstance, KEY_VALUE_SOURCES_PROPERTY, StructrTraits.FLOW_KEY_VALUE_OBJECT_INPUT);
 
 		return newSet(
 			keyValueSources

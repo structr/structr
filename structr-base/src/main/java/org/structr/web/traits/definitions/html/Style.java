@@ -29,6 +29,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -50,9 +51,9 @@ public class Style extends GenericHtmlElementTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
-		final Map<Class, LifecycleMethod> methods = super.getLifecycleMethods();
+		final Map<Class, LifecycleMethod> methods = super.createLifecycleMethods(traitsInstance);
 
 		methods.put(
 
@@ -118,7 +119,7 @@ public class Style extends GenericHtmlElementTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> mediaProperty  = new StringProperty(MEDIA_PROPERTY);
 		final PropertyKey<String> typeProperty   = new StringProperty(TYPE_PROPERTY);

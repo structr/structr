@@ -173,9 +173,9 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	}
 
 	@Override
-	public TraitDefinition[] getTraitDefinitions() {
+	public TraitDefinition[] getTraitDefinitions(final TraitsInstance traitsInstance) {
 
-		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(this));
+		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(traitsInstance, this));
 
 		return definitions.toArray(new TraitDefinition[0]);
 	}
@@ -263,11 +263,13 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	}
 
 	// ----- private methods -----
-	private Set<TraitDefinition> recursivelyResolveTraitInheritance(final SchemaNode schemaNode) {
+	private Set<TraitDefinition> recursivelyResolveTraitInheritance(final TraitsInstance traitsInstance, final SchemaNode schemaNode) {
 
 		final Set<TraitDefinition> definitions = new LinkedHashSet<>();
+		final String name                      = schemaNode.getName();
+		final Set<String> inheritedTraits      = schemaNode.getInheritedTraits();
 
-		for (final String inheritedTrait : schemaNode.getInheritedTraits()) {
+		for (final String inheritedTrait : inheritedTraits) {
 
 			try {
 
@@ -275,14 +277,14 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 				if (inheritedSchemaNode != null && !inheritedTrait.equals(schemaNode.getName())) {
 
 					// recurse
-					definitions.addAll(recursivelyResolveTraitInheritance(inheritedSchemaNode.as(SchemaNode.class)));
+					definitions.addAll(recursivelyResolveTraitInheritance(traitsInstance, inheritedSchemaNode.as(SchemaNode.class)));
 				}
 
-				if (Traits.exists(inheritedTrait)) {
+				if (traitsInstance.exists(inheritedTrait)) {
 
-					final Traits traits = Traits.of(inheritedTrait);
+					final Traits traits = traitsInstance.getTraits(inheritedTrait);
 
-					definitions.addAll(traits.getTraitDefinitions());
+					definitions.addAll(recursivelyResolveTraitInheritance(traitsInstance, traits, 1, new LinkedHashSet<>()));
 				}
 
 			} catch (FrameworkException fex) {
@@ -290,7 +292,31 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 			}
 		}
 
-		definitions.add(new DynamicNodeTraitDefinition(schemaNode));
+		definitions.add(new DynamicNodeTraitDefinition(traitsInstance, schemaNode));
+
+		return definitions;
+	}
+
+	private Set<TraitDefinition> recursivelyResolveTraitInheritance(final TraitsInstance traitsInstance, final Traits traits, int depth, final Set<String> visited) {
+
+		final Set<TraitDefinition> definitions = new LinkedHashSet<>();
+
+		if (visited.contains(traits.getName())) {
+			return definitions;
+		}
+
+		visited.add(traits.getName());
+
+		for (final TraitDefinition definition : traits.getTraitDefinitions()) {
+
+			definitions.add(definition);
+
+			final String name = definition.getName();
+			if (traitsInstance.exists(name)) {
+
+				definitions.addAll(recursivelyResolveTraitInheritance(traitsInstance, traitsInstance.getTraits(name), depth + 1, visited));
+			}
+		}
 
 		return definitions;
 	}

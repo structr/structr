@@ -43,14 +43,16 @@ public class Trait implements TypeInfo {
 	private final Map<String, PropertyKey> propertyKeys                           = new LinkedHashMap<>();
 	private final Map<String, Set<String>> views                                  = new LinkedHashMap<>();
 
+	private final TraitsInstance traitsInstance;
 	private final Relation relation;
 	private final String label;
 	private final String name;
 	private final boolean isRelationship;
 	private final boolean isDynamic;
 
-	public Trait(final TraitDefinition traitDefinition, final boolean isDynamic) {
+	public Trait(final TraitsInstance traitsInstance, final TraitDefinition traitDefinition, final boolean isDynamic) {
 
+		this.traitsInstance = traitsInstance;
 		this.label          = traitDefinition.getLabel();
 		this.name           = traitDefinition.getName();
 		this.isRelationship = traitDefinition.isRelationship();
@@ -60,15 +62,40 @@ public class Trait implements TypeInfo {
 		initializeFrom(traitDefinition);
 	}
 
+	private Trait(final TraitsInstance traitsInstance, final Relation relation, final String label, final String name, final boolean isRelationship, final boolean isDynamic) {
+
+		this.traitsInstance = traitsInstance;
+		this.relation       = relation;
+		this.label          = label;
+		this.name           = name;
+		this.isRelationship = isRelationship;
+		this.isDynamic      = isDynamic;
+	}
+
+	public Trait createCopy(final TraitsInstance traitsInstance) {
+
+		final Trait trait = new Trait(traitsInstance, relation, label, name, isRelationship, isDynamic);
+
+		trait.nodeTraitFactories.putAll(nodeTraitFactories);
+		trait.relationshipTraitFactories.putAll(relationshipTraitFactories);
+		trait.dynamicMethods.putAll(dynamicMethods);
+		trait.frameworkMethods.putAll(frameworkMethods);
+		trait.lifecycleMethods.putAll(lifecycleMethods);
+		trait.propertyKeys.putAll(propertyKeys);
+		trait.views.putAll(views);
+
+		return trait;
+	}
+
 	public final void initializeFrom(final TraitDefinition traitDefinition) {
 
-		// properties need to be registered first so they are available in lifecycle methods etc.
-		for (final PropertyKey key : traitDefinition.getPropertyKeys()) {
+		// properties need to be registered first, so they are available in lifecycle methods etc.
+		for (final PropertyKey key : traitDefinition.createPropertyKeys(traitsInstance)) {
 
 			registerPropertyKey(key);
 		}
 
-		lifecycleMethods.putAll(traitDefinition.getLifecycleMethods());
+		lifecycleMethods.putAll(traitDefinition.createLifecycleMethods(traitsInstance));
 		frameworkMethods.putAll(traitDefinition.getFrameworkMethods());
 
 		// dynamic methods

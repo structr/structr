@@ -37,6 +37,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -197,7 +198,12 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
+			public Traits createCopy(final TraitsInstance traitsInstance) {
+				return this;
+			}
+
+			@Override
+			public Map<String, Map<String, PropertyKey>> getDynamicTypes() {
 				return Map.of();
 			}
 		};

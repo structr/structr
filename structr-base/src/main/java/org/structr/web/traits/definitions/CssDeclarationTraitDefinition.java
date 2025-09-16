@@ -26,6 +26,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -44,7 +45,7 @@ public class CssDeclarationTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -67,9 +68,9 @@ public class CssDeclarationTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> ruleProperty = new StartNode(RULE_PROPERTY, StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
+		final Property<NodeInterface> ruleProperty = new StartNode(traitsInstance, RULE_PROPERTY, StructrTraits.CSS_RULE_HAS_DECLARATION_CSS_DECLARATION);
 
 		return Set.of(
 			ruleProperty

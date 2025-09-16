@@ -21,6 +21,7 @@ package org.structr.web.traits.definitions.html;
 import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.TraitsInstance;
 
 import java.util.Map;
 import java.util.Set;
@@ -35,7 +36,7 @@ public class Canvas extends GenericHtmlElementTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> widthProperty  = new StringProperty(WIDTH_PROPERTY);
 		final PropertyKey<String> heightProperty = new StringProperty(HEIGHT_PROPERTY);

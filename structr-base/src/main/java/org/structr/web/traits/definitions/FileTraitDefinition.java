@@ -37,10 +37,7 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -95,7 +92,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -306,9 +303,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> fileParentProperty  = new StartNode(FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
+		final Property<NodeInterface> fileParentProperty  = new StartNode(traitsInstance, FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
 		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY);
 		final Property<Boolean> dontCacheProperty         = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
 		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);

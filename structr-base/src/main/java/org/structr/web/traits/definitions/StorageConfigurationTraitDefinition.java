@@ -25,10 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -55,7 +52,7 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -101,10 +98,10 @@ public class StorageConfigurationTraitDefinition extends AbstractNodeTraitDefini
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes(ENTRIES_PROPERTY, StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
-		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes(FOLDERS_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
+		final Property<Iterable<NodeInterface>> entriesProperty = new EndNodes(traitsInstance, ENTRIES_PROPERTY, StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
+		final Property<Iterable<NodeInterface>> foldersProperty = new StartNodes(traitsInstance, FOLDERS_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
 		final Property<String> nameProperty                     = new StringProperty(NAME_PROPERTY).indexed().unique().notNull();
 		final Property<String> providerProperty                 = new StringProperty(PROVIDER_PROPERTY).indexed().notNull();
 

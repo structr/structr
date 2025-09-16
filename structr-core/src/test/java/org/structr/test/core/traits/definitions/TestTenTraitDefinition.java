@@ -22,6 +22,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
@@ -34,12 +35,12 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> testTenParent             = new StartNode("testTenParent", "TenTenOneToMany");
-		final Property<Iterable<NodeInterface>> testTenChildren = new EndNodes("testTenChildren", "TenTenOneToMany");
-		final Property<NodeInterface> testParent                = new StartNode("testParent", "TenTenOneToOne");
-		final Property<NodeInterface> testChild                 = new EndNode("testChild", "TenTenOneToOne");
+		final Property<NodeInterface> testTenParent             = new StartNode(traitsInstance, "testTenParent", "TenTenOneToMany");
+		final Property<Iterable<NodeInterface>> testTenChildren = new EndNodes(traitsInstance, "testTenChildren", "TenTenOneToMany");
+		final Property<NodeInterface> testParent                = new StartNode(traitsInstance, "testParent", "TenTenOneToOne");
+		final Property<NodeInterface> testChild                 = new EndNode(traitsInstance, "testChild", "TenTenOneToOne");
 
 		return newSet(
 			testTenParent,

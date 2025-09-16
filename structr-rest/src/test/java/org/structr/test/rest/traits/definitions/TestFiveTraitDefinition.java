@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -37,12 +38,12 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> manyToManyTestOnes = new EndNodes("manyToManyTestOnes", "FiveOneManyToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
-		final Property<Iterable<NodeInterface>> oneToManyTestOnes  = new EndNodes("oneToManyTestOnes",  "FiveOneOneToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
-		final Property<NodeInterface> oneToOneTestThree            = new EndNode("oneToOneTestThree",  "FiveThreeOneToOne");
-		final Property<NodeInterface> manyToOneTestThree           = new StartNode("manyToOneTestThree", "ThreeFiveOneToMany");
+		final Property<Iterable<NodeInterface>> manyToManyTestOnes = new EndNodes(traitsInstance, "manyToManyTestOnes", "FiveOneManyToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Property<Iterable<NodeInterface>> oneToManyTestOnes  = new EndNodes(traitsInstance, "oneToManyTestOnes",  "FiveOneOneToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Property<NodeInterface> oneToOneTestThree            = new EndNode(traitsInstance, "oneToOneTestThree",  "FiveThreeOneToOne");
+		final Property<NodeInterface> manyToOneTestThree           = new StartNode(traitsInstance, "manyToOneTestThree", "ThreeFiveOneToMany");
 
 
 		return newSet(

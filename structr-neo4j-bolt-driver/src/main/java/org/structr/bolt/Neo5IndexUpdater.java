@@ -111,7 +111,6 @@ public class Neo5IndexUpdater implements IndexUpdater {
 					currentState       = (String) neoConfig.get("state");
 					indexAlreadyOnline = Boolean.TRUE.equals("ONLINE".equals(currentState));
 					indexName          = (String) neoConfig.get("name");
-
 				}
 
 				final IndexConfig indexConfig         = propertyIndexConfig.getValue();
@@ -315,6 +314,7 @@ public class Neo5IndexUpdater implements IndexUpdater {
 									}).get(timeoutSeconds, TimeUnit.SECONDS);
 
 								} catch (Throwable t) {
+									t.printStackTrace();
 								}
 							}
 						}

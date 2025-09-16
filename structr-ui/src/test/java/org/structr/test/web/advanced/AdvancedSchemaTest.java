@@ -177,9 +177,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
-
-			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
+			final NodeInterface fileNodeDef      = app.create(StructrTraits.SCHEMA_NODE, StructrTraits.FILE);
+			final NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap changedProperties = new PropertyMap();
 			changedProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile");
@@ -236,7 +235,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				.expect()
 					.statusCode(200)
 
-					.body("result",	hasSize(count1 + 1))
+					.body("result", hasSize(count1 + 1))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", StructrTraits.FILE))))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
 
@@ -268,9 +267,8 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		try (final Tx tx = app.tx()) {
 
-			NodeInterface fileNodeDef = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(StructrTraits.FILE).getFirst();
-
-			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
+			final NodeInterface fileNodeDef      = app.create(StructrTraits.SCHEMA_NODE, StructrTraits.FILE);
+			final NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap testFileProperties = new PropertyMap();
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testFile");
@@ -284,7 +282,11 @@ public class AdvancedSchemaTest extends FrontendTest {
 			logger.error("", ex);
 		}
 
+		final Traits traits = Traits.of("Image");
+
 		try (final Tx tx = app.tx()) {
+
+			app.create(StructrTraits.SCHEMA_NODE, StructrTraits.IMAGE);
 
 			// Create new schema node for dynamic class SubFile which extends File
 			NodeInterface subFile = app.create(StructrTraits.SCHEMA_NODE);

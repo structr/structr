@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -55,7 +56,7 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -80,9 +81,9 @@ public class TestNineTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> testEights = new EndNodes("testEights", "NineEightManyToMany");
+		final Property<Iterable<NodeInterface>> testEights = new EndNodes(traitsInstance, "testEights", "NineEightManyToMany");
 		final Property<Iterable<String>>    testEightIds   = new CollectionNotionProperty("testEightIds", "TestNine", "testEights", "TestEight", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String> city                        = new StringProperty(CITY_PROPERTY).indexed().indexedWhenEmpty();
 		final Property<String> street                      = new StringProperty(STREET_PROPERTY).indexed().indexedWhenEmpty();

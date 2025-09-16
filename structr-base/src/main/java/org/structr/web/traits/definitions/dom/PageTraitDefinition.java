@@ -27,6 +27,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -68,7 +69,7 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -163,11 +164,11 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes(ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> pathsProperty    = new EndNodes(PATHS_PROPERTY, StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
-		final Property<Iterable<NodeInterface>> sitesProperty    = new StartNodes(SITES_PROPERTY, StructrTraits.SITE_CONTAINS_PAGE);
+		final Property<Iterable<NodeInterface>> elementsProperty = new StartNodes(traitsInstance, ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(PAGE_CATEGORY);
+		final Property<Iterable<NodeInterface>> pathsProperty    = new EndNodes(traitsInstance, PATHS_PROPERTY, StructrTraits.PAGE_HAS_PATH_PAGE_PATH);
+		final Property<Iterable<NodeInterface>> sitesProperty    = new StartNodes(traitsInstance, SITES_PROPERTY, StructrTraits.SITE_CONTAINS_PAGE);
 
 		final Property<Boolean> isPageProperty                   = new ConstantBooleanProperty(IS_PAGE_PROPERTY, true);
 		final Property<Boolean> pageCreatesRawDataProperty       = new BooleanProperty(PAGE_CREATES_RAW_DATA_PROPERTY).defaultValue(false);

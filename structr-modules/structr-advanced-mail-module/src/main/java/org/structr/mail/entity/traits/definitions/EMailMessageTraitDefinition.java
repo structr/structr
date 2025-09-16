@@ -23,8 +23,8 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 import java.util.Date;
 import java.util.Map;
@@ -55,10 +55,10 @@ public class EMailMessageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE);
-		final Property<NodeInterface> mailboxProperty                 = new StartNode(MAILBOX_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
+		final Property<Iterable<NodeInterface>> attachedFilesProperty = new EndNodes(traitsInstance, ATTACHED_FILES_PROPERTY, StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE);
+		final Property<NodeInterface> mailboxProperty                 = new StartNode(traitsInstance, MAILBOX_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
 
 		final Property<String> subjectProperty                        = new StringProperty(SUBJECT_PROPERTY).indexed();
 		final Property<String> fromProperty                           = new StringProperty(FROM_PROPERTY).indexed();

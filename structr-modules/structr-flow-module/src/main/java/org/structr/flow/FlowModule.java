@@ -26,6 +26,8 @@ import org.structr.core.function.Functions;
 import org.structr.core.property.EndNode;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.TraitsManager;
 import org.structr.flow.datasource.FlowContainerDataSource;
 import org.structr.flow.impl.FlowFunction;
 import org.structr.flow.impl.rels.*;
@@ -44,8 +46,10 @@ public class FlowModule implements StructrModule {
 
 		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_FLOW_FLOW_CONTAINER,           new DOMNodeFLOWFlowContainer());
 
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
 		// register DOMNode -> FlowContainer relationship
-		Traits.getTrait(StructrTraits.DOM_NODE).registerPropertyKey(new EndNode("flow", "DOMNodeFLOWFlowContainer"));
+		Traits.getTrait(StructrTraits.DOM_NODE).registerPropertyKey(new EndNode(rootInstance, "flow", "DOMNodeFLOWFlowContainer"));
 
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION,    new FlowActiveContainerConfiguration());
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_AGGREGATE_START_VALUE,             new FlowAggregateStartValue());

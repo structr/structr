@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -37,9 +38,9 @@ public class TestSevenTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> testSixs = new EndNodes("testSixs", "SevenSixOneToMany");
+		final Property<Iterable<NodeInterface>> testSixs = new EndNodes(traitsInstance, "testSixs", "SevenSixOneToMany");
 		final Property<Iterable<String>> testSixIds      = new CollectionNotionProperty("testSixIds", "TestSeven", "testSixs", "TestSix", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String> aString                   = new StringProperty("aString").indexed().indexedWhenEmpty();
 		final Property<Integer> anInt                    = new IntProperty("anInt").indexed();

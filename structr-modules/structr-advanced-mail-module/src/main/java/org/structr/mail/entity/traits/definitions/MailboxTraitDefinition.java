@@ -34,9 +34,8 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.mail.entity.Mailbox;
@@ -67,7 +66,7 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 			IsValid.class,
@@ -106,9 +105,9 @@ public class MailboxTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> emailsProperty  = new EndNodes(EMAILS_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
+		final Property<Iterable<NodeInterface>> emailsProperty  = new EndNodes(traitsInstance, EMAILS_PROPERTY, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
 		final Property<String> hostProperty                     = new StringProperty(HOST_PROPERTY).indexed().notNull();
 		final Property<String> userProperty                     = new StringProperty(USER_PROPERTY).indexed().notNull();
 		final Property<String> overrideMailEntityTypeProperty   = new StringProperty(OVERRIDE_MAIL_ENTITY_TYPE_PROPERTY).indexed();

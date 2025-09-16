@@ -40,21 +40,14 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Trait;
-import org.structr.core.traits.TraitDefinition;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.SchemaGrantTraitDefinition;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
-import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+import org.structr.core.traits.*;
+import org.structr.core.traits.definitions.*;
 
 import java.net.URI;
 import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -62,13 +55,12 @@ import java.util.concurrent.atomic.AtomicLong;
 @ServiceDependency(NodeService.class)
 public class SchemaService implements Service {
 
-	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
-	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
-	private static final AtomicBoolean schemaIsBeingReplaced      = new AtomicBoolean(false);
-	private static final AtomicLong updatingThreadId              = new AtomicLong(-1);
-	private static final Set<String> blacklist                    = new LinkedHashSet<>();
-	private static GraphQLSchema graphQLSchema                    = null;
+	public static final URI DynamicSchemaRootURI             = URI.create("https://structr.org/v2.0/#");
+	private static final Logger logger                       = LoggerFactory.getLogger(SchemaService.class.getName());
+	private static final Semaphore IndexUpdateSemaphore      = new Semaphore(1, true);
+	private static final AtomicBoolean schemaIsBeingReplaced = new AtomicBoolean(false);
+	private static final Set<String> blacklist               = new LinkedHashSet<>();
+	private static GraphQLSchema graphQLSchema               = null;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -92,7 +84,8 @@ public class SchemaService implements Service {
 
 		} else {
 
-			updatingThreadId.set(Thread.currentThread().threadId());
+			final TraitsInstance existingSchema = TraitsManager.getCurrentInstance();
+			final TraitsInstance newSchema      = TraitsManager.createCopyOfRootInstance();
 
 			blacklist("Favoritable");
 
@@ -103,19 +96,22 @@ public class SchemaService implements Service {
 
 				tx.prefetchHint("Reload schema");
 
-				final Map<String, Map<String, PropertyKey>> removedTypes = Traits.clearDynamicSchema();
+				final Map<String, Map<String, PropertyKey>> removedTypes = existingSchema.getDynamicSchemaTypes();
 
 				// fetch schema relationships
 				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getResultStream()) {
 
 					final SchemaRelationshipNode schemaRel = node.as(SchemaRelationshipNode.class);
 					final String name                      = schemaRel.getClassName();
-					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions();
+					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions(newSchema);
 
-					StructrTraits.registerDynamicRelationshipType(name, !schemaRel.changelogDisabled(), definitions);
+					newSchema.registerDynamicRelationshipType(name, !schemaRel.changelogDisabled(), definitions);
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
+
+					// create views (was a post process before, but needs access to the new schema)
+					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), name);
 				}
 
 				// fetch schema nodes
@@ -128,16 +124,19 @@ public class SchemaService implements Service {
 
 					// create traits
 					final String name                   = schemaNode.getClassName();
-					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions();
+					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions(newSchema);
 
-					StructrTraits.registerDynamicNodeType(name, !schemaNode.changelogDisabled(), schemaNode.isServiceClass(), definitions);
+					newSchema.registerDynamicNodeType(name, !schemaNode.changelogDisabled(), schemaNode.isServiceClass(), definitions);
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
+
+					// create views (was a post process before, but needs access to the new schema)
+					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), name);
 				}
 
 				// fetch schema methods that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_METHOD).key(newSchema.getTraits(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaMethod schemaMethod   = node.as(SchemaMethod.class);
 					final String staticSchemaNodeName = schemaMethod.getStaticSchemaNodeName();
@@ -145,9 +144,9 @@ public class SchemaService implements Service {
 					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
 
 						// attach method to existing type
-						if (Traits.exists(staticSchemaNodeName)) {
+						if (newSchema.exists(staticSchemaNodeName)) {
 
-							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+							final Trait trait = newSchema.getTrait(staticSchemaNodeName);
 
 							trait.registerDynamicMethod(schemaMethod);
 
@@ -159,7 +158,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema properties that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).key(newSchema.getTraits(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaProperty schemaProperty = node.as(SchemaProperty.class);
 					final String staticSchemaNodeName   = schemaProperty.getStaticSchemaNodeName();
@@ -167,9 +166,9 @@ public class SchemaService implements Service {
 					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
 
 						// attach method to existing type
-						if (Traits.exists(staticSchemaNodeName)) {
+						if (newSchema.exists(staticSchemaNodeName)) {
 
-							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+							final Trait trait = newSchema.getTrait(staticSchemaNodeName);
 
 							trait.registerDynamicProperty(schemaProperty);
 
@@ -181,7 +180,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema views that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_VIEW).key(Traits.of(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_VIEW).key(newSchema.getTraits(StructrTraits.SCHEMA_VIEW).key(SchemaViewTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaView schemaView       = node.as(SchemaView.class);
 					final String staticSchemaNodeName = schemaView.getStaticSchemaNodeName();
@@ -189,9 +188,9 @@ public class SchemaService implements Service {
 					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
 
 						// attach method to existing type
-						if (Traits.exists(staticSchemaNodeName)) {
+						if (newSchema.exists(staticSchemaNodeName)) {
 
-							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+							final Trait trait = newSchema.getTrait(staticSchemaNodeName);
 
 							trait.registerDynamicView(schemaView);
 
@@ -203,7 +202,7 @@ public class SchemaService implements Service {
 				}
 
 				// fetch schema grants that extend the static schema (not attached to a schema node)
-				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).key(Traits.of(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_GRANT).key(newSchema.getTraits(StructrTraits.SCHEMA_GRANT).key(SchemaGrantTraitDefinition.SCHEMA_NODE_PROPERTY), null).getResultStream()) {
 
 					final SchemaGrant schemaGrant     = node.as(SchemaGrant.class);
 					final String staticSchemaNodeName = schemaGrant.getStaticSchemaNodeName();
@@ -211,9 +210,9 @@ public class SchemaService implements Service {
 					if (StringUtils.isNotBlank(staticSchemaNodeName)) {
 
 						// attach method to existing type
-						if (Traits.exists(staticSchemaNodeName)) {
+						if (newSchema.exists(staticSchemaNodeName)) {
 
-							final Trait trait = Traits.getTrait(staticSchemaNodeName);
+							final Trait trait = newSchema.getTrait(staticSchemaNodeName);
 
 							trait.registerSchemaGrant(schemaGrant);
 
@@ -224,7 +223,7 @@ public class SchemaService implements Service {
 					}
 				}
 
-				updateIndexConfiguration(removedTypes);
+				updateIndexConfiguration(newSchema, removedTypes);
 
 				final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
 				final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
@@ -232,12 +231,12 @@ public class SchemaService implements Service {
 				final Map<String, GraphQLType> graphQLTypes              = new LinkedHashMap<>();
 				final GraphQLHelper graphQLHelper                        = new GraphQLHelper();
 
-				for (final String nodeType : Traits.getAllTypes(t -> t.isNodeType())) {
-					graphQLHelper.initializeGraphQLForNodeType(nodeType, graphQLTypes, blacklist);
+				for (final String nodeType : newSchema.getAllTypes(t -> t.isNodeType())) {
+					graphQLHelper.initializeGraphQLForNodeType(newSchema, nodeType, graphQLTypes, blacklist);
 				}
 
-				for (final String relType : Traits.getAllTypes(t -> t.isRelationshipType())) {
-					graphQLHelper.initializeGraphQLForRelationshipType(relType, graphQLTypes);
+				for (final String relType : newSchema.getAllTypes(t -> t.isRelationshipType())) {
+					graphQLHelper.initializeGraphQLForRelationshipType(newSchema,relType, graphQLTypes);
 				}
 
 				// register types in "Query" type
@@ -246,7 +245,7 @@ public class SchemaService implements Service {
 					final String className = entry.getKey();
 					final GraphQLType type = entry.getValue();
 
-					if (!Traits.exists(className)) {
+					if (!newSchema.exists(className)) {
 						continue;
 					}
 
@@ -264,7 +263,7 @@ public class SchemaService implements Service {
 							.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
 							.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
 							.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-							.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(selectionTypes, existingQueryTypeNames, className))
+							.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(newSchema, selectionTypes, existingQueryTypeNames, className))
 						);
 
 					} catch (Throwable t) {
@@ -292,6 +291,9 @@ public class SchemaService implements Service {
 
 				tx.success();
 
+				// lastly: replace schema
+				TraitsManager.replaceCurrentInstance(newSchema);
+
 			} catch (Throwable t) {
 
 				logger.error(ExceptionUtils.getStackTrace(t));
@@ -302,7 +304,6 @@ public class SchemaService implements Service {
 
 				TransactionCommand.simpleBroadcast("SCHEMA_COMPILED", Map.of("success", true), Predicate.allExcept(initiatedBySessionId));
 
-				updatingThreadId.set(-1);
 				schemaIsBeingReplaced.set(false);
 			}
 		}
@@ -360,28 +361,6 @@ public class SchemaService implements Service {
 		return schemaIsBeingReplaced.get();
 	}
 
-	public static void waitForSchemaReplacement() {
-
-		final long currentThreadId = Thread.currentThread().threadId();
-		int count = 0;
-
-		while (updatingThreadId.get() != -1 && updatingThreadId.get() != currentThreadId) {
-
-			if (count++ > 100) {
-				logger.warn("Waited more than 10 seconds for schema replacement, continuing.");
-				break;
-			}
-
-			// wait a random amount of time (will only happen if the schema is currently being replaced)
-			try {
-				Thread.yield();
-				Thread.sleep((int) (Math.random() * 100) + 100);
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-	}
-
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
@@ -389,7 +368,7 @@ public class SchemaService implements Service {
 	}
 
 	// ----- private methods -----
-	private static void updateIndexConfiguration(final Map<String, Map<String, PropertyKey>> removedTypes) {
+	private static void updateIndexConfiguration(final TraitsInstance traitsInstance, final Map<String, Map<String, PropertyKey>> removedTypes) {
 
 		if (Services.overrideIndexManagement()) {
 
@@ -427,10 +406,10 @@ public class SchemaService implements Service {
 					final Map<String, Map<String, IndexConfig>> schemaIndexConfig  = new HashMap();
 					final Map<String, Map<String, IndexConfig>> removedTypesConfig = new HashMap();
 
-					for (final String type : Traits.getAllTypes()) {
+					for (final String type : traitsInstance.getAllTypes()) {
 
-						final Traits traits                 = Traits.of(type);
-						final String typeName               = getIndexingTypeName(type);
+						final Traits traits                 = traitsInstance.getTraits(type);
+						final String typeName               = getIndexingTypeName(traitsInstance, type);
 						Map<String, IndexConfig> typeConfig = schemaIndexConfig.get(typeName);
 						final boolean isRelationship        = traits.isRelationshipType();
 
@@ -509,13 +488,13 @@ public class SchemaService implements Service {
 		indexUpdater.start();
 	}
 
-	private static String getIndexingTypeName(final String typeName) {
+	private static String getIndexingTypeName(final TraitsInstance traitsInstance, final String typeName) {
 
 		if (StructrTraits.GRAPH_OBJECT.equals(typeName)) {
 			return StructrTraits.NODE_INTERFACE;
 		}
 
-		final Traits traits = Traits.of(typeName);
+		final Traits traits = traitsInstance.getTraits(typeName);
 		if (traits.isRelationshipType()) {
 
 			final Relation relation = traits.getRelation();

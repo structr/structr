@@ -21,6 +21,7 @@ package org.structr.test.rest.traits.definitions;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Set;
@@ -32,12 +33,12 @@ public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> manyToManyTestOnes = new EndNodes("manyToManyTestOnes", "FourOneManyToMany");
-		final Property<Iterable<NodeInterface>> oneToManyTestOnes  = new EndNodes("oneToManyTestOnes",  "FourOneOneToMany");
-		final Property<NodeInterface> oneToOneTestThree            = new EndNode("oneToOneTestThree",  "FourThreeOneToOne");
-		final Property<NodeInterface> manyToOneTestThree           = new StartNode("manyToOneTestThree", "ThreeFourOneToMany");
+		final Property<Iterable<NodeInterface>> manyToManyTestOnes = new EndNodes(traitsInstance, "manyToManyTestOnes", "FourOneManyToMany");
+		final Property<Iterable<NodeInterface>> oneToManyTestOnes  = new EndNodes(traitsInstance, "oneToManyTestOnes",  "FourOneOneToMany");
+		final Property<NodeInterface> oneToOneTestThree            = new EndNode(traitsInstance, "oneToOneTestThree",  "FourThreeOneToOne");
+		final Property<NodeInterface> manyToOneTestThree           = new StartNode(traitsInstance, "manyToOneTestThree", "ThreeFourOneToMany");
 
 		return newSet(
 			manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree

@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
@@ -36,11 +37,11 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> testSeven            = new StartNode("testSeven", "SevenSixOneToMany");
+		final Property<NodeInterface> testSeven            = new StartNode(traitsInstance, "testSeven", "SevenSixOneToMany");
 		final Property<String> testSevenName               = new EntityNotionProperty("testSevenName", "TestSix", "testSeven", "TestSeven", new PropertyNotion("name"));
-		final Property<Iterable<NodeInterface>> testEights = new EndNodes("testEights", "SixEightManyToMany");
+		final Property<Iterable<NodeInterface>> testEights = new EndNodes(traitsInstance, "testEights", "SixEightManyToMany");
 		final Property<Iterable<Integer>> testEightInts    = new CollectionNotionProperty("testEightInts", "TestSix", "testEights", "TestEight", new PropertyNotion("anInt"));
 		final Property<Iterable<String>> testEightStrings  = new CollectionNotionProperty("testEightStrings", "TestSix", "testEights", "TestEight", new PropertyNotion("aString"));
 		final Property<String> aString                     = new StringProperty("aString").indexed();

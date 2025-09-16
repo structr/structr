@@ -36,6 +36,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -61,7 +62,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -182,9 +183,9 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL);
+		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(traitsInstance, MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 		final Property<String> jwksReferenceIdProperty          = new StringProperty(JWKS_REFERENCE_ID_PROPERTY).indexed().unique();
 		final Property<String> nameProperty                     = new StringProperty(NodeInterfaceTraitDefinition.NAME_PROPERTY).indexed().notNull().unique();
 		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty(IS_GROUP_PROPERTY, true);

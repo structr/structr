@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -28,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -44,6 +44,7 @@ import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -104,10 +105,10 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> handledNodes = new StartNodes(HANDLED_NODES_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
-		final Property<Iterable<NodeInterface>> dataTarget   = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> handledNodes = new StartNodes(traitsInstance, HANDLED_NODES_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<Iterable<NodeInterface>> dataTarget   = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
 		return newSet(
 			handledNodes,

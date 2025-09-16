@@ -26,6 +26,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -75,7 +76,7 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -103,14 +104,14 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> triggerElements              = new StartNodes(TRIGGER_ELEMENTS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> successTargets               = new StartNodes(SUCCESS_TARGETS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> failureTargets               = new StartNodes(FAILURE_TARGETS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> parameterMappings            = new EndNodes(PARAMETER_MAPPINGS_PROPERTY, StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
-		final Property<Iterable<NodeInterface>> successNotificationElements  = new StartNodes(SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
-		final Property<Iterable<NodeInterface>> failureNotificationElements  = new StartNodes(FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> triggerElements              = new StartNodes(traitsInstance, TRIGGER_ELEMENTS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> successTargets               = new StartNodes(traitsInstance, SUCCESS_TARGETS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureTargets               = new StartNodes(traitsInstance, FAILURE_TARGETS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> parameterMappings            = new EndNodes(traitsInstance, PARAMETER_MAPPINGS_PROPERTY, StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
+		final Property<Iterable<NodeInterface>> successNotificationElements  = new StartNodes(traitsInstance, SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> failureNotificationElements  = new StartNodes(traitsInstance, FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 
 		final Property<String> eventProperty                                 = new StringProperty(EVENT_PROPERTY).hint("DOM event which triggers the action");
 		final Property<String> actionProperty                                = new StringProperty(ACTION_PROPERTY).hint("Action which will be triggered");

@@ -24,6 +24,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.flow.impl.FlowNode;
 
@@ -51,12 +52,12 @@ public class FlowNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> isStartNodeOfContainer = new StartNode(IS_START_NODE_OF_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_FLOW_NODE);
-		final Property<Iterable<NodeInterface>> prev         = new StartNodes(PREV_PROPERTY, StructrTraits.FLOW_NODES);
-		final Property<NodeInterface> next                   = new EndNode(NEXT_PROPERTY, StructrTraits.FLOW_NODES);
-		final Property<NodeInterface> prevForEach            = new StartNode(PREV_FOR_EACH_PROPERTY, StructrTraits.FLOW_FOR_EACH_BODY);
+		final Property<NodeInterface> isStartNodeOfContainer = new StartNode(traitsInstance, IS_START_NODE_OF_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_FLOW_NODE);
+		final Property<Iterable<NodeInterface>> prev         = new StartNodes(traitsInstance, PREV_PROPERTY, StructrTraits.FLOW_NODES);
+		final Property<NodeInterface> next                   = new EndNode(traitsInstance, NEXT_PROPERTY, StructrTraits.FLOW_NODES);
+		final Property<NodeInterface> prevForEach            = new StartNode(traitsInstance, PREV_FOR_EACH_PROPERTY, StructrTraits.FLOW_FOR_EACH_BODY);
 
 		return newSet(
 			isStartNodeOfContainer,

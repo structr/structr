@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -37,7 +38,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<Integer>       anInt              = new IntProperty("anInt").indexed().indexedWhenEmpty();
 		final Property<Long>          aLong              = new LongProperty("aLong").indexed().indexedWhenEmpty();

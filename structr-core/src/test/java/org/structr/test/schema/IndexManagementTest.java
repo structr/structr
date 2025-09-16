@@ -18,7 +18,6 @@
  */
 package org.structr.test.schema;
 
-import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -45,7 +44,6 @@ import static org.testng.AssertJUnit.fail;
 /**
  *
  */
-@NotThreadSafe
 public class IndexManagementTest extends StructrTest {
 
 	private static final Logger logger                               = LoggerFactory.getLogger(IndexManagementTest.class);

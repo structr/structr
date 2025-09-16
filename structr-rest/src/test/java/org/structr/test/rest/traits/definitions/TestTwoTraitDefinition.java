@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
@@ -36,14 +37,14 @@ public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<Integer>       anInt    = new IntProperty("anInt").indexed().indexedWhenEmpty();
 		final Property<Long>          aLong    = new LongProperty("aLong").indexed().indexedWhenEmpty();
 		final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
 
-		final Property<Iterable<NodeInterface>> testOnes = new EndNodes("test_ones", "TwoOneOneToMany");
-		final Property<Iterable<NodeInterface>> testOnesAlt = new EndNodes("testOnes", "TwoOneOneToMany");
+		final Property<Iterable<NodeInterface>> testOnes = new EndNodes(traitsInstance, "test_ones", "TwoOneOneToMany");
+		final Property<Iterable<NodeInterface>> testOnesAlt = new EndNodes(traitsInstance, "testOnes", "TwoOneOneToMany");
 
 		return newSet(
 			anInt, aLong, aDate, testOnes, testOnesAlt

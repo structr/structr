@@ -41,6 +41,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.SchemaService;
@@ -183,6 +184,9 @@ public class StructrTest {
 		StructrTraits.registerNodeType("TestEleven",   new TestOneTraitDefinition(), new TestElevenTraitDefinition());
 		StructrTraits.registerNodeType("TestTwelve",   new TestOneTraitDefinition(), new TestTwelveTraitDefinition());
 		StructrTraits.registerNodeType("TestThirteen", new TestThirteenTraitDefinition());
+
+		// create new schema instance that includes the modified root schema
+		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
 	}
 
 	@AfterClass(alwaysRun = true)

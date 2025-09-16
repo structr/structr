@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.test.rest.common.TestEnum;
 
@@ -37,7 +38,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>        stringProperty          = new StringProperty("stringProperty").indexed();
 		final Property<String[]>      stringArrayProperty     = new ArrayProperty<>("stringArrayProperty", String.class).indexedWhenEmpty();
@@ -54,7 +55,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>        enumProperty            = new EnumProperty("enumProperty", TestEnum.class).indexed();
 		final Property<Boolean>       constantBooleanProperty = new ConstantBooleanProperty("constantBooleanProperty", true);
 		final Property<Byte[]>        byteArrayProperty       = new ByteArrayProperty("byteArrayProperty").indexed().indexedWhenEmpty();
-		final Property<NodeInterface> oneToOneTestFive        = new StartNode("oneToOneTestFive",  "FiveThreeOneToOne");
+		final Property<NodeInterface> oneToOneTestFive        = new StartNode(traitsInstance, "oneToOneTestFive",  "FiveThreeOneToOne");
 		final Property<ZonedDateTime> zonedDateTimeProperty   = new ZonedDateTimeProperty("zonedDateTime").indexed().indexedWhenEmpty();
 		final Property<String[]>      testEnumArrayProperty   = new EnumArrayProperty("enumArrayProperty", TestEnum.class).indexed().indexedWhenEmpty();
 

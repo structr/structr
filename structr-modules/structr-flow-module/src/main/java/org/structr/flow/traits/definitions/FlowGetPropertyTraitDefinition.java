@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -32,6 +31,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -41,10 +41,11 @@ import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowGetProperty;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.flow.traits.operations.GetExportData;
+import java.util.TreeMap;
 
 public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -184,10 +185,10 @@ public class FlowGetPropertyTraitDefinition extends AbstractNodeTraitDefinition 
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> nodeSource         = new StartNode(NODE_SOURCE_PROPERTY, StructrTraits.FLOW_NODE_DATA_SOURCE);
-		final Property<NodeInterface> propertyNameSource = new StartNode(PROPERTY_NAME_SOURCE_PROPERTY, StructrTraits.FLOW_NAME_DATA_SOURCE);
+		final Property<NodeInterface> nodeSource         = new StartNode(traitsInstance, NODE_SOURCE_PROPERTY, StructrTraits.FLOW_NODE_DATA_SOURCE);
+		final Property<NodeInterface> propertyNameSource = new StartNode(traitsInstance, PROPERTY_NAME_SOURCE_PROPERTY, StructrTraits.FLOW_NAME_DATA_SOURCE);
 		final Property<String> propertyName              = new StringProperty(PROPERTY_NAME_PROPERTY);
 
 		return newSet(

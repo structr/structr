@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.*;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -37,11 +38,11 @@ public class TestEightTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>>  testSixs    = new StartNodes("testSixs", "SixEightManyToMany");
+		final Property<Iterable<NodeInterface>>  testSixs    = new StartNodes(traitsInstance, "testSixs", "SixEightManyToMany");
 		final Property<Iterable<String>> testSixIds          = new CollectionNotionProperty("testSixIds", "TestEight", "testSixs", "TestSix", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
-		final Property<Iterable<NodeInterface>> testNines    = new StartNodes("testNines", "NineEightManyToMany");
+		final Property<Iterable<NodeInterface>> testNines    = new StartNodes(traitsInstance, "testNines", "NineEightManyToMany");
 		final Property<Iterable<String>> testNineIds         = new CollectionNotionProperty("testNineIds", "TestEight", "testNines", "TestNine", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<Iterable<String>> testNinePostalCodes = new CollectionNotionProperty("testNinePostalCodes", "TestEight", "testNines", "TestNine", new PropertyNotion(TestNineTraitDefinition.POSTAL_CODE_PROPERTY));
 		final Property<String> aString                       = new StringProperty("aString").indexed().indexedWhenEmpty();

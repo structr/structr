@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -28,16 +27,17 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.impl.FlowBaseNode;
-import org.structr.flow.impl.FlowParameterDataSource;
 import org.structr.flow.impl.FlowParameterInput;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.flow.traits.operations.GetExportData;
+import java.util.TreeMap;
 
 public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -83,9 +83,9 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> call = new EndNodes(CALL_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
+		final Property<Iterable<NodeInterface>> call = new EndNodes(traitsInstance, CALL_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
 		final Property<String> key                   = new StringProperty(KEY_PROPERTY);
 
 		return newSet(

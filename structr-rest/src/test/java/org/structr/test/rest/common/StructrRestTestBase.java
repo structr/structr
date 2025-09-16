@@ -39,6 +39,7 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.helper.ConcurrentPortNumberHelper;
@@ -149,6 +150,9 @@ public abstract class StructrRestTestBase {
 		StructrTraits.registerNodeType("TestTen",      new TestTenTraitDefinition());
 		StructrTraits.registerNodeType("TestEleven",   new TestElevenTraitDefinition());
 		StructrTraits.registerNodeType("TestObject",   new TestObjectTraitDefinition());
+
+		// create new schema instance that includes the modified root schema
+		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
 	}
 
 	@AfterClass(alwaysRun = true)

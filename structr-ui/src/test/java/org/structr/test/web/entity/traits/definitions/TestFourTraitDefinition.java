@@ -24,6 +24,7 @@ import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
@@ -36,9 +37,9 @@ public class TestFourTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> oneToOneTestThree  = new EndNode("oneToOneTestThree", "FourThreeOneToOne");
+		final Property<NodeInterface> oneToOneTestThree  = new EndNode(traitsInstance, "oneToOneTestThree", "FourThreeOneToOne");
 
 		return newSet(
 			oneToOneTestThree

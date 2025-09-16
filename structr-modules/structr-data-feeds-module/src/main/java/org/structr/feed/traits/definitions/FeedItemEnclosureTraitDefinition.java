@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -52,7 +53,7 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 			AfterCreation.class,
@@ -68,9 +69,9 @@ public class FeedItemEnclosureTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> itemProperty   = new StartNode(ITEM_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
+		final Property<NodeInterface> itemProperty   = new StartNode(traitsInstance, ITEM_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
 		final Property<String> urlProperty           = new StringProperty(URL_PROPERTY);
 		final Property<Long> enclosureLengthProperty = new LongProperty(ENCLOSURE_LENGTH_PROPERTY);
 		final Property<String> enclosureTypeProperty = new StringProperty(ENCLOSURE_TYPE_PROPERTY);

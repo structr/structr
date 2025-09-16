@@ -25,6 +25,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Date;
@@ -38,13 +39,13 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final String TEST_THREE_CUSTOM_DATE_FORMAT = "dd.MM.yyyy";
 
-		final Property<NodeInterface> testOne          = new StartNode("testOne",         "OneThreeOneToOne");
-		final Property<NodeInterface> oneToOneTestSix  = new StartNode("oneToOneTestSix", "SixThreeOneToOne");
-		final Property<NodeInterface> oneToManyTestSix = new StartNode("oneToManyTestSix", "SixThreeOneToMany");
+		final Property<NodeInterface> testOne          = new StartNode(traitsInstance, "testOne",         "OneThreeOneToOne");
+		final Property<NodeInterface> oneToOneTestSix  = new StartNode(traitsInstance, "oneToOneTestSix", "SixThreeOneToOne");
+		final Property<NodeInterface> oneToManyTestSix = new StartNode(traitsInstance, "oneToManyTestSix", "SixThreeOneToMany");
 		final Property<Date> aDateWithFormat           = new ISO8601DateProperty("aDateWithFormat").format(TEST_THREE_CUSTOM_DATE_FORMAT).indexed().indexedWhenEmpty();
 
 		return newSet(

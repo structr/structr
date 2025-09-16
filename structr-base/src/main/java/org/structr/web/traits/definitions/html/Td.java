@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 
 import java.util.Map;
 import java.util.Set;
@@ -37,7 +38,7 @@ public class Td extends GenericHtmlElementTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> colspanProperty = new StringProperty(COLSPAN_PROPERTY);
 		final PropertyKey<String> rowspanProperty = new StringProperty(ROWSPAN_PROPERTY);

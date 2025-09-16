@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -38,7 +39,7 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
 		final PropertyKey<Integer>                 anInt              = new IntProperty("anInt").indexed().indexedWhenEmpty();
 		final PropertyKey<Long>                    aLong              = new LongProperty("aLong").indexed().indexedWhenEmpty();
@@ -58,10 +59,10 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<String>                  alwaysNull         = new StringProperty("alwaysNull");
 		final PropertyKey<String>                  doResult           = new StringProperty("doResult");
 		final PropertyKey<String>                  stringWithDefault  = new StringProperty("stringWithDefault").defaultValue("default value").indexedWhenEmpty();
-		final PropertyKey<NodeInterface>           testTwo            = new EndNode("testTwo",  "OneTwoOneToOne");
-		final PropertyKey<NodeInterface>           testThree          = new EndNode("testThree", "OneThreeOneToOne");
-		final PropertyKey<NodeInterface>           testFour           = new EndNode("testFour",  "OneFourOneToOne");
-		final PropertyKey<Iterable<NodeInterface>> manyToManyTestSixs = new StartNodes("manyToManyTestSixs", "SixOneManyToMany");
+		final PropertyKey<NodeInterface>           testTwo            = new EndNode(traitsInstance, "testTwo",  "OneTwoOneToOne");
+		final PropertyKey<NodeInterface>           testThree          = new EndNode(traitsInstance, "testThree", "OneThreeOneToOne");
+		final PropertyKey<NodeInterface>           testFour           = new EndNode(traitsInstance, "testFour",  "OneFourOneToOne");
+		final PropertyKey<Iterable<NodeInterface>> manyToManyTestSixs = new StartNodes(traitsInstance, "manyToManyTestSixs", "SixOneManyToMany");
 		final PropertyKey<String>                  aCreateString      = new StringProperty("aCreateString").indexed();
 		final PropertyKey<Integer>                 aCreateInt         = new IntProperty("aCreateInt").indexed();
 		final PropertyKey<String[]>                aStringArray       = new ArrayProperty("aStringArray", String.class).indexed();

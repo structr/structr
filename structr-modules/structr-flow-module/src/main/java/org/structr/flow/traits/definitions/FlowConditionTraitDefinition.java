@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.flow.impl.FlowCondition;
 
@@ -51,10 +52,10 @@ public class FlowConditionTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final PropertyKey<Iterable<NodeInterface>> conditions    = new StartNodes(CONDITIONS_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
-		final PropertyKey<Iterable<NodeInterface>> logicTargets  = new EndNodes(LOGIC_TARGETS_PROPERTY, StructrTraits.FLOW_CONDITION_BASE_NODE);
+		final PropertyKey<Iterable<NodeInterface>> conditions    = new StartNodes(traitsInstance, CONDITIONS_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
+		final PropertyKey<Iterable<NodeInterface>> logicTargets  = new EndNodes(traitsInstance, LOGIC_TARGETS_PROPERTY, StructrTraits.FLOW_CONDITION_BASE_NODE);
 
 		return newSet(
 			conditions,

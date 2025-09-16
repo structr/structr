@@ -21,6 +21,7 @@ package org.structr.test.core.traits.definitions.relationships;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -86,7 +87,7 @@ public class OneFourOneToOneTraitDefinition extends AbstractRelationshipTraitDef
 	*/
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>   startNodeId         = new StringProperty("startNodeId");
 		final Property<String>   endNodeId           = new StringProperty("endNodeId");
