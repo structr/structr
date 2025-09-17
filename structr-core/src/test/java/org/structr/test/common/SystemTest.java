@@ -770,7 +770,7 @@ public class SystemTest extends StructrTest {
 				}
 			}
 
-			assertEquals("OneToMany.ensureCardinality is not wirking correctly", 1, filtered.size());
+			assertEquals("OneToMany.ensureCardinality is not working correctly", 1, filtered.size());
 
 			tx.success();
 
