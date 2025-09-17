@@ -45,9 +45,9 @@
 	</prerequisites>
 
 	<properties>
-		<java.version>24</java.version>
-		<maven.compiler.source>24</maven.compiler.source>
-		<maven.compiler.target>24</maven.compiler.target>
+		<java.version>25</java.version>
+		<maven.compiler.source>25</maven.compiler.source>
+		<maven.compiler.target>25</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:2025</test.neo4j.version>

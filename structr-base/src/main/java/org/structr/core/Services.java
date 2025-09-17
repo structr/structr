@@ -119,7 +119,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private static void checkJavaRuntime() {
 
-		final int expectedMajorVersion = 24;
+		final int expectedMajorVersion = 25;
 		final int expectedMinorVersion = 0;
 
 		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
