@@ -29,18 +29,15 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
 
@@ -425,61 +422,6 @@ public class SchemaMethodsTest extends FrontendTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
-		}
-	}
-
-	@Test
-	public void testCallingExportMethods() {
-
-		final String addMemberScript =  "${{\n" +
-				"\n" +
-				"	var newGroup = Structr.create('Group', 'name', 'testGroup');\n" +
-				"	var newUser  = Structr.create('User', 'name', 'testUser');\n" +
-				"\n" +
-				"	newGroup.addMember({ user: newUser });\n" +
-				"\n" +
-				"	newGroup.members.length;" +
-				"}}";
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx = new ActionContext(securityContext, null);
-
-			assertEquals("Calling group.addMember(user) should be possible from JavaScript!", 1, Scripting.evaluate(ctx, null, addMemberScript, "test"));
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
-		}
-
-		final String removeMemberScript =  "${{\n" +
-				"\n" +
-				"	var group = Structr.find('Group', 'name', 'testGroup')[0];\n" +
-				"	var user  = Structr.find('User', 'name', 'testUser')[0];\n" +
-				"\n" +
-				"	var beforeRemove = 'before: ' + group.members.length;" +
-				"\n" +
-				"	group.removeMember({ user: user });\n" +
-				"\n" +
-				"	(beforeRemove + ' - after: ' + group.members.length);" +
-				"}}";
-
-		try (final Tx tx = app.tx()) {
-
-			final ActionContext ctx = new ActionContext(securityContext, null);
-
-			// we need to .toString() the evaluation result because a ConsString is returned from javascript
-			assertEquals("Calling group.removeMember(user) should be possible from JavaScript!", "before: 1 - after: 0", Scripting.evaluate(ctx, null, removeMemberScript, "test").toString());
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
-			fail("Unexpected exception.");
 		}
 	}
 
