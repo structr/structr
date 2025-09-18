@@ -19,15 +19,11 @@
 package org.structr.core.traits.definitions;
 
 import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
@@ -42,7 +38,6 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.propertycontainer.SetProperty;
 import org.structr.core.traits.wrappers.GroupTraitWrapper;
-import org.structr.schema.action.EvaluationHints;
 
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -108,70 +103,6 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 				}
 			}
 		);
-	}
-
-	@Override
-	public Set<AbstractMethod> getDynamicMethods() {
-
-		final Set<AbstractMethod> methods = new LinkedHashSet<>();
-
-		methods.add(new JavaMethod("addMember", false, false) {
-
-			@Override
-			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
-
-				if (entity.is(StructrTraits.GROUP)) {
-
-					final NodeInterface userNode = (NodeInterface)arguments.get(0);
-					Principal user               = null;
-
-					if (userNode != null) {
-						user = userNode.as(Principal.class);
-					}
-
-					entity.as(Group.class).addMember(securityContext, user);
-				}
-
-				return null;
-			}
-		});
-
-		methods.add(new JavaMethod("getMembers", false, false) {
-
-			@Override
-			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
-
-				if (entity.is(StructrTraits.GROUP)) {
-
-					return entity.as(Group.class).getMembers();
-				}
-
-				return null;
-			}
-		});
-
-		methods.add(new JavaMethod("removeMember", false, false) {
-
-			@Override
-			public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
-
-				if (entity.is(StructrTraits.GROUP)) {
-
-					final NodeInterface userNode = (NodeInterface)arguments.get(0);
-					Principal user               = null;
-
-					if (userNode != null) {
-						user = userNode.as(Principal.class);
-					}
-
-					entity.as(Group.class).removeMember(securityContext, user);
-				}
-
-				return null;
-			}
-		});
-
-		return methods;
 	}
 
 	@Override

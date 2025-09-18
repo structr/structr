@@ -39,6 +39,7 @@ import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.SchemaService;
@@ -131,6 +132,9 @@ public abstract class CsvTestBase {
 		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
 		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
 		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+
+		// create new schema instance that includes the modified root schema
+		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
 	}
 
 	@BeforeMethod

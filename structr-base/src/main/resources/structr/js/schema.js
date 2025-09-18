@@ -4834,7 +4834,7 @@ let _Schema = {
 
 							_Schema.ui.setZoom(layoutData.zoom);
 							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels);
-							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows ?? true);
+							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows);
 							_Schema.ui.setConnectorStyle(layoutData.connectorStyle);
 							_Schema.ui.layouts.setNodePositions(layoutData.positions);
 
@@ -5395,14 +5395,14 @@ let _Schema = {
 				Structr.dropdowns.hideOpenDropdownsExcept();
 			});
 		},
-		setConnectorStyle: (style) => {
+		setConnectorStyle: (style = 'Flowchart') => {
 
 			$('#connector-style').val(style);
 			_Schema.ui.connectorStyle = style;
 
 			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 		},
-		setZoom: (zoom) => {
+		setZoom: (zoom = 1.0) => {
 
 			_Schema.ui.zoomLevel = zoom;
 			_Schema.ui.panzoomInstance?.zoom(zoom);
@@ -5410,7 +5410,7 @@ let _Schema = {
 
 			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 		},
-		setOverlayVisibility: (show) => {
+		setOverlayVisibility: (show = true) => {
 
 			_Schema.ui.showSchemaOverlays = show;
 
@@ -5423,7 +5423,7 @@ let _Schema = {
 
 			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 		},
-		setInheritanceArrowsVisibility: (showArrows) => {
+		setInheritanceArrowsVisibility: (showArrows = true) => {
 
 			_Schema.ui.showInheritanceArrows = showArrows;
 
