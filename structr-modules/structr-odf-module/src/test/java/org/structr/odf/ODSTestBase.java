@@ -19,6 +19,7 @@
 package org.structr.odf;
 
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.odf.entity.relationship.ODFExporterEXPORTS_TOFile;
 import org.structr.odf.entity.relationship.ODFExporterGETS_TRANSFORMATION_FROMVirtualType;
 import org.structr.odf.entity.relationship.ODFExporterUSES_TEMPLATEFile;
@@ -40,5 +41,8 @@ public class ODSTestBase extends StructrUiTest {
 		StructrTraits.registerNodeType(StructrTraits.ODF_EXPORTER, new ODFExporterTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.ODS_EXPORTER, new ODFExporterTraitDefinition(), new ODSExporterTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.ODT_EXPORTER, new ODFExporterTraitDefinition(), new ODTExporterTraitDefinition());
+
+		// create new schema instance that includes the modified root schema
+		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
 	}
 }

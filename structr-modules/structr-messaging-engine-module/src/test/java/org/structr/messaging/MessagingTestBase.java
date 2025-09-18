@@ -19,6 +19,7 @@
 package org.structr.messaging;
 
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.messaging.engine.relation.MessageClientHASMessageSubscriber;
 import org.structr.messaging.traits.definitions.*;
 import org.structr.test.web.StructrUiTest;
@@ -36,5 +37,8 @@ public class MessagingTestBase extends StructrUiTest {
 		StructrTraits.registerNodeType(StructrTraits.KAFKA_CLIENT,       new MessageClientTraitDefinition(), new KafkaClientTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.MQTT_CLIENT,        new MessageClientTraitDefinition(), new MQTTClientTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.PULSAR_CLIENT,      new MessageClientTraitDefinition(), new PulsarClientTraitDefinition());
+
+		// create new schema instance that includes the modified root schema
+		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
 	}
 }
