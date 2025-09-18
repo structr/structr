@@ -503,10 +503,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		final Set<String> traits1 = type1.getAllTraits();
 		final Set<String> traits2 = type2.getAllTraits();
 
-		traits1.retainAll(traits2);
+		traits1.removeAll(traits2);
 
-		// fixme: how do we determine assignability with traits?!
-		return !traits1.isEmpty();
+		return traits1.isEmpty();
 	}
 
 	private String getQueryDescription() {

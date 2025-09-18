@@ -142,7 +142,8 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 
 					final NodeInterface actualTargetNode = unwrap(securityContext, relationType, targetNode, properties);
 
-					relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
+					// this is called in CreateRelationshipCommand as well
+					//relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
 					final PropertyMap notionProperties = getNotionProperties(securityContext, relationType, actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
 					if (notionProperties != null) {

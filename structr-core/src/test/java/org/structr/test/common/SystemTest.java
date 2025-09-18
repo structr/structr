@@ -593,6 +593,166 @@ public class SystemTest extends StructrTest {
 	}
 
 	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeOneToOne() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToOne, "project", "task");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<NodeInterface> taskKey = Traits.of("Project").key("task");
+
+			project.setProperty(taskKey, mailTemplate);
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for one-to-one relationships.");
+
+		} catch (FrameworkException fex) {
+		}
+	}
+
+	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeOneToMany() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
+
+			project.setProperty(tasksKey, List.of(mailTemplate));
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for one-to-many relationships.");
+
+		} catch (FrameworkException fex) {
+		}
+	}
+
+	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeManyToOne() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.ManyToOne, "projects", "task");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<NodeInterface> tasksKey = Traits.of("Project").key("task");
+
+			project.setProperty(tasksKey, mailTemplate);
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for many-to-one relationships.");
+
+		} catch (FrameworkException fex) {
+		}
+	}
+
+	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeManyToMany() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.ManyToMany, "projects", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
+
+			project.setProperty(tasksKey, List.of(mailTemplate));
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for many-to-many relationships.");
+
+		} catch (FrameworkException fex) {
+		}
+	}
+
+	@Test
 	public void testEnsureOneToOneCardinality() {
 
 		Principal tester1 = null;
@@ -1579,7 +1739,7 @@ public class SystemTest extends StructrTest {
 		Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
 	}
 
-	//@Test
+	@Test
 	public void testConcurrentDeleteAndFetch() {
 
 		final AtomicBoolean error = new AtomicBoolean(false);
