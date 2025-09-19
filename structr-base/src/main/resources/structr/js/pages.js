@@ -578,6 +578,7 @@ let _Pages = {
 
 					Command.removeChild(entity.id, () => {
 						_Pages.unattachedNodes.blinkUI();
+						_Pages.unattachedNodes.reload();
 					});
 				}
 			});
@@ -590,8 +591,12 @@ let _Pages = {
 				classes: ['menu-bolder', 'danger'],
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
+					
 					let recursive = (isActualContentElement === false);
-					_Entities.deleteNode(entity, recursive);
+					_Entities.deleteNode(entity, recursive, () => {
+						_Pages.unattachedNodes.blinkUI();
+						_Pages.unattachedNodes.reload();
+					});
 				}
 			});
 		}
