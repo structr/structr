@@ -211,13 +211,13 @@ public class Scripting {
 
 		if (isScriptEngine) {
 
-			return PolyglotWrapper.unwrap(actionContext, evaluateScript(actionContext, entity, engine, snippet));
+			return PolyglotWrapper.unwrap(actionContext, evaluateScript(actionContext, entity, engine, snippet, scriptConfig));
 
 		} else if (isJavascript) {
 
 			snippet.setMimeType("application/javascript+module");
 			snippet.setEngineName("js");
-			final Object result = evaluateScript(actionContext, entity, "js", snippet);
+			final Object result = evaluateScript(actionContext, entity, "js", snippet, scriptConfig);
 
 			if (enableTransactionNotifications && securityContext != null) {
 				securityContext.setDoTransactionNotifications(true);
