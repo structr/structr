@@ -1911,7 +1911,7 @@ public class UiScriptingTest extends StructrUiTest {
 			Thread.sleep(1000);
 
 			final Object storeResult = Services.getInstance().getApplicationStore().get("scheduleTestValidationPassed");
-			assertTrue(storeResult != null && ((org.graalvm.polyglot.Value) storeResult).asBoolean());
+			assertTrue(storeResult != null && (boolean)storeResult);
 
 			tx.success();
 		} catch (FrameworkException fex) {

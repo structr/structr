@@ -104,6 +104,11 @@ public abstract class PolyglotWrapper {
 				return new PolyglotProxyArray(actionContext, enumList.toArray());
 			}
 
+			if (obj instanceof Date) {
+
+				return new PolyglotProxyDate((Date) obj);
+			}
+
 			if (obj instanceof LocalDate lDate) {
 
 				return ProxyDate.from(lDate);
@@ -206,6 +211,11 @@ public abstract class PolyglotWrapper {
 				if (value.canExecute()) {
 
 					return new FunctionWrapper(actionContext, value);
+				}
+
+				if (value.isHostObject() && value.asHostObject() instanceof PolyglotProxyDate proxyDate) {
+
+					return proxyDate.getDateDelegate();
 				}
 
 				if (value.isInstant() && value.isTimeZone()) {
