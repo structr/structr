@@ -60,11 +60,9 @@
             <plugin>
                 <groupId>com.github.eirslett</groupId>
                 <artifactId>frontend-maven-plugin</artifactId>
-                <version>1.12.1</version>
+                <version>1.15.1</version>
                 <configuration>
                     <workingDirectory>src/test/ui</workingDirectory>
-                    <nodeVersion>v22.11.0</nodeVersion>
-                    <npmVersion>10.9.0</npmVersion>
                 </configuration>
                 <executions>
                     <execution>
@@ -72,6 +70,10 @@
                         <goals>
                             <goal>install-node-and-npm</goal>
                         </goals>
+                        <configuration>
+                            <nodeVersion>v22.11.0</nodeVersion>
+                            <npmVersion>10.9.0</npmVersion>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>npm-install</id>
@@ -96,7 +98,7 @@
                         <goals>
                             <goal>npm</goal>
                         </goals>
-                        <phase>test</phase>
+                        <phase>integration-test</phase>
                         <configuration>
                             <arguments>run test</arguments>
                             <environmentVariables>
@@ -107,21 +109,59 @@
                     </execution>
                 </executions>
             </plugin>
-<!--            <plugin>-->
-<!--                <groupId>org.apache.maven.plugins</groupId>-->
-<!--                <artifactId>maven-surefire-plugin</artifactId>-->
-<!--                <version>3.2.1</version>-->
-<!--                <executions>-->
-<!--                    <execution>-->
-<!--                        <phase>test</phase>-->
-<!--                    </execution>-->
-<!--                </executions>-->
-<!--                <configuration>-->
-<!--                    <includes>-->
-<!--                        <include>src/test/ui/*Test.java</include>-->
-<!--                    </includes>-->
-<!--                </configuration>-->
-<!--            </plugin>-->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <id>create-symlink</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>ln</executable>
+                            <arguments>
+                                <argument>-s</argument> <!-- force and symbolic -->
+                                <argument>../structr-base/src/main/resources/structr</argument>
+                                <argument>.</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>start-structr-server</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>java</executable>
+                            <arguments>
+                                <argument>-classpath</argument>
+                                <argument>../structr-base/target/lib/*:../structr-base/target/structr-base-*.jar</argument>
+                                <argument>-Djava.awt.headless=true</argument>
+                                <argument>-Djava.net.preferIPv4Stack=true</argument>
+                                <argument>-Djava.net.preferIPv6Addresses=false</argument>
+                                <argument>-Duser.country=US</argument>
+                                <argument>-Duser.language=en</argument>
+                                <argument>-Duser.timezone=UTC</argument>
+                                <argument>-Dfile.encoding=UTF-8</argument>
+                                <argument>-Dorg.apache.sshd.registerBouncyCastle=false</argument>
+                                <argument>-Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0</argument>
+                                <argument>-server</argument>
+                                <argument>-Xmx2G</argument>
+                                <argument>-XX:+UseNUMA</argument>
+                                <argument>-XX:+UseG1GC</argument>
+                                <argument>-XX:+UseCodeCacheFlushing</argument>
+                                <argument>org.structr.Server</argument>
+                            </arguments>
+                            <async>true</async>
+                            <asyncDestroyOnShutdown>true</asyncDestroyOnShutdown>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
