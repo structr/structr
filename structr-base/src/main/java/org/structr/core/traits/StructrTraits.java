@@ -18,8 +18,6 @@
  */
 package org.structr.core.traits;
 
-import org.structr.core.traits.definitions.*;
-
 public class StructrTraits {
 
 	// node types
@@ -350,62 +348,24 @@ public class StructrTraits {
 	public static final String FLOW_VALUE_INPUT                                               = "FlowValueInput";
 
 
-	public static void registerBaseType(final TraitDefinition definition) {
+	public static void registerTrait(final TraitDefinition definition) {
 
 		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
-		final Traits traits = new TraitsImplementation(rootInstance, definition.getName(), true, false, false, false, false);
 
-		traits.registerImplementation(definition, false);
+		rootInstance.registerTrait(definition.getName(), new Trait(rootInstance, definition, false));
 	}
 
-	public static void registerNodeInterface() {
+	public static void registerNodeType(final String typeName, final String... traits) {
 
 		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
-		final Traits traits = new TraitsImplementation(rootInstance, StructrTraits.NODE_INTERFACE, true, true, false, false, false);
 
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
+		rootInstance.registerNodeType(typeName, traits);
 	}
 
-	public static void registerRelationshipInterface() {
+	public static void registerRelationshipType(final String typeName, final String... traits) {
 
 		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
-		final Traits traits = new TraitsImplementation(rootInstance, StructrTraits.RELATIONSHIP_INTERFACE, true, false, true, false, false);
 
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
-	}
-
-	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
-
-		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
-		final Traits traits = new TraitsImplementation(rootInstance, typeName, true, true, false, false, false);
-
-		// Node types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
-		traits.registerImplementation(new AccessControllableTraitDefinition(), false);
-
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, false);
-		}
-	}
-
-	public static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
-
-		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
-		final Traits traits               = new TraitsImplementation(rootInstance, typeName, true, false, true, false, false);
-
-		// Relationship types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
-
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, false);
-		}
+		rootInstance.registerRelationshipType(typeName, traits);
 	}
 }

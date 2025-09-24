@@ -37,18 +37,25 @@ import java.util.Set;
 /**
  *
  */
-public class ODFModule implements StructrModule{
+public class ODFModule implements StructrModule {
 
 	@Override
 	public void onLoad() {
 
-		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE,                       new ODFExporterEXPORTS_TOFile());
-		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE, new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());
-		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE,                    new ODFExporterUSES_TEMPLATEFile());
+		StructrTraits.registerTrait(new ODFExporterEXPORTS_TOFile());
+		StructrTraits.registerTrait(new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());
+		StructrTraits.registerTrait(new ODFExporterUSES_TEMPLATEFile());
+		StructrTraits.registerTrait(new ODFExporterTraitDefinition());
+		StructrTraits.registerTrait(new ODSExporterTraitDefinition());
+		StructrTraits.registerTrait(new ODTExporterTraitDefinition());
 
-		StructrTraits.registerNodeType(StructrTraits.ODF_EXPORTER, new ODFExporterTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.ODS_EXPORTER, new ODFExporterTraitDefinition(), new ODSExporterTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.ODT_EXPORTER, new ODFExporterTraitDefinition(), new ODTExporterTraitDefinition());
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE,                       StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
+		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE,                    StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
+
+		StructrTraits.registerNodeType(StructrTraits.ODF_EXPORTER, StructrTraits.ODF_EXPORTER);
+		StructrTraits.registerNodeType(StructrTraits.ODS_EXPORTER, StructrTraits.ODF_EXPORTER, StructrTraits.ODS_EXPORTER);
+		StructrTraits.registerNodeType(StructrTraits.ODT_EXPORTER, StructrTraits.ODF_EXPORTER, StructrTraits.ODT_EXPORTER);
 
 		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
 

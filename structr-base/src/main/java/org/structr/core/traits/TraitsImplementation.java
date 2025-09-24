@@ -18,7 +18,6 @@
  */
 package org.structr.core.traits;
 
-import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
@@ -428,6 +427,7 @@ public class TraitsImplementation implements Traits {
 		return getLabels();
 	}
 
+	/*
 	@Override
 	public synchronized void registerImplementation(final TraitDefinition traitDefinition, final boolean isDynamic) {
 
@@ -445,6 +445,8 @@ public class TraitsImplementation implements Traits {
 		// clear cache
 		keyCache.clear();
 	}
+
+	 */
 
 	@Override
 	public Map<String, Map<String, PropertyKey>> getDynamicTypes() {
@@ -500,20 +502,17 @@ public class TraitsImplementation implements Traits {
 
 		for (final String name : traits) {
 
-			final Trait trait = traitsInstance.getTrait(name);
-			if (trait != null) {
+			for (final Trait trait : traitsInstance.getTraitsWithLabel(name)) {
 
 				localTraitsCache.add(trait);
-
-			} else {
-
-				// leave a log message, so we can find other occurrences of this problem
-				LoggerFactory.getLogger(TraitsImplementation.class).warn("Trait {} not found, please investigate.");
-				Thread.dumpStack();
 			}
 		}
 
 		return localTraitsCache;
+	}
+
+	public void addTrait(final String trait) {
+		traits.add(trait);
 	}
 
 	class Wrapper<T> {
