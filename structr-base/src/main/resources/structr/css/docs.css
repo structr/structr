@@ -1,0 +1,396 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#docs-area {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+}
+
+/* Navigation column */
+
+#docs-area nav {
+    background-color: transparent;
+    overflow: auto;
+    height: calc(100vh - 8rem);
+    width: 20%;
+}
+
+#docs-area nav a {
+    text-decoration: none;
+}
+
+#docs-area nav a.active {
+    color: var(--structr-green);
+    font-weight: 500;
+}
+
+#docs-area nav ul {
+    padding: 0 0 0 2rem;
+    margin: 0;
+    border-left: 2px solid var(--gray-ccc);
+}
+
+#docs-area nav ul ul {
+    padding: 0 0 0 .8rem;
+    margin: 1.5rem 0 0 0;
+}
+
+#docs-area nav li {
+    list-style-type: none;
+    padding: .25rem 0;
+    margin: 0;
+}
+
+#docs-area nav li li {
+    list-style-type: none;
+    color: var(--gray-555);
+    font-weight: 300;
+    padding: 0 0 0 .5rem;
+}
+
+#docs-area nav li li:hover {
+    list-style-type: disc;
+    color: var(--gray-333);
+}
+
+#docs-area nav li li:has(a.active) {
+    list-style-type: disc;
+    color: var(--structr-green);
+}
+
+#docs-area nav li li::marker {
+    color: var(--gray-ccc);
+    font-size: 1.35rem;
+    line-height: 1rem;
+}
+
+#docs-area nav li li:has(a.active)::marker {
+    color: var(--structr-green);
+    font-size: 1.35rem;
+    line-height: 1rem;
+}
+
+#docs-area nav li li::before {
+    padding-right: 8px;
+}
+
+#docs-area nav li li:not(:last-child) {
+    padding: 0 0 1.5rem .5rem;
+}
+
+#docs-area nav ul#docs-main-navigation > li {
+    padding: 2.15rem 0 1.6rem 0;
+    font-weight: 500;
+}
+
+/* Article */
+
+#docs-area article {
+    background-color: white;
+    overflow: auto;
+    height: calc(100vh - 10rem);
+    padding: 0 2rem 2rem 2rem;
+    width: 80%;
+    line-height: 1.5rem;
+}
+
+.article .subtitle {
+    font-weight: 500;
+    margin: 0;
+    padding-top: 2rem;
+}
+
+.article h1 {
+    font-size: 2rem;
+    padding: .5rem 0;
+    /*color: #90d01e;*/
+    font-weight: 300;
+    color: var(--structr-green);
+}
+
+.article h2 {
+    font-size: 1.5rem;
+    padding: 1rem 0 0 0;
+}
+
+.article h3 {
+    font-size: 1.1rem;
+    padding: 1rem 0 0 0;
+    /*color: #90d01e;*/
+    /*color: #ffcc33;*/
+    /*color: #333;*/
+    font-weight: 700;
+}
+
+.article h4 {
+    font-size: 1rem;
+    padding: 1rem 0 .5rem 0;
+    color: #90d01e;
+    /*color: #ffcc33;*/
+    /*color: #333;*/
+    font-weight: 700;
+}
+
+.article p {
+    padding: .5rem 0;
+    margin: 0;
+    line-height: 1.5rem;
+}
+
+.article img:not([src*="svg"]) {
+    margin: 1rem auto;
+    width: 70%;
+    box-shadow: 0 .5rem 2rem .25rem #bbb;
+}
+
+.article p a,
+.article li a {
+    text-decoration: underline;
+    color: #74a819;
+}
+
+.article p a:hover,
+.article li a:hover {
+    text-decoration: underline;
+    color: #90d01e;
+}
+
+.article blockquote {
+    background-color: #ffcc3322;
+    padding: 1rem;
+    margin: .5rem 0;
+    border-radius: .5rem;
+}
+
+.article pre,
+.article code {
+    color: #000;
+    background-color: #f7f7f7;
+    font-size: .9rem;
+    overflow-x: auto;
+}
+
+.article pre {
+    padding: 1rem 1.5rem;
+    line-height: 1.5rem;
+}
+
+.article code {
+    margin: 0 .25rem;
+    padding: .125rem;
+}
+
+.article pre code {
+    margin: 0;
+    padding: 0;
+}
+
+.article ol li {
+    list-style-type: decimal;
+    margin-left: 2rem;
+}
+
+.article ul {
+    margin: .5rem 0 .5rem 1rem;
+}
+
+.article ul li {
+    list-style-type: disc;
+    margin-left: 1rem;
+    line-height: 1.75rem;
+}
+
+.article li li {
+    list-style-type: circle;
+}
+
+.index {
+    min-width: 10rem;
+    overflow: auto;
+    height: calc(100vh - 10rem);
+    padding: 1.75rem 1rem 2rem 1rem;
+    background-color: white;
+    color: var(--gray-555);
+    line-height: 2rem;
+    font-size: .8rem;
+}
+
+.index .index-heading {
+    color: #000;
+    font-size: 1rem;
+    font-weight: 500;
+    margin: 0 0 1rem 0;
+}
+
+.index a {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    text-decoration: none;
+}
+
+.index a.active {
+    color: var(--structr-green);
+}
+
+.index p, .index ul, .index ol, .index code, .index pre, .index blockquote {
+    display: none;
+}
+
+.index h1 {
+    margin: .5rem 0 0 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 400;
+    font-size: 1rem;
+}
+
+.index h2 {
+    margin: 0rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 400;
+    font-size: 1rem;
+}
+
+.index h3 {
+    margin: 0 0 0 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 400;
+    font-size: 1rem;
+}
+
+.index h4 {
+    margin: 0 0 0 2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 400;
+    font-size: 1rem;
+}
+
+.article table {
+    border: 1px solid var(--gray-ccc);
+    margin: .5rem 0;
+}
+
+.article table th,td {
+    padding: .25rem .5rem;
+    border-right: 1px solid var(--gray-ccc);
+}
+
+.article tr {
+    border-bottom: 1px solid var(--gray-ccc);
+}
+
+.index table {
+    display: none;
+}
+
+/* Search field */
+#search-field {
+    position: relative;
+    margin: -.25rem auto;
+}
+
+#search-field svg, #search-overlay svg {
+    position: absolute;
+    left: .75rem;
+    top: .5rem;
+    height: 1.5rem;
+    color: var(--gray-555);
+}
+
+#search-field input, #search-overlay input {
+    width: 25rem;
+    height: 1.5rem;
+    font-size: 1.1rem;
+    padding: .5rem 1rem .5rem 3rem;
+}
+
+#search-overlay input {
+    width: 100%;
+    height: 2.6rem;
+    border-color: white;
+}
+
+#search-overlay {
+    position: fixed;
+    z-index: 1002;
+    backdrop-filter: blur(8px) brightness(.7) contrast(.5);
+    inset: 0;
+}
+
+#search-overlay-dialog {
+    width: 29.1rem;
+    height: 3rem;
+    margin: 4.7rem auto;
+    position: relative;
+}
+
+#search-results {
+    background-color: white;
+    border-bottom-left-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+    margin-top: -.25rem;
+    padding-top: .25rem;
+}
+
+#search-results ul {
+    padding: 0;
+    margin: 0;
+    background-color: white;
+    border-bottom-left-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+}
+
+.search-result {
+    overflow: hidden;
+    display: block;
+    cursor: default;
+    padding: 1rem;
+    margin: 0;
+    background-color: white;
+    border-bottom-left-radius: .25rem;
+    border-bottom-right-radius: .25rem;
+}
+
+.search-result:hover {
+    background-color: #f7f7f7;
+}
+
+.search-result div {
+    overflow: hidden;
+}
+
+.search-result-path {
+    font-size: .9rem;
+    margin-top: .25rem;
+    text-overflow: ellipsis;
+    whitespace: nowrap;
+    color: var(--gray-999);
+}
+
+.search-result-path:hover {
+    color: var(--gray-aaa);
+}

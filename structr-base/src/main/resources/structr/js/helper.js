@@ -507,22 +507,24 @@ let _Helpers = {
 	getDocumentationURLForTopic: (topic) => {
 
 		switch (topic) {
-			case 'security':       return 'https://docs.structr.com/docs/security';
-			case 'schema-enum':    return 'https://docs.structr.com/docs/troubleshooting-guide#enum-property';
-			case 'schema':         return 'https://docs.structr.com/docs/schema';
-			case 'pages':          return 'https://docs.structr.com/docs/pages';
-			case 'flows':          return 'https://docs.structr.com/docs/flow-engine---editor';
-			case 'files':          return 'https://docs.structr.com/docs/files';
-			case 'dashboard':      return 'https://docs.structr.com/docs/the-dashboard';
-			case 'crud':           return 'https://docs.structr.com/docs/data';
+			case 'dashboard':      return '#docs:4-Admin%20User%20Interface/2-Dashboard.md';
+			case 'pages':          return '#docs:4-Admin%20User%20Interface/3-Pages.md';
+			case 'files':          return '#docs:4-Admin%20User%20Interface/4-Files.md';
+			case 'security':       return '#docs:4-Admin%20User%20Interface/5-Security.md';
+			case 'schema':         return '#docs:4-Admin%20User%20Interface/6-Schema.md';
+			case 'code':           return '#docs:4-Admin%20User%20Interface/7-Code.md';
+			case 'crud':           return '#docs:4-Admin%20User%20Interface/8-Data.md';
+			case 'graph':          return '#docs:4-Admin%20User%20Interface/9-Graph.md';
+			case 'flows':          return '#docs:4-Admin%20User%20Interface/10-Flows.md';
+			case 'schema-enum':    return '#docs:troubleshooting-guide#enum-property';
 
 			case 'contents':
 			case 'mail-templates':
 			case 'virtual-types':
-			case 'localization':
-			case 'graph':
+			case 'localization':   return '#docs:5-Admin%20User%20Interface/13-Localization.md';
+			case 'graph':          return '#docs:5-Admin%20User%20Interface/9-Graph.md';
 			default:
-				return 'https://docs.structr.com/';
+				return '#docs';
 		}
 	},
 	showAvailableIcons: () => {
@@ -1338,4 +1340,36 @@ function live(selector, event, callback, context) {
 // helper for enabling IE 8 event bindings
 function addEvent(el, type, handler) {
 	if (el.attachEvent) el.attachEvent('on'+type, handler); else el.addEventListener(type, handler);
+}
+// matches polyfill
+this.Element && function(ElementPrototype) {
+	ElementPrototype.matches = ElementPrototype.matches ||
+		ElementPrototype.matchesSelector ||
+		ElementPrototype.webkitMatchesSelector ||
+		ElementPrototype.msMatchesSelector ||
+		function(selector) {
+			var node = this, nodes = (node.parentNode || node.document).querySelectorAll(selector), i = -1;
+			while (nodes[++i] && nodes[i] != node);
+			return !!nodes[i];
+		}
+}(Element.prototype);
+// Wait for element to appear. Usage example:
+// waitForElement('#main div.foo a.bar').then(el => {
+//     el.classList.add('active');
+// });
+const waitForElement = selector => {
+	return new Promise(resolve => {
+		if (document.querySelector(selector)) {
+			return resolve(document.querySelector(selector));
+		}
+
+		const observer = new MutationObserver(mutations => {
+			if (document.querySelector(selector)) {
+				observer.disconnect();
+				resolve(document.querySelector(selector));
+			}
+		});
+
+		observer.observe(document.body, { childList: true, subtree: true });
+	});
 }

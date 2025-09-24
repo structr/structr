@@ -786,7 +786,7 @@ let Structr = {
 
 				if (!Structr.isInMemoryDatabase) {
 
-					dbInfoEl.html(`${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}`);
+					//dbInfoEl.html(`${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}`);
 
 				} else {
 
@@ -818,15 +818,15 @@ let Structr = {
 
 			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
 
-			let ui = envInfo.components['structr-ui'];
+			let ui = envInfo.components['structr-base'];
 			if (ui) {
 
 				let build       = ui.build;
 				let date        = ui.date;
 				let versionInfo = `
+					${`Structr ${envInfo.edition} Edition | `}
 					<span>${ui.version}</span>
 					${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
-					${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
 				`;
 
 				$('.structr-version').html(versionInfo);
@@ -977,14 +977,15 @@ let Structr = {
 			text: Structr.inMemoryWarningText,
 			customToggleIcon: 'database-warning-sign-icon',
 			customToggleIconClasses: [],
-			width: 16,
-			height: 16,
+			width: 20,
+			height: 20,
 			noSpan: true,
 			helpElementCss: {
 				'border': '2px solid red',
 				'border-radius': '4px',
 				'font-weight': 'bold',
 				'font-size': '15px',
+				'line-height': '1.8rem',
 				'color': '#000'
 			}
 		};
@@ -1887,7 +1888,6 @@ let Structr = {
 		name: 'name',
 		visibleToPublicUsers: 'visibleToPublicUsers',
 		visibleToAuthenticatedUsers: 'visibleToAuthenticatedUsers',
-
 		sourceId: 'sourceId',
 		targetId: 'targetId',
 		sourceNode: 'sourceNode',
@@ -1898,6 +1898,7 @@ let Structr = {
 	templates: {
 		mainBody: config => `
 
+			<div class="structr-version text-gray-999 text-xs absolute bottom-2 right-8 z-1"></div>
 			<div id="info-area">
 				<div id="close-all-button" class="mt-4 mb-2 mx-2 text-right">
 					<button class="confirm hover:border-gray-666 bg-white mr-0">Close All</button>
@@ -1909,13 +1910,11 @@ let Structr = {
 
 				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo', 'mb-1', 'ml-8'])}
 
-				${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mx-2', 'mt-1']), 'Toggle Console')}
-
 				<div id="menu" class="menu mt-1">
 					<ul>
 						<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
 
-							${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 10, 10, ['icon-white'])}
+							${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 12, 12, ['icon-white', 'opacity-80', 'hover:opacity-100'])}
 
 							<ul id="submenu">
 								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
@@ -1931,6 +1930,7 @@ let Structr = {
 								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
 								<li data-name="Virtual Types"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
 								<li data-name="Mail Templates"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
+								<li data-name="Documentation"><a id="docs_" href="#docs" data-activate-module="docs">Documentation</a></li>
 								<li data-name="Login"><a id="logout_" href="javascript:void(0)">Login</a></li>
 							</ul>
 						</li>
@@ -1939,14 +1939,14 @@ let Structr = {
 
 				<div class="structr-instance-info ml-auto">
 					<div class="structr-instance flex gap-2 items-center">
-						<span class="structr-instance-db flex"></span>
 						<span class="structr-instance-name"></span>
+						<span class="structr-instance-db ml-4 flex"></span>
 					</div>
-					<div class="structr-version flex gap-1 items-center justify-end"></div>
 				</div>
 
 				<div class="relative flex ml-2 mr-6">
-					${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Show notifications')}
+					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mr-4']), 'Toggle Console')}
+					${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
 					<div class="absolute flex items-center rounded-full h-4 -top-3 -right-3 text-white bg-red">
 						<div data-notification-count class="px-2 text-xs hidden"></div>
 					</div>
