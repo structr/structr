@@ -123,7 +123,7 @@
                         <configuration>
                             <executable>ln</executable>
                             <arguments>
-                                <argument>-s</argument> <!-- force and symbolic -->
+                                <argument>-sf</argument> <!-- force and symbolic -->
                                 <argument>../structr-base/src/main/resources/structr</argument>
                                 <argument>.</argument>
                             </arguments>
