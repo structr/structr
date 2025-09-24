@@ -18,6 +18,7 @@
  */
 package org.structr.core.notion;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.SecurityContext;
@@ -250,21 +251,21 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 			} else {
 
 				final String uuid = source.toString();
+				if (StringUtils.isNotBlank(uuid)) {
 
-				// interpret source as a raw ID string and fetch entity
-				final GraphObject obj = app.getNodeById(type, uuid);
+					// interpret source as a raw ID string and fetch entity
+					final GraphObject obj = app.getNodeById(type, uuid);
 
-				if (obj == null) {
+					if (obj == null) {
+						throw new FrameworkException(422, "No " + type + " with UUID " + uuid + " found.", new IdNotFoundToken(type, uuid));
+					}
 
-					throw new FrameworkException(422, "No " + type + " with UUID " + uuid + " found.", new IdNotFoundToken(type, uuid));
+					if (obj != null && !obj.getTraits().contains(type)) {
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type));
+					}
+
+					return (T) obj;
 				}
-
-				if (obj != null && !obj.getTraits().contains(type)) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type));
-				}
-
-				return (T) obj;
-
 			}
 		}
 

@@ -20,11 +20,80 @@ package org.structr.test.helper;/*
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.RandomAccessFile;
-import java.nio.channels.FileLock;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class ConcurrentPortNumberHelper {
 
+	public static int getNextPortNumber(final Class clazz) {
+
+		final Logger logger = LoggerFactory.getLogger(clazz);
+
+		// allow override via system property (-DhttpPort=...)
+		if (System.getProperty("httpPort") != null) {
+
+			final int port = Integer.parseInt(System.getProperty("httpPort"));
+
+			logger.info("HTTP port assignment overridden by system property! Value is {}", port);
+
+			return port;
+		}
+
+		return getTimeBasedPortNumber(Calendar.getInstance());
+	}
+
+	private static int getTimeBasedPortNumber(final Calendar calendar) {
+
+		// Let's try something different: map the current minute, second and millisecond to a unique
+		// port number if possible. Range is 8875 to 65500 => 56625 ports. If we assume that no test
+		// runs longer than 5 minutes, we can map the port range to the time.
+
+		final int max          = 65500;
+		final int min          = 8875;
+		final double range     = max - min;
+
+		final int minute        = calendar.get(Calendar.MINUTE);
+		final int second        = calendar.get(Calendar.SECOND);
+		final int millisecond   = calendar.get(Calendar.MILLISECOND);
+
+		final double time       = (minute % 5) * 60000 + second * 1000 + millisecond;
+		final int port          = (int)Math.rint((time / 300000.0) * range);
+
+		System.out.println("!!!!! allocating port " + port + " for " + time);
+
+		return port + min;
+	}
+
+	public static final void main(final String[] args) {
+
+		final DateFormat format       = new SimpleDateFormat("HH:mm:ss.SSS");
+		final Calendar calendar       = Calendar.getInstance();
+		final Map<Integer, Long> test = new LinkedHashMap<>();
+
+		calendar.set(2025,0, 1,0, 0, 0);
+
+		for (int i=0; i<10000; i++) {
+
+			final int port = getTimeBasedPortNumber(calendar);
+			final long time = calendar.getTimeInMillis();
+
+			System.out.println(format.format(time) + ": " + port);
+
+			calendar.add(Calendar.MILLISECOND, (int)(Math.random() * 1000) + 1);
+
+			final Long prev = test.put(port, time);
+			if (prev != null) {
+
+				System.out.println("COLLISION of " + format.format(prev) + " and " + format.format(time) + " leading to port number " + port);
+			}
+		}
+	}
+
+
+	/*
 	public static int getNextPortNumber(final Class clazz) {
 
 		final Logger logger = LoggerFactory.getLogger(clazz);
@@ -66,6 +135,10 @@ public class ConcurrentPortNumberHelper {
 
 					raf.setLength(0);
 					raf.writeInt(port);
+
+					lock.release();
+
+					return port;
 				}
 
 			} catch (Throwable t) {
@@ -90,4 +163,5 @@ public class ConcurrentPortNumberHelper {
 
 		return port;
 	}
+	*/
 }

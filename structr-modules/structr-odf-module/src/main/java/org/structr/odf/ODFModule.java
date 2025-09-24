@@ -19,7 +19,11 @@
 package org.structr.odf;
 
 import org.structr.api.service.LicenseManager;
+import org.structr.core.property.StartNode;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.TraitsManager;
 import org.structr.module.StructrModule;
 import org.structr.odf.entity.relationship.ODFExporterEXPORTS_TOFile;
 import org.structr.odf.entity.relationship.ODFExporterGETS_TRANSFORMATION_FROMVirtualType;
@@ -45,6 +49,12 @@ public class ODFModule implements StructrModule{
 		StructrTraits.registerNodeType(StructrTraits.ODF_EXPORTER, new ODFExporterTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.ODS_EXPORTER, new ODFExporterTraitDefinition(), new ODSExporterTraitDefinition());
 		StructrTraits.registerNodeType(StructrTraits.ODT_EXPORTER, new ODFExporterTraitDefinition(), new ODTExporterTraitDefinition());
+
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
+		// register ODFExporter -> File relationships
+		Traits.getTrait(StructrTraits.FILE).registerPropertyKey(new StartNode(rootInstance, "exportFileOfExporter", StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE));
+		Traits.getTrait(StructrTraits.FILE).registerPropertyKey(new StartNode(rootInstance, "templateFileOfExporter", StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE));
 	}
 
 	@Override

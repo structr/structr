@@ -36,12 +36,12 @@ import java.util.*;
 public class TraitsImplementation implements Traits {
 
 	private final TraitsInstance traitsInstance;
-	private final Map<String, TraitDefinition> traits                   = new LinkedHashMap<>();
 	private final Set<Trait> localTraitsCache                           = new LinkedHashSet<>();
-	private final Map<String, Wrapper<PropertyKey>> keyCache            = new HashMap<>();
-	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new HashMap<>();
-	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new HashMap<>();
-	private final Map<Class, NodeTraitFactory> nodeTraitFactoryCache    = new HashMap<>();
+	private final Set<String> traits                                    = new LinkedHashSet<>();
+	private final Map<String, Wrapper<PropertyKey>> keyCache            = new LinkedHashMap<>();
+	private final Map<Class, FrameworkMethod> frameworkMethodCache      = new LinkedHashMap<>();
+	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new LinkedHashMap<>();
+	private final Map<Class, NodeTraitFactory> nodeTraitFactoryCache    = new LinkedHashMap<>();
 	private Map<String, AbstractMethod> dynamicMethodCache              = null;
 	private Set<String> cachedLabels                                    = null;
 	private Wrapper<Relation> cachedRelation                            = null;
@@ -70,7 +70,7 @@ public class TraitsImplementation implements Traits {
 
 		final TraitsImplementation copy = new TraitsImplementation(traitsInstance, typeName, isBuiltInType, isNodeType, isRelationshipType, changelogEnabled, isServiceClass);
 
-		copy.traits.putAll(traits);
+		copy.traits.addAll(traits);
 
 		return copy;
 	}
@@ -94,6 +94,8 @@ public class TraitsImplementation implements Traits {
 
 				cachedLabels.add(trait.getLabel());
 			}
+
+			cachedLabels = Collections.unmodifiableSet(cachedLabels);
 		}
 
 		return cachedLabels;
@@ -370,7 +372,17 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public Set<TraitDefinition> getTraitDefinitions() {
-		return new LinkedHashSet<>(traits.values());
+
+		final Set<TraitDefinition> set = new LinkedHashSet<>();
+
+		for (final String traitName : traits) {
+
+			final Trait trait = traitsInstance.getTrait(traitName);
+
+			set.add(trait.getDefinition());
+		}
+
+		return set;
 	}
 
 	@Override
@@ -428,7 +440,7 @@ public class TraitsImplementation implements Traits {
 			traitsInstance.registerTrait(name, trait);
 		}
 
-		traits.put(name, traitDefinition);
+		traits.add(name);
 
 		// clear cache
 		keyCache.clear();
@@ -440,7 +452,7 @@ public class TraitsImplementation implements Traits {
 		final Map<String, Map<String, PropertyKey>> dynamicProperties = new LinkedHashMap<>();
 		final Set<String> dynamicTraits                               = new LinkedHashSet<>();
 
-		for (final String traitName : traits.keySet()) {
+		for (final String traitName : traits) {
 
 			String indexName = traitName;
 
@@ -486,7 +498,7 @@ public class TraitsImplementation implements Traits {
 
 		final Set<Trait> localTraitsCache = new LinkedHashSet<>();
 
-		for (final String name : traits.keySet()) {
+		for (final String name : traits) {
 
 			final Trait trait = traitsInstance.getTrait(name);
 			if (trait != null) {

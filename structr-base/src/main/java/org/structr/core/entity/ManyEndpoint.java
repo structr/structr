@@ -25,13 +25,16 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,7 +47,10 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 
 	private Relation<?, ManyEndpoint> relation = null;
 
-	public ManyEndpoint(final Relation<?, ManyEndpoint> relation) {
+	public ManyEndpoint(final Relation<?, ManyEndpoint> relation, final String propertyName) {
+
+		super(propertyName);
+
 		this.relation = relation;
 	}
 
@@ -83,10 +89,21 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 		final NodeInterface actualSourceNode                   = unwrap(securityContext, relation.getType(), sourceNode, properties);
 		final Set<NodeInterface> toBeDeleted                   = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualSourceNode, null)));
 		final Set<NodeInterface> toBeCreated                   = new LinkedHashSet<>();
+		final Traits targetType                                = Traits.of(relation.getTargetType());
 		final String relationType                              = relation.getType();
 
 		if (collection != null) {
-			Iterables.addAll(toBeCreated, collection);
+
+			for (final NodeInterface n : collection) {
+
+				final Traits type = n.getTraits();
+
+				if (!SearchCommand.isTypeAssignableFromOtherType(targetType, type)) {
+					throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), targetType.getName()));
+				}
+
+				toBeCreated.add(n);
+			}
 		}
 
 		// create intersection of both sets

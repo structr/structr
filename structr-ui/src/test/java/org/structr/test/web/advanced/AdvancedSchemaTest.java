@@ -40,6 +40,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
@@ -282,17 +283,17 @@ public class AdvancedSchemaTest extends FrontendTest {
 			logger.error("", ex);
 		}
 
-		final Traits traits = Traits.of("Image");
+		assertTrue("Property is not registered correctly", TraitsManager.getCurrentInstance().getTraits("File").hasKey("testFile"));
+		assertTrue("Property on File is not inherited by Image", TraitsManager.getCurrentInstance().getTraits("Image").hasKey("testFile"));
+		assertTrue("Property on File is not inherited by VideoFile", TraitsManager.getCurrentInstance().getTraits("VideoFile").hasKey("testFile"));
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(StructrTraits.SCHEMA_NODE, StructrTraits.IMAGE);
-
-			// Create new schema node for dynamic class SubFile which extends File
+			// Create new schema node for dynamic class SubImage which extends Image
 			NodeInterface subFile = app.create(StructrTraits.SCHEMA_NODE);
 
 			final PropertyMap subFileProperties = new PropertyMap();
-			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "SubFile");
+			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "SubImage");
 			subFileProperties.put(Traits.of(StructrTraits.SCHEMA_NODE).key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), new String[] { StructrTraits.IMAGE });
 			subFile.setProperties(subFile.getSecurityContext(), subFileProperties);
 
@@ -301,7 +302,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			NodeInterface testFileProperty = app.create(StructrTraits.SCHEMA_PROPERTY);
 
 			final PropertyMap testFileProperties = new PropertyMap();
-			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testSubFile");
+			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "testSubImage");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), "String");
 			testFileProperties.put(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.SCHEMA_NODE_PROPERTY), subFile);
 			testFileProperty.setProperties(testFileProperty.getSecurityContext(), testFileProperties);
@@ -312,6 +313,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 			logger.error("", ex);
 		}
 
+		assertTrue("Property is not registered correctly", TraitsManager.getCurrentInstance().getTraits("File").hasKey("testFile"));
+		assertTrue("Property on File is not inherited by Image", TraitsManager.getCurrentInstance().getTraits("Image").hasKey("testFile"));
+		assertTrue("Property on File is not inherited by VideoFile", TraitsManager.getCurrentInstance().getTraits("VideoFile").hasKey("testFile"));
+		assertTrue("Property on File is not inherited by SubImage", TraitsManager.getCurrentInstance().getTraits("SubImage").hasKey("testFile"));
 
 		try (final Tx tx = app.tx()) {
 
@@ -332,10 +337,10 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 					.body("result",	hasSize(count2 + 1))
 					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testFile"),    hasEntry("declaringClass", StructrTraits.FILE))))
-					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubFile"), hasEntry("declaringClass", "SubFile"))))
+					.body("result", Matchers.hasItem(Matchers.allOf(hasEntry("jsonName", "testSubImage"), hasEntry("declaringClass", "SubImage"))))
 
 				.when()
-					.get("/_schema/SubFile/custom");
+					.get("/_schema/SubImage/custom");
 
 			tx.success();
 

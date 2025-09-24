@@ -19,6 +19,7 @@
 package org.structr.test.rest.common;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -281,6 +282,8 @@ public abstract class StructrRestTestBase {
 			RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}

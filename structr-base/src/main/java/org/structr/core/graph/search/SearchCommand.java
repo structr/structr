@@ -498,14 +498,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	// ----- public static methods -----
-	public static boolean isTypeAssignableFromOtherType (final Traits type1, final Traits type2) {
+	public static boolean isTypeAssignableFromOtherType (final Traits desiredType, final Traits actualType) {
 
-		final Set<String> traits1 = type1.getAllTraits();
-		final Set<String> traits2 = type2.getAllTraits();
+		final Set<String> actualTraits = new LinkedHashSet<>(actualType.getAllTraits());
 
-		traits1.removeAll(traits2);
+		// Types are assignable if the type name of type1 is contained in the list of traits of type2
+		final String typeNameOfDesiredType = desiredType.getName();
 
-		return traits1.isEmpty();
+		return actualTraits.contains(typeNameOfDesiredType);
 	}
 
 	private String getQueryDescription() {

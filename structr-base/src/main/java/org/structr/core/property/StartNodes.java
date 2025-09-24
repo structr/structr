@@ -82,16 +82,16 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 		this.relation   = traits.getRelation();
 		this.notion     = notion;
 		this.sourceType = relation.getSourceType();
-		this.destType   = relation.getSourceType();
+		this.destType   = relation.getTargetType();
 
-		this.notion.setType(destType);
+		this.notion.setType(sourceType);
 		this.notion.setRelationProperty(this);
 		this.relation.setSourceProperty(this);
 	}
 
 	@Override
 	public String typeName() {
-		return destType;
+		return sourceType;
 	}
 
 	@Override
@@ -153,7 +153,7 @@ public class StartNodes extends Property<Iterable<NodeInterface>> implements Rel
 
 	@Override
 	public String relatedType() {
-		return destType;
+		return sourceType;
 	}
 
 	@Override

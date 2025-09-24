@@ -69,7 +69,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private static final Logger logger                 = LoggerFactory.getLogger(Services.class.getName());
 
 	// singleton instance
-	private static final String jvmIdentifier                = ManagementFactory.getRuntimeMXBean().getName();
+	private static final String jvmIdentifier          = ManagementFactory.getRuntimeMXBean().getName();
 	private static final long licenseCheckInterval     = TimeUnit.DAYS.toMillis(1);
 	private static long lastLicenseCheck               = System.currentTimeMillis();
 	private static Services singletonInstance          = null;

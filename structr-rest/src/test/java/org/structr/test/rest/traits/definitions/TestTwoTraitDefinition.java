@@ -43,11 +43,19 @@ public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Long>          aLong    = new LongProperty("aLong").indexed().indexedWhenEmpty();
 		final Property<Date>          aDate    = new ISO8601DateProperty("aDate").indexed();
 
-		final Property<Iterable<NodeInterface>> testOnes = new EndNodes(traitsInstance, "test_ones", "TwoOneOneToMany");
+		final Property<Iterable<NodeInterface>> testOnes    = new EndNodes(traitsInstance, "test_ones", "TwoOneOneToMany");
 		final Property<Iterable<NodeInterface>> testOnesAlt = new EndNodes(traitsInstance, "testOnes", "TwoOneOneToMany");
+		final Property<NodeInterface> testEleven            = new StartNode(traitsInstance, "testEleven", "ElevenTwoOneToMany");
+		final Property<NodeInterface> testElevenAlt         = new StartNode(traitsInstance, "test_eleven", "ElevenTwoOneToMany");
 
 		return newSet(
-			anInt, aLong, aDate, testOnes, testOnesAlt
+			anInt,
+			aLong,
+			aDate,
+			testOnes,
+			testOnesAlt,
+			testEleven,
+			testElevenAlt
 		);
 	}
 

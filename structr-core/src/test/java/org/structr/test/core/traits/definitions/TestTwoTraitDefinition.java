@@ -23,6 +23,7 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
@@ -69,10 +70,12 @@ public class TestTwoTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> testOne = new StartNode(traitsInstance, "testOne", "OneTwoOneToOne");
+		final Property<NodeInterface> testOne  = new StartNode(traitsInstance, "testOne", "OneTwoOneToOne");
+		final Property<NodeInterface> testOne2 = new EndNode(traitsInstance, "testOne2", "TwoOneOneToOne");
 
 		return newSet(
-			testOne
+			testOne,
+			testOne2
 		);
 	}
 
