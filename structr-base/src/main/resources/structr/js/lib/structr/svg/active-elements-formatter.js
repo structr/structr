@@ -65,28 +65,28 @@ class ActiveElementsFormatter {
 			switch (type) {
 
 				case 'ActionMapping':
-					shape = this.createActionIcon(child, offset, '#dddddd', '#999999');
+					shape = this.createActionIcon(child, offset, '#dddddd', '#cccccc');
 					break;
 
 				case 'Template':
-					shape = this.createDefaultRect(child, offset, '#dddddd', '#999999');
+					shape = this.createDefaultRect(child, offset, '#eeeeee', '#cccccc');
 					break;
 
 				case 'Page':
-					shape = this.createPagePolygon(child, offset, '#bbbbbb', '#999999');
+					shape = this.createPagePolygon(child, offset, '#ffffff', '#cccccc');
 					break;
 
 				case 'Condition':
-					shape = this.createConditionIcon(child, offset, '#dddddd', '#999999');
+					shape = this.createConditionIcon(child, offset, '#dddddd', '#cccccc');
 					break;
 
 				case 'PropertyDataSource':
 				case 'ListDataSource':
-					shape = this.createDatabaseIcon(child, offset, '#dddddd', '#999999');
+					shape = this.createDatabaseIcon(child, offset, '#dddddd', '#cccccc');
 					break;
 
 				default:
-					shape = this.createDefaultRect(child, offset, '#f8f8f8', '#999999');
+					shape = this.createDefaultRect(child, offset, '#f8f8f8', '#cccccc');
 					break;
 			}
 
@@ -115,7 +115,7 @@ class ActiveElementsFormatter {
 		shape.setAttribute('stroke', strokeColor);
 		shape.setAttribute('x', child.x + offset.x);
 		shape.setAttribute('y', child.y + offset.y);
-		shape.setAttribute('rx', 2);
+		shape.setAttribute('rx', 5);
 		shape.setAttribute('width', child.width);
 		shape.setAttribute('height', child.height);
 
