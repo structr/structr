@@ -27,6 +27,8 @@
 	--font-inter: Inter, Arial, Helvetica, Sans-serif;
 	--font-monospace: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace;
 
+	--header-height: 4rem;
+
 	/** New semantic colors */
 	--main-background:    #f9fafb;
 	--inactive-tab-text:  #95a0b6;
@@ -297,7 +299,7 @@ input[type="checkbox"] {
 }
 
 #header {
-	height: 4rem;
+	height: var(--header-height);
 	font-size: 1.25em;
 	background: var(--header-bg-dark);
 }
@@ -345,7 +347,7 @@ input[type="checkbox"] {
 	display: flex;
 	align-items: center;
 	position: absolute;
-	top: 4rem;
+	top: var(--header-height);
 	left: 0;
 	height: 2rem;
 	width: calc(100% - 4rem);
@@ -2183,7 +2185,7 @@ th.center {
 	position: absolute;
 	left: 60%;
 	right: 4px;
-	top: 0;
+	top: var(--header-height);
 	overflow-y: auto;
 	max-height: 100vh;
 }
