@@ -41,15 +41,16 @@
     font-weight: 500;
 }
 
-#docs-area nav ul {
+#docs-area nav > ul {
     padding: 0 0 0 2rem;
     margin: 0;
-    border-left: 2px solid var(--gray-ccc);
 }
 
-#docs-area nav ul ul {
-    padding: 0 0 0 .8rem;
+#docs-area nav > ul > li > ul {
+    padding: 0;
     margin: 1.5rem 0 0 0;
+    border-left: .15rem solid var(--gray-ccc);
+    list-style-position: inside;
 }
 
 #docs-area nav li {
@@ -59,10 +60,11 @@
 }
 
 #docs-area nav li li {
-    list-style-type: none;
+    list-style-type: disc;
     color: var(--gray-555);
     font-weight: 300;
-    padding: 0 0 0 .5rem;
+    padding: 0;
+    margin-left: -.3rem;
 }
 
 #docs-area nav li li:hover {
@@ -71,28 +73,30 @@
 }
 
 #docs-area nav li li:has(a.active) {
-    list-style-type: disc;
     color: var(--structr-green);
 }
 
 #docs-area nav li li::marker {
-    color: var(--gray-ccc);
+    color: transparent;
     font-size: 1.35rem;
     line-height: 1rem;
+}
+
+#docs-area nav li li:hover::marker {
+    color: var(--gray-eee);
 }
 
 #docs-area nav li li:has(a.active)::marker {
     color: var(--structr-green);
-    font-size: 1.35rem;
-    line-height: 1rem;
+
 }
 
 #docs-area nav li li::before {
-    padding-right: 8px;
+    padding: 0 0 0 1rem;
 }
 
 #docs-area nav li li:not(:last-child) {
-    padding: 0 0 1.5rem .5rem;
+    padding-bottom: 1.5rem;
 }
 
 #docs-area nav ul#docs-main-navigation > li {
