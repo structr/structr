@@ -44,7 +44,8 @@ public class GraphQLHelper {
 	public static final String GraphQLNodeReferenceName            = "StructrNodeReference";
 
 	public static final Set<String> InternalTypes = Set.of(
-		StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.PRINCIPAL,
+		StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE,
+		StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.ACCESS_CONTROLLABLE, StructrTraits.PRINCIPAL,
 		"OneToOne", "OneToMany", "ManyToOne", "ManyToMany",
 		"LinkedTreeNode", "LinkedListNode"
 
@@ -340,7 +341,7 @@ public class GraphQLHelper {
 		return arguments;
 	}
 
-	private List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final TraitsInstance traitsInstance, final Map<String, GraphQLInputObjectType> selectionTypes, final String type, final boolean isMultiple) throws IllegalAccessException {
+	private List<GraphQLInputObjectField> getGraphQLInputFieldsForType(final TraitsInstance traitsInstance, final Map<String, GraphQLInputObjectType> selectionTypes, final String type, final boolean isMultiple) {
 
 		if (traitsInstance.exists(type)) {
 
@@ -619,18 +620,18 @@ public class GraphQLHelper {
 				final Relation relation = property.getRelation();
 				if (outgoing) {
 
-					final PropertyKey source = relation.getSourceProperty();
+					final PropertyKey target = relation.getTargetProperty();
 
-					if (source != null && source.equals(property)) {
+					if (target != null && target.equals(property)) {
 
 						properties.add((Property)property);
 					}
 
 				} else {
 
-					final PropertyKey target = relation.getTargetProperty();
+					final PropertyKey source = relation.getSourceProperty();
 
-					if (target != null && target.equals(property)) {
+					if (source != null && source.equals(property)) {
 
 						properties.add((Property)property);
 					}

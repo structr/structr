@@ -38,7 +38,7 @@ public class TraitsManager {
 	}
 
 	public static void replaceCurrentInstance(final TraitsInstance newInstance) {
-		System.out.println("!!!!!!! replacing " + TraitsManager.currentInstance + " with " + newInstance + " at " + System.currentTimeMillis());
 		TraitsManager.currentInstance = newInstance;
+		TraitsManager.currentInstance.enableCaching();
 	}
 }

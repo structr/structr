@@ -85,7 +85,7 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Set<String> getLabels() {
 
-		if (cachedLabels == null) {
+		if (cachedLabels == null || !traitsInstance.allowCaching()) {
 
 			cachedLabels = new LinkedHashSet<>();
 
@@ -114,7 +114,7 @@ public class TraitsImplementation implements Traits {
 
 		// use wrapper to cache null values as well
 		Wrapper<PropertyKey> wrapper = keyCache.get(name);
-		if (wrapper != null) {
+		if (wrapper != null && traitsInstance.allowCaching()) {
 
 			return wrapper.value;
 		}
@@ -232,7 +232,7 @@ public class TraitsImplementation implements Traits {
 	public <T extends LifecycleMethod> Set<T> getMethods(final Class<T> type) {
 
 		Set<T> methods = (Set) lifecycleMethodCache.get(type);
-		if (methods != null) {
+		if (methods != null && traitsInstance.allowCaching()) {
 
 			return methods;
 		}
@@ -259,7 +259,7 @@ public class TraitsImplementation implements Traits {
 
 		T current = (T) frameworkMethodCache.get(type);
 
-		if (current != null) {
+		if (current != null && traitsInstance.allowCaching()) {
 			return current;
 		}
 
@@ -288,16 +288,19 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Map<String, AbstractMethod> getDynamicMethods() {
 
-		if (dynamicMethodCache != null) {
+		if (dynamicMethodCache != null && traitsInstance.allowCaching()) {
 			return dynamicMethodCache;
 		}
 
 		dynamicMethodCache = new LinkedHashMap<>();
 
-		for (final Trait trait : getTraits()) {
+		final Set<Trait> traits = getTraits();
+		for (final Trait trait : traits) {
+
+			final Map<String, AbstractMethod> methods = trait.getDynamicMethods();
 
 			// this is the place where we can detect clashes!
-			dynamicMethodCache.putAll(trait.getDynamicMethods());
+			dynamicMethodCache.putAll(methods);
 		}
 
 		return dynamicMethodCache;
@@ -309,7 +312,7 @@ public class TraitsImplementation implements Traits {
 		if (obj.isNode()) {
 
 			final NodeTraitFactory cachedFactory = nodeTraitFactoryCache.get(type);
-			if (cachedFactory != null) {
+			if (cachedFactory != null && traitsInstance.allowCaching()) {
 
 				return (T) cachedFactory.newInstance(this, (NodeInterface) obj);
 			}
@@ -347,7 +350,7 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Relation getRelation() {
 
-		if (cachedRelation != null) {
+		if (cachedRelation != null && traitsInstance.allowCaching()) {
 
 			return cachedRelation.value;
 		}
@@ -377,8 +380,10 @@ public class TraitsImplementation implements Traits {
 		for (final String traitName : traits) {
 
 			final Trait trait = traitsInstance.getTrait(traitName);
+			if (trait != null) {
 
-			set.add(trait.getDefinition());
+				set.add(trait.getDefinition());
+			}
 		}
 
 		return set;
@@ -427,27 +432,6 @@ public class TraitsImplementation implements Traits {
 		return getLabels();
 	}
 
-	/*
-	@Override
-	public synchronized void registerImplementation(final TraitDefinition traitDefinition, final boolean isDynamic) {
-
-		final String name  = traitDefinition.getName();
-		Trait trait        = traitsInstance.getTrait(name);
-
-		if (trait == null) {
-
-			trait = new Trait(traitsInstance, traitDefinition, isDynamic);
-			traitsInstance.registerTrait(name, trait);
-		}
-
-		traits.add(name);
-
-		// clear cache
-		keyCache.clear();
-	}
-
-	 */
-
 	@Override
 	public Map<String, Map<String, PropertyKey>> getDynamicTypes() {
 
@@ -494,21 +478,36 @@ public class TraitsImplementation implements Traits {
 	// ----- private methods -----
 	private Set<Trait> getTraits() {
 
-		if (!localTraitsCache.isEmpty()) {
+		if (!localTraitsCache.isEmpty() && traitsInstance.allowCaching()) {
 			return localTraitsCache;
 		}
 
-		final Set<Trait> localTraitsCache = new LinkedHashSet<>();
-
 		for (final String name : traits) {
 
-			for (final Trait trait : traitsInstance.getTraitsWithLabel(name)) {
-
-				localTraitsCache.add(trait);
-			}
+			collectTraitsRecursively(localTraitsCache, name);
 		}
 
 		return localTraitsCache;
+	}
+
+	private void collectTraitsRecursively(final Set<Trait> set, final String name) {
+
+		if (traitsInstance.exists(name)) {
+
+			final TraitsImplementation traits = (TraitsImplementation) traitsInstance.getTraits(name);
+
+			for (final String traitName : traits.traits) {
+
+				final Trait trait = traitsInstance.getTrait(traitName);
+				if (trait != null) {
+
+					if (set.add(trait)) {
+
+						collectTraitsRecursively(set, trait.getLabel());
+					}
+				}
+			}
+		}
 	}
 
 	public void addTrait(final String trait) {

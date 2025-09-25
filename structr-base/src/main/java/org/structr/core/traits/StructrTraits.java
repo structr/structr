@@ -352,7 +352,14 @@ public class StructrTraits {
 
 		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
 
-		rootInstance.registerTrait(definition.getName(), new Trait(rootInstance, definition, false));
+		rootInstance.registerTrait(new Trait(rootInstance, definition, false));
+	}
+
+	public static void registerBaseType(final TraitDefinition definition) {
+
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
+		rootInstance.registerBaseType(definition);
 	}
 
 	public static void registerNodeType(final String typeName, final String... traits) {

@@ -36,6 +36,9 @@ public class TraitsInstance {
 	private final Map<String, Trait> globalTraitMap = new ConcurrentHashMap<>();
 	private final String name;
 
+	// allow caching only after the schema is final
+	private boolean allowCaching = false;
+
 	public TraitsInstance(final String name) {
 		this.name = name;
 	}
@@ -68,15 +71,35 @@ public class TraitsInstance {
 		return globalTypeMap.get(name);
 	}
 
-	void registerTrait(final String name, final Trait traits) {
-		globalTraitMap.put(name, traits);
+	public void registerTrait(final Trait trait) {
+
+		final String name  = trait.getName();
+		final String label = trait.getLabel();
+
+		// do not overwrite existing traits
+		if (!globalTraitMap.containsKey(label)) {
+
+			globalTraitMap.put(label, trait);
+		}
+
+		// register trait with exact name as well (like User.43b7adc4686344d4b870e3b16c45086e)
+		globalTraitMap.put(name, trait);
 	}
 
 	void unregisterTraits(final Set<String> names) {
 		globalTraitMap.keySet().removeAll(names);
 	}
 
-	public Traits getTraits(String name) {
+	boolean allowCaching() {
+		return allowCaching;
+	}
+
+	void enableCaching() {
+		allowCaching = true;
+	}
+
+	// ----- public methods -----
+	public Traits getTraits(final String name) {
 
 		final Traits traits = globalTypeMap.get(name);
 		if (traits != null) {
@@ -90,21 +113,6 @@ public class TraitsInstance {
 	public Trait getTrait(final String type) {
 
 		return globalTraitMap.get(type);
-	}
-
-	public Set<Trait> getTraitsWithLabel(final String type) {
-
-		final Set<Trait> set = new LinkedHashSet<>();
-
-		for (final Trait trait : globalTraitMap.values()) {
-
-			if (trait.getLabel().equals(type)) {
-
-				set.add(trait);
-			}
-		}
-
-		return set;
 	}
 
 	/**
@@ -239,6 +247,15 @@ public class TraitsInstance {
 		return dynamicTypes;
 	}
 
+	public void registerBaseType(final TraitDefinition definition) {
+
+		final TraitsImplementation traits = new TraitsImplementation(this, definition.getName(), true, false, false, false, false);
+
+		traits.addTrait(definition.getLabel());
+
+		registerType(definition.getLabel(), traits);
+	}
+
 	public void registerNodeType(final String typeName, final String... traits) {
 
 		final TraitsImplementation impl = new TraitsImplementation(this, typeName, true, true, false, false, false);
@@ -272,7 +289,7 @@ public class TraitsInstance {
 		registerType(typeName, impl);
 	}
 
-	public void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final String... traits) {
+	public void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final Set<String> traits) {
 
 		TraitsImplementation impl;
 
@@ -298,7 +315,7 @@ public class TraitsInstance {
 		}
 	}
 
-	public void registerDynamicRelationshipType(final String typeName, final boolean changelogEnabled, final String... traits) {
+	public void registerDynamicRelationshipType(final String typeName, final boolean changelogEnabled, final Set<String> traits) {
 
 		// do not overwrite types
 		if (getAllTypes(null).contains(typeName)) {

@@ -21,6 +21,7 @@ package org.structr.module;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.function.*;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.*;
 import org.structr.web.function.ScheduleFunction;
@@ -32,12 +33,15 @@ public class CoreModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		// common base types for nodes and relationships
-		StructrTraits.registerTrait(new PropertyContainerTraitDefinition());
-		StructrTraits.registerTrait(new GraphObjectTraitDefinition());
+		final TraitDefinition propertyContainer = new PropertyContainerTraitDefinition();
+		final TraitDefinition graphObject       = new GraphObjectTraitDefinition();
 
-		StructrTraits.registerNodeType(StructrTraits.PROPERTY_CONTAINER, StructrTraits.PROPERTY_CONTAINER);
-		StructrTraits.registerNodeType(StructrTraits.GRAPH_OBJECT, StructrTraits.GRAPH_OBJECT);
+		// common base types for nodes and relationships
+		StructrTraits.registerTrait(propertyContainer);
+		StructrTraits.registerTrait(graphObject);
+
+		StructrTraits.registerBaseType(propertyContainer);
+		StructrTraits.registerBaseType(graphObject);
 
 		// relationship traits
 		StructrTraits.registerTrait(new PrincipalOwnsNodeDefinition());

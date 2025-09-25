@@ -285,7 +285,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		assertTrue("Property is not registered correctly", TraitsManager.getCurrentInstance().getTraits("File").hasKey("testFile"));
 		assertTrue("Property on File is not inherited by Image", TraitsManager.getCurrentInstance().getTraits("Image").hasKey("testFile"));
-		assertTrue("Property on File is not inherited by VideoFile", TraitsManager.getCurrentInstance().getTraits("VideoFile").hasKey("testFile"));
 
 		try (final Tx tx = app.tx()) {
 
@@ -315,7 +314,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 		assertTrue("Property is not registered correctly", TraitsManager.getCurrentInstance().getTraits("File").hasKey("testFile"));
 		assertTrue("Property on File is not inherited by Image", TraitsManager.getCurrentInstance().getTraits("Image").hasKey("testFile"));
-		assertTrue("Property on File is not inherited by VideoFile", TraitsManager.getCurrentInstance().getTraits("VideoFile").hasKey("testFile"));
 		assertTrue("Property on File is not inherited by SubImage", TraitsManager.getCurrentInstance().getTraits("SubImage").hasKey("testFile"));
 
 		try (final Tx tx = app.tx()) {

@@ -103,9 +103,10 @@ public class SchemaService implements Service {
 
 					final SchemaRelationshipNode schemaRel = node.as(SchemaRelationshipNode.class);
 					final String name                      = schemaRel.getClassName();
-					final TraitDefinition[] definitions    = schemaRel.getTraitDefinitions(newSchema);
+					final TraitDefinition definition       = schemaRel.getTraitDefinition(newSchema);
 
-					newSchema.registerDynamicRelationshipType(name, !schemaRel.changelogDisabled(), definitions);
+					newSchema.registerTrait(new Trait(newSchema, definition, true));
+					newSchema.registerDynamicRelationshipType(name, !schemaRel.changelogDisabled(), Set.of(name));
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
@@ -123,16 +124,23 @@ public class SchemaService implements Service {
 					schemaNode.handleMigration();
 
 					// create traits
-					final String name                   = schemaNode.getClassName();
-					final TraitDefinition[] definitions = schemaNode.getTraitDefinitions(newSchema);
+					final TraitDefinition definition = schemaNode.getTraitDefinition(newSchema);
+					final Set<String> traits         = new LinkedHashSet<>();
+					final String name                = definition.getName();
+					final String label               = definition.getLabel();
 
-					newSchema.registerDynamicNodeType(name, !schemaNode.changelogDisabled(), schemaNode.isServiceClass(), definitions);
+					traits.addAll(schemaNode.getInheritedTraits());
+					traits.add(label);
+					traits.add(name);
+
+					newSchema.registerTrait(new Trait(newSchema, definition, true));
+					newSchema.registerDynamicNodeType(label, !schemaNode.changelogDisabled(), schemaNode.isServiceClass(), traits);
 
 					// type still exists, was not removed, so we remove it from the map of removed types
-					removedTypes.remove(name);
+					removedTypes.remove(label);
 
 					// create views (was a post process before, but needs access to the new schema)
-					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), name);
+					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), label);
 				}
 
 				// fetch schema methods that extend the static schema (not attached to a schema node)
