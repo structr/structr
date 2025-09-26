@@ -33,15 +33,18 @@ public class CoreModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		final TraitDefinition propertyContainer = new PropertyContainerTraitDefinition();
-		final TraitDefinition graphObject       = new GraphObjectTraitDefinition();
+		final TraitDefinition propertyContainer     = new PropertyContainerTraitDefinition();
+		final TraitDefinition graphObject           = new GraphObjectTraitDefinition();
+		final TraitDefinition accessControllable    = new AccessControllableTraitDefinition();
 
 		// common base types for nodes and relationships
 		StructrTraits.registerTrait(propertyContainer);
 		StructrTraits.registerTrait(graphObject);
+		StructrTraits.registerTrait(accessControllable);
 
 		StructrTraits.registerBaseType(propertyContainer);
 		StructrTraits.registerBaseType(graphObject);
+		StructrTraits.registerBaseType(accessControllable);
 
 		// relationship traits
 		StructrTraits.registerTrait(new PrincipalOwnsNodeDefinition());
@@ -75,13 +78,14 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE,       StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_VIEW_PROPERTY,                  StructrTraits.SCHEMA_VIEW_PROPERTY);
 
-		StructrTraits.registerTrait(new RelationshipInterfaceTraitDefinition());
-		StructrTraits.registerTrait(new NodeInterfaceTraitDefinition());
-		StructrTraits.registerTrait(new AccessControllableTraitDefinition());
+		final TraitDefinition nodeInterface         = new NodeInterfaceTraitDefinition();
+		final TraitDefinition relationshipInterface = new RelationshipInterfaceTraitDefinition();
 
-		StructrTraits.registerRelationshipType(StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE);
+		StructrTraits.registerTrait(nodeInterface);
+		StructrTraits.registerTrait(relationshipInterface);
+
 		StructrTraits.registerNodeType(StructrTraits.NODE_INTERFACE, StructrTraits.NODE_INTERFACE);
-		StructrTraits.registerNodeType(StructrTraits.ACCESS_CONTROLLABLE, StructrTraits.ACCESS_CONTROLLABLE);
+		StructrTraits.registerRelationshipType(StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE);
 
 		StructrTraits.registerTrait(new PrincipalTraitDefinition());
 		StructrTraits.registerTrait(new GroupTraitDefinition());

@@ -28,12 +28,11 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class TraitsInstance {
 
-	private final Map<String, Traits> globalTypeMap = new ConcurrentHashMap<>();
-	private final Map<String, Trait> globalTraitMap = new ConcurrentHashMap<>();
+	private final Map<String, Traits> globalTypeMap = new LinkedHashMap<>();
+	private final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
 	private final String name;
 
 	// allow caching only after the schema is final
@@ -52,11 +51,11 @@ public class TraitsInstance {
 
 		final TraitsInstance newInstance = new TraitsInstance(name);
 
-		for (Trait trait : globalTraitMap.values()) {
+		for (final Trait trait : globalTraitMap.values()) {
 			newInstance.globalTraitMap.put(trait.getName(), trait.createCopy(newInstance));
 		}
 
-		for (Traits traits : globalTypeMap.values()) {
+		for (final Traits traits : globalTypeMap.values()) {
 			newInstance.globalTypeMap.put(traits.getName(), traits.createCopy(newInstance));
 		}
 

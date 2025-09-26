@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
@@ -294,13 +295,10 @@ public class TraitsImplementation implements Traits {
 
 		dynamicMethodCache = new LinkedHashMap<>();
 
-		final Set<Trait> traits = getTraits();
-		for (final Trait trait : traits) {
-
-			final Map<String, AbstractMethod> methods = trait.getDynamicMethods();
+		for (final Trait trait : getTraits(true)) {
 
 			// this is the place where we can detect clashes!
-			dynamicMethodCache.putAll(methods);
+			dynamicMethodCache.putAll(trait.getDynamicMethods());
 		}
 
 		return dynamicMethodCache;
@@ -477,41 +475,97 @@ public class TraitsImplementation implements Traits {
 
 	// ----- private methods -----
 	private Set<Trait> getTraits() {
-
-		if (!localTraitsCache.isEmpty() && traitsInstance.allowCaching()) {
-			return localTraitsCache;
-		}
-
-		for (final String name : traits) {
-
-			collectTraitsRecursively(localTraitsCache, name);
-		}
-
-		return localTraitsCache;
+		return getTraits(false);
 	}
 
-	private void collectTraitsRecursively(final Set<Trait> set, final String name) {
+	public Set<Trait> getTraits(final boolean printResolution) {
+
+		final Set<String> resolvedTraits = new LinkedHashSet<>();
+		final Set<String> seenTraits     = new LinkedHashSet<>();
+		final Set<Trait> result          = new LinkedHashSet<>();
+
+		for (final String trait : traits) {
+
+			// depth-first
+			recurse(resolvedTraits, seenTraits, trait, printResolution, 0);
+		}
+
+		if (printResolution) {
+			System.out.println("resolvedTraits before iteration: " + resolvedTraits);
+		}
+
+		for (final String name : resolvedTraits) {
+
+			if (printResolution) {
+				System.out.println("        resolvedTrait: " + name);
+			}
+
+			final Trait resolvedTrait = traitsInstance.getTrait(name);
+			if (resolvedTrait != null) {
+
+				result.add(resolvedTrait);
+			}
+		}
+
+		if (printResolution) {
+			System.out.println("resolvedTraits after iteration:  " + resolvedTraits);
+			System.out.println("result after iteration:          " + result);
+		}
+
+		return result;
+	}
+
+	private void recurse(final Set<String> resolvedTraits, final Set<String> seenTraits, final String name, final boolean printResolution, final int depth) {
+
+		if (!seenTraits.add(name)) {
+			return;
+		}
 
 		if (traitsInstance.exists(name)) {
 
-			final TraitsImplementation traits = (TraitsImplementation) traitsInstance.getTraits(name);
+			final TraitsImplementation impl = (TraitsImplementation) traitsInstance.getTraits(name);
 
-			for (final String traitName : traits.traits) {
+			if (printResolution) {
+				System.out.println(StringUtils.repeat(" ", depth * 4) + "resolveTraits: traits of " + name + ": " + impl.traits);
+			}
 
-				final Trait trait = traitsInstance.getTrait(traitName);
-				if (trait != null) {
+			for (final String trait : impl.traits) {
 
-					if (set.add(trait)) {
-
-						collectTraitsRecursively(set, trait.getLabel());
-					}
-				}
+				recurse(resolvedTraits, seenTraits, trait, printResolution, depth + 1);
 			}
 		}
+
+		if (printResolution) {
+			System.out.println(StringUtils.repeat(" ", depth * 4) + "resolveTraits: adding " + name);
+		}
+
+		resolvedTraits.add(name);
 	}
 
 	public void addTrait(final String trait) {
+
+		clearCaches();
+
 		traits.add(trait);
+	}
+
+	private void clearCaches() {
+
+		keyCache.clear();
+		localTraitsCache.clear();
+		frameworkMethodCache.clear();
+		lifecycleMethodCache.clear();
+		nodeTraitFactoryCache.clear();
+
+		if (dynamicMethodCache != null) {
+			dynamicMethodCache.clear();
+		}
+
+		if (cachedLabels != null) {
+			cachedLabels.clear();
+		}
+
+		cachedRelation = null;
 	}
 
 	class Wrapper<T> {

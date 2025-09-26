@@ -2078,7 +2078,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}

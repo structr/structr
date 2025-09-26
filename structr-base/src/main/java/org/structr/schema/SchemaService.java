@@ -130,7 +130,6 @@ public class SchemaService implements Service {
 					final String label               = definition.getLabel();
 
 					traits.addAll(schemaNode.getInheritedTraits());
-					traits.add(label);
 					traits.add(name);
 
 					newSchema.registerTrait(new Trait(newSchema, definition, true));
