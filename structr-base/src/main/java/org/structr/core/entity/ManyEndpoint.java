@@ -96,13 +96,16 @@ public class ManyEndpoint extends AbstractEndpoint implements Target<Iterable<Re
 
 			for (final NodeInterface n : collection) {
 
-				final Traits type = n.getTraits();
+				if (n != null) {
 
-				if (!SearchCommand.isTypeAssignableFromOtherType(targetType, type)) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), targetType.getName()));
+					final Traits type = n.getTraits();
+
+					if (!SearchCommand.isTypeAssignableFromOtherType(targetType, type)) {
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), targetType.getName()));
+					}
+
+					toBeCreated.add(n);
 				}
-
-				toBeCreated.add(n);
 			}
 		}
 

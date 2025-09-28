@@ -100,13 +100,16 @@ public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<
 
 			for (final NodeInterface n : collection) {
 
-				final Traits type = n.getTraits();
+				if (n != null) {
 
-				if (!SearchCommand.isTypeAssignableFromOtherType(sourceType, type)) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), sourceType.getName()));
+					final Traits type = n.getTraits();
+
+					if (!SearchCommand.isTypeAssignableFromOtherType(sourceType, type)) {
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), sourceType.getName()));
+					}
+
+					toBeCreated.add(n);
 				}
-
-				toBeCreated.add(n);
 			}
 		}
 

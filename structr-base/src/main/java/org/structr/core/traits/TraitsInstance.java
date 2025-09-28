@@ -35,9 +35,6 @@ public class TraitsInstance {
 	private final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
 	private final String name;
 
-	// allow caching only after the schema is final
-	private boolean allowCaching = false;
-
 	public TraitsInstance(final String name) {
 		this.name = name;
 	}
@@ -87,14 +84,6 @@ public class TraitsInstance {
 
 	void unregisterTraits(final Set<String> names) {
 		globalTraitMap.keySet().removeAll(names);
-	}
-
-	boolean allowCaching() {
-		return allowCaching;
-	}
-
-	void enableCaching() {
-		allowCaching = true;
 	}
 
 	// ----- public methods -----
@@ -181,6 +170,14 @@ public class TraitsInstance {
 		return getAllTypes(null);
 	}
 
+	public void resolveTraitHierarchies() {
+
+		for (final Traits traits : globalTypeMap.values()) {
+
+			((TraitsImplementation) traits).resolveTraits();
+		}
+	}
+
 	public Set<String> getAllTypes(final Predicate<Traits> filter) {
 
 		final Set<String> types = new LinkedHashSet<>();
@@ -248,11 +245,13 @@ public class TraitsInstance {
 
 	public void registerBaseType(final TraitDefinition definition) {
 
-		final TraitsImplementation traits = new TraitsImplementation(this, definition.getName(), true, false, false, false, false);
+		final TraitsImplementation impl = new TraitsImplementation(this, definition.getName(), true, false, false, false, false);
 
-		traits.addTrait(definition.getLabel());
+		impl.addTrait(definition.getLabel());
 
-		registerType(definition.getLabel(), traits);
+		registerType(definition.getLabel(), impl);
+
+		impl.resolveTraits();
 	}
 
 	public void registerNodeType(final String typeName, final String... traits) {
@@ -270,6 +269,8 @@ public class TraitsInstance {
 		}
 
 		registerType(typeName, impl);
+
+		impl.resolveTraits();
 	}
 
 	public void registerRelationshipType(final String typeName, final String... traits) {
@@ -286,6 +287,8 @@ public class TraitsInstance {
 		}
 
 		registerType(typeName, impl);
+
+		impl.resolveTraits();
 	}
 
 	public void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final Set<String> traits) {
@@ -306,12 +309,16 @@ public class TraitsInstance {
 			impl.addTrait(StructrTraits.GRAPH_OBJECT);
 			impl.addTrait(StructrTraits.NODE_INTERFACE);
 			impl.addTrait(StructrTraits.ACCESS_CONTROLLABLE);
+
+			registerType(typeName, impl);
 		}
 
 		// add implementation (allow extension of existing types)
 		for (final String trait : traits) {
 			impl.addTrait(trait);
 		}
+
+		impl.resolveTraits();
 	}
 
 	public void registerDynamicRelationshipType(final String typeName, final boolean changelogEnabled, final Set<String> traits) {
@@ -330,5 +337,9 @@ public class TraitsInstance {
 		for (final String trait : traits) {
 			impl.addTrait(trait);
 		}
+
+		registerType(typeName, impl);
+
+		impl.resolveTraits();
 	}
 }

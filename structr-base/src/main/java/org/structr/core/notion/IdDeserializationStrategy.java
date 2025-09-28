@@ -256,7 +256,7 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 					// interpret source as a raw ID string and fetch entity
 					final GraphObject obj = app.getNodeById(type, uuid);
 
-					if (obj == null) {
+					if (obj == null && !securityContext.ignoreMissingNodesInDeserialization()) {
 						throw new FrameworkException(422, "No " + type + " with UUID " + uuid + " found.", new IdNotFoundToken(type, uuid));
 					}
 

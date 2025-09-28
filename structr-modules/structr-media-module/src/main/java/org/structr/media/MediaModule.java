@@ -37,10 +37,11 @@ public class MediaModule implements StructrModule {
 
 		StructrTraits.registerTrait(new VideoFileHAS_CONVERTED_VIDEOVideoFile());
 		StructrTraits.registerTrait(new VideoFileHAS_POSTER_IMAGEImage());
-		StructrTraits.registerTrait(new VideoFileTraitDefinition());
 
 		StructrTraits.registerRelationshipType(StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE);
 		StructrTraits.registerRelationshipType(StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,         StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE);
+
+		StructrTraits.registerTrait(new VideoFileTraitDefinition());
 
 		StructrTraits.registerNodeType(StructrTraits.VIDEO_FILE, StructrTraits.ABSTRACT_FILE, StructrTraits.FILE, StructrTraits.LINKABLE, StructrTraits.VIDEO_FILE);
 	}

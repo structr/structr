@@ -37,18 +37,29 @@ public class CoreModule implements StructrModule {
 		final TraitDefinition graphObject           = new GraphObjectTraitDefinition();
 		final TraitDefinition accessControllable    = new AccessControllableTraitDefinition();
 
+		final TraitDefinition nodeInterface         = new NodeInterfaceTraitDefinition();
+		final TraitDefinition relationshipInterface = new RelationshipInterfaceTraitDefinition();
+
 		// common base types for nodes and relationships
 		StructrTraits.registerTrait(propertyContainer);
 		StructrTraits.registerTrait(graphObject);
 		StructrTraits.registerTrait(accessControllable);
+
+		StructrTraits.registerTrait(new PrincipalOwnsNodeDefinition());
+		StructrTraits.registerTrait(new SecurityRelationshipDefinition());
+
+		StructrTraits.registerTrait(relationshipInterface);
+
+		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_OWNS_NODE,                   StructrTraits.PRINCIPAL_OWNS_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SECURITY,                              StructrTraits.SECURITY);
+
+		StructrTraits.registerTrait(nodeInterface);
 
 		StructrTraits.registerBaseType(propertyContainer);
 		StructrTraits.registerBaseType(graphObject);
 		StructrTraits.registerBaseType(accessControllable);
 
 		// relationship traits
-		StructrTraits.registerTrait(new PrincipalOwnsNodeDefinition());
-		StructrTraits.registerTrait(new SecurityRelationshipDefinition());
 		StructrTraits.registerTrait(new PrincipalSchemaGrantRelationshipDefinition());
 		StructrTraits.registerTrait(new GroupContainsPrincipalDefinition());
 		StructrTraits.registerTrait(new SchemaExcludedViewPropertyDefinition());
@@ -63,8 +74,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerTrait(new SchemaViewPropertyDefinition());
 
 		// relationship types
-		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_OWNS_NODE,                   StructrTraits.PRINCIPAL_OWNS_NODE);
-		StructrTraits.registerRelationshipType(StructrTraits.SECURITY,                              StructrTraits.SECURITY);
 		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP,   StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
 		StructrTraits.registerRelationshipType(StructrTraits.GROUP_CONTAINS_PRINCIPAL,              StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY,         StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);
@@ -77,12 +86,6 @@ public class CoreModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE,       StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE,       StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
 		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_VIEW_PROPERTY,                  StructrTraits.SCHEMA_VIEW_PROPERTY);
-
-		final TraitDefinition nodeInterface         = new NodeInterfaceTraitDefinition();
-		final TraitDefinition relationshipInterface = new RelationshipInterfaceTraitDefinition();
-
-		StructrTraits.registerTrait(nodeInterface);
-		StructrTraits.registerTrait(relationshipInterface);
 
 		StructrTraits.registerNodeType(StructrTraits.NODE_INTERFACE, StructrTraits.NODE_INTERFACE);
 		StructrTraits.registerRelationshipType(StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE);

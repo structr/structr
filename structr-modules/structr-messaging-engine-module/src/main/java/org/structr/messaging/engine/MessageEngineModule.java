@@ -61,13 +61,14 @@ public class MessageEngineModule implements StructrModule {
 	public void onLoad() {
 
 		StructrTraits.registerTrait(new MessageClientHASMessageSubscriber());
+		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
+
 		StructrTraits.registerTrait(new MessageClientTraitDefinition());
 		StructrTraits.registerTrait(new MessageSubscriberTraitDefinition());
 		StructrTraits.registerTrait(new KafkaClientTraitDefinition());
 		StructrTraits.registerTrait(new MQTTClientTraitDefinition());
 		StructrTraits.registerTrait(new PulsarClientTraitDefinition());
 
-		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 
 		StructrTraits.registerNodeType(StructrTraits.MESSAGE_CLIENT,     StructrTraits.MESSAGE_CLIENT);
 		StructrTraits.registerNodeType(StructrTraits.MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_SUBSCRIBER);

@@ -39,6 +39,5 @@ public class TraitsManager {
 
 	public static void replaceCurrentInstance(final TraitsInstance newInstance) {
 		TraitsManager.currentInstance = newInstance;
-		TraitsManager.currentInstance.enableCaching();
 	}
 }

@@ -59,10 +59,11 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 	public void onLoad() {
 
 		StructrTraits.registerTrait(new VirtualTypevirtualPropertyVirtualProperty());
+		StructrTraits.registerRelationshipType(StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY, StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY);
+
 		StructrTraits.registerTrait(new VirtualTypeTraitDefinition());
 		StructrTraits.registerTrait(new VirtualPropertyTraitDefinition());
 
-		StructrTraits.registerRelationshipType(StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY, StructrTraits.VIRTUAL_TYPE_VIRTUAL_PROPERTY_VIRTUAL_PROPERTY);
 
 		StructrTraits.registerNodeType(StructrTraits.VIRTUAL_TYPE,     StructrTraits.VIRTUAL_TYPE);
 		StructrTraits.registerNodeType(StructrTraits.VIRTUAL_PROPERTY, StructrTraits.VIRTUAL_PROPERTY);

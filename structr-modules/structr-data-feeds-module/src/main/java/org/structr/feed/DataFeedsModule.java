@@ -41,16 +41,16 @@ public class DataFeedsModule implements StructrModule {
 		StructrTraits.registerTrait(new FeedItemFEED_ITEM_CONTENTSFeedItemContent());
 		StructrTraits.registerTrait(new FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure());
 
+		StructrTraits.registerRelationshipType(StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM,                 StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
+		StructrTraits.registerRelationshipType(StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT,     StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
+		StructrTraits.registerRelationshipType(StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
+
 		StructrTraits.registerTrait(new AbstractFeedItemTraitDefinition());
 		StructrTraits.registerTrait(new DataFeedTraitDefinition());
 		StructrTraits.registerTrait(new FeedItemTraitDefinition());
 		StructrTraits.registerTrait(new FeedItemContentTraitDefinition());
 		StructrTraits.registerTrait(new FeedItemEnclosureTraitDefinition());
 		StructrTraits.registerTrait(new RemoteDocumentTraitDefinition());
-
-		StructrTraits.registerRelationshipType(StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM,                 StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
-		StructrTraits.registerRelationshipType(StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT,     StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
-		StructrTraits.registerRelationshipType(StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
 
 		StructrTraits.registerNodeType(StructrTraits.ABSTRACT_FEED_ITEM,  StructrTraits.ABSTRACT_FEED_ITEM);
 		StructrTraits.registerNodeType(StructrTraits.DATA_FEED,           StructrTraits.DATA_FEED);

@@ -45,13 +45,14 @@ public class ODFModule implements StructrModule {
 		StructrTraits.registerTrait(new ODFExporterEXPORTS_TOFile());
 		StructrTraits.registerTrait(new ODFExporterGETS_TRANSFORMATION_FROMVirtualType());
 		StructrTraits.registerTrait(new ODFExporterUSES_TEMPLATEFile());
-		StructrTraits.registerTrait(new ODFExporterTraitDefinition());
-		StructrTraits.registerTrait(new ODSExporterTraitDefinition());
-		StructrTraits.registerTrait(new ODTExporterTraitDefinition());
 
 		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE,                       StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
 		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
 		StructrTraits.registerRelationshipType(StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE,                    StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
+
+		StructrTraits.registerTrait(new ODFExporterTraitDefinition());
+		StructrTraits.registerTrait(new ODSExporterTraitDefinition());
+		StructrTraits.registerTrait(new ODTExporterTraitDefinition());
 
 		StructrTraits.registerNodeType(StructrTraits.ODF_EXPORTER, StructrTraits.ODF_EXPORTER);
 		StructrTraits.registerNodeType(StructrTraits.ODS_EXPORTER, StructrTraits.ODF_EXPORTER, StructrTraits.ODS_EXPORTER);

@@ -93,7 +93,7 @@ public class FlowModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_CONTAINER_CONFIGURATION_PRINCIPAL, StructrTraits.FLOW_CONTAINER_CONFIGURATION_PRINCIPAL);
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_CONTAINER_FLOW_NODE,               StructrTraits.FLOW_CONTAINER_FLOW_NODE);
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_CONTAINER_PACKAGE_FLOW,            StructrTraits.FLOW_CONTAINER_PACKAGE_FLOW);
-		StructrTraits.registerRelationshipType(StructrTraits.FLOW_CONTAINER_PACKAGE_PACKAGE,         StructrTraits.FLOW_CONTAINER_PACKAGE);
+		StructrTraits.registerRelationshipType(StructrTraits.FLOW_CONTAINER_PACKAGE_PACKAGE,         StructrTraits.FLOW_CONTAINER_PACKAGE_PACKAGE);
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_DATA_INPUT,                        StructrTraits.FLOW_DATA_INPUT);
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_DATA_INPUTS,                       StructrTraits.FLOW_DATA_INPUTS);
 		StructrTraits.registerRelationshipType(StructrTraits.FLOW_DECISION_CONDITION,                StructrTraits.FLOW_DECISION_CONDITION);
@@ -179,7 +179,7 @@ public class FlowModule implements StructrModule {
 		StructrTraits.registerNodeType(StructrTraits.FLOW_LOG,                     StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE, StructrTraits.FLOW_LOG);
 		StructrTraits.registerNodeType(StructrTraits.FLOW_LOGIC_CONDITION,         StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE, StructrTraits.FLOW_LOGIC_CONDITION);
 		StructrTraits.registerNodeType(StructrTraits.FLOW_NODE,                    StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE);
-		StructrTraits.registerNodeType(StructrTraits.FLOW_NOT,                     StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE, StructrTraits.FLOW_CONDITION, StructrTraits.FLOW_LOGIC_CONDITION);
+		StructrTraits.registerNodeType(StructrTraits.FLOW_NOT,                     StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE, StructrTraits.FLOW_CONDITION, StructrTraits.FLOW_LOGIC_CONDITION, StructrTraits.FLOW_NOT);
 		StructrTraits.registerNodeType(StructrTraits.FLOW_NOT_EMPTY,               StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE, StructrTraits.FLOW_CONDITION, StructrTraits.FLOW_NOT_EMPTY);
 		StructrTraits.registerNodeType(StructrTraits.FLOW_NOT_NULL,                StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE, StructrTraits.FLOW_CONDITION, StructrTraits.FLOW_NOT_NULL);
 		StructrTraits.registerNodeType(StructrTraits.FLOW_OBJECT_DATA_SOURCE,      StructrTraits.FLOW_BASE_NODE, StructrTraits.FLOW_NODE, StructrTraits.FLOW_DATA_SOURCE, StructrTraits.FLOW_OBJECT_DATA_SOURCE);

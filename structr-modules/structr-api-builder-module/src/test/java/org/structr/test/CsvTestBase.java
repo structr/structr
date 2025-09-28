@@ -126,14 +126,15 @@ public abstract class CsvTestBase {
 
 		StructrTraits.registerTrait(new FourThreeOneToOne());
 		StructrTraits.registerTrait(new TwoFiveOneToMany());
+
+		StructrTraits.registerRelationshipType("FourThreeOneToOne", "FourThreeOneToOne");
+		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  "TwoFiveOneToMany");
+
 		StructrTraits.registerTrait(new TestOneTraitDefinition());
 		StructrTraits.registerTrait(new TestTwoTraitDefinition());
 		StructrTraits.registerTrait(new TestThreeTraitDefinition());
 		StructrTraits.registerTrait(new TestFourTraitDefinition());
 		StructrTraits.registerTrait(new TestFiveTraitDefinition());
-
-		StructrTraits.registerRelationshipType("FourThreeOneToOne", "FourThreeOneToOne");
-		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  "TwoFiveOneToMany");
 
 		StructrTraits.registerNodeType("TestOne",      "TestOne");
 		StructrTraits.registerNodeType("TestTwo",      "TestTwo");

@@ -112,7 +112,7 @@ public class SchemaService implements Service {
 					removedTypes.remove(name);
 
 					// create views (was a post process before, but needs access to the new schema)
-					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), name);
+					//AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), name);
 				}
 
 				// fetch schema nodes
@@ -137,9 +137,6 @@ public class SchemaService implements Service {
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(label);
-
-					// create views (was a post process before, but needs access to the new schema)
-					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), label);
 				}
 
 				// fetch schema methods that extend the static schema (not attached to a schema node)
@@ -228,6 +225,16 @@ public class SchemaService implements Service {
 							throw new FrameworkException(422, "Invalid schema grant " + schemaGrant.getUuid() + ": property staticSchemaNodeName contains unknown type " + staticSchemaNodeName);
 						}
 					}
+				}
+
+				newSchema.resolveTraitHierarchies();
+
+				for (final NodeInterface node : app.nodeQuery(StructrTraits.ABSTRACT_SCHEMA_NODE).getResultStream()) {
+
+					final String label = node.getName();
+
+					// create views (was a post process before, but needs access to the new schema)
+					AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), label);
 				}
 
 				updateIndexConfiguration(newSchema, removedTypes);
