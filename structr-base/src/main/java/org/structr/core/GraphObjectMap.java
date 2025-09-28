@@ -56,7 +56,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
-		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Object uuid = getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
+		return uuid == null ? null : uuid.toString();
 	}
 
 	@Override

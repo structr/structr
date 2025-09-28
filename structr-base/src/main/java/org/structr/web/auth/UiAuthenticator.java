@@ -487,10 +487,10 @@ public class UiAuthenticator implements Authenticator {
 
 				final String[] typeAndKey = StringUtils.split(key, ".");
 
-				if (typeAndKey.length == 2) {
+				if (typeAndKey.length == 2 && Traits.exists(typeAndKey[0])) {
+
 					final PropertyKey<String> authenticationPropertyKey = Traits.of(typeAndKey[0]).key(typeAndKey[1]);
 					authenticationPropertyKeySet.add(authenticationPropertyKey);
-
 				}
 			}
 		}

@@ -45,9 +45,9 @@
 	</prerequisites>
 
 	<properties>
-		<java.version>24</java.version>
-		<maven.compiler.source>24</maven.compiler.source>
-		<maven.compiler.target>24</maven.compiler.target>
+		<java.version>25</java.version>
+		<maven.compiler.source>25</maven.compiler.source>
+		<maven.compiler.target>25</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:2025</test.neo4j.version>
@@ -354,6 +354,11 @@
 				<artifactId>rome-utils</artifactId>
 				<version>1.7.3</version>
 			</dependency>
+			<dependency>
+				<groupId>com.microsoft.playwright</groupId>
+				<artifactId>playwright</artifactId>
+				<version>1.55.0</version>
+			</dependency>
 			<!-- JAXB API only -->
 			<dependency>
 				<groupId>jakarta.xml.bind</groupId>
@@ -435,6 +440,7 @@
 						<exclude>src/main/resources/structr/trumbowyg/**</exclude>
 						<exclude>src/main/resources/structr/js/lib/**</exclude>
 						<exclude>src/main/resources/structr/css/lib/**</exclude>
+						<exclude>src/main/resources/structr/docs/**</exclude>
 						<exclude>src/test/javascript/casperjs/**</exclude>
 						<exclude>src/test/javascript/bin/**</exclude>
 						<exclude>src/test/javascript/lib/**</exclude>

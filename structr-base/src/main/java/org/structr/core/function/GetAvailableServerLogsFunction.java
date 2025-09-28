@@ -18,6 +18,13 @@
  */
 package org.structr.core.function;
 
+import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -29,10 +36,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
@@ -120,24 +124,48 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 	private static List<String> getLogFilesInVarLog() {
 
-		// return all files starting with "structr.log" in /var/log
-		try (Stream<Path> paths = Files.walk(Paths.get("/var/log/"))) {
+		// return all (non-gzipped) files starting with "structr.log" in /var/log
+		final List<String> logFiles = new ArrayList<>();
 
-			return paths
-					.filter(Files::isRegularFile)
-					.filter(path -> {
-						final String name = path.toFile().getName();
-						return name.startsWith("structr.log") && !name.endsWith(".gz");
-					})
-					.map(Path::toString)
-					.sorted(Comparator.naturalOrder())
-					.collect(Collectors.toList());
+		try {
+
+			Files.walkFileTree(Paths.get("/var/log/"), EnumSet.noneOf(FileVisitOption.class), 1, new SimpleFileVisitor<>() {
+
+				private boolean isFileOfInterest(final Path file) {
+
+					final String name = file.getFileName().toString();
+
+					return (name.startsWith("structr.log") && !name.endsWith(".gz"));
+				}
+
+				@Override
+				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
+
+					if (attrs.isRegularFile() && isFileOfInterest(file)) {
+						logFiles.add(file.toString());
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+
+				@Override
+				public FileVisitResult visitFileFailed(Path file, IOException exc) {
+
+					if (isFileOfInterest(file)) {
+						logger.debug("Skipping {}: {}", file, exc.toString());
+					}
+
+					return FileVisitResult.CONTINUE;
+				}
+			});
 
 		} catch (IOException e) {
 
 			logger.warn("Unable to enumerate files in /var/log/");
 		}
 
-		return null;
+		Collections.sort(logFiles);
+
+		return logFiles;
 	}
 }

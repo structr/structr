@@ -91,7 +91,7 @@
 												<env>
 													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
 													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-													<NEO4J_dbms_memory_heap_max__size>12G</NEO4J_dbms_memory_heap_max__size>
+													<NEO4J_server_memory_heap_max__size>2G</NEO4J_server_memory_heap_max__size>
 													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
 												</env>
 											</run>
