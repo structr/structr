@@ -199,6 +199,7 @@
 
 #schema-graph .node {
 	cursor: pointer;
+	border-radius: 1rem;
 }
 
 #schema-graph .node h2 {
@@ -206,7 +207,7 @@
 }
 
 #schema-graph .node:hover {
-	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.4));
+	filter: drop-shadow(0 0 0.625rem rgba(0, 0, 0, 0.1));
 }
 
 #schema-graph ._jsPlumb_endpoint_anchor {

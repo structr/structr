@@ -179,7 +179,7 @@ let _VirtualTypes = {
 			_Helpers.fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
 		};
 		_VirtualTypes.virtualTypesPager.appendFilterElements(`
-			<span class="mr-1">Filters:</span>
+			<span class="ml-4 mr-1">Filters:</span>
 			<input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name">
 			<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type">
 		`);

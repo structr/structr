@@ -1,0 +1,122 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@font-face {
+  font-family: 'Nexa';
+  font-style:  normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("Nexa-Thin.ttf");
+}
+@font-face {
+  font-family: 'Nexa';
+  font-style:  italic;
+  font-weight: 100;
+  font-display: swap;
+  src: url("Nexa-ThinItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nexa';
+  font-style:  normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("Nexa-ExtraLight.ttf");
+}
+@font-face {
+  font-family: 'Nexa';
+  font-style:  italic;
+  font-weight: 200;
+  font-display: swap;
+  src: url("Nexa-ExtraLightItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nexa';
+  font-style:  normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("Nexa-Light.ttf");
+}
+@font-face {
+  font-family: 'Nexa';
+  font-style:  italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("Nexa-LightItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nexa';
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("Nexa-Regular.ttf");
+}
+@font-face {
+  font-family: 'Nexa';
+  font-style:  italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("Nexa-RegularItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nexa';
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("Nexa-Bold.ttf");
+}
+@font-face {
+  font-family: 'Nexa';
+  font-style:  italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("Nexa-BoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nexa';
+  font-style:  normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("Nexa-ExtraBold.ttf");
+}
+@font-face {
+  font-family: 'Nexa';
+  font-style:  italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url("Nexa-ExtraBoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nexa';
+  font-style:  normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("Nexa-Black.ttf");
+}
+@font-face {
+  font-family: 'Nexa';
+  font-style:  italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url("Nexa-BlackItalic.ttf");
+}

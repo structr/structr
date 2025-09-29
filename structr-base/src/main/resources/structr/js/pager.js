@@ -270,7 +270,7 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 					${_Icons.getSvgIcon(_Icons.iconChevronRight)}
 				</button>
 				<span class="ml-2 mr-1">Items:</span>
-				<select class="pageSize mr-4 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				<select class="pageSize hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${[5, 10, 25, 50, 100].map((pageSize) => `<option${(_Pager.pageSize[this.id] === pageSize ? ' selected' : '')}>${pageSize}</option>`).join('')}
 				</select>
 			</div>

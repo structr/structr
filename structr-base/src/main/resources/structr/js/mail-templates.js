@@ -229,7 +229,7 @@ let _MailTemplates = {
 			_Helpers.fastRemoveAllChildren(_MailTemplates.mailTemplatesList);
 		};
 		_MailTemplates.mailTemplatesPager.appendFilterElements(`
-			<span class="mr-1">Filters:</span>
+			<span class="ml-4 mr-1">Filters:</span>
 			<input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">
 			<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale">
 		`);

@@ -88,7 +88,7 @@
 	ul.tabs-menu {
 		display: flex;
 		flex-direction: column;
-		padding-right: 2rem;
+		padding-right: 0;
 		white-space: nowrap;
 	}
 
@@ -141,19 +141,22 @@ body {
 }
 
 #configTabs {
-	margin: 1rem 2rem 0 2rem;
-	height: calc(100vh - 10rem);
+	margin: 2rem 2rem 0 0;
+	height: calc(100vh - 11rem);
 	border: none;
 	background: none;
 }
 
 #configTabs .tab-content {
-	padding-left: 2rem;
-}
-
-.tab-content {
+	padding-top: 1.5rem;
 	overflow: auto;
 	border-radius: 0;
+}
+
+.tabs-menu li a {
+	padding-right: 0;
+	padding-left: 2rem !important;
+	width: initial;
 }
 
 .config-group {
@@ -164,7 +167,7 @@ body {
 form.config-form div.buttons {
 	text-align: right;
 	position: absolute;
-	right: 2rem;
+	right: 1rem;
 	bottom: 1rem;
 }
 
@@ -173,7 +176,12 @@ form.config-form div.buttons input[type=reset] {
 }
 
 .default-action {
-	background-color: var(--config-structr-green);
+	background-color: var(--structr-green);
+	color: white;
+}
+
+.default-action:hover {
+	background-color: var(--dark-structr-green);
 }
 
 .config-group h1 {
@@ -217,6 +225,10 @@ form.config-form div.buttons input[type=reset] {
 
 .form-group span.context-help-text {
 	display: none;
+}
+
+button:hover {
+	background-color: var(--light-gray-bg-f3);
 }
 
 button.toggle-option {
@@ -294,22 +306,35 @@ h2 {
 	display: inline-block;
 }
 
-div.connection {
-	float: left;
-	margin: 1em 2em 2em 0;
-	background-color: var(--solid-white);
-	min-width: 24rem;
-	min-height: 24rem;
-	padding: 1em 1.5em;
-	border-radius: 3px;
+#databases {
+	position: relative;
 }
 
-div.connection.active {
-	border: 1px solid var(--config-structr-green);
+div.connection {
+	float: left;
+	margin: 1em 2em 0 0;
+	background-color: var(--solid-white);
+	min-width: 36rem;
+	width: calc(100vw - 22.5rem);
+	min-height: 18rem;
+	/*padding: 1em 1.5em;*/
+	border-radius: 3px;
+	border: none;
+	box-shadow: none;
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	column-gap: 2rem;
+	position: initial;
+}
+
+div.connection:hover {
+	background: none;
+	border: none;
+	box-shadow: none;
 }
 
 div.connection.new-connection {
-	border: 1px dashed #ddd;
+	/*border: 1px dashed #ddd;*/
 }
 
 .app-tile.collapsed {
@@ -319,8 +344,11 @@ div.connection.new-connection {
 }
 
 div.connection.collapsed {
-	min-width: 0px;
-	min-height: 0px;
+	min-width: 0;
+	min-height: 0;
+	height: 0;
+	padding: 0;
+	margin: 0;
 	border: none;
 	box-shadow: none;
 	border-radius: 0;
@@ -337,7 +365,14 @@ div.connection h4 {
 }
 
 div.connection p {
-	padding: 1rem 0 0 0;
+	/*padding: 1rem 0 0 0;*/
+	margin: 0;
+}
+
+div.connection label {
+	display: block;
+	font-size: .75rem;
+	margin-bottom: .25rem;
 }
 
 div.connection input[readonly="readonly"] {
@@ -353,18 +388,26 @@ div.connection select {
 }
 
 div.connection p.buttons {
-	padding: 2rem 0 0 0;
+	grid-column: span 2 / span 2;
+	/*padding: 2rem 0 0 0;*/
 	text-align: right;
+	/*margin-top: -2rem;*/
 }
 
 div.connection button {
 	border: 1px solid rgba(0,0,0,.125);
 	position: relative;
-	margin: 0;
+	margin: 0 0 0 1rem;
 }
 
 .delete-button {
 	float: right;
+}
+
+.show-add-connection {
+	position: absolute;
+	top: 2rem;
+	right: 2rem;
 }
 
 p.must_not_be_empty input {
@@ -390,8 +433,10 @@ p.already_taken::after {
 }
 
 div.warning-message {
-	padding: 5px 5px 5px 30px;
-	margin: 8px 0 0 0;
+	position: absolute;
+	top: 2rem;
+	right: 2rem;
+	padding: .5rem 1rem;
 }
 
 input[type=text]:invalid {

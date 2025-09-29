@@ -149,6 +149,10 @@ document.addEventListener("DOMContentLoaded", () => {
 	window.addEventListener('resize', Structr.resize);
 
 	Structr.dropdowns.initEventHandlers();
+
+	Structr.changeSystemMainFont();
+	Structr.changeSystemMonoFont();
+
 });
 
 let Structr = {
@@ -1814,6 +1818,27 @@ let Structr = {
 			container.style.top          = null;
 		},
 	},
+	changeSystemMainFont: () => {
+		const selectedMainFont = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMainFontKey);
+		document.documentElement.style.setProperty('--font-main', `var(--font-${selectedMainFont})`);
+
+		const selectedMainFontSize = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMainFontSizeKey);
+		document.documentElement.style.setProperty('--font-main-size', `${selectedMainFontSize}`);
+
+		//document.querySelectorAll('body, button, textarea, input, select, .result-box, ul.combined-input-select-field, .node-editor select, .node-editor input, .node-editor select, .node-editor select').forEach(el => el.style.fontFamily = `var(--font-${selectedMainFont})`);
+		console.log('System main font changed to', selectedMainFont);
+	},
+	changeSystemMonoFont: () => {
+		const selectedMonoFont = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMonoFontKey);
+		document.documentElement.style.setProperty('--font-monospace', `var(--font-monospace-${selectedMonoFont})`);
+
+		const selectedMonoFontSize = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMonoFontSizeKey);
+		document.documentElement.style.setProperty('--font-monospace-size', `${selectedMonoFontSize}`);
+
+		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, .monaco-editor, .monaco-editor .view-lines, .monaco-editor .margin-view-overlays, #dashboard-server-log textarea, #event-log-container').forEach(el => el.style.fontSize = `${selectedMonoFontSize}`);
+		//document.querySelectorAll('.monaco-editor .view-lines').forEach(el => el.cssText = `--monaco-monospace-font: var(--font-monospace-${selectedMonoFont})`);
+		console.log('System mono font changed to', selectedMonoFont);
+	},
 	determineNotificationAreaVisibility: () => {
 
 		let shouldHide = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
@@ -2924,6 +2949,100 @@ let UISettings = {
 		}
 	},
 	settingGroups: {
+		style: {
+			title: 'Style',
+			settings: {
+				systemMainFontKey: {
+					text: 'Main font',
+					storageKey: 'systemMainFont' + location.port,
+					defaultValue: 'inter',
+					type: 'select',
+					infoText: 'The main font that this UI uses.',
+					onUpdate: () => {
+						Structr.changeSystemMainFont();
+					},
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						Arial:         { value: 'arial',          text: 'Arial'          },
+						Helvetica:     { value: 'helvetica',      text: 'Helvetica'      },
+						HelveticaNeue: { value: 'helvetica-neue', text: 'Helvetica Neue' },
+						Inter:         { value: 'inter',          text: 'Inter'          },
+						Nexa:          { value: 'nexa',           text: 'Nexa'           },
+						NexaText:      { value: 'nexa-text',      text: 'Nexa Text'      },
+						NotoSans:      { value: 'noto-sans',      text: 'Noto Sans'      },
+						Nunito:        { value: 'nunito',         text: 'Nunito'         },
+						OpenSans:      { value: 'open-sans',      text: 'Open Sans'      },
+						Poppins:       { value: 'poppins',        text: 'Poppins'        },
+						PublicSans:    { value: 'public-sans',    text: 'Public Sans'    },
+						Roboto:        { value: 'roboto',         text: 'Roboto'         },
+						Sora:          { value: 'sora',           text: 'Sora'           }
+					}
+				},
+				systemMainFontSizeKey: {
+					text: 'Main font size',
+					storageKey: 'systemMainFontSize' + location.port,
+					defaultValue: '10pt',
+					type: 'select',
+					infoText: 'The size of the main font that this UI uses.',
+					onUpdate: () => {
+						Structr.changeSystemMainFont();
+					},
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						'8pt':    { value: '8pt',    text: '8pt'    },
+						'8.5pt':  { value: '8.5pt',  text: '8.5pt'  },
+						'9pt':    { value: '9pt',    text: '9pt'    },
+						'9.5pt':  { value: '9.5pt',  text: '9.5pt'  },
+						'10pt':   { value: '10pt',   text: '10pt'   },
+						'10.5pt': { value: '10.5pt', text: '10.5pt' },
+						'11pt':   { value: '11pt',   text: '11pt'   },
+						'11.5pt': { value: '11.5pt', text: '11.5pt' },
+						'12pt':   { value: '12pt',   text: '12pt'   }
+					}
+				},
+				systemMonoFontKey: {
+					text: '<pre>Monospace font</pre>',
+					storageKey: 'systemMonoFont' + location.port,
+					defaultValue: 'courier',
+					type: 'select',
+					infoText: 'The monospace font that this UI uses.',
+					onUpdate: () => {
+						Structr.changeSystemMonoFont();
+					},
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						Consolas:       { value: 'consolas',    text: 'Consolas'    },
+						Courier:        { value: 'courier',     text: 'Courier'     },
+						CourierNew:     { value: 'courier-new', text: 'Courier New' },
+						FiraCode:       { value: 'fira-code',   text: 'Fira Code'   },
+						Monaco:         { value: 'monaco',      text: 'Monaco'      }
+					}
+				},
+				systemMonoFontSizeKey: {
+					text: '<pre>Main monospace font size</pre>',
+					storageKey: 'systemMonoFontSize' + location.port,
+					defaultValue: '9.5pt',
+					type: 'select',
+					infoText: 'The size of the monospace font that this UI uses.',
+					onUpdate: () => {
+						Structr.changeSystemMonoFont();
+					},
+					inputCssClass: 'w-40 truncate',
+					possibleValues: {
+						'7.5pt':  { value: '7.5pt',  text: '7.5pt'    },
+						'8pt':    { value: '8pt',    text: '8pt'    },
+						'8.5pt':  { value: '8.5pt',  text: '8.5pt'  },
+						'9pt':    { value: '9pt',    text: '9pt'    },
+						'9.5pt':  { value: '9.5pt',  text: '9.5pt'  },
+						'10pt':   { value: '10pt',   text: '10pt'   },
+						'10.5pt': { value: '10.5pt', text: '10.5pt' },
+						'11pt':   { value: '11pt',   text: '11pt'   },
+						'11.5pt': { value: '11.5pt', text: '11.5pt' },
+						'12pt':   { value: '12pt',   text: '12pt'   }
+					}
+				}
+			}
+		},
 		global: {
 			title: 'Global',
 			settings: {
