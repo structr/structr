@@ -1,0 +1,101 @@
+name,milestoneId,projectId
+Requirements Gathering Complete,MIL-001,PROJ-001
+Design Phase Kickoff,MIL-002,PROJ-002
+Development Environment Setup,MIL-003,PROJ-003
+Database Schema Design Complete,MIL-004,PROJ-004
+Infrastructure Planning Complete,MIL-005,PROJ-005
+Security Assessment Started,MIL-006,PROJ-006
+Analytics Framework Selection,MIL-007,PROJ-007
+System Architecture Approved,MIL-008,PROJ-008
+Training Content Planning,MIL-009,PROJ-009
+Data Model Design Complete,MIL-010,PROJ-010
+Market Research Completed,MIL-011,PROJ-001
+UI/UX Wireframes Approved,MIL-012,PROJ-002
+API Documentation Complete,MIL-013,PROJ-003
+Data Migration Plan Approved,MIL-014,PROJ-004
+Cloud Provider Selection,MIL-015,PROJ-005
+Vulnerability Scan Complete,MIL-016,PROJ-006
+Dashboard Mockups Approved,MIL-017,PROJ-007
+Database Implementation Complete,MIL-018,PROJ-008
+Learning Path Design Complete,MIL-019,PROJ-009
+Report Templates Created,MIL-020,PROJ-010
+Campaign Strategy Finalized,MIL-021,PROJ-001
+Frontend Framework Selected,MIL-022,PROJ-002
+Backend Services Architecture,MIL-023,PROJ-003
+Legacy System Analysis Complete,MIL-024,PROJ-004
+Network Architecture Design,MIL-025,PROJ-005
+Penetration Testing Started,MIL-026,PROJ-006
+Data Integration Complete,MIL-027,PROJ-007
+User Interface Development,MIL-028,PROJ-008
+Content Creation Guidelines,MIL-029,PROJ-009
+Dashboard Wireframes Complete,MIL-030,PROJ-010
+Brand Guidelines Established,MIL-031,PROJ-001
+Database Schema Approved,MIL-032,PROJ-002
+Authentication System Design,MIL-033,PROJ-003
+Data Cleansing Rules Defined,MIL-034,PROJ-004
+Security Framework Selected,MIL-035,PROJ-005
+Compliance Review Complete,MIL-036,PROJ-006
+Reporting Engine Selection,MIL-037,PROJ-007
+Workflow Engine Implementation,MIL-038,PROJ-008
+Assessment Framework Design,MIL-039,PROJ-009
+KPI Definitions Approved,MIL-040,PROJ-010
+Creative Assets Produced,MIL-041,PROJ-001
+Payment Gateway Integration,MIL-042,PROJ-002
+Push Notification System,MIL-043,PROJ-003
+Data Validation Rules Complete,MIL-044,PROJ-004
+Load Balancer Configuration,MIL-045,PROJ-005
+Security Policy Documentation,MIL-046,PROJ-006
+Real-time Analytics Setup,MIL-047,PROJ-007
+Notification System Complete,MIL-048,PROJ-008
+Video Content Production,MIL-049,PROJ-009
+Automated Report Generation,MIL-050,PROJ-010
+A/B Testing Framework,MIL-051,PROJ-001
+Search Functionality Complete,MIL-052,PROJ-002
+Offline Capability Added,MIL-053,PROJ-003
+Performance Optimization Complete,MIL-054,PROJ-004
+Monitoring System Deployed,MIL-055,PROJ-005
+Incident Response Plan,MIL-056,PROJ-006
+Custom Metrics Implementation,MIL-057,PROJ-007
+Audit Trail System Complete,MIL-058,PROJ-008
+Certification Program Design,MIL-059,PROJ-009
+Executive Dashboard Complete,MIL-060,PROJ-010
+Social Media Integration,MIL-061,PROJ-001
+Inventory Management Complete,MIL-062,PROJ-002
+App Store Submission,MIL-063,PROJ-003
+Historical Data Migration,MIL-064,PROJ-004
+Disaster Recovery Setup,MIL-065,PROJ-005
+Security Training Complete,MIL-066,PROJ-006
+Predictive Analytics Models,MIL-067,PROJ-007
+Integration Testing Complete,MIL-068,PROJ-008
+Instructor Portal Development,MIL-069,PROJ-009
+Mobile Dashboard Complete,MIL-070,PROJ-010
+Email Campaign Automation,MIL-071,PROJ-001
+Customer Review System,MIL-072,PROJ-002
+Beta Testing Launch,MIL-073,PROJ-003
+System Performance Testing,MIL-074,PROJ-004
+Backup System Implementation,MIL-075,PROJ-005
+Security Documentation Complete,MIL-076,PROJ-006
+Machine Learning Integration,MIL-077,PROJ-007
+User Access Control Complete,MIL-078,PROJ-008
+Gamification Features Added,MIL-079,PROJ-009
+Data Export Functionality,MIL-080,PROJ-010
+Analytics Integration Complete,MIL-081,PROJ-001
+Multi-language Support Added,MIL-082,PROJ-002
+Production Deployment Ready,MIL-083,PROJ-003
+Go-Live Preparation Complete,MIL-084,PROJ-004
+Production Environment Setup,MIL-085,PROJ-005
+Security Certification Achieved,MIL-086,PROJ-006
+Advanced Reporting Features,MIL-087,PROJ-007
+System Documentation Complete,MIL-088,PROJ-008
+User Acceptance Testing,MIL-089,PROJ-009
+Performance Benchmarking,MIL-090,PROJ-010
+Campaign Launch Preparation,MIL-091,PROJ-001
+Final Quality Assurance,MIL-092,PROJ-002
+App Store Approval Received,MIL-093,PROJ-003
+Production Cutover Planning,MIL-094,PROJ-004
+Go-Live Readiness Review,MIL-095,PROJ-005
+Final Security Review,MIL-096,PROJ-006
+Production Data Validation,MIL-097,PROJ-007
+System Handover Complete,MIL-098,PROJ-008
+Training Rollout Complete,MIL-099,PROJ-009
+Project Closure Documentation,MIL-100,PROJ-010

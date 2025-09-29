@@ -27,6 +27,8 @@
 	--font-inter: Inter, Arial, Helvetica, Sans-serif;
 	--font-monospace: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace;
 
+	--header-height: 4rem;
+
 	/** New semantic colors */
 	--main-background:    #f9fafb;
 	--inactive-tab-text:  #95a0b6;
@@ -297,7 +299,7 @@ input[type="checkbox"] {
 }
 
 #header {
-	height: 4rem;
+	height: var(--header-height);
 	font-size: 1.25em;
 	background: var(--header-bg-dark);
 }
@@ -345,7 +347,7 @@ input[type="checkbox"] {
 	display: flex;
 	align-items: center;
 	position: absolute;
-	top: 4rem;
+	top: var(--header-height);
 	left: 0;
 	height: 2rem;
 	width: calc(100% - 4rem);
@@ -381,9 +383,9 @@ input[type="checkbox"] {
 
 #main-help {
 	position: absolute;
-	top: 64px;
-	right: 8px;
-	z-index: 1;
+	top: 72px;
+	right: 12px;
+	z-index: 1002;
 }
 
 #main-help:hover {
@@ -427,6 +429,7 @@ input[type="checkbox"] {
 
 .menu > ul > li.submenu-trigger:hover {
 	background-color: transparent;
+	color: var(--structr-green);
 }
 
 .menu ul li a.disabled {
@@ -2182,7 +2185,7 @@ th.center {
 	position: absolute;
 	left: 60%;
 	right: 4px;
-	top: 0;
+	top: var(--header-height);
 	overflow-y: auto;
 	max-height: 100vh;
 }
@@ -2445,7 +2448,7 @@ td#cascading-options, td#propagation-options {
 }
 
 .tree-contents-container, .tree-context-container {
-	height: calc(100% - 2rem);
+	height: calc(100% - 3rem);
 }
 
 button.tree-back-button {
@@ -3137,6 +3140,10 @@ dl.help-definitions dd {
 	user-select: text;
 }
 
+#structr-console textarea:focus {
+	box-shadow: none ! important;
+}
+
 .tab-group a.tab-group-toggle {
 	text-decoration: none;
 }
@@ -3479,6 +3486,7 @@ table.props td.__value {
 .searchBox {
 	position: relative;
 	z-index: 5;
+	padding-right: 1rem;
 }
 
 .searchBox input.search {
@@ -3641,9 +3649,16 @@ ul.combined-input-select-field li:hover {
 /**
  * Active Elements
  **/
+.active-elements-container svg {
+	margin-bottom: -5px;
+}
+.active-elements-container svg > * {
+	filter: drop-shadow(0 0 .625rem rgba(0, 0, 0, .1));
+}
+
 .active-elements-container svg *:hover,
 .active-elements-container svg * text:hover {
-	stroke: #000000;
+	stroke: #bbbbbb;
 }
 
 /**
@@ -3835,8 +3850,68 @@ ul.combined-input-select-field li:hover {
 .top-16 {
 	top: 4rem;
 }
+.-top-1 {
+	top: -.25rem;
+}
 .-top-3 {
 	top: -.75rem;
+}
+.bottom-0 {
+	bottom: 0;
+}
+.bottom-1 {
+	bottom: .25rem;
+}
+.bottom-2 {
+	bottom: .5rem;
+}
+.bottom-3 {
+	bottom: .75rem;
+}
+.bottom-4 {
+	bottom: 1rem;
+}
+.bottom-5 {
+	bottom: 1.25rem;
+}
+.bottom-6 {
+	bottom: 1.5rem;
+}
+.bottom-7 {
+	bottom: 1.75rem;
+}
+.bottom-8 {
+	bottom: 2rem;
+}
+.bottom-9 {
+	bottom: 2.25rem;
+}
+.bottom-10 {
+	bottom: 2.5rem;
+}
+.bottom-12 {
+	bottom: 3rem;
+}
+.bottom-14 {
+	bottom: 3.5rem;
+}
+.bottom-16 {
+	bottom: 4rem;
+}
+.z-0 {
+	z-index: 0;
+}
+.z-1 {
+	z-index: 1;
+}
+.z-2 {
+	z-index: 2;
+}
+.z-10 {
+	z-index: 10;
+}
+.z-100 {
+	z-index: 100;
 }
 .flex-none {
 	flex: none;
