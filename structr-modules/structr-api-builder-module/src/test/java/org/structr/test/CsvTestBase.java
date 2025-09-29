@@ -124,14 +124,23 @@ public abstract class CsvTestBase {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerRelationshipType("FourThreeOneToOne", new FourThreeOneToOne());
-		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  new TwoFiveOneToMany());
+		StructrTraits.registerTrait(new FourThreeOneToOne());
+		StructrTraits.registerTrait(new TwoFiveOneToMany());
 
-		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
-		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
-		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
-		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
-		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+		StructrTraits.registerRelationshipType("FourThreeOneToOne", "FourThreeOneToOne");
+		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  "TwoFiveOneToMany");
+
+		StructrTraits.registerTrait(new TestOneTraitDefinition());
+		StructrTraits.registerTrait(new TestTwoTraitDefinition());
+		StructrTraits.registerTrait(new TestThreeTraitDefinition());
+		StructrTraits.registerTrait(new TestFourTraitDefinition());
+		StructrTraits.registerTrait(new TestFiveTraitDefinition());
+
+		StructrTraits.registerNodeType("TestOne",      "TestOne");
+		StructrTraits.registerNodeType("TestTwo",      "TestTwo");
+		StructrTraits.registerNodeType("TestThree",    "TestThree");
+		StructrTraits.registerNodeType("TestFour",     "TestFour");
+		StructrTraits.registerNodeType("TestFive",     "TestFive");
 
 		// create new schema instance that includes the modified root schema
 		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());

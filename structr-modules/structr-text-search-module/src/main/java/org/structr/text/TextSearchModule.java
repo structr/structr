@@ -19,8 +19,6 @@
 package org.structr.text;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.FulltextIndexer;
@@ -39,7 +37,6 @@ import java.util.Set;
  */
 public class TextSearchModule implements FulltextIndexer, StructrModule {
 
-	private static final Logger logger              = LoggerFactory.getLogger(TextSearchModule.class);
 	private static final GenericProperty contextKey = new GenericProperty("context");
 
 	@Override

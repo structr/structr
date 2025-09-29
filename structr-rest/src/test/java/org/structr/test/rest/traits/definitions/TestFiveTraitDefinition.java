@@ -42,12 +42,18 @@ public class TestFiveTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final Property<Iterable<NodeInterface>> manyToManyTestOnes = new EndNodes(traitsInstance, "manyToManyTestOnes", "FiveOneManyToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<Iterable<NodeInterface>> oneToManyTestOnes  = new EndNodes(traitsInstance, "oneToManyTestOnes",  "FiveOneOneToMany", new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Property<NodeInterface> manyToOneTestOne             = new EndNode(traitsInstance, "manyToOneTestOnes",  "FiveOneManyToOne");
 		final Property<NodeInterface> oneToOneTestThree            = new EndNode(traitsInstance, "oneToOneTestThree",  "FiveThreeOneToOne");
 		final Property<NodeInterface> manyToOneTestThree           = new StartNode(traitsInstance, "manyToOneTestThree", "ThreeFiveOneToMany");
 
 
 		return newSet(
-			manyToManyTestOnes, oneToManyTestOnes, oneToOneTestThree, manyToOneTestThree
+
+			manyToManyTestOnes,
+			oneToManyTestOnes,
+			manyToOneTestOne,
+			oneToOneTestThree,
+			manyToOneTestThree
 		);
 	}
 

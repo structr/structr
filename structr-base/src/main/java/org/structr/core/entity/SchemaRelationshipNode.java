@@ -87,7 +87,7 @@ public interface SchemaRelationshipNode extends AbstractSchemaNode {
 	void setSourceJsonName(final String sourcePropertyName) throws FrameworkException;
 	void setTargetJsonName(final String targetPropertyName) throws FrameworkException;
 
-	TraitDefinition[] getTraitDefinitions(final TraitsInstance traitsInstance);
+	TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance);
 
 	PropertyKey createKey(final TraitsInstance traitsInstance, final SchemaNode entity, final boolean outgoing) throws FrameworkException;
 	List<IsValid> createValidators(final SchemaNode entity) throws FrameworkException;

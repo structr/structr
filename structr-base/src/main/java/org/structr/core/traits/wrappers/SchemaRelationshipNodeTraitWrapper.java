@@ -757,13 +757,8 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public TraitDefinition[] getTraitDefinitions(final TraitsInstance traitsInstance) {
-
-		final List<TraitDefinition> definitions = new ArrayList<>();
-
-		definitions.add(new DynamicRelationshipTraitDefinition(traitsInstance, this));
-
-		return definitions.toArray(new TraitDefinition[0]);
+	public TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance) {
+		return new DynamicRelationshipTraitDefinition(traitsInstance, this);
 	}
 
 	@Override

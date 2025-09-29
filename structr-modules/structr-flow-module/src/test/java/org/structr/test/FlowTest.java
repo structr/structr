@@ -174,7 +174,7 @@ public class FlowTest extends StructrUiTest {
 			flowScriptCondition.setScript("true");
 			conditions.add(flowScriptCondition);
 
-			// Update flowAnd with it's new conditions
+			// Update flowAnd with its new conditions
 			flowAnd.setConditions(conditions);
 
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));

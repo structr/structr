@@ -60,8 +60,12 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 		final PropertyKey<String>                  doResult           = new StringProperty("doResult");
 		final PropertyKey<String>                  stringWithDefault  = new StringProperty("stringWithDefault").defaultValue("default value").indexedWhenEmpty();
 		final PropertyKey<NodeInterface>           testTwo            = new EndNode(traitsInstance, "testTwo",  "OneTwoOneToOne");
+		final PropertyKey<NodeInterface>           testTwo2           = new StartNode(traitsInstance, "testTwo",  "TwoOneOneToOne");
 		final PropertyKey<NodeInterface>           testThree          = new EndNode(traitsInstance, "testThree", "OneThreeOneToOne");
 		final PropertyKey<NodeInterface>           testFour           = new EndNode(traitsInstance, "testFour",  "OneFourOneToOne");
+		final Property<NodeInterface>              oneToOneTestOneOut = new EndNode(traitsInstance, "oneToOneTestOne",    "OneOneOneToOne");
+		final Property<NodeInterface>              oneToOneTestOneIn  = new StartNode(traitsInstance, "oneToOneTestOne",    "OneOneOneToOne");
+		final Property<NodeInterface>              oneToOneTestSix    = new StartNode(traitsInstance, "oneToOneTestSix",    "SixOneOneToOne");
 		final PropertyKey<Iterable<NodeInterface>> manyToManyTestSixs = new StartNodes(traitsInstance, "manyToManyTestSixs", "SixOneManyToMany");
 		final PropertyKey<String>                  aCreateString      = new StringProperty("aCreateString").indexed();
 		final PropertyKey<Integer>                 aCreateInt         = new IntProperty("aCreateInt").indexed();
@@ -88,8 +92,12 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 			doResult,
 			stringWithDefault,
 			testTwo,
+			testTwo2,
 			testThree,
 			testFour,
+			oneToOneTestOneIn,
+			oneToOneTestOneOut,
+			oneToOneTestSix,
 			manyToManyTestSixs,
 			aCreateString,
 			aCreateInt,

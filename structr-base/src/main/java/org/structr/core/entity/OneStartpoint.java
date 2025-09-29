@@ -24,11 +24,14 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 /**
  *
@@ -38,7 +41,10 @@ public class OneStartpoint extends AbstractEndpoint implements Source<Relationsh
 
 	private Relation<OneStartpoint, ?> relation = null;
 
-	public OneStartpoint(final Relation<OneStartpoint, ?> relation) {
+	public OneStartpoint(final Relation<OneStartpoint, ?> relation, final String propertyName) {
+
+		super(propertyName);
+
 		this.relation = relation;
 	}
 
@@ -66,6 +72,13 @@ public class OneStartpoint extends AbstractEndpoint implements Source<Relationsh
 		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
 		if (actualSourceNode != null && actualTargetNode != null) {
+
+			final Traits sourceType = Traits.of(relation.getSourceType());
+			final Traits type       = actualSourceNode.getTraits();
+
+			if (!SearchCommand.isTypeAssignableFromOtherType(sourceType, type)) {
+				throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), sourceType.getName()));
+			}
 
 			final String storageKey            = actualSourceNode.getName() + relation.name() + actualTargetNode.getName();
 			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getType(), storageKey);

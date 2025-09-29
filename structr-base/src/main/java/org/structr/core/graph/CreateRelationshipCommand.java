@@ -118,38 +118,43 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		final Node startNode               = fromNode.getNode();
 		final Node endNode                 = toNode.getNode();
 		final Relationship rel             = startNode.createRelationshipTo(endNode, relation, tmp.getData());
-		final RelationshipInterface newRel = factory.instantiateWithType(rel, null, true);
 
-		if (newRel != null) {
+		if (rel != null) {
 
-			// notify transaction handler
-			TransactionCommand.relationshipCreated(user, newRel);
+			final RelationshipInterface newRel = factory.instantiateWithType(rel, null, true);
+			if (newRel != null) {
 
-			securityContext.disableModificationOfAccessTime();
-			newRel.setProperties(securityContext, properties);
-			securityContext.enableModificationOfAccessTime();
+				// notify transaction handler
+				TransactionCommand.relationshipCreated(user, newRel);
 
-			// ensure modification callbacks are called (necessary for validation)
-			for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {
+				securityContext.disableModificationOfAccessTime();
+				newRel.setProperties(securityContext, properties);
+				securityContext.enableModificationOfAccessTime();
 
-				final PropertyKey key = entry.getKey();
-				final Object value    = entry.getValue();
+				// ensure modification callbacks are called (necessary for validation)
+				for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {
 
-				if (!key.isUnvalidated()) {
-					TransactionCommand.relationshipModified(securityContext.getCachedUser(), newRel, key, null, value);
+					final PropertyKey key = entry.getKey();
+					final Object value = entry.getValue();
+
+					if (!key.isUnvalidated()) {
+						TransactionCommand.relationshipModified(securityContext.getCachedUser(), newRel, key, null, value);
+					}
 				}
+
+				properties.clear();
+
+				// ensure indexing of newly created node
+				newRel.addToIndex();
+
 			}
 
-			properties.clear();
+			// enable access time update again for subsequent calls
+			securityContext.enableModificationOfAccessTime();
 
-			// ensure indexing of newly created node
-			newRel.addToIndex();
-
+			return newRel;
 		}
 
-		// enable access time update again for subsequent calls
-		securityContext.enableModificationOfAccessTime();
-
-		return newRel;
+		return null;
 	}
 }

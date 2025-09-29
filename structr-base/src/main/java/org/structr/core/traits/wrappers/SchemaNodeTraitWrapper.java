@@ -173,11 +173,8 @@ public class SchemaNodeTraitWrapper extends AbstractSchemaNodeTraitWrapper imple
 	}
 
 	@Override
-	public TraitDefinition[] getTraitDefinitions(final TraitsInstance traitsInstance) {
-
-		final ArrayList<TraitDefinition> definitions = new ArrayList<>(recursivelyResolveTraitInheritance(traitsInstance, this));
-
-		return definitions.toArray(new TraitDefinition[0]);
+	public TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance) {
+		return new DynamicNodeTraitDefinition(traitsInstance, this);
 	}
 
 	@Override

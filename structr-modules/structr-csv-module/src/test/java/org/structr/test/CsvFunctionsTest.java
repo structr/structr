@@ -52,8 +52,11 @@ public class CsvFunctionsTest extends StructrUiTest {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerNodeType("CsvTestOne", new CsvTestOneTraitDefinition());
-		StructrTraits.registerNodeType("CsvTestTwo", new CsvTestTwoTraitDefinition());
+		StructrTraits.registerTrait(new CsvTestOneTraitDefinition());
+		StructrTraits.registerTrait(new CsvTestTwoTraitDefinition());
+
+		StructrTraits.registerNodeType("CsvTestOne", "CsvTestOne");
+		StructrTraits.registerNodeType("CsvTestTwo", "CsvTestTwo");
 
 		// create new schema instance that includes the modified root schema
 		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());

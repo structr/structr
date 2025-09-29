@@ -19,6 +19,7 @@
 package org.structr.test.rest.common;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -122,34 +123,67 @@ public abstract class StructrRestTestBase {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerRelationshipType("ElevenTwoOneToMany",  new ElevenTwoOneToMany());
-		StructrTraits.registerRelationshipType("FiveOneManyToMany",   new FiveOneManyToMany());
-		StructrTraits.registerRelationshipType("FiveOneManyToOne",    new FiveOneManyToOne());
-		StructrTraits.registerRelationshipType("FiveOneOneToMany",    new FiveOneOneToMany());
-		StructrTraits.registerRelationshipType("FiveThreeOneToOne",   new FiveThreeOneToOne());
-		StructrTraits.registerRelationshipType("FourOneManyToMany",   new FourOneManyToMany());
-		StructrTraits.registerRelationshipType("FourOneOneToMany",    new FourOneOneToMany());
-		StructrTraits.registerRelationshipType("FourThreeOneToOne",   new FourThreeOneToOne());
-		StructrTraits.registerRelationshipType("NineEightManyToMany", new NineEightManyToMany());
-		StructrTraits.registerRelationshipType("SevenSixOneToMany",   new SevenSixOneToMany());
-		StructrTraits.registerRelationshipType("SixEightManyToMany",  new SixEightManyToMany());
-		StructrTraits.registerRelationshipType("TenSevenOneToOne",    new TenSevenOneToOne());
-		StructrTraits.registerRelationshipType("ThreeFiveOneToMany",  new ThreeFiveOneToMany());
-		StructrTraits.registerRelationshipType("ThreeFourOneToMany",  new ThreeFourOneToMany());
-		StructrTraits.registerRelationshipType("TwoOneOneToMany",     new TwoOneOneToMany());
+		// relationships: traits
+		StructrTraits.registerTrait(new ElevenTwoOneToMany());
+		StructrTraits.registerTrait(new FiveOneManyToMany());
+		StructrTraits.registerTrait(new FiveOneManyToOne());
+		StructrTraits.registerTrait(new FiveOneOneToMany());
+		StructrTraits.registerTrait(new FiveThreeOneToOne());
+		StructrTraits.registerTrait(new FourOneManyToMany());
+		StructrTraits.registerTrait(new FourOneOneToMany());
+		StructrTraits.registerTrait(new FourThreeOneToOne());
+		StructrTraits.registerTrait(new NineEightManyToMany());
+		StructrTraits.registerTrait(new SevenSixOneToMany());
+		StructrTraits.registerTrait(new SixEightManyToMany());
+		StructrTraits.registerTrait(new TenSevenOneToOne());
+		StructrTraits.registerTrait(new ThreeFiveOneToMany());
+		StructrTraits.registerTrait(new ThreeFourOneToMany());
+		StructrTraits.registerTrait(new TwoOneOneToMany());
 
-		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
-		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
-		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
-		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
-		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
-		StructrTraits.registerNodeType("TestSix",      new TestSixTraitDefinition());
-		StructrTraits.registerNodeType("TestSeven",    new TestSevenTraitDefinition());
-		StructrTraits.registerNodeType("TestEight",    new TestEightTraitDefinition());
-		StructrTraits.registerNodeType("TestNine",     new TestNineTraitDefinition());
-		StructrTraits.registerNodeType("TestTen",      new TestTenTraitDefinition());
-		StructrTraits.registerNodeType("TestEleven",   new TestElevenTraitDefinition());
-		StructrTraits.registerNodeType("TestObject",   new TestObjectTraitDefinition());
+		// relationships: types
+		StructrTraits.registerRelationshipType("ElevenTwoOneToMany",  "ElevenTwoOneToMany");
+		StructrTraits.registerRelationshipType("FiveOneManyToMany",   "FiveOneManyToMany");
+		StructrTraits.registerRelationshipType("FiveOneManyToOne",    "FiveOneManyToOne");
+		StructrTraits.registerRelationshipType("FiveOneOneToMany",    "FiveOneOneToMany");
+		StructrTraits.registerRelationshipType("FiveThreeOneToOne",   "FiveThreeOneToOne");
+		StructrTraits.registerRelationshipType("FourOneManyToMany",   "FourOneManyToMany");
+		StructrTraits.registerRelationshipType("FourOneOneToMany",    "FourOneOneToMany");
+		StructrTraits.registerRelationshipType("FourThreeOneToOne",   "FourThreeOneToOne");
+		StructrTraits.registerRelationshipType("NineEightManyToMany", "NineEightManyToMany");
+		StructrTraits.registerRelationshipType("SevenSixOneToMany",   "SevenSixOneToMany");
+		StructrTraits.registerRelationshipType("SixEightManyToMany",  "SixEightManyToMany");
+		StructrTraits.registerRelationshipType("TenSevenOneToOne",    "TenSevenOneToOne");
+		StructrTraits.registerRelationshipType("ThreeFiveOneToMany",  "ThreeFiveOneToMany");
+		StructrTraits.registerRelationshipType("ThreeFourOneToMany",  "ThreeFourOneToMany");
+		StructrTraits.registerRelationshipType("TwoOneOneToMany",     "TwoOneOneToMany");
+
+		// nodes: traits
+		StructrTraits.registerTrait(new TestOneTraitDefinition());
+		StructrTraits.registerTrait(new TestTwoTraitDefinition());
+		StructrTraits.registerTrait(new TestThreeTraitDefinition());
+		StructrTraits.registerTrait(new TestFourTraitDefinition());
+		StructrTraits.registerTrait(new TestFiveTraitDefinition());
+		StructrTraits.registerTrait(new TestSixTraitDefinition());
+		StructrTraits.registerTrait(new TestSevenTraitDefinition());
+		StructrTraits.registerTrait(new TestEightTraitDefinition());
+		StructrTraits.registerTrait(new TestNineTraitDefinition());
+		StructrTraits.registerTrait(new TestTenTraitDefinition());
+		StructrTraits.registerTrait(new TestElevenTraitDefinition());
+		StructrTraits.registerTrait(new TestObjectTraitDefinition());
+
+		// nodes: types
+		StructrTraits.registerNodeType("TestOne",      "TestOne");
+		StructrTraits.registerNodeType("TestTwo",      "TestTwo");
+		StructrTraits.registerNodeType("TestThree",    "TestThree");
+		StructrTraits.registerNodeType("TestFour",     "TestFour");
+		StructrTraits.registerNodeType("TestFive",     "TestFive");
+		StructrTraits.registerNodeType("TestSix",      "TestSix");
+		StructrTraits.registerNodeType("TestSeven",    "TestSeven");
+		StructrTraits.registerNodeType("TestEight",    "TestEight");
+		StructrTraits.registerNodeType("TestNine",     "TestNine");
+		StructrTraits.registerNodeType("TestTen",      "TestTen");
+		StructrTraits.registerNodeType("TestEleven",   "TestEleven");
+		StructrTraits.registerNodeType("TestObject",   "TestObject");
 
 		// create new schema instance that includes the modified root schema
 		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
@@ -281,6 +315,8 @@ public abstract class StructrRestTestBase {
 			RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}

@@ -33,6 +33,8 @@ import org.structr.common.AccessControllable;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -60,7 +62,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.testng.AssertJUnit.*;
 
@@ -589,6 +590,207 @@ public class SystemTest extends StructrTest {
 		} catch (Throwable fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception");
+		}
+	}
+
+	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeOneToOne() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToOne, "project", "task");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<NodeInterface> taskKey = Traits.of("Project").key("task");
+
+			project.setProperty(taskKey, mailTemplate);
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for one-to-one relationships.");
+
+		} catch (FrameworkException fex) {
+
+			final ErrorBuffer errorBuffer = fex.getErrorBuffer();
+			final ErrorToken token        = errorBuffer.getErrorTokens().get(0);
+
+			assertEquals("Wrong error code in setProperty with wrong node type.", 422, fex.getStatus());
+			assertEquals("Wrong error message in setProperty with wrong node type.", "Node type mismatch", fex.getMessage());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "must_be_of_type", token.getToken());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "task", token.getProperty());
+			assertEquals("Wrong type in error token in setProperty with wrong node type.", "MailTemplate", token.getType());
+			assertEquals("Wrong detail string in error token in setProperty with wrong node type.", "Task", token.getDetail());
+		}
+	}
+
+	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeOneToMany() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.OneToMany, "project", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
+
+			project.setProperty(tasksKey, List.of(mailTemplate));
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for one-to-many relationships.");
+
+		} catch (FrameworkException fex) {
+
+			final ErrorBuffer errorBuffer = fex.getErrorBuffer();
+			final ErrorToken token        = errorBuffer.getErrorTokens().get(0);
+
+			assertEquals("Wrong error code in setProperty with wrong node type.", 422, fex.getStatus());
+			assertEquals("Wrong error message in setProperty with wrong node type.", "Node type mismatch", fex.getMessage());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "must_be_of_type", token.getToken());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "tasks", token.getProperty());
+			assertEquals("Wrong type in error token in setProperty with wrong node type.", "MailTemplate", token.getType());
+			assertEquals("Wrong detail string in error token in setProperty with wrong node type.", "Task", token.getDetail());
+		}
+	}
+
+	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeManyToOne() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.ManyToOne, "projects", "task");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<NodeInterface> tasksKey = Traits.of("Project").key("task");
+
+			project.setProperty(tasksKey, mailTemplate);
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for many-to-one relationships.");
+
+		} catch (FrameworkException fex) {
+
+			final ErrorBuffer errorBuffer = fex.getErrorBuffer();
+			final ErrorToken token        = errorBuffer.getErrorTokens().get(0);
+
+			assertEquals("Wrong error code in setProperty with wrong node type.", 422, fex.getStatus());
+			assertEquals("Wrong error message in setProperty with wrong node type.", "Node type mismatch", fex.getMessage());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "must_be_of_type", token.getToken());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "task", token.getProperty());
+			assertEquals("Wrong type in error token in setProperty with wrong node type.", "MailTemplate", token.getType());
+			assertEquals("Wrong detail string in error token in setProperty with wrong node type.", "Task", token.getDetail());
+		}
+	}
+
+	@Test
+	public void testAssignmentOfWrongRelatedNodeTypeManyToMany() {
+
+		// setup schema
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+
+			// add test type
+			final JsonObjectType project = schema.addType("Project");
+			final JsonObjectType task    = schema.addType("Task");
+
+			project.relate(task, "HAS_TASK", Cardinality.ManyToMany, "projects", "tasks");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		// setup data
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface project      = app.create("Project");
+			final NodeInterface mailTemplate = app.create(StructrTraits.MAIL_TEMPLATE);
+
+			final PropertyKey<Iterable<NodeInterface>> tasksKey = Traits.of("Project").key("tasks");
+
+			project.setProperty(tasksKey, List.of(mailTemplate));
+
+			tx.success();
+
+			fail("setProperty should not accept arguments of wrong type for many-to-many relationships.");
+
+		} catch (FrameworkException fex) {
+
+			final ErrorBuffer errorBuffer = fex.getErrorBuffer();
+			final ErrorToken token        = errorBuffer.getErrorTokens().get(0);
+
+			assertEquals("Wrong error code in setProperty with wrong node type.", 422, fex.getStatus());
+			assertEquals("Wrong error message in setProperty with wrong node type.", "Node type mismatch", fex.getMessage());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "must_be_of_type", token.getToken());
+			assertEquals("Wrong error token in setProperty with wrong node type.", "tasks", token.getProperty());
+			assertEquals("Wrong type in error token in setProperty with wrong node type.", "MailTemplate", token.getType());
+			assertEquals("Wrong detail string in error token in setProperty with wrong node type.", "Task", token.getDetail());
 		}
 	}
 
@@ -1579,7 +1781,8 @@ public class SystemTest extends StructrTest {
 		Settings.FetchSize.setValue(Settings.FetchSize.getDefaultValue());
 	}
 
-	//@Test
+	/*
+	@Test
 	public void testConcurrentDeleteAndFetch() {
 
 		final AtomicBoolean error = new AtomicBoolean(false);
@@ -1716,6 +1919,7 @@ public class SystemTest extends StructrTest {
 
 		assertFalse("Reading and deleting nodes simultaneously causes an error", error.get());
 	}
+	*/
 
 	@Test
 	public void testFetchWaitDelete() {
@@ -1874,7 +2078,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}

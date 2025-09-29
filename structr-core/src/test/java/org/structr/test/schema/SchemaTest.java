@@ -1319,10 +1319,6 @@ public class SchemaTest extends StructrTest {
 			// add methods
 			testA.addMethod("testAMethod", "{ return 'testA!'; }");
 			testB.addMethod("testAMethod", "{ return 'testB!'; }");
-
-			// TestC does not have the testAMethod, so it should inherit the method from TestA
-			//testC.addMethod("testAMethod", "{ return 'testC!'; }");
-
 			testD.addMethod("testAMethod", "{ return 'testD!'; }");
 
 			// apply schema changes
@@ -1346,7 +1342,7 @@ public class SchemaTest extends StructrTest {
 
 			assertEquals("Method from TestA was not inherited correctly", "testA!", Actions.execute(securityContext, testA, "{ $.this.testAMethod(); }", "testTestA"));
 			assertEquals("Method from TestB was not inherited correctly", "testB!", Actions.execute(securityContext, testB, "{ $.this.testAMethod(); }", "testTestB"));
-			assertEquals("Method from TestA was not inherited correctly in TestC", "testA!", Actions.execute(securityContext, testC, "{ $.this.testAMethod(); }", "testTestC"));
+			assertEquals("Method from TestA was not inherited correctly", "testA!", Actions.execute(securityContext, testC, "{ $.this.testAMethod(); }", "testTestC"));
 			assertEquals("Method from TestD was not inherited correctly", "testD!", Actions.execute(securityContext, testD, "{ $.this.testAMethod(); }", "testTestD"));
 
 			tx.success();

@@ -295,19 +295,28 @@ class ReactiveSessionTransaction extends SessionTransaction {
 			return value;
 
 		} catch (TransientException tex) {
+			tex.printStackTrace();
 			closed = true;
 			throw new RetryException(tex);
 		} catch (NoSuchRecordException nex) {
+			nex.printStackTrace();
 			throw new NotFoundException(nex);
 		} catch (ServiceUnavailableException ex) {
+			ex.printStackTrace();
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			dex.printStackTrace();
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			cex.printStackTrace();
 			isRolledBack = true;
 			throw ReactiveSessionTransaction.translateClientException(cex);
+		} catch (Throwable t) {
+			t.printStackTrace();
 		}
+
+		return null;
 	}
 
 	@Override

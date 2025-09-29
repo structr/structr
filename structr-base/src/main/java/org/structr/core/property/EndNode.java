@@ -147,6 +147,9 @@ public class EndNode extends Property<NodeInterface> implements RelationProperty
 			if (cause instanceof FrameworkException) {
 
 				throw (FrameworkException)cause;
+
+			} else {
+				r.printStackTrace();
 			}
 		}
 

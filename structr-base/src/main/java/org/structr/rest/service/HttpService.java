@@ -96,14 +96,10 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	static {
 
-		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
+		Services.getInstance().registerInitializationCallback(() -> {
 
-			@Override
-			public void initializationDone() {
-
-				if (Settings.ClearSessionsOnStartup.getValue()) {
-					SessionHelper.clearAllSessions();
-				}
+			if (Settings.ClearSessionsOnStartup.getValue()) {
+				SessionHelper.clearAllSessions();
 			}
 		});
 	}
@@ -116,7 +112,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		Exception exception = null;
-		int maxAttempts = 3;
+		int maxAttempts = Services.isTesting() ? 12 : 3;
 
 		while (maxAttempts-- > 0) {
 

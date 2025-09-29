@@ -41,7 +41,7 @@ public interface SchemaNode extends AbstractSchemaNode, TypeInfo {
 	Set<String> getInheritedTraits();
 	void setInheritedTraits(final Set<String> setOfTraits) throws FrameworkException;
 
-	TraitDefinition[] getTraitDefinitions(final TraitsInstance traitsInstance);
+	TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance);
 
 	void handleMigration() throws FrameworkException;
 }
