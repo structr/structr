@@ -1,0 +1,138 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("Nunito-ExtraLight.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 200;
+  font-display: swap;
+  src: url("Nunito-ExtraLightItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("Nunito-Light.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("Nunito-LightItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("Nunito-Regular.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("Nunito-Italic.ttf");
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("Nunito-Medium.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("Nunito-MediumItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("Nunito-SemiBold.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("Nunito-SemiBoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("Nunito-Bold.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("Nunito-BoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("Nunito-ExtraBold.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url("Nunito-ExtraBoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'Nunito';
+  font-style:  normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("Nunito-Black.ttf");
+}
+@font-face {
+  font-family: 'Nunito';
+  font-style:  italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url("Nunito-BlackItalic.ttf");
+}

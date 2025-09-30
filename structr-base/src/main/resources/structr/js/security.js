@@ -254,8 +254,8 @@ let _Security = {
 						<th><div id="resourceAccessesPager"></div></th>
 						<th colspan="7" class="center" data-comment="These flags determine the access permissions for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user does not have read rights to the permission object, access to the resource described by the signature is denied. If the user has <b>multiple</b> permissions for the same signature, the flags for these are combined.">Authenticated users</th>
 						<th colspan="7" class="center" data-comment="These flags determine the access permissions for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
-						<th class="${config.showBitmask ? '' : 'hidden'}"></th>
-						<th colspan="2" class="${config.showVisibilityFlags ? '' : 'hidden'}">Visibility</th>
+						${config.showBitmask         ? '<th></th>' : '' }
+						${config.showVisibilityFlags ? '<th colspan="2">Visibility</th>' : '' }
 						<th></th>
 					</tr>
 					<tr>
@@ -273,10 +273,10 @@ let _Security = {
 						<th>DELETE</th>
 						<th>OPTIONS</th>
 						<th>HEAD</th>
-						<th class="pr-12">PATCH</th>
-						<th class="pr-12 ${config.showBitmask ? '' : 'hidden'}">Bitmask</th>
-						<th class="${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
-						<th class="${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToPublicUsers']}</th>
+						<th>PATCH</th>
+						${config.showBitmask         ? '<th class="pr-8">Bitmask</th>' : '' }
+						${config.showVisibilityFlags ? '<th>' + Structr.abbreviations['visibleToAuthenticatedUsers'] +'</th>' : '' }
+						${config.showVisibilityFlags ? '<th>' + Structr.abbreviations['visibleToPublicUsers'] +'</th>' : '' }
 						<th></th>
 					</tr>
 				</thead>
@@ -301,13 +301,13 @@ let _Security = {
 				<thead>
 					<tr>
 						<th><div id="corsSettingsPager"></div></th>
-						<th class="center br-1 bl-1"></th>
-						<th class="center br-1 bl-1"><label data-comment="Comma-separated list of accepted origins, sets the <code>Access-Control-Allow-Origin</code> header.">Accepted Origins</label></th>
-						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Max-Age</code> header. Unit is seconds.">Max. Age</label></th>
-						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Allow-Methods</code> header. Comma-delimited list of the allowed HTTP request methods.">Allow Methods</label></th>
-						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Allow-Headers</code> header.">Allow Headers</label></th>
-						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Allow-Credentials</code> header.">Allow Credentials</label></th>
-						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Expose-Headers</code> header.">Expose Headers</label></th>
+						<th></th>
+						<th><label data-comment="Comma-separated list of accepted origins, sets the <code>Access-Control-Allow-Origin</code> header.">Accepted Origins</label></th>
+						<th><label data-comment="Sets the value of the <code>Access-Control-Max-Age</code> header. Unit is seconds.">Max. Age</label></th>
+						<th><label data-comment="Sets the value of the <code>Access-Control-Allow-Methods</code> header. Comma-delimited list of the allowed HTTP request methods.">Allow Methods</label></th>
+						<th><label data-comment="Sets the value of the <code>Access-Control-Allow-Headers</code> header.">Allow Headers</label></th>
+						<th><label data-comment="Sets the value of the <code>Access-Control-Allow-Credentials</code> header.">Allow Credentials</label></th>
+						<th><label data-comment="Sets the value of the <code>Access-Control-Expose-Headers</code> header.">Expose Headers</label></th>
 					</tr>
 				</thead>
 				<tbody></tbody>
@@ -377,7 +377,7 @@ let _UsersAndGroups = {
 		};
 
 		userPager.appendFilterElements(`
-			<span class="mr-1">Filter:</span>
+			<span class="ml-4 mr-1">Filter:</span>
 			<input type="text" class="filter" data-attribute="name">
 		`);
 		userPager.activateFilterElements();
@@ -576,7 +576,7 @@ let _UsersAndGroups = {
 			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getGroupsListElement());
 		};
 		groupPager.appendFilterElements(`
-			<span class="mr-1">Filter:</span>
+			<span class="ml-4 mr-1">Filter:</span>
 			<input type="text" class="filter" data-attribute="name">
 		`);
 		groupPager.activateFilterElements();
@@ -1086,14 +1086,14 @@ let _CorsSettings = {
 
 		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${corsSetting.id}" class="cors-setting">
-				<td class="title-cell"><input type="text" class="cors-request-uri" data-attr-key="requestUri" size="40" value="${corsSetting.requestUri ?? ''}"></td>
-				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']), 'Delete')}</td>
-				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins ?? ''}"></td>
+				<td class="title-cell"><input type="text" class="cors-request-uri" data-attr-key="requestUri" size="34" value="${corsSetting.requestUri ?? ''}"></td>
+				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'delete-cors-setting']), 'Delete')}</td>
+				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="14" value="${corsSetting.acceptedOrigins ?? ''}"></td>
 				<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge ?? ''}"></td>
-				<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods ?? ''}"></td>
-				<td><input type="text" class="cors-allow-headers" data-attr-key="allowHeaders" size="16" value="${corsSetting.allowHeaders ?? ''}"></td>
-				<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="16" value="${corsSetting.allowCredentials ?? ''}"></td>
-				<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="16" value="${corsSetting.exposeHeaders ?? ''}"></td>
+				<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="14" value="${corsSetting.allowMethods ?? ''}"></td>
+				<td><input type="text" class="cors-allow-headers" data-attr-key="allowHeaders" size="14" value="${corsSetting.allowHeaders ?? ''}"></td>
+				<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="14" value="${corsSetting.allowCredentials ?? ''}"></td>
+				<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="14" value="${corsSetting.exposeHeaders ?? ''}"></td>
 			</tr>
 		`);
 

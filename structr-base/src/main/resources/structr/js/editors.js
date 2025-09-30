@@ -181,7 +181,10 @@ require(['vs/editor/editor.main'], () => {
 			newEditor.updateOptions({
 				readOnly: (!allowWrite && !editorReadOnly)
 			});
+
+			Structr.changeSystemMonoFont();
 		});
+
 	});
 });
 

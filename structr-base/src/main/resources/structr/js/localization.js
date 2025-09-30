@@ -199,7 +199,7 @@ let _Localization = {
 		if (Structr.isInMemoryDatabase === false) {
 			_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
 			_Localization.keyAndDomainPager.appendFilterElements(`
-				<span class="mr-1">Filters:</span>
+				<span class="ml-4 mr-1">Filters:</span>
 				<input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
 				<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
 				<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">

@@ -28,8 +28,7 @@
 }
 
 #security .tab-content {
-	/* overflow-y: scroll; */
-	/* max-height: 100%; */
+	padding: 2rem 1.75rem;
 	height: calc(100% - 4rem);
 	overflow: auto;
 }
@@ -68,8 +67,9 @@
 }
 
 .security-module-table {
-	display: block;
+	/*display: block;*/
 	margin: 1rem 0;
+	width: 100%;
 }
 
 .security-module-table tbody tr:hover {
@@ -77,10 +77,15 @@
 }
 
 .security-module-table td, .security-module-table th {
-	padding: .5rem .5rem;
+	padding: .5rem;
 	text-align: center;
 	vertical-align: middle;
 	height: 1rem;
+	white-space: nowrap;
+}
+
+.security-module-table td input {
+	/*min-width: 4rem;*/
 }
 
 .security-module-table th.pr-12, .security-module-table td.pr-12 {
@@ -89,6 +94,11 @@
 
 .security-module-table .title-cell {
 	text-align: left;
+	padding-right: 0;
+}
+
+.security-module-table .title-cell input {
+	padding-right: 0;
 }
 
 .security-module-table .actions {
@@ -107,7 +117,6 @@
 	background: var(--input-background);
 	color: var(--gray-333);
 	vertical-align: top;
-	min-width: 2rem;
 }
 
 .security-module-table td {

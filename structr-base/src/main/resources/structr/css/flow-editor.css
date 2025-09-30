@@ -499,7 +499,7 @@
 
 .node-editor select, .node-editor input, .node-editor select, .node-editor select {
 	width: initial;
-	font-family: var(--font-inter) ! important;
+	font-family: var(--font-main) ! important;
 	font-size: 1rem;
 	color: var(--body-text);
 	border: 1px solid var(--input-field-border);

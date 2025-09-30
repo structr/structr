@@ -21,11 +21,44 @@
 /** Defaults */
 
 @import url('../fonts/inter.css');
+@import url('../fonts/nexa.css');
+@import url('../fonts/nexa-text.css');
+@import url('../fonts/noto-sans.css');
+@import url('../fonts/nunito.css');
+@import url('../fonts/open-sans.css');
+@import url('../fonts/poppins.css');
+@import url('../fonts/public-sans.css');
+@import url('../fonts/sora.css');
+
+@import url('../fonts/fira-code.css');
 
 :root {
 
-	--font-inter: Inter, Arial, Helvetica, Sans-serif;
-	--font-monospace: "Liberation Mono", "DejaVu Sans Mono", Consolas, Monaco, "Vera Sans Mono", "Lucida Console", "Courier New", Courier, monospace;
+	/** Defaults */
+	--font-main:            Inter, Arial, Helvetica, Sans-serif;
+	--font-monospace:       "Courier New", monospace;
+	--font-main-size:       10pt;
+	--font-monospace-size:  10pt;
+
+	--font-arial:          Arial, Helvetica, Sans-serif;
+	--font-helvetica:      Helvetica, Sans-serif;
+	--font-helvetica-neue: "Helvetica Neue", Sans-serif;
+	--font-inter:          Inter, Arial, Helvetica, Sans-serif;
+	--font-nexa:           Nexa, Arial, Helvetica, Sans-serif;
+	--font-nexa-text:      NexaText, Arial, Helvetica, Sans-serif;
+	--font-noto-sans:      NotoSans, Arial, Helvetica, Sans-serif;
+	--font-nunito:         Nunito, Arial, Helvetica, Sans-serif;
+	--font-open-sans:      OpenSans, Arial, Helvetica, Sans-serif;
+	--font-poppins:        Poppins, Arial, Helvetica, Sans-serif;
+	--font-public-sans:    PublicSans, Arial, Helvetica, Sans-serif;
+	--font-roboto:         Roboto, Arial, Helvetica, Sans-serif;
+	--font-sora:           Sora, Arial, Helvetica, Sans-serif;
+
+	--font-monospace-consolas:        Consolas, monospace;
+	--font-monospace-courier:         Courier, monospace;
+	--font-monospace-courier-new:     "Courier New", monospace;
+	--font-monospace-fira-code:       FiraCode, monospace;
+	--font-monospace-monaco:          Monaco, monospace;
 
 	--header-height: 4rem;
 
@@ -143,7 +176,7 @@ html {
 	width: 100%;
 	height: 100%;
 	background-color: var(--main-background);
-	font-size: 10pt;
+	font-size: var(--font-main-size);
 }
 
 body {
@@ -152,7 +185,7 @@ body {
 	min-width: 70rem;
 	margin: 0;
 	padding: 0;
-	font-family: var(--font-inter);
+	font-family: var(--font-main);
 	color: var(--body-text);
 	background-color: var(--main-background);
 	position: relative;
@@ -169,6 +202,7 @@ tt, tt *, pre, pre *, code, code *,
 .terminal, .terminal-output>:not(.raw), .terminal-output>:not(.raw) a, .terminal-output>:not(.raw) span:not(.fas):not(.far):not(.fa),
 .cmd, .cmd span:not(.fas):not(.far):not(.fa) {
 	font-family: var(--font-monospace) !important;
+	font-size: var(--font-monospace-size) !important;
 }
 
 a, a:link, a:visited {
@@ -188,7 +222,7 @@ textarea {
 }
 
 button, textarea, input, select {
-	font-family: var(--font-inter) ! important;
+	font-family: var(--font-main) ! important;
 	font-size: 1rem;
 	color: var(--body-text);
 	border: 1px solid var(--input-field-border);
@@ -383,8 +417,8 @@ input[type="checkbox"] {
 
 #main-help {
 	position: absolute;
-	top: 72px;
-	right: 12px;
+	top: 5.25rem;
+	right: 1rem;
 	z-index: 1002;
 }
 
@@ -2824,7 +2858,7 @@ i.fa-sitemap {
 	overflow: hidden;
 	border: 1px solid var(--gray-999) ! important;
 	background: var(--solid-white) ! important;
-	font-family: var(--font-inter) ! important;
+	font-family: var(--font-main) ! important;
 }
 
 /**
@@ -3606,7 +3640,7 @@ select.combined-input-select-field {
 
 ul.combined-input-select-field {
 	list-style-type: none;
-	font-family: var(--font-inter) ! important;
+	font-family: var(--font-main) ! important;
 	font-size: 1rem;
 	background-color: var(--solid-white);
 	color: var(--body-text);
