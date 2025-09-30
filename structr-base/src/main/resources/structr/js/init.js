@@ -2999,7 +2999,7 @@ let UISettings = {
 				systemMonoFontKey: {
 					text: '<pre>Monospace font</pre>',
 					storageKey: 'systemMonoFont' + location.port,
-					defaultValue: 'courier',
+					defaultValue: 'monaco',
 					type: 'select',
 					infoText: 'The monospace font that this UI uses.',
 					onUpdate: () => {
