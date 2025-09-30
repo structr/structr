@@ -55,6 +55,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>        enumProperty            = new EnumProperty("enumProperty", TestEnum.class).indexed();
 		final Property<Boolean>       constantBooleanProperty = new ConstantBooleanProperty("constantBooleanProperty", true);
 		final Property<Byte[]>        byteArrayProperty       = new ByteArrayProperty("byteArrayProperty").indexed().indexedWhenEmpty();
+		final Property<NodeInterface> oneToOneTestFour        = new StartNode(traitsInstance, "oneToOneTestThree",  "FourThreeOneToOne");
 		final Property<NodeInterface> oneToOneTestFive        = new StartNode(traitsInstance, "oneToOneTestFive",  "FiveThreeOneToOne");
 		final Property<ZonedDateTime> zonedDateTimeProperty   = new ZonedDateTimeProperty("zonedDateTime").indexed().indexedWhenEmpty();
 		final Property<String[]>      testEnumArrayProperty   = new EnumArrayProperty("enumArrayProperty", TestEnum.class).indexed().indexedWhenEmpty();
@@ -75,6 +76,7 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 			enumProperty,
 			constantBooleanProperty,
 			byteArrayProperty,
+			oneToOneTestFour,
 			oneToOneTestFive,
 			zonedDateTimeProperty,
 			testEnumArrayProperty

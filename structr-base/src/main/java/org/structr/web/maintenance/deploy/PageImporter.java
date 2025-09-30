@@ -63,10 +63,12 @@ public class PageImporter extends HtmlFileImporter {
 
 		this.pagesConfiguration = pagesConfiguration;
 		this.securityContext    = SecurityContext.getSuperUserInstance();
-		this.securityContext.setDoTransactionNotifications(false);
 		this.basePath           = basePath;
 		this.app                = StructrApp.getInstance(this.securityContext);
 		this.relativeVisibility = relativeVisibility;
+
+		this.securityContext.setDoTransactionNotifications(false);
+		this.securityContext.setIgnoreMissingNodesInDeserialization(true);
 	}
 
 	@Override

@@ -75,7 +75,6 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
@@ -2021,6 +2020,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
+			context.setIgnoreMissingNodesInDeserialization(true);
+
 			tx.disableChangelog();
 
 			for (final NodeInterface toDelete : app.nodeQuery(type).getAsList()) {
@@ -2050,6 +2051,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.error("Unable to import {}, aborting with {}", type, fex.getMessage(), fex);
 
 			throw fex;
+
+		} finally {
+
+			context.setIgnoreMissingNodesInDeserialization(false);
 		}
 	}
 
@@ -2548,6 +2553,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final App app                 = StructrApp.getInstance(context);
 
 		context.setDoTransactionNotifications(false);
+		context.setIgnoreMissingNodesInDeserialization(true);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2559,7 +2565,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				for (final PropertyKey propertyKey : properties.keySet()) {
 
-					final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, true);
+					final PropertyConverter inputConverter = propertyKey.inputConverter(context, true);
 
 					if (inputConverter != null) {
 

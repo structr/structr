@@ -42,12 +42,24 @@ public abstract class ManyToMany extends AbstractRelation implements Relation<Ma
 
 	@Override
 	public ManyStartpoint getSource() {
-		return new ManyStartpoint(this);
+
+		if (getSourceProperty() == null) {
+
+			throw new RuntimeException("Invalid schema setup: missing StartNode(s) property for " + getType() + " in " + getTargetType());
+		}
+
+		return new ManyStartpoint(this, getSourceProperty().jsonName());
 	}
 
 	@Override
 	public ManyEndpoint getTarget() {
-		return new ManyEndpoint(this);
+
+		if (getTargetProperty() == null) {
+
+			throw new RuntimeException("Invalid schema setup: missing EndNode(s) property for " + getType() + " in " + getSourceType());
+		}
+
+		return new ManyEndpoint(this, getTargetProperty().jsonName());
 	}
 
 	@Override

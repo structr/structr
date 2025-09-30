@@ -565,7 +565,7 @@ public class CypherTest extends StructrTest {
 
 				final List<NodeInterface> testOnes = createTestNodes("TestOne", 10);
 				final List<NodeInterface> testSixs = createTestNodes("TestSix", 10);
-				int count                    = 0;
+				int count                          = 0;
 
 				tester = app.create(StructrTraits.USER, "tester").as(Principal.class);
 
@@ -586,7 +586,7 @@ public class CypherTest extends StructrTest {
 
 			} catch (FrameworkException ex) {
 
-				logger.warn("", ex);
+				ex.printStackTrace();
 				fail("Unexpected exception");
 			}
 

@@ -35,10 +35,14 @@ public class XMPPModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		StructrTraits.registerRelationshipType(StructrTraits.XMPP_CLIENT_REQUEST, new XMPPClientRequest());
+		StructrTraits.registerTrait(new XMPPClientRequest());
+		StructrTraits.registerRelationshipType(StructrTraits.XMPP_CLIENT_REQUEST, StructrTraits.XMPP_CLIENT_REQUEST);
 
-		StructrTraits.registerNodeType(StructrTraits.XMPP_CLIENT,  new XMPPClientTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.XMPP_REQUEST, new XMPPRequestTraitDefinition());
+		StructrTraits.registerTrait(new XMPPClientTraitDefinition());
+		StructrTraits.registerTrait(new XMPPRequestTraitDefinition());
+
+		StructrTraits.registerNodeType(StructrTraits.XMPP_CLIENT,  StructrTraits.XMPP_CLIENT);
+		StructrTraits.registerNodeType(StructrTraits.XMPP_REQUEST, StructrTraits.XMPP_REQUEST);
 	}
 
 	@Override

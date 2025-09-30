@@ -96,14 +96,10 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	static {
 
-		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
+		Services.getInstance().registerInitializationCallback(() -> {
 
-			@Override
-			public void initializationDone() {
-
-				if (Settings.ClearSessionsOnStartup.getValue()) {
-					SessionHelper.clearAllSessions();
-				}
+			if (Settings.ClearSessionsOnStartup.getValue()) {
+				SessionHelper.clearAllSessions();
 			}
 		});
 	}
@@ -116,7 +112,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		Exception exception = null;
-		int maxAttempts = 3;
+		int maxAttempts = Services.isTesting() ? 12 : 3;
 
 		while (maxAttempts-- > 0) {
 
@@ -762,6 +758,21 @@ public class HttpService implements RunnableService, StatsCallback {
 			maintenanceServer.setStopTimeout(1000);
 			maintenanceServer.setStopAtShutdown(true);
 		}
+	}
+
+	public int getAllocatedPort() {
+
+		for (final Connector c : server.getConnectors()) {
+
+			if (c instanceof ServerConnector s) {
+
+				final int port = s.getLocalPort();
+
+				return port;
+			}
+		}
+
+		return 0;
 	}
 
 	public void reloadSSLCertificate() {

@@ -249,7 +249,6 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 		final Property<NodeInterface> ownerProperty                 = new StartNode(traitsInstance, OWNER_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE);
 		final PropertyKey<String> ownerIdProperty                   = new EntityIdProperty(OWNER_ID_PROPERTY, StructrTraits.NODE_INTERFACE, OWNER_PROPERTY, StructrTraits.PRINCIPAL);
 		final PropertyKey<Iterable<NodeInterface>> granteesProperty = new StartNodes(traitsInstance, GRANTEES_PROPERTY, StructrTraits.SECURITY);
-		//private static final PropertyKey<String> internalPathProperty              = new InternalPathProperty("internalEntityContextPath");
 
 		return newSet(
 			nameProperty,
@@ -257,7 +256,6 @@ public final class NodeInterfaceTraitDefinition extends AbstractNodeTraitDefinit
 			ownerProperty,
 			ownerIdProperty,
 			granteesProperty
-			//internalPathProperty
 		);
 	}
 

@@ -19,7 +19,10 @@
 package org.structr.test.web.entity.traits.definitions;
 
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
@@ -35,7 +38,12 @@ public class TestThreeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
-		return Set.of();
+
+		final Property<NodeInterface> oneToOneTestFour  = new StartNode(traitsInstance, "oneToOneTestThree", "FourThreeOneToOne");
+
+		return Set.of(
+			oneToOneTestFour
+		);
 	}
 
 	@Override

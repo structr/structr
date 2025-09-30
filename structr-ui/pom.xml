@@ -115,7 +115,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.5.1</version>
                 <configuration>
-                    <skip>${skipUITests}</skip>
+                    <skip>${skipTests}</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -178,7 +178,6 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <skip>${skipUITests}</skip>
                     <archive>
                         <manifestSection>
                             <Name>Structr</Name>

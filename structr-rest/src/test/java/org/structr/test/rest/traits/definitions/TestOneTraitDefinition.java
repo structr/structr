@@ -26,6 +26,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
@@ -85,12 +86,18 @@ public class TestOneTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Integer> anInt = new IntProperty("anInt").indexed();
-		final Property<Long> aLong    = new LongProperty("aLong").indexed();
-		final Property<Date> aDate    = new ISO8601DateProperty("aDate").indexed();
+		final Property<NodeInterface> testFive = new StartNode(traitsInstance, "testFive", "FiveOneOneToMany");
+		final Property<NodeInterface> testTwo  = new StartNode(traitsInstance, "testTwo", "TwoOneOneToMany");
+		final Property<Integer> anInt          = new IntProperty("anInt").indexed();
+		final Property<Long> aLong             = new LongProperty("aLong").indexed();
+		final Property<Date> aDate             = new ISO8601DateProperty("aDate").indexed();
 
 		return newSet(
-			anInt, aLong, aDate
+			testFive,
+			testTwo,
+			anInt,
+			aLong,
+			aDate
 		);
 	}
 

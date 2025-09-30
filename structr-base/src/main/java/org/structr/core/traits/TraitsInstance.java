@@ -21,18 +21,18 @@ package org.structr.core.traits;
 import org.structr.api.Predicate;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.definitions.*;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class TraitsInstance {
 
-	private final Map<String, Traits> globalTypeMap = new ConcurrentHashMap<>();
-	private final Map<String, Trait> globalTraitMap = new ConcurrentHashMap<>();
+	private final Map<String, Traits> globalTypeMap = new LinkedHashMap<>();
+	private final Map<String, Trait> globalTraitMap = new LinkedHashMap<>();
 	private final String name;
 
 	public TraitsInstance(final String name) {
@@ -48,11 +48,11 @@ public class TraitsInstance {
 
 		final TraitsInstance newInstance = new TraitsInstance(name);
 
-		for (Trait trait : globalTraitMap.values()) {
+		for (final Trait trait : globalTraitMap.values()) {
 			newInstance.globalTraitMap.put(trait.getName(), trait.createCopy(newInstance));
 		}
 
-		for (Traits traits : globalTypeMap.values()) {
+		for (final Traits traits : globalTypeMap.values()) {
 			newInstance.globalTypeMap.put(traits.getName(), traits.createCopy(newInstance));
 		}
 
@@ -67,15 +67,27 @@ public class TraitsInstance {
 		return globalTypeMap.get(name);
 	}
 
-	void registerTrait(final String name, final Trait traits) {
-		globalTraitMap.put(name, traits);
+	public void registerTrait(final Trait trait) {
+
+		final String name  = trait.getName();
+		final String label = trait.getLabel();
+
+		// do not overwrite existing traits
+		if (!globalTraitMap.containsKey(label)) {
+
+			globalTraitMap.put(label, trait);
+		}
+
+		// register trait with exact name as well (like User.43b7adc4686344d4b870e3b16c45086e)
+		globalTraitMap.put(name, trait);
 	}
 
 	void unregisterTraits(final Set<String> names) {
 		globalTraitMap.keySet().removeAll(names);
 	}
 
-	public Traits getTraits(String name) {
+	// ----- public methods -----
+	public Traits getTraits(final String name) {
 
 		final Traits traits = globalTypeMap.get(name);
 		if (traits != null) {
@@ -158,6 +170,14 @@ public class TraitsInstance {
 		return getAllTypes(null);
 	}
 
+	public void resolveTraitHierarchies() {
+
+		for (final Traits traits : globalTypeMap.values()) {
+
+			((TraitsImplementation) traits).resolveTraits();
+		}
+	}
+
 	public Set<String> getAllTypes(final Predicate<Traits> filter) {
 
 		final Set<String> types = new LinkedHashSet<>();
@@ -225,101 +245,101 @@ public class TraitsInstance {
 
 	public void registerBaseType(final TraitDefinition definition) {
 
-		final Traits traits = new TraitsImplementation(this, definition.getName(), true, false, false, false, false);
+		final TraitsImplementation impl = new TraitsImplementation(this, definition.getName(), true, false, false, false, false);
 
-		traits.registerImplementation(definition, false);
+		impl.addTrait(definition.getLabel());
+
+		registerType(definition.getLabel(), impl);
+
+		impl.resolveTraits();
 	}
 
-	public void registerNodeInterface() {
+	public void registerNodeType(final String typeName, final String... traits) {
 
-		final Traits traits = new TraitsImplementation(this, StructrTraits.NODE_INTERFACE, true, true, false, false, false);
+		final TraitsImplementation impl = new TraitsImplementation(this, typeName, true, true, false, false, false);
 
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
-	}
+		impl.addTrait(StructrTraits.PROPERTY_CONTAINER);
+		impl.addTrait(StructrTraits.GRAPH_OBJECT);
+		impl.addTrait(StructrTraits.NODE_INTERFACE);
+		impl.addTrait(StructrTraits.ACCESS_CONTROLLABLE);
 
-	public void registerRelationshipInterface() {
+		for (final String trait : traits) {
 
-		final Traits traits = new TraitsImplementation(this, StructrTraits.RELATIONSHIP_INTERFACE, true, false, true, false, false);
-
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
-	}
-
-	public void registerNodeType(final String typeName, final TraitDefinition... definitions) {
-
-		final Traits traits = new TraitsImplementation(this, typeName, true, true, false, false, false);
-
-		// Node types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
-		traits.registerImplementation(new AccessControllableTraitDefinition(), false);
-
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, false);
+			impl.addTrait(trait);
 		}
+
+		registerType(typeName, impl);
+
+		impl.resolveTraits();
 	}
 
-	public void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
+	public void registerRelationshipType(final String typeName, final String... traits) {
 
-		final Traits traits = new TraitsImplementation(this, typeName, true, false, true, false, false);
+		final TraitsImplementation impl = new TraitsImplementation(this, typeName, true, false, true, false, false);
 
-		// Relationship types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
+		impl.addTrait(StructrTraits.PROPERTY_CONTAINER);
+		impl.addTrait(StructrTraits.GRAPH_OBJECT);
+		impl.addTrait(StructrTraits.RELATIONSHIP_INTERFACE);
 
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, false);
+		for (final String trait : traits) {
+
+			impl.addTrait(trait);
 		}
+
+		registerType(typeName, impl);
+
+		impl.resolveTraits();
 	}
 
-	public void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final TraitDefinition... definitions) {
+	public void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final Set<String> traits) {
 
-		Traits traits;
+		TraitsImplementation impl;
 
 		// do not overwrite types
 		if (getAllTypes(null).contains(typeName)) {
 
 			// caution: this might return a relationship type..
-			traits = getTraits(typeName);
+			impl = (TraitsImplementation) getTraits(typeName);
 
 		} else {
 
-			traits = new TraitsImplementation(this, typeName, false, true, false, changelogEnabled, isServiceClass);
+			impl = new TraitsImplementation(this, typeName, false, true, false, changelogEnabled, isServiceClass);
 
-			// Node types consist of at least the following traits
-			traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-			traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-			traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
-			traits.registerImplementation(new AccessControllableTraitDefinition(), false);
+			impl.addTrait(StructrTraits.PROPERTY_CONTAINER);
+			impl.addTrait(StructrTraits.GRAPH_OBJECT);
+			impl.addTrait(StructrTraits.NODE_INTERFACE);
+			impl.addTrait(StructrTraits.ACCESS_CONTROLLABLE);
+
+			registerType(typeName, impl);
 		}
 
 		// add implementation (allow extension of existing types)
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, true);
+		for (final String trait : traits) {
+			impl.addTrait(trait);
 		}
+
+		impl.resolveTraits();
 	}
 
-	public void registerDynamicRelationshipType(final String typeName, final boolean changelogEnabled, final TraitDefinition... definitions) {
+	public void registerDynamicRelationshipType(final String typeName, final boolean changelogEnabled, final Set<String> traits) {
 
 		// do not overwrite types
 		if (getAllTypes(null).contains(typeName)) {
 			return;
 		}
 
-		final Traits traits = new TraitsImplementation(this, typeName, false, false, true, changelogEnabled, false);
+		final TraitsImplementation impl = new TraitsImplementation(this, typeName, false, false, true, changelogEnabled, false);
 
-		// Node types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
+		impl.addTrait(StructrTraits.PROPERTY_CONTAINER);
+		impl.addTrait(StructrTraits.GRAPH_OBJECT);
+		impl.addTrait(StructrTraits.RELATIONSHIP_INTERFACE);
 
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, true);
+		for (final String trait : traits) {
+			impl.addTrait(trait);
 		}
+
+		registerType(typeName, impl);
+
+		impl.resolveTraits();
 	}
 }

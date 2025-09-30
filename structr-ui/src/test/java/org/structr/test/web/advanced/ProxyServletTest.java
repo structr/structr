@@ -74,8 +74,11 @@ public class ProxyServletTest extends StructrUiTest {
 
 		} while (!services.isInitialized());
 
-		securityContext = SecurityContext.getSuperUserInstance();
+		// use allocated port instead of forced random port
+		httpPort = services.getServiceImplementation(HttpService.class).getAllocatedPort();
+		Settings.HttpPort.setValue(httpPort);
 
+		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);
 
 		baseUri = "http://" + host + ":" + httpPort + htmlUrl + "/";
@@ -92,7 +95,7 @@ public class ProxyServletTest extends StructrUiTest {
 		restartHttpServiceInMode("disabled");
 
 		RestAssured.basePath = "/";
-		final String response = RestAssured
+		RestAssured
 
 			.expect()
 				.statusCode(503)
@@ -159,24 +162,6 @@ public class ProxyServletTest extends StructrUiTest {
 				.asString();
 	}
 
-	public void testPublicMode() {
-
-		restartHttpServiceInMode("public");
-
-		RestAssured.basePath = "/";
-		final String response = RestAssured
-
-				.expect()
-				.statusCode(200)
-
-				.when()
-				.post("structr/?url=test")
-
-				.andReturn()
-				.body()
-				.asString();
-	}
-
 	private void restartHttpServiceInMode(final String mode) {
 
 		Settings.ProxyServletMode.setValue(mode);
@@ -191,6 +176,17 @@ public class ProxyServletTest extends StructrUiTest {
 		} catch (final Exception ex) {
 
 		}
+
+		// use allocated port instead of forced random port
+		httpPort = services.getServiceImplementation(HttpService.class).getAllocatedPort();
+		Settings.HttpPort.setValue(httpPort);
+
+		baseUri = "http://" + host + ":" + httpPort + htmlUrl + "/";
+
+		// configure RestAssured
+		RestAssured.basePath = restUrl;
+		RestAssured.baseURI  = "http://" + host + ":" + httpPort;
+		RestAssured.port     = httpPort;
 	}
 
 }
