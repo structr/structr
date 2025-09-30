@@ -35,10 +35,6 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public void onLoad() {
-	}
-
-	@Override
-	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		StructrTraits.registerTrait(new EMailMessageHAS_ATTACHMENTFile());
 		StructrTraits.registerTrait(new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
@@ -51,6 +47,11 @@ public class AdvancedMailModule implements StructrModule {
 
 		StructrTraits.registerNodeType(StructrTraits.EMAIL_MESSAGE, StructrTraits.EMAIL_MESSAGE);
 		StructrTraits.registerNodeType(StructrTraits.MAILBOX,       StructrTraits.MAILBOX);
+
+	}
+
+	@Override
+	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		Functions.put(licenseManager, new MailBeginFunction(this));
 		Functions.put(licenseManager, new MailSetFromFunction(this));
