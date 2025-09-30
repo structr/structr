@@ -72,6 +72,7 @@
 		<module>structr-modules</module>
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
+		<module>structr-community</module>
 	</modules>
 
 	<repositories>
@@ -382,9 +383,9 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.13.0</version>
 				<configuration>
-					<source>22</source>
-					<target>22</target>
-					<release>22</release>
+					<source>25</source>
+					<target>25</target>
+					<release>25</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 					<useModulePath>true</useModulePath>
