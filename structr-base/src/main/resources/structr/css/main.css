@@ -36,9 +36,9 @@
 
 	/** Defaults */
 	--font-main:            Inter, Arial, Helvetica, Sans-serif;
-	--font-monospace:       "Courier New", monospace;
+	--font-monospace:       Monaco, monospace;
 	--font-main-size:       10pt;
-	--font-monospace-size:  10pt;
+	--font-monospace-size:  9.5pt;
 
 	--font-arial:          Arial, Helvetica, Sans-serif;
 	--font-helvetica:      Helvetica, Sans-serif;
