@@ -41,9 +41,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsManager;
+import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.helper.ConcurrentPortNumberHelper;
 import org.structr.test.rest.traits.definitions.*;
 import org.structr.test.rest.traits.definitions.relationships.*;
 import org.testng.annotations.*;
@@ -71,10 +71,9 @@ public abstract class StructrRestTestBase {
 	protected App app                         = null;
 	private boolean first                     = true;
 
-	protected final String contextPath = "/";
 	protected final String restUrl     = "/structr/rest";
 	protected final String host        = "127.0.0.1";
-	protected final int httpPort       = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
+	protected int httpPort             = 0;
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
@@ -110,6 +109,10 @@ public abstract class StructrRestTestBase {
 		while (!services.isInitialized()) {
 			try { Thread.sleep(100); } catch (Throwable t) {}
 		}
+
+		// use allocated port instead of forced random port
+		httpPort = services.getServiceImplementation(HttpService.class).getAllocatedPort();
+		Settings.HttpPort.setValue(httpPort);
 
 		securityContext = SecurityContext.getSuperUserInstance();
 		app             = StructrApp.getInstance(securityContext);

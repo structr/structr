@@ -760,6 +760,21 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 	}
 
+	public int getAllocatedPort() {
+
+		for (final Connector c : server.getConnectors()) {
+
+			if (c instanceof ServerConnector s) {
+
+				final int port = s.getLocalPort();
+
+				return port;
+			}
+		}
+
+		return 0;
+	}
+
 	public void reloadSSLCertificate() {
 
 		if (sslContextFactory != null) {

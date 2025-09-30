@@ -42,9 +42,9 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.test.helper.ConcurrentPortNumberHelper;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -69,13 +69,10 @@ public abstract class CsvTestBase {
 	protected String basePath                 = null;
 	protected App app                         = null;
 
-	protected final String contextPath = "/";
 	protected final String host        = "127.0.0.1";
-	protected final int httpPort       = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
-	protected final int ftpPort        = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
 	protected final String restUrl     = "/structr/rest";
 	protected final String htmlUrl     = "/structr/html";
-	protected final String wsUrl       = "/structr/ws";
+	protected int httpPort             = 0;
 	protected String baseUri           = null;
 	protected boolean first            = true;
 
@@ -109,8 +106,11 @@ public abstract class CsvTestBase {
 			try { Thread.sleep(100); } catch (Throwable t) {}
 		}
 
-		securityContext = SecurityContext.getSuperUserInstance();
+		// use allocated port instead of forced random port
+		httpPort = services.getServiceImplementation(HttpService.class).getAllocatedPort();
+		Settings.HttpPort.setValue(httpPort);
 
+		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);
 
 		baseUri = "http://" + host + ":" + httpPort + htmlUrl + "/";
