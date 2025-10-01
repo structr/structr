@@ -471,7 +471,7 @@ public class PerformanceTest extends StructrUiTest {
 
 					final Principal user = app.nodeQuery(StructrTraits.PRINCIPAL).getFirst().as(Principal.class);
 
-					user.getGroups();
+					user.getParents();
 
 					assertNotNull(user);
 

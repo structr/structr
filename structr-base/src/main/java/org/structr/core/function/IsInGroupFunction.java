@@ -96,7 +96,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 		if (!isInGroup && checkHierarchy) {
 
-			for (final Group principalGroup : principal.getGroups()) {
+			for (final Group principalGroup : principal.getParents()) {
 
 				if (!isInGroup && !seenGroups.contains(principalGroup.getUuid())) {
 
