@@ -18,14 +18,25 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import org.graalvm.polyglot.proxy.ProxyDate;
-import org.graalvm.polyglot.proxy.ProxyInstant;
-import org.graalvm.polyglot.proxy.ProxyTime;
+import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.proxy.*;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
 
-public class PolyglotProxyDate implements ProxyDate, ProxyTime, ProxyInstant {
+public class PolyglotProxyDate implements ProxyObject, ProxyDate, ProxyTime, ProxyInstant {
+    private static final Set<String> PROTOTYPE_FUNCTIONS = Set.of(
+            "getTime",
+            "getDate",
+            "getHours",
+            "getMinutes",
+            "getSeconds",
+            "setDate",
+            "setHours",
+            "toString"
+    );
+
     final private Date date;
 
     public PolyglotProxyDate(final Date date) {
@@ -39,5 +50,38 @@ public class PolyglotProxyDate implements ProxyDate, ProxyTime, ProxyInstant {
 
     public Date getDateDelegate() {
         return date;
+    }
+
+    @Override
+    public Object getMember(String key) {
+        return switch (key) {
+            case "getTime" -> (ProxyExecutable) arguments -> date.getTime();
+            case "getDate" -> (ProxyExecutable) arguments -> date.getDate();
+            case "setHours" -> (ProxyExecutable) arguments -> {
+                date.setHours(arguments[0].asInt());
+                return date.getTime();
+            };
+            case "setDate" -> (ProxyExecutable) arguments -> {
+                date.setDate(arguments[0].asInt());
+                return date.getTime();
+            };
+            case "toString" -> (ProxyExecutable) arguments -> date.toString();
+            default -> throw new UnsupportedOperationException("This date does not support: " + key);
+        };
+    }
+
+    @Override
+    public Object getMemberKeys() {
+        return PROTOTYPE_FUNCTIONS.toArray();
+    }
+
+    @Override
+    public boolean hasMember(String key) {
+        return PROTOTYPE_FUNCTIONS.contains(key);
+    }
+
+    @Override
+    public void putMember(String key, Value value) {
+        throw new UnsupportedOperationException("This date does not support adding new properties/functions.");
     }
 }
