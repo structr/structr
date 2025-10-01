@@ -209,12 +209,21 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			final String moduleName = structrModule.getName();
 
+			logger.info("Activating module {}", moduleName);
+
 			try {
+
 				structrModule.registerModuleFunctions(licenseManager);
-			} catch (Throwable t) {}
+
+			} catch (Throwable t) {
+
+				logger.error("Error loading module '{}'", moduleName);
+				logger.error("", t);
+
+				System.exit(1);
+			}
 
 			modules.put(moduleName, structrModule);
-			logger.info("Activating module {}", moduleName);
 
 			structrModule.onLoad();
 		}
