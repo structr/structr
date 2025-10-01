@@ -1832,8 +1832,8 @@ let Structr = {
 		const selectedMonoFontSize = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMonoFontSizeKey);
 		document.documentElement.style.setProperty('--font-monospace-size', `${selectedMonoFontSize}`);
 
-		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, .monaco-editor, .monaco-editor .view-lines, .monaco-editor .margin-view-overlays, #dashboard-server-log textarea, #event-log-container').forEach(el => el.style.fontSize = `${selectedMonoFontSize}`);
-		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, .monaco-editor, .monaco-editor .view-lines, .monaco-editor .margin-view-overlays').forEach(el => el.style.setProperty('font-family', `var(--font-monospace-${selectedMonoFont})`));
+		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, #dashboard-server-log textarea, #event-log-container').forEach(el => el.style.fontSize = `${selectedMonoFontSize}`);
+		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, #dashboard-server-log textarea, #event-log-container').forEach(el => el.style.setProperty('font-family', `var(--font-monospace-${selectedMonoFont})`));
 	},
 	determineNotificationAreaVisibility: () => {
 
