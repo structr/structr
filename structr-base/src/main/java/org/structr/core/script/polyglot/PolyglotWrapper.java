@@ -213,7 +213,7 @@ public abstract class PolyglotWrapper {
 					return new FunctionWrapper(actionContext, value);
 				}
 
-				if (value.isHostObject() && value.asHostObject() instanceof PolyglotProxyDate proxyDate) {
+				if (value.isProxyObject() && value.asProxyObject() instanceof PolyglotProxyDate proxyDate) {
 
 					return proxyDate.getDateDelegate();
 				}
