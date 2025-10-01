@@ -45,12 +45,24 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 
 	@Override
 	public OneStartpoint getSource() {
-		return new OneStartpoint(this);
+
+		if (getSourceProperty() == null) {
+
+			throw new RuntimeException("Invalid schema setup: missing StartNode(s) property for " + getType() + " in " + getTargetType());
+		}
+
+		return new OneStartpoint(this, getSourceProperty().jsonName());
 	}
 
 	@Override
 	public OneEndpoint getTarget() {
-		return new OneEndpoint(this);
+
+		if (getTargetProperty() == null) {
+
+			throw new RuntimeException("Invalid schema setup: missing EndNode(s) property for " + getType() + " in " + getSourceType());
+		}
+
+		return new OneEndpoint(this, getTargetProperty().jsonName());
 	}
 
 	@Override

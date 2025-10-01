@@ -145,10 +145,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public void registerImplementation(final TraitDefinition trait, final boolean isDynamic) {
-			}
-
-			@Override
 			public Relation getRelation() {
 				return null;
 			}

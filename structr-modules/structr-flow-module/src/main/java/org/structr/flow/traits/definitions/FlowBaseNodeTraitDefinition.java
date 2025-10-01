@@ -119,7 +119,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-					FLOW_CONTAINER_PROPERTY
+				FLOW_CONTAINER_PROPERTY
 			)
 		);
 	}

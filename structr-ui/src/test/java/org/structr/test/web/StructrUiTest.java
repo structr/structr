@@ -42,9 +42,9 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.test.helper.ConcurrentPortNumberHelper;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -69,13 +69,10 @@ public abstract class StructrUiTest {
 	protected String basePath                 = null;
 	protected App app                         = null;
 
-	protected final String contextPath = "/";
 	protected final String host        = "127.0.0.1";
-	protected final int httpPort       = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
-	protected final int ftpPort        = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
 	protected final String restUrl     = "/structr/rest";
 	protected final String htmlUrl     = "/structr/html";
-	protected final String wsUrl       = "/structr/ws";
+	protected int httpPort             = 0;
 	protected String baseUri           = null;
 	protected boolean first            = true;
 
@@ -112,8 +109,15 @@ public abstract class StructrUiTest {
 			try { Thread.sleep(100); } catch (Throwable t) {}
 		}
 
-		securityContext = SecurityContext.getSuperUserInstance();
+		// use allocated port instead of forced random port
+		final HttpService httpService = services.getServiceImplementation(HttpService.class);
+		if (httpService != null) {
 
+			httpPort = httpService.getAllocatedPort();
+			Settings.HttpPort.setValue(httpPort);
+		}
+
+		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);
 
 		baseUri = "http://" + host + ":" + httpPort + htmlUrl + "/";
@@ -127,14 +131,27 @@ public abstract class StructrUiTest {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerRelationshipType("FourThreeOneToOne", new FourThreeOneToOne());
-		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  new TwoFiveOneToMany());
+		// relationships: traits
+		StructrTraits.registerTrait(new FourThreeOneToOne());
+		StructrTraits.registerTrait( new TwoFiveOneToMany());
 
-		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
-		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
-		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
-		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
-		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+		// relationships: types
+		StructrTraits.registerRelationshipType("FourThreeOneToOne", "FourThreeOneToOne");
+		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  "TwoFiveOneToMany");
+
+		// nodes: traits
+		StructrTraits.registerTrait(new TestOneTraitDefinition());
+		StructrTraits.registerTrait(new TestTwoTraitDefinition());
+		StructrTraits.registerTrait(new TestThreeTraitDefinition());
+		StructrTraits.registerTrait(new TestFourTraitDefinition());
+		StructrTraits.registerTrait(new TestFiveTraitDefinition());
+
+		// nodes: types
+		StructrTraits.registerNodeType("TestOne",    "TestOne");
+		StructrTraits.registerNodeType("TestTwo",    "TestTwo");
+		StructrTraits.registerNodeType("TestThree",  "TestThree");
+		StructrTraits.registerNodeType("TestFour",   "TestFour");
+		StructrTraits.registerNodeType("TestFive",   "TestFive");
 
 		// create new schema instance that includes the modified root schema
 		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());

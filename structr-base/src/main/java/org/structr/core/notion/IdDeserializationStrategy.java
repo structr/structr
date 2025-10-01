@@ -18,10 +18,12 @@
  */
 package org.structr.core.notion;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.common.EntityAndPropertiesContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -248,15 +250,22 @@ public class IdDeserializationStrategy<S, T extends NodeInterface> extends Deser
 
 			} else {
 
-				// interpret source as a raw ID string and fetch entity
-				final GraphObject obj = app.getNodeById(source.toString());
+				final String uuid = source.toString();
+				if (StringUtils.isNotBlank(uuid)) {
 
-				if (obj != null && !obj.getTraits().contains(type)) {
-					throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type));
+					// interpret source as a raw ID string and fetch entity
+					final GraphObject obj = app.getNodeById(type, uuid);
+
+					if (obj == null && !securityContext.ignoreMissingNodesInDeserialization()) {
+						throw new FrameworkException(422, "No " + type + " with UUID " + uuid + " found.", new IdNotFoundToken(type, uuid));
+					}
+
+					if (obj != null && !obj.getTraits().contains(type)) {
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(obj.getClass().getSimpleName(), null, type));
+					}
+
+					return (T) obj;
 				}
-
-				return (T) obj;
-
 			}
 		}
 

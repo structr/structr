@@ -41,6 +41,7 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> manyToManyTestOnes                  = new EndNodes(traitsInstance, "manyToManyTestOnes", "SixOneManyToMany");
 		final Property<Iterable<NodeInterface>> oneToManyTestOnes                   = new EndNodes(traitsInstance, "oneToManyTestOnes",  "SixOneOneToMany");
 		final Property<NodeInterface>           oneToOneTestThree                   = new EndNode(traitsInstance, "oneToOneTestThree",    "SixThreeOneToOne");
+		final Property<NodeInterface>           oneToOneTestSix                     = new EndNode(traitsInstance, "oneToOneTestSix",    "SixOneOneToOne");
 		final Property<Iterable<NodeInterface>> oneToManyTestThrees                 = new EndNodes(traitsInstance, "oneToManyTestThrees", "SixThreeOneToMany");
 		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeOut       = new EndNodes(traitsInstance, "oneToManyTestThreesCascadeOut",       "SixThreeOneToManyCascadeOutgoing");
 		final Property<Iterable<NodeInterface>> oneToManyTestThreesCascadeIn        = new EndNodes(traitsInstance, "oneToManyTestThreesCascadeIn",        "SixThreeOneToManyCascadeIncoming");
@@ -53,6 +54,7 @@ public class TestSixTraitDefinition extends AbstractNodeTraitDefinition {
 			manyToManyTestOnes,
 			oneToManyTestOnes,
 			oneToOneTestThree,
+			oneToOneTestSix,
 			oneToManyTestThrees,
 			oneToManyTestThreesCascadeOut,
 			oneToManyTestThreesCascadeIn,

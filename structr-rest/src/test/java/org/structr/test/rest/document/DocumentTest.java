@@ -268,7 +268,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
@@ -1378,7 +1377,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// add a task
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [" + task1 + "] }")
 			.expect()
@@ -1388,7 +1387,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
@@ -1405,7 +1404,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// add a single worker using nested PUT
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker1 + "] } ] }")
 			.expect()
@@ -1415,7 +1414,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
@@ -1432,7 +1431,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// add a second worker
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker1 + ", " + worker2 + " ] } ] }")
 			.expect()
@@ -1442,7 +1441,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
@@ -1460,7 +1459,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// replace workers with worker3
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker3 + " ] } ] }")
 			.expect()
@@ -1470,7 +1469,7 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
@@ -1517,7 +1516,7 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ task: { id: '" + taskId + "', role: 'Role1' } }")
 
@@ -1532,7 +1531,7 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
@@ -1573,7 +1572,7 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ tasks: [ { id: '" + taskId + "', role: 'Role1' } ] }")
 
@@ -1587,7 +1586,7 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
@@ -1626,7 +1625,7 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ members: [ { id: '" + child + "', test: 'success!!' } ] }")
 
@@ -1640,7 +1639,7 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
@@ -1835,6 +1834,112 @@ public class DocumentTest extends StructrRestTestBase {
 			.post("/Project");
 	}
 
+	@Test
+	public void testAssignmentWithWrongTypeOneToOne() {
+
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
+
+		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "1", "1", "project", "task", Relation.NONE, Relation.SOURCE_TO_TARGET);
+
+		final String projectId = createEntity("Project", "{ name: 'Project1' }");
+		final String testId    = createEntity("MailTemplate",    "{ name: 'Task1' }");
+
+		// create data
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.body("{ task: " + testId + " }")
+
+			.expect()
+			.statusCode(422)
+
+			.when()
+			.put("/Project/" + projectId);
+
+	}
+
+	@Test
+	public void testAssignmentWithWrongTypeOneToMany() {
+
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
+
+		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "1", "*", "project", "tasks", Relation.NONE, Relation.SOURCE_TO_TARGET);
+
+		final String projectId = createEntity("Project", "{ name: 'Project1' }");
+		final String testId    = createEntity("MailTemplate",    "{ name: 'Task1' }");
+
+		// create data
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.body("{ tasks: [ " + testId + " ] }")
+
+			.expect()
+			.statusCode(422)
+
+			.when()
+			.put("/Project/" + projectId);
+
+	}
+
+	@Test
+	public void testAssignmentWithWrongTypeManyToOne() {
+
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
+
+		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "*", "1", "projects", "task", Relation.NONE, Relation.SOURCE_TO_TARGET);
+
+		final String projectId = createEntity("Project", "{ name: 'Project1' }");
+		final String testId    = createEntity("MailTemplate",    "{ name: 'Task1' }");
+
+		// create data
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.body("{ task: " + testId + "}")
+
+			.expect()
+			.statusCode(422)
+
+			.when()
+			.put("/Project/" + projectId);
+
+	}
+
+	@Test
+	public void testAssignmentWithWrongTypeManyToMany() {
+
+		final String projectNodeId     = createSchemaNode("Project", new PropertySpec("name", "String", true, true));
+		final String taskNodeId        = createSchemaNode("Task",    new PropertySpec("name", "String", false, true));
+
+		createSchemaRelationships(projectNodeId, taskNodeId, "TASK", "*", "*", "projects", "tasks", Relation.NONE, Relation.SOURCE_TO_TARGET);
+
+		final String projectId = createEntity("Project", "{ name: 'Project1' }");
+		final String testId    = createEntity("MailTemplate",    "{ name: 'Task1' }");
+
+		// create data
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+			.body("{ tasks: [ " + testId + " ] }")
+
+			.expect()
+			.statusCode(422)
+
+			.when()
+			.put("/Project/" + projectId);
+	}
 
 	// ----- private methods -----
 	private String createSchemaNode(final String name, SchemaSpec... specs) {

@@ -35,8 +35,8 @@ public class Trait implements TypeInfo {
 
 	private static final Set<String> DEFAULT_PROPERTY_KEYS = new LinkedHashSet<>(Arrays.asList("id", "type", "name"));
 
-	private final Map<Class, NodeTraitFactory> nodeTraitFactories                 = new HashMap<>();
-	private final Map<Class, RelationshipTraitFactory> relationshipTraitFactories = new HashMap<>();
+	private final Map<Class, NodeTraitFactory> nodeTraitFactories                 = new LinkedHashMap<>();
+	private final Map<Class, RelationshipTraitFactory> relationshipTraitFactories = new LinkedHashMap<>();
 	private final Map<String, AbstractMethod> dynamicMethods                      = new LinkedHashMap<>();
 	private final Map<Class, FrameworkMethod> frameworkMethods                    = new LinkedHashMap<>();
 	private final Map<Class, LifecycleMethod> lifecycleMethods                    = new LinkedHashMap<>();
@@ -44,6 +44,7 @@ public class Trait implements TypeInfo {
 	private final Map<String, Set<String>> views                                  = new LinkedHashMap<>();
 
 	private final TraitsInstance traitsInstance;
+	private final TraitDefinition definition;
 	private final Relation relation;
 	private final String label;
 	private final String name;
@@ -58,11 +59,12 @@ public class Trait implements TypeInfo {
 		this.isRelationship = traitDefinition.isRelationship();
 		this.isDynamic      = isDynamic;
 		this.relation       = traitDefinition.getRelation();
+		this.definition     = traitDefinition;
 
 		initializeFrom(traitDefinition);
 	}
 
-	private Trait(final TraitsInstance traitsInstance, final Relation relation, final String label, final String name, final boolean isRelationship, final boolean isDynamic) {
+	private Trait(final TraitsInstance traitsInstance, final TraitDefinition definition, final Relation relation, final String label, final String name, final boolean isRelationship, final boolean isDynamic) {
 
 		this.traitsInstance = traitsInstance;
 		this.relation       = relation;
@@ -70,11 +72,12 @@ public class Trait implements TypeInfo {
 		this.name           = name;
 		this.isRelationship = isRelationship;
 		this.isDynamic      = isDynamic;
+		this.definition     = definition;
 	}
 
 	public Trait createCopy(final TraitsInstance traitsInstance) {
 
-		final Trait trait = new Trait(traitsInstance, relation, label, name, isRelationship, isDynamic);
+		final Trait trait = new Trait(traitsInstance, definition, relation, label, name, isRelationship, isDynamic);
 
 		trait.nodeTraitFactories.putAll(nodeTraitFactories);
 		trait.relationshipTraitFactories.putAll(relationshipTraitFactories);
@@ -125,8 +128,13 @@ public class Trait implements TypeInfo {
 	public String getName() {
 		return name;
 	}
+
 	public String getLabel() {
 		return label;
+	}
+
+	public TraitDefinition getDefinition() {
+		return definition;
 	}
 
 	public Set<String> getPropertyKeysForView(final String viewName) {

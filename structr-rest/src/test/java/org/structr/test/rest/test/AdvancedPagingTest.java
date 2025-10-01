@@ -323,27 +323,28 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.expect()
 				.statusCode(200)
 				.body("result",         hasSize(1))
 				.body("result[0].name", equalTo(notConnectedNodeName))
 				.body("result[0].id",   equalTo(uuid))
 			.when()
-				.get("/TestThree?oneToOneTestFive=null");
+				.get("/TestThree?oneToOneTestFive=");
 
 
 		/* Test 4: Test that we can correctly search for objects **without** a connection to another node WHILE also reducing pagesize to 1	*/
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.expect()
 				.statusCode(200)
 				.body("result",         hasSize(1))
 				.body("result[0].name", equalTo(notConnectedNodeName))
 				.body("result[0].id",   equalTo(uuid))
 			.when()
-				.get("/TestThree?oneToOneTestFive=null&_pageSize=1");
+				.get("/TestThree?oneToOneTestFive=&_pageSize=1");
 
 	}
 

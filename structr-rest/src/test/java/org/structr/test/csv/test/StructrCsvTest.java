@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
+import org.structr.rest.service.HttpService;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -77,6 +78,10 @@ public class StructrCsvTest extends StructrRestTestBase {
 			try { Thread.sleep(100); } catch (Throwable t) {}
 
 		} while (!services.isInitialized());
+
+		// use allocated port instead of forced random port
+		httpPort = services.getServiceImplementation(HttpService.class).getAllocatedPort();
+		Settings.HttpPort.setValue(httpPort);
 
 		securityContext		= SecurityContext.getSuperUserInstance();
 		app			= StructrApp.getInstance(securityContext);
