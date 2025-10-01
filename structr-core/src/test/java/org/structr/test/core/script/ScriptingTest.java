@@ -4960,10 +4960,10 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception.");
 		}
 
-		final String contactClass = "Contact";
-		final String typeClass    = "ContactType";
-		final PropertyKey typeKey = Traits.of(contactClass).key("contactType");
-		final PropertyKey numKey  = Traits.of(contactClass).key("num");
+		final String contactClass                = "Contact";
+		final String typeClass                   = "ContactType";
+		final PropertyKey<NodeInterface> typeKey = Traits.of(contactClass).key("contactType");
+		final PropertyKey<Integer> numKey        = Traits.of(contactClass).key("num");
 
 		try (final Tx tx = app.tx()) {
 
@@ -5007,16 +5007,16 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid result for advanced find with graph predicate", 10, result1.size());
 
 			// expected: 19, 18, 16, 15, 13, 12, 8, 7, 3, 2
-			assertEquals("Invalid result for advanced find with graph predicate", 19, result1.get(0).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate", 18, result1.get(1).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate", 16, result1.get(2).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate", 15, result1.get(3).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate", 13, result1.get(4).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate", 12, result1.get(5).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate",  8, result1.get(6).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate",  7, result1.get(7).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate",  3, result1.get(8).getProperty(numKey));
-			assertEquals("Invalid result for advanced find with graph predicate",  2, result1.get(9).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)19, result1.get(0).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)18, result1.get(1).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)16, result1.get(2).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)15, result1.get(3).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)13, result1.get(4).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)12, result1.get(5).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)8, result1.get(6).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)7, result1.get(7).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)3, result1.get(8).getProperty(numKey));
+			assertEquals("Invalid result for advanced find with graph predicate", (Integer)2, result1.get(9).getProperty(numKey));
 
 			tx.success();
 

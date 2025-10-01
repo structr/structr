@@ -1435,7 +1435,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.body("result[0].url",                 equalTo("/Group"))
 				.body("result[0].type",                equalTo(StructrTraits.GROUP))
 				.body("result[0].className",           equalTo(StructrTraits.GROUP))
-				.body("result[0].traits",              equalTo(List.of(StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE, StructrTraits.ACCESS_CONTROLLABLE, StructrTraits.PRINCIPAL, StructrTraits.GROUP)))
+				.body("result[0].traits",              equalTo(List.of(StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE, StructrTraits.NODE_INTERFACE, StructrTraits.PRINCIPAL, StructrTraits.GROUP)))
 				.body("result[0].isRel",               equalTo(false))
 				.body("result[0].flags",               equalTo(0))
 

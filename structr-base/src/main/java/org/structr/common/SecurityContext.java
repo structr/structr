@@ -75,6 +75,7 @@ public class SecurityContext {
 	private boolean isReadOnlyTransaction                 = false;
 	private boolean doMultiThreadedJsonOutput             = false;
 	private boolean returnRawResult                       = false;
+	private boolean ignoreMissingNodesInDeserialization   = false;
 	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
 	private int serializationDepth                        = -1;
 
@@ -860,6 +861,14 @@ public class SecurityContext {
 
 	public void uuidWasSetManually(final boolean wasSet) {
 		this.uuidWasSetManually = wasSet;
+	}
+
+	public boolean ignoreMissingNodesInDeserialization() {
+		return ignoreMissingNodesInDeserialization;
+	}
+
+	public void setIgnoreMissingNodesInDeserialization(final boolean value) {
+		this.ignoreMissingNodesInDeserialization = value;
 	}
 
 	public String getSessionId() {

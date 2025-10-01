@@ -33,7 +33,6 @@ import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
  */
 public abstract class AbstractRelation {
 
-
 	private final Notion startNodeNotion = new RelationshipNotion(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
 	private final Notion endNodeNotion   = new RelationshipNotion(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
 	private PropertyKey sourceProperty   = null;

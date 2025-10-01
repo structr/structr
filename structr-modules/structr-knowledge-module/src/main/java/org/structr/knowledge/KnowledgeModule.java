@@ -19,9 +19,7 @@
 package org.structr.knowledge;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
-import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
@@ -31,7 +29,8 @@ import java.util.Set;
 public class KnowledgeModule implements StructrModule {
 
 	@Override
-	public void onLoad(LicenseManager licenseManager) {
+	public void onLoad() {
+
 	}
 
 	@Override

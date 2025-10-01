@@ -30,6 +30,7 @@
     overflow: auto;
     height: calc(100vh - 8rem);
     width: 20%;
+    min-width: 12rem;
 }
 
 #docs-area nav a {
@@ -50,7 +51,6 @@
     padding: 0;
     margin: 1.5rem 0 0 0;
     border-left: .15rem solid var(--gray-ccc);
-    list-style-position: inside;
 }
 
 #docs-area nav li {
@@ -60,15 +60,16 @@
 }
 
 #docs-area nav li li {
-    list-style-type: disc;
+    list-style-type: none;
     color: var(--gray-555);
     font-weight: 300;
     padding: 0;
-    margin-left: -.3rem;
+    margin: 0;
+    white-space: nowrap;
 }
 
 #docs-area nav li li:hover {
-    list-style-type: disc;
+    list-style-type: none;
     color: var(--gray-333);
 }
 
@@ -76,19 +77,19 @@
     color: var(--structr-green);
 }
 
-#docs-area nav li li::marker {
-    color: transparent;
-    font-size: 1.35rem;
-    line-height: 1rem;
+#docs-area nav li li:before {
+    margin: 0 1.5rem 0 -1.4rem;
+    content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='transparent'/></svg>");
 }
 
-#docs-area nav li li:hover::marker {
-    color: var(--gray-eee);
+#docs-area nav li li:hover:before {
+    color: var(--gray-ccc);
+    content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='%23cccccc'/></svg>");
 }
 
-#docs-area nav li li:has(a.active)::marker {
+#docs-area nav li li:has(a.active):before {
     color: var(--structr-green);
-
+    content: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='10px' height='10px' viewBox='0 0 10 10'><circle cx='4' cy='5' r='3.5' stroke='none' fill='%2384ba39'/></svg>");
 }
 
 #docs-area nav li li::before {

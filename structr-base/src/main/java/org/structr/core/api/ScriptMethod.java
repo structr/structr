@@ -72,7 +72,7 @@ public class ScriptMethod extends AbstractMethod {
 
 	@Override
 	public String toString() {
-		return name + "(" + parameters.toString() + ")";
+		return name + "(" + parameters.toString() + "): " + getSnippet().getSource();
 	}
 
 	@Override

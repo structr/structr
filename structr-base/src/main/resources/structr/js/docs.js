@@ -269,7 +269,7 @@ let _Documentation = {
 		// Output: /docs/5-Admin%20User%20Interface/login.png
 
 		const markdownImageRegex = /!\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
-		const markdownLinkRegex = /\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
+		const markdownLinkRegex  = /[^!]\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+)\)/g;
 
 		const prefixMarkdownImages = (text, prefix) => {
 			return text?.replace(markdownImageRegex, (match, alt, url) => {
@@ -277,14 +277,20 @@ let _Documentation = {
 			});
 		}
 
+		// Transform image URLs
+		// Input: Local URLs like just "login.png": ![Login Screen](login.png)
+		// Output: /docs/5-Admin%20User%20Interface/login.png
+
+
 		const prefixArticleLinks = (text, prefix) => {
 			return text?.replace(markdownLinkRegex, (match, alt, url) => {
-				return `[${alt}](${prefix}${url})`;
+				return ` [${alt}](${prefix}${url})`;
 			});
 		}
 
 		const parent = path.substring(0, path.lastIndexOf('/'));
-		let updatedContent = prefixArticleLinks(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
+		let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
+		updatedContent = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
 
 		const html      = converter.makeHtml(updatedContent);
 		document.querySelector('#docs-area article').innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;

@@ -36,12 +36,19 @@ public class RestModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		StructrTraits.registerRelationshipType(StructrTraits.OBJECT_EVENT_RELATIONSHIP,  new ObjectEventRelationship());
-		StructrTraits.registerRelationshipType(StructrTraits.SUBJECT_EVENT_RELATIONSHIP, new SubjectEventRelationship());
+		StructrTraits.registerTrait(new ObjectEventRelationship());
+		StructrTraits.registerTrait(new SubjectEventRelationship());
 
-		StructrTraits.registerNodeType(StructrTraits.LOG_EVENT,   new LogEventTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.LOG_OBJECT,  new LogObjectTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.LOG_SUBJECT, new LogSubjectTraitDefinition());
+		StructrTraits.registerRelationshipType(StructrTraits.OBJECT_EVENT_RELATIONSHIP,  StructrTraits.OBJECT_EVENT_RELATIONSHIP);
+		StructrTraits.registerRelationshipType(StructrTraits.SUBJECT_EVENT_RELATIONSHIP, StructrTraits.SUBJECT_EVENT_RELATIONSHIP);
+
+		StructrTraits.registerTrait(new LogEventTraitDefinition());
+		StructrTraits.registerTrait(new LogObjectTraitDefinition());
+		StructrTraits.registerTrait(new LogSubjectTraitDefinition());
+
+		StructrTraits.registerNodeType(StructrTraits.LOG_EVENT,   StructrTraits.LOG_EVENT);
+		StructrTraits.registerNodeType(StructrTraits.LOG_OBJECT,  StructrTraits.LOG_OBJECT);
+		StructrTraits.registerNodeType(StructrTraits.LOG_SUBJECT, StructrTraits.LOG_SUBJECT);
 	}
 
 	@Override

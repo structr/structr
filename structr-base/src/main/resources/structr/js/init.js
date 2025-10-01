@@ -1824,9 +1824,6 @@ let Structr = {
 
 		const selectedMainFontSize = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMainFontSizeKey);
 		document.documentElement.style.setProperty('--font-main-size', `${selectedMainFontSize}`);
-
-		//document.querySelectorAll('body, button, textarea, input, select, .result-box, ul.combined-input-select-field, .node-editor select, .node-editor input, .node-editor select, .node-editor select').forEach(el => el.style.fontFamily = `var(--font-${selectedMainFont})`);
-		console.log('System main font changed to', selectedMainFont);
 	},
 	changeSystemMonoFont: () => {
 		const selectedMonoFont = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMonoFontKey);
@@ -1835,9 +1832,8 @@ let Structr = {
 		const selectedMonoFontSize = UISettings.getValueForSetting(UISettings.settingGroups.style.settings.systemMonoFontSizeKey);
 		document.documentElement.style.setProperty('--font-monospace-size', `${selectedMonoFontSize}`);
 
-		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, .monaco-editor, .monaco-editor .view-lines, .monaco-editor .margin-view-overlays, #dashboard-server-log textarea, #event-log-container').forEach(el => el.style.fontSize = `${selectedMonoFontSize}`);
-		//document.querySelectorAll('.monaco-editor .view-lines').forEach(el => el.cssText = `--monaco-monospace-font: var(--font-monospace-${selectedMonoFont})`);
-		console.log('System mono font changed to', selectedMonoFont);
+		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, #dashboard-server-log textarea, #event-log-container').forEach(el => el.style.fontSize = `${selectedMonoFontSize}`);
+		document.querySelectorAll('tt, tt *, pre, pre *, code, code *, .starttag, .endtag, .font-mono, #dashboard-server-log textarea, #event-log-container').forEach(el => el.style.setProperty('font-family', `var(--font-monospace-${selectedMonoFont})`));
 	},
 	determineNotificationAreaVisibility: () => {
 
@@ -3003,7 +2999,7 @@ let UISettings = {
 				systemMonoFontKey: {
 					text: '<pre>Monospace font</pre>',
 					storageKey: 'systemMonoFont' + location.port,
-					defaultValue: 'courier',
+					defaultValue: 'monaco',
 					type: 'select',
 					infoText: 'The monospace font that this UI uses.',
 					onUpdate: () => {
@@ -3029,7 +3025,7 @@ let UISettings = {
 					},
 					inputCssClass: 'w-40 truncate',
 					possibleValues: {
-						'7.5pt':  { value: '7.5pt',  text: '7.5pt'    },
+						'7.5pt':  { value: '7.5pt',  text: '7.5pt'  },
 						'8pt':    { value: '8pt',    text: '8pt'    },
 						'8.5pt':  { value: '8.5pt',  text: '8.5pt'  },
 						'9pt':    { value: '9pt',    text: '9pt'    },

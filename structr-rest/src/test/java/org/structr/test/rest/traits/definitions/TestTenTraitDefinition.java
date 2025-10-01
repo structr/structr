@@ -48,7 +48,10 @@ public class TestTenTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Object> getRandomNumProp	= new FunctionProperty<>("getRandomNumProp").readFunction("{ return Math.random()*10000; }").cachingEnabled(true);
 
 		return newSet(
-			testSeven, functionTest, getNameProperty, getRandomNumProp
+			testSeven,
+			functionTest,
+			getNameProperty,
+			getRandomNumProp
 		);
 	}
 

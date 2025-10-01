@@ -151,36 +151,71 @@ public class StructrTest {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerRelationshipType("OneOneOneToOne",                    new OneOneOneToOneTraitDefinition());
-		StructrTraits.registerRelationshipType("OneTwoOneToOne",                    new OneTwoOneToOneTraitDefinition());
-		StructrTraits.registerRelationshipType("OneThreeOneToOne",                  new OneThreeOneToOneTraitDefinition());
-		StructrTraits.registerRelationshipType("OneFourOneToOne",                   new OneFourOneToOneTraitDefinition());
-		StructrTraits.registerRelationshipType("SixOneOneToOne",                    new SixOneOneToOneTraitDefinition());
-		StructrTraits.registerRelationshipType("SixOneOneToMany",                   new SixOneOneToManyTraitDefinition());
-		StructrTraits.registerRelationshipType("SixOneManyToMany",                  new SixOneManyToManyTraitDefinition());
-		StructrTraits.registerRelationshipType("SixThreeOneToMany",                 new SixThreeOneToManyTraitDefinition());
-		StructrTraits.registerRelationshipType("SixThreeOneToOne",                  new SixThreeOneToOneTraitDefinition());
-		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeBoth",      new SixThreeOneToManyCascadeBothTraitDefinition());
-		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeIncoming",  new SixThreeOneToManyCascadeIncomingTraitDefinition());
-		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeOutgoing",  new SixThreeOneToManyCascadeOutgoingTraitDefinition());
-		StructrTraits.registerRelationshipType("SixNineOneToManyCascadeConstraint", new SixNineOneToManyCascadeConstraintTraitDefinition());
-		StructrTraits.registerRelationshipType("TenTenOneToMany",                   new TenTenOneToManyTraitDefinition());
-		StructrTraits.registerRelationshipType("TenTenOneToOne",                    new TenTenOneToOneTraitDefinition());
-		StructrTraits.registerRelationshipType("TwoOneOneToOne",                    new TwoOneOneToOneTraitDefinition());
+		// relationships: traits
+		StructrTraits.registerTrait(new OneOneOneToOneTraitDefinition());
+		StructrTraits.registerTrait(new OneTwoOneToOneTraitDefinition());
+		StructrTraits.registerTrait(new OneThreeOneToOneTraitDefinition());
+		StructrTraits.registerTrait(new OneFourOneToOneTraitDefinition());
+		StructrTraits.registerTrait(new SixOneOneToOneTraitDefinition());
+		StructrTraits.registerTrait(new SixOneOneToManyTraitDefinition());
+		StructrTraits.registerTrait(new SixOneManyToManyTraitDefinition());
+		StructrTraits.registerTrait(new SixThreeOneToManyTraitDefinition());
+		StructrTraits.registerTrait(new SixThreeOneToOneTraitDefinition());
+		StructrTraits.registerTrait(new SixThreeOneToManyCascadeBothTraitDefinition());
+		StructrTraits.registerTrait(new SixThreeOneToManyCascadeIncomingTraitDefinition());
+		StructrTraits.registerTrait(new SixThreeOneToManyCascadeOutgoingTraitDefinition());
+		StructrTraits.registerTrait(new SixNineOneToManyCascadeConstraintTraitDefinition());
+		StructrTraits.registerTrait(new TenTenOneToManyTraitDefinition());
+		StructrTraits.registerTrait(new TenTenOneToOneTraitDefinition());
+		StructrTraits.registerTrait(new TwoOneOneToOneTraitDefinition());
 
-		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
-		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
-		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
-		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
-		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
-		StructrTraits.registerNodeType("TestSix",      new TestSixTraitDefinition());
-		StructrTraits.registerNodeType("TestSeven",    new TestSevenTraitDefinition());
-		StructrTraits.registerNodeType("TestEight",    new TestEightTraitDefinition());
-		StructrTraits.registerNodeType("TestNine",     new TestNineTraitDefinition());
-		StructrTraits.registerNodeType("TestTen",      new TestTenTraitDefinition());
-		StructrTraits.registerNodeType("TestEleven",   new TestOneTraitDefinition(), new TestElevenTraitDefinition());
-		StructrTraits.registerNodeType("TestTwelve",   new TestOneTraitDefinition(), new TestTwelveTraitDefinition());
-		StructrTraits.registerNodeType("TestThirteen", new TestThirteenTraitDefinition());
+		// relationships: types
+		StructrTraits.registerRelationshipType("OneOneOneToOne",                    "OneOneOneToOne");
+		StructrTraits.registerRelationshipType("OneTwoOneToOne",                    "OneTwoOneToOne");
+		StructrTraits.registerRelationshipType("OneThreeOneToOne",                  "OneThreeOneToOne");
+		StructrTraits.registerRelationshipType("OneFourOneToOne",                   "OneFourOneToOne");
+		StructrTraits.registerRelationshipType("SixOneOneToOne",                    "SixOneOneToOne");
+		StructrTraits.registerRelationshipType("SixOneOneToMany",                   "SixOneOneToMany");
+		StructrTraits.registerRelationshipType("SixOneManyToMany",                  "SixOneManyToMany");
+		StructrTraits.registerRelationshipType("SixThreeOneToMany",                 "SixThreeOneToMany");
+		StructrTraits.registerRelationshipType("SixThreeOneToOne",                  "SixThreeOneToOne");
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeBoth",      "SixThreeOneToManyCascadeBoth");
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeIncoming",  "SixThreeOneToManyCascadeIncoming");
+		StructrTraits.registerRelationshipType("SixThreeOneToManyCascadeOutgoing",  "SixThreeOneToManyCascadeOutgoing");
+		StructrTraits.registerRelationshipType("SixNineOneToManyCascadeConstraint", "SixNineOneToManyCascadeConstraint");
+		StructrTraits.registerRelationshipType("TenTenOneToMany",                   "TenTenOneToMany");
+		StructrTraits.registerRelationshipType("TenTenOneToOne",                    "TenTenOneToOne");
+		StructrTraits.registerRelationshipType("TwoOneOneToOne",                    "TwoOneOneToOne");
+
+		// nodes: traits
+		StructrTraits.registerTrait(new TestOneTraitDefinition());
+		StructrTraits.registerTrait(new TestTwoTraitDefinition());
+		StructrTraits.registerTrait(new TestThreeTraitDefinition());
+		StructrTraits.registerTrait(new TestFourTraitDefinition());
+		StructrTraits.registerTrait(new TestFiveTraitDefinition());
+		StructrTraits.registerTrait(new TestSixTraitDefinition());
+		StructrTraits.registerTrait(new TestSevenTraitDefinition());
+		StructrTraits.registerTrait(new TestEightTraitDefinition());
+		StructrTraits.registerTrait(new TestNineTraitDefinition());
+		StructrTraits.registerTrait(new TestTenTraitDefinition());
+		StructrTraits.registerTrait(new TestElevenTraitDefinition());
+		StructrTraits.registerTrait(new TestTwelveTraitDefinition());
+		StructrTraits.registerTrait(new TestThirteenTraitDefinition());
+
+		// nodes: types
+		StructrTraits.registerNodeType("TestOne",      "TestOne");
+		StructrTraits.registerNodeType("TestTwo",      "TestTwo");
+		StructrTraits.registerNodeType("TestThree",    "TestThree");
+		StructrTraits.registerNodeType("TestFour",     "TestFour");
+		StructrTraits.registerNodeType("TestFive",     "TestFive");
+		StructrTraits.registerNodeType("TestSix",      "TestSix");
+		StructrTraits.registerNodeType("TestSeven",    "TestSeven");
+		StructrTraits.registerNodeType("TestEight",    "TestEight");
+		StructrTraits.registerNodeType("TestNine",     "TestNine");
+		StructrTraits.registerNodeType("TestTen",      "TestTen");
+		StructrTraits.registerNodeType("TestEleven",   "TestOne", "TestEleven");
+		StructrTraits.registerNodeType("TestTwelve",   "TestOne", "TestTwelve");
+		StructrTraits.registerNodeType("TestThirteen", "TestThirteen");
 
 		// create new schema instance that includes the modified root schema
 		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());

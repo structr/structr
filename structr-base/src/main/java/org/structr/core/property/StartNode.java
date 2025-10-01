@@ -90,10 +90,10 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 		this.relation   = traits.getRelation();
 		this.notion     = notion;
 		this.sourceType = relation.getSourceType();
-		this.destType   = relation.getSourceType();
+		this.destType   = relation.getTargetType();
 
 		// configure notion
-		this.notion.setType(destType);
+		this.notion.setType(sourceType);
 		this.notion.setRelationProperty(this);
 		this.relation.setSourceProperty(this);
 	}
@@ -160,6 +160,9 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 			if (cause instanceof FrameworkException) {
 
 				throw (FrameworkException)cause;
+
+			} else {
+				r.printStackTrace();
 			}
 		}
 
@@ -168,7 +171,7 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 	@Override
 	public String relatedType() {
-		return destType;
+		return sourceType;
 	}
 
 	@Override
