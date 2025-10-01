@@ -76,10 +76,9 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 					final PropertyKey typeProperty        = traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY);
 					boolean valid = true;
 
-					// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
 					valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
 
-					if (securityContext != null && securityContext.uuidWasSetManually()) {
+					if (securityContext != null && securityContext.uuidWasSetManually() && graphObject.isNode()) {
 						valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
 					}
 

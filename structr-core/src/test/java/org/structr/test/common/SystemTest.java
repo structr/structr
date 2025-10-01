@@ -44,6 +44,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -2526,7 +2527,6 @@ public class SystemTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
-
 	}
 
 	// ----- nested classes -----
