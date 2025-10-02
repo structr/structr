@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
@@ -67,6 +68,12 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
+
+				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
+
+					throw new FrameworkException(422, "Type GraphObject not supported in find_privileged(), please use type NodeInterface to search for nodes of all types.");
+				}
+
 				type = Traits.of(typeString);
 
 				if (type != null) {
