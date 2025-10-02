@@ -76,10 +76,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return PolyglotWrapper.wrap(actionContext, nodeInterface.getPath(actionContext.getSecurityContext()));
 
 				case "createdDate":
-					return this.node.getCreatedDate();
+					return PolyglotWrapper.wrap(actionContext, this.node.getCreatedDate());
 
 				case "lastModifiedDate":
-					return this.node.getLastModifiedDate();
+					return PolyglotWrapper.wrap(actionContext, this.node.getLastModifiedDate());
 
 				case "visibleToPublicUsers":
 					return this.node.isVisibleToPublicUsers();
