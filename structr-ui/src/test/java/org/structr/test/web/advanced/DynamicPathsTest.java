@@ -29,16 +29,22 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.test.web.basic.FrontendTest;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import org.structr.web.traits.definitions.PagePathParameterTraitDefinition;
 import org.structr.web.traits.definitions.PagePathTraitDefinition;
 import org.structr.web.traits.definitions.dom.ContentTraitDefinition;
 import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -443,8 +449,73 @@ public class DynamicPathsTest extends FrontendTest {
 		assertEquals("Existing page path prevents showOnErrorCode redirect!", expected, getPublicContent(404, "/test004/"));
 	}
 
+	@Test
+	public void testPageAndFileWithSameNameAsAdmin() {
 
-		// ----- private methods -----
+		// create page and file in nested folder structure
+		try (final Tx tx = app.tx()) {
+
+			createAdminUser();
+
+			final Page page = Page.createSimplePage(securityContext, "file");
+
+			final NodeInterface folder = FileHelper.createFolderPath(securityContext, "/level_one/level_two/level_three");
+			final NodeInterface file   = FileHelper.createFile(securityContext, "testContent".getBytes(StandardCharsets.UTF_8), "text/plain", StructrTraits.FILE);
+
+			file.setName("file");
+			file.setProperty(file.getTraits().key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder);
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+			.given().header("x-user", "admin").header("x-password", "admin")
+			.expect().statusCode(200)
+			.body(equalTo("testContent"))
+			.when().get("/level_one/level_two/level_three/file");
+	}
+
+	@Test
+	public void testPageAndFileWithSameName() {
+
+		// create page and file in nested folder structure
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createSimplePage(securityContext, "file");
+			page.setVisibilityRecursively(true, true);
+
+			final NodeInterface folder = FileHelper.createFolderPath(securityContext, "/level_one/level_two/level_three");
+			final NodeInterface file   = FileHelper.createFile(securityContext, "testContent".getBytes(StandardCharsets.UTF_8), "text/plain", StructrTraits.FILE);
+
+			file.setName("file");
+			file.setVisibility(true, true);
+			file.setProperty(file.getTraits().key(AbstractFileTraitDefinition.PARENT_PROPERTY), folder);
+
+			for (final NodeInterface f : app.nodeQuery(StructrTraits.FOLDER).getResultStream()) {
+
+				f.as(Folder.class).setVisibility(true, true);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException | IOException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		RestAssured
+			.expect().statusCode(200)
+			.body(equalTo("testContent"))
+			.when().get("/level_one/level_two/level_three/file");
+	}
+
+	// ----- private methods -----
 	private ResponseBody getBody(final int statusCode, final String url) {
 
 		final ResponseBody body = RestAssured
