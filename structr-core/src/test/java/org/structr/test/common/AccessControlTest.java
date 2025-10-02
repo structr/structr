@@ -860,12 +860,12 @@ public class AccessControlTest extends StructrTest {
 			assertNotNull(user2);
 
 			group.addMember(user1Context, user2);
-			assertTrue("User should be in group", Iterables.toList(user2.getGroups()).contains(group));
+			assertTrue("User should be in group", Iterables.toList(user2.getParents()).contains(group));
 
 			assertNotNull(user2App.nodeQuery("TestOne").getFirst());
 
 			group.removeMember(user1Context, user2);
-			assertFalse("User should not be in group", Iterables.toList(user2.getGroups()).contains(group));
+			assertFalse("User should not be in group", Iterables.toList(user2.getParents()).contains(group));
 
 			assertNull(user2App.nodeQuery("TestOne").getFirst());
 
