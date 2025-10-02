@@ -42,6 +42,7 @@ public class UuidQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> 
 		// to select the correct index
 		final String label = predicate.getLabel();
 		if (label != null) {
+
 			query.indexLabel(label);
 		}
 
