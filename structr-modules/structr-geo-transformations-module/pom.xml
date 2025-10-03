@@ -11,7 +11,7 @@
 	<packaging>jar</packaging>
 
     <properties>
-        <geotools.version>28.6.1</geotools.version>
+        <geotools.version>32.4</geotools.version>
     </properties>
 
 	<repositories>
@@ -45,7 +45,7 @@
 		<dependency>
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-opengis</artifactId>
-			<version>${geotools.version}</version>
+			<version>29.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -71,6 +71,16 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-process-raster</artifactId>
 			<version>${geotools.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>txw2</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.istack</groupId>
+					<artifactId>istack-commons-runtime</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
