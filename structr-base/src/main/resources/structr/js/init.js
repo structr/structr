@@ -158,7 +158,6 @@ document.addEventListener("DOMContentLoaded", () => {
 let Structr = {
 	rootUrl        : _Helpers.getPrefixedRootUrl('/structr/rest/'),
 	csvRootUrl     : _Helpers.getPrefixedRootUrl('/structr/csv/'),
-	graphQLRootUrl : _Helpers.getPrefixedRootUrl('/structr/graphql/'),
 	viewRootUrl    : _Helpers.getPrefixedRootUrl('/'),
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
