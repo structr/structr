@@ -26,7 +26,6 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.impl.NullClaim;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.lang3.StringUtils;
@@ -245,12 +244,12 @@ public class JWTHelper {
 		NodeInterface userNode    = null;
 		Principal user            = null;
 
-		String instance = claims.getOrDefault("instance", new NullClaim()).asString();
-		String uuid     = claims.getOrDefault("uuid", new NullClaim()).asString();
-		String eMail    = claims.getOrDefault("eMail", new NullClaim()).asString();
+		String instance = claims.get("instance").isNull() ? null : claims.get("instance").asString();
+		String uuid     = claims.get("uuid").isNull()     ? null : claims.get("uuid").asString();
+		String eMail    = claims.get("eMail").isNull()    ? null : claims.get("eMail").asString();
 
 		if (StringUtils.isEmpty(eMail)) {
-			eMail = claims.getOrDefault("email", new NullClaim()).asString();
+			eMail = claims.get("email").isNull() ? null : claims.get("email").asString();
 		}
 
 		// if the instance is the same that issued the token, we can lookup the user with uuid claim
@@ -381,7 +380,7 @@ public class JWTHelper {
 
 		// Check if the access_token is still valid.
 		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
-		String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
+		String tokenReference = claims.get("tokenId").isNull() ? null : claims.get("tokenId").asString();
 		if (validateTokenForUser(tokenReference, user)) {
 
 			return user;
@@ -408,7 +407,7 @@ public class JWTHelper {
 
 		// Check if the access_token is still valid.
 		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
-		String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
+		String tokenReference = claims.get("tokenId").isNull() ? null : claims.get("tokenId").asString();
 		if (validateTokenForUser(tokenReference, user)) {
 
 			return user;
