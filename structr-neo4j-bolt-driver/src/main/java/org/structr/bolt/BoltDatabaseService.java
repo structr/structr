@@ -836,7 +836,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
 
-				final Result result = tx.run("SHOW DATABASE " + databaseName);
+				final Result result = tx.run("SHOW DATABASE `" + databaseName + "`");
 
 				return !result.list().isEmpty();
 			}
