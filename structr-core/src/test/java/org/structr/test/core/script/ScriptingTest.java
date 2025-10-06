@@ -2309,6 +2309,22 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testDateToLocaleString() {
+
+		try (final Tx tx = app.tx()) {
+
+			final ActionContext ctx = new ActionContext(securityContext, null);
+			Scripting.evaluate(ctx, null, "{$.now.toLocaleString()}", "testLocaleDate0Params");
+			Scripting.evaluate(ctx, null, "{$.now.toLocaleString(\"en-GB\", {timeZone: \"Europe/London\"})}", "testLocaleDate2Params");
+
+			tx.success();
+		} catch (FrameworkException ex) {
+
+			fail("Unexpected exception: " + ex);
+		}
+	}
+
+	@Test
 	public void testGeoCoding() {
 
 		try (final Tx tx = app.tx()) {
