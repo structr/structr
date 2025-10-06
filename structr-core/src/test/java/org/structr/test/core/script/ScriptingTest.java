@@ -6635,7 +6635,6 @@ public class ScriptingTest extends StructrTest {
 
 			final String dateTimePattern = "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}\\+[0-9]{4}";
 			final String pattern              = ISO8601DateProperty.getDefaultFormat();
-			final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
 
 			System.out.println("FORMAT: " + pattern);
 
