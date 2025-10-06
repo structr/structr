@@ -2619,9 +2619,9 @@ let _Entities = {
 				let filterInput = $('input#ldap-group-filter');
 				let scopeInput  = $('input#ldap-group-scope');
 
+				_Entities.generalTab.populateInputFields(el, entity);
 				_Entities.generalTab.registerSimpleInputChangeHandlers(el, entity);
 
-				// dialog logic here..
 				$('.clear-ldap-group-dn', el).on('click', () => { _Entities.generalTab.setNull(entity.id, 'distinguishedName', dnInput); });
 				$('.clear-ldap-group-path', el).on('click', () => { _Entities.generalTab.setNull(entity.id, 'path', pathInput); });
 				$('.clear-ldap-group-filter', el).on('click', () => { _Entities.generalTab.setNull(entity.id, 'filter', filterInput); });
@@ -3198,32 +3198,32 @@ let _Entities = {
 				</div>
 			`,
 			ldapGroup: config => `
-				<div id="ldap-group-config">
+				<div id="ldap-group-config" class="flex flex-col gap-3">
 					<h3>Synchronize this group using distinguished name (prioritized if set)</h3>
 
-					<div class="mb-3">
-						<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-dn', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					<div class="w-full flex items-center gap-2">
+						<input type="text" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-dn', 'icon-lightgrey', 'cursor-pointer', 'flex-shrink-0']), 'Clear value')}
 					</div>
 
 					<h3>Synchronize this group using path, filter and scope (if distinguished name not set above)</h3>
 
-					<div class="mb-3">
-						<input type="text" size="80" id="ldap-group-path" placeholder="Path" name="path">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-path', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					<div class="w-full flex items-center gap-2">
+						<input type="text" id="ldap-group-path" placeholder="Path" name="path">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-path', 'icon-lightgrey', 'cursor-pointer', 'flex-shrink-0']), 'Clear value')}
 					</div>
 
-					<div class="mb-3">
-						<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" name="filter">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-filter', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					<div class="w-full flex items-center gap-2">
+						<input type="text" id="ldap-group-filter" placeholder="Filter" name="filter">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-filter', 'icon-lightgrey', 'cursor-pointer', 'flex-shrink-0']), 'Clear value')}
 					</div>
 
-					<div class="mb-3">
-						<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" name="scope">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-scope', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					<div class="w-full flex items-center gap-2">
+						<input type="text" id="ldap-group-scope" placeholder="Scope" name="scope">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-scope', 'icon-lightgrey', 'cursor-pointer', 'flex-shrink-0']), 'Clear value')}
 					</div>
 
-					<div class="mb-3">
+					<div>
 						<button type="button" class="action" id="ldap-sync-button">Synchronize now</button>
 					</div>
 
