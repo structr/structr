@@ -218,6 +218,12 @@ public abstract class PolyglotWrapper {
 					return proxyDate.getDateDelegate();
 				}
 
+				// Special handling to ensure proper unwrapping of JS Dates and making sure they're not accidentally treated as ZonedDateTime objects
+				if (value.getMetaObject() != null && "Date".equals(value.getMetaObject().getMetaQualifiedName())) {
+
+					return new Date(value.asInstant().toEpochMilli());
+				}
+
 				if (value.isInstant() && value.isTimeZone()) {
 
 					return ZonedDateTime.ofInstant(value.asInstant(), value.asTimeZone());

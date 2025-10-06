@@ -54,6 +54,7 @@ public abstract class StreamingWriter {
 
 	private static final Logger logger                       = LoggerFactory.getLogger(StreamingWriter.class.getName());
 	private static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
+	private static final SimpleDateFormat dateFormatter = new SimpleDateFormat(Settings.JsonOuputDateFormat.getValue("yyyy-MM-dd'T'HH:mm:ssZ"), Locale.ENGLISH);
 
 	private static final Set<String> nonSerializerClasses = Set.of(
 		Object.class.getName(),
@@ -322,6 +323,9 @@ public abstract class StreamingWriter {
 
 				writer.value(zdt.format(dateTimeFormatter));
 
+			} else if (value instanceof Date date) {
+
+				writer.value(dateFormatter.format(date));
 			} else {
 
 				writer.value(value.toString());

@@ -40,6 +40,7 @@ import org.structr.schema.action.Function;
 
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
@@ -88,7 +89,7 @@ public class StructrBinding implements ProxyObject {
 				return wrap(actionContext, actionContext.getSecurityContext().getUser(false));
 
 			case "now":
-				return ZonedDateTime.now();
+				return wrap(actionContext, new Date()); //ZonedDateTime.now();
 
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
