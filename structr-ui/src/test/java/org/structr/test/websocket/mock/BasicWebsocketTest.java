@@ -46,8 +46,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
-import static graphql.Assert.assertNotNull;
-import static graphql.Assert.assertNull;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
 

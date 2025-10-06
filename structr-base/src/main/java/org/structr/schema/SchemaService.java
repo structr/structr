@@ -18,8 +18,6 @@
  */
 package org.structr.schema;
 
-import graphql.Scalars;
-import graphql.schema.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -60,7 +58,6 @@ public class SchemaService implements Service {
 	private static final Semaphore IndexUpdateSemaphore      = new Semaphore(1, true);
 	private static final AtomicBoolean schemaIsBeingReplaced = new AtomicBoolean(false);
 	private static final Set<String> blacklist               = new LinkedHashSet<>();
-	private static GraphQLSchema graphQLSchema               = null;
 
 	@Override
 	public void injectArguments(final Command command) {
@@ -69,10 +66,6 @@ public class SchemaService implements Service {
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
-	}
-
-	public static synchronized GraphQLSchema getGraphQLSchema() {
-		return graphQLSchema;
 	}
 
 	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload, final boolean notifyCluster) {
@@ -238,70 +231,6 @@ public class SchemaService implements Service {
 				}
 
 				updateIndexConfiguration(newSchema, removedTypes);
-
-				final GraphQLObjectType.Builder queryTypeBuilder         = GraphQLObjectType.newObject();
-				final Map<String, GraphQLInputObjectType> selectionTypes = new LinkedHashMap<>();
-				final Set<String> existingQueryTypeNames                 = new LinkedHashSet<>();
-				final Map<String, GraphQLType> graphQLTypes              = new LinkedHashMap<>();
-				final GraphQLHelper graphQLHelper                        = new GraphQLHelper();
-
-				for (final String nodeType : newSchema.getAllTypes(t -> t.isNodeType())) {
-					graphQLHelper.initializeGraphQLForNodeType(newSchema, nodeType, graphQLTypes, blacklist);
-				}
-
-				for (final String relType : newSchema.getAllTypes(t -> t.isRelationshipType())) {
-					graphQLHelper.initializeGraphQLForRelationshipType(newSchema,relType, graphQLTypes);
-				}
-
-				// register types in "Query" type
-				for (final Map.Entry<String, GraphQLType> entry : graphQLTypes.entrySet()) {
-
-					final String className = entry.getKey();
-					final GraphQLType type = entry.getValue();
-
-					if (!newSchema.exists(className)) {
-						continue;
-					}
-
-					try {
-
-						// register type in query type
-						queryTypeBuilder.field(GraphQLFieldDefinition
-							.newFieldDefinition()
-							.name(className)
-							.type(new GraphQLList(type))
-							.argument(GraphQLArgument.newArgument().name("id").type(Scalars.GraphQLString).build())
-							.argument(GraphQLArgument.newArgument().name("type").type(Scalars.GraphQLString).build())
-							.argument(GraphQLArgument.newArgument().name("name").type(Scalars.GraphQLString).build())
-							.argument(GraphQLArgument.newArgument().name("_page").type(Scalars.GraphQLInt).build())
-							.argument(GraphQLArgument.newArgument().name("_pageSize").type(Scalars.GraphQLInt).build())
-							.argument(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build())
-							.argument(GraphQLArgument.newArgument().name("_desc").type(Scalars.GraphQLBoolean).build())
-							.arguments(graphQLHelper.getGraphQLQueryArgumentsForType(newSchema, selectionTypes, existingQueryTypeNames, className))
-						);
-
-					} catch (Throwable t) {
-						t.printStackTrace();
-						logger.warn("Unable to add GraphQL type {}: {}", className, t.getMessage());
-					}
-				}
-
-				// exchange graphQL schema after successful build
-				synchronized (SchemaService.class) {
-
-					try {
-
-						graphQLSchema = GraphQLSchema
-							.newSchema()
-							.query(queryTypeBuilder.name("Query").build())
-							.additionalTypes(new LinkedHashSet<>(graphQLTypes.values()))
-							.build();
-
-					} catch (Throwable t) {
-						logger.warn("Unable to build GraphQL schema: {}", t.getMessage());
-						logger.error(ExceptionUtils.getStackTrace(t));
-					}
-				}
 
 				tx.success();
 

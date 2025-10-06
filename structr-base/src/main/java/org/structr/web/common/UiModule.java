@@ -496,8 +496,6 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new SendEventFunction());
 		Functions.put(licenseManager, new BroadcastEventFunction());
 
-		Functions.put(licenseManager, new GraphQLFunction());
-
 		Functions.put(licenseManager, new SystemInfoFunction());
 
 		Functions.put(licenseManager, new ValidateEmailFunction());

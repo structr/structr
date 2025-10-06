@@ -299,13 +299,10 @@ let _Localization = {
 	},
 	getLocalizationsForNameAndDomain: async (name, domain) => {
 
-		let response = await fetch(`${Structr.graphQLRootUrl}?query={ Localization(_sort: "locale") { id, locale, name${name ? `(_equals: "${name}")` : ''}, domain${domain ? `(_equals: "${domain}")` : ''}, localizedName, visibleToPublicUsers, visibleToAuthenticatedUsers }}`);
+		let localizations = await Command.queryPromise('Localization', 1000, 1, 'locale', 'asc', { name: name, domain: domain});
 
-		if (response.ok) {
-
-			let data = await response.json();
-
-			return { responseOk: true, result: data['Localization'] };
+		if (localizations) {
+			return { responseOk: true, result: localizations };
 		}
 
 		return { responseOk: false, result: [] };

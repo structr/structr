@@ -52,6 +52,12 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-csv</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -62,8 +68,8 @@
                 <artifactId>frontend-maven-plugin</artifactId>
                 <version>1.15.1</version>
                 <configuration>
-                    <skip>true</skip>
-<!--                    <skip>${skipUITests}</skip>-->
+<!--                    <skip>true</skip>-->
+                    <skip>${skipUITests}</skip>
                     <workingDirectory>src/test/ui</workingDirectory>
                 </configuration>
                 <executions>
@@ -114,7 +120,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.6.0</version>
                 <configuration>
                     <skip>${skipTests}</skip>
                 </configuration>
