@@ -96,8 +96,18 @@ let _Security = {
 		}
 
 		if (isUser) {
+
 			elements.push({
 				name: 'General',
+				clickHandler: () => {
+					_Entities.showProperties(entity, 'general');
+				}
+			});
+
+		} else if (isGroup && entity.type === 'LDAPGroup') {
+
+			elements.push({
+				name: 'LDAP Config',
 				clickHandler: () => {
 					_Entities.showProperties(entity, 'general');
 				}

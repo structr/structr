@@ -57,6 +57,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
+import org.structr.schema.parser.DatePropertyGenerator;
 import org.structr.test.common.StructrTest;
 import org.structr.web.entity.User;
 import org.testng.Assert;
@@ -6626,36 +6627,34 @@ public class ScriptingTest extends StructrTest {
 			final Object value4 = result1.get("test4");
 			final Object value5 = result1.get("test5");
 
-			assertEquals(ZonedDateTime.class, value1.getClass());
-			assertEquals(ZonedDateTime.class, value2.getClass());
-			assertEquals(ZonedDateTime.class, value3.getClass());
-			assertEquals(ZonedDateTime.class, value4.getClass());
-			assertEquals(String.class,        value5.getClass());
+			assertEquals(Date.class, value1.getClass());
+			assertEquals(Date.class, value2.getClass());
+			assertEquals(Date.class, value3.getClass());
+			assertEquals(Date.class, value4.getClass());
+			assertEquals(String.class, value5.getClass());
 
-			final String zonedDateTimePattern = "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}\\+[0-9]{4}";
+			final String dateTimePattern = "[0-9]{4}\\-[0-9]{2}\\-[0-9]{2}T[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}\\+[0-9]{4}";
 			final String pattern              = ISO8601DateProperty.getDefaultFormat();
-			final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
 
 			System.out.println("FORMAT: " + pattern);
 
-			final String formatted1 = formatter.format((ZonedDateTime)value1);
-			final String formatted2 = formatter.format((ZonedDateTime)value2);
-			final String formatted3 = formatter.format((ZonedDateTime)value3);
-			final String formatted4 = formatter.format((ZonedDateTime)value4);
-
+			final String formatted1 = DatePropertyGenerator.format((Date)value1, pattern);
+			final String formatted2 = DatePropertyGenerator.format((Date)value2, pattern);
+			final String formatted3 = DatePropertyGenerator.format((Date)value3, pattern);
+			final String formatted4 = DatePropertyGenerator.format((Date)value4, pattern);
 
 			System.out.println(formatted1);
 			System.out.println(formatted2);
 			System.out.println(formatted3);
 			System.out.println(formatted4);
 
-			assertTrue(formatted1.matches(zonedDateTimePattern));
-			assertTrue(formatted2.matches(zonedDateTimePattern));
-			assertTrue(formatted3.matches(zonedDateTimePattern));
-			assertTrue(formatted4.matches(zonedDateTimePattern));
-			assertTrue(value5.toString().matches(zonedDateTimePattern));
+			assertTrue(formatted1.matches(dateTimePattern));
+			assertTrue(formatted2.matches(dateTimePattern));
+			assertTrue(formatted3.matches(dateTimePattern));
+			assertTrue(formatted4.matches(dateTimePattern));
+			assertTrue(value5.toString().matches(dateTimePattern));
 
-			// assert type (!) equality of all result entries (=> there should be no difference in the types dependinPg on their level in the object structure)
+			// assert type (!) equality of all result entries (=> there should be no difference in the types depending on their level in the object structure)
 			assertEquals(result1.get("test1").getClass(), result2.get("test1").getClass());
 			assertEquals(result1.get("test2").getClass(), result2.get("test2").getClass());
 			assertEquals(result1.get("test3").getClass(), result2.get("test3").getClass());

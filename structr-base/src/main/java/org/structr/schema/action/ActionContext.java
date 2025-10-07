@@ -455,7 +455,7 @@ public class ActionContext {
 
 						case "now":
 							hints.reportExistingKey(key);
-							return this.isJavaScriptContext() ? ZonedDateTime.now() : DatePropertyGenerator.format(ZonedDateTime.now(), Settings.DefaultDateFormat.getValue());
+							return this.isJavaScriptContext() ? new Date() : DatePropertyGenerator.format(new Date(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
 							hints.reportExistingKey(key);

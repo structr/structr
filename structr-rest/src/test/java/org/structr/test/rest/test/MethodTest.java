@@ -258,7 +258,7 @@ public class MethodTest extends StructrRestTestBase {
 				.body("{ date: '2024-01-01T00:00:00+0000' }")
 			.expect()
 				.statusCode(200)
-				.body("result.date", equalTo("Mon Jan 01 00:00:00 UTC 2024"))
+				.body("result.date", equalTo("2024-01-01T00:00:00+0000"))
 				.body("result.isDate", equalTo(true))
 			.when()
 				.post("/BaseType/" + base + "/test1");
