@@ -12,12 +12,6 @@ jobs:
         include:
           - module: structr-base
             variableName: Base
-          - module: structr-ui
-            variableName: UI
-          - module: structr-core
-            variableName: CORE
-          - module: structr-rest
-            variableName: REST
           - module: structr-db-driver-api
             variableName: DB_DRIVER_API
 #          - module: structr-memgraph-driver
@@ -51,7 +45,7 @@ jobs:
 
       - name: Compile and run Tests
         run:  >-
-          mvn clean install -q -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
+          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
           cd ${{ matrix.module }} && 
           mvn install -q -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
 
@@ -84,8 +78,8 @@ jobs:
       - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
       - name: Upload binaries
         run: >-
-          scp -v structr-binaries/target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
-          scp -v structr-binaries/target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
+          scp -v structr-app/target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
+          scp -v structr-app/target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
 
   cleanup-system:
     runs-on: self-hosted
