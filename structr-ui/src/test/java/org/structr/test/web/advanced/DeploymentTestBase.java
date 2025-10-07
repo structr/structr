@@ -144,6 +144,39 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 		}
 	}
 
+	protected Path doExport() throws FrameworkException {
+
+		final DeployCommand cmd = app.command(DeployCommand.class);
+		final Path tmp          = Paths.get("/tmp/structr-deployment-test" + System.currentTimeMillis() + System.nanoTime());
+
+		// export to temp directory
+		final Map<String, Object> firstExportParams = new HashMap<>();
+		firstExportParams.put("mode", "export");
+		firstExportParams.put("target", tmp.toString());
+
+		// execute deploy command
+		cmd.execute(firstExportParams);
+
+		return tmp;
+	}
+
+	protected void doImport(final Path path) throws FrameworkException {
+
+		final DeployCommand cmd = app.command(DeployCommand.class);
+
+		// import from exported source
+		final Map<String, Object> firstImportParams = new HashMap<>();
+		firstImportParams.put("mode", "import");
+		firstImportParams.put("source", path.toString());
+
+		// execute deploy command
+		cmd.execute(firstImportParams);
+	}
+
+	protected void deleteExportAt(final Path path) throws IOException{
+		Files.walkFileTree(path, new DeletingFileVisitor());
+	}
+
 	protected String calculateHash() {
 
 		final StringBuilder buf = new StringBuilder();

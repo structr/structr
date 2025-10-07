@@ -59,8 +59,8 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.File;
 import org.structr.web.entity.*;
+import org.structr.web.entity.File;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
@@ -1831,7 +1831,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.ACTION_MAPPING).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.ACTION_MAPPING).sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry   = new TreeMap<>();
 				final ActionMapping actionMapping = node.as(ActionMapping.class);

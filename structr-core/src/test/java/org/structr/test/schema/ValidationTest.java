@@ -578,13 +578,6 @@ public class ValidationTest extends StructrTest {
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
-			/*
-			app.create(StructrTraits.SCHEMA_NODE,
-				new NodeAttribute<>(Traits.of(StructrTraits.SCHEMA_NODE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Item"),
-				new NodeAttribute<>(new StringProperty("_testXYZ"), "+String!")
-			);
-			*/
-
 			tx.success();
 
 		} catch (FrameworkException fex) {
