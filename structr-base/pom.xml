@@ -7,9 +7,8 @@
 
     <parent>
         <groupId>org.structr</groupId>
-        <artifactId>structr-test-configuration</artifactId>
+        <artifactId>structr</artifactId>
         <version>6.0-SNAPSHOT</version>
-        <relativePath>../structr-test-configuration</relativePath>
     </parent>
 
     <artifactId>structr-base</artifactId>
@@ -24,9 +23,50 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-neo4j-bolt-driver</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-memory-driver</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>1.55.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-csv</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -79,11 +119,6 @@
             <version>${jetty.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
@@ -92,16 +127,6 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
         <!-- CORE DEPENDENCIES -->
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-neo4j-bolt-driver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-memory-driver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!--dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-memgraph-driver</artifactId>
@@ -368,7 +393,6 @@
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
 
         <resources>
             <resource>
@@ -380,8 +404,16 @@
                 <directory>src/test/resources</directory>
             </testResource>
         </testResources>
-
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.1</version>
+                <configuration>
+                    <source>25</source>
+                    <target>25</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -408,90 +440,176 @@
                     </archive>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <shortRevisionLength>5</shortRevisionLength>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>replace-placeholder</id>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <target>
-                                <delete file="src/main/resources/structr/index.html"/>
-
-                                <copy file="src/main/resources/structr/index.template.html"
-                                      tofile="src/main/resources/structr/index.html"/>
-
-                                <replace file="src/main/resources/structr/index.html"
-                                         token="@buildNumber@"
-                                         value="${buildNumber}"/>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
-                <configuration>
-                    <source>18</source>
-                    <target>18</target>
-                </configuration>
-            </plugin>
         </plugins>
 
-        <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
-        <pluginManagement>
-            <plugins>
-                <!-- Ignore/Execute plugin execution -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <!-- copy-dependency plugin -->
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore/>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+<!--        &lt;!&ndash; Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b &ndash;&gt;-->
+<!--        <pluginManagement>-->
+<!--            <plugins>-->
+<!--                &lt;!&ndash; Ignore/Execute plugin execution &ndash;&gt;-->
+<!--                <plugin>-->
+<!--                    <groupId>org.eclipse.m2e</groupId>-->
+<!--                    <artifactId>lifecycle-mapping</artifactId>-->
+<!--                    <version>1.0.0</version>-->
+<!--                    <configuration>-->
+<!--                        <lifecycleMappingMetadata>-->
+<!--                            <pluginExecutions>-->
+<!--                                &lt;!&ndash; copy-dependency plugin &ndash;&gt;-->
+<!--                                <pluginExecution>-->
+<!--                                    <pluginExecutionFilter>-->
+<!--                                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                                        <artifactId>maven-dependency-plugin</artifactId>-->
+<!--                                        <versionRange>[1.0.0,)</versionRange>-->
+<!--                                        <goals>-->
+<!--                                            <goal>copy-dependencies</goal>-->
+<!--                                        </goals>-->
+<!--                                    </pluginExecutionFilter>-->
+<!--                                    <action>-->
+<!--                                        <ignore/>-->
+<!--                                    </action>-->
+<!--                                </pluginExecution>-->
+<!--                            </pluginExecutions>-->
+<!--                        </lifecycleMappingMetadata>-->
+<!--                    </configuration>-->
+<!--                </plugin>-->
+<!--            </plugins>-->
+<!--        </pluginManagement>-->
     </build>
+
+    <profiles>
+        <profile>
+            <id>test-neo4j</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>database</name>
+                    <value>neo4j</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.5.4</version>
+                        <configuration>
+                            <argLine>-Duser.language=en -Duser.region=GB -Duser.timezone=UTC</argLine>
+                            <excludes>
+                                <exclude>**/*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.5.4</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <argLine>-Xms12g -Xmx12g -Duser.timezone=UTC</argLine>
+                            <reuseForks>false</reuseForks>
+                            <forkCount>${test.forkCount}</forkCount>
+                            <skipTests>${skipTests}</skipTests>
+                            <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                            <!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
+                            <systemPropertyVariables>
+                                <testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+                                <testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
+                            </systemPropertyVariables>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>0.40.2</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-database</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <images>
+                                        <image>
+                                            <name>${test.neo4j.version}</name>
+                                            <alias>database</alias>
+                                            <run>
+                                                <ports>
+                                                    <port>7689:7687</port>
+                                                </ports>
+                                                <wait>
+                                                    <log>(.?)Bolt enabled on(.?)</log>
+                                                    <time>20000</time>
+                                                </wait>
+                                                <env>
+                                                    <NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
+                                                    <NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+                                                    <NEO4J_server_memory_heap_max__size>4G</NEO4J_server_memory_heap_max__size>
+                                                    <NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
+                                                </env>
+                                            </run>
+                                        </image>
+                                    </images>
+                                    <skip>${skipDockerTestDB}</skip>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>remove-database</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop</goal>
+                                </goals>
+                                <configuration>
+                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
+                                    <skip>${skipDockerTestDB}</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>test-in-memory-database</id>
+            <activation>
+                <property>
+                    <name>database</name>
+                    <value>in-memory</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.5.4</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <argLine>-Xms8g -Xmx8g -Duser.timezone=UTC</argLine>
+                            <reuseForks>false</reuseForks>
+                            <forkCount>${test.forkCount}</forkCount>
+                            <skipTests>${skipTests}</skipTests>
+                            <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                            <systemPropertyVariables>
+                                <testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <licenses>
         <license>

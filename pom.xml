@@ -51,10 +51,10 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:2025</test.neo4j.version>
-		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
+		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-		<maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
-		<test.forkCount>4</test.forkCount>
+		<maven.plugin.jar.version>3.4.2</maven.plugin.jar.version>
+		<test.forkCount>1</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
 		<tika.version>3.2.3</tika.version>
 		<pulsar.version>4.0.5</pulsar.version>
@@ -72,11 +72,8 @@
 		<module>structr-neo4j-bolt-driver</module>
 		<module>structr-memory-driver</module>
 		<module>structr-base</module>
-		<module>structr-core</module>
-		<module>structr-rest</module>
 		<module>structr-modules</module>
-		<module>structr-ui</module>
-		<module>structr-binaries</module>
+		<module>structr-app</module>
 		<module>structr-test-configuration</module>
 	</modules>
 
@@ -673,23 +670,23 @@
 				 	<showDeprecation>false</showDeprecation>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.8.1</version>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${structr.lib.directory}</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+<!--			<plugin>-->
+<!--				<groupId>org.apache.maven.plugins</groupId>-->
+<!--				<artifactId>maven-dependency-plugin</artifactId>-->
+<!--				<version>3.8.1</version>-->
+<!--				<executions>-->
+<!--					<execution>-->
+<!--						<id>copy-dependencies</id>-->
+<!--						<phase>package</phase>-->
+<!--						<goals>-->
+<!--							<goal>copy-dependencies</goal>-->
+<!--						</goals>-->
+<!--						<configuration>-->
+<!--							<outputDirectory>${structr.lib.directory}</outputDirectory>-->
+<!--						</configuration>-->
+<!--					</execution>-->
+<!--				</executions>-->
+<!--			</plugin>-->
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
@@ -871,7 +868,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>3.2.7</version>
+						<version>3.2.8</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>
