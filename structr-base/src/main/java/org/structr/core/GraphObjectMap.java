@@ -165,11 +165,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public boolean isBuiltInType() {
-				return true;
-			}
-
-			@Override
 			public boolean isServiceClass() {
 				return false;
 			}

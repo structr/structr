@@ -59,13 +59,6 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 			
 			final boolean desiredTypeIsAssignableFromOtherNodeType = otherNodeLabels.contains(desiredType);
 
-			/*
-			if (!desiredTypeIsAssignableFromOtherNodeType) {
-				System.out.println("######## OtherNodeTypeFilter: REJECTING type " + otherNode.getType() + " because it doesn't have the label " + desiredType + ".");
-			}
-
-			 */
-
 			return desiredTypeIsAssignableFromOtherNodeType;
 		}
 

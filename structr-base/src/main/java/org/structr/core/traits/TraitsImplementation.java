@@ -27,7 +27,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A named collection of traits that a node can have.
@@ -42,7 +45,6 @@ public class TraitsImplementation implements Traits {
 	private final Map<Class, Set<LifecycleMethod>> lifecycleMethodCache = new LinkedHashMap<>();
 	private final Map<Class, NodeTraitFactory> nodeTraitFactoryCache    = new LinkedHashMap<>();
 	private Map<String, AbstractMethod> dynamicMethodCache              = null;
-	private Set<String> cachedLabels                                    = null;
 	private Wrapper<Relation> cachedRelation                            = null;
 
 	private final boolean isNodeType;
@@ -84,19 +86,14 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public Set<String> getLabels() {
 
-		if (cachedLabels == null) {
+		final Set<String> labels = new LinkedHashSet<>();
 
-			cachedLabels = new LinkedHashSet<>();
+		for (final Trait trait : getTraits()) {
 
-			for (final Trait trait : getTraits()) {
-
-				cachedLabels.add(trait.getLabel());
-			}
-
-			cachedLabels = Collections.unmodifiableSet(cachedLabels);
+			labels.add(trait.getLabel());
 		}
 
-		return cachedLabels;
+		return labels;
 	}
 
 	@Override
@@ -389,11 +386,6 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public boolean isAbstract() {
 		return false;
-	}
-
-	@Override
-	public boolean isBuiltInType() {
-		return isBuiltInType;
 	}
 
 	@Override

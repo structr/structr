@@ -44,7 +44,6 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
@@ -2073,9 +2072,10 @@ public class SystemTest extends StructrTest {
 			final List list     = Iterables.toList((Iterable)m.getProperty(middleToLeft));
 			final long t1       = System.currentTimeMillis();
 			final long dt       = t1 - t0;
+			final long expected = 200;
 
 			assertEquals("Related nodes are not filtered correctly", 2, list.size());
-			assertTrue("Related node filtering by target label: performance is too low", dt < 200);
+			assertTrue("Related node filtering by target label: performance is too low, expected " + expected + ", got " + dt, dt < expected);
 
 			tx.success();
 
