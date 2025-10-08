@@ -1455,7 +1455,7 @@ public class SystemTest extends StructrTest {
 				writer.println("configured.services = NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService");
 				writer.println("database.driver.mode = remote");
 				writer.println("database.connection.url = localhost:7687");
-				writer.println("HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet");
+				writer.println("HttpService.servlets = JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet FlowServlet");
 				writer.println("security.twofactorauthentication.level = 0");
 				writer.println("application.schema.automigration = true");
 				writer.println("mail.maxEmails = 50");
@@ -1479,7 +1479,7 @@ public class SystemTest extends StructrTest {
 
 		assertEquals("Invalid configuration setting result", "Structr Test Title", Settings.ApplicationTitle.getValue());
 		assertEquals("Invalid configuration setting result", "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService", Settings.Services.getValue());
-		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet", Settings.Servlets.getValue());
+		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet FlowServlet", Settings.Servlets.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());
 		assertEquals("Invalid configuration setting result", Boolean.valueOf(true), Settings.SchemaAutoMigration.getValue());
 
