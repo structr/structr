@@ -28,7 +28,15 @@ let _Schema = {
 	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
 	currentNodeDialogId: null,
+	unload: () => {
+
+		document.removeEventListener('keydown', _Schema.ui.handleKeyDownForPanzoom);
+		document.removeEventListener('keyup', _Schema.ui.handleKeyUpForPanzoom);
+	},
 	onload: () => {
+
+		document.addEventListener('keydown', _Schema.ui.handleKeyDownForPanzoom);
+		document.addEventListener('keyup', _Schema.ui.handleKeyUpForPanzoom);
 
 		_Code.helpers.preloadAvailableTagsForEntities().then(() => {
 
@@ -4422,6 +4430,26 @@ let _Schema = {
 		relHighlightColor: 'red',
 		maxZ: 0,
 		getSavedSchemaLayoutKey: () => 'structrSavedSchemaLayout_' + location.port,
+		handleKeyDownForPanzoom: (e) => {
+
+			if (e.shiftKey) {
+				const schemaContainer = document.getElementById('schema-container');
+				if (schemaContainer) {
+					let schemaContainerParent = schemaContainer.parentNode;
+					schemaContainerParent.style.cursor = 'move';
+				}
+			}
+		},
+		handleKeyUpForPanzoom: (e) => {
+
+			if (!e.shiftKey) {
+				const schemaContainer = document.getElementById('schema-container');
+				if (schemaContainer) {
+					let schemaContainerParent = schemaContainer.parentNode;
+					schemaContainerParent.style.cursor = 'default';
+				}
+			}
+		},
 		initPanZoom: () => {
 
 			const schemaContainer     = document.getElementById('schema-container');
@@ -4451,18 +4479,6 @@ let _Schema = {
 				}
 			});
 			_Schema.ui.panzoomInstance = panzoom;
-
-			// TODO: these two listeners are never removed and thus duplicated when re-opening the schema
-			document.addEventListener('keydown', (event) => {
-				if (event.shiftKey) {
-					schemaContainerParent.style.cursor = 'move';
-				}
-			});
-			document.addEventListener('keyup', (event) => {
-				if (!event.shiftKey) {
-					schemaContainerParent.style.cursor = 'default';
-				}
-			});
 
 			schemaContainer.addEventListener('panzoomend', (event) => {
 				if (!event.detail.originalEvent.shiftKey) {
