@@ -117,8 +117,10 @@ export class Frontend {
 		// reduce array of length 1 to single value
 		switch (values.length) {
 			case 0:
-				// just copy the value
-				return data[key];
+				// No element found, so we copy the value but only if no element was referenced by either id(), name() or css()
+				return ((value.indexOf('id(')   === 0 && value[lastIndex] === ')')
+					||  (value.indexOf('name(') === 0 && value[lastIndex] === ')')
+					||  (value.indexOf('css(')  === 0 && value[lastIndex] === ')')) ? null : data[key];
 			case 1:
 				return values[0];
 			default:

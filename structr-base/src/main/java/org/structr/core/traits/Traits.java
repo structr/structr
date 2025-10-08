@@ -49,7 +49,6 @@ public interface Traits {
 	Set<TraitDefinition> getTraitDefinitions();
 	boolean isInterface();
 	boolean isAbstract();
-	boolean isBuiltInType();
 	boolean isServiceClass();
 	boolean changelogEnabled();
 	Set<String> getViewNames();

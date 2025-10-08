@@ -614,39 +614,45 @@ public class ValidationTest extends StructrTest {
 			}
 		};
 
-		// submit three test instances
 		final ExecutorService executor = Executors.newCachedThreadPool();
-		final Future f1                = executor.submit(tester);
-		final Future f2                = executor.submit(tester);
-		final Future f3                = executor.submit(tester);
 
 		try {
-			f1.get();
-			f2.get();
-			f3.get();
 
-		} catch (Throwable ex) {}
+			// submit three test instances
+			final Future f1 = executor.submit(tester);
+			final Future f2 = executor.submit(tester);
+			final Future f3 = executor.submit(tester);
+
+			try {
+				f1.get();
+				f2.get();
+				f3.get();
+
+			} catch (Throwable ex) {}
 
 
-		List<NodeInterface> result = null;
+			List<NodeInterface> result = null;
 
-		try (final Tx tx = app.tx()) {
+			try (final Tx tx = app.tx()) {
 
-			result = app.nodeQuery(type).getAsList();
+				result = app.nodeQuery(type).getAsList();
 
-			tx.success();
+				tx.success();
 
-		} catch (FrameworkException fex) {
+			} catch (FrameworkException fex) {
 
-			logger.warn("", fex);
-			fail("Unexpected exception.");
+				logger.warn("", fex);
+				fail("Unexpected exception.");
+			}
+
+
+			// verify that only count entities have been created.
+			assertEquals("Invalid concurrent validation result", count, result.size());
+
+		} finally {
+
+			executor.shutdownNow();
 		}
-
-
-		// verify that only count entities have been created.
-		assertEquals("Invalid concurrent validation result", count, result.size());
-
-		executor.shutdownNow();
 	}
 
 	@Test
