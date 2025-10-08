@@ -144,7 +144,8 @@ document.addEventListener("DOMContentLoaded", () => {
 			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
 		}
-	});
+
+	}, { capture: true });
 
 	window.addEventListener('resize', Structr.resize);
 

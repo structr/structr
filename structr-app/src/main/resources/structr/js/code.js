@@ -89,7 +89,7 @@ let _Code = {
 		let allow = _Code.persistence.testAllowNavigation();
 		if (allow) {
 
-			document.removeEventListener('keydown', _Code.helpers.handleKeyDownEvent);
+			document.removeEventListener('keydown', _Code.helpers.handleKeyDownEvent, { capture: true });
 
 			_Code.persistence.runCurrentEntitySaveAction = null;
 			_Editors.disposeAllEditors();
@@ -108,7 +108,7 @@ let _Code = {
 
 			UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
-			document.addEventListener('keydown', _Code.helpers.handleKeyDownEvent);
+			document.addEventListener('keydown', _Code.helpers.handleKeyDownEvent, { capture: true });
 
 			_Code.recentElements.init();
 			_Code.pathLocations.init();
