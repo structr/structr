@@ -19,22 +19,22 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Transaction;
 import org.structr.api.*;
+import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.search.*;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -475,7 +475,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
+	public void updateIndexConfiguration(final List<NewIndexConfig> schemaIndexConfigSource) {
 
 		switch (neo4jMajorVersion) {
 
@@ -538,7 +538,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		if (indexUpdater != null) {
 
-			indexUpdater.updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+			indexUpdater.updateIndexConfiguration(schemaIndexConfigSource);
 		}
 	}
 

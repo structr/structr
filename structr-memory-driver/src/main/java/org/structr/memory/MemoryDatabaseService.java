@@ -22,7 +22,7 @@ import org.structr.api.*;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
 import org.structr.api.index.Index;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -31,10 +31,7 @@ import org.structr.memory.index.MemoryNodeIndex;
 import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.*;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  */
@@ -231,7 +228,8 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly) {
+	public void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList) {
+		// no indexes here..
 	}
 
 	@Override

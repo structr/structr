@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.Predicate;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.service.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -55,7 +55,7 @@ public class SchemaService implements Service {
 
 	public static final URI DynamicSchemaRootURI             = URI.create("https://structr.org/v2.0/#");
 	private static final Logger logger                       = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final Semaphore IndexUpdateSemaphore      = new Semaphore(1, true);
+	private static final Semaphore IndexUpdateSemaphore      = new Semaphore(1);
 	private static final AtomicBoolean schemaIsBeingReplaced = new AtomicBoolean(false);
 	private static final Set<String> blacklist               = new LinkedHashSet<>();
 
@@ -103,9 +103,6 @@ public class SchemaService implements Service {
 
 					// type still exists, was not removed, so we remove it from the map of removed types
 					removedTypes.remove(name);
-
-					// create views (was a post process before, but needs access to the new schema)
-					//AbstractSchemaNodeTraitDefinition.createViewNodesForClass(newSchema, node.as(AbstractSchemaNode.class), name);
 				}
 
 				// fetch schema nodes
@@ -346,27 +343,16 @@ public class SchemaService implements Service {
 					final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
-					final Map<String, Map<String, IndexConfig>> schemaIndexConfig  = new HashMap();
-					final Map<String, Map<String, IndexConfig>> removedTypesConfig = new HashMap();
+					final List<NewIndexConfig> schemaIndexConfig  = new LinkedList<>();
 
 					for (final String type : traitsInstance.getAllTypes()) {
 
-						final Traits traits                 = traitsInstance.getTraits(type);
-						final String typeName               = getIndexingTypeName(traitsInstance, type);
-						Map<String, IndexConfig> typeConfig = schemaIndexConfig.get(typeName);
-						final boolean isRelationship        = traits.isRelationshipType();
-
-						if (typeConfig == null) {
-
-							typeConfig = new LinkedHashMap<>();
-							schemaIndexConfig.put(typeName, typeConfig);
-						}
+						final Traits traits          = traitsInstance.getTraits(type);
+						final String typeName        = getIndexingTypeName(traitsInstance, type);
+						final boolean isRelationship = traits.isRelationshipType();
 
 						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-							boolean createIndex           = key.isIndexed() || key.isIndexedWhenEmpty() || key.isFulltextIndexed();
-							final boolean isFulltextIndex = key.isFulltextIndexed();
-							final boolean isTextIndex     = !isFulltextIndex && String.class.equals(key.valueType());
 							final Trait trait             = key.getDeclaringTrait();
 
 							if (isRelationship) {
@@ -374,46 +360,36 @@ public class SchemaService implements Service {
 								// prevent creation of node property indexes on relationships
 								if (!key.isNodeIndexOnly()) {
 
-									typeConfig.put(key.dbName(), new IndexConfig(createIndex, false, isTextIndex, isFulltextIndex));
+									if (key.isIndexed()) {
+
+										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), false, true, false));
+									}
+
+									if (key.isFulltextIndexed()) {
+
+										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), false, false, true));
+									}
 								}
 
 							} else {
 
-								createIndex &= (trait == null || whitelist.contains(type) || type.equals(trait.getLabel()));
+								if (trait == null || whitelist.contains(type) || type.equals(trait.getLabel())) {
 
-								typeConfig.put(key.dbName(), new IndexConfig(createIndex, true, isTextIndex, isFulltextIndex));
+									if (key.isIndexed()) {
+
+										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), true, true, false));
+									}
+
+									if (key.isFulltextIndexed()) {
+
+										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), true, false, true));
+									}
+								}
 							}
 						}
 					}
 
-					for (final Map.Entry<String, Map<String, PropertyKey>> entry : removedTypes.entrySet()) {
-
-						String typeName        = entry.getKey();
-						boolean isRelationship = true;
-
-						// remove fqcn parts if present (relationships dont have it)
-						if (typeName.contains(".")) {
-
-							typeName = StringUtils.substringAfterLast(typeName, ".");
-							isRelationship = false;
-						}
-
-						final Map<String, IndexConfig> typeConfig = new HashMap();
-						removedTypesConfig.put(typeName, typeConfig);
-
-						for (final PropertyKey propertyKey : entry.getValue().values()) {
-
-							final boolean wasIndexed      = propertyKey.isIndexed() || propertyKey.isIndexedWhenEmpty() || propertyKey.isFulltextIndexed();
-							final boolean wasIdIndex      = "id".equals(propertyKey.jsonName());
-							final boolean dropIndex       = wasIndexed && !wasIdIndex;
-							final boolean isFulltextIndex = propertyKey.isFulltextIndexed();
-							final boolean isTextIndex     = !isFulltextIndex && String.class.equals(propertyKey.valueType());
-
-							typeConfig.put(propertyKey.dbName(), new IndexConfig(dropIndex, !isRelationship, isTextIndex, isFulltextIndex));
-						}
-					}
-
-					graphDb.updateIndexConfiguration(schemaIndexConfig, removedTypesConfig, false);
+					graphDb.updateIndexConfiguration(schemaIndexConfig);
 
 				} catch (Throwable t) {
 

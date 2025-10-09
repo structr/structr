@@ -486,9 +486,7 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				// Note: we KNOW that the index will not be removed, so we deliberately test the
-				// wrong thing here in case it changes somehow in the future!
-				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 1)) {
+				while (!hasNumberOfIndexes(db, "HAS_PROJECT", 0)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");

@@ -22,10 +22,11 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -87,7 +88,7 @@ public interface DatabaseService {
 	// ----- index -----
 	Index<Node> nodeIndex();
 	Index<Relationship> relationshipIndex();
-	void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly);
+	void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList);
 	boolean isIndexUpdateFinished();
 
 	// utils
