@@ -123,7 +123,11 @@ public abstract class IndexUpdater {
 
 				} else {
 
-					db.execute(getCreateIndexStatement(newIndexConfig));
+					final String statement = getCreateIndexStatement(newIndexConfig);
+
+					System.out.println(statement);
+
+					db.execute(statement);
 
 					newIndexCount++;
 				}

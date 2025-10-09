@@ -343,7 +343,7 @@ public class SchemaService implements Service {
 					final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
-					final List<NewIndexConfig> schemaIndexConfig  = new LinkedList<>();
+					final Map<String, NewIndexConfig> schemaIndexConfig  = new LinkedHashMap<>();
 
 					for (final String type : traitsInstance.getAllTypes()) {
 
@@ -353,7 +353,7 @@ public class SchemaService implements Service {
 
 						for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-							final Trait trait             = key.getDeclaringTrait();
+							final Trait trait = key.getDeclaringTrait();
 
 							if (isRelationship) {
 
@@ -362,12 +362,18 @@ public class SchemaService implements Service {
 
 									if (key.isIndexed()) {
 
-										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), false, true, false));
+										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), false, true, false);
+										final String identifier     = typeName + "_" + key.dbName();
+
+										schemaIndexConfig.put(identifier, config);
 									}
 
 									if (key.isFulltextIndexed()) {
 
-										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), false, false, true));
+										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), false, false, true);
+										final String identifier     = typeName + "_" + key.dbName();
+
+										schemaIndexConfig.put(identifier, config);
 									}
 								}
 
@@ -377,19 +383,26 @@ public class SchemaService implements Service {
 
 									if (key.isIndexed()) {
 
-										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), true, true, false));
+										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, true, false);
+										final String identifier     = typeName + "_" + key.dbName();
+
+										schemaIndexConfig.put(identifier, config);
 									}
 
 									if (key.isFulltextIndexed()) {
 
-										schemaIndexConfig.add(new NewIndexConfig(typeName, key.dbName(), true, false, true));
+										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, false, true);
+										final String identifier     = typeName + "_" + key.dbName();
+
+										schemaIndexConfig.put(identifier, config);
 									}
 								}
 							}
 						}
 					}
 
-					graphDb.updateIndexConfiguration(schemaIndexConfig);
+					// use map to make list of index configs unique
+					graphDb.updateIndexConfiguration(new LinkedList<>(schemaIndexConfig.values()));
 
 				} catch (Throwable t) {
 
