@@ -125,8 +125,6 @@ public abstract class IndexUpdater {
 
 					final String statement = getCreateIndexStatement(newIndexConfig);
 
-					System.out.println(statement);
-
 					db.execute(statement);
 
 					newIndexCount++;
