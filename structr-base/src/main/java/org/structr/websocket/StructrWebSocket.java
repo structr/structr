@@ -20,7 +20,7 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
-import java.io.EOFException;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.session.ManagedSession;
@@ -55,6 +55,7 @@ import org.structr.websocket.command.PingCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
@@ -571,19 +572,29 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		this.console = null;
 	}
 
-	public Console getConsole(final ConsoleMode mode) {
+	public Pair<Console, Boolean> getConsole(final ConsoleMode mode) {
 
 		if (this.securityContext != null) {
 
 			if (this.console != null) {
 
-				return this.console;
+				if (this.console.hasStillTheSameTraitsInstance()) {
+
+					// return console and false because the traits instance has not changed
+					return Pair.of(this.console, false);
+
+				} else {
+
+					// return console and true because the traits instance has changed
+					this.console = new Console(securityContext, mode, null);
+					return Pair.of(this.console, true);
+				}
 
 			} else {
 
+				// return console and false because there was no console in the context before
 				this.console = new Console(securityContext, mode, null);
-				return this.console;
-
+				return Pair.of(this.console, false);
 			}
 		}
 

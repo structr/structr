@@ -342,4 +342,8 @@ public class TraitsInstance {
 
 		impl.resolveTraits();
 	}
+
+	public boolean isSameAs(final TraitsInstance traitsInstance) {
+		return toString().equals(traitsInstance.toString());
+	}
 }
