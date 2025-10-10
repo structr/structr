@@ -327,91 +327,87 @@ public class SchemaService implements Service {
 			}
 		}
 
-		final Thread indexUpdater = new Thread(new Runnable() {
+		final Thread indexUpdater = new Thread(() -> {
 
-			@Override
-			public void run() {
+			try {
 
-				try {
+				if (!IndexUpdateSemaphore.tryAcquire(3, TimeUnit.MINUTES)) {
 
-					if (!IndexUpdateSemaphore.tryAcquire(3, TimeUnit.MINUTES)) {
+					logger.error("Unable to start index updater, waited for 3 minutes. Giving up.");
+					return;
+				}
 
-						logger.error("Unable to start index updater, waited for 3 minutes. Giving up.");
-						return;
-					}
+				final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
+				final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
-					final Set<String> whitelist   = new LinkedHashSet<>(Set.of(StructrTraits.GRAPH_OBJECT, StructrTraits.NODE_INTERFACE));
-					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
+				final Map<String, NewIndexConfig> schemaIndexConfig  = new LinkedHashMap<>();
 
-					final Map<String, NewIndexConfig> schemaIndexConfig  = new LinkedHashMap<>();
+				for (final String type : traitsInstance.getAllTypes()) {
 
-					for (final String type : traitsInstance.getAllTypes()) {
+					final Traits traits          = traitsInstance.getTraits(type);
+					final String typeName        = getIndexingTypeName(traitsInstance, type);
+					final boolean isRelationship = traits.isRelationshipType();
 
-						final Traits traits          = traitsInstance.getTraits(type);
-						final String typeName        = getIndexingTypeName(traitsInstance, type);
-						final boolean isRelationship = traits.isRelationshipType();
+					for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
-						for (final PropertyKey key : traits.getAllPropertyKeys()) {
+						final Trait trait = key.getDeclaringTrait();
 
-							final Trait trait = key.getDeclaringTrait();
+						if (isRelationship) {
 
-							if (isRelationship) {
+							// prevent creation of node property indexes on relationships
+							if (!key.isNodeIndexOnly()) {
 
-								// prevent creation of node property indexes on relationships
-								if (!key.isNodeIndexOnly()) {
+								if (key.isIndexed()) {
 
-									if (key.isIndexed()) {
+									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), false, true, false);
+									final String identifier     = typeName + "_" + key.dbName();
 
-										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), false, true, false);
-										final String identifier     = typeName + "_" + key.dbName();
-
-										schemaIndexConfig.put(identifier, config);
-									}
-
-									if (key.isFulltextIndexed()) {
-
-										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), false, false, true);
-										final String identifier     = typeName + "_" + key.dbName();
-
-										schemaIndexConfig.put(identifier, config);
-									}
+									schemaIndexConfig.put(identifier, config);
 								}
 
-							} else {
+								if (key.isFulltextIndexed()) {
 
-								if (trait == null || whitelist.contains(type) || type.equals(trait.getLabel())) {
+									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), false, false, true);
+									final String identifier     = typeName + "_" + key.dbName() + "_fulltext";
 
-									if (key.isIndexed()) {
+									schemaIndexConfig.put(identifier, config);
+								}
+							}
 
-										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, true, false);
-										final String identifier     = typeName + "_" + key.dbName();
+						} else {
 
-										schemaIndexConfig.put(identifier, config);
-									}
+							if (trait == null || whitelist.contains(type) || type.equals(trait.getLabel())) {
 
-									if (key.isFulltextIndexed()) {
+								if (key.isIndexed()) {
 
-										final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, false, true);
-										final String identifier     = typeName + "_" + key.dbName();
+									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, true, false);
+									final String identifier     = typeName + "_" + key.dbName();
 
-										schemaIndexConfig.put(identifier, config);
-									}
+									schemaIndexConfig.put(identifier, config);
+								}
+
+								if (key.isFulltextIndexed()) {
+
+									final NewIndexConfig config = new NewIndexConfig(typeName, key.dbName(), true, false, true);
+									final String identifier     = typeName + "_" + key.dbName() + "_fulltext";
+
+									schemaIndexConfig.put(identifier, config);
 								}
 							}
 						}
 					}
-
-					// use map to make list of index configs unique
-					graphDb.updateIndexConfiguration(new LinkedList<>(schemaIndexConfig.values()));
-
-				} catch (Throwable t) {
-
-					t.printStackTrace();
-
-				} finally {
-
-					IndexUpdateSemaphore.release();
 				}
+
+				// use map to make list of index configs unique
+				graphDb.updateIndexConfiguration(new LinkedList<>(schemaIndexConfig.values()));
+
+			} catch (Throwable t) {
+
+				t.printStackTrace();
+
+			} finally {
+
+				IndexUpdateSemaphore.release();
 			}
 		}, "Structr Index Updater");
 
