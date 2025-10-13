@@ -3467,28 +3467,6 @@ table.props td.__value {
 	width: 80%;
 }
 
-/**
- * Forms
- */
-.form-row {
-	display: flex;
-	padding: .5rem 0;
-}
-
-.form-col {
-	display: inline-flex;
-	flex-direction: column;
-	flex: 2;
-	padding-right: 1rem;
-	width: calc(50% - 2rem);
-}
-
-.form-row input[type=text] {
-	display: block;
-	font-size: .875rem;
-	margin-top: .5rem;
-}
-
 .deployment-path {
 	user-select: all;
 	font-weight: 600;
@@ -3949,6 +3927,12 @@ ul.combined-input-select-field li:hover {
 }
 .flex-none {
 	flex: none;
+}
+.flex-1 {
+	flex: 1;
+}
+.flex-2 {
+	flex: 2;
 }
 .flex-col {
 	flex-direction: column;

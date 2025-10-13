@@ -681,14 +681,14 @@ let _Localization = {
 
 					<form id="localization-detail-form">
 
-						<div class="form-row">
-							<div class="form-col">
+						<div class="flex gap-4 py-2 px-0">
+							<div class="inline-flex flex-col flex-2">
 								<label for="localization-key">Key</label>
-								<input id="localization-key" type="text">
+								<input id="localization-key" type="text" class="mt-2">
 							</div>
-							<div class="form-col">
+							<div class="inline-flex flex-col flex-2">
 								<label for="localization-domain">Domain</label>
-								<input id="localization-domain" type="text">
+								<input id="localization-domain" type="text" class="mt-2">
 							</div>
 						</div>
 					</form>

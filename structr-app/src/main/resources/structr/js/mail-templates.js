@@ -436,41 +436,42 @@ let _MailTemplates = {
 
 						<input id="mail-template-id" type="hidden" class="property" data-property="id">
 
-						<div class="form-row">
-							<div class="form-col">
+						<div class="flex gap-4 py-2 px-0">
+
+							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-name">Name</label>
-								<input id="mail-template-name" type="text" size="30" class="property" data-property="name">
+								<input id="mail-template-name" type="text" class="property mt-2" data-property="name">
 							</div>
 
-							<div class="form-col">
+							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-locale">Locale</label>
-								<input id="mail-template-locale" type="text" size="6" class="property" data-property="locale">
+								<input id="mail-template-locale" type="text" class="property mt-2" data-property="locale">
 							</div>
 						</div>
 
-						<div class="form-row">
+						<div class="flex py-2 px-0">
 							<input id="mail-template-visible-to-public-users" class="property" type="checkbox" data-property="visibleToPublicUsers">
 							<label for="mail-template-visible-to-public-users">Visible to public users</label>
 						</div>
 
-						<div class="form-row">
+						<div class="flex py-2 px-0">
 							<input id="mail-template-visible-to-authenticated-users" class="property" type="checkbox" data-property="visibleToAuthenticatedUsers">
 							<label for="mail-template-visible-to-authenticated-users">Visible to authenticated users</label>
 						</div>
 
-						<div class="form-row">
-							<div class="form-col">
+						<div class="flex gap-4 py-2 px-0">
+							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-text">Content</label>
 								<div id="mail-template-text" class="property" data-property="text"></div>
 							</div>
 
-							<div class="form-col">
+							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-preview">Preview</label>
 								<iframe id="mail-template-preview"></iframe>
 							</div>
 						</div>
 
-						<div class="form-row justify-between">
+						<div class="flex gap-4 py-2 px-0 justify-between">
 							<div id="mail-template-editor-options">
 							</div>
 
