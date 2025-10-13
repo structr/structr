@@ -4833,11 +4833,10 @@ let _Schema = {
 					await _Schema.ui.layouts.applyLayout(loadedConfig, isInitialRestore);
 
 					if (isInitialRestore === true) {
-						new SuccessMessage().text(`No saved schema layout detected, loaded "${data.name}"`).show();
+						new SuccessMessage().text(`No saved schema layout detected, loaded "${node.name}"`).show();
 					}
 
 				} catch (e) {
-
 					Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 				}
 			},
@@ -4959,9 +4958,20 @@ let _Schema = {
 
 				_Schema.ui.layouts.saveNodePositions(Object.fromEntries(positions));
 			},
-			clearPositions: () => {
+			resetLayout: () => {
 
 				_Schema.ui.layouts.saveNodePositions({});
+				_Schema.ui.setZoom(1);
+
+				_Schema.ui.panzoomInstance.pan(0, 0);
+
+				_Schema.reload();
+			},
+			resetZoom: () => {
+
+				_Schema.ui.setZoom(1);
+
+				_Schema.ui.panzoomInstance.pan(0, 0);
 
 				_Schema.reload();
 			},
@@ -5402,8 +5412,12 @@ let _Schema = {
 			};
 			activateLayoutFunctions();
 
-			document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
-				_Schema.ui.layouts.clearPositions();
+			document.getElementById('reset-schema-layout').addEventListener('click', (e) => {
+				_Schema.ui.layouts.resetLayout();
+			});
+
+			document.getElementById('reset-schema-zoom').addEventListener('click', (e) => {
+				_Schema.ui.layouts.resetZoom();
 			});
 
 			document.getElementById('new-auto-layout').addEventListener('click', (e) => {
@@ -5575,8 +5589,16 @@ let _Schema = {
 							<div class="separator"></div>
 
 							<div class="row">
-								<a title="Reset the stored node positions." id="reset-schema-positions" class="flex items-center">
+								<a id="reset-schema-layout" class="flex items-center">
 									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout
+								</a>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="row">
+								<a id="reset-schema-zoom" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Zoom
 								</a>
 							</div>
 
