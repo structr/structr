@@ -13,11 +13,15 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
-    "@playwright/test": "^1.55.1",
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.7.1",
     "playwright-zoom": "^1.1.0"
   },
   "directories": {
     "test": "tests"
   },
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "playwright": "^1.56.0"
+  }
 }

@@ -39,7 +39,17 @@ test('config', async ({ page }) => {
   //await page.evaluate('document.body.style.zoom="2.0"');
 
   await expect(page).toHaveTitle('Structr Configuration Editor');
-  await expect(page.locator('#passwordField')).toBeVisible();
+  await page.screenshot({ path: 'config_set-superuser-password.png' });
+
+  await expect(page.getByPlaceholder('Enter a superuser password')).toBeVisible();
+  await page.getByPlaceholder('Enter a superuser password').fill(process.env.SUPERUSER_PASSWORD);
+  await page.getByRole('button', { name: 'Save'}).click();
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: 'config_superuser-password-set.png', caret: 'initial' });
+  await page.getByRole('button', { name: 'Configure a database connection'}).click();
+  await page.waitForTimeout(500);
+
+  /*
   await expect(page.locator('#loginButton')).toBeVisible();
   await page.screenshot({ path: 'config_login.png', caret: 'initial' });
 
@@ -56,16 +66,17 @@ test('config', async ({ page }) => {
   await page.waitForTimeout(500);
   await page.getByRole('button', { name: 'Remove'}).click();
   await page.waitForTimeout(500);
+*/
+
   await expect(page.getByRole('button', { name: 'Create new database connection'})).toBeVisible();
   await page.screenshot({ path: 'config_create-database-connection.png' });
-
   await page.getByRole('button', { name: 'Create new database connection'}).click();
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'config_configure-database-connection.png' });
   await page.getByRole('button', { name: 'Set Neo4j defaults'}).click();
   await page.waitForTimeout(500);
-  await page.getByPlaceholder('Enter a connection name').fill('neo4j-localhost-7689');
-  await page.getByPlaceholder('Enter URL').fill('bolt://localhost:7689');
+  await page.getByPlaceholder('Enter a connection name').fill('neo4j-localhost-7687');
+  await page.getByPlaceholder('Enter URL').fill('bolt://neo4j-test:7687');
   await page.getByPlaceholder('Enter password').fill('admin123');
   await page.screenshot({ path: 'config_database-connection-specified.png' });
 
