@@ -4427,6 +4427,7 @@ let _Schema = {
 		showSchemaOverlays: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
+		panPos: { x: 0, y: 0 },
 		relHighlightColor: 'red',
 		maxZ: 0,
 		getSavedSchemaLayoutKey: () => 'structrSavedSchemaLayout_' + location.port,
@@ -4461,6 +4462,8 @@ let _Schema = {
 				canvas: true,
 				exclude: nodeElements,
 				startScale: _Schema.ui.zoomLevel,
+				startX: _Schema.ui.panPos.x,
+				startY: _Schema.ui.panPos.y,
 				handleStartEvent: (event) => {
 
 					let shiftPressed       = event.shiftKey;
@@ -4484,6 +4487,8 @@ let _Schema = {
 				if (!event.detail.originalEvent.shiftKey) {
 					schemaContainerParent.style.cursor = 'default';
 				}
+
+				_Schema.ui.setPan(panzoom.getPan());
 			});
 			schemaContainerParent.addEventListener('wheel', (event) => {
 				panzoom.zoomWithWheel(event);
@@ -4594,7 +4599,6 @@ let _Schema = {
 			},
 			clearSelection: () => {
 
-				// deselect selected node
 				$('.node', _Schema.ui.canvas).removeClass('selected');
 				_Schema.ui.selection.selectionStop();
 
@@ -4733,7 +4737,6 @@ let _Schema = {
 			},
 			hideSelectedSchemaTypes: () => {
 
-				// TODO: update to remove from visible types!
 				if (_Schema.ui.selection.selectedNodes.length > 0) {
 
 					let typesToHide = _Schema.ui.selection.selectedNodes.map(n => n.name);
@@ -4869,6 +4872,7 @@ let _Schema = {
 
 						case 3: {
 							_Schema.ui.setZoom(layoutData.zoom);
+							_Schema.ui.setPan(layoutData.pan);
 							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels);
 							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows);
 							_Schema.ui.setConnectorStyle(layoutData.connectorStyle);
@@ -4894,6 +4898,7 @@ let _Schema = {
 					_version:              3,
 					positions:             _Schema.ui.layouts.nodePositions,
 					zoom:                  _Schema.ui.zoomLevel,
+					pan:                   _Schema.ui.panPos,
 					connectorStyle:        _Schema.ui.connectorStyle,
 					visibleTypes:          _Schema.ui.visibility.visibleTypes,
 					showRelLabels:         _Schema.ui.showSchemaOverlays,
@@ -5437,6 +5442,13 @@ let _Schema = {
 			_Schema.ui.zoomLevel = zoom;
 			_Schema.ui.panzoomInstance?.zoom(zoom);
 			_Schema.ui.jsPlumbInstance.setZoom(zoom);
+
+			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+		},
+		setPan: (pan = { x: 0, y: 0 }) => {
+
+			_Schema.ui.panPos = pan;
+			_Schema.ui.panzoomInstance?.pan(pan.x, pan.y);
 
 			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 		},
