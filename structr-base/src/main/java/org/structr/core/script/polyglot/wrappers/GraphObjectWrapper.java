@@ -22,6 +22,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -121,7 +122,12 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return null;
 			}
 
-			final PropertyKey propKey = traits.key(key);
+			PropertyKey propKey = traits.key(key);
+
+			if (propKey == null && Settings.AllowUnknownPropertyKeys.getValue(false)) {
+				propKey = new GenericProperty(key);
+			}
+
 			if (propKey != null) {
 
 				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.isArray())) {
@@ -209,7 +215,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				}
 
 				final Traits traits       = node.getTraits();
-				final boolean hasProperty = traits != null && traits.hasKey(key);
+				final boolean hasProperty = (traits != null && traits.hasKey(key)) || Settings.AllowUnknownPropertyKeys.getValue(false);
 
 				return hasProperty || Methods.resolveMethod(traits, key) != null;
 
@@ -233,27 +239,39 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			try {
 
-				final PropertyKey propKey = node.getTraits().key(key);
+				PropertyKey propKey = node.getTraits().key(key);
 
-				// fixme: how to compare types here?
-				if (propKey != null && unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
-
-					final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
-
-					if (inputConverter != null) {
-
-						try {
-
-							unwrappedValue = inputConverter.convert(unwrappedValue);
-
-						} catch (ClassCastException ex) {
-
-							throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
-						}
-					}
+				if (propKey == null && Settings.AllowUnknownPropertyKeys.getValue(false)) {
+					propKey = new GenericProperty(key);
 				}
 
-				node.setProperty(propKey, unwrappedValue);
+				// fixme: how to compare types here?
+				if (propKey != null) {
+
+					if (unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
+
+						final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
+
+						if (inputConverter != null) {
+
+							try {
+
+								unwrappedValue = inputConverter.convert(unwrappedValue);
+
+							} catch (ClassCastException ex) {
+
+								throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+							}
+						}
+
+					} else {
+
+						// key does not exist and generic property is not desired => log warning
+						logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
+					}
+
+					node.setProperty(propKey, unwrappedValue);
+				}
 
 			} catch (FrameworkException ex) {
 
@@ -265,7 +283,13 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	@Override
 	public boolean removeMember(String key) {
 
-		final PropertyKey propKey = node.getTraits().key(key);
+		PropertyKey propKey = node.getTraits().key(key);
+
+		final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || node instanceof GraphObjectMap;
+
+		if (propKey == null && useGenericPropertyForUnknownKeys) {
+			propKey = new GenericProperty(key);
+		}
 
 		if (node instanceof GraphObjectMap) {
 
@@ -273,15 +297,20 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				((GraphObjectMap) node).remove(propKey);
 				return true;
+
 			} else {
 
 				return false;
 			}
+
 		} else {
 
 			try {
 
 				node.removeProperty(propKey);
+
+				// FIXME: should this 'return true;' if no exception is raised?
+
 			} catch (FrameworkException ex) {
 
 				throw new RuntimeException(ex);

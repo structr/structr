@@ -126,6 +126,9 @@ public class TraitsImplementation implements Traits {
 			}
 		}
 
+		// FIXME: If this stays here... it leads to the effect, that at first attempt we get an error message and afterward
+		//        we NEVER AGAIN get an error message because the cached value (even if useless) is being used.
+		//        BUT: If we move the cache-add into the next if statement, we always get an error, even if we were to allow unknown keys via a setting
 		keyCache.put(name, new Wrapper(key));
 
 		// return last key, not first

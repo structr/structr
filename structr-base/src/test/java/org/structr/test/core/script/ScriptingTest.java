@@ -7520,6 +7520,99 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testSetAndGetOfValuesForUnknownKeys() {
+		/*
+		 * this function tests set()/get() and javascript object set/get in conjunction with the setting "application.schema.allowunknownkeys"
+		 */
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			// tests on GraphObjectMap ("allowunknownkeys" MUST not matter because these are basically custom maps and not related to the schema)
+			{
+
+				for (final Boolean state : List.of(true, false)) {
+
+					Settings.AllowUnknownPropertyKeys.setValue(state);
+
+					Scripting.evaluate(actionContext, null, """
+						${{
+							let graphObjectMap = $.toGraphObject({});
+
+							$.assert(($.get(graphObjectMap, 'does_not_exist') === null), 422, 'Unknown key should yield null (when using Java-Based built-in functions... even in plain JavaScript)');
+							$.set(graphObjectMap, 'will_exist_after_set', 'exists');
+							$.assert(($.get(graphObjectMap, 'will_exist_after_set') === 'exists'), 422, 'Key that does not exist in the schema but has just been set, should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+
+
+					Scripting.evaluate(actionContext, null, """
+						${{
+							let graphObjectMap = $.toGraphObject({});
+
+							$.assert((graphObjectMap.does_not_exist === undefined), 422, 'Unknown key should yield undefined (in plain JavaScript)');
+							graphObjectMap.will_exist_after_set = 'exists';
+							$.assert((graphObjectMap.will_exist_after_set === 'exists'), 422, 'Key that does not exist in the schema but has just been set, should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+				}
+			}
+
+			// tests on actual graph objects (nodes)
+			{
+
+				Settings.AllowUnknownPropertyKeys.setValue(false);
+
+				try {
+					/* In the get() function this should raise an error - in plain JavaScript it should not raise an error, see following tests */
+					Scripting.evaluate(actionContext, null, "${ get(me, 'does_not_exist') }", "testSetAndGetOfValuesForUnknownKeys");
+					fail("get() for an unknown key should raise an error if unknown keys are not allowed!");
+				} catch (RuntimeException expected) {}
+
+				try {
+					Scripting.evaluate(actionContext, null, "${ set(me, 'does_not_exist', 'should_not_work') }", "testSetAndGetOfValuesForUnknownKeys");
+					fail("set() for an unknown key should raise an error if unknown keys are not allowed!");
+				} catch (RuntimeException expected) {}
+
+				// in javascript we expect unknown keys to return undefined instead of producing an error
+				Scripting.evaluate(actionContext, null, "${{ $.assert( ($.me.does_not_exist === undefined), 422, 'Unknown key should yield undefined'); }}", "testSetAndGetOfValuesForUnknownKeys");
+
+				try {
+					Scripting.evaluate(actionContext, null, "${{ $.me.does_not_exist = 'should_not_work'; }}", "testSetAndGetOfValuesForUnknownKeys");
+					fail("Setting a value for an unknown key should raise an error if unknown keys are not allowed!");
+				} catch (RuntimeException expected) {
+				}
+
+				Settings.AllowUnknownPropertyKeys.setValue(true);
+
+				Scripting.evaluate(actionContext, null, """
+						${{
+							$.assert(($.get($.me, 'does_not_exist') === null), 422, 'Unknown key should yield null');
+							$.set($.me, 'will_exist_after_set', 'exists');
+							$.assert(($.get($.me, 'will_exist_after_set') === 'exists'), 422, 'Key that does not exist in the schema but has just been set, should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+
+				Scripting.evaluate(actionContext, null, """
+						${{
+							$.assert($.me.does_not_exist === null), 422, 'Unknown key should yield null');
+							$.me.will_exist_after_set = 'exists';
+							$.assert(($.me.will_exist_after_set === 'exists'), 422, 'Key that does not exist in the schema but has just been set, should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+			}
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			logger.error("", t);
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

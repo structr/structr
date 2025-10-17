@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
@@ -112,11 +113,14 @@ public class GetFunction extends CoreFunction {
 			if (dataObject != null) {
 
 				final Traits traits = dataObject.getTraits();
-
-				// fixme
 				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || dataObject instanceof GraphObjectMap;
 
-				final PropertyKey key = traits.key(keyName);
+				PropertyKey key = traits.key(keyName);
+
+				if (key == null && useGenericPropertyForUnknownKeys) {
+					key = new GenericProperty(keyName);
+				}
+
 				if (key != null) {
 
 					final PropertyConverter inputConverter = key.inputConverter(securityContext, false);

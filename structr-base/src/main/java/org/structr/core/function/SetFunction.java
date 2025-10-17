@@ -27,6 +27,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
@@ -57,7 +58,7 @@ public class SetFunction extends CoreFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || (sources[0] instanceof GraphObjectMap);
 			final SecurityContext securityContext          = ctx.getSecurityContext();
 			final ConfigurationProvider config             = StructrApp.getConfiguration();
 
@@ -97,8 +98,12 @@ public class SetFunction extends CoreFunction {
 
 				for (int c = 1; c < parameter_count; c += 2) {
 
-					final String keyName  = sources[c].toString();
-					final PropertyKey key = type.key(keyName);
+					final String keyName = sources[c].toString();
+					PropertyKey key = type.key(keyName);
+
+					if (key == null && useGenericPropertyForUnknownKeys) {
+						key = new GenericProperty(keyName);
+					}
 
 					if (key != null) {
 
@@ -115,7 +120,7 @@ public class SetFunction extends CoreFunction {
 					} else {
 
 						// key does not exist and generic property is not desired => log warning
-						logger.warn("Unknown property {}.{}, value will not be set.", type.getName(), keyName);
+						logger.warn("set(): Unknown property {}.{}, value will not be set.", type.getName(), keyName);
 					}
 				}
 
