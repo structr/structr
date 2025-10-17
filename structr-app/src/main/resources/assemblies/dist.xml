@@ -57,34 +57,6 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>${assemblies.resources.path}/bin/commons-daemon/amd64/prunsrv.exe</source>
-			<outputDirectory>bin/commons-daemon/amd64</outputDirectory>
-		</file>
-		<file>
-			<source>${assemblies.resources.path}/bin/commons-daemon/LICENSE.txt</source>
-			<outputDirectory>bin/commons-daemon</outputDirectory>
-		</file>
-		<file>
-			<source>${assemblies.resources.path}/bin/commons-daemon/LICENSE.txt</source>
-			<outputDirectory>bin/commons-daemon</outputDirectory>
-		</file>
-		<file>
-			<source>${assemblies.resources.path}/bin/commons-daemon/NOTICE.txt</source>
-			<outputDirectory>bin/commons-daemon</outputDirectory>
-		</file>
-		<file>
-			<source>${assemblies.resources.path}/bin/commons-daemon/prunmgr.exe</source>
-			<outputDirectory>bin/commons-daemon</outputDirectory>
-		</file>
-		<file>
-			<source>${assemblies.resources.path}/bin/commons-daemon/prunsrv.exe</source>
-			<outputDirectory>bin/commons-daemon</outputDirectory>
-		</file>
-		<file>
-			<source>${assemblies.resources.path}/bin/commons-daemon/RELEASE-NOTES.txt</source>
-			<outputDirectory>bin/commons-daemon</outputDirectory>
-		</file>
-		<file>
 			<source>${assemblies.resources.path}/bin/config</source>
 			<outputDirectory>bin</outputDirectory>
 			<filtered>true</filtered>
