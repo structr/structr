@@ -205,9 +205,10 @@ public class SchemaHelper {
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
 		final List<GraphObjectMap> resultList = new LinkedList<>();
 		final Traits traits                   = Traits.of(type);
-		final boolean isServiceClass          = traits.isServiceClass();
 
 		if (traits != null) {
+
+			final boolean isServiceClass = traits.isServiceClass();
 
 			if (propertyView != null) {
 

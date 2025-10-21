@@ -90,12 +90,12 @@ let _Config = {
 
 					let key = resetButton.dataset['key'];
 
-					window.location.href = `../config')}?reset=${key}${getActiveTab()}`;
+					window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reset=${key}${getActiveTab()}`;
 				});
 			}
 
 			document.querySelector('#reload-config-button')?.addEventListener('click', () => {
-				window.location.href = `../config')}?reload${getActiveTab()}`;
+				window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${getActiveTab()}`;
 			});
 
 			let activateHash = (hash) => {
