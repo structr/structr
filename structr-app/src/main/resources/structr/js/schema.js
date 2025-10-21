@@ -3008,6 +3008,9 @@ let _Schema = {
 					});
 				}
 
+				// remove keyboard input on select
+				selectElement.on('select2:select', () => gridRow.querySelector('.select2-search__field').value = '');
+
 				callback(selectElement);
 			});
 		},
