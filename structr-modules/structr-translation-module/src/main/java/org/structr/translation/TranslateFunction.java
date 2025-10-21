@@ -120,8 +120,10 @@ public class TranslateFunction extends UiFunction {
 
 					final Map<String, Object> responseData = HttpHelper.post(apiBaseURL, gson.toJson(requestJson), null, null, headers, "UTF-8", true);
 
-						final String response = responseData.get(HttpHelper.FIELD_BODY) instanceof String ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
+					final String response = responseData.get(HttpHelper.FIELD_BODY) instanceof String ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
+					if (response != null)
+					{
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
 
 						if (resultObject.has("translations")) {
@@ -137,6 +139,13 @@ public class TranslateFunction extends UiFunction {
 						{
 							throw new FrameworkException(422, "Could not translate text: " + text + " --  Deepl API Response: " + response);
 						}
+					}
+					else
+					{
+						throw new FrameworkException(422, "Could not translate text: " + text + " --  Deepl API failed to response!");
+					}
+
+
 				}
 				default:
 					throw new FrameworkException(422, "Unknown translation provider - possible values are 'google' and 'deepl'.");
