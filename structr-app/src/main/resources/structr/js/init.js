@@ -1969,7 +1969,7 @@ let Structr = {
 					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mr-4']), 'Toggle Console')}
 					${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
 					<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
-						<div data-notification-count class="px-2 text-xs hidden"></div>
+						<div data-notification-count class="px-2 text-xs empty:hidden"></div>
 					</div>
 				</div>
 
@@ -2663,7 +2663,6 @@ class MessageBuilder {
 		let hasMessages = (messageCount > 0);
 
 		notificationCountElement.textContent = (hasMessages ? messageCount : '');
-		notificationCountElement.classList.toggle('hidden', !hasMessages);
 
 		if (!hasMessages) {
 			Structr.setForceShowNotificationAreaState(false);
