@@ -99,6 +99,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new SetEncryptionKeyFunction());
 		Functions.put(licenseManager, new EncryptFunction());
 		Functions.put(licenseManager, new DecryptFunction());
+		Functions.put(licenseManager, new LoginFunction());
 
 		Functions.put(licenseManager, new FindRangeFunction());
 		Functions.put(licenseManager, new FindWithinDistanceFunction());
