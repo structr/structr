@@ -665,8 +665,6 @@ public class ConfigServlet extends AbstractServletBase {
 		final ManageDatabasesCommand cmd   = Services.getInstance().command(null, ManageDatabasesCommand.class);
 		final boolean databaseIsConfigured = !cmd.getConnections().isEmpty();
 		final boolean passwordIsSet        = StringUtils.isNotBlank(Settings.SuperUserPassword.getValue());
-		final Style fgGreen                = new Style("color: var(--config-structr-green);");
-		final Style bgGreen                = new Style("background-color: var(--config-structr-green); color: #fff; border: 1px solid rgba(0,0,0,.125);");
 		final String id                    = "welcome";
 
 		menu.block("li").css("active").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Start").css("active");
@@ -682,11 +680,11 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag item2 = list.block("li").text("Configure a <b>database connection</b>");
 
 		if (passwordIsSet) {
-			item1.block("span").text(" &#x2714;").attr(fgGreen);
+			item1.block("span").text(" &#x2714;");
 		}
 
 		if (databaseIsConfigured) {
-			item2.block("span").text(" &#x2714;").attr(fgGreen);
+			item2.block("span").text(" &#x2714;");
 		}
 
 		if (!passwordIsSet) {
@@ -694,8 +692,13 @@ public class ConfigServlet extends AbstractServletBase {
 			body.block("h3").text("Superuser password");
 
 			final Tag pwd = body.block("p");
-			pwd.empty("input").attr(new Name("superuser.password")).attr(new Type("password")).attr(new Attr("size", 40));
-			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Save")).attr(bgGreen);
+			pwd.empty("input")
+					.attr(new Name("superuser.password"))
+					.attr(new Type("password"))
+					.attr(new Attr("size", 40))
+					.attr(new Attr("placeholder", "Enter a superuser password"))
+					.attr(new Attr("class", "combined"));
+			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Save")).attr(new Attr("class", "combined"));
 
 		} else {
 
