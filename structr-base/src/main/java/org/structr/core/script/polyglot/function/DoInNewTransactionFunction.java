@@ -176,10 +176,15 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 		return """
 **JavaScript-only**
 
-Removes the given function form the current transaction context and allows batching of a given expression, i.e. if the expression contains a long-running function (for example the deletion of all nodes of a given type).
+Removes the given function form the current transaction context and allows batching of a given expression,
+i.e. if the expression contains a long-running function (for example the deletion of all nodes of a given type).
 Useful in situations where large numbers of nodes are created, modified or deleted.
 
 The paging/batching must be done manually.
+The return value of the worker function (and of the error handler function) determines if the processing continues or stops.
+Returning a truthy value in the worker function lets it run again. Returning a truthy value in the error handler function
+lets the worker function run again.
+(be careful to never simply put "return true;" in the worker function as this will create an infinite loop)
 
 Example:
 ```
@@ -196,6 +201,7 @@ ${{
 
         pageNo++;
 
+		// Only run again if nodes were found in the current iteration
         return (nodes.length > 0);
 
     }, (exception) => {
