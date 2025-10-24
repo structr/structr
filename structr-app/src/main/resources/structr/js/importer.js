@@ -1611,7 +1611,7 @@ let Importer = {
 			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
 			<link rel="stylesheet" type="text/css" media="screen" href="css/importer.css">
 			
-			<div id="importer-main" class="resourceBox full-height-box">
+			<div id="importer-main" class="resourceBox">
 				<table id="importer-jobs-table">
 					<thead><tr>
 						<th>Job ID</th>
