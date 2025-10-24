@@ -2445,19 +2445,19 @@ class MessageBuilder {
 		// defaults
 		this.params = {
 			text: 'Default message',
+			updatesText: false,
+			appendsText: false,
+			appendSelector: '',
+			prependsText: false,
+			prependSelector: '',
 			delayDuration: 3000,
 			uniqueClass: undefined,
 			uniqueCount: 1,
-			updatesText: false,
+			incrementsUniqueCount: false,
 			updatesButtons: false,
-			appendsText: false,
-			prependsText: false,
-			appendSelector: '',
-			prependSelector: '',
 			replacesElement: false,
 			replacesSelector: '',
 			replaceInParentSelector: '',
-			incrementsUniqueCount: false,
 			specialInteractionButtons: []
 		};
 	}
@@ -2534,11 +2534,13 @@ class MessageBuilder {
 			let existingMessage = document.querySelector(`#info-area .message.${this.params.uniqueClass}`);
 			if (existingMessage) {
 
+				this.updateLastShownTime(existingMessage);
+
 				uniqueMessageAlreadyPresented = true;
 				this.params.msgId             = existingMessage.id;
 				this.params.uniqueCount       = existingMessage.dataset['uniqueCount'];
 
-				let titleElement = existingMessage.querySelector('.title');
+				let titleElement = existingMessage.querySelector('.message-title');
 
 				existingMessage.querySelector('.message-icon').innerHTML = _Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass));
 
@@ -2546,7 +2548,7 @@ class MessageBuilder {
 					this.params.uniqueCount++;
 
 					existingMessage.dataset['uniqueCount'] = this.params.uniqueCount;
-					existingMessage.querySelector('span.uniqueCount')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
+					existingMessage.querySelector('.message-unique-count')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
 				}
 
 				existingMessage.setAttribute('class', allClasses.join(' '));
@@ -2621,11 +2623,20 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg title">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
+
+						<div class="flex gap-1 font-bold text-lg">
+							<div class="-mt-1 message-title empty:hidden">${this.params.title ?? ''}</div>
+							${this.getUniqueCountElement()}
+						</div>
+
 						<div class="message-text mb-2 overflow-y-auto">
 							${this.params.text}
 						</div>
-						<div class="message-buttons flex gap-2 justify-end"></div>
+
+						<div class="flex justify-between items-end">
+							<div class="message-time text-sm"></div>
+							<div class="message-buttons flex gap-2 justify-end"></div>
+						</div>
 					</div>
 				</div>
 			`);
@@ -2633,6 +2644,8 @@ class MessageBuilder {
 			this.appendButtons(message.querySelector('.message-buttons'));
 
 			document.querySelector('#info-area #messages').appendChild(message);
+
+			this.updateLastShownTime(message);
 		}
 
 		this.updateNotificationIcon();
@@ -2653,6 +2666,15 @@ class MessageBuilder {
 			msgElement.classList.add('dismissed');
 		}
 	};
+
+	updateLastShownTime(messageEl) {
+
+		let lang = navigator.language ?? navigator.languages?.[0] ?? 'en-US'
+		let datetimeString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date())
+
+		let timeEl = messageEl.querySelector('.message-time');
+		timeEl.textContent = datetimeString;
+	}
 
 	updateNotificationIcon() {
 
@@ -2726,7 +2748,7 @@ class MessageBuilder {
 	}
 
 	getUniqueCountElement() {
-		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
+		return `<span class="-mt-1 message-unique-count empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
 }
 
