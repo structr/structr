@@ -416,9 +416,6 @@
 													<name>ui-test-network</name>
 													<alias>neo4j-test</alias>
 												</network>
-												<ports>
-													<port>7687:7687</port>
-												</ports>
 												<wait>
 													<log>(.?)Bolt enabled on(.?)</log>
 													<time>20000</time>
@@ -455,7 +452,9 @@
 						<configuration>
 							<skip>${skipUITests}</skip>
 							<autoCreateCustomNetworks>true</autoCreateCustomNetworks>
-							<images>
+                            <removeMode>all</removeMode>
+                            <keepContainer>false</keepContainer>
+                            <images>
 								<image>
 									<name>${test.neo4j.version}</name>
 									<alias>database</alias>
@@ -465,9 +464,6 @@
 											<name>ui-test-network</name>
 											<alias>neo4j-test</alias>
 										</network>
-										<ports>
-											<port>7687:7687</port>
-										</ports>
 										<wait>
 											<log>(.?)Bolt enabled on(.?)</log>
 											<time>20000</time>
