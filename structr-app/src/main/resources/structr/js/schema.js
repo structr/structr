@@ -3703,7 +3703,7 @@ let _Schema = {
 			};
 
 			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', document.querySelector('#methods-content .editor'), sourceMonacoConfig);
-			_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, 'source', sourceEditor);
+			_Editors.addEscapeKeyHandlersToPreventPopupClose(entity?.id ?? methodData.id, 'source', sourceEditor);
 			_Editors.focusEditor(sourceEditor);
 
 			sourceMonacoConfig.changeFn(sourceEditor);

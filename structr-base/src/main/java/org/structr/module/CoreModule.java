@@ -256,8 +256,9 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new GetCacheValueFunction());
 		Functions.put(licenseManager, new DeleteCacheValueFunction());
 		Functions.put(licenseManager, new InvalidateCacheValueFunction());
-		Functions.put(licenseManager, new SetLogLevelFunction());
 
+		Functions.put(licenseManager, new SetLogLevelFunction());
+		Functions.put(licenseManager, new IsValidUuidFunction());
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(licenseManager, new SetFunction());
