@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	/* Message-area: Hook up "Close All" button */
 	document.querySelector('#info-area #close-all-button').addEventListener('click', () => {
 		for (let confirmButton of document.querySelectorAll(`#info-area .${MessageBuilder.closeButtonClass}`)) {
-			confirmButton.dispatchEvent(new Event('click'));
+			confirmButton.dispatchEvent(new Event('click', { bubbles: true }));
 		}
 	});
 
@@ -2482,29 +2482,36 @@ class MessageBuilder {
 		return this;
 	};
 
-	appendButtons(buttonElement) {
+	appendButtons(buttonContainer) {
 
-		// message should not automatically be removed if:
-		// - it is not configured as such
-		// - the whole area is not shown
-		let shouldStayOpen = (this.params.requiresConfirmation === true) || (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+		let shouldStayOpen = (this.params.requiresConfirmation === true);
 
 		if (shouldStayOpen === true) {
 
-			let closeButton = buttonElement.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
+			let closeButton = buttonContainer.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
 
 			closeButton.classList.remove('hidden');
 			closeButton.addEventListener('click', (e) => {
+				e.stopPropagation();
 				this.dismiss();
 			});
 
 		} else {
 
-			window.setTimeout(() => {
-				this.dismiss();
-			}, this.params.delayDuration);
+			// only remove message if notifications are visible or if they are hidden AND time-limited notifications should be removed
+			// this is decided before the message delay to prevent a user from showing notifications and it auto-removing itself
+			let isNotificationsAreaHidden                   = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+			let shouldTimeLimitedNotificationsBeAutoRemoved = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.autoRemoveTimeLimitedNotificationsForHiddenNotificationsAreaKey));
 
-			buttonElement.closest(`#${this.params.msgId}`).addEventListener('click', () => {
+			if (isNotificationsAreaHidden === false || shouldTimeLimitedNotificationsBeAutoRemoved === true) {
+
+				window.setTimeout(() => {
+					this.dismiss();
+				}, this.params.delayDuration);
+			}
+
+			buttonContainer.closest(`#${this.params.msgId}`).addEventListener('click', (e) => {
+				e.stopPropagation();
 				this.dismiss();
 			});
 		}
@@ -2512,7 +2519,7 @@ class MessageBuilder {
 		for (let btn of this.params.specialInteractionButtons) {
 
 			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mr-0">${btn.text}</button>`);
-			buttonElement.appendChild(specialBtn);
+			buttonContainer.appendChild(specialBtn);
 
 			specialBtn.addEventListener('click', () => {
 
@@ -2657,15 +2664,29 @@ class MessageBuilder {
 
 		if (msgElement) {
 
-			msgElement.addEventListener('animationend', () => {
-				_Helpers.fastRemoveElement(msgElement);
+			let isNotificationsAreaHidden = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
 
-				this.updateNotificationIcon();
-			});
+			if (isNotificationsAreaHidden) {
+
+				this.removeMessageElement(msgElement);
+
+			} else {
+
+				msgElement.addEventListener('animationend', () => {
+					this.removeMessageElement(msgElement);
+				});
+			}
 
 			msgElement.classList.add('dismissed');
 		}
 	};
+
+	removeMessageElement(msgElement) {
+
+		_Helpers.fastRemoveElement(msgElement);
+
+		this.updateNotificationIcon();
+	}
 
 	updateLastShownTime(messageEl) {
 
@@ -3072,6 +3093,13 @@ let UISettings = {
 					onUpdate: () => {
 						Structr.determineNotificationAreaVisibility();
 					}
+				},
+				autoRemoveTimeLimitedNotificationsForHiddenNotificationsAreaKey: {
+					text: 'Auto-remove time-limited notifications (when notification area is hidden)',
+					storageKey: 'autoRemoveTimeLimitedNotificationsForHiddenNotificationsArea' + location.port,
+					defaultValue: true,
+					type: 'checkbox',
+					infoText: 'Should notifications, that normally disappear after a while, still do so when the notification area is hidden?'
 				},
 				showScriptingErrorPopupsKey: {
 					text: 'Show notifications for scripting errors',
