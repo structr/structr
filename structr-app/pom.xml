@@ -305,7 +305,7 @@
                                                     <alias>structr-ui-tests-</alias>
                                                 </network>
                                                 <ports>
-                                                    <port>8082:8082</port>
+                                                    <port>8090:8082</port>
                                                 </ports>
                                                 <wait>
                                                     <log>(.?)Initialization complete(.?)</log>
@@ -376,7 +376,7 @@
                                     <arguments>run test</arguments>
                                     <environmentVariables>
                                         <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
-                                        <BASE_URL>http://localhost:8082</BASE_URL>
+                                        <BASE_URL>http://localhost:8090</BASE_URL>
                                     </environmentVariables>
                                     <skip>${skipUITests}</skip>
                                 </configuration>
