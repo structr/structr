@@ -525,37 +525,6 @@
                                 <phase>install</phase>
                                 <goals>
                                     <goal>build</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <!-- docker-push: Push image to Docker Hub
-             NOT active by default - activate with: -P docker-push
-             Phase: deploy (mvn deploy -P docker-push) -->
-        <profile>
-            <id>docker-push</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.40.2</version>
-                        <configuration>
-                            <images>
-                                <image>
-                                    <name>structr/structr:${project.version}</name>
-                                </image>
-                            </images>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>push-image</id>
-                                <phase>deploy</phase>
-                                <goals>
                                     <goal>push</goal>
                                 </goals>
                             </execution>
@@ -564,6 +533,5 @@
                 </plugins>
             </build>
         </profile>
-
     </profiles>
 </project>

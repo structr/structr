@@ -75,11 +75,10 @@ jobs:
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB -DskipUITests=false
+      - run: mvn -U clean install -Pwith-sources -DskipDockerTestDB -Dmaven.test.skip=true -DskipUITests=false
       - name: Upload binaries
         run: >-
-          cd structr-app && 
-          mvn docker:push -P docker-push &&          
+          cd structr-app &&       
           scp -v target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
           scp -v target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
 
