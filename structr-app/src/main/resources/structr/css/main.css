@@ -2861,23 +2861,12 @@ i.fa-sitemap {
 	font-family: var(--font-main) ! important;
 }
 
-/**
- * L10N Styles
- */
-.pager input.filter.w75[type="text"] {
-	width: 75px;
+.pager input.filter.w-24[type="text"] {
+	width: 6rem;
 }
 
-.pager input.filter.w100[type="text"] {
-	width: 100px;
-}
-
-.full-height-box {
-	display: inline-block;
-	vertical-align: top;
-	padding-top: 1rem;
-	height: calc(100% - 3rem);
-	overflow: auto;
+.pager input.filter.w-32[type="text"] {
+	width: 8rem;
 }
 
 .placeholderText {

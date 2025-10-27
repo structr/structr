@@ -230,8 +230,8 @@ let _MailTemplates = {
 		};
 		_MailTemplates.mailTemplatesPager.appendFilterElements(`
 			<span class="ml-4 mr-1">Filters:</span>
-			<input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">
-			<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale">
+			<input type="text" class="filter w-32 mail-template-name" data-attribute="name" placeholder="Name">
+			<input type="text" class="filter w-32 mail-template-locale" data-attribute="locale" placeholder="Locale">
 		`);
 		_MailTemplates.mailTemplatesPager.activateFilterElements();
 		_MailTemplates.mailTemplatesPager.setIsPaused(false);

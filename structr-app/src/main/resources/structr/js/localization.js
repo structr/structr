@@ -200,9 +200,9 @@ let _Localization = {
 			_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
 			_Localization.keyAndDomainPager.appendFilterElements(`
 				<span class="ml-4 mr-1">Filters:</span>
-				<input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
-				<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
-				<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">
+				<input type="text" class="filter w-24 localization-key" data-attribute="name" placeholder="Key">
+				<input type="text" class="filter w-24 localization-domain" data-attribute="domain" placeholder="Domain">
+				<input type="text" class="filter w-24 localization-text" data-attribute="localizedName" placeholder="Content">
 			`);
 			_Localization.keyAndDomainPager.activateFilterElements();
 		}
@@ -458,22 +458,6 @@ let _Localization = {
 			_Localization.textfieldChangeAction(event.target, localization, 'localizedName');
 		});
 
-		let visToPublicEl = tr.querySelector('.___visibleToPublicUsers');
-		visToPublicEl.checked = (localization.visibleToPublicUsers === true);
-		visToPublicEl.disabled = null;
-		visToPublicEl.dataset['oldValue'] = localization.visibleToPublicUsers;
-		visToPublicEl.addEventListener('change', (event) => {
-			_Localization.checkboxChangeAction(event.target, localization, 'visibleToPublicUsers');
-		});
-
-		let visToAuthEl = tr.querySelector('.___visibleToAuthenticatedUsers');
-		visToAuthEl.checked = (localization.visibleToAuthenticatedUsers === true);
-		visToAuthEl.disabled = null;
-		visToAuthEl.dataset['oldValue'] = localization.visibleToAuthenticatedUsers;
-		visToAuthEl.addEventListener('change', (event) => {
-			_Localization.checkboxChangeAction(event.target, localization, 'visibleToAuthenticatedUsers');
-		});
-
 		tr.querySelector('.localization-id').textContent = localization.id;
 
 		_Helpers.fastRemoveElement(tr.querySelector('td.actions .save-localization'));
@@ -512,15 +496,6 @@ let _Localization = {
 
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(localization, attr, curValue, oldValue, el);
-		}
-	},
-	checkboxChangeAction: (el, localization, attr) => {
-
-		let oldValue = el.dataset['oldValue'];
-		let curValue = el.checked;
-
-		if (oldValue !== curValue) {
-			_Localization.updateLocalization(localization, attr, curValue, oldValue, el, el.parentNode);
 		}
 	},
 	updateLocalization: async (localization, attr, curValue, oldValue, el, blinkTarget) => {
@@ -593,8 +568,8 @@ let _Localization = {
 					domain:                      domainField.dataset['oldValue'] || domainField.value.trim(),
 					locale:                      trElement.querySelector('.___locale').value.trim(),
 					localizedName:               trElement.querySelector('.___localizedName').value,
-					visibleToPublicUsers:        trElement.querySelector('.___visibleToPublicUsers').checked,
-					visibleToAuthenticatedUsers: trElement.querySelector('.___visibleToAuthenticatedUsers').checked
+					visibleToPublicUsers:        true,
+					visibleToAuthenticatedUsers: true
 				};
 
 				if (newData.domain.trim() === "") {
@@ -667,11 +642,6 @@ let _Localization = {
 				<div id="localization-list-container">
 					<div id="localization-list" class="resourceBox">
 						<table id="localization-table">
-			<!--				<thead><tr>-->
-			<!--					<th><a class="sort" data-sort="key">Key</a></th>-->
-			<!--					<th><a class="sort" data-sort="domain">Domain</a></th>-->
-			<!--					<th id="localization-list-th-actions" class="narrow">Actions</th>-->
-			<!--				</tr></thead>-->
 							<tbody></tbody>
 						</table>
 					</div>
@@ -710,9 +680,7 @@ let _Localization = {
 								<th class="w-24"></th>
 								<th class="w-40">Locale</th>
 								<th>Translation</th>
-								<th class="w-16">ID</th>
-								<th class="w-24">${Structr.abbreviations['visibleToPublicUsers']}</th>
-								<th class="w-24">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
+								<th class="w-36">ID</th>
 							</tr>
 						</thead>
 						<tbody></tbody>
@@ -750,8 +718,8 @@ let _Localization = {
 		emptyRow: config => `
 			<tr class="localization">
 				<td class="actions text-center">
-					<div class="flex items-center justify-center">
-						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-localization']))}
+					<div class="flex gap-2 items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'save-localization']), 'Save')}
 						${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-localization']), 'Remove')}
 					</div>
 				</td>
@@ -759,16 +727,10 @@ let _Localization = {
 					<input class="___locale">
 				</td>
 				<td>
-					<textarea class="___localizedName" cols="40"></textarea>
+					<textarea class="___localizedName"></textarea>
 				</td>
 				<td>
-					<span class="abbr-ellipsis w-24 localization-id"></span>
-				</td>
-				<td>
-					<input class="___visibleToPublicUsers" type="checkbox" checked disabled>
-				</td>
-				<td>
-					<input class="___visibleToAuthenticatedUsers" type="checkbox" checked disabled>
+					<span class="abbr-ellipsis w-36 localization-id"></span>
 				</td>
 			</tr>
 		`,

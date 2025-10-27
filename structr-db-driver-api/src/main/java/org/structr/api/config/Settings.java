@@ -773,10 +773,22 @@ public class Settings {
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
 					);
 
-			// Touch file, if it doesn't exist
-			Path.of(fileName).toFile().createNewFile();
+			// If file does not exist, create it and set default permissions
+			final Path filePath     = Path.of(fileName);
+			final boolean didCreate = filePath.toFile().createNewFile();
+			if (didCreate) {
+
+				try {
+
+					Files.setPosixFilePermissions(filePath, expectedConfigFilePermissions);
+
+				} catch (UnsupportedOperationException | IOException e) {
+					// happens on non-POSIX filesystems, ignore
+				}
+			}
 
 			final PropertiesConfiguration config = builder.getConfiguration();
+			final FileHandler fileHandler        = builder.getFileHandler();
 
 			for (final Setting setting : settings.values()) {
 
@@ -789,33 +801,16 @@ public class Settings {
 				}
 			}
 
-			FileHandler fileHandler = builder.getFileHandler();
+			final long freeSpace = fileHandler.getFile().getFreeSpace();
 
-			final boolean isFileCreation = !fileHandler.getFile().exists();
-
-			final long freeSpace = (!isFileCreation ? fileHandler.getFile().getFreeSpace() : new File(new File("").getAbsolutePath()).getFreeSpace());
-
-			if(freeSpace < 1024 * 1024){
+			if (freeSpace < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
 			fileHandler.save();
 
-			if (isFileCreation) {
-
-				try {
-
-					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
-
-				} catch (UnsupportedOperationException | IOException e) {
-					// happens on non-POSIX filesystems, ignore
-				}
-
-			} else {
-
-				checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
-			}
+			checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 
 		} catch (ConfigurationException ex) {
 
@@ -904,7 +899,7 @@ public class Settings {
 					);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-                        final Iterator<String> keys          = config.getKeys();
+			final Iterator<String> keys          = config.getKeys();
 
 			Settings.checkConfigurationFilePermissions(builder, true);
 

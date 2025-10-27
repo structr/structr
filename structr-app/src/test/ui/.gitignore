@@ -1,0 +1,12 @@
+*/**/.DS_Store
+package-lock.json
+.bin/
+node/
+node_modules/
+test-results/
+
+# Playwright
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/

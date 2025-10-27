@@ -24,6 +24,7 @@ structr-app/src/test/javascript/screenshots
 structr-app/structr-ui*.pid
 structr-app/*.key*
 structr-app/src/main/resources/structr/index.html
+structr-app/src/test/ui/*.png*
 **/logs
 *.diff
 **nb-configuration.xml

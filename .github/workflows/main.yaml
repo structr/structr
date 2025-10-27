@@ -75,11 +75,12 @@ jobs:
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
+      - run: mvn -U clean install -Pwith-sources -DskipDockerTestDB -Dmaven.test.skip=true -DskipUITests=false
       - name: Upload binaries
         run: >-
-          scp -v structr-app/target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
-          scp -v structr-app/target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
+          cd structr-app &&       
+          scp -v target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
+          scp -v target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
 
   cleanup-system:
     runs-on: self-hosted
@@ -87,6 +88,6 @@ jobs:
     needs: [run-tests, build-and-deploy]
     steps:
       - name: Cleanup docker
-        run: docker container prune -f && docker image prune -f && docker volume prune -f
+        run: docker rm -f $(docker ps -aq --filter "network=ui-test-network") 2>/dev/null || true && docker container prune -f && docker image prune -f && docker volume prune -f
       - name: Cleanup runner home
         run: cd ~/actions-runner/_work/structr/ && rm -rf structr
