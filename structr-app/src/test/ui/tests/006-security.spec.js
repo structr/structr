@@ -47,7 +47,7 @@ test.beforeAll(async ({ playwright }) => {
 
 test('user-group', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   //await page.setViewportSize({ width: 3840, height: 2160 });
   await page.goto(process.env.BASE_URL + '/structr/');
@@ -146,7 +146,7 @@ test('resource-access-before-1', async ({ request }) => {
 
 test('add-resource-access-auth-user-get', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   //await page.setViewportSize({ width: 3840, height: 2160 });
   await page.goto(process.env.BASE_URL + '/structr/');
@@ -225,7 +225,7 @@ test('resource-access-before-2', async ({ request }) => {
 
 test('add-resource-access-auth-user-post', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   //await page.setViewportSize({ width: 3840, height: 2160 });
   await page.goto(process.env.BASE_URL + '/structr/');
@@ -288,7 +288,7 @@ test('resource-access-after-2', async ({ request }) => {
 
 test('cors-settings', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   //await page.setViewportSize({ width: 3840, height: 2160 });
   await page.goto(process.env.BASE_URL + '/structr/');

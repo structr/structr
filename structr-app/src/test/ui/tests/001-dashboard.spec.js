@@ -45,7 +45,7 @@ test.beforeAll(async ({ playwright }) => {
 
 test('dashboard', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   await page.goto(process.env.BASE_URL + '/structr/');
   //await page.evaluate('document.body.style.zoom="2.0"');

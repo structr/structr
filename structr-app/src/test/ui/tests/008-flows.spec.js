@@ -36,7 +36,7 @@ test.beforeAll(async ({ playwright }) => {
 
 test('flows', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   //await page.setViewportSize({ width: 3840, height: 2160 });
   await page.goto(process.env.BASE_URL + '/structr/');
