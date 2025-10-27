@@ -115,11 +115,7 @@ public class GetFunction extends CoreFunction {
 				final Traits traits = dataObject.getTraits();
 				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || dataObject instanceof GraphObjectMap;
 
-				PropertyKey key = traits.key(keyName);
-
-				if (key == null && useGenericPropertyForUnknownKeys) {
-					key = new GenericProperty(keyName);
-				}
+				final PropertyKey key = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(keyName) : traits.key(keyName));
 
 				if (key != null) {
 

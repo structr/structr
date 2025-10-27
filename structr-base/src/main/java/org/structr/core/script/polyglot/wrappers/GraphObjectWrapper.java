@@ -122,11 +122,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return null;
 			}
 
-			PropertyKey propKey = traits.key(key);
-
-			if (propKey == null && Settings.AllowUnknownPropertyKeys.getValue(false)) {
-				propKey = new GenericProperty(key);
-			}
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(key) : traits.key(key));
 
 			if (propKey != null) {
 
@@ -239,35 +236,35 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			try {
 
-				PropertyKey propKey = node.getTraits().key(key);
-
-				if (propKey == null && Settings.AllowUnknownPropertyKeys.getValue(false)) {
-					propKey = new GenericProperty(key);
-				}
+				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+				final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? node.getTraits().keyOrGenericProperty(key) : node.getTraits().key(key));
 
 				// fixme: how to compare types here?
 				if (propKey != null) {
 
-					if (unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
+					if (!(propKey instanceof GenericProperty)) {
 
-						final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
+						if (unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
 
-						if (inputConverter != null) {
+							final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
 
-							try {
+							if (inputConverter != null) {
 
-								unwrappedValue = inputConverter.convert(unwrappedValue);
+								try {
 
-							} catch (ClassCastException ex) {
+									unwrappedValue = inputConverter.convert(unwrappedValue);
 
-								throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+								} catch (ClassCastException ex) {
+
+									throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+								}
 							}
+
+						} else {
+
+							// key does not exist and generic property is not desired => log warning
+							logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
 						}
-
-					} else {
-
-						// key does not exist and generic property is not desired => log warning
-						logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
 					}
 
 					node.setProperty(propKey, unwrappedValue);

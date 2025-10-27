@@ -7589,17 +7589,23 @@ public class ScriptingTest extends StructrTest {
 
 				Scripting.evaluate(actionContext, null, """
 						${{
-							$.assert(($.get($.me, 'does_not_exist') === null), 422, 'Unknown key should yield null');
-							$.set($.me, 'will_exist_after_set', 'exists');
-							$.assert(($.get($.me, 'will_exist_after_set') === 'exists'), 422, 'Key that does not exist in the schema but has just been set, should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+							// create test object (using $.me does not work because it is the superuser)
+							let testUser = $.getOrCreate('User', { name: 'tester1' });
+
+							$.assert(($.get(testUser, 'does_not_exist2') === null), 422, 'Unknown key should yield null');
+							$.set(testUser, 'will_exist_after_set', 'exists');
+							$.assert(($.get(testUser, 'will_exist_after_set') === 'exists'), 422, 'Key that does not exist in the schema but has just been set (via $.set), should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
 						}}
 						""", "testSetAndGetOfValuesForUnknownKeys");
 
 				Scripting.evaluate(actionContext, null, """
 						${{
-							$.assert($.me.does_not_exist === null), 422, 'Unknown key should yield null');
-							$.me.will_exist_after_set = 'exists';
-							$.assert(($.me.will_exist_after_set === 'exists'), 422, 'Key that does not exist in the schema but has just been set, should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+							// create test object (using $.me does not work because it is the superuser)
+							let testUser = $.getOrCreate('User', { name: 'tester2' });
+
+							$.assert((testUser.does_not_exist3 === null), 422, 'Unknown key should yield null');
+							testUser.will_exist_after_set = 'exists';
+							$.assert((testUser.will_exist_after_set === 'exists'), 422, 'Key that does not exist in the schema but has just been set (via dot-notation), should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
 						}}
 						""", "testSetAndGetOfValuesForUnknownKeys");
 			}

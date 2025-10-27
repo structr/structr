@@ -34,6 +34,7 @@ public interface Traits {
 	Set<String> getLabels();
 	boolean contains(final String type);
 	<T> PropertyKey<T> key(final String name);
+	<T> PropertyKey<T> keyOrGenericProperty(final String name);
 	boolean hasKey(final String name);
 	String getName();
 	boolean isNodeType();

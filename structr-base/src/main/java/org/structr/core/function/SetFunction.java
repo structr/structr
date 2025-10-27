@@ -60,7 +60,6 @@ public class SetFunction extends CoreFunction {
 
 			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || (sources[0] instanceof GraphObjectMap);
 			final SecurityContext securityContext          = ctx.getSecurityContext();
-			final ConfigurationProvider config             = StructrApp.getConfiguration();
 
 			Traits type = null;
 			PropertyMap propertyMap = null;
@@ -98,12 +97,8 @@ public class SetFunction extends CoreFunction {
 
 				for (int c = 1; c < parameter_count; c += 2) {
 
-					final String keyName = sources[c].toString();
-					PropertyKey key = type.key(keyName);
-
-					if (key == null && useGenericPropertyForUnknownKeys) {
-						key = new GenericProperty(keyName);
-					}
+					final String keyName  = sources[c].toString();
+					final PropertyKey key = (useGenericPropertyForUnknownKeys ? type.keyOrGenericProperty(keyName) : type.key(keyName));
 
 					if (key != null) {
 
