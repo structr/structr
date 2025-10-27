@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cp \
+config_set-superuser-password.png \
 config_login.png \
 config_after-login.png \
 config_create-database-connection.png \
@@ -36,4 +37,8 @@ security_user-dragged-on-group.png \
 security_create-resource-access-auth-user-get.png \
 security_create-resource-access-auth-user-post.png \
 security_create-cors-setting.png \
-../../../../structr-base/src/main/resources/structr/docs/1-Introduction/
+../../../../structr-app/src/main/resources/structr/docs/1-Introduction/
+
+cp \
+pages_page-preview.png \
+../../../../structr-app/src/main/resources/structr/docs/2-Core\ Concepts/

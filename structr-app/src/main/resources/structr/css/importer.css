@@ -18,6 +18,8 @@
  */
 #importer-main {
 	width: calc(100% - 4rem);
+	height: calc(100% - 2rem);
+	padding-top: 1rem;
 	margin: 0 0 0 2rem;
 }
 
