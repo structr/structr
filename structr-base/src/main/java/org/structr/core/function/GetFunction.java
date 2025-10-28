@@ -112,11 +112,10 @@ public class GetFunction extends CoreFunction {
 			if (dataObject != null) {
 
 				final Traits traits = dataObject.getTraits();
-
-				// fixme
 				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || dataObject instanceof GraphObjectMap;
 
-				final PropertyKey key = traits.key(keyName);
+				final PropertyKey key = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(keyName) : traits.key(keyName));
+
 				if (key != null) {
 
 					final PropertyConverter inputConverter = key.inputConverter(securityContext, false);

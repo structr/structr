@@ -7520,6 +7520,174 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testSetAndGetOfValuesForUnknownKeys() {
+		/*
+		 * this function tests set()/get() and javascript object set/get in conjunction with the setting "application.schema.allowunknownkeys"
+		 */
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			// tests on GraphObjectMap ("allowunknownkeys" MUST not matter because these are basically custom maps and not related to the schema)
+			{
+
+				for (final Boolean state : List.of(true, false)) {
+
+					Settings.AllowUnknownPropertyKeys.setValue(state);
+
+					// test $.get / $.set
+					Scripting.evaluate(actionContext, null, """
+						${{
+							let graphObjectMap = $.toGraphObject({});
+
+							$.assert(($.get(graphObjectMap, 'does_not_exist') === null), 422, 'Unknown key (on a GraphObjectMap) should yield null (when using Java-Based built-in functions... even in plain JavaScript)');
+							$.set(graphObjectMap, 'will_exist_after_set', 'exists');
+							$.assert(($.get(graphObjectMap, 'will_exist_after_set') === 'exists'), 422, 'Key that has just been set (on a GraphObjectMap), should exist and return the correct value when accessing with $.get!');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+
+
+					// test dot-notation set and get
+					Scripting.evaluate(actionContext, null, """
+						${{
+							let graphObjectMap = $.toGraphObject({});
+
+							$.assert((graphObjectMap.does_not_exist === undefined), 422, 'Unknown key (on a GraphObjectMap) should yield undefined (in plain JavaScript)');
+							graphObjectMap.will_exist_after_set = 'exists';
+							$.assert((graphObjectMap.will_exist_after_set === 'exists'), 422, 'Key that has just been set (on a GraphObjectMap), should exist and return the correct value when accessing via dot-notation!');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+
+					// test delete with dot-notation
+					Scripting.evaluate(actionContext, null, """
+						${{
+							let graphObjectMap = $.toGraphObject({
+								my_key: '1'
+							});
+
+							graphObjectMap.my_key = '2';
+							$.assert((graphObjectMap.my_key === '2'), 422, 'Key that has just been set (on a GraphObjectMap), should exist and return the correct value when accessing via dot-notation!');
+
+							let deleted = delete graphObjectMap.my_key;
+
+							$.assert((deleted === true), 422, 'JavaScripts delete should return true after deleting a key from a GraphObjectMap');
+							$.assert((graphObjectMap.my_key === undefined), 422, 'Key that has been deleted (from a GraphObjectMap) should yield undefined (in plain JavaScript)');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+				}
+			}
+
+			// tests on actual graph objects (nodes)
+			{
+
+				// tests with 'false == AllowUnknownPropertyKeys'
+				{
+					Settings.AllowUnknownPropertyKeys.setValue(false);
+
+					try {
+
+						Scripting.evaluate(actionContext, null, """
+							${{
+								let testUser = $.getOrCreate('User', { name: 'tester1' });
+
+								// In the get() function this should raise an error - in plain JavaScript it should not raise an error, see following tests
+								$.get(testUser, 'does_not_exist');
+							}}
+							""", "testSetAndGetOfValuesForUnknownKeys");
+
+						fail("get() for an unknown key should raise an error if unknown keys are not allowed!");
+
+					} catch (RuntimeException expected) {}
+
+					try {
+						Scripting.evaluate(actionContext, null, """
+							${{
+								let testUser = $.getOrCreate('User', { name: 'tester1' });
+
+								$.set(testUser, 'does_not_exist', 'should_not_work');
+							}}
+							""", "testSetAndGetOfValuesForUnknownKeys");
+
+						fail("set() for an unknown key should raise an error if unknown keys are not allowed!");
+					} catch (RuntimeException expected) {}
+
+					Scripting.evaluate(actionContext, null, """
+							${{
+								let testUser = $.getOrCreate('User', { name: 'tester1' });
+
+								// in javascript we expect unknown keys to return undefined instead of producing an error
+								$.assert( (testUser.does_not_exist === undefined), 422, 'Unknown key should yield undefined');
+							}}
+							""", "testSetAndGetOfValuesForUnknownKeys");
+
+					try {
+						Scripting.evaluate(actionContext, null, """
+							${{
+								let testUser = $.getOrCreate('User', { name: 'tester1' });
+
+								testUser.does_not_exist = 'should_not_work';
+							}}
+							""", "testSetAndGetOfValuesForUnknownKeys");
+
+						fail("Setting a value for an unknown key should raise an error if unknown keys are not allowed!");
+					} catch (RuntimeException expected) {
+					}
+				}
+
+				// tests with 'true == AllowUnknownPropertyKeys'
+				{
+					Settings.AllowUnknownPropertyKeys.setValue(true);
+
+					// tests $.get / $.set
+					Scripting.evaluate(actionContext, null, """
+							${{
+								let testUser = $.getOrCreate('User', { name: 'tester1' });
+
+								$.assert(($.get(testUser, 'does_not_exist2') === null), 422, 'Unknown key should yield null');
+								$.set(testUser, 'will_exist_after_set', 'exists');
+								$.assert(($.get(testUser, 'will_exist_after_set') === 'exists'), 422, 'Key that does not exist in the schema but has just been set (via $.set), should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+							}}
+							""", "testSetAndGetOfValuesForUnknownKeys");
+
+					// test dot-notation set and get
+					Scripting.evaluate(actionContext, null, """
+							${{
+								let testUser = $.getOrCreate('User', { name: 'tester2' });
+
+								$.assert((testUser.does_not_exist3 === null), 422, 'Unknown key should yield null');
+								testUser.will_exist_after_set = 'exists';
+								$.assert((testUser.will_exist_after_set === 'exists'), 422, 'Key that does not exist in the schema but has just been set (via dot-notation), should exist and return the correct value! (if unknown keys are allowed via structr.conf)');
+							}}
+							""", "testSetAndGetOfValuesForUnknownKeys");
+
+					// test delete with dot-notation
+					Scripting.evaluate(actionContext, null, """
+						${{
+							let testUser = $.getOrCreate('User', { name: 'tester2' });
+
+							testUser.my_key = '2';
+							$.assert((testUser.my_key === '2'), 422, 'Key that has just been set, should exist and return the correct value when accessing via dot-notation!');
+
+							let deleted = delete testUser.my_key;
+
+							$.assert((deleted === true), 422, 'JavaScripts delete should return true after deleting a key (that is not in the schema) from a node');
+							$.assert((testUser.my_key === null), 422, 'Key that has been deleted should yield null (in plain JavaScript)');
+						}}
+						""", "testSetAndGetOfValuesForUnknownKeys");
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			logger.error("", t);
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 
