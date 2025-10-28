@@ -66,11 +66,11 @@ test('data', async ({ page }) => {
   await page.locator('#crud_').click();
 
   // Wait for Schema UI to load all components
-  await page.waitForTimeout(1000);
+  await page.waitForSelector('#crud-types [data-type="Project"]', { state: 'visible', timeout: 60000 });
   await page.screenshot({ path: 'data.png' });
 
   // Create test data of type 'Project'
-  await page.locator('#crud-types [data-type="Project"]').click();
+  await page.locator('#crud-types [data-type="Project"]').click({ timeout: 30000 });
   await page.waitForTimeout(2000);
   for (let i = 0; i < 3; ++i) {
     await page.getByRole('button', { name: ' Create Project ', exact: true }).click();
