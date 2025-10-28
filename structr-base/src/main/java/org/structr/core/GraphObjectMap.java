@@ -95,6 +95,16 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
+			public <T> PropertyKey<T> keyOrGenericProperty(final String name) {
+
+				if (hasKey(name)) {
+					return key(name);
+				}
+
+				return new GenericProperty<T>(name);
+			}
+
+			@Override
 			public boolean hasKey(final String name) {
 				return key(name) != null;
 			}
