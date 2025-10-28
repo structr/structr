@@ -304,6 +304,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				node.removeProperty(propKey);
 
+				if (propKey instanceof GenericProperty) {
+
+					return true;
+				}
+
 			} catch (FrameworkException ex) {
 
 				throw new RuntimeException(ex);

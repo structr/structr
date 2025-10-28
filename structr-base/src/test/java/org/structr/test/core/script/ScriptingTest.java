@@ -7672,8 +7672,8 @@ public class ScriptingTest extends StructrTest {
 
 							let deleted = delete testUser.my_key;
 
-							$.assert((deleted === false), 422, 'JavaScripts delete should return false after deleting a key from a node (because we can never truly delete a key because it exists in the schema)');
-							$.assert((testUser.my_key === undefined), 422, 'Key that has been deleted should yield undefined (in plain JavaScript)');
+							$.assert((deleted === true), 422, 'JavaScripts delete should return true after deleting a key (that is not in the schema) from a node');
+							$.assert((testUser.my_key === null), 422, 'Key that has been deleted should yield null (in plain JavaScript)');
 						}}
 						""", "testSetAndGetOfValuesForUnknownKeys");
 				}
