@@ -401,12 +401,6 @@
                                                     <alias>playwright-runner</alias>
                                                 </network>
                                                 <shmSize>2147483648</shmSize> <!-- 2GB shared memory -->
-                                                <volumes>
-                                                    <bind>
-                                                        <!-- Mount test results back to host -->
-                                                        <volume>${project.basedir}/src/test/playwright-ui-tests/test-results:/tests/test-results</volume>
-                                                    </bind>
-                                                </volumes>
                                                 <env>
                                                     <BASE_URL>http://structr-ui-tests:8082</BASE_URL>
                                                     <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
