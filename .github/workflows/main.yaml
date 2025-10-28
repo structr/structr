@@ -53,11 +53,31 @@ jobs:
         if: always()
         run:  docker stop ${{ matrix.module }}-test-${{ github.run_id }}
 
+  run-ui-tests:
+    if: ${{ !startsWith( github.actor, 'dependabot' ) }}
+    runs-on: self-hosted
+    environment: build-and-test
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile and run Tests
+        run: >-
+          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
+          cd structr-app && 
+          mvn install -q -DskipDockerTestDB -DskipDeb -DskipDocker -DskipDockerTestDB
+
   build-and-deploy:
     runs-on: self-hosted
     environment: build-and-test
     if: ${{ success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release') }}
-    needs: run-tests
+    needs: [run-tests, run-ui-tests]
 
     steps:
       - uses: actions/checkout@v3
@@ -75,7 +95,7 @@ jobs:
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: mvn -U clean install -Pwith-sources -DskipDockerTestDB -Dmaven.test.skip=true -DskipUITests=false
+      - run: mvn -U clean install -Pwith-sources -DskipDockerTestDB -DskipTests -DskipUITests
       - name: Upload binaries
         run: >-
           cd structr-app &&       
@@ -85,7 +105,7 @@ jobs:
   cleanup-system:
     runs-on: self-hosted
     if: always()
-    needs: [run-tests, build-and-deploy]
+    needs: [run-tests, run-ui-tests, build-and-deploy]
     steps:
       - name: Cleanup docker
         run: docker rm -f $(docker ps -aq --filter "network=ui-test-network") 2>/dev/null || true && docker container prune -f && docker image prune -f && docker volume prune -f
