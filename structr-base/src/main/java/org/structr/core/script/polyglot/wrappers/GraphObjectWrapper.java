@@ -306,8 +306,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				node.removeProperty(propKey);
 
-				// FIXME: should this 'return true;' if no exception is raised?
-
 			} catch (FrameworkException ex) {
 
 				throw new RuntimeException(ex);
