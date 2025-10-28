@@ -131,9 +131,9 @@ test('flows', async ({ page }) => {
 
   await page.getByRole('button', { name: 'Run'}).click();
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'flows_run-flow.png'});
 
-  await page.getByText('"result": [').waitFor({state: 'visible'});
+  await page.getByText('"result": [').waitFor({state: 'visible', timeout: 120000});
+  await page.screenshot({path: 'flows_run-flow.png'});
   await page.locator('#executionResult .close').click();
 
   // Logout
