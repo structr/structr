@@ -280,15 +280,13 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	@Override
 	public boolean removeMember(String key) {
 
-		PropertyKey propKey = node.getTraits().key(key);
+		final boolean isGraphObjectMap = (node instanceof GraphObjectMap);
+		final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || isGraphObjectMap;
 
-		final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || node instanceof GraphObjectMap;
+		final Traits traits       = node.getTraits();
+		final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(key) : traits.key(key));
 
-		if (propKey == null && useGenericPropertyForUnknownKeys) {
-			propKey = new GenericProperty(key);
-		}
-
-		if (node instanceof GraphObjectMap) {
+		if (isGraphObjectMap) {
 
 			if (((GraphObjectMap) node).containsKey(propKey)) {
 
