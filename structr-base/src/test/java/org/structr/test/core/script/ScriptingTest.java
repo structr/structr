@@ -248,11 +248,10 @@ public class ScriptingTest extends StructrTest {
 		// setup phase: create schema nodes
 		try (final Tx tx = app.tx()) {
 
-			// create two nodes and associate them with each other
 			final NodeInterface sourceNode  = createTestNode(StructrTraits.SCHEMA_NODE, "TestSource");
 			final NodeInterface method      = createTestNode(StructrTraits.SCHEMA_METHOD,
 					new NodeAttribute(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "doTest01"),
-					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ var e = Structr.get('this'); e.grant(Structr.find('Principal')[0], 'read', 'write'); }")
+					new NodeAttribute(Traits.of(StructrTraits.SCHEMA_METHOD).key(SchemaMethodTraitDefinition.SOURCE_PROPERTY), "{ var e = Structr.get('this'); $.grant($.find('Principal')[0], e, 'read, write'); }")
 			);
 
 			sourceNode.setProperty(Traits.of(StructrTraits.SCHEMA_NODE).key(AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY), List.of(method));

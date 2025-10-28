@@ -33,7 +33,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
@@ -109,11 +108,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				}
 
 				return method.getProxyExecutable(actionContext, node);
-
-			} else if (key.equals("grant")) {
-
-				// grant() on GraphObject needs special handling
-				return new GrantFunction(actionContext, node);
 			}
 
 			final Traits traits = node.getTraits();
@@ -205,11 +199,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			if (node != null) {
-
-				// Special handling for grant-Function
-				if (key.equals("grant")) {
-					return true;
-				}
 
 				final Traits traits       = node.getTraits();
 				final boolean hasProperty = (traits != null && traits.hasKey(key)) || Settings.AllowUnknownPropertyKeys.getValue(false);
