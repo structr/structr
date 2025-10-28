@@ -172,6 +172,56 @@
             </plugin>
 
             <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>replace-placeholder</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <delete file="src/main/resources/structr/index.html"/>
+
+                                <copy file="src/main/resources/structr/index.template.html"
+                                      tofile="src/main/resources/structr/index.html"/>
+
+                                <replace file="src/main/resources/structr/index.html"
+                                         token="@buildNumber@"
+                                         value="${buildNumber}"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>maven-replacer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>src/main/resources/deb/bin/config</file>
+                    <outputFile>target/deb/config</outputFile>
+                    <replacements>
+                        <replacement>
+                            <token>FINAL_NAME</token>
+                            <value>${project.build.finalName}</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.14.1</version>
