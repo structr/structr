@@ -415,7 +415,7 @@
                                                 <wait>
                                                     <!-- Wait for container to exit -->
                                                     <exit>0</exit>
-                                                    <time>6000000</time> <!-- 10 minutes max -->
+                                                    <time>36000000</time> <!-- 60 minutes max -->
                                                 </wait>
                                                 <log>
                                                     <enabled>true</enabled>
