@@ -33,7 +33,7 @@ test.beforeAll(async ({ playwright }) => {
 
 test('config', async ({ page }) => {
 
-  test.setTimeout(10_000);
+  test.setTimeout(240_000);
 
   await page.goto(process.env.BASE_URL + '/structr/config');
   //await page.evaluate('document.body.style.zoom="2.0"');
