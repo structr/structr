@@ -27,8 +27,10 @@ import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -58,6 +60,7 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.*;
@@ -73,8 +76,7 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.*;
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -2024,6 +2026,144 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testUserInSchedule() {
+
+		try (final Tx tx = app.tx()) {
+
+			// we need to create a user
+			final Principal principal = app.create(StructrTraits.USER, "A").as(Principal.class);
+			principal.setPassword("test");
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("RequestTest");
+			final JsonMethod method = type.addMethod("doTest", "{ $.schedule(() => $.doAs($.find('User')[0], () => $.me.name = 'test')); }");
+
+			method.setIsStatic(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/structr/rest";
+
+		grant("RequestTest/doTest", UiAuthenticator.AUTH_USER_POST, false);
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("x-user", "A")
+			.header("x-password", "test")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.body("result", equalTo(""))
+			.body("result_count", equalTo(1))
+			.body("page_count", equalTo(1))
+			.statusCode(200)
+			.when()
+			.post("/RequestTest/doTest");
+
+		// wait some time
+		try {
+			Thread.sleep(1000);
+		} catch (Throwable t) {
+		}
+
+		// check result after schedule
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface user = app.nodeQuery(StructrTraits.USER).getFirst();
+
+			assertEquals("Invalid result of doAs() in schedule()", "test", user.getName());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+
+	@Test
+	public void testSetPrivilegedInOnSave() {
+
+		try (final Tx tx = app.tx()) {
+
+			// we need to create a user
+			final Principal principal = app.create(StructrTraits.USER, "A").as(Principal.class);
+			principal.setPassword("test");
+
+			JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type = schema.addType("RequestTest");
+
+			type.addMethod("onSave", "{ $.this.name = $.me.name; }");
+
+			final JsonMethod method = type.addMethod("doTest", "{ $.doPrivileged(() => $.find('RequestTest', { name: 'Test' })[0].name = 'doTest'); }");
+			method.setIsStatic(true);
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		createAdminUser();
+
+		RestAssured.basePath = "/structr/rest";
+
+		grant("RequestTest",        UiAuthenticator.AUTH_USER_POST, true);
+		grant("RequestTest/doTest", UiAuthenticator.AUTH_USER_POST, false);
+
+		// create test object as admin (not visible to user, but accessed in doPrivileged() in static method)
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("x-user", "admin")
+			.header("x-password", "admin")
+			.body("{ name: 'Test' }")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.statusCode(201)
+			.when()
+			.post("/RequestTest");
+
+		RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.header("x-user", "A")
+			.header("x-password", "test")
+			.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+			.body("result", equalTo(""))
+			.body("result_count", equalTo(1))
+			.body("page_count", equalTo(1))
+			.statusCode(200)
+			.when()
+			.post("/RequestTest/doTest");
+
+		// check result after schedule
+		try (final Tx tx = app.tx()) {
+
+			final NodeInterface node = app.nodeQuery("RequestTest").getFirst();
+
+			assertEquals("Invalid user in privileged onSave", "superadmin", node.getName());
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
 	// ----- private methods -----
 	private String getEncodingInUse() {
 		OutputStreamWriter writer = new OutputStreamWriter(new ByteArrayOutputStream());

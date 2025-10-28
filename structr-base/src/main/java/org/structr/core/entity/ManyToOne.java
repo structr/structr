@@ -78,6 +78,8 @@ public abstract class ManyToOne extends AbstractRelation implements Relation<Man
 			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
 			if (outgoingRel != null) {
 
+				outgoingRel.setSecurityContext(securityContext);
+
 				final Relation relation   = outgoingRel.getRelation();
 				final Traits targetTraits = Traits.of(relation.getTargetType());
 
