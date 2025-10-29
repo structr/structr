@@ -188,6 +188,10 @@ let _Schema = {
 			callback?.();
 		});
 	},
+	resize: () => {},
+	dialogSizeChanged: () => {
+		_Editors.resizeVisibleEditors();
+	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');
 	},
@@ -4217,7 +4221,6 @@ let _Schema = {
 			`,
 		}
 	},
-	resize: () => {},
 	activateAdminTools: () => {
 
 		let registerSchemaToolButtonAction = (btn, target, connectedSelectElement, getPayloadFunction) => {

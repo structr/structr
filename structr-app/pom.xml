@@ -302,10 +302,19 @@
                                 <configuration>
                                     <skip>${skipUITests}</skip>
                                     <images>
+                                        <!-- Playwright test runner image -->
+                                        <image>
+                                            <name>structr-playwright-tests</name>
+                                            <build>
+                                                <contextDir>${project.basedir}/src/test/playwright-ui-tests</contextDir>
+                                                <dockerFile>ui-tests.Dockerfile</dockerFile>
+                                            </build>
+                                        </image>
                                         <image>
                                             <name>structr-ui-tests</name>
                                             <build>
                                                 <contextDir>${project.basedir}</contextDir>
+                                                <dockerFile>Dockerfile</dockerFile>
                                                 <args>
                                                     <STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
                                                 </args>
@@ -352,11 +361,8 @@
                                                 <network>
                                                     <mode>custom</mode>
                                                     <name>ui-test-network</name>
-                                                    <alias>structr-ui-tests-</alias>
+                                                    <alias>structr-ui-tests</alias>
                                                 </network>
-                                                <ports>
-                                                    <port>8090:8082</port>
-                                                </ports>
                                                 <wait>
                                                     <log>(.?)Initialization complete(.?)</log>
                                                     <time>200000</time>
@@ -373,66 +379,52 @@
                                     </images>
                                 </configuration>
                             </execution>
+
+                            <!-- Run Playwright tests in container -->
+                            <execution>
+                                <id>ui-run-tests</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${skipUITests}</skip>
+                                    <startParallel>false</startParallel>
+                                    <images>
+                                        <image>
+                                            <name>structr-playwright-tests</name>
+                                            <alias>playwright-runner</alias>
+                                            <run>
+                                                <network>
+                                                    <mode>custom</mode>
+                                                    <name>ui-test-network</name>
+                                                    <alias>playwright-runner</alias>
+                                                </network>
+                                                <shmSize>2147483648</shmSize> <!-- 2GB shared memory -->
+                                                <env>
+                                                    <BASE_URL>http://structr-ui-tests:8082</BASE_URL>
+                                                    <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
+                                                    <DEBUG>pw:api</DEBUG>
+                                                </env>
+                                                <wait>
+                                                    <!-- Wait for container to exit -->
+                                                    <exit>0</exit>
+                                                    <time>36000000</time> <!-- 60 minutes max -->
+                                                </wait>
+                                                <log>
+                                                    <enabled>true</enabled>
+                                                    <prefix>PLAYWRIGHT</prefix>
+                                                    <color>cyan</color>
+                                                </log>
+                                            </run>
+                                        </image>
+                                    </images>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
 
-                    <!-- Node.js + Playwright setup and test execution -->
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>1.15.1</version>
-                        <configuration>
-                            <workingDirectory>src/test/ui</workingDirectory>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>install-node-and-npm</id>
-                                <goals>
-                                    <goal>install-node-and-npm</goal>
-                                </goals>
-                                <configuration>
-                                    <nodeVersion>v22.11.0</nodeVersion>
-                                    <npmVersion>10.9.0</npmVersion>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>npm-install</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>install</arguments>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>playwright-install</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>run playwright:install</arguments>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>playwright-tests</id>
-                                <phase>integration-test</phase>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>run test</arguments>
-                                    <environmentVariables>
-                                        <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
-                                        <BASE_URL>http://localhost:8090</BASE_URL>
-                                    </environmentVariables>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+
                 </plugins>
             </build>
         </profile>

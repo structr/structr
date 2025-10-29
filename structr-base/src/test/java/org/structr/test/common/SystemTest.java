@@ -1064,7 +1064,7 @@ public class SystemTest extends StructrTest {
 				System.out.println(rel.getType() + ": " + rel.getSourceNodeId() + " -> " + rel.getTargetNodeId());
 			}
 
-			assertEquals("ManyToOne.ensureCardinality is not wirking correctly", 1, rels.size());
+			assertEquals("ManyToOne.ensureCardinality is not working correctly", 1, rels.size());
 
 			tx.success();
 
@@ -2424,7 +2424,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable fex) {
+		} catch (FrameworkException fex) {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}

@@ -160,7 +160,9 @@ test('importer', async ({ page }) => {
   await page.getByText('Import CSV').first().waitFor({state: 'visible'});
   await page.getByText('Import CSV').first().click();
   await page.waitForTimeout(500);
-  await page.locator('select#target-type-select').selectOption({ label: 'Milestone' });
+
+  await page.locator('select#target-type-select option[value]').first().waitFor({ state: 'attached', timeout: 30000 });
+  await page.locator('select#target-type-select').selectOption({ label: 'Milestone' }, { timeout: 30000 });
   await page.waitForTimeout(500);
   await page.getByRole('button', {name: 'Start import'}).click();
   await page.getByRole('button', {name: 'Close'}).click();
