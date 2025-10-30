@@ -4690,8 +4690,12 @@ ul.combined-input-select-field li:hover {
 .bg-black {
 	background-color: var(--solid-black);
 }
-.bg-white {
+.bg-white,
+.hover\:bg-white:hover {
 	background-color: var(--solid-white);
+}
+.bg-white\/60 {
+	background-color: color-mix(in srgb, var(--solid-white), transparent 60%);
 }
 .bg-gray {
 	background-color: var(--light-gray-bg-f7);

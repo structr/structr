@@ -1099,19 +1099,19 @@ let _Schema = {
 				paintStyle: { lineWidth: 4, strokeStyle: (relationship.permissionPropagation !== 'None') ? "#ffad25" : "#81ce25" },
 				overlays: [
 					["Label", {
-						cssClass: 'label multiplicity',
+						cssClass: 'label multiplicity bg-white/60 hover:bg-white',
 						label: `<span class="${textColorClass}">${relationship.sourceMultiplicity ?? '*'}</span>`,
 						location: Math.min(.2 + offset, .4),
 						id: "sourceMultiplicity"
 					}],
 					["Label", {
-						cssClass: 'label multiplicity',
+						cssClass: 'label multiplicity bg-white/60 hover:bg-white',
 						label: `<span class="${textColorClass}">${relationship.targetMultiplicity ?? '*'}</span>`,
 						location: Math.max(.8 - offset, .6),
 						id: "targetMultiplicity"
 					}],
 					["Label", {
-						cssClass: "label rel-type",
+						cssClass: "label rel-type bg-white/60 hover:bg-white",
 						label: `<div id="rel_${relationship.id}" class="flex items-center ${textColorClass}" data-name="${relationship.name}" data-source-type="${sourceName}" data-target-type="${targetName}">
 							${(relTypeIsDefaultType ? '<span>&nbsp;</span>' : relationship.relationshipType)}
 							${relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship')}
