@@ -31,6 +31,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.InstanceMethod;
 import org.structr.core.api.Methods;
@@ -520,7 +521,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 						// make repeater data object ID available
 						final GraphObject repeaterDataObject = renderContext.getDataObject();
-						if (repeaterDataObject != null && StringUtils.isNotBlank(node.getDataKey())) {
+						if (repeaterDataObject != null && StringUtils.isNotBlank(node.getDataKey()) && !(repeaterDataObject instanceof GraphObjectMap)) {
 
 							out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 						}
@@ -2088,9 +2089,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			String selector = "[data-structr-id='" + node.getUuid() + "']";
 
 			final String dataKey = node.as(DOMNode.class).getDataKey();
-			if (dataKey != null && renderContext.getDataNode(dataKey) != null) {
+			if (dataKey != null) {
 
-				selector += "[data-repeater-data-object-id='" + renderContext.getDataNode(dataKey).getUuid() + "']";
+				final GraphObject obj = renderContext.getDataNode(dataKey);
+				if (obj != null) {
+
+					selector += "[data-repeater-data-object-id='" + obj.getUuid() + "']";
+				}
 			}
 
 			selectors.add(selector);
