@@ -67,7 +67,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized FileChannel newFileChannel(final Path path, final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-		return new VirtualFileChannel(newByteChannel(path, options, attrs));
+		return new VirtualFileChannel(null, newByteChannel(path, options, attrs));
 	}
 
 	@Override
