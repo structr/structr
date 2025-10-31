@@ -142,7 +142,7 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 		sourceNode = MemoryIdentity.loadFromStorage(in);
 		targetNode = MemoryIdentity.loadFromStorage(in);
 
-		relType = db.forName(RelationshipType.class, in.readUTF());
+		relType = db.getRelationshipType(in.readUTF());
 	}
 
 	@Override

@@ -99,7 +99,7 @@ class RelationshipWrapper extends EntityWrapper<org.neo4j.driver.types.Relations
 
 	@Override
 	public RelationshipType getType() {
-		return db.forName(RelationshipType.class, type);
+		return db.getRelationshipType(type);
 	}
 
 	@Override

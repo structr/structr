@@ -69,7 +69,7 @@ public class StructrTest {
 	protected static SecurityContext securityContext = null;
 	protected static String basePath                 = null;
 	protected static App app                         = null;
-	protected static String randomTenantId           = RandomStringUtils.randomAlphabetic(10).toUpperCase();
+	protected static String randomTenantId           = RandomStringUtils.secure().nextAlphabetic(10).toUpperCase();
 	private boolean first                            = true;
 
 	@BeforeMethod
@@ -311,7 +311,7 @@ public class StructrTest {
 
 	}
 
-	protected NodeInterface createTestNode(final String type, final NodeAttribute... attributes) throws FrameworkException {
+	protected NodeInterface createTestNode(final String type, final NodeAttribute<?>... attributes) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
 
@@ -375,15 +375,6 @@ public class StructrTest {
 		}
 	}
 
-	protected void assertNodeExists(final String nodeId) throws FrameworkException {
-		assertNotNull(app.getNodeById(nodeId));
-
-	}
-
-	protected void assertNodeNotFound(final String nodeId) throws FrameworkException {
-		assertNull(app.getNodeById(nodeId));
-	}
-
 	protected <T> List<T> toList(T... elements) {
 		return Arrays.asList(elements);
 	}
@@ -415,11 +406,7 @@ public class StructrTest {
 		return map;
 	}
 
-	protected PropertyKey<String> getKey(final String typeName, final String keyName) {
-		return getKey(typeName, keyName, String.class);
-	}
-
-	protected <T> PropertyKey<T> getKey(final String typeName, final String keyName, final Class<T> desiredTyp) {
+	protected <T> PropertyKey<T> getKey(final String typeName, final String keyName) {
 
 		final Traits type = Traits.of(typeName);
 		if (type != null) {

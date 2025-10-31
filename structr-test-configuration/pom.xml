@@ -72,11 +72,11 @@
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
 						<version>0.40.2</version>
-                        <configuration>
-                            <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
-                            <removeMode>all</removeMode>
-                            <keepContainer>false</keepContainer>
-                        </configuration>
+						<configuration>
+						    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+						    <removeMode>all</removeMode>
+						    <keepContainer>false</keepContainer>
+						</configuration>
 						<executions>
 							<execution>
 								<id>prepare-database</id>
