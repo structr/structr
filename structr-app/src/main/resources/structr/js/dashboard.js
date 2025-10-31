@@ -146,7 +146,7 @@ let _Dashboard = {
 
 							if (!groups[key]) {
 								groups[key] = {
-									id: group,
+									id: ''+group,	// display legend correctly
 									content: key,
 									className: 'http-statistics-' + key
 								};
@@ -154,32 +154,19 @@ let _Dashboard = {
 
 							for (let date of Object.keys(local)) {
 
-								let dateNumber = new Number(date);
+								let dateNumber = Number(date);
 								min = Math.min(dateNumber, min);
 								max = Math.max(dateNumber, max);
 								items.push({
 									x: new Date(dateNumber).toISOString(),
 									//x2: new Date(dateNumber + interval).toISOString(),
 									y: local[date],
-									group: group
+									group: ''+group,	// display legend correctly
 								});
 							}
 						}
 
-						// console.log(items);
-
 						let groupList = Object.values(groups);
-
-						let timeAxisScale = {
-							//'1000': 'second',
-							'60000': 'minute',
-							'3600000': 'hour'
-						};
-						let timeAxisStep = {
-							//'1000': 600,
-							'60000': 15,
-							'3600000': 1
-						};
 
 						let options = {
 							start: new Date(min - interval).toISOString(),
@@ -198,10 +185,8 @@ let _Dashboard = {
 									}
 								}
 							},
-							timeAxis: {
-								scale: timeAxisScale[interval],
-								step: timeAxisStep[interval]
-							}
+							zoomMax: 86400000 * 31,		// ~ 1 month
+							zoomMin: 3600000			//   1 hour
 						};
 
 						new vis.Graph2d(httpStatisticsCell.querySelector("#statistics-diagram-container"), new vis.DataSet(items), new vis.DataSet(groupList), options);
