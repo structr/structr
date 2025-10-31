@@ -1683,7 +1683,7 @@ let _Schema = {
 						indexedCb.checked = shouldIndex;
 
 						_Helpers.blink(indexedCb.parentNode, '#fff', '#bde5f8');
-						_Dialogs.custom.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 500);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Indexed flag set to default for this property type (overridable).', 'info', 2000, 500);
 					}
 
 					let allowFulltext   = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');

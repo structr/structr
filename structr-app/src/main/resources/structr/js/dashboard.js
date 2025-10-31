@@ -1956,7 +1956,11 @@ let _Dashboard = {
 			</div>
 		`,
 		tabContentUIConfig: config => `
-			<div class="tab-content" id="dashboard-ui-config">
+			<div class="tab-content relative" id="dashboard-ui-config">
+
+				<div class="absolute top-2 right-0">
+					<button class="ml-2 action" id="clear-local-storage-on-server">Reset <strong>all</strong> stored UI settings</button>
+				</div>						
 
 				<div class="flex">
 
@@ -1981,9 +1985,6 @@ let _Dashboard = {
 
 						</div>
 
-						<div>
-							<button class="action" id="clear-local-storage-on-server">Reset <strong>all</strong> stored UI settings</button>
-						</div>
 					</div>
 				</div>
 			</div>

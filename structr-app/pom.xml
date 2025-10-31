@@ -430,7 +430,7 @@
         </profile>
 
         <!-- zip-dist: Create distribution ZIP
-             Output: target/structr-app-${version}-${timestamp}-dist.zip
+             Output: target/structr-${version}-${timestamp}.${buildNumber}-dist.zip
              Skip: -DskipZip=true -->
         <profile>
             <id>zip-dist</id>
@@ -444,6 +444,7 @@
                         <artifactId>maven-assembly-plugin</artifactId>
                         <version>3.7.1</version>
                         <configuration>
+                            <finalName>structr-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
                             <descriptors>
                                 <descriptor>src/main/resources/assemblies/dist.xml</descriptor>
                             </descriptors>
@@ -478,7 +479,7 @@
                         <artifactId>jdeb</artifactId>
                         <version>1.10</version>
                         <configuration>
-                            <deb>${project.build.directory}/${project.parent.build.finalName}.deb</deb>
+                            <deb>${project.build.directory}/structr-${project.version}-${maven.build.timestamp}.${buildNumber}.deb</deb>
                             <skip>${skipDeb}</skip>
                             <controlDir>${basedir}/src/main/resources/deb/control</controlDir>
                             <dataSet>
