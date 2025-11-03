@@ -237,19 +237,13 @@ export class Frontend {
 
 	handleResult(element, json, status, options, headers = {}) {
 
-		// Overwrite status for process handling
-		if (status === 200 && json?.result?.state?.status) {
-			console.log('Overwriting status for process to', json.result.state.status);
-			status = json.result.state.status;
-		}
-
 		switch (status) {
 
 			case 200:
 			case 201:
 				this.fireEvent('success', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
-				this.handleFollowUpActions(element, json.result, status, options);
+				this.processFollowUpActions(element, json.result, status, options);
 				break;
 
 			case 202:
@@ -273,7 +267,7 @@ export class Frontend {
 			case 503:
 				this.fireEvent('error', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
-				this.handleFollowUpActions(element, json.result, status, options);
+				this.processFollowUpActions(element, json, status, options);
 				break;
 		}
 
@@ -374,61 +368,61 @@ export class Frontend {
 
 			case 'none':
 			default:
-				// Default is do nothing
+			// Default is do nothing
 		}
 	}
 
-    async handleReloadTargetString(targetString, element, parameters, status, options) {
+	async handleReloadTargetString(targetString, element, parameters, status, options) {
 
-        let colonPosition = targetString.indexOf(':');
-        if (colonPosition !== -1) {
+		let colonPosition = targetString.indexOf(':');
+		if (colonPosition !== -1) {
 
-            let moduleName = targetString.substring(0, colonPosition);
-            let module     = await import(`/structr/js/frontend/modules/reload-target-handlers/${moduleName}.js`);
-            if (module) {
+			let moduleName = targetString.substring(0, colonPosition);
+			let module     = await import(`/structr/js/frontend/modules/reload-target-handlers/${moduleName}.js`);
+			if (module) {
 
-                if (module.Handler) {
+				if (module.Handler) {
 
-                    let handler = new module.Handler(this);
+					let handler = new module.Handler(this);
 
-                    if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
+					if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
 
-                        handler.handleReloadTarget(targetString.substring(colonPosition + 1), element, parameters, status, options);
+						handler.handleReloadTarget(targetString.substring(colonPosition + 1), element, parameters, status, options);
 
-                    } else {
+					} else {
 
-                        throw `Handler class for behaviour "${moduleName}" has no method "handleReloadTarget".`;
-                    }
+						throw `Handler class for behaviour "${moduleName}" has no method "handleReloadTarget".`;
+					}
 
-                } else {
+				} else {
 
-                    throw `Module for behaviour "${moduleName}" has no class "Handler".`;
-                }
+					throw `Module for behaviour "${moduleName}" has no class "Handler".`;
+				}
 
-            } else {
+			} else {
 
-                throw `No module found for behaviour "${moduleName}".`;
-            }
+				throw `No module found for behaviour "${moduleName}".`;
+			}
 
-        } else if (targetString === 'none') {
+		} else if (targetString === 'none') {
 
-            // do nothing
-            return;
+			// do nothing
+			return;
 
-        } else if (targetString === 'sign-out') {
+		} else if (targetString === 'sign-out') {
 
-            // sign-out and reload
-            fetch('/structr/logout', { method: 'POST' }).then((response) => {
-                location.reload();
-            });
+			// sign-out and reload
+			fetch('/structr/logout', { method: 'POST' }).then((response) => {
+				location.reload();
+			});
 
-        } else {
+		} else {
 
-            this.reloadPartial(targetString, parameters, element);
-        }
-    }
+			this.reloadPartial(targetString, parameters, element);
+		}
+	}
 
-	async handleFollowUpActions(element, parameters, status, options) {
+	async processFollowUpActions(element, parameters, status, options) {
 
 		const success = this.isSuccess(status);
 
@@ -436,53 +430,9 @@ export class Frontend {
 
 			let successTargets = element.dataset.structrSuccessTarget;
 
-			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+			for (let successTarget of successTargets.split(',').map(t => t.trim() ).filter(t => t.length > 0 )) {
 
-				if (successTarget.indexOf(':') !== -1) {
-
-					let moduleName = successTarget.substring(0, successTarget.indexOf(':'));
-					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
-					if (module) {
-
-						if (module.Handler) {
-
-							let handler = new module.Handler(this);
-
-							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
-
-								handler.handleReloadTarget(successTarget, element, parameters, status, options);
-
-							} else {
-
-								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
-							}
-
-						} else {
-
-							throw `Module for behaviour ${moduleName} has no class "Handler".`;
-						}
-
-					} else {
-
-						throw `No module found for behaviour ${moduleName}.`;
-					}
-
-				} else if (successTarget === 'none') {
-
-					// do nothing
-					return;
-
-				} else if (successTarget === 'sign-out') {
-
-					// sign-out and reload
-					fetch('/structr/logout', {method: 'POST'}).then((response) => {
-						location.reload();
-					});
-
-				} else {
-
-					this.reloadPartial(successTarget, parameters, element);
-				}
+				this.handleReloadTargetString(successTarget, element, parameters, status, options);
 			}
 
 		} else if (!success && element.dataset.structrFailureTarget) {
@@ -491,90 +441,7 @@ export class Frontend {
 
 			for (let failureTarget of failureTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
 
-				if (failureTarget.indexOf(':') !== -1) {
-
-					let moduleName = failureTarget.substring(0, failureTarget.indexOf(':'));
-					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
-					if (module) {
-
-						if (module.Handler) {
-
-							let handler = new module.Handler(this);
-
-							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
-
-								handler.handleReloadTarget(failureTarget, element, parameters, status, options);
-
-							} else {
-
-								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
-							}
-
-						} else {
-
-							throw `Module for behaviour ${moduleName} has no class "Handler".`;
-						}
-
-					} else {
-
-						throw `No module found for behaviour ${moduleName}.`;
-					}
-
-				} else if (failureTarget === 'sign-out') {
-
-					// sign-out and reload
-					fetch('/structr/logout', { method: 'POST' }).then((response) => {
-						location.reload();
-					});
-
-				} else if (failureTarget === 'none') {
-
-					// do nothing
-					return;
-
-				} else {
-
-					this.reloadPartial(failureTarget, parameters, element);
-				}
-			}
-
-		} else if (success && (element.dataset.structrProcessSuccessShowElements || element.dataset.structrProcessSuccessHideElements)) {
-
-			let processSuccessShowElements = element.dataset.structrProcessSuccessShowElements;
-
-			console.log('Show process UI element on success', parameters);
-
-			for (let processSuccessShowElement of processSuccessShowElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
-
-				this.reloadPartial(processSuccessShowElement, parameters, null, false, () => {
-					document.querySelector(processSuccessShowElement)?.classList.remove('hidden');
-				});
-			}
-
-			let processSuccessHideElements = element.dataset.structrProcessSuccessHideElements;
-
-			for (let processSuccessHideElement of processSuccessHideElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
-				//this.reloadPartial(processSuccessHideElement);
-				document.querySelector(processSuccessHideElement)?.classList.add('hidden');
-			}
-
-		} else if (!success && (element.dataset.structrProcessFailureShowElements || element.dataset.structrProcessFailureHideElements)) {
-
-			let processFailureShowElements = element.dataset.structrProcessFailureShowElements;
-
-			console.log('Show process UI element on failure', parameters, processFailureShowElements);
-
-			for (let processFailureShowElement of processFailureShowElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
-				this.reloadPartial(processFailureShowElement, parameters, null, false, () => {
-					document.querySelector(processFailureShowElement)?.classList.remove('hidden');
-				});
-			}
-
-			let processSuccessHideElements = element.dataset.structrProcessSuccessHideElements;
-
-			for (let processSuccessHideElement of processSuccessHideElements.split(',').map(t => t.trim()).filter(t => t.length > 0)) {
-				//this.reloadPartial(processSuccessHideElement);
-				document.querySelector(processSuccessHideElement)?.classList.add('hidden');
+				this.handleReloadTargetString(failureTarget, element, parameters, status, options);
 			}
 
 		} else {
@@ -582,7 +449,6 @@ export class Frontend {
 			// Default is do nothing
 			//window.location.reload();
 		}
-
 	}
 
 	isSuccess = status => status < 300;
@@ -606,7 +472,8 @@ export class Frontend {
 		this.fireEvent('error', { target: element, data: {}, status: status });
 	}
 
-	reloadPartial(selector, parameters, element, dontRebind, callback) {
+	reloadPartial(selector, parameters, element, dontRebind) {
+
 		let reloadTargets = document.querySelectorAll(selector);
 
 		if (!reloadTargets.length) {
@@ -640,23 +507,13 @@ export class Frontend {
 				}).then(data => {
 					if (data.result && data.result[0]) {
 						let id = data.result[0].id;
-						this.replacePartial(container, id, element, dataset, parameters, dontRebind, callback);
+						this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 					}
 				});
 
 			} else {
 
-				if (parameters?.type === 'ProcessInstance') {
-					const processInstanceId = parameters.id;
-					dataset.currentObjectId = processInstanceId;
-					const url = new URL(window.location.href);
-					if (!url.pathname.endsWith(processInstanceId)) {
-						url.pathname += '/' + processInstanceId;
-						window.history.pushState('', '', url.href);
-					}
-				}
-
-				this.replacePartial(container, id, element, dataset, parameters, dontRebind, callback);
+				this.replacePartial(container, id, element, dataset, parameters, dontRebind);
 			}
 
 		}
@@ -672,7 +529,7 @@ export class Frontend {
 		}
 	};
 
-	replacePartial(container, id, element, data, parameters, dontRebind, callback) {
+	replacePartial(container, id, element, data, parameters, dontRebind) {
 
 		let base   = '/structr/html/' + id;
 		let params = this.encodeRequestParameters(data, parameters);
@@ -698,10 +555,6 @@ export class Frontend {
 
 			if (!dontRebind) {
 				this.bindEvents();
-			}
-
-			if (callback) {
-				callback();
 			}
 
 		}).catch(e => {
@@ -751,26 +604,26 @@ export class Frontend {
 						method: 'post',
 						credentials: 'same-origin'
 					})
-					.then(response => response.text())
-					.then(html => {
+						.then(response => response.text())
+						.then(html => {
 
-						// find existing template element and remove first
-						let existing = document.querySelector('*[data-structr-template-id="' + id + '"]');
-						if (existing) {
+							// find existing template element and remove first
+							let existing = document.querySelector('*[data-structr-template-id="' + id + '"]');
+							if (existing) {
 
-							existing.remove();
-						}
+								existing.remove();
+							}
 
-						template.parentNode.insertAdjacentHTML('beforeend', html);
-						this.bindEvents();
+							template.parentNode.insertAdjacentHTML('beforeend', html);
+							this.bindEvents();
 
-						let fragment = document.querySelector('*[data-structr-template-id="' + id + '"]');
-						if (fragment) {
+							let fragment = document.querySelector('*[data-structr-template-id="' + id + '"]');
+							if (fragment) {
 
-							window.setTimeout(() => fragment.remove(), options.hideTimeout || 2000);
-						}
-					})
-					.catch(error => this.handleNetworkError(template, error, {}));
+								window.setTimeout(() => fragment.remove(), options.hideTimeout || 2000);
+							}
+						})
+						.catch(error => this.handleNetworkError(template, error, {}));
 				}
 			}
 		}
@@ -913,7 +766,7 @@ export class Frontend {
 			if (data.structrDialogType === 'okcancel') {
 
 				let dialogMessage = data.structrDialogTitle + '\n\n' + data.structrDialogText;
-				if (!window.confirm(dialogMessage)) {
+				if(!window.confirm(dialogMessage)) {
 					return; // Exit on 'Cancel' doHandleGenericEvent without fire main Event
 				}
 
@@ -926,11 +779,11 @@ export class Frontend {
 				method: 'POST',
 				credentials: 'same-origin'
 			})
-			.then(response => {
-				return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText, headers: Object.fromEntries(response.headers.entries()) }))
-			})
-			.then(response => this.handleResult(target, response.json, response.status, options, response.headers))
-			.catch(error   => this.handleNetworkError(target, error, {}));
+				.then(response => {
+					return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText, headers: Object.fromEntries(response.headers.entries()) }))
+				})
+				.then(response => this.handleResult(target, response.json, response.status, options, response.headers))
+				.catch(error   => this.handleNetworkError(target, error, {}));
 		}
 	}
 
@@ -956,7 +809,7 @@ export class Frontend {
 			console.log('Selector not found: ' + selector);
 			console.log(target);
 			console.log(data);
-		 	return;
+			return;
 		}
 
 		let parameters = {};
