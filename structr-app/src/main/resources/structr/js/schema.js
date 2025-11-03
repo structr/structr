@@ -1088,7 +1088,7 @@ let _Schema = {
 			let offset =     0.2 * relCnt[relIndex];
 
 			let relTypeIsDefaultType = (relationship.relationshipType === _Schema.initialRelType);
-			let textColorClass       = (relationship.isPartOfBuiltInSchema ? 'text-gray-ddd' : '');
+			let labelClasses         = 'label bg-white/60 hover:bg-white ' + (relationship.isPartOfBuiltInSchema ? 'text-gray-999 hover:text-gray-ddd' : 'text-active-tab-text');
 
 			_Schema.ui.jsPlumbInstance.connect({
 				source: _Schema.caches.nodeConnectors[`${relationship.sourceId}_bottom`],
@@ -1099,22 +1099,22 @@ let _Schema = {
 				paintStyle: { lineWidth: 4, strokeStyle: (relationship.permissionPropagation !== 'None') ? "#ffad25" : "#81ce25" },
 				overlays: [
 					["Label", {
-						cssClass: 'label multiplicity bg-white/60 hover:bg-white',
-						label: `<span class="${textColorClass}">${relationship.sourceMultiplicity ?? '*'}</span>`,
+						cssClass: 'multiplicity ' + labelClasses,
+						label: relationship.sourceMultiplicity ?? '*',
 						location: Math.min(.2 + offset, .4),
 						id: "sourceMultiplicity"
 					}],
 					["Label", {
-						cssClass: 'label multiplicity bg-white/60 hover:bg-white',
-						label: `<span class="${textColorClass}">${relationship.targetMultiplicity ?? '*'}</span>`,
+						cssClass: 'multiplicity ' + labelClasses,
+						label: relationship.targetMultiplicity ?? '*',
 						location: Math.max(.8 - offset, .6),
 						id: "targetMultiplicity"
 					}],
 					["Label", {
-						cssClass: "label rel-type bg-white/60 hover:bg-white",
-						label: `<div id="rel_${relationship.id}" class="flex items-center ${textColorClass}" data-name="${relationship.name}" data-source-type="${sourceName}" data-target-type="${targetName}">
+						cssClass: 'rel-type ' + labelClasses,
+						label: `<div id="rel_${relationship.id}" class="flex items-center" data-name="${relationship.name}" data-source-type="${sourceName}" data-target-type="${targetName}">
 							${(relTypeIsDefaultType ? '<span>&nbsp;</span>' : relationship.relationshipType)}
-							${relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship')}
+							${(relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship'))}
 							${(relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']), 'Delete relationship'))}
 						</div>`,
 						location: .5,
