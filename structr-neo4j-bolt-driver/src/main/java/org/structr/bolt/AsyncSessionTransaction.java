@@ -102,8 +102,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 			} catch (ServiceUnavailableException ex) {
 				throw new NetworkException(ex.getMessage(), ex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			} catch (ClientException cex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(cex);
 			}
 
@@ -121,8 +123,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 			} catch (ServiceUnavailableException ex) {
 				throw new NetworkException(ex.getMessage(), ex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			} catch (ClientException cex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(cex);
 			}
 		}
@@ -181,8 +185,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -212,8 +218,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -249,8 +257,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -286,8 +296,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -337,8 +349,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -363,8 +377,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
@@ -426,8 +442,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 				return iterator.hasNext();
 
 			} catch (ClientException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}
 		}
@@ -440,8 +458,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 				return iterator.next();
 
 			} catch (ClientException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}
 		}

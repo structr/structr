@@ -26,6 +26,7 @@ import org.structr.core.notion.PropertySetNotion;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.wrappers.SchemaViewTraitWrapper;
 
 import java.util.Map;
@@ -58,10 +59,10 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface>           schemaNode           = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes(SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<NodeInterface>           schemaNode           = new StartNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_VIEW, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Iterable<NodeInterface>> schemaProperties     = new EndNodes(traitsInstance, SCHEMA_PROPERTIES_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 		final Property<Boolean>                 isBuiltinView        = new BooleanProperty(IS_BUILTIN_VIEW_PROPERTY);
 		final Property<String>                  staticSchemaNodeName = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<String>                  nonGraphProperties   = new StringProperty(NON_GRAPH_PROPERTIES_PROPERTY);
@@ -84,17 +85,20 @@ public class SchemaViewTraitDefinition extends AbstractNodeTraitDefinition {
 
 				PropertyView.Public,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY
+						SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY
 				),
 
 				PropertyView.Ui,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
+						SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY,
+						IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				),
 
 				PropertyView.Schema,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY, IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
+						GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+						SCHEMA_NODE_PROPERTY, SCHEMA_PROPERTIES_PROPERTY, NON_GRAPH_PROPERTIES_PROPERTY,
+						IS_BUILTIN_VIEW_PROPERTY, SORT_ORDER_PROPERTY
 				)
 		);
 	}

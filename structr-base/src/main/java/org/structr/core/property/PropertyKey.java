@@ -170,6 +170,20 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	String writeFunction();
 
 	/**
+	 * Returns the readFunctionWrapJS value for this property.
+	 *
+	 * @return readFunctionWrapJS
+	 */
+	Boolean readFunctionWrapJS();
+
+	/**
+	 * Returns the writeFunctionWrapJS value for this property.
+	 *
+	 * @return writeFunctionWrapJS
+	 */
+	Boolean writeFunctionWrapJS();
+
+	/**
 	 * Returns the cachingEnabled value for this property.
 	 *
 	 * @return cachingEnabled
@@ -297,6 +311,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * Indicates whether the value associated with this property is
 	 * validated for uniqueness.
 	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
+	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
 	boolean isUnique();
@@ -305,6 +323,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * Indicates whether the value associated with this property is
 	 * validated for uniqueness in a compound index.
 	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
+	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
 	boolean isCompound();
@@ -312,6 +334,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	/**
 	 * Indicates whether the value associated with this property is
 	 * may not be null.
+	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
 	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
@@ -374,6 +400,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	PropertyKey<T> dynamic();
 	PropertyKey<T> readFunction(final String readFunction);
 	PropertyKey<T> writeFunction(final String writeFunction);
+	PropertyKey<T> writeFunctionWrapJS(final boolean wrap);
+	PropertyKey<T> readFunctionWrapJS(final boolean wrap);
 	PropertyKey<T> cachingEnabled(final boolean enabled);
 	PropertyKey<T> openAPIReturnType(final String openAPIReturnType);
 	PropertyKey<T> transformators(final String... transformators);

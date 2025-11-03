@@ -52,10 +52,9 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 		final Traits traits  = Traits.of(StructrTraits.LOG_EVENT);
 
-		if (sources.length == 1 && sources[0] instanceof Map) {
+		if (sources.length == 1 && sources[0] instanceof Map map) {
 
 			// support javascript objects here
-			final Map map = (Map)sources[0];
 
 			final String action  = DOMNode.objectToString(map.get(LogEventTraitDefinition.ACTION_PROPERTY));
 			final String message = DOMNode.objectToString(map.get(LogEventTraitDefinition.MESSAGE_PROPERTY));

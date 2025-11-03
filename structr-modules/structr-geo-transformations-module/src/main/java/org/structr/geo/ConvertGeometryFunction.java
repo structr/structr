@@ -18,12 +18,12 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
+import org.locationtech.jts.geom.Geometry;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;

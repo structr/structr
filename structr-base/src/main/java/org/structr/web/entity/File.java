@@ -59,6 +59,9 @@ public interface File extends AbstractFile, DataSource {
 	String getFormattedSize();
 	String getExtractedContent();
 	String getPath();
+	String getDiskFilePath(final SecurityContext securityContext);
+
+	java.io.File getFileOnDisk();
 
 	int getNumberOrDefault(Map<String, Object> data, String key, int defaultValue);
 

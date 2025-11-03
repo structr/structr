@@ -19,6 +19,7 @@
 package org.structr.websocket.command.dom;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
@@ -123,6 +124,12 @@ public class InsertRelativeToDOMNodeCommand extends AbstractCommand {
                         parentNode.appendChild(node);
                     }
                 }
+
+                TransactionCommand.registerNodeCallback(node, callback);
+
+                // send success
+                getWebSocket().send(webSocketData, true);
+
             }
 
         } catch (DOMException dex) {

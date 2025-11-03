@@ -21,13 +21,9 @@ package org.structr.flow.impl;
 import org.structr.api.util.Iterables;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.traits.definitions.FlowCallTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowCall extends FlowAction implements DeployableEntity, ThrowingElement {
 
@@ -51,18 +47,5 @@ public class FlowCall extends FlowAction implements DeployableEntity, ThrowingEl
 		}
 
 		return null;
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 }

@@ -612,7 +612,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 				for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
-					row.append("\"").append(key.dbName()).append("\"").append(DEFAULT_FIELD_SEPARATOR);
+					if (!key.serializationDisabled()) {
+
+						row.append("\"").append(key.dbName()).append("\"").append(DEFAULT_FIELD_SEPARATOR);
+					}
 				}
 
 				// remove last ;
@@ -629,16 +632,18 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				out.flush();
 
 				headerWritten = true;
-
 			}
 
 			row.setLength(0);
 
 			for (PropertyKey key : obj.getPropertyKeys(propertyView)) {
 
-				Object value = obj.getProperty(key);
+				if (!key.serializationDisabled()) {
 
-				row.append("\"").append(escapeForCsv(value)).append("\"").append(DEFAULT_FIELD_SEPARATOR);
+					Object value = obj.getProperty(key);
+
+					row.append("\"").append(escapeForCsv(value)).append("\"").append(DEFAULT_FIELD_SEPARATOR);
+				}
 			}
 
 			// remove last ;

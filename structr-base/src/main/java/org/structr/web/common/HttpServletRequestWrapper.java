@@ -30,6 +30,7 @@ import java.security.Principal;
 import java.util.*;
 
 public class HttpServletRequestWrapper implements HttpServletRequest {
+
 	private final HttpServletRequest request;
 	private final String url;
 
@@ -175,11 +176,6 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 	}
 
 	@Override
-	public String getRealPath(String s) {
-		return request.getServletContext().getRealPath(s);
-	}
-
-	@Override
 	public int getRemotePort() {
 		return request.getRemotePort();
 	}
@@ -232,6 +228,22 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 	@Override
 	public DispatcherType getDispatcherType() {
 		return request.getDispatcherType();
+	}
+
+	@Override
+	public String getRequestId() {
+		return request.getRequestId();
+	}
+
+	@Override
+	public String getProtocolRequestId() {
+
+		return request.getProtocolRequestId();
+	}
+
+	@Override
+	public ServletConnection getServletConnection() {
+		return request.getServletConnection();
 	}
 
 	@Override
@@ -356,11 +368,6 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public boolean isRequestedSessionIdFromURL() {
-		return request.isRequestedSessionIdFromURL();
-	}
-
-	@Override
-	public boolean isRequestedSessionIdFromUrl() {
 		return request.isRequestedSessionIdFromURL();
 	}
 

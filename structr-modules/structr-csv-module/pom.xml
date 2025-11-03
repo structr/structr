@@ -24,16 +24,9 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-ui</artifactId>
-			<version>${project.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
-			<version>1.0</version>
+			<version>1.14.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -62,7 +55,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>

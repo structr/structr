@@ -37,6 +37,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -55,7 +56,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 
 	@Override
 	public String getUuid() {
-		return getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
+		final Object uuid = getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(GraphObjectTraitDefinition.ID_PROPERTY));
+		return uuid == null ? null : uuid.toString();
 	}
 
 	@Override
@@ -90,6 +92,16 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 				}
 
 				return null;
+			}
+
+			@Override
+			public <T> PropertyKey<T> keyOrGenericProperty(final String name) {
+
+				if (hasKey(name)) {
+					return key(name);
+				}
+
+				return new GenericProperty<T>(name);
 			}
 
 			@Override
@@ -143,10 +155,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public void registerImplementation(final TraitDefinition trait, final boolean isDynamic) {
-			}
-
-			@Override
 			public Relation getRelation() {
 				return null;
 			}
@@ -164,11 +172,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			@Override
 			public boolean isAbstract() {
 				return false;
-			}
-
-			@Override
-			public boolean isBuiltInType() {
-				return true;
 			}
 
 			@Override
@@ -197,7 +200,12 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
-			public Map<String, Map<String, PropertyKey>> removeDynamicTraits() {
+			public Traits createCopy(final TraitsInstance traitsInstance) {
+				return this;
+			}
+
+			@Override
+			public Map<String, Map<String, PropertyKey>> getDynamicTypes() {
 				return Map.of();
 			}
 		};
@@ -250,8 +258,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-		properties.putAll(properties);
+	public void setProperties(final SecurityContext securityContext, final PropertyMap newProperties, final boolean isCreation) throws FrameworkException {
+		properties.putAll(newProperties.getRawMap());
 	}
 
 	@Override

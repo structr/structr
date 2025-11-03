@@ -27,6 +27,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -70,11 +71,10 @@ public class FlowSwitchTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> switchDefault          = new EndNode(DEFAULT_PROPERTY, StructrTraits.FLOW_NODES);
-		final Property<Iterable<NodeInterface>> cases        = new EndNodes(CASES_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
-
+		final Property<NodeInterface> switchDefault          = new EndNode(traitsInstance, DEFAULT_PROPERTY, StructrTraits.FLOW_NODES);
+		final Property<Iterable<NodeInterface>> cases        = new EndNodes(traitsInstance, CASES_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
 
 		return newSet(
 			switchDefault,

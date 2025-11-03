@@ -24,8 +24,8 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.web.entity.Widget;
@@ -56,7 +56,7 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -79,7 +79,7 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String> sourceProperty          = new StringProperty(SOURCE_PROPERTY);
 		final Property<String> descriptionProperty     = new StringProperty(DESCRIPTION_PROPERTY);
@@ -111,20 +111,19 @@ public class WidgetTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, SOURCE_PROPERTY, DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY,
-					SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY, TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY,
-					IS_PAGE_TEMPLATE_PROPERTY
+					SOURCE_PROPERTY, DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
+					TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				SOURCE_PROPERTY, DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
-				TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY
+					SOURCE_PROPERTY, DESCRIPTION_PROPERTY, CONFIGURATION_PROPERTY, SVG_ICON_PATH_PROPERTY, THUMBNAIL_PATH_PROPERTY,
+					TREE_PATH_PROPERTY, IS_WIDGET_PROPERTY, SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY
 			),
 
 			"editWidget",
 			newSet(
-				SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY
+					SELECTORS_PROPERTY, IS_PAGE_TEMPLATE_PROPERTY
 			)
 		);
 	}

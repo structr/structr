@@ -26,20 +26,25 @@ import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.traits.operations.ActionOperations;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -56,63 +61,81 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(final FlowNode flowNode) {
-					return FlowType.Action;
-				}
-			},
-
-			DataSourceOperations.class,
-			new DataSourceOperations() {
-
-				@Override
-				public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
-
-					final FlowAction action = dataSource.as(FlowAction.class);
-					final String uuid = dataSource.getUuid();
-
-					if (!context.hasData(uuid)) {
-						action.execute(context);
+					@Override
+					public FlowType getFlowType(final FlowNode flowNode) {
+						return FlowType.Action;
 					}
+				},
 
-					return context.getData(uuid);
-				}
-			},
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-			ActionOperations.class,
-			new ActionOperations() {
+					@Override
+					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
 
-				@Override
-				public void execute(final Context context, final FlowAction action) throws FlowException {
+						final FlowAction action = dataSource.as(FlowAction.class);
+						final String uuid = dataSource.getUuid();
 
-					final String _script = action.getScript();
-					if (_script != null) {
+						if (!context.hasData(uuid)) {
+							action.execute(context);
+						}
 
-						final String uuid = action.getUuid();
+						return context.getData(uuid);
+					}
+				},
 
-						try {
+				ActionOperations.class,
+				new ActionOperations() {
 
-							final FlowDataSource _dataSource = action.getDataSource();
+					@Override
+					public void execute(final Context context, final FlowAction action) throws FlowException {
 
-							// make data available to action if present
-							if (_dataSource != null) {
-								context.setData(uuid, _dataSource.get(context));
+						final String _script = action.getScript();
+						if (_script != null) {
+
+							final String uuid = action.getUuid();
+
+							try {
+
+								final FlowDataSource _dataSource = action.getDataSource();
+
+								// make data available to action if present
+								if (_dataSource != null) {
+									context.setData(uuid, _dataSource.get(context));
+								}
+
+								// Evaluate script and write result to context
+								Object result = Scripting.evaluate(context.getActionContext(action.getSecurityContext(), action), action, "${" + _script.trim() + "}", "FlowAction(" + uuid + ")");
+								context.setData(uuid, result);
+
+							} catch (FrameworkException fex) {
+
+								throw new FlowException(fex, action);
 							}
-
-							// Evaluate script and write result to context
-							Object result = Scripting.evaluate(context.getActionContext(action.getSecurityContext(), action), action, "${" + _script.trim() + "}", "FlowAction(" + uuid + ")");
-							context.setData(uuid, result);
-
-						} catch (FrameworkException fex) {
-
-							throw new FlowException(fex, action);
 						}
 					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowActionTraitDefinition.SCRIPT_PROPERTY,                          flowBaseNode.as(FlowAction.class).getScript());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -125,10 +148,10 @@ public class FlowActionTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
-		final Property<NodeInterface> exceptionHandler     = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> exceptionHandler     = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> script                      = new StringProperty(SCRIPT_PROPERTY);
 
 		return newSet(

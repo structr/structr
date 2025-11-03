@@ -174,7 +174,7 @@ public class FlowTest extends StructrUiTest {
 			flowScriptCondition.setScript("true");
 			conditions.add(flowScriptCondition);
 
-			// Update flowAnd with it's new conditions
+			// Update flowAnd with its new conditions
 			flowAnd.setConditions(conditions);
 
 			result = Iterables.toList(container.evaluate(securityContext, new HashMap<>()));
@@ -312,7 +312,7 @@ public class FlowTest extends StructrUiTest {
 			FlowComparison flowComparison = app.create(StructrTraits.FLOW_COMPARISON).as(FlowComparison.class);
 			flowComparison.setFlowContainer(container);
 			flowComparison.setDecisions(List.of(flowDecision));
-			flowComparison.setDataSource(dataSource);
+			flowComparison.setDataSources(List.of(dataSource));
 			flowComparison.setValueSource(valueSource);
 			flowComparison.setOperation(FlowComparison.Operation.equal);
 
@@ -426,6 +426,31 @@ public class FlowTest extends StructrUiTest {
 
 
 	//"Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
+
+	}
+
+	@Test
+	public void testFlowStartNode() {
+
+		try (final Tx tx = app.tx()) {
+
+			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowStartNode").as(FlowContainer.class);
+
+			FlowLog flowLog = app.create(StructrTraits.FLOW_LOG).as(FlowLog.class);
+			flowLog.setFlowContainer(container);
+			flowLog.setScript("'FlowLog start node is working.'");
+			container.setStartNode(flowLog);
+
+			container.evaluate(securityContext, new HashMap<>());
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
 
 	}
 

@@ -83,7 +83,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 								} catch (FrameworkException fex) {
 
-									logger.warn("Unable to set relationship property {} of relationship {} to {}: {}", new Object[] { propertyKey, rel.getUuid(), val, fex.getMessage() } );
+									logger.warn("Unable to set relationship property {} of relationship {} to {}: {}", propertyKey, rel.getUuid(), val, fex.getMessage());
 								}
 							}
 						}
@@ -94,7 +94,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 				@Override
 				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractRelationship rel) {
-					logger.warn("Unable to set properties of relationship {}: {}", new Object[] { rel.getUuid(), t.getMessage() } );
+					logger.warn("Unable to set properties of relationship {}: {}", rel.getUuid(), t.getMessage());
 				}
 
 				@Override

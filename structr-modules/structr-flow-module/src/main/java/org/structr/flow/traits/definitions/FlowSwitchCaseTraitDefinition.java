@@ -27,15 +27,20 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.impl.FlowSwitchCase;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -50,14 +55,33 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
-			GetFlowType.class,
-			new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Switch;
+				GetFlowType.class,
+				new GetFlowType() {
+
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Switch;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowSwitchCaseTraitDefinition.CASE_PROPERTY,                        flowBaseNode.as(FlowSwitchCase.class).getSwitchCase());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -70,9 +94,9 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> switchNode = new StartNode(SWITCH_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
+		final Property<NodeInterface> switchNode = new StartNode(traitsInstance, SWITCH_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
 		final Property<String> switchCase        = new StringProperty(CASE_PROPERTY);
 
 		return newSet(

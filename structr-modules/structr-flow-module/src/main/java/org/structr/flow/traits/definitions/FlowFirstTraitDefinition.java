@@ -18,19 +18,23 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowFirst;
 import org.structr.flow.traits.operations.DataSourceOperations;
 
 import java.util.Iterator;
 import java.util.Map;
+import org.structr.flow.traits.operations.GetExportData;
 
 public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -43,44 +47,62 @@ public class FlowFirstTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowDataSource _dataSource = node.getDataSource();
-					if (_dataSource != null) {
+						final FlowDataSource _dataSource = node.getDataSource();
+						if (_dataSource != null) {
 
-						final String uuid = node.getUuid();
+							final String uuid = node.getUuid();
 
-						Object currentData = context.getData(uuid);
+							Object currentData = context.getData(uuid);
 
-						if (currentData != null) {
-							return currentData;
-						}
+							if (currentData != null) {
+								return currentData;
+							}
 
-						Object dsData = _dataSource.get(context);
+							Object dsData = _dataSource.get(context);
 
-						if (dsData instanceof Iterable) {
-							Iterable c = (Iterable)dsData;
-							Iterator it = c.iterator();
+							if (dsData instanceof Iterable) {
+								Iterable c = (Iterable)dsData;
+								Iterator it = c.iterator();
 
-							if (it.hasNext()) {
+								if (it.hasNext()) {
 
-								Object data = it.next();
-								context.setData(uuid, data);
-								return data;
+									Object data = it.next();
+									context.setData(uuid, data);
+									return data;
+								}
 							}
 						}
-					}
 
-					return null;
+						return null;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
-					@Override
+
+	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(

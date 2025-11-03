@@ -22,13 +22,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.traits.definitions.FlowParameterDataSourceTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowParameterDataSource extends FlowDataSource implements DeployableEntity {
 
@@ -80,19 +78,5 @@ public class FlowParameterDataSource extends FlowDataSource implements Deployabl
 		final PropertyKey propertyKey = go.getTraits().key(key);
 
 		return go.getProperty(propertyKey);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(FlowParameterDataSourceTraitDefinition.KEY_PROPERTY,                getKey());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 }

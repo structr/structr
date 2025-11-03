@@ -32,6 +32,7 @@ import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -64,13 +65,13 @@ public class ProcessStepTraitDefinition extends AbstractNodeTraitDefinition {
  */
 
     @Override
-    public Set<PropertyKey> getPropertyKeys() {
+    public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-        final Property<NodeInterface>           decisionProperty       = new EndNode(DECISION_PROPERTY, StructrTraits.PROCESS_STEP_LEADS_TO_PROCESS_DECISION);
-        final Property<Iterable<NodeInterface>> parametersProperty     = new EndNodes(PARAMETERS_PROPERTY, StructrTraits.PROCESS_STEP_STEP_PARAMETER_PROCESS_PARAMETER);
-        final Property<Iterable<NodeInterface>> previousStatesProperty = new StartNodes(PREVIOUS_STATES_PROPERTY, StructrTraits.PROCESS_STATE_NEXT_STEP_PROCESS_STEP);
-        final Property<NodeInterface>           processProperty        = new StartNode(PROCESS_PROPERTY, StructrTraits.PROCESS_HAS_STEP_PROCESS_STEP);
-        final Property<Iterable<NodeInterface>> actionMappingsProperty = new StartNodes(ACTION_MAPPINGS_PROPERTY, StructrTraits.ACTION_MAPPING_TRIGGERS_PROCESS_STEP);
+        final Property<NodeInterface>           decisionProperty       = new EndNode(traitsInstance, DECISION_PROPERTY, StructrTraits.PROCESS_STEP_LEADS_TO_PROCESS_DECISION);
+        final Property<Iterable<NodeInterface>> parametersProperty     = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.PROCESS_STEP_STEP_PARAMETER_PROCESS_PARAMETER);
+        final Property<Iterable<NodeInterface>> previousStatesProperty = new StartNodes(traitsInstance, PREVIOUS_STATES_PROPERTY, StructrTraits.PROCESS_STATE_NEXT_STEP_PROCESS_STEP);
+        final Property<NodeInterface>           processProperty        = new StartNode(traitsInstance, PROCESS_PROPERTY, StructrTraits.PROCESS_HAS_STEP_PROCESS_STEP);
+        final Property<Iterable<NodeInterface>> actionMappingsProperty = new StartNodes(traitsInstance, ACTION_MAPPINGS_PROPERTY, StructrTraits.ACTION_MAPPING_TRIGGERS_PROCESS_STEP);
 
         return newSet(
                 decisionProperty,

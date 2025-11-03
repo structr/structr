@@ -19,8 +19,8 @@
 package org.structr.web.traits.wrappers;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -74,7 +74,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 
 		final PropertyKey<Iterable<NodeInterface>> key = traits.key(PagePathTraitDefinition.PARAMETERS_PROPERTY);
 
-		return Iterables.map(wrappedObject.getProperty(key), n -> n.as(PagePathParameter.class));
+		return Iterables.map(n -> n.as(PagePathParameter.class), wrappedObject.getProperty(key));
 	}
 
 	@Override
@@ -158,7 +158,7 @@ public class PagePathTraitWrapper extends AbstractNodeTraitWrapper implements Pa
 	public Map<String, PagePathParameter> getMappedParameters() {
 
 		final Map<String, PagePathParameter> map = new LinkedHashMap<>();
-		final List<PagePathParameter> sorted     = Iterables.asList(getParameters());
+		final List<PagePathParameter> sorted     = Iterables.toList(getParameters());
 		final Traits traits                      = Traits.of(StructrTraits.PAGE_PATH_PARAMETER);
 
 		// sort by position

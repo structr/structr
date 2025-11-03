@@ -19,8 +19,6 @@
 package org.structr.websocket;
 
 import com.google.gson.*;
-import graphql.language.Document;
-import graphql.parser.Parser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -31,15 +29,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
-import org.structr.core.graphql.GraphQLRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.rest.GraphObjectGSONAdapter;
 import org.structr.core.rest.JsonInputGSONAdapter;
-import org.structr.rest.serialization.GraphQLWriter;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.io.IOException;
-import java.io.StringWriter;
 import java.lang.reflect.Type;
 import java.util.LinkedList;
 import java.util.List;
@@ -248,86 +242,53 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 
 			int count = 0;
 
-			if ("GRAPHQL".equals(src.getCommand())) {
+			if (src.getView() != null) {
 
 				try {
+					propertyView.set(null, src.getView());
 
-					final List<? extends GraphObject> list = Iterables.toList(srcResult);
-					if (!list.isEmpty()) {
+				} catch (FrameworkException fex) {
 
-						final GraphObject firstResultObject   = list.get(0);
-						final SecurityContext securityContext = firstResultObject.getSecurityContext();
-
-						final StringWriter output = new StringWriter();
-
-						final String query = (String) src.getNodeData().get("query");
-						final Document doc = GraphQLRequest.parse(new Parser(), query);
-
-						final GraphQLWriter graphQLWriter  = new GraphQLWriter(false);
-						graphQLWriter.stream(securityContext, output, new GraphQLRequest(securityContext, doc, query));
-
-						JsonElement graphQLResult = new JsonParser().parse(output.toString());
-						root.add("result", graphQLResult);
-
-					} else {
-
-						root.add("result", new JsonArray());
-					}
-
-				} catch (IOException | FrameworkException ex) {
-
-					logger.warn("Unable to set process GraphQL query", ex);
+					logger.warn("Unable to set property view", fex);
 				}
 
 			} else {
 
-				if (src.getView() != null) {
+				try {
+					propertyView.set(null, PropertyView.Ui);
 
-					try {
-						propertyView.set(null, src.getView());
+				} catch (FrameworkException fex) {
 
-					} catch (FrameworkException fex) {
-
-						logger.warn("Unable to set property view", fex);
-					}
-
-				} else {
-
-					try {
-						propertyView.set(null, PropertyView.Ui);
-
-					} catch (FrameworkException fex) {
-
-						logger.warn("Unable to set property view", fex);
-					}
-
+					logger.warn("Unable to set property view", fex);
 				}
-
-				final JsonArray result = new JsonArray();
-
-				for (GraphObject obj : srcResult) {
-
-					result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
-					count++;
-				}
-
-				root.add("result", result);
 
 			}
 
-			// set / calculate result count after iteration (faster!)
-			if (srcResult instanceof ResultStream s) {
+			final JsonArray result = new JsonArray();
 
-				final SecurityContext securityContext = src.getSecurityContext();
+			for (GraphObject obj : srcResult) {
 
-				root.add("rawResultCount", toJsonPrimitive(s.calculateTotalResultCount(null, securityContext.getSoftLimit(s.getPageSize()))));
-
-			} else {
-
-				root.add("rawResultCount", toJsonPrimitive(count));
+				result.add(graphObjectSerializer.serialize(obj, System.currentTimeMillis()));
+				count++;
 			}
+
+			root.add("result", result);
 
 		}
+
+		// set / calculate result count after iteration (faster!)
+		if (srcResult instanceof ResultStream s) {
+
+			final SecurityContext securityContext = src.getSecurityContext();
+
+			root.add("rawResultCount", toJsonPrimitive(s.calculateTotalResultCount(null, securityContext.getSoftLimit(s.getPageSize()))));
+
+		} else {
+
+			root.add("rawResultCount", toJsonPrimitive(src.getRawResultCount()));
+		}
+
+
 
 		return root;
 	}

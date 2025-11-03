@@ -22,6 +22,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -32,7 +33,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
@@ -76,10 +76,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return PolyglotWrapper.wrap(actionContext, nodeInterface.getPath(actionContext.getSecurityContext()));
 
 				case "createdDate":
-					return this.node.getCreatedDate();
+					return PolyglotWrapper.wrap(actionContext, this.node.getCreatedDate());
 
 				case "lastModifiedDate":
-					return this.node.getLastModifiedDate();
+					return PolyglotWrapper.wrap(actionContext, this.node.getLastModifiedDate());
 
 				case "visibleToPublicUsers":
 					return this.node.isVisibleToPublicUsers();
@@ -108,11 +108,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				}
 
 				return method.getProxyExecutable(actionContext, node);
-
-			} else if (key.equals("grant")) {
-
-				// grant() on GraphObject needs special handling
-				return new GrantFunction(actionContext, node);
 			}
 
 			final Traits traits = node.getTraits();
@@ -121,7 +116,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return null;
 			}
 
-			final PropertyKey propKey = traits.key(key);
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(key) : traits.key(key));
+
 			if (propKey != null) {
 
 				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.isArray())) {
@@ -203,13 +200,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			if (node != null) {
 
-				// Special handling for grant-Function
-				if (key.equals("grant")) {
-					return true;
-				}
-
 				final Traits traits       = node.getTraits();
-				final boolean hasProperty = traits != null && traits.hasKey(key);
+				final boolean hasProperty = (traits != null && traits.hasKey(key)) || Settings.AllowUnknownPropertyKeys.getValue(false);
 
 				return hasProperty || Methods.resolveMethod(traits, key) != null;
 
@@ -233,27 +225,39 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			try {
 
-				final PropertyKey propKey = node.getTraits().key(key);
+				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+				final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? node.getTraits().keyOrGenericProperty(key) : node.getTraits().key(key));
 
 				// fixme: how to compare types here?
-				if (propKey != null && unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
+				if (propKey != null) {
 
-					final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
+					if (!(propKey instanceof GenericProperty)) {
 
-					if (inputConverter != null) {
+						if (unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
 
-						try {
+							final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
 
-							unwrappedValue = inputConverter.convert(unwrappedValue);
+							if (inputConverter != null) {
 
-						} catch (ClassCastException ex) {
+								try {
 
-							throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+									unwrappedValue = inputConverter.convert(unwrappedValue);
+
+								} catch (ClassCastException ex) {
+
+									throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+								}
+							}
+
+						} else {
+
+							// key does not exist and generic property is not desired => log warning
+							logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
 						}
 					}
-				}
 
-				node.setProperty(propKey, unwrappedValue);
+					node.setProperty(propKey, unwrappedValue);
+				}
 
 			} catch (FrameworkException ex) {
 
@@ -265,23 +269,35 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	@Override
 	public boolean removeMember(String key) {
 
-		final PropertyKey propKey = node.getTraits().key(key);
+		final boolean isGraphObjectMap = (node instanceof GraphObjectMap);
+		final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || isGraphObjectMap;
 
-		if (node instanceof GraphObjectMap) {
+		final Traits traits       = node.getTraits();
+		final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(key) : traits.key(key));
+
+		if (isGraphObjectMap) {
 
 			if (((GraphObjectMap) node).containsKey(propKey)) {
 
 				((GraphObjectMap) node).remove(propKey);
 				return true;
+
 			} else {
 
 				return false;
 			}
+
 		} else {
 
 			try {
 
 				node.removeProperty(propKey);
+
+				if (propKey instanceof GenericProperty) {
+
+					return true;
+				}
+
 			} catch (FrameworkException ex) {
 
 				throw new RuntimeException(ex);

@@ -26,16 +26,21 @@ import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowScriptCondition;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -53,46 +58,64 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowScriptCondition condition = node.as(FlowScriptCondition.class);
+						final FlowScriptCondition condition = node.as(FlowScriptCondition.class);
 
-					try {
+						try {
 
-						final FlowDataSource _ds = condition.getDataSource();
-						final FlowDataSource _sc = condition.getScriptSource();
-						final String _script     = condition.getScript();
-						final String uuid        = condition.getUuid();
+							final FlowDataSource _ds = condition.getDataSource();
+							final FlowDataSource _sc = condition.getScriptSource();
+							final String _script     = condition.getScript();
+							final String uuid        = condition.getUuid();
 
-						final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
+							final String _dynamicScript = _sc != null ? (String)_sc.get(context) : null;
 
-						if (_script != null || _dynamicScript != null) {
+							if (_script != null || _dynamicScript != null) {
 
-							if (_ds != null) {
-								context.setData(uuid, _ds.get(context));
+								if (_ds != null) {
+									context.setData(uuid, _ds.get(context));
+								}
+
+								final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
+
+								Object result =  Scripting.evaluate(context.getActionContext(condition.getSecurityContext(), condition), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowScriptCondition(" + uuid + ")");
+								context.setData(condition.getUuid(), result);
+
+								return result;
 							}
 
-							final String finalScript = _dynamicScript != null ? _dynamicScript : _script;
+						} catch (FrameworkException fex) {
 
-							Object result =  Scripting.evaluate(context.getActionContext(condition.getSecurityContext(), condition), context.getThisObject(), "${" + finalScript.trim() + "}", "FlowScriptCondition(" + uuid + ")");
-							context.setData(condition.getUuid(), result);
-
-							return result;
+							throw new FlowException(fex, condition);
 						}
 
-					} catch (FrameworkException fex) {
+						return null;
 
-						throw new FlowException(fex, condition);
 					}
+				},
 
-					return null;
+				GetExportData.class,
+				new GetExportData() {
 
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowScriptConditionTraitDefinition.SCRIPT_PROPERTY,                 flowBaseNode.as(FlowScriptCondition.class).getScript());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -105,11 +128,11 @@ public class FlowScriptConditionTraitDefinition extends AbstractNodeTraitDefinit
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> scriptSource         = new StartNode(SCRIPT_SOURCE_PROPERTY, StructrTraits.FLOW_SCRIPT_CONDITION_SOURCE);
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
-		final Property<NodeInterface> exceptionHandler     = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<NodeInterface> scriptSource         = new StartNode(traitsInstance, SCRIPT_SOURCE_PROPERTY, StructrTraits.FLOW_SCRIPT_CONDITION_SOURCE);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> exceptionHandler     = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> script                      = new StringProperty(SCRIPT_PROPERTY);
 
 		return newSet(

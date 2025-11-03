@@ -30,13 +30,18 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -48,18 +53,42 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
-			OnCreation.class,
-			new OnCreation() {
+				OnCreation.class,
+				new OnCreation() {
 
-				@Override
-				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-					graphObject.setVisibility(true, true);
+					@Override
+					public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+						graphObject.setVisibility(true, true);
+					}
 				}
-			}
+		);
+	}
+
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
+				}
 		);
 	}
 
@@ -72,10 +101,10 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> flowContainer = new StartNode(FLOW_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_BASE_NODE).indexed();
-		final Property<NodeInterface> dataSource    = new StartNode(DATA_SOURCE_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> flowContainer = new StartNode(traitsInstance, FLOW_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_BASE_NODE).indexed();
+		final Property<NodeInterface> dataSource    = new StartNode(traitsInstance, DATA_SOURCE_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
 		return newSet(
 			flowContainer,
@@ -90,7 +119,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-					FLOW_CONTAINER_PROPERTY
+				FLOW_CONTAINER_PROPERTY
 			)
 		);
 	}

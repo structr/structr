@@ -48,7 +48,7 @@ import java.util.*;
 public class ServicePrincipal implements Principal {
 
 	private final Map<String, Object> data  = new LinkedHashMap<>();
-	private SecurityContext securityContext = null;
+	private final SecurityContext securityContext = null;
 	private List<String> jwksReferenceIds   = null;
 	private List<Group> groups              = null;
 	private boolean isAdmin                 = false;
@@ -209,11 +209,6 @@ public class ServicePrincipal implements Principal {
 
 	@Override
 	public Iterable<NodeInterface> getOwnedNodes() {
-		return Collections.EMPTY_LIST;
-	}
-
-	@Override
-	public Iterable<Group> getGroups() {
 		return Collections.EMPTY_LIST;
 	}
 

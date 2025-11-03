@@ -1,0 +1,73 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@font-face {
+  font-family: 'Sora';
+  font-style:  normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("Sora-Thin.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: 'Sora';
+  font-style:  normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("Sora-ExtraLight.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: 'Sora';
+  font-style:  normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("Sora-Light.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: 'Sora';
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("Sora-Regular.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: 'Sora';
+  font-style:  normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("Sora-SemiBold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: 'Sora';
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("Sora-Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: 'Sora';
+  font-style:  normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("Sora-ExtraBold.woff2") format("woff2");
+}

@@ -18,7 +18,6 @@
  */
 package org.structr.files.ssh.filesystem.path.file;
 
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -69,7 +68,7 @@ public class StructrFilesRootPath extends StructrPath {
 			boolean closed = false;
 
 			@Override
-			public @NotNull Iterator<Path> iterator() {
+			public Iterator<Path> iterator() {
 
 				if (!closed) {
 

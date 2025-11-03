@@ -326,15 +326,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			isValid = false;
 		}
 
-		try {
-			if (isValid) {
-				session.setAuthenticated();
-			}
-
-		} catch (IOException ex) {
-			logger.error("Unable to authenticate session", ex);
-		}
-
 		return isValid;
 	}
 

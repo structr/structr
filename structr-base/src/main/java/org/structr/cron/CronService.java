@@ -29,14 +29,19 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.concurrent.TimeUnit;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  * A service that keeps track of registered tasks and runs
@@ -112,12 +117,47 @@ public class CronService extends Thread implements RunnableService {
 
 									} else {
 
-										SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+										final SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
 
 										try (final Tx tx = StructrApp.getInstance(superUserSecurityContext).tx()) {
 
-											// check for schema method with the given name
-											Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP);
+											if (!taskClassName.contains(".")) {
+
+												// check for user-defined function with the given name
+												Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP);
+
+											} else {
+
+												final String[] parts = taskClassName.split("\\.");
+
+												if (parts.length == 2) {
+
+													final String typeName   = parts[0];
+													final String methodName = parts[1];
+
+													if (Traits.exists(typeName)) {
+
+														final AbstractMethod method = Methods.resolveMethod(Traits.of(typeName), methodName);
+
+														if (method != null) {
+
+															method.execute(superUserSecurityContext, null,  new NamedArguments(), new EvaluationHints());
+
+														} else {
+
+															logger.warn("Unable to run cron task '{}'. No method '{}' found on type/service class '{}'!", taskClassName, methodName, typeName);
+														}
+
+													} else {
+
+														logger.warn("Unable to run cron task '{}'. No type/service class '{}' found!", taskClassName, typeName);
+													}
+
+												} else {
+
+													logger.warn("Unable to run cron task '{}'. Expected only 2 parts!", taskClassName);
+												}
+											}
 
 											tx.success();
 										}

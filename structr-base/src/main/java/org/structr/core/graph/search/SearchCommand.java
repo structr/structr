@@ -19,6 +19,7 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.Predicate;
+import org.structr.api.UnknownClientException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.Operation;
@@ -67,7 +68,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 	public abstract Factory<S, T> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page);
 	public abstract boolean isRelationshipSearch();
-	public abstract Index<S> getIndex(final boolean isFulltextSearch);
+	public abstract Index<S> getIndex();
 
 
 	@Override
@@ -144,7 +145,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				rootGroup.setSortOrder(sortOrder);
 			}
 
-			final Index<S> index = getIndex(config.isFulltextSearch);
+			final Index<S> index = getIndex();
 			if (index != null) {
 
 				// paging needs to be done AFTER instantiating all nodes
@@ -153,7 +154,13 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				}
 
 				// do query
-				indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, pageSize, page));
+				try {
+					indexHits = Iterables.map(factory, index.query(getQueryContext(), rootGroup, pageSize, page));
+
+				} catch (UnknownClientException uclex) {
+
+					throw new FrameworkException(500, uclex.getMessage());
+				}
 
 				if (comparator != null) {
 
@@ -284,10 +291,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			if (attr instanceof RelationshipVisibilitySearchAttribute) {
 				config.hasRelationshipVisibilitySearch = true;
-			}
-
-			if (attr instanceof FulltextSearchAttribute) {
-				config.isFulltextSearch = true;
 			}
 		}
 	}
@@ -495,15 +498,14 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	// ----- public static methods -----
-	public static boolean isTypeAssignableFromOtherType (final Traits type1, final Traits type2) {
+	public static boolean isTypeAssignableFromOtherType (final Traits desiredType, final Traits actualType) {
 
-		final Set<String> traits1 = type1.getAllTraits();
-		final Set<String> traits2 = type2.getAllTraits();
+		final Set<String> actualTraits = new LinkedHashSet<>(actualType.getAllTraits());
 
-		traits1.retainAll(traits2);
+		// Types are assignable if the type name of type1 is contained in the list of traits of type2
+		final String typeNameOfDesiredType = desiredType.getName();
 
-		// fixme: how do we determine assignability with traits?!
-		return !traits1.isEmpty();
+		return actualTraits.contains(typeNameOfDesiredType);
 	}
 
 	private String getQueryDescription() {
@@ -577,6 +579,5 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		public boolean hasSpatialSource                = false;
 		public boolean hasEmptySearchFields            = false;
 		public boolean hasRelationshipVisibilitySearch = false;
-		public boolean isFulltextSearch                = false;
 	}
 }

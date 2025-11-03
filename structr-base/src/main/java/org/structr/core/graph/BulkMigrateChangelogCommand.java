@@ -90,9 +90,8 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 		if (propertyContainer.hasProperty(changeLogName)) {
 
 			final Object changeLogSource   = propertyContainer.getProperty(changeLogName);
-			if (changeLogSource instanceof String) {
+			if (changeLogSource instanceof String existingChangeLog) {
 
-				final String existingChangeLog = (String)changeLogSource;
 				if (StringUtils.isNotBlank(existingChangeLog)) {
 
 					if (writeChangelogToDisk(obj, existingChangeLog)) {
@@ -115,16 +114,16 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 				final String uuid           = obj.getUuid();
 				final String typeFolderName = obj.isNode() ? "n" : "r";
 				final File file             = ChangelogFunction.getChangeLogFileOnDisk(typeFolderName, uuid, true);
-				final StringBuilder buf     = new StringBuilder();
 
 				// prepend existing data
-				buf.append(changeLogValue);
 
-				// read file data
-				buf.append(FileUtils.readFileToString(file, "utf-8"));
+				String buf = changeLogValue +
+
+					// read file data
+					FileUtils.readFileToString(file, "utf-8");
 
 				// write concatenated data
-				FileUtils.write(file, buf.toString(), "utf-8", false);
+				FileUtils.write(file, buf, "utf-8", false);
 
 				return true;
 			}

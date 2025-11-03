@@ -1,0 +1,395 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@charset "UTF-8";
+
+#crud-main {
+	height: calc(100% - 2rem);
+	margin: 0 2rem 2rem 2rem;
+	display: flex;
+}
+
+#crud-left {
+	margin-right: 2rem;
+	display: flex;
+	flex-direction: column;
+}
+
+#crudTypesSearch {
+	margin: 0 1rem .75rem .5rem;
+}
+
+#crud-types-list, #crud-recent-types-list {
+	padding: 1px 0 0 0;
+	margin: 0;
+	overflow-y: scroll;
+}
+
+#crud-types-list:not(:has(:not(.hidden))):before {
+	content: 'No types matching filters. Adjust the filters above.';
+	padding-left: .75rem;
+	padding-right: .75rem;
+}
+
+#crud-left .crud-type {
+	border-bottom: 1px solid var(--light-gray-bg-f7);
+	border-top: 1px solid var(--light-gray-bg-f7);
+	margin-top: -1px;
+	padding: 6px 8px 6px 10px;
+	cursor: pointer;
+	height: 18px;
+}
+
+#crud-left .crud-type.active {
+	background-color: var(--config-structr-green);
+}
+
+#crud-left .crud-type:hover {
+	background-color: var(--config-structr-green);
+	z-index: 99;
+}
+
+#crud-top {
+	display: inline-block;
+}
+
+#crud-top #crud-refresh-list {
+	margin-left: 1rem;
+}
+
+.resourceBox h2 {
+	margin: .25rem 0 1rem .5rem;
+}
+
+#crud-type-detail {
+	overflow: auto;
+	height: 100%;
+	width: calc(100% - 1rem);
+}
+
+.resourceBox {
+	background: var(--solid-white) ! important;
+	position: relative;
+	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+}
+
+#crud-type-detail .crud-message {
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+#crud-type-detail .crud-message .crud-centered {
+	position: relative;
+	top: 50%;
+}
+
+.crud-table {
+	height: calc(100% - 7rem);
+}
+
+.resourceBox table {
+	display: block;
+	overflow: auto;
+	border-collapse: collapse;
+	background: var(--solid-white);
+	width: 100%;
+}
+
+.resourceBox th {
+	padding: .25rem 1rem;
+	text-align: left;
+	vertical-align: top;
+	height: 1em;
+	background-color: var(--light-gray-bg-f3);
+}
+
+.resourceBox td {
+	padding: .5rem 1rem;
+	position: relative;
+}
+
+.resourceBox tr:nth-child(2n) {
+	background: var(--light-gray-bg-f7);
+}
+
+.resourceBox tr:nth-child(2n+1) {
+	background: var(--solid-white);
+}
+
+/* allows table headers to be sticky */
+.crud-table thead th {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	white-space: nowrap;
+	vertical-align: middle;
+	font-weight: 600;
+}
+
+.column-sorted-active {
+	color: var(--active-link) ! important;
+}
+
+.crud-table tbody tr:first-child td {
+	border-top: none;
+}
+
+.crud-table tr td textarea.__value {
+	min-width: 20rem;
+	min-height: 10rem;
+}
+
+.icon-crud-datetime {
+	position: absolute;
+	left: .75rem;
+}
+
+.crud-table tr td .array-attr {
+	justify-content: center;
+}
+
+.crud-table tr td.boolean-attr {
+	text-align: center;
+}
+
+.resourceBox th i {
+	cursor: pointer;
+	display: inline-block;
+	vertical-align: middle;
+	margin-right: .5rem;
+	opacity: .6;
+}
+
+.resourceBox td.save {
+	color: var(--gray-aaa);
+}
+
+.resourceBox td.save.active:hover, .resourceBox .delete:hover, .resourceBox .edit:hover {
+	cursor: pointer;
+}
+
+.resourceBox td.save.active {
+	font-weight: bold;
+	color: var(--medium-red);
+}
+
+input.readonly {
+	background-color: var(--input-background) ! important;
+	color: var(--gray-333);
+}
+
+#query-info {
+	position: absolute;
+	bottom: .75rem;
+	right: 1rem;
+	text-align: right;
+	color: var(--gray-666);
+}
+
+.exportArea, .importArea {
+	border: 1x solid var(--input-field-border);
+	margin: 0;
+	height: calc(100% - .5rem);
+	overflow: auto;
+}
+
+#dialogBoximg.thumbnail {
+	max-width: 100px;
+	max-height: 100px;
+}
+
+#images .node img.thumbnail,
+.resourceBox td img.thumbnail {
+	max-width: 100px;
+	max-height: 100px;
+}
+
+#relatedNodesList .node img.thumbnail {
+	margin-top: 24px;
+	margin-left: -50%;
+}
+
+.resourceBox td .image,
+#relatedNodesList .image {
+	width: 102px;
+	margin-right: 4px;
+}
+
+.resourceBox td .node .remove {
+	position: absolute;
+	right: .5rem;
+}
+
+.crud-clear-value {
+	opacity: .6;
+	position: absolute;
+	right: .5rem;
+	top: .5rem;
+}
+
+.crud-clear-value:hover {
+	cursor: pointer;
+	opacity: .8;
+}
+
+.resourceBox td .thumbnailZoom,
+#relatedNodesList .node .thumbnailZoom {
+	max-width: 300px;
+	max-height: 300px;
+	position: absolute;
+	z-index: 4;
+}
+
+.resourceBox div.wrap,
+#relatedNodesList .node div.wrap {
+	position: relative;
+	margin-bottom: 10px;
+}
+
+.image-info-overlay {
+	position: absolute;
+	top: 8px;
+	left: 8px;
+	padding: 2px 4px;
+	color: black;
+	background-color: white;
+	opacity: .50;
+}
+
+#dialogBox .dialogText div.img {
+	clear: both;
+}
+
+#dialogBox .dialogText .thumbnailZoom {
+	max-width: 776px;
+	max-height: 480px;
+}
+
+.dialogTitle span.id {
+	display: none;
+}
+
+.actions a {
+	display: inline-block;
+	margin: .25rem;
+	vertical-align: middle;
+}
+
+.actions a:hover {
+	cursor: pointer;
+}
+
+/*
+* Search
+*/
+
+.dialogText input.search {
+	margin-right: 12px;
+}
+
+.searchResults {
+	height: 100%;
+	overflow-y: auto;
+	flex-grow: 1;
+}
+
+.searchResults h2 {
+	color: var(--gray-333);
+	clear: both;
+	margin: 12px 0 0 12px;
+}
+
+.searchResults .search-results-info {
+	display: block;
+	margin: 8px 0 4px 12px;
+	color: var(--gray-555);
+	font-size: .9rem;
+}
+
+.dialogText .searchResults h2 {
+	margin-top: -4px;
+}
+
+.searchResults h3 {
+	color: var(--gray-333);
+	clear: both;
+	margin: 0 0 12px 0;
+}
+
+.searchResultGroup {
+	margin: 12px;
+	padding: 8px 12px;
+	clear: both;
+	overflow: hidden;
+}
+
+.searchResults .node {
+	margin: 0 12px 12px 0;
+}
+
+img.loader {
+	vertical-align: middle;
+	margin-right: 12px;
+}
+
+/*
+* (collection) pager
+*/
+.cell-pager > .pageWrapper {
+	border: 1px solid var(--input-field-border);
+	border-radius: .25rem;
+	display: inline-block;
+	padding: 0;
+	background: var(--solid-white) ! important;
+	font-size: 1rem;
+	line-height: 2.3rem;
+	white-space: nowrap;
+}
+
+.cell-pager input.collection-page,
+.cell-pager input.page-count {
+	background-color: var(--solid-white) ! important;
+	width: 1.75rem;
+	border: none;
+	text-align: center;
+	margin: 0;
+}
+
+.cell-pager button {
+	background-color: var(--solid-white);
+	border: 1px solid transparent;
+}
+
+.collection-page-size {
+	margin-left: 1rem;
+	display: inline-block;
+}
+
+.resourceBox .pager {
+	margin: 1rem;
+}
+
+/* addons for ZonedDateTime picker*/
+#ui-datepicker-div.is-zoned { width: 25rem;}
+#ui-datepicker-div.is-zoned .ui_tpicker_time { word-wrap: break-word; }
+#ui-datepicker-div.is-zoned .ui-timepicker-div dl dd { margin: 0 10px 10px 30%; }
+#ui-datepicker-div.is-zoned .ui-timepicker-div select { max-width: 100%; }

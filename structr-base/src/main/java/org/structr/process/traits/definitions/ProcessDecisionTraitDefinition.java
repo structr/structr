@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
@@ -43,11 +44,11 @@ public class ProcessDecisionTraitDefinition extends AbstractNodeTraitDefinition 
  */
 
     @Override
-    public Set<PropertyKey> getPropertyKeys() {
+    public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
         final Property<String>                  conditionProperty      = new StringProperty(CONDITION_PROPERTY).indexed();
-        final Property<Iterable<NodeInterface>> possibleStatesProperty = new EndNodes(POSSIBLE_STATES_PROPERTY, StructrTraits.PROCESS_DECISION_POSSIBLE_STATE_PROCESS_STATE);
-        final Property<NodeInterface>           stepProperty           = new StartNode(STEP_PROPERTY, StructrTraits.PROCESS_STEP_LEADS_TO_PROCESS_DECISION);
+        final Property<Iterable<NodeInterface>> possibleStatesProperty = new EndNodes(traitsInstance, POSSIBLE_STATES_PROPERTY, StructrTraits.PROCESS_DECISION_POSSIBLE_STATE_PROCESS_STATE);
+        final Property<NodeInterface>           stepProperty           = new StartNode(traitsInstance, STEP_PROPERTY, StructrTraits.PROCESS_STEP_LEADS_TO_PROCESS_DECISION);
 
         return newSet(
                 conditionProperty,

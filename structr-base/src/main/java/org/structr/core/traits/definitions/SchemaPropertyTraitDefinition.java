@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -67,6 +68,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String COMPOUND_PROPERTY                   = "compound";
 	public static final String UNIQUE_PROPERTY                     = "unique";
 	public static final String INDEXED_PROPERTY                    = "indexed";
+	public static final String FULLTEXT_PROPERTY                   = "fulltext";
 	public static final String READ_ONLY_PROPERTY                  = "readOnly";
 	public static final String IS_ABSTRACT_PROPERTY                = "isAbstract";
 	public static final String IS_DYNAMIC_PROPERTY                 = "isDynamic";
@@ -76,6 +78,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String CONTENT_HASH_PROPERTY               = "contentHash";
 	public static final String READ_FUNCTION_PROPERTY              = "readFunction";
 	public static final String WRITE_FUNCTION_PROPERTY             = "writeFunction";
+	public static final String WRITE_FUNCTION_WRAP_JS_PROPERTY     = "writeFunctionWrapJS";
+	public static final String READ_FUNCTION_WRAP_JS_PROPERTY      = "readFunctionWrapJS";
 	public static final String IS_SERIALIZATION_DISABLED_PROPERTY  = "isSerializationDisabled";
 	public static final String OPEN_API_RETURN_TYPE_PROPERTY       = "openAPIReturnType";
 	public static final String VALIDATORS_PROPERTY                 = "validators";
@@ -87,7 +91,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -132,11 +136,11 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface>           schemaNode    = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes(SCHEMA_VIEWS_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
-		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes(EXCLUDED_VIEWS_PROPERTY, StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<NodeInterface>           schemaNode    = new StartNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Iterable<NodeInterface>> schemaViews   = new StartNodes(traitsInstance, SCHEMA_VIEWS_PROPERTY, StructrTraits.SCHEMA_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
+		final Property<Iterable<NodeInterface>> excludedViews = new StartNodes(traitsInstance, EXCLUDED_VIEWS_PROPERTY, StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 
 		final Property<String>             declaringUuid           = new StringProperty(DECLARING_UUID_PROPERTY);
 		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
@@ -154,6 +158,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Boolean>            compound                = new BooleanProperty(COMPOUND_PROPERTY);
 		final Property<Boolean>            unique                  = new BooleanProperty(UNIQUE_PROPERTY);
 		final Property<Boolean>            indexed                 = new BooleanProperty(INDEXED_PROPERTY);
+		final Property<Boolean>            fulltext                = new BooleanProperty(FULLTEXT_PROPERTY);
 		final Property<Boolean>            readOnly                = new BooleanProperty(READ_ONLY_PROPERTY);
 		final Property<Boolean>            isAbstract              = new BooleanProperty(IS_ABSTRACT_PROPERTY);
 		final Property<Boolean>            isDynamic               = new BooleanProperty(IS_DYNAMIC_PROPERTY);
@@ -163,6 +168,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String>             contentHash             = new StringProperty(CONTENT_HASH_PROPERTY);
 		final Property<String>             readFunction            = new StringProperty(READ_FUNCTION_PROPERTY);
 		final Property<String>             writeFunction           = new StringProperty(WRITE_FUNCTION_PROPERTY);
+		final Property<Boolean>            writeFunctionWrapJS     = new BooleanProperty(WRITE_FUNCTION_WRAP_JS_PROPERTY).defaultValue(true);
+		final Property<Boolean>            readFunctionWrapJS      = new BooleanProperty(READ_FUNCTION_WRAP_JS_PROPERTY).defaultValue(true);
 		final Property<Boolean>            isSerializationDisabled = new BooleanProperty(IS_SERIALIZATION_DISABLED_PROPERTY);
 		final Property<String>             openAPIReturnType       = new StringProperty(OPEN_API_RETURN_TYPE_PROPERTY);
 		final Property<String[]>           validators              = new ArrayProperty(VALIDATORS_PROPERTY, String.class);
@@ -189,6 +196,7 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			compound,
 			unique,
 			indexed,
+			fulltext,
 			readOnly,
 			isAbstract,
 			isDynamic,
@@ -198,6 +206,8 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 			contentHash,
 			readFunction,
 			writeFunction,
+			readFunctionWrapJS,
+			writeFunctionWrapJS,
 			isSerializationDisabled,
 			openAPIReturnType,
 			validators,
@@ -212,38 +222,33 @@ public class SchemaPropertyTraitDefinition extends AbstractNodeTraitDefinition {
 
 				PropertyView.Public,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
-						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
-						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
-						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
+						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
+						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
+						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				PropertyView.Ui,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
-						DB_NAME_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY, NodeInterfaceTraitDefinition.HIDDEN_PROPERTY,
-						GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
-						GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,
-						SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY, CONTENT_TYPE_PROPERTY,
-						FQCN_PROPERTY, FORMAT_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY, NOT_NULL_PROPERTY,
-						COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
-						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
-						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
+						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
+						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
+						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
+						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				),
 
 				PropertyView.Schema,
 				newSet(
 						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
-						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, EXCLUDED_VIEWS_PROPERTY, SCHEMA_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
+						DB_NAME_PROPERTY, SCHEMA_NODE_PROPERTY, SCHEMA_VIEWS_PROPERTY, EXCLUDED_VIEWS_PROPERTY, PROPERTY_TYPE_PROPERTY,
 						CONTENT_TYPE_PROPERTY, FORMAT_PROPERTY, FQCN_PROPERTY, TYPE_HINT_PROPERTY, HINT_PROPERTY, CATEGORY_PROPERTY,
-						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, READ_ONLY_PROPERTY, DEFAULT_VALUE_PROPERTY,
-						IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY, READ_FUNCTION_PROPERTY,
-						WRITE_FUNCTION_PROPERTY, IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY,
-						TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
+						NOT_NULL_PROPERTY, COMPOUND_PROPERTY, UNIQUE_PROPERTY, INDEXED_PROPERTY, FULLTEXT_PROPERTY, READ_ONLY_PROPERTY,
+						DEFAULT_VALUE_PROPERTY, IS_BUILTIN_PROPERTY_PROPERTY, DECLARING_CLASS_PROPERTY, IS_ABSTRACT_PROPERTY, IS_DYNAMIC_PROPERTY,
+						READ_FUNCTION_PROPERTY, WRITE_FUNCTION_PROPERTY, READ_FUNCTION_WRAP_JS_PROPERTY, WRITE_FUNCTION_WRAP_JS_PROPERTY,
+						IS_SERIALIZATION_DISABLED_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY, VALIDATORS_PROPERTY, TRANSFORMERS_PROPERTY, IS_CACHING_ENABLED_PROPERTY
 				)
 		);
 	}

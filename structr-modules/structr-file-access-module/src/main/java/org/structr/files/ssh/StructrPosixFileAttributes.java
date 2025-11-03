@@ -65,7 +65,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 
 	@Override
 	public GroupPrincipal group() {
-		final List<Group> groups = Iterables.toList(file.as(AccessControllable.class).getOwnerNode().getGroups());
+		final List<Group> groups = Iterables.toList(file.as(AccessControllable.class).getOwnerNode().getParents());
 		return groups != null && groups.size() > 0 ? groups.get(0)::getName : null;
 	}
 

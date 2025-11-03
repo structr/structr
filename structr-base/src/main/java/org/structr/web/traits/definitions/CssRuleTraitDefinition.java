@@ -24,6 +24,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -46,7 +47,7 @@ public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -69,11 +70,11 @@ public class CssRuleTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes(CHILD_RULES_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
-		final Property<NodeInterface> parentRuleProperty           = new StartNode(PARENT_RULE_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
-		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes(SELECTORS_PROPERTY, StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR);
+		final Property<Iterable<NodeInterface>> childRulesProperty = new EndNodes(traitsInstance, CHILD_RULES_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
+		final Property<NodeInterface> parentRuleProperty           = new StartNode(traitsInstance, PARENT_RULE_PROPERTY, StructrTraits.CSS_RULE_CONTAINS_CSS_RULE);
+		final Property<Iterable<NodeInterface>> selectorsProperty  = new EndNodes(traitsInstance, SELECTORS_PROPERTY, StructrTraits.CSS_RULE_HAS_SELECTOR_CSS_SELECTOR);
 		final Property<String> cssTextProperty                     = new StringProperty(CSS_TEXT_PROPERTY).indexed();
 		final Property<Integer>  ruleTypeProperty                  = new IntProperty(RULE_TYPE_PROPERTY).indexed();
 

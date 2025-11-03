@@ -23,13 +23,6 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-ui</artifactId>
-			<version>${project.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
 
 		<!-- Module implementation specific dependencies -->
 
@@ -46,7 +39,7 @@
 		<dependency>
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
-			<version>3.7.1</version>
+			<version>3.9.1</version>
 		</dependency>
 
 		<!-- Pulsar -->
@@ -54,24 +47,6 @@
 			<groupId>org.apache.pulsar</groupId>
 			<artifactId>pulsar-client</artifactId>
 			<version>${pulsar.version}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcpkix-jdk18on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk18on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcutil-jdk18on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-ext-jdk18on</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
 
 		<!-- Tests -->
@@ -102,7 +77,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>

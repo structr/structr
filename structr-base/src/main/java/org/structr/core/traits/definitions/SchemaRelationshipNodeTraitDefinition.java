@@ -41,6 +41,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -61,7 +62,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 
 	public static final String SOURCE_TYPE_PROPERTY                = "sourceType";
 	public static final String TARGET_TYPE_PROPERTY                = "targetType";
-	public static final String NAME_PROPERTY                       = "name";					// FIXME? Why does this type define "name"? (without adding a constraint or something like that)
 	public static final String RELATIONSHIP_TYPE_PROPERTY          = "relationshipType";
 	public static final String SOURCE_MULTIPLICITY_PROPERTY        = "sourceMultiplicity";
 	public static final String TARGET_MULTIPLICITY_PROPERTY        = "targetMultiplicity";
@@ -86,7 +86,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -231,21 +231,23 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
+
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
 					PERMISSION_PROPAGATION_PROPERTY, READ_PROPAGATION_PROPERTY, WRITE_PROPAGATION_PROPERTY, DELETE_PROPAGATION_PROPERTY, ACCESS_CONTROL_PROPAGATION_PROPERTY, PROPERTY_MASK_PROPERTY, IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY
 			),
+
 			PropertyView.Schema,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
+					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY,
 					AbstractSchemaNodeTraitDefinition.SCHEMA_PROPERTIES_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_VIEWS_PROPERTY, AbstractSchemaNodeTraitDefinition.SCHEMA_METHODS_PROPERTY,
 					SOURCE_TYPE_PROPERTY, TARGET_TYPE_PROPERTY, SOURCE_MULTIPLICITY_PROPERTY, TARGET_MULTIPLICITY_PROPERTY, SOURCE_NOTION_PROPERTY, TARGET_NOTION_PROPERTY, RELATIONSHIP_TYPE_PROPERTY,
 					SOURCE_JSON_NAME_PROPERTY, TARGET_JSON_NAME_PROPERTY, CASCADING_DELETE_FLAG_PROPERTY, AUTOCREATION_FLAG_PROPERTY, PREVIOUS_SOURCE_JSON_NAME_PROPERTY, PREVIOUS_TARGET_JSON_NAME_PROPERTY,
@@ -255,15 +257,14 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> sourceNode          = new StartNode(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
-		final Property<NodeInterface> targetNode          = new EndNode(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		final Property<NodeInterface> sourceNode          = new StartNode(traitsInstance, RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		final Property<NodeInterface> targetNode          = new EndNode(traitsInstance, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
 		final Property<String>     sourceId               = new EntityNotionProperty<>(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_NODE, RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_NODE, new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String>     targetId               = new EntityNotionProperty<>(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_NODE, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_NODE, new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String>     sourceType             = new StringProperty(SOURCE_TYPE_PROPERTY);
 		final Property<String>     targetType             = new StringProperty(TARGET_TYPE_PROPERTY);
-		final Property<String>     name                   = new StringProperty(NAME_PROPERTY).indexed();
 		final Property<String>     relationshipType       = new StringProperty(RELATIONSHIP_TYPE_PROPERTY).indexed();
 		final Property<String>     sourceMultiplicity     = new StringProperty(SOURCE_MULTIPLICITY_PROPERTY);
 		final Property<String>     targetMultiplicity     = new StringProperty(TARGET_MULTIPLICITY_PROPERTY);
@@ -278,10 +279,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 		final Property<Boolean>    isPartOfBuiltInSchema  = new BooleanProperty(IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY);
 
 		// permission propagation via domain relationships
-		final Property<String> permissionPropagation    = new EnumProperty(PERMISSION_PROPAGATION_PROPERTY,    PropagationDirection.class).defaultValue(PropagationDirection.None.name());
-		final Property<String> readPropagation          = new EnumProperty(READ_PROPAGATION_PROPERTY,          PropagationMode.class).defaultValue(PropagationMode.Remove.name());
-		final Property<String> writePropagation         = new EnumProperty(WRITE_PROPAGATION_PROPERTY,         PropagationMode.class).defaultValue(PropagationMode.Remove.name());
-		final Property<String> deletePropagation        = new EnumProperty(DELETE_PROPAGATION_PROPERTY,        PropagationMode.class).defaultValue(PropagationMode.Remove.name());
+		final Property<String> permissionPropagation    = new EnumProperty(PERMISSION_PROPAGATION_PROPERTY,     PropagationDirection.class).defaultValue(PropagationDirection.None.name());
+		final Property<String> readPropagation          = new EnumProperty(READ_PROPAGATION_PROPERTY,           PropagationMode.class).defaultValue(PropagationMode.Remove.name());
+		final Property<String> writePropagation         = new EnumProperty(WRITE_PROPAGATION_PROPERTY,          PropagationMode.class).defaultValue(PropagationMode.Remove.name());
+		final Property<String> deletePropagation        = new EnumProperty(DELETE_PROPAGATION_PROPERTY,         PropagationMode.class).defaultValue(PropagationMode.Remove.name());
 		final Property<String> accessControlPropagation = new EnumProperty(ACCESS_CONTROL_PROPAGATION_PROPERTY, PropagationMode.class).defaultValue(PropagationMode.Remove.name());
 		final Property<String> propertyMask             = new StringProperty(PROPERTY_MASK_PROPERTY);
 
@@ -292,7 +293,6 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 			targetId,
 			sourceType,
 			targetType,
-			name,
 			relationshipType,
 			sourceMultiplicity,
 			targetMultiplicity,

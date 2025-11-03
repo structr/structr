@@ -21,13 +21,9 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.api.ThrowingElement;
 import org.structr.flow.traits.definitions.FlowScriptConditionTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowScriptCondition extends FlowCondition implements DeployableEntity, ThrowingElement {
 
@@ -56,19 +52,5 @@ public class FlowScriptCondition extends FlowCondition implements DeployableEnti
 
 	public void setScriptSource(final String scriptSource) throws FrameworkException {
 		wrappedObject.setProperty(traits.key(FlowScriptConditionTraitDefinition.SCRIPT_SOURCE_PROPERTY), scriptSource);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(FlowScriptConditionTraitDefinition.SCRIPT_PROPERTY,                 getScript());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 }

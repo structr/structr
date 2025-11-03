@@ -1,0 +1,274 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#dashboard {
+	height: 100%;
+	margin-bottom: 0;
+}
+
+#dashboard hr {
+	border-top: none;
+	border-bottom: 1px solid var(--input-field-border);
+}
+
+#dashboard .tab-content {
+	height: calc(100% - 4rem);
+	overflow: auto;
+}
+
+#dashboard .tab-content.active {
+	display: block;
+}
+
+#dashboard .tabs-contents {
+	height: calc(100% - 2rem);
+}
+
+#about-structr .props {
+	margin-top: .75rem;
+}
+
+#about-structr .props i {
+	cursor: default;
+}
+
+.heading-narrow {
+	margin: 4px 0;
+}
+
+#params {
+	display: inline-block;
+	width: 50%;
+	vertical-align: top;
+}
+
+.global-method {
+	padding: 1rem .5rem;
+}
+
+.global-method .method-name {
+	font-size: 1rem;
+}
+
+.global-method button.action {
+	margin-left: 1rem;
+	margin-right: 1rem;
+}
+
+.global-method img.icon, .global-method i.icon {
+	vertical-align: bottom;
+	width: 16px;
+	max-height: 16px;
+}
+
+#global-method-comment {
+	display: inline-block;
+	width: 47.5%;
+	margin-left: 2.5%;
+	vertical-align: top;
+}
+
+#dashboard-deployment .inline-info-icon {
+	right: 3rem;
+}
+
+#dashboard-deployment h2 {
+	color: var(--heading-text);
+}
+
+#dashboard-deployment h3 {
+	color: var(--heading-text);
+	font-size: 1.1rem;
+}
+
+#dashboard-deployment table {
+	width: 100%;
+}
+
+#dashboard-deployment td {
+	width: 50%;
+	padding: 0 10px;
+	vertical-align: top;
+}
+
+#dashboard-deployment .deployment-warning {
+	color: red;
+	margin-bottom: 6px;
+	display: inline-block;
+}
+
+#dashboard-deployment label.checkbox-label {
+	display: flex;
+	align-items: center;
+	margin: .25rem 0 1rem 0;
+}
+
+#dashboard-deployment td > div {
+	margin-bottom: 36px;
+}
+
+#dashboard-deployment h3 {
+	margin-top: 0;
+	margin-left: 0;
+}
+
+.options-switch {
+	display: flex;
+}
+
+.options-switch input {
+	position: absolute !important;
+	clip: rect(0, 0, 0, 0);
+	height: 1px;
+	width: 1px;
+	border: 0;
+	overflow: hidden;
+}
+
+.options-switch label {
+	padding: .5rem 1rem;
+	background-color: var(--gray-eee);
+	color: var(--gray-888);
+	line-height: 1.25rem;
+	box-shadow: inset 0 1px 3px rgba(0, 0, 0, .3), 0 1px rgba(255, 255, 255, .1);
+	transition: all .1s ease-in-out;
+}
+
+.options-switch label:hover {
+	cursor: pointer;
+}
+
+.options-switch input:checked + label {
+	background-color: var(--structr-green);
+	color: white;
+	box-shadow: none;
+}
+
+.options-switch label:first-of-type {
+	border-radius: .25rem 0 0 .25rem;
+}
+
+.options-switch label:last-of-type {
+	border-radius: 0 .25rem .25rem 0;
+}
+
+#dashboard-server-log textarea {
+	resize: none;
+	font-family: var(--font-monospace) ! important;
+	font-size: .9rem;
+	line-height: 1rem;
+	border: none;
+	padding: 0;
+}
+
+.textarea-is-scrolled {
+	padding-bottom: .25rem;
+	border-bottom: 2px dashed var(--black-opacity-25);
+	border-radius: 1rem;
+	text-align: center;
+}
+
+.textarea-is-scrolled::after {
+	position: relative;
+	top: -5px;
+	background: white;
+	padding: 0px 20px;
+}
+
+#dashboard-server-log .dashboard-spacer {
+	display: inline-block;
+	width: 10px;
+}
+
+.dashboard-grid-wrapper {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	grid-gap: 2rem 8rem;
+}
+
+.dashboard-grid-wrapper .dashboard-grid-row {
+	grid-column: 1 / 3;
+}
+
+@media screen and (max-width: 900px) {
+	.dashboard-grid-wrapper {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr);
+		grid-gap: 2rem;
+	}
+
+	.dashboard-grid-wrapper .dashboard-grid-row {
+		grid-column: 1 / 1;
+	}
+}
+
+.dashboard-grid-wrapper .dashboard-grid-row hr {
+	margin-right: 2rem;
+}
+
+.menu-order-container {
+}
+
+.menu-order-config-container {
+	padding: 1rem;
+	width: 10rem;
+}
+
+.menu-order-config-container.header {
+	font-weight: bold;
+}
+
+.menu-item {
+	background-color: var(--solid-white);
+	border: none;
+	margin-bottom: .25rem;
+	padding: .5rem 1rem;
+	text-align: center;
+	background-color: var(--header-bg-dark);
+	color: var(--solid-white);
+}
+
+.menu-item:hover {
+	background-color: var(--structr-green);
+}
+
+#clear-local-storage-on-server {
+	margin-top: 2rem;
+}
+
+/* BEGIN: runtime event log */
+
+#dashboard-event-log {
+	overflow: auto;
+}
+
+#event-log-container {
+	font-size: .875rem;
+	font-family: var(--font-monospace);
+}
+
+#event-log-container tr td:first-child {
+	white-space: nowrap;
+}
+/* END: runtime event log */
+
+/* select2 */
+#dashboard .select2-container {
+	margin: 0 0 1rem 0;
+	cursor: pointer;
+}

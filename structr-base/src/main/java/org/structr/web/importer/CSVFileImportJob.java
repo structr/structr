@@ -43,6 +43,7 @@ import org.structr.web.entity.File;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Iterator;
@@ -158,7 +159,7 @@ public class CSVFileImportJob extends FileImportJob {
 
 				final Character fieldSeparator     = delimiter.charAt(0);
 				final Character quoteCharacter     = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType.getName(), fieldSeparator, quoteCharacter, range, reverse(importMappings), rfc4180Mode, strictQuotes);
+				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, StandardCharsets.UTF_8), targetEntityType.getName(), fieldSeparator, quoteCharacter, range, reverse(importMappings), rfc4180Mode, strictQuotes);
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
 				int ignoreCount                    = 0;

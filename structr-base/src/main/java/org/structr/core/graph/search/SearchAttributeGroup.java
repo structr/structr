@@ -386,12 +386,6 @@ public class SearchAttributeGroup<T> extends SearchAttribute<T> implements Query
 		return this;
 	}
 
-	@Override
-	public <P> QueryGroup<T> fulltext(final PropertyKey<P> key, final String value) {
-		searchItems.add(new FulltextSearchAttribute(key, value));
-		return this;
-	}
-
 	// ----- interface Query<T> -----
 	@Override
 	public QueryContext getQueryContext() {

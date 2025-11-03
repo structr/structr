@@ -30,6 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
@@ -56,7 +57,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 			OnCreation.class, new OnCreation() {
@@ -94,7 +95,7 @@ public class SessionDataNodeTraitDefinition extends AbstractNodeTraitDefinition 
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>  sessionIdProperty    = new StringProperty(SESSION_ID_PROPERTY).indexed();
 		final Property<String>  contextPathProperty  = new StringProperty(CONTEXT_PATH_PROPERTY);

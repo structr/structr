@@ -101,6 +101,7 @@ public interface JsonSchema {
 	String KEY_COMPOUND                 = "compound";
 	String KEY_UNIQUE                   = "unique";
 	String KEY_INDEXED                  = "indexed";
+	String KEY_FULLTEXT                 = "fulltext";
 	String KEY_DEFAULT                  = "default";
 	String KEY_CASCADE                  = "cascade";
 	String KEY_CREATE                   = "create";
@@ -110,6 +111,8 @@ public interface JsonSchema {
 	String KEY_TARGET_NAME              = "targetName";
 	String KEY_READ_FUNCTION            = "readFunction";
 	String KEY_WRITE_FUNCTION           = "writeFunction";
+	String KEY_WRITE_FUNCTION_WRAP_JS   = "writeFunctionWrapJS";
+	String KEY_READ_FUNCTION_WRAP_JS    = "readFunctionWrapJS";
 	String KEY_TYPE_HINT                = "typeHint";
 	String KEY_ACL_RESOLUTION           = "aclResolution";
 	String KEY_ACL_READ_MASK            = "aclReadMask";

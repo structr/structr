@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.feed.entity.RemoteDocument;
@@ -48,7 +49,7 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String> urlProperty              = new StringProperty(URL_PROPERTY);
 		final Property<String> contentTypeProperty      = new StringProperty(CONTENT_TYPE_PROPERTY);
@@ -71,7 +72,7 @@ public class RemoteDocumentTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.NAME_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY, URL_PROPERTY, CONTENT_TYPE_PROPERTY
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY, URL_PROPERTY, CONTENT_TYPE_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

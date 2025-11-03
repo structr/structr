@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
@@ -89,9 +90,9 @@ public class ChunkCommand extends AbstractCommand {
 				return;
 			}
 
-			if (!fileNode.is("File")) {
+			if (!fileNode.is(StructrTraits.FILE)) {
 				logger.warn("Node {} is not a file", uuid);
-				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " is not a filee").code(400).build(), true);
+				getWebSocket().send(MessageBuilder.status().message("Node " + uuid + " is not a file").code(400).build(), true);
 				return;
 			}
 

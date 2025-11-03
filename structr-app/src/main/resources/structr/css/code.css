@@ -1,0 +1,192 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#code-contents-container {
+	/*margin-left: 2px;*/
+	/*margin-right: 9px;*/
+}
+
+#code-context-container {
+	margin-left: 2rem;
+}
+
+#code-contents {
+	position: relative;
+}
+
+#code-contents h2 {
+	margin: 0 0 1rem 0;
+	/*border-bottom: 1px solid var(--gray-ccc);*/
+}
+
+#code-contents h4 {
+	margin: 0.25rem 0 0.5rem;
+	display: inline-block;
+}
+
+#code-contents #property-buttons {
+	clear: both;
+}
+
+#code-contents #property-buttons button {
+	border: 1px solid var(--gray-ddd);
+}
+
+#code-contents .action-button {
+	position: relative;
+	color: var(--gray-444);
+	margin: 0 12px 12px 0;
+	height: inherit;
+	box-sizing: content-box;
+}
+
+#code-contents .action-button .action-button-icon {
+	text-align: center;
+}
+
+#code-context .code-favorite {
+	display: flex;
+	gap: .5rem;
+	margin: .5rem;
+	border: 1px solid var(--gray-eee);
+	cursor: pointer;
+}
+
+#code-context .code-favorite:hover {
+	background-color: var(--main-background);
+}
+
+#code-context .code-favorite.active {
+	background-color: var(--gray-eee);
+}
+
+#code-contents .schema-props {
+	table-layout: auto;
+	border: none;
+}
+
+#code-contents .schema-props .select2-sortable {
+	border: none;
+}
+
+#code-contents #property-options label,
+#code-contents #view-options label {
+	width: 100%;
+	padding: 4px 0 4px 0;
+}
+
+#code-contents .input label {
+	font-weight: 600;
+}
+
+#code-contents .input label.checkbox {
+	font-weight: normal;
+}
+
+#code-contents #property-options input[type="text"],
+#code-contents #property-options select,
+#code-contents #method-options input[type="text"],
+#code-contents #view-options input[type="text"],
+#code-contents #openapi-options input[type="text"] {
+	width: calc(100% - 1.5rem - 2px);
+}
+
+#code-contents input[type="checkbox"] {
+	vertical-align: middle;
+}
+
+#code-contents #openapi-options .input {
+	margin-top: 4px;
+}
+
+#code-contents #openapi-options #add-parameter-button {
+	margin: 0 ! important;
+	border: 0;
+	padding: 0;
+	height: 21px;
+}
+
+#code-contents #openapi-options .method-parameter-grid {
+	display: grid;
+}
+
+#code-contents #openapi-options .method-parameter-heading {
+	font-weight: 600;
+}
+
+#code-contents #openapi-options .method-parameter,
+#code-contents #openapi-options .method-parameter-heading {
+	grid-template-columns: 4fr 15fr 20fr 30fr 18fr 4fr;
+	display: grid;
+	grid-gap: 6px;
+	margin-top: 4px;
+}
+
+#code-contents #openapi-options .method-parameter input {
+	width: calc(100% - 1.5rem);
+}
+
+#code-contents #openapi-options .method-parameter-delete button {
+	height: 100%;
+	width: 100%;
+	padding: 0;
+	margin: 0 ! important;
+}
+
+/* BEGIN: schema grants editor */
+table#schema-grants {
+	width: 100%;
+	margin-top: 16px;
+}
+
+table#schema-grants tr:nth-child(even) {
+	background-color: var(--light-gray-bg-f7);
+}
+
+table#schema-grants tr:nth-child(odd) {
+	background-color: var(--solid-white);
+}
+
+table#schema-grants th:first-child, table#schema-grants td:first-child {
+	text-align: left;
+}
+
+table#schema-grants th, table#schema-grants td {
+	text-align: center;
+}
+/* END: schema grants editor */
+
+ul#usage-tree {
+	max-height: 400px;
+}
+
+#tabView-source .property-code {
+	width: 100%;
+}
+
+h2.has-changes::after {
+	content: "*";
+}
+
+#type-actions, #create-type-actions {
+	background-color: white;
+}
+
+li.highlight-name > a {
+	font-weight: bold;
+}

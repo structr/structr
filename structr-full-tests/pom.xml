@@ -166,25 +166,25 @@
         </dependency>
     </dependencies>
 
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>${maven.plugin.jar.version}</version>
-                <configuration>
-                    <archive>
-                        <manifestSection>
-                            <Name>Structr</Name>
-                            <manifestEntries>
-                                <Structr-Module-Name>full-tests</Structr-Module-Name>
-                            </manifestEntries>
-                        </manifestSection>
-                    </archive>
-                    <outputDirectory>${structr.lib.directory}</outputDirectory>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+<!--    <build>-->
+<!--        <plugins>-->
+<!--            <plugin>-->
+<!--                <artifactId>maven-jar-plugin</artifactId>-->
+<!--                <version>${maven.plugin.jar.version}</version>-->
+<!--                <configuration>-->
+<!--                    <archive>-->
+<!--                        <manifestSection>-->
+<!--                            <Name>Structr</Name>-->
+<!--                            <manifestEntries>-->
+<!--                                <Structr-Module-Name>full-tests</Structr-Module-Name>-->
+<!--                            </manifestEntries>-->
+<!--                        </manifestSection>-->
+<!--                    </archive>-->
+<!--                    <outputDirectory>${structr.lib.directory}</outputDirectory>-->
+<!--                </configuration>-->
+<!--            </plugin>-->
+<!--        </plugins>-->
+<!--    </build>-->
 
 </project>
 

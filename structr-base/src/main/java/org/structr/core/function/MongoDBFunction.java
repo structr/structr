@@ -67,7 +67,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, t.getMessage(), sources);
+				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[] { getName(), t.getMessage(), sources });
 			}
 
 			return data;

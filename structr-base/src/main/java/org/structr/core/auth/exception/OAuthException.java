@@ -26,7 +26,7 @@ import org.structr.common.error.FrameworkException;
  */
 public class OAuthException extends FrameworkException {
 
-	private boolean isSilent;
+	private final boolean isSilent;
 
 	public OAuthException(final String message, final boolean isSilent) {
 

@@ -1,0 +1,793 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@charset "UTF-8";
+
+#flows-canvas {
+	/*height: calc(100% - 34px);*/
+	padding: 0;
+}
+
+#flows-canvas-container {
+	/*height: calc(100vh - 8rem);*/
+	height: 100%;
+	width: 100%;
+}
+
+/*#flows-canvas-container button.run_flow_icon {*/
+/*	position: absolute;*/
+/*	right: 29px;*/
+/*}*/
+
+/*#flows-canvas-container button.reset_view_icon {*/
+/*	position: absolute;*/
+/*	right: 124px;*/
+/*}*/
+
+/*#flows-canvas-container button.layout_icon {*/
+/*	position: absolute;*/
+/*	right: 220px;*/
+/*}*/
+
+/*****************************************************************************/
+
+#nodeEditor {
+	width: 100%;
+}
+.node-editor {
+	background-color: transparent;
+	background-image: none;
+	overflow: hidden;
+}
+.node-editor * {
+	box-sizing: border-box;
+}
+.node-editor .node {
+	border-radius: 1rem;
+	cursor: pointer;
+	display: inline-block;
+	height: auto;
+	padding-bottom: 1rem;
+	box-sizing: content-box;
+	position: absolute;
+	min-width: 10rem;
+	color: var(--gray-555);
+	background-color: var(--light-gray-bg-f3);
+	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
+    margin: 0 ! important;
+    opacity: .9;
+	border: 1px solid var(--black-opacity-125);
+	padding: 0;
+}
+.node-editor .node:hover {
+	background-color: var(--medium-light-gray-e0);
+}
+.node-editor .node.selected {
+    background: var(--medium-light-gray-e0) ! important;
+    border-color: var(--structr-green) ! important;
+}
+.node-editor .node .startNode {
+	background-color: var(--structr-green);
+}
+.node-editor .node .startNode:hover {
+    background-color: var(--structr-light-green);
+}
+.node-editor .node .title {
+	text-align: center;
+	/*font-size: 18px;*/
+	padding: .5rem;
+	overflow: hidden;
+	border: none;
+	font-family: inherit;
+	color: var(--body-text);
+	font-weight: normal;
+	border-top-left-radius: .5rem;
+	border-top-right-radius: .5rem;
+}
+.node-editor .node content {
+	display: table;
+	width: 100%;
+}
+.node-editor .node content column {
+	display: table-cell;
+	white-space: nowrap;
+}
+.node-editor .node content column:not(:last-child) {
+	padding-right: 20px;
+}
+.node-editor .node .socket {
+	display: inline-block;
+	cursor: pointer;
+	border: 2px solid white;
+	border-radius: 8px;
+	width: 16px;
+	height: 16px;
+	margin: 10px;
+	vertical-align: middle;
+	background: transparent;
+	position: relative;
+	z-index: 2;
+}
+.node-editor .node .socket:after {
+	content: "";
+	position: absolute;
+	width: 0;
+	height: 0;
+	top: 3px;
+	left: 16px;
+	display: inline-block;
+	border-style: solid;
+	border-width: 4px 0 4px 2.66667px;
+	border-color: transparent transparent transparent var(--gray-555);
+}
+.node-editor .node .socket.multiple {
+	border-color: yellow; }
+.node-editor .node .socket:hover {
+	border: 2px solid white; }
+.node-editor .node .socket.input.used {
+	background-color: white; }
+.node-editor .node .socket.input:not(.used) {
+	background-color: var(--light-gray-delete-b3); }
+.node-editor .node .socket.input:hover {
+	background-color: white; }
+.node-editor .node .socket.input.dataSource.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.dataSource:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.dataSource:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.dataSources.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.dataSources:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.dataSources:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.valueSource.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.valueSource:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.valueSource:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.prev.used {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.input.prev:not(.used) {
+	background-color: var(--dark-green); }
+.node-editor .node .socket.input.prev:hover {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.input.condition.used {
+	background-color: orange; }
+.node-editor .node .socket.input.condition:not(.used) {
+	background-color: var(--dark-ocker); }
+.node-editor .node .socket.input.condition:hover {
+	background-color: orange; }
+.node-editor .node .socket.input.conditions.used {
+	background-color: orange; }
+.node-editor .node .socket.input.conditions:not(.used) {
+	background-color: var(--dark-ocker); }
+.node-editor .node .socket.input.conditions:hover {
+	background-color: orange; }
+.node-editor .node .socket.input.keyValueSources.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.keyValueSources:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.keyValueSources:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.parameters.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.parameters:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.parameters:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.startValue.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.startValue:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.startValue:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.scriptSource.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.scriptSource:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.scriptSource:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.nodeSource.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.nodeSource:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.nodeSource:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.propertyNameSource.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.propertyNameSource:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.input.propertyNameSource:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.input.handledNodes.used {
+	background-color: red; }
+.node-editor .node .socket.input.handledNodes:not(.used) {
+	background-color: var(--dark-red); }
+.node-editor .node .socket.input.handledNodes:hover {
+	background-color: red; }
+.node-editor .node .socket.input.condition_baseNode.used {
+	background-color: orange; }
+.node-editor .node .socket.input.condition_baseNode:not(.used) {
+	background-color: var(--dark-ocker); }
+.node-editor .node .socket.input.condition_baseNode:hover {
+	background-color: orange; }
+.node-editor .node .socket.input.switch.used {
+	background-color: orange; }
+.node-editor .node .socket.input.switch:not(.used) {
+	background-color: var(--dark-ocker); }
+.node-editor .node .socket.input.switch:hover {
+	background-color: orange; }
+.node-editor .node .socket.output.used {
+	background-color: white; }
+.node-editor .node .socket.output:not(.used) {
+	background-color: var(--light-gray-delete-b3); }
+.node-editor .node .socket.output:hover {
+	background-color: white; }
+.node-editor .node .socket.output.next.used {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.next:not(.used) {
+	background-color: var(--dark-green); }
+.node-editor .node .socket.output.next:hover {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.trueElement.used {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.trueElement:not(.used) {
+	background-color: var(--dark-green); }
+.node-editor .node .socket.output.trueElement:hover {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.falseElement.used {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.falseElement:not(.used) {
+	background-color: var(--dark-green); }
+.node-editor .node .socket.output.falseElement:hover {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.dataTarget.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.output.dataTarget:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.output.dataTarget:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.output.result.used {
+	background-color: orange; }
+.node-editor .node .socket.output.result:not(.used) {
+	background-color: var(--dark-ocker); }
+.node-editor .node .socket.output.result:hover {
+	background-color: orange; }
+.node-editor .node .socket.output.objectDataTarget.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.output.objectDataTarget:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.output.objectDataTarget:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.output.loopBody.used {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.loopBody:not(.used) {
+	background-color: var(--dark-green); }
+.node-editor .node .socket.output.loopBody:hover {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.forkBody.used {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.forkBody:not(.used) {
+	background-color: var(--dark-green); }
+.node-editor .node .socket.output.forkBody:hover {
+	background-color: var(--color-flow-next-light-green); }
+.node-editor .node .socket.output.call.used {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.output.call:not(.used) {
+	background-color: var(--medium-blue); }
+.node-editor .node .socket.output.call:hover {
+	background-color: var(--color-flow-datasource-blue); }
+.node-editor .node .socket.output.exceptionHandler.used {
+	background-color: red; }
+.node-editor .node .socket.output.exceptionHandler:not(.used) {
+	background-color: var(--dark-red); }
+.node-editor .node .socket.output.exceptionHandler:hover {
+	background-color: red; }
+.node-editor .node .socket.output.cases.used {
+	background-color: orange; }
+.node-editor .node .socket.output.cases:not(.used) {
+	background-color: var(--dark-ocker); }
+.node-editor .node .socket.output.cases:hover {
+	background-color: orange; }
+.node-editor .node .input-title, .node-editor .node .output-title {
+	vertical-align: middle;
+	display: inline-block;
+	font-size: 14px;
+	margin: 10px 0;
+	line-height: 16px;
+    color: var(--gray-222);
+    font-family: inherit;
+}
+.node-editor .node .input-control {
+	z-index: 1;
+	vertical-align: middle;
+	display: inline-block;
+}
+.node-editor .node .control {
+	width: 100%;
+	padding: 10px 18px;
+}
+.node-editor .node .control-title {
+	vertical-align: middle;
+	/*display: inline-block;*/
+	/*font-size: 14px;*/
+	/*line-height: 16px;*/
+	margin-left: 1rem;
+    /*color: var(--gray-222);*/
+    /*font-family: inherit;*/
+}
+.node-editor .node .control-textarea {
+	/*vertical-align: middle;*/
+	/*font-family: sans-serif;*/
+	/*font-size: 14px;*/
+	/*line-height: 16px;*/
+	/*min-height: 50px;*/
+	/*overflow: hidden;*/
+	/*color: var(--gray-222);*/
+	/*background-color: var(--light-gray-bg-f3);*/
+	/*cursor: pointer;*/
+}
+.node-editor .node .control-select {
+	/*vertical-align: middle;*/
+	/*font-size: 14px;*/
+	/*line-height: 16px;*/
+	/*width: 100%;*/
+	/*color: var(--gray-222);*/
+	/*background-color: var(--solid-white);*/
+	/*font-family: inherit;*/
+	/*border: 1px solid var(--black-opacity-125);*/
+}
+.node-editor .node .control-text {
+	width: 100%;
+}
+.node-editor .group {
+	border-radius: 16px;
+	background: var(--light-blue-20);
+	cursor: pointer;
+	width: inherit;
+	height: inherit;
+	border: 6px solid transparent;
+	position: absolute;
+}
+.node-editor .group.active {
+	border-color: var(--light-yellow);
+}
+.node-editor .group .group-title {
+	color: white;
+	font-family: sans-serif;
+	font-size: 18px;
+	padding: 12px;
+}
+.node-editor .group .group-handler {
+	background: transparent;
+	width: 40px;
+	height: 40px;
+	position: absolute;
+}
+.node-editor .group .group-handler.right.bottom {
+	cursor: se-resize;
+	right: -10px;
+	bottom: -10px;
+}
+.node-editor .group .group-handler.left.top {
+	cursor: nw-resize;
+	left: -10px;
+	top: -10px;
+}
+.node-editor .group .group-handler.right.top {
+	cursor: ne-resize;
+	right: -10px;
+	top: -10px;
+}
+.node-editor .group .group-handler.left.bottom {
+	cursor: sw-resize;
+	left: -10px;
+	bottom: -10px;
+}
+.node-editor .connections {
+	position: absolute;
+	overflow: visible;
+	pointer-events: none;
+}
+.node-editor .connections .connection {
+	fill: none;
+	stroke: var(--gray-eee);
+	stroke-width: 2px;
+	pointer-events: none;
+}
+.node-editor .connections {
+	position: absolute;
+	overflow: visible;
+	pointer-events: none; }
+
+
+#flows-canvas.focus .connections .connection {
+	stroke-width: 0.5px; }
+#flows-canvas.focus-action .connections .connection.output-loopbody.input-prev,
+#flows-canvas.focus-action .connections .connection.output-forkbody.input-prev,
+#flows-canvas.focus-action .connections .connection.output-next.input-prev,
+#flows-canvas.focus-action .connections .connection.output-falseelement.input-prev,
+#flows-canvas.focus-action .connections .connection.output-trueelement.input-prev {
+	stroke-width: 4px; }
+
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-datasource,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-datasources,
+#flows-canvas.focus-data .connections .connection.output-objectdatatarget.input-keyvaluesources,
+#flows-canvas.focus-data .connections .connection.output-call.input-parameters,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-startvalue,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-scriptsource,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-nodesource,
+#flows-canvas.focus-data .connections .connection.output-datatarget.input-propertynamesource {
+	stroke-width: 4px; }
+
+#flows-canvas.focus-exception .connections .connection.output-exceptionhandler.input-handlednodes {
+	stroke-width: 4px; }
+
+#flows-canvas.focus-logic .connections .connection.output-cases.input-switch,
+#flows-canvas.focus-logic .connections .connection.output-result.input-condition,
+#flows-canvas.focus-logic .connections .connection.output-result.input-conditions,
+#flows-canvas.focus-logic .connections .connection.output-result.input-condition_basenode {
+	stroke-width: 4px; }
+
+.node-editor .connections .connection {
+	fill: none;
+	stroke: var(--gray-eee);
+	stroke-width: 2px;
+	pointer-events: none; }
+.node-editor .connections .connection.active {
+	stroke: var(--gray-aaa); }
+
+.node-editor .connections .connection.output-next.input-prev {
+	stroke: var(--color-flow-next-light-green); }
+.node-editor .connections .connection.output-falseelement.input-prev {
+	stroke: var(--color-flow-next-light-green); }
+.node-editor .connections .connection.output-trueelement.input-prev {
+	stroke: var(--color-flow-next-light-green); }
+.node-editor .connections .connection.output-loopbody.input-prev {
+	stroke: var(--color-flow-next-light-green); }
+.node-editor .connections .connection.output-forkbody.input-prev {
+	stroke: var(--color-flow-next-light-green); }
+
+.node-editor .connections .connection.output-datatarget.input-datasource {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-datatarget.input-datasources {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-datatarget.input-valuesource {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-objectdatatarget.input-keyvaluesources {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-call.input-parameters {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-datatarget.input-startvalue {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-datatarget.input-scriptsource {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-datatarget.input-nodesource {
+	stroke: var(--color-flow-datasource-blue); }
+.node-editor .connections .connection.output-datatarget.input-propertynamesource {
+	stroke: var(--color-flow-datasource-blue); }
+
+.node-editor .connections .connection.output-exceptionhandler.input-handlednodes {
+	stroke: red; }
+
+.node-editor .connections .connection.output-cases.input-switch {
+    stroke: orange; }
+.node-editor .connections .connection.output-result.input-condition {
+	stroke: orange; }
+.node-editor .connections .connection.output-result.input-conditions {
+	stroke: orange; }
+.node-editor .connections .connection.output-result.input-condition_basenode {
+	stroke: orange; }
+
+.node-editor select, .node-editor input, .node-editor select, .node-editor select {
+	width: initial;
+	font-family: var(--font-main) ! important;
+	font-size: 1rem;
+	color: var(--body-text);
+	border: 1px solid var(--input-field-border);
+	padding: .5rem .75rem;
+	border-radius: .25rem;
+	margin: 0;
+	line-height: 1.25rem;
+}
+.context-menu {
+	left: 0;
+	top: 0;
+	position: absolute;
+	margin-top: -20px;
+	border: 1px solid var(--black-opacity-125) ! important;
+	padding: 0 ! important;
+	font-family: inherit ! important;
+}
+.context-menu > .item {
+	border: 1px solid white;
+	margin-left: -80%;
+}
+.context-menu > .item .subitems {
+	position: absolute;
+	display: none;
+	left: 100%;
+	top: 0;
+	border-radius: 10px;
+}
+.context-menu > .item:hover .subitems {
+	display: block;
+}
+.context-menu > .item.have-subitems {
+	padding-right: 16px;
+}
+.context-menu > .item.have-subitems:after {
+	content: "►";
+	position: absolute;
+	opacity: 0.6;
+	right: 5px;
+	top: 5px;
+}
+.context-menu .item {
+	padding: 4px;
+	cursor: pointer;
+	position: relative;
+	font-size: 1em;
+	width: auto ! important;
+	min-width: 200px;
+	color: var(--gray-222) ! important;
+	background-color: var(--solid-white) ! important;
+	border: none ! important;
+	border-bottom: 1px solid var(--black-opacity-125) ! important;
+	border-radius: 0 ! important;
+	padding: 6px ! important;
+	margin: 0;
+	margin-left: 0 ! important;
+}
+.context-menu .item:first-child {
+	border-radius: 0;
+}
+.context-menu .item:last-child {
+	border-bottom: none;
+}
+.context-menu .item:hover {
+	background-color: var(--structr-green) ! important;
+}
+.context-menu .item .subitems {
+	border: 1px solid var(--black-opacity-125) ! important;
+	border-radius: 0 ! important;
+	font-family: inherit ! important;
+}
+.modal {
+	display: none;
+	position: fixed;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	overflow: auto;
+	background-color: black;
+	background-color: var(--black-opacity-40);
+	z-index: 5;
+}
+.modal#editorModal .modal-content {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 60%;
+	height: 40%;
+	color: var(--gray-222) ! important;
+    background-color: var(--light-gray-bg-f3) ! important;
+    border: 1px solid var(--black-opacity-125) ! important;
+    padding: 12px ! important;
+}
+.modal#editorModal .modal-content .CodeMirror {
+	border: 1px solid var(--gray-888);
+	height: 100%;
+}
+.modal#editorModal .modal-content .cm-tab {
+	border-right: 1px solid var(--gray-opacity-25);
+	margin-left: -1px;
+}
+.modal#layoutModal .modal-content {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	min-width: 20%;
+	color: var(--gray-222) ! important;
+    background-color: var(--light-gray-bg-f3) ! important;
+    border: 1px solid var(--black-opacity-125) ! important;
+    padding: 12px ! important;
+}
+.modal#layoutModal .modal-content .layout-controls h2 {
+	font-family: sans-serif;
+    color: inherit ! important;
+	margin-top: 0;
+}
+.modal#layoutModal .modal-content .layout-controls .inline {
+	display: inline-block;
+}
+.modal#layoutModal .modal-content .layout-controls .input-group {
+	vertical-align: middle;
+	line-height: 16px;
+	padding: 10px;
+    background-color: var(--light-gray-bg-f3) ! important;
+    color: var(--gray-222) ! important;
+    font-family: inherit ! important;
+    font-size: inherit ! important;
+    line-height: 16px;
+    border: none ! important;
+    padding: 10px;
+}
+.modal#layoutModal .modal-content .layout-controls .input-group:hover {
+	background-color: var(--solid-white);
+}
+/*.modal#layoutModal .modal-content .layout-controls select, .modal#layoutModal .modal-content .layout-controls button {*/
+/*	vertical-align: middle;*/
+/*	line-height: 16px;*/
+/*    background-color: var(--light-gray-bg-f3) ! important;*/
+/*    color: var(--gray-222) ! important;*/
+/*    font-family: inherit ! important;*/
+/*    font-size: inherit ! important;*/
+/*    line-height: 16px;*/
+/*    border: 1px solid var(--black-opacity-125) ! important;*/
+/*    padding: 2px 4px ! important;*/
+/*}*/
+/*.modal#layoutModal .modal-content .layout-controls select:focus, .modal#layoutModal .modal-content .layout-controls button:focus {*/
+/*	outline: none;*/
+/*	background-color: var(--solid-white);*/
+/*}*/
+/*.modal#layoutModal .modal-content .layout-controls select:hover, .modal#layoutModal .modal-content .layout-controls button:hover {*/
+/*	background-color: var(--solid-white);*/
+/*}*/
+span.close {
+	color: white;
+	float: right;
+	font-size: 40px;
+	font-weight: bold;
+	margin-left: 10px;
+	margin-top: -10px;
+}
+span.close:hover {
+	text-decoration: none;
+	cursor: pointer;
+}
+span.close:focus {
+	text-decoration: none;
+	cursor: pointer;
+}
+.modal-content span.close {
+	color: var(--gray-555);
+	line-height: 1em;
+}
+#executionResult {
+	position: absolute;
+	background-color: var(--black-opacity-25);
+	width: 30%;
+	right: 0;
+	z-index: 9999;
+	padding: 10px;
+	height: auto ! important;
+}
+#executionResult h4 {
+	font-family: sans-serif;
+	color: white;
+}
+#executionResult pre {
+	z-index: auto;
+	border-radius: 5px;
+	border: 1px solid var(--black-opacity-125) ! important;
+	color: var(--gray-222);
+	background-color: var(--solid-white);
+	padding: 5px;
+	overflow: auto;
+	font-size: 1em ! important;
+	margin-top: 27px;
+	line-height: 1.0;
+}
+#executionResult span.close {
+	right: 10px;
+	color: var(--solid-white);
+	margin-top: -22px;
+	display: inline-block;
+    position: absolute;
+}
+.area-selector {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	right: 0;
+	bottom: 0;
+	z-index: 2;
+}
+.area-selector .selection {
+	fill: dimgray;
+	stroke: var(--gray-888);
+	fill-opacity: 0.3;
+	stroke-opacity: 0.7;
+	stroke-width: 2;
+	stroke-dasharray: 5, 5;
+}
+
+.query-builder-container {
+	background-color: var(--light-gray-bg-f3);
+}
+
+.query-operation {
+	position: relative;
+	background-color: var(--light-gray-bg-f3);
+}
+.query-operation.query-sort {
+	margin-top: 12px;
+}
+.query-operation.query-sort .query-key-select {
+	min-width: 50%;
+}
+.query-operation.query-sort .query-order-select {
+	min-width: 20%;
+}
+.query-operation select, .query-operation input {
+	min-width: 20%;
+}
+.query-operation .query-operation-delete {
+	border: 1px solid transparent;
+}
+.query-group-button-delete {
+	position: absolute;
+	z-index: 1;
+	top: 0px;
+	right: -12px;
+	border: 1px solid transparent;
+}
+.query-group {
+	min-width: 400px;
+	position: relative;
+	padding: 0 12px 0 12px;
+	border: 1px solid var(--black-opacity-125) ! important;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
+.query-group .query-controls {
+	margin-left: 0;
+	margin-top: 12px;
+	margin-bottom: 12px;
+}
+.query-group .query-group-operations {
+	position: relative;
+}
+.query-group .query-controls .query-button-group {
+	/*display: inline-block;*/
+}
+.query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not {
+	background-color: var(--light-gray-bg-f3);
+	margin-right: -4px ! important;
+	margin-left: 0 ! important;
+}
+.query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or:hover, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not:hover {
+	background-color: var(--solid-white);
+	margin-right: -4px ! important;
+	margin-left: 0 ! important;
+}
+.query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-and.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-or.active, .query-group .query-controls .query-button-group.query-button-group-operation .query-group-button-not.active {
+	background-color: var(--structr-green);
+	margin-right: -4px ! important;
+	margin-left: 0 ! important;
+}
+.query-button-group button.hidden {
+	display: none ! important;
+}

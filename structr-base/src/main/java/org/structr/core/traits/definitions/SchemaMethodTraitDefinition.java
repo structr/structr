@@ -38,6 +38,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -84,13 +85,14 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	public static final String RETURN_RAW_RESULT_PROPERTY          = "returnRawResult";
 	public static final String HTTP_VERB_PROPERTY                  = "httpVerb";
 	public static final String DELETE_METHOD_PROPERTY              = "deleteMethod";
+	public static final String WRAP_JS_IN_MAIN_PROPERTY            = "wrapJsInMain";
 
 	public SchemaMethodTraitDefinition() {
 		super(StructrTraits.SCHEMA_METHOD);
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -217,10 +219,10 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> parameters         = new EndNodes(PARAMETERS_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
-		final Property<NodeInterface>      schemaNode              = new StartNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY)));
+		final Property<Iterable<NodeInterface>> parameters         = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
+		final Property<NodeInterface>      schemaNode              = new StartNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_NODE_METHOD, new PropertySetNotion<>(newSet(GraphObjectTraitDefinition.ID_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY, AbstractSchemaNodeTraitDefinition.IS_SERVICE_CLASS_PROPERTY)));
 		final Property<String>             staticSchemaNodeName    = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<String>             signature               = new StringProperty(SIGNATURE_PROPERTY).indexed();
 		final Property<String>             virtualFileName         = new StringProperty(VIRTUAL_FILE_NAME_PROPERTY).indexed();
@@ -242,6 +244,7 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 		final Property<Boolean>            returnRawResult         = new BooleanProperty(RETURN_RAW_RESULT_PROPERTY).defaultValue(false);
 		final Property<String>             httpVerb                = new EnumProperty(HTTP_VERB_PROPERTY, newSet("GET", "PUT", "POST", "PATCH", "DELETE")).defaultValue("POST");
 		final Property<Boolean>            deleteMethod            = new BooleanProperty(DELETE_METHOD_PROPERTY).defaultValue(Boolean.FALSE);
+		final Property<Boolean>            wrapJsInMain            = new BooleanProperty(WRAP_JS_IN_MAIN_PROPERTY).defaultValue(Boolean.TRUE);
 
 		return newSet(
 			parameters,
@@ -266,7 +269,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 			isPrivate,
 			returnRawResult,
 			httpVerb,
-			deleteMethod
+			deleteMethod,
+			wrapJsInMain
 		);
 	}
 
@@ -277,22 +281,20 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 					SCHEMA_NODE_PROPERTY, STATIC_SCHEMA_NODE_NAME_PROPERTY, SOURCE_PROPERTY, RETURN_TYPE_PROPERTY,
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY
 			),
 
 			PropertyView.Schema,
@@ -302,7 +304,8 @@ public final class SchemaMethodTraitDefinition extends AbstractNodeTraitDefiniti
 					EXCEPTIONS_PROPERTY, CALL_SUPER_PROPERTY, OVERRIDES_EXISTING_PROPERTY, DO_EXPORT_PROPERTY, CODE_TYPE_PROPERTY,
 					IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY, TAGS_PROPERTY, SUMMARY_PROPERTY, DESCRIPTION_PROPERTY, IS_STATIC_PROPERTY,
 					INCLUDE_IN_OPEN_API_PROPERTY, OPEN_API_RETURN_TYPE_PROPERTY,
-					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, PARAMETERS_PROPERTY
+					IS_PRIVATE_PROPERTY, RETURN_RAW_RESULT_PROPERTY, HTTP_VERB_PROPERTY, WRAP_JS_IN_MAIN_PROPERTY,
+					PARAMETERS_PROPERTY
 			)
 		);
 	}

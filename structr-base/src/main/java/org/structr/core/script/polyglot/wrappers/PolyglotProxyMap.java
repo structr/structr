@@ -65,7 +65,7 @@ public class PolyglotProxyMap implements ProxyObject {
 				map.remove(key);
 			} else {
 
-				map.put(key, value);
+				map.put(key, PolyglotWrapper.unwrap(actionContext, value));
 			}
 		}
 	}

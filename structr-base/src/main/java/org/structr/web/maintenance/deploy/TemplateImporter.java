@@ -43,6 +43,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
@@ -165,13 +166,13 @@ public class TemplateImporter extends HtmlFileImporter {
 
 			} else {
 
-				final String src = new String(Files.readAllBytes(file), Charset.forName("UTF-8"));
+				final String src = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
 
 				final Template template;
 
 				if (byId) {
 
-					logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
+					logger.info("Importing template {} from {}..", templateName, fileName);
 
 					final NodeInterface existingTemplate = app.getNodeById(StructrTraits.DOM_NODE, templateName);
 					if (existingTemplate != null) {
@@ -187,7 +188,7 @@ public class TemplateImporter extends HtmlFileImporter {
 					final String uuid = DeployCommand.getUuidOrNullFromEndOfString(templateName);
 					final String name = templateName.substring(0, templateName.length() - uuid.length() - 1);	// cut off uuid plus the dash
 
-					logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
+					logger.info("Importing template {} from {}..", name, fileName);
 
 					final NodeInterface existingTemplate = app.getNodeById(StructrTraits.DOM_NODE, uuid);
 					if (existingTemplate != null) {
@@ -201,7 +202,7 @@ public class TemplateImporter extends HtmlFileImporter {
 				} else {
 
 					// old export format: only name of template in filename
-					logger.info("Importing template {} from {}..", new Object[] { templateName, fileName } );
+					logger.info("Importing template {} from {}..", templateName, fileName);
 
 					final DOMNode existingTemplate = getExistingTemplate(templateName);
 					if (existingTemplate != null) {

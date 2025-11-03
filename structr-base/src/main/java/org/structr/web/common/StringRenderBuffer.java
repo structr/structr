@@ -26,7 +26,7 @@ package org.structr.web.common;
  */
 public class StringRenderBuffer extends AsyncBuffer {
 
-	private StringBuilder buf = new StringBuilder();
+	private final StringBuilder buf = new StringBuilder();
 
 	@Override
 	public AsyncBuffer append(final String s) {

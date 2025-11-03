@@ -25,17 +25,22 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowNotNull;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowNotNullTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -52,29 +57,44 @@ public class FlowNotNullTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowNotNull notNull               = node.as(FlowNotNull.class);
-					final List<FlowDataSource> _dataSources = Iterables.toList(notNull.getDataSources());
-					if (_dataSources.isEmpty()) {
+						final FlowNotNull notNull               = node.as(FlowNotNull.class);
+						final List<FlowDataSource> _dataSources = Iterables.toList(notNull.getDataSources());
+						if (_dataSources.isEmpty()) {
 
-						return false;
-					}
-
-					for (final FlowDataSource _dataSource : _dataSources) {
-
-						if (_dataSource.get(context) == null) {
 							return false;
 						}
-					}
 
-					return true;
+						for (final FlowDataSource _dataSource : _dataSources) {
+
+							if (_dataSource.get(context) == null) {
+								return false;
+							}
+						}
+
+						return true;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,   flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY, flowBaseNode.getType());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -87,11 +107,11 @@ public class FlowNotNullTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
-		final Property<NodeInterface> condition             = new EndNode(CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
-		final Property<Iterable<NodeInterface>> decision    = new EndNodes(DECISION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
+		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(traitsInstance, DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
+		final Property<NodeInterface> condition             = new EndNode(traitsInstance, CONDITION_PROPERTY, StructrTraits.FLOW_CONDITION_CONDITION);
+		final Property<Iterable<NodeInterface>> decision    = new EndNodes(traitsInstance, DECISION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
 
 		return newSet(
 			dataSources,

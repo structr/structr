@@ -28,6 +28,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -59,11 +60,11 @@ public class ProcessTraitDefinition extends AbstractNodeTraitDefinition {
  */
 
     @Override
-    public Set<PropertyKey> getPropertyKeys() {
+    public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-        final Property<NodeInterface> initialStateProperty               = new EndNode(INITIAL_STATE_PROPERTY, StructrTraits.PROCESS_INITIAL_STATE_PROCESS_STATE);
-        final Property<Iterable<NodeInterface>> processInstancesProperty = new StartNodes(PROCESS_INSTANCES_PROPERTY, StructrTraits.PROCESS_INSTANCE_INSTANCE_OF_PROCESS);
-        final Property<Iterable<NodeInterface>> stepsProperty            = new EndNodes(STEPS_PROPERTY, StructrTraits.PROCESS_HAS_STEP_PROCESS_STEP);
+        final Property<NodeInterface> initialStateProperty               = new EndNode(traitsInstance, INITIAL_STATE_PROPERTY, StructrTraits.PROCESS_INITIAL_STATE_PROCESS_STATE);
+        final Property<Iterable<NodeInterface>> processInstancesProperty = new StartNodes(traitsInstance, PROCESS_INSTANCES_PROPERTY, StructrTraits.PROCESS_INSTANCE_INSTANCE_OF_PROCESS);
+        final Property<Iterable<NodeInterface>> stepsProperty            = new EndNodes(traitsInstance, STEPS_PROPERTY, StructrTraits.PROCESS_HAS_STEP_PROCESS_STEP);
 
         return newSet(
                 initialStateProperty,

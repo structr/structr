@@ -64,6 +64,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	protected boolean compound              = false;
 	protected boolean unique                = false;
 	protected boolean indexed               = false;
+	protected boolean fulltext              = false;
 	protected boolean readOnly              = false;
 	protected boolean serializationDisabled = false;
 
@@ -162,6 +163,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	}
 
 	@Override
+	public boolean isFulltext() {
+		return fulltext;
+	}
+
+	@Override
 	public boolean isAbstract() {
 		return isAbstract;
 	}
@@ -244,8 +250,15 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 	@Override
 	public JsonProperty setIndexed(boolean indexed) {
+		return this.setIndexed(indexed, false);
+	}
 
-		this.indexed = indexed;
+	@Override
+	public JsonProperty setIndexed(boolean indexed, final boolean isFulltext) {
+
+		this.indexed  = indexed;
+		this.fulltext = isFulltext;
+
 		return this;
 	}
 
@@ -313,6 +326,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.COMPOUND_PROPERTY),                  isCompoundUnique());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.UNIQUE_PROPERTY),                    isUnique());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY),                   isIndexed());
+			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY),                  isFulltext());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.NOT_NULL_PROPERTY),                  isRequired());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.READ_ONLY_PROPERTY),                 isReadOnly());
 			getOrCreateProperties.put(traits.key(SchemaPropertyTraitDefinition.IS_ABSTRACT_PROPERTY),               isAbstract());
@@ -361,6 +375,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (source.containsKey(JsonSchema.KEY_INDEXED)) {
 			this.indexed = (Boolean)source.get(JsonSchema.KEY_INDEXED);
+		}
+
+		if (source.containsKey(JsonSchema.KEY_FULLTEXT)) {
+			this.fulltext = (Boolean)source.get(JsonSchema.KEY_FULLTEXT);
 		}
 
 		if (source.containsKey(JsonSchema.KEY_READ_ONLY)) {
@@ -420,7 +438,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setCompound(property.isCompound());
 		setRequired(property.isNotNull());
 		setUnique(property.isUnique());
-		setIndexed(property.isIndexed());
+		setIndexed(property.isIndexed(), property.isFulltext());
 		setReadOnly(property.isReadOnly());
 		setAbstract(property.isAbstract());
 		setSerializationDisabled(property.isSerializationDisabled());
@@ -461,6 +479,10 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 
 		if (indexed) {
 			map.put(JsonSchema.KEY_INDEXED, true);
+		}
+
+		if (fulltext) {
+			map.put(JsonSchema.KEY_FULLTEXT, true);
 		}
 
 		if (readOnly) {
@@ -511,7 +533,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	// ----- static methods -----
 	static StructrPropertyDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
 
-		if (MigrationService.propertyShouldBeRemoved(parent.getName(), name, (String) source.get(JsonSchema.KEY_TYPE), (String) source.get(JsonSchema.KEY_FQCN))) {
+		if (MigrationService.propertyShouldBeRemoved(null, parent.getName(), name, (String) source.get(JsonSchema.KEY_TYPE), (String) source.get(JsonSchema.KEY_FQCN))) {
 			return null;
 		}
 

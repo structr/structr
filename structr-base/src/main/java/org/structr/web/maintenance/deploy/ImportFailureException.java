@@ -31,10 +31,9 @@ public class ImportFailureException extends RuntimeException {
 
 		super(message, cause);
 
-		if (cause instanceof FrameworkException) {
+		if (cause instanceof FrameworkException fex) {
 
 			// copy error buffer contents from wrapped exception
-			final FrameworkException fex = (FrameworkException)cause;
 			this.errorBuffer = fex.getErrorBuffer();
 		}
 	}

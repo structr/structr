@@ -27,7 +27,6 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -168,6 +167,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 			return false;
 		}
 
+		/*
 		@Override
 		public String getResourceSignature() {
 
@@ -181,6 +181,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 
 			return signature;
 		}
+		*/
 
 		@Override
 		public Set<String> getAllowedHttpMethodsForOptionsCall() {

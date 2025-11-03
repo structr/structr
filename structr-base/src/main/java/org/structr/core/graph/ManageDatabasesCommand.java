@@ -236,8 +236,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				Settings.ConnectionUser.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionPassword.getPrefixedSetting(prefix).unregister();
 				Settings.TenantIdentifier.getPrefixedSetting(prefix).unregister();
-				Settings.RelationshipCacheSize.getPrefixedSetting(prefix).unregister();
-				Settings.NodeCacheSize.getPrefixedSetting(prefix).unregister();
 				Settings.UuidCacheSize.getPrefixedSetting(prefix).unregister();
 				Settings.ForceResultStreaming.getPrefixedSetting(prefix).unregister();
 
@@ -294,8 +292,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		settings.put(KEY_USERNAME,                Settings.ConnectionUser.getPrefixedValue(prefix));
 		settings.put(KEY_PASSWORD,                Settings.ConnectionPassword.getPrefixedValue(prefix));
 		settings.put(KEY_TENANT_IDENTIFIER,       Settings.TenantIdentifier.getPrefixedValue(prefix));
-		settings.put(KEY_RELATIONSHIP_CACHE_SIZE, Settings.RelationshipCacheSize.getPrefixedValue(prefix));
-		settings.put(KEY_NODE_CACHE_SIZE,         Settings.NodeCacheSize.getPrefixedValue(prefix));
 		settings.put(KEY_UUID_CACHE_SIZE,         Settings.UuidCacheSize.getPrefixedValue(prefix));
 		settings.put(KEY_FORCE_STREAMING,         Settings.ForceResultStreaming.getPrefixedValue(prefix));
 
@@ -356,7 +352,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		data.put(KEY_NAME,        cleaned);
 
 		// connection cannot be named "default"
-		if ("default".equals((String) data.get(KEY_NAME))) {
+		if ("default".equals(data.get(KEY_NAME))) {
 			errorBuffer.add(new UniqueToken("Connection", "name", "default", null, null));
 		}
 

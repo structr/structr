@@ -34,6 +34,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
@@ -57,7 +58,7 @@ public class Option extends GenericHtmlElementTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> valueProperty          = new StringProperty(VALUE_PROPERTY);
 		final PropertyKey<String> disabledProperty       = new StringProperty(DISABLED_PROPERTY);
@@ -175,9 +176,8 @@ public class Option extends GenericHtmlElementTraitDefinition {
 
 							} else {
 
-								if (currentValue instanceof GraphObjectMap) {
+								if (currentValue instanceof GraphObjectMap map) {
 
-									final GraphObjectMap map = (GraphObjectMap)currentValue;
 									if (map.size() == 1 && map.containsKey(valueKey)) {
 
 										final java.lang.Object value = map.get(valueKey);

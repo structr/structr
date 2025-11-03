@@ -18,11 +18,11 @@
  */
 package org.structr.geo;
 
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.api.geometry.Position;
+import org.geotools.geometry.Position2D;
 import org.geotools.referencing.CRS;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -82,8 +82,8 @@ public class LatLonToUTMFunction extends GeoFunction {
 					final CoordinateReferenceSystem src = CRS.decode("EPSG:4326");
 					final CoordinateReferenceSystem dst = CRS.decode(epsg.toString());
 					final MathTransform transform       = CRS.findMathTransform(src, dst, true);
-					final DirectPosition sourcePt       = new DirectPosition2D(lat, lon);
-					final DirectPosition targetPt       = transform.transform(sourcePt, null);
+					final Position sourcePt             = new Position2D(lat, lon);
+					final Position targetPt             = transform.transform(sourcePt, null);
 					final String code                   = dst.getName().getCode();
 					final int pos                       = code.lastIndexOf(" ") + 1;
 					final String zoneName               = code.substring(pos, code.length() - 1);

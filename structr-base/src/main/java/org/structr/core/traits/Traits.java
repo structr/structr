@@ -34,6 +34,7 @@ public interface Traits {
 	Set<String> getLabels();
 	boolean contains(final String type);
 	<T> PropertyKey<T> key(final String name);
+	<T> PropertyKey<T> keyOrGenericProperty(final String name);
 	boolean hasKey(final String name);
 	String getName();
 	boolean isNodeType();
@@ -44,38 +45,37 @@ public interface Traits {
 	<T extends FrameworkMethod> T getMethod(final Class<T> type);
 	Map<String, AbstractMethod> getDynamicMethods();
 	<T> T as(final Class<T> type, final GraphObject obj);
-	void registerImplementation(final TraitDefinition trait, final boolean isDynamic);
-	Map<String, Map<String, PropertyKey>> removeDynamicTraits();
+	Map<String, Map<String, PropertyKey>> getDynamicTypes();
 	Relation getRelation();
 	Set<TraitDefinition> getTraitDefinitions();
 	boolean isInterface();
 	boolean isAbstract();
-	boolean isBuiltInType();
 	boolean isServiceClass();
 	boolean changelogEnabled();
 	Set<String> getViewNames();
 	Set<String> getAllTraits();
 	boolean isBuiltinType();
+	Traits createCopy(final TraitsInstance traitsInstance);
 
 	// ----- static methods -----
 	static Traits of(final String name) {
-		return TraitsImplementation.of(name);
+		return TraitsManager.getCurrentInstance().getType(name);
 	}
 
 	static Trait getTrait(final String name) {
-		return TraitsImplementation.getTrait(name);
+		return TraitsManager.getCurrentInstance().getTrait(name);
 	}
 
 	static Set<PropertyKey> getPropertiesOfTrait(final String name) {
-		return TraitsImplementation.getPropertiesOfTrait(name);
+		return TraitsManager.getCurrentInstance().getPropertiesOfTrait(name);
 	}
 
 	static Set<PropertyKey> getDefaultKeys() {
-		return TraitsImplementation.getDefaultKeys();
+		return TraitsManager.getCurrentInstance().getDefaultKeys();
 	}
 
 	static Traits ofRelationship(final String type1, final String relType, final String type2) {
-		return TraitsImplementation.ofRelationship(type1, relType, type2);
+		return TraitsManager.getCurrentInstance().ofRelationship(type1, relType, type2);
 	}
 
 	/**
@@ -85,26 +85,26 @@ public interface Traits {
 	 * @return
 	 */
 	static boolean exists(final String name) {
-		return TraitsImplementation.exists(name);
+		return TraitsManager.getCurrentInstance().exists(name);
 	}
 
 	static Set<String> getAllTypes() {
-		return TraitsImplementation.getAllTypes();
+		return TraitsManager.getCurrentInstance().getAllTypes();
 	}
 
 	static Set<String> getAllTypes(final Predicate<Traits> filter) {
-		return TraitsImplementation.getAllTypes(filter);
+		return TraitsManager.getCurrentInstance().getAllTypes(filter);
 	}
 
 	static <T> PropertyKey<T> key(final String type, final String name) {
-		return TraitsImplementation.key(type, name);
+		return TraitsManager.getCurrentInstance().key(type, name);
 	}
 
 	static Set<String> getAllViews() {
-		return TraitsImplementation.getAllViews();
+		return TraitsManager.getCurrentInstance().getAllViews();
 	}
 
 	static Map<String, Map<String, PropertyKey>> clearDynamicSchema() {
-		return TraitsImplementation.clearDynamicSchema();
+		return TraitsManager.getCurrentInstance().getDynamicSchemaTypes();
 	}
 }

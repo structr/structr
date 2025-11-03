@@ -20,6 +20,7 @@ package org.structr.transform.traits.relationship;
 
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -68,7 +69,7 @@ public class VirtualTypevirtualPropertyVirtualProperty extends AbstractRelations
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 

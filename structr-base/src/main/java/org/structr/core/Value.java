@@ -36,7 +36,7 @@ public interface Value<T> {
 	 * @param value the value to be set
 	 * @throws FrameworkException 
 	 */
-	public void set(SecurityContext securityContext, T value) throws FrameworkException;
+	void set(SecurityContext securityContext, T value) throws FrameworkException;
 	
 	/**
 	 * Gets the current value of this value holder.
@@ -44,5 +44,5 @@ public interface Value<T> {
 	 * @param securityContext the security context
 	 * @return the current value
 	 */
-	public T get(SecurityContext securityContext);
+	T get(SecurityContext securityContext);
 }

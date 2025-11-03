@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -124,7 +125,7 @@ public class FunctionProperty<T> extends Property<T> {
 					actionContext.setPredicate(predicate);
 
 					final ScriptConfig scriptConfig = ScriptConfig.builder()
-							.wrapJsInMain(true)
+							.wrapJsInMain(this.readFunctionWrapJS())
 							.build();
 
 					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid, scriptConfig);
@@ -175,12 +176,21 @@ public class FunctionProperty<T> extends Property<T> {
 
 			} else {
 
-				logger.warn("Unable to evaluate function property {}, object was null.", jsonName());
+				logger.warn("Unable to evaluate function property '{}', object was null.", jsonName());
 			}
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception while evaluating read function in Function property '" + jsonName() + "'", t);
+			final String message = "Exception while evaluating read function in Function property '" + jsonName() + "' for node " + target.getUuid();
+
+			if (Settings.LogFunctionsStackTrace.getValue()) {
+
+				logger.warn(message, t);
+
+			} else {
+
+				logger.warn(message + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")");
+			}
 		}
 
 		return null;
@@ -286,7 +296,7 @@ public class FunctionProperty<T> extends Property<T> {
 				ctx.setConstant("value", value);
 
 				final ScriptConfig scriptConfig = ScriptConfig.builder()
-						.wrapJsInMain(true)
+						.wrapJsInMain(this.writeFunctionWrapJS())
 						.build();
 
 				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid, scriptConfig);

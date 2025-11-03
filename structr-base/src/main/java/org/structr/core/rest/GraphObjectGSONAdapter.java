@@ -237,14 +237,12 @@ public class GraphObjectGSONAdapter {
 
 			} catch (Throwable t) {
 
-				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", new Object[] {
-					key.jsonName(),
+				logger.warn("Exception while serializing property {} ({}) of entity {} (value {}) : {}", key.jsonName(),
 					key.getClass(),
 					key.getClass().getDeclaringClass(),
 					value.getClass().getName(),
 					value,
-					t.getMessage()
-				});
+					t.getMessage());
 			}
 
 			return null;

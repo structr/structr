@@ -39,6 +39,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitDefinition;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaRelationshipNodeTraitDefinition;
@@ -756,17 +757,12 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 	}
 
 	@Override
-	public TraitDefinition[] getTraitDefinitions() {
-
-		final List<TraitDefinition> definitions = new ArrayList<>();
-
-		definitions.add(new DynamicRelationshipTraitDefinition(this));
-
-		return definitions.toArray(new TraitDefinition[0]);
+	public TraitDefinition getTraitDefinition(final TraitsInstance traitsInstance) {
+		return new DynamicRelationshipTraitDefinition(traitsInstance, this);
 	}
 
 	@Override
-	public PropertyKey createKey(final SchemaNode entity, final boolean outgoing) throws FrameworkException {
+	public PropertyKey createKey(final TraitsInstance traitsInstance, final SchemaNode entity, final boolean outgoing) throws FrameworkException {
 
 		final String _sourceMultiplicity  = getSourceMultiplicity();
 		final String _targetMultiplicity  = getTargetMultiplicity();
@@ -781,22 +777,22 @@ public class SchemaRelationshipNodeTraitWrapper extends AbstractSchemaNodeTraitW
 
 			if ("1".equals(_targetMultiplicity)) {
 
-				return new EndNode(_propertyName, _className, getNotion(_sourceType, _targetNotion)).dynamic();
+				return new EndNode(traitsInstance, _propertyName, _className, getNotion(_sourceType, _targetNotion)).dynamic();
 
 			} else {
 
-				return new EndNodes(_propertyName, _className, getNotion(_sourceType, _targetNotion)).dynamic();
+				return new EndNodes(traitsInstance, _propertyName, _className, getNotion(_sourceType, _targetNotion)).dynamic();
 			}
 
 		} else {
 
 			if ("1".equals(_sourceMultiplicity)) {
 
-				return new StartNode(_propertyName, _className, getNotion(_targetType, _sourceNotion)).dynamic();
+				return new StartNode(traitsInstance, _propertyName, _className, getNotion(_targetType, _sourceNotion)).dynamic();
 
 			} else {
 
-				return new StartNodes(_propertyName, _className, getNotion(_targetType, _sourceNotion)).dynamic();
+				return new StartNodes(traitsInstance, _propertyName, _className, getNotion(_targetType, _sourceNotion)).dynamic();
 			}
 		}
 	}

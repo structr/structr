@@ -127,7 +127,7 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 			@Override
 			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
-				logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
+				logger.warn("Unable to set properties of node {}: {}", node.getUuid(), t.getMessage());
 			}
 
 			@Override

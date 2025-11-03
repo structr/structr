@@ -46,6 +46,9 @@ public interface JsonType extends Comparable<JsonType> {
 	boolean isInterface();
 	JsonType setIsInterface();
 
+	boolean isServiceClass();
+	JsonType setIsServiceClass();
+
 	boolean isChangelogDisabled();
 	JsonType setIsChangelogDisabled();
 

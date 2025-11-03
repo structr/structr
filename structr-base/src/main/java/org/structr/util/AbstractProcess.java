@@ -69,7 +69,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 			final StringBuilder commandLine = getCommandLine();
 			if (commandLine != null) {
 
-				String[] args = { "/bin/sh", "-c", commandLine.toString() };
+				String[] args = {"/bin/sh", "-c", commandLine.toString() };
 
 				if (shouldLogCommandWhenExecuting()) {
 

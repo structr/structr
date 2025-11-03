@@ -18,10 +18,7 @@
  */
 package org.structr.web.servlet;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
+import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
@@ -56,7 +53,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
@@ -90,7 +86,7 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -973,7 +969,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
 
-		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
+		response.getOutputStream().write(buffer.getBuffer().toString().getBytes(StandardCharsets.UTF_8));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();
 	}
@@ -1154,15 +1150,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 */
 	private Page findPage(final SecurityContext securityContext, final String path, final EditMode edit) throws FrameworkException {
 
-		final Traits traits               = Traits.of(StructrTraits.PAGE);
-		final PropertyKey<String> pathKey = traits.key(PageTraitDefinition.PATH_PROPERTY);
-		final PropertyKey<String> nameKey = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-
-		final PropertyMap attributes = new PropertyMap(pathKey, path);
-		final String name = PathHelper.getName(path);
-		attributes.put(nameKey, name);
-
-		// FIXME
+		final boolean hasMultiplePathParts = StringUtils.countMatches(path, '/') > 1 && !path.startsWith("/html/");
+		final Traits traits                = Traits.of(StructrTraits.PAGE);
+		final PropertyKey<String> pathKey  = traits.key(PageTraitDefinition.PATH_PROPERTY);
+		final PropertyKey<String> nameKey  = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final String name                  = PathHelper.getName(path);
 
 		// Find pages by path or name
 		final List<NodeInterface> possiblePages = StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.PAGE)
@@ -1176,15 +1168,16 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			final Page page = node.as(Page.class);
 
-			if (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page)) {
+			if (!hasMultiplePathParts && (EditMode.CONTENT.equals(edit) || isVisibleForSite(securityContext.getRequest(), page))) {
 
 				return page;
 			}
 		}
 
 		// Check direct access by UUID
-		// FIXME: the length is different depending on the uuid type setting
-		if (name.length() == 32) {
+		final int nameLength = name.length();
+
+		if (nameLength == 32 || nameLength == 36) {
 
 			final NodeInterface possiblePage = StructrApp.getInstance(securityContext).getNodeById(StructrTraits.NODE_INTERFACE, name);
 
@@ -1489,7 +1482,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds + "");
+			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds);
 			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
 
 		} else {
@@ -1600,7 +1593,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				// 2b: stream file to response
 				final InputStream in = file.getInputStream();
-				final String contentType = file.getContentType();
+				// if the file is a dynamic file and we have set a custom contentType response header in the script, use that - otherwise use the content-type of the file
+				final String contentType = file.isTemplate() ? Optional.of(securityContext)
+						.map(SecurityContext::getResponse)
+						.map(ServletResponse::getContentType)
+						.orElse(file.getContentType()) : file.getContentType();;
 
 				if (contentType != null) {
 
@@ -1793,12 +1790,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					} else {
 
-						logger.warn("Unable to find property key {} of type {} defined in key {} used for object resolution.", new Object[] { keyName, className, possiblePropertyName } );
+						logger.warn("Unable to find property key {} of type {} defined in key {} used for object resolution.", keyName, className, possiblePropertyName);
 					}
 
 				} else {
 
-					logger.warn("Unable to find type {} defined in key {} used for object resolution.", new Object[] { className, possiblePropertyName } );
+					logger.warn("Unable to find type {} defined in key {} used for object resolution.", className, possiblePropertyName);
 				}
 			}
 		}
@@ -1893,7 +1890,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				if ("Basic".equals(authType)) {
 
-					final String value   = new String(Base64.decode(authValue), Charset.forName("utf-8"));
+					final String value   = new String(Base64.decode(authValue), StandardCharsets.UTF_8);
 					final String[] parts = value.split(":");
 
 					if (parts.length == 2) {
@@ -1951,7 +1948,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					final URI rel = uri.relativize(uri);
 
 					// concatenate path and query part
-					return URI.create(uri.getPath() + rel.toString()).toString();
+					return URI.create(uri.getPath() + rel).toString();
 
 				} else {
 

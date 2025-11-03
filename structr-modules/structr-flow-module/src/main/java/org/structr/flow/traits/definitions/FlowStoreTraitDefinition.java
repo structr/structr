@@ -26,19 +26,24 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.impl.FlowStore;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -62,38 +67,59 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Store;
-				}
-			},
-
-			DataSourceOperations.class,
-			new DataSourceOperations() {
-
-				@Override
-				public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
-
-					final FlowStore store = dataSource.as(FlowStore.class);
-					final String op       = store.getOperation();
-
-					try {
-
-						if (op != null && op.equals(Operation.retrieve)) {
-
-							store.handleStorage(context);
-						}
-
-					} catch (FlowException ex) {
-
-						logger.error("Exception in FlowStore get: ", ex);
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Store;
 					}
-					return context.getData(store.getUuid());
+				},
+
+				DataSourceOperations.class,
+				new DataSourceOperations() {
+
+					@Override
+					public Object get(final Context context, final FlowDataSource dataSource) throws FlowException {
+
+						final FlowStore store = dataSource.as(FlowStore.class);
+						final String op       = store.getOperation();
+
+						try {
+
+							if (op != null && op.equals(Operation.retrieve)) {
+
+								store.handleStorage(context);
+							}
+
+						} catch (FlowException ex) {
+
+							logger.error("Exception in FlowStore get: ", ex);
+						}
+						return context.getData(store.getUuid());
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final FlowStore flowStore = flowBaseNode.as(FlowStore.class);
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowStore.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowStore.getType());
+						result.put(FlowStoreTraitDefinition.KEY_PROPERTY,                              flowStore.getKey());
+						result.put(FlowStoreTraitDefinition.OPERATION_PROPERTY,                        flowStore.getOperation());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowStore.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowStore.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -106,9 +132,9 @@ public class FlowStoreTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 		final Property<String> operation                   = new EnumProperty(OPERATION_PROPERTY, FlowStore.Operation.class);
 		final Property<String> key                         = new StringProperty(KEY_PROPERTY);
 

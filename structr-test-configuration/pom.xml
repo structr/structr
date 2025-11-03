@@ -9,6 +9,10 @@
 		<version>6.0-SNAPSHOT</version>
 	</parent>
 
+    <properties>
+        <skipDockerTestDB>true</skipDockerTestDB>
+    </properties>
+
 	<artifactId>structr-test-configuration</artifactId>
 	<packaging>pom</packaging>
 	<name>Structr Test Configuration</name>
@@ -28,9 +32,9 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.2.1</version>
+						<version>3.5.4</version>
 						<configuration>
-							<argLine>-Duser.timezone=UTC</argLine>
+							<argLine>-Duser.language=en -Duser.region=GB -Duser.timezone=UTC</argLine>
 							<excludes>
 								<exclude>**/*.java</exclude>
 							</excludes>
@@ -39,12 +43,12 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
-						<version>3.2.1</version>
+						<version>3.5.4</version>
 						<configuration>
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
-							<argLine>-Xms12g -Xmx12g -Duser.timezone=UTC</argLine>
+							<argLine>-Xms2g -Xmx2g -Duser.timezone=UTC</argLine>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
@@ -68,6 +72,11 @@
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
 						<version>0.40.2</version>
+						<configuration>
+						    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+						    <removeMode>all</removeMode>
+						    <keepContainer>false</keepContainer>
+						</configuration>
 						<executions>
 							<execution>
 								<id>prepare-database</id>
@@ -76,6 +85,7 @@
 									<goal>start</goal>
 								</goals>
 								<configuration>
+
 									<images>
 										<image>
 											<name>${test.neo4j.version}</name>
@@ -85,13 +95,13 @@
 													<port>7689:7687</port>
 												</ports>
 												<wait>
-													<log>(.?)Bolt enabled on 0.0.0.0:7687.</log>
+													<log>(.?)Bolt enabled on(.?)</log>
 													<time>20000</time>
 												</wait>
 												<env>
 													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
 													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-													<NEO4J_dbms_memory_heap_max__size>12G</NEO4J_dbms_memory_heap_max__size>
+													<NEO4J_server_memory_heap_max__size>2G</NEO4J_server_memory_heap_max__size>
 													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
 												</env>
 											</run>
@@ -108,6 +118,7 @@
 								</goals>
 								<configuration>
 									<skip>${skipDockerTestDB}</skip>
+                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
 								</configuration>
 							</execution>
 						</executions>
@@ -128,7 +139,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.2.1</version>
+						<version>3.5.4</version>
 						<configuration>
 							<includes>
 								<include>**/*Test.java</include>

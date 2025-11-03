@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -47,8 +46,6 @@ import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFu
 import org.structr.messaging.implementation.pulsar.PulsarClient;
 import org.structr.messaging.traits.definitions.*;
 import org.structr.module.StructrModule;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.io.*;
 import java.nio.charset.Charset;
@@ -63,13 +60,21 @@ public class MessageEngineModule implements StructrModule {
 	@Override
 	public void onLoad() {
 
-		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, new MessageClientHASMessageSubscriber());
+		StructrTraits.registerTrait(new MessageClientHASMessageSubscriber());
+		StructrTraits.registerRelationshipType(StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_CLIENT_HAS_MESSAGE_SUBSCRIBER);
 
-		StructrTraits.registerNodeType(StructrTraits.MESSAGE_CLIENT,     new MessageClientTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.MESSAGE_SUBSCRIBER, new MessageSubscriberTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.KAFKA_CLIENT,       new MessageClientTraitDefinition(), new KafkaClientTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.MQTT_CLIENT,        new MessageClientTraitDefinition(), new MQTTClientTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.PULSAR_CLIENT,      new MessageClientTraitDefinition(), new PulsarClientTraitDefinition());
+		StructrTraits.registerTrait(new MessageClientTraitDefinition());
+		StructrTraits.registerTrait(new MessageSubscriberTraitDefinition());
+		StructrTraits.registerTrait(new KafkaClientTraitDefinition());
+		StructrTraits.registerTrait(new MQTTClientTraitDefinition());
+		StructrTraits.registerTrait(new PulsarClientTraitDefinition());
+
+
+		StructrTraits.registerNodeType(StructrTraits.MESSAGE_CLIENT,     StructrTraits.MESSAGE_CLIENT);
+		StructrTraits.registerNodeType(StructrTraits.MESSAGE_SUBSCRIBER, StructrTraits.MESSAGE_SUBSCRIBER);
+		StructrTraits.registerNodeType(StructrTraits.KAFKA_CLIENT,       StructrTraits.MESSAGE_CLIENT, StructrTraits.KAFKA_CLIENT);
+		StructrTraits.registerNodeType(StructrTraits.MQTT_CLIENT,        StructrTraits.MESSAGE_CLIENT, StructrTraits.MQTT_CLIENT);
+		StructrTraits.registerNodeType(StructrTraits.PULSAR_CLIENT,      StructrTraits.MESSAGE_CLIENT, StructrTraits.PULSAR_CLIENT);
 	}
 
 	@Override
@@ -93,26 +98,6 @@ public class MessageEngineModule implements StructrModule {
 	@Override
 	public Set<String> getFeatures() {
 		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-		// nothing to do
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-		// nothing to do
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
-		return null;
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-		// nothing to do
 	}
 
 	@Override

@@ -23,6 +23,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
@@ -77,7 +78,7 @@ public class DOMNodeCONTAINSDOMNode extends AbstractRelationshipTraitDefinition 
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		return Set.of(
 			position

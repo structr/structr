@@ -163,7 +163,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		final Tag buttons = div.block("p").css("buttons");
 
 		if (isActive()) {
-			buttons.block("a").css("align-left").attr(new Attr("href", adminBackendUrl)).text("Open Structr UI");
+			buttons.block("a").attr(new Attr("href", adminBackendUrl)).text("Open Structr UI");
 			buttons.block("button").css("disconnect-connection hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("data-connection-name", name));
 		} else {
 			buttons.block("button").css("delete-connection").attr(new Attr("type", "button")).text("Remove").attr(new Attr("data-connection-name", name));

@@ -50,7 +50,11 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 
         	try {
 
-			chain.doFilter(request, response);
+		        chain.doFilter(request, response);
+
+	        } catch (Throwable t) {
+
+			t.printStackTrace();
 
 		} finally {
 

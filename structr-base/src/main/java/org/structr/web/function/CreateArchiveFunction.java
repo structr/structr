@@ -93,7 +93,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 						File file = fileOrFolder.as(File.class);
 						addFileToZipArchive(file.getName(), file, zaps);
 
-					} else if (fileOrFolder.is("folder")) {
+					} else if (fileOrFolder.is(StructrTraits.FOLDER)) {
 
 						Folder folder = fileOrFolder.as(Folder.class);
 						addFilesToArchive(folder.getName(), folder.getFiles(), zaps);

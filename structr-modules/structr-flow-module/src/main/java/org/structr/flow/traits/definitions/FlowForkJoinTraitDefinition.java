@@ -26,6 +26,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -57,41 +58,40 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Action;
-				}
-			},
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Action;
+					}
+				},
 
-			ActionOperations.class,
-			new ActionOperations() {
+				ActionOperations.class,
+				new ActionOperations() {
 
-				@Override
-				public void execute(final Context context, final FlowAction action) throws FlowException {
+					@Override
+					public void execute(final Context context, final FlowAction action) throws FlowException {
 
-					try {
+						try {
 
-						final Queue<Future> futures = context.getForkFutures();
-						while(!futures.isEmpty()) {
+							final Queue<Future> futures = context.getForkFutures();
+							while(!futures.isEmpty()) {
 
-							//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
-							Future f = futures.poll();
-							if (f != null) {
+								//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
+								Future f = futures.poll();
+								if (f != null) {
 
-								f.get();
+									f.get();
+								}
 							}
+
+						} catch (ExecutionException | InterruptedException ex) {
+
+							throw new FlowException(ex, action);
 						}
-
-					} catch (ExecutionException | InterruptedException ex) {
-
-						throw new FlowException(ex, action);
 					}
 				}
-			}
-
 		);
 	}
 
@@ -104,9 +104,9 @@ public class FlowForkJoinTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> exceptionHandler = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<NodeInterface> exceptionHandler = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 
 		return newSet(
 			exceptionHandler

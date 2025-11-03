@@ -29,6 +29,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.traits.definitions.ParameterMappingTraitDefinition;
 
@@ -38,6 +39,18 @@ public class ParameterMappingTraitWrapper extends AbstractNodeTraitWrapper imple
 
 	public ParameterMappingTraitWrapper(final Traits traits, final NodeInterface node) {
 		super(traits, node);
+	}
+
+	@Override
+	public ActionMapping getActionMapping() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(ParameterMappingTraitDefinition.ACTION_MAPPING_PROPERTY));
+		if (node != null) {
+
+			return node.as(ActionMapping.class);
+		}
+
+		return null;
 	}
 
 	@Override

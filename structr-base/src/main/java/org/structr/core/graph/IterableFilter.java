@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class IterableFilter<T> implements Iterable<T> {
 
-	private SecurityContext securityContext = null;
+	private final SecurityContext securityContext = null;
 	private Iterator<T> sourceIterator      = null;
 	private Set<Filter<T>> filters          = null;
 

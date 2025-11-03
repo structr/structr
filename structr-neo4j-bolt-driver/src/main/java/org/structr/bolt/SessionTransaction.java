@@ -73,6 +73,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected boolean success                           = false;
 	protected boolean isPing                            = false;
 	protected boolean logPrefetching                    = false;
+	protected boolean isRolledBack                      = false;
 
 	public SessionTransaction(final BoltDatabaseService db) {
 
@@ -125,6 +126,11 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	@Override
 	public long getTransactionId() {
 		return this.transactionId;
+	}
+
+	@Override
+	public boolean isRolledBack() {
+		return isRolledBack;
 	}
 
 	public static void flushCaches() {

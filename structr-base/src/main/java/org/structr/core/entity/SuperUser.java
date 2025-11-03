@@ -36,9 +36,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
-import org.structr.core.traits.definitions.AbstractTraitDefinition;
-import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -691,11 +688,6 @@ public class SuperUser implements Principal {
 	@Override
 	public String getEMail() {
 		return null;
-	}
-
-	@Override
-	public List<Group> getGroups() {
-		return Collections.emptyList();
 	}
 
 	@Override

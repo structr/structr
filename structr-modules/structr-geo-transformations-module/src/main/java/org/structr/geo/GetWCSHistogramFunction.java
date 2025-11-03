@@ -18,11 +18,11 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Geometry;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.processing.CoverageProcessor;
-import org.opengis.coverage.processing.Operation;
-import org.opengis.parameter.ParameterValueGroup;
+import org.locationtech.jts.geom.Geometry;
+import org.geotools.api.coverage.processing.Operation;
+import org.geotools.api.parameter.ParameterValueGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;

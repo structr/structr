@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.scheduler.JobQueueManager;
@@ -45,19 +46,22 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
 		try {
+
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
-			final String jobName           = (sources.length >= 2) ? sources[1].toString() : "Untitled script job";
-			final Object jobFinishedScript = (sources.length == 3) ? sources[2] : null;
+			final String jobName                  = (sources.length >= 2) ? sources[1].toString() : "Untitled script job";
+			final Object jobFinishedScript        = (sources.length == 3) ? sources[2] : null;
+			final SecurityContext securityContext = ctx.getSecurityContext();
+			final ScriptJob job                   = new ScriptJob(securityContext.getCachedUser(), Collections.EMPTY_MAP, sources[0], securityContext.getContextStore(), jobName);
 
-			final ScriptJob job = new ScriptJob(ctx.getSecurityContext().getCachedUser(), Collections.EMPTY_MAP, sources[0], ctx.getSecurityContext().getContextStore(), jobName);
 			job.setOnFinishScript(jobFinishedScript);
 
-
 			TransactionCommand.queuePostProcessProcedure(() -> {
+
 				try {
 
 					JobQueueManager.getInstance().addJob(job);
+
 				} catch (FrameworkException ex) {
 
 					logException(ex, ex.getMessage(), null);

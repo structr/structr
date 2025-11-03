@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 
 import java.util.Map;
 import java.util.Set;
@@ -56,7 +57,7 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<Double> latitudeProperty      = new DoubleProperty(LATITUDE_PROPERTY).indexed();
 		final Property<Double> longitudeProperty     = new DoubleProperty(LONGITUDE_PROPERTY).indexed();
@@ -89,12 +90,12 @@ public final class LocationTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					LocationTraitDefinition.LATITUDE_PROPERTY, LONGITUDE_PROPERTY, ALTITUDE_PROPERTY, COUNTRY_PROPERTY, POSTAL_CODE_PROPERTY, CITY_PROPERTY,
+					LATITUDE_PROPERTY, LONGITUDE_PROPERTY, ALTITUDE_PROPERTY, COUNTRY_PROPERTY, POSTAL_CODE_PROPERTY, CITY_PROPERTY,
 					STREET_PROPERTY, HOUSE_NUMBER_PROPERTY, STATE_PROPERTY, STATE_DISTRICT_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
-					LocationTraitDefinition.LATITUDE_PROPERTY, LONGITUDE_PROPERTY, ALTITUDE_PROPERTY, COUNTRY_PROPERTY, POSTAL_CODE_PROPERTY, CITY_PROPERTY,
+					LATITUDE_PROPERTY, LONGITUDE_PROPERTY, ALTITUDE_PROPERTY, COUNTRY_PROPERTY, POSTAL_CODE_PROPERTY, CITY_PROPERTY,
 					STREET_PROPERTY, HOUSE_NUMBER_PROPERTY, STATE_PROPERTY, STATE_DISTRICT_PROPERTY
 			)
 		);

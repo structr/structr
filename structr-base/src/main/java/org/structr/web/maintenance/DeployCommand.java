@@ -36,6 +36,7 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.VersionHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -58,8 +59,8 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.File;
 import org.structr.web.entity.*;
+import org.structr.web.entity.File;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
@@ -74,7 +75,7 @@ import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 import org.structr.websocket.command.CreateComponentCommand;
 
 import java.io.*;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.nio.file.attribute.*;
 import java.text.DecimalFormat;
@@ -93,7 +94,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private Object customResult = null;
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
-	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
+	private final Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
 
 	protected static final Map<String, Integer> missingPrincipals   = new LinkedHashMap();
 	protected static final Map<String, Integer> ambiguousPrincipals = new LinkedHashMap();
@@ -200,7 +201,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (Files.exists(metadataFile)) {
 
-			try (final Reader reader = Files.newBufferedReader(metadataFile, Charset.forName("utf-8"))) {
+			try (final Reader reader = Files.newBufferedReader(metadataFile, StandardCharsets.UTF_8)) {
 
 				return new HashMap<>(getGson().fromJson(reader, Map.class));
 
@@ -307,7 +308,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				throw new ImportPreconditionFailedException("Source path " + path + " is not a directory.");
 			}
 
-			if (source.isAbsolute() != true) {
+			if (!source.isAbsolute()) {
 
 				throw new ImportPreconditionFailedException("Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			}
@@ -480,7 +481,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			customHeaders.put("end", new Date(endTime).toString());
 			customHeaders.put("duration", duration);
 
-			logger.info("Import from {} done. (Took {})", source.toString(), duration);
+			logger.info("Import from {} done. (Took {})", source, duration);
 
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
@@ -497,7 +498,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (FrameworkException fex) {
 
 			final String title          = "Fatal Error";
-			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex.toString();
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + fex;
 
 			publishWarningMessage(title, warningMessage);
 
@@ -543,7 +544,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Path target  = Paths.get(path);
 
-		if (target.isAbsolute() != true) {
+		if (!target.isAbsolute()) {
 
 			publishWarningMessage("Export not started", "Target path '" + path + "' is not an absolute path - relative paths are not allowed.");
 
@@ -648,10 +649,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Templates");
 			exportTemplates(templates, templatesConf);
 
-			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema Grants");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema Permissions");
 			exportSchemaGrants(schemaGrantsConf);
 
-			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Permissions");
 			exportResourceAccessGrants(grantsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting CORS Settings");
@@ -703,7 +704,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			customHeaders.put("end", new Date(endTime).toString());
 			customHeaders.put("duration", duration);
 
-			logger.info("Export to {} done. (Took {})", target.toString(), duration);
+			logger.info("Export to {} done. (Took {})", target, duration);
 
 			broadcastData.put("end", endTime);
 			broadcastData.put("duration", duration);
@@ -714,9 +715,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final String deploymentTargetIsAFileError = "A file already exists at given path - this should be a directory or not exist at all!";
 
-			logger.warn(deploymentTargetIsAFileError + "" + target.toString());
+			logger.warn(deploymentTargetIsAFileError + target);
 
-			publishWarningMessage("Fatal Error", deploymentTargetIsAFileError + "<br>" + target.toString());
+			publishWarningMessage("Fatal Error", deploymentTargetIsAFileError + "<br>" + target);
 
 		} catch (IOException ex) {
 
@@ -839,7 +840,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final List<Folder> folders    = Iterables.toList(folder.getFolders());
 		final PropertyKey<String> key = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
-		final Comparator comp         = (Comparator) key.sorted(false);
+		final Comparator comp         = key.sorted(false);
 
 		Collections.sort(folders, comp);
 
@@ -882,7 +883,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			} catch (IOException ioex) {
 
-				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
+				logger.warn("Unable to write file {}: {}", targetPath, ioex.getMessage());
 			}
 		}
 
@@ -1142,7 +1143,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportSchemaGrants(final Path target) throws FrameworkException {
 
-		logger.info("Exporting schema grants");
+		logger.info("Exporting schema permissions");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final Traits traits                    = Traits.of(StructrTraits.SCHEMA_GRANT);
@@ -1157,12 +1158,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				grants.add(grant);
 
 				grant.put(GraphObjectTraitDefinition.ID_PROPERTY,                          schemaGrant.getUuid());
-				grant.put("principal",                   Map.of("name", schemaGrant.getPrincipalName()));
-				grant.put(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY,        schemaGrant.getStaticSchemaNodeName());
-				grant.put("allowRead",                   schemaGrant.allowRead());
-				grant.put("allowWrite",                  schemaGrant.allowWrite());
-				grant.put("allowDelete",                 schemaGrant.allowDelete());
-				grant.put("allowAccessControl",          schemaGrant.allowAccessControl());
+				grant.put(SchemaGrantTraitDefinition.PRINCIPAL_PROPERTY,                   Map.of("name", schemaGrant.getPrincipalName()));
+				grant.put(SchemaGrantTraitDefinition.STATIC_SCHEMA_NODE_NAME_PROPERTY,     schemaGrant.getStaticSchemaNodeName());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_READ_PROPERTY,                  schemaGrant.allowRead());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_WRITE_PROPERTY,                 schemaGrant.allowWrite());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_DELETE_PROPERTY,                schemaGrant.allowDelete());
+				grant.put(SchemaGrantTraitDefinition.ALLOW_ACCESS_CONTROL_PROPERTY,        schemaGrant.allowAccessControl());
 
 				// schema node can be null
 				final SchemaNode optionalSchemaNode = schemaGrant.getSchemaNode();
@@ -1180,7 +1181,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private void exportResourceAccessGrants(final Path target) throws FrameworkException {
 
-		logger.info("Exporting resource access grants");
+		logger.info("Exporting resource access permissions");
 
 		final List<Map<String, Object>> grants = new LinkedList<>();
 		final Traits traits                    = Traits.of(StructrTraits.RESOURCE_ACCESS);
@@ -1207,7 +1208,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				final List grantees = (List)grant.get(NodeInterfaceTraitDefinition.GRANTEES_PROPERTY);
 
-				if (res.getProperty(flagsKey) > 0 && res.isVisibleToPublicUsers() == false && res.isVisibleToAuthenticatedUsers() == false && grantees.isEmpty()) {
+				if (res.getProperty(flagsKey) > 0 && !res.isVisibleToPublicUsers() && !res.isVisibleToAuthenticatedUsers() && grantees.isEmpty()) {
 					unreachableGrants.add(res.getProperty(signatureKey));
 				}
 			}
@@ -1217,16 +1218,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (!unreachableGrants.isEmpty()) {
 
-			final String text = "Found configured but unreachable grant(s)! The ability to use group/user rights to grants has been added to improve flexibility.\n\n  The following grants are inaccessible for any non-admin users:\n\n"
+			final String text = "Found configured but unreachable permission(s)! The ability to use group/user rights to permissions has been added to improve flexibility.\n\n  The following permissions are inaccessible for any non-admin users:\n\n"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("  - ").concat(signature).concat("\n"))
 					+ "\n  You can edit the visibility in the 'Security' area.\n";
 
-			final String htmlText = "The ability to use group/user rights to grants has been added to improve flexibility. The following grants are inaccessible for any non-admin users:<br><br>"
+			final String htmlText = "The ability to use group/user rights to permissions has been added to improve flexibility. The following permissions are inaccessible for any non-admin users:<br><br>"
 					+ unreachableGrants.stream().reduce( "", (acc, signature) -> acc.concat("&nbsp;- ").concat(signature).concat("<br>"))
 					+ "<br>You can edit the visibility in the <a href=\"#security\">Security</a> area.";
 
 			deferredLogTexts.add(text);
-			publishWarningMessage("Found configured but unreachable grant(s)", htmlText);
+			publishWarningMessage("Found configured but unreachable permission(s)", htmlText);
 		}
 
 		writeSortedCompactJsonToFile(target, grants, null);
@@ -1453,7 +1454,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, FileTraitDefinition.CACHE_FOR_SECONDS_PROPERTY,         file.getCacheForSeconds());
 		}
 
-		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport());
+		putData(config, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, abstractFile.includeInFrontendExport(false));
 
 		if (abstractFile.is(StructrTraits.LINKABLE)) {
 
@@ -1814,91 +1815,71 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		});
 	}
 
+	private boolean shouldExportActionMapping(final ActionMapping actionMapping) {
+
+		final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements()).stream().filter(domElement -> !domElement.inTrash()).toList();
+
+		return (!triggerElements.isEmpty());
+	}
+
 	private void exportActionMapping(final Path target) throws FrameworkException {
 
 		logger.info("Exporting action mapping");
 
 		final List<Map<String, Object>> actionMappings    = new LinkedList<>();
-
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
 
-			for (final NodeInterface node : app.nodeQuery(StructrTraits.ACTION_MAPPING).getAsList()) {
+			for (final NodeInterface node : app.nodeQuery(StructrTraits.ACTION_MAPPING).sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY)).getAsList()) {
 
 				final Map<String, Object> entry   = new TreeMap<>();
 				final ActionMapping actionMapping = node.as(ActionMapping.class);
 
-				actionMappings.add(entry);
+				if (shouldExportActionMapping(actionMapping)) {
 
-				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             actionMapping.getUuid());
-				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        actionMapping.getName());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, actionMapping.isVisibleToAuthenticatedUsers());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        actionMapping.isVisibleToPublicUsers());
+					actionMappings.add(entry);
 
-				final List<DOMElement> triggerElements = Iterables.toList(actionMapping.getTriggerElements());
-				if (!triggerElements.isEmpty()) {
+					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             actionMapping.getUuid());
+					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        actionMapping.getName());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, actionMapping.isVisibleToAuthenticatedUsers());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        actionMapping.isVisibleToPublicUsers());
 
-					putData(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY, triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.TRIGGER_ELEMENTS_PROPERTY,              Iterables.toList(actionMapping.getTriggerElements()).stream().filter(domElement -> !domElement.inTrash()).map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY,               Iterables.toList(actionMapping.getSuccessTargets()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, Iterables.toList(actionMapping.getSuccessNotificationElements()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY,               Iterables.toList(actionMapping.getFailureTargets()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, Iterables.toList(actionMapping.getFailureNotificationElements()).stream().map(GraphObject::getUuid).toList());
+					putDataIfListNotEmpty(entry, ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY,            Iterables.toList(actionMapping.getParameterMappings()).stream().map(GraphObject::getUuid).toList());
+
+					putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,                         actionMapping.getEvent());
+					putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,                        actionMapping.getAction());
+					putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,                        actionMapping.getMethod());
+					putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,                     actionMapping.getDataType());
+					putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY,                 actionMapping.getIdExpression());
+
+					putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,                   actionMapping.getDialogType());
+					putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY,                  actionMapping.getDialogTitle());
+					putData(entry, ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY,                   actionMapping.getDialogText());
+
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY,             actionMapping.getSuccessBehaviour());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY,                 actionMapping.getSuccessEvent());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY,         actionMapping.getSuccessNotifications());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
+					putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
+
+					putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY,         actionMapping.getFailureNotifications());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
+					putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 				}
-
-				final List<DOMNode> successTargets = Iterables.toList(actionMapping.getSuccessTargets());
-				if (!successTargets.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY, successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				List<DOMNode> successNotificationElements = Iterables.toList(actionMapping.getSuccessNotificationElements());
-				if (!successNotificationElements.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, successNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				final List<DOMNode> failureTargets = Iterables.toList(actionMapping.getFailureTargets());
-				if (!failureTargets.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY, failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				List<DOMNode> failureNotificationElements = Iterables.toList(actionMapping.getFailureNotificationElements());
-				if (!failureNotificationElements.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, failureNotificationElements.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
-				}
-
-				final List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getParameterMappings());
-				if (!parameterMappings.isEmpty()) {
-
-					putData(entry, ActionMappingTraitDefinition.PARAMETER_MAPPINGS_PROPERTY, parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
-				}
-
-				putData(entry, ActionMappingTraitDefinition.EVENT_PROPERTY,         actionMapping.getEvent());
-				putData(entry, ActionMappingTraitDefinition.ACTION_PROPERTY,        actionMapping.getAction());
-				putData(entry, ActionMappingTraitDefinition.METHOD_PROPERTY,        actionMapping.getMethod());
-				putData(entry, ActionMappingTraitDefinition.DATA_TYPE_PROPERTY,     actionMapping.getDataType());
-				putData(entry, ActionMappingTraitDefinition.ID_EXPRESSION_PROPERTY, actionMapping.getIdExpression());
-
-				putData(entry, ActionMappingTraitDefinition.DIALOG_TYPE_PROPERTY,  actionMapping.getDialogType());
-				putData(entry, ActionMappingTraitDefinition.DIALOG_TITLE_PROPERTY, actionMapping.getDialogTitle());
-				putData(entry, ActionMappingTraitDefinition.DIALOG_TEXT_PROPERTY,  actionMapping.getDialogText());
-
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_BEHAVIOUR_PROPERTY,             actionMapping.getSuccessBehaviour());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_EVENT_PROPERTY,                 actionMapping.getSuccessEvent());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PROPERTY,         actionMapping.getSuccessNotifications());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getSuccessNotificationsEvent());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getSuccessNotificationsPartial());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getSuccessNotificationsDelay());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_PARTIAL_PROPERTY,               actionMapping.getSuccessPartial());
-				putData(entry, ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY,                   actionMapping.getSuccessURL());
-
-				putData(entry, ActionMappingTraitDefinition.FAILURE_BEHAVIOUR_PROPERTY,             actionMapping.getFailureBehaviour());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_EVENT_PROPERTY,                 actionMapping.getFailureEvent());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PROPERTY,         actionMapping.getFailureNotifications());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_EVENT_PROPERTY,   actionMapping.getFailureNotificationsEvent());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY, actionMapping.getFailureNotificationsPartial());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_NOTIFICATIONS_DELAY_PROPERTY,   actionMapping.getFailureNotificationsDelay());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_PARTIAL_PROPERTY,               actionMapping.getFailurePartial());
-				putData(entry, ActionMappingTraitDefinition.FAILURE_URL_PROPERTY,                   actionMapping.getFailureURL());
 			}
 
 			tx.success();
@@ -1920,24 +1901,28 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			for (final NodeInterface node : app.nodeQuery(StructrTraits.PARAMETER_MAPPING).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getAsList()) {
 
 				final ParameterMapping parameterMapping = node.as(ParameterMapping.class);
-				final Map<String, Object> entry = new TreeMap<>();
-				parameterMappings.add(entry);
+				final ActionMapping actionMapping       = parameterMapping.getActionMapping();
 
+				if (actionMapping != null && shouldExportActionMapping(actionMapping)) {
 
-				putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             parameterMapping.getUuid());
-				putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        parameterMapping.getName());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, parameterMapping.isVisibleToAuthenticatedUsers());
-				putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        parameterMapping.isVisibleToPublicUsers());
+					final Map<String, Object> entry = new TreeMap<>();
+					parameterMappings.add(entry);
 
-				putData(entry, ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY,    parameterMapping.getParameterType());
-				putData(entry, ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY,    parameterMapping.getParameterName());
-				putData(entry, ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY,    parameterMapping.getConstantValue());
-				putData(entry, ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY, parameterMapping.getScriptExpression());
+					putData(entry, GraphObjectTraitDefinition.ID_PROPERTY,                             parameterMapping.getUuid());
+					putData(entry, NodeInterfaceTraitDefinition.NAME_PROPERTY ,                        parameterMapping.getName());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, parameterMapping.isVisibleToAuthenticatedUsers());
+					putData(entry, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        parameterMapping.isVisibleToPublicUsers());
 
-				DOMElement inputElement = parameterMapping.getInputElement();
-				if (inputElement != null) {
+					putData(entry, ParameterMappingTraitDefinition.PARAMETER_TYPE_PROPERTY,    parameterMapping.getParameterType());
+					putData(entry, ParameterMappingTraitDefinition.PARAMETER_NAME_PROPERTY,    parameterMapping.getParameterName());
+					putData(entry, ParameterMappingTraitDefinition.CONSTANT_VALUE_PROPERTY,    parameterMapping.getConstantValue());
+					putData(entry, ParameterMappingTraitDefinition.SCRIPT_EXPRESSION_PROPERTY, parameterMapping.getScriptExpression());
 
-					putData(entry, ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY, inputElement.getUuid());
+					DOMElement inputElement = parameterMapping.getInputElement();
+					if (inputElement != null) {
+
+						putData(entry, ParameterMappingTraitDefinition.INPUT_ELEMENT_PROPERTY, inputElement.getUuid());
+					}
 				}
 			}
 
@@ -1959,9 +1944,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
+	protected void putDataIfListNotEmpty(final Map<String, Object> target, final String key, final List list) {
+
+		if (!list.isEmpty()) {
+
+			target.put(key, list);
+		}
+	}
+
 	protected List<Map<String, Object>> readConfigList(final Path conf) {
 
-		try (final Reader reader = Files.newBufferedReader(conf, Charset.forName("utf-8"))) {
+		try (final Reader reader = Files.newBufferedReader(conf, StandardCharsets.UTF_8)) {
 
 			return getGson().fromJson(reader, List.class);
 
@@ -1982,7 +1975,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				tx.disableChangelog();
 
-				String confSource = new String(Files.readAllBytes(confFile), Charset.forName("utf-8")).trim();
+				String confSource = new String(Files.readAllBytes(confFile), StandardCharsets.UTF_8).trim();
 
 				if (confSource.length() > 0) {
 
@@ -2027,6 +2020,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try (final Tx tx = app.tx()) {
 
+			context.setIgnoreMissingNodesInDeserialization(true);
+
 			tx.disableChangelog();
 
 			for (final NodeInterface toDelete : app.nodeQuery(type).getAsList()) {
@@ -2056,6 +2051,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.error("Unable to import {}, aborting with {}", type, fex.getMessage(), fex);
 
 			throw fex;
+
+		} finally {
+
+			context.setIgnoreMissingNodesInDeserialization(false);
 		}
 	}
 
@@ -2064,7 +2063,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(schemaGrantsMetadataFile)) {
 
 			logger.info("Reading {}", schemaGrantsMetadataFile);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema grants");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing schema permissions");
 
 			importSchemaGrants(readConfigList(schemaGrantsMetadataFile));
 		}
@@ -2095,7 +2094,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import schema grant, aborting with {}", fex.getMessage(), fex);
+			logger.error("Unable to import schema permission, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 		}
@@ -2106,7 +2105,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (Files.exists(grantsMetadataFile)) {
 
 			logger.info("Reading {}", grantsMetadataFile);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access grants");
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing resource access permissions");
 
 			importResourceAccessGrants(readConfigList(grantsMetadataFile));
 		}
@@ -2168,8 +2167,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						}
 
 						if (hasAnyNonAuthFlags && hasAnyAuthFlags) {
-							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two grants</u></b>.<br>");
-							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two grants**.\n");
+							grantMessagesHtml.append("Signature <b>").append(signature).append("</b> is probably misconfigured and <b><u>should be split into two permissions</u></b>.<br>");
+							grantMessagesText.append("    Signature '").append(signature).append("' is probably misconfigured and **should be split into two permissions**.\n");
 						}
 
 						entry.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, hasAnyAuthFlags);
@@ -2189,7 +2188,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (FrameworkException fex) {
 
-			logger.error("Unable to import resouce access grant, aborting with {}", fex.getMessage(), fex);
+			logger.error("Unable to import resouce access permission, aborting with {}", fex.getMessage(), fex);
 
 			throw fex;
 
@@ -2201,12 +2200,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "    Configuration was auto-updated using this simple heuristic:\n"
 						+ "     * Grants with public access were set to **visibleToPublicUsers: true**\n"
 						+ "     * Grants with authenticated access were set to **visibleToAuthenticatedUsers: true**\n\n"
-						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+						+ "    Please make any necessary changes in the 'Security' area as this may not suffice for your use case. The ability to use group/user rights to permissions has been added to improve flexibility.";
 
 				final String htmlText = "Configuration was auto-updated using this simple heuristic:<br>"
 						+ "&nbsp;- Grants with public access were set to <code>visibleToPublicUsers: true</code><br>"
 						+ "&nbsp;- Grants with authenticated access were set to <code>visibleToAuthenticatedUsers: true</code><br><br>"
-						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to grants has been added to improve flexibility.";
+						+ "Please make any necessary changes in the <a href=\"#security\">Security</a> area as this may not suffice for your use case. The ability to use group/user rights to permissions has been added to improve flexibility.";
 
 				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
 				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
@@ -2554,6 +2553,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final App app                 = StructrApp.getInstance(context);
 
 		context.setDoTransactionNotifications(false);
+		context.setIgnoreMissingNodesInDeserialization(true);
 
 		try (final Tx tx = app.tx()) {
 
@@ -2565,7 +2565,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 				for (final PropertyKey propertyKey : properties.keySet()) {
 
-					final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, true);
+					final PropertyConverter inputConverter = propertyKey.inputConverter(context, true);
 
 					if (inputConverter != null) {
 
@@ -2775,9 +2775,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 										for (final Object propDef : typeDef.getProperties()) {
 
-											if (propDef instanceof StructrFunctionProperty) {
-
-												final StructrFunctionProperty fp = (StructrFunctionProperty)propDef;
+											if (propDef instanceof StructrFunctionProperty fp) {
 
 												if (fp.getReadFunction() != null) {
 

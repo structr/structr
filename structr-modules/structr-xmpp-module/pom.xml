@@ -25,13 +25,6 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-ui</artifactId>
-			<version>${project.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
 			<artifactId>smack-core</artifactId>
 			<version>4.4.6</version>
@@ -88,7 +81,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>

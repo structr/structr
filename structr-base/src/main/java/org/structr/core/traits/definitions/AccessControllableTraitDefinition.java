@@ -39,6 +39,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.accesscontrollable.*;
@@ -61,7 +62,7 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of(
 
 			OnModification.class,         new OnModificationActionVoid(AccessControllableTraitDefinition::clearCaches),
@@ -514,10 +515,11 @@ public final class AccessControllableTraitDefinition extends AbstractNodeTraitDe
 
 		for (final String type : degree.keySet()) {
 
-			final Traits propagatingType = Traits.of(type);
-			if (propagatingType != null) {
+			if (Traits.exists(type)) {
 
-				final Relation relation = propagatingType.getRelation();
+				final Traits propagatingType = Traits.of(type);
+				final Relation relation      = propagatingType.getRelation();
+
 				if (relation != null && !PropagationDirection.None.equals(relation.getPropagationDirection())) {
 
 					// iterate over list of relationships

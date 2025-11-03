@@ -19,22 +19,24 @@
 package org.structr.bolt;
 
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.async.AsyncSession;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.reactive.RxSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.Transaction;
 import org.structr.api.*;
+import org.structr.api.Transaction;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.search.*;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -52,13 +54,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	private final Set<String> supportedQueryLanguages             = new LinkedHashSet<>();
 	private CypherRelationshipIndex relationshipIndex             = null;
 	private CypherNodeIndex nodeIndex                             = null;
-	private FulltextNodeIndex fulltextIndex                       = null;
 	private boolean supportsRelationshipIndexes                   = false;
 	private boolean supportsIdempotentIndexCreation               = false;
 	private int neo4jMajorVersion                                 = -1;
 	private int neo4jMinorVersion                                 = -1;
 	private int neo4jPatchVersion                                 = -1;
 	private String errorMessage                                   = null;
+	private String databaseName                                   = null;
 	private String databaseUrl                                    = null;
 	private Driver driver                                         = null;
 	private SessionConfig sessionConfig                           = null;
@@ -75,9 +77,9 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		databaseUrl               = Settings.ConnectionUrl.getPrefixedValue(serviceName);
+		databaseName              = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
 		final String username     = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password     = Settings.ConnectionPassword.getPrefixedValue(serviceName);
-		final String databaseName = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
 		String databaseDriverUrl  = (!databaseUrl.contains("://") ? "bolt://" + databaseUrl : databaseUrl);
 
 		// build list of supported query languages
@@ -144,6 +146,13 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 			configureVersionDependentFeatures();
 
+			if (!databaseExists()) {
+
+				errorMessage = "Database " + databaseName + " does not exist.";
+
+				throw new RuntimeException(errorMessage);
+			}
+
 			// signal success
 			return true;
 
@@ -174,11 +183,11 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			try {
 				if (neo4jMajorVersion >= 4) {
 
-					return new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
+					return new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
 
 				} else {
 
-					return new AsyncSessionTransaction(this, driver.asyncSession());
+					return new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
 				}
 
 
@@ -198,17 +207,17 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	public Transaction beginTx() {
 
 		SessionTransaction session = sessions.get();
-		if (session == null || session.isClosed()) {
+		if (session == null || session.isClosed() || session.isRolledBack()) {
 
 			try {
 
 				if (neo4jMajorVersion >= 4) {
 
-					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
+					session = new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
 
 				} else {
 
-					session = new AsyncSessionTransaction(this, driver.asyncSession());
+					session = new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
 				}
 
 				sessions.set(session);
@@ -404,26 +413,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void deleteNodesByLabel(final String label) {
-
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
-
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(":");
-		buf.append(label);
-		buf.append(") DETACH DELETE n");
-
-		consume(buf.toString());
-	}
-
-	@Override
 	public Iterable<Relationship> getAllRelationships() {
 
 		final Index<Relationship> index = relationshipIndex();
@@ -468,17 +457,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public Index<Node> fulltextIndex() {
-
-		if (fulltextIndex == null) {
-			fulltextIndex = new FulltextNodeIndex(this);
-		}
-
-		return fulltextIndex;
-	}
-
-	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
+	public void updateIndexConfiguration(final List<NewIndexConfig> schemaIndexConfigSource) {
 
 		switch (neo4jMajorVersion) {
 
@@ -541,7 +520,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		if (indexUpdater != null) {
 
-			indexUpdater.updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+			indexUpdater.updateIndexConfiguration(schemaIndexConfigSource);
 		}
 	}
 
@@ -666,7 +645,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		metadata.put("id",         id);
 		metadata.put("pid",        ProcessHandle.current().pid());
-		metadata.put("threadId",   currentThread.getId());
+		metadata.put("threadId",   currentThread.threadId());
 
 		if (currentThread.getName() != null) {
 
@@ -686,7 +665,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		metadata.put("id",         id);
 		metadata.put("pid",        ProcessHandle.current().pid());
-		metadata.put("threadId",   currentThread.getId());
+		metadata.put("threadId",   currentThread.threadId());
 
 		if (currentThread.getName() != null) {
 
@@ -796,22 +775,21 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		return "0.0.0";
 	}
 
-	private long getCount(final String query, final String resultKey) {
+	private Long getCount(final String query, final String resultKey) {
 
 		for (final Map<String, Object> row : execute(query)) {
 
 			if (row.containsKey(resultKey)) {
 
 				final Object value = row.get(resultKey);
-				if (value != null && value instanceof Number) {
+				if (value != null && value instanceof Number n) {
 
-					final Number number = (Number)value;
-					return number.intValue();
+					return n.longValue();
 				}
 			}
 		}
 
-		return 0;
+		return null;
 	}
 
 	private void configureVersionDependentFeatures() {
@@ -833,6 +811,19 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		this.supportsIdempotentIndexCreation = neo4jMajorVersion >= 5 || (neo4jMajorVersion >= 4 && neo4jMinorVersion >= 1 && neo4jPatchVersion >= 3);
 	}
 
+	private boolean databaseExists() {
+
+		try (final Session session = driver.session()) {
+
+			try (final org.neo4j.driver.Transaction tx = session.beginTransaction()) {
+
+				final Result result = tx.run("SHOW DATABASE `" + databaseName + "`");
+
+				return !result.list().isEmpty();
+			}
+		}
+	}
+
 	private String stringOrDefault(final String[] source, final int index, final String defaultValue) {
 
 		if (index >= source.length) {
@@ -840,11 +831,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		}
 
 		return source[index];
-	}
-
-	@Override
-	public Identity identify(long id) {
-		return new BoltIdentity(id);
 	}
 
 	// ----- nested classes -----

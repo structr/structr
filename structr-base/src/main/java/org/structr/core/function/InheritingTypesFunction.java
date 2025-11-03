@@ -23,6 +23,7 @@ import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class InheritingTypesFunction extends AdvancedScriptingFunction {
@@ -47,16 +48,38 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			final String typeName       = sources[0].toString();
-			final Traits type           = Traits.of(typeName);
-			final ArrayList inheritants = new ArrayList();
+			final String typeName = sources[0].toString();
+			if (!Traits.exists(typeName)) {
+
+				throw new FrameworkException(422, new StringBuilder(getName()).append("(): Type '").append(typeName).append("' not found.").toString());
+			}
+
+			final Traits type               = Traits.of(typeName);
+			final ArrayList inheritingTypes = new ArrayList();
+			final List<String> blackList    = new ArrayList(Arrays.asList(typeName));
+
+			if (sources.length == 2) {
+
+				if (sources[1] instanceof List) {
+
+					blackList.addAll((List)sources[1]);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List.").toString());
+				}
+			}
 
 			if (type != null) {
 
-				inheritants.addAll(type.getAllTraits());
+				if (type.isServiceClass() == false) {
 
-				if (sources.length == 2) {
-					inheritants.removeAll((List)sources[1]);
+					inheritingTypes.addAll(Traits.getAllTypes(value -> value.getAllTraits().contains(typeName)));
+					inheritingTypes.removeAll(blackList);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class '").append(type.getName()).append("'.").toString());
 				}
 
 			} else {
@@ -64,7 +87,7 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
 
-			return inheritants;
+			return inheritingTypes;
 
 		} catch (IllegalArgumentException e) {
 
@@ -80,6 +103,6 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Returns the names of the child classes of the given type";
+		return "Returns the names of the child types of the given type and filters out all entries of the blacklist collection.";
 	}
 }

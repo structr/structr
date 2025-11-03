@@ -27,19 +27,24 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowExceptionHandler;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -54,23 +59,40 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Exception;
-				}
-			},
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Exception;
+					}
+				},
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
 				@Override
 				public Object get(final Context context, final FlowDataSource node) throws FlowException {
 					return context.getData(node.getUuid());
 				}
-			}
+			},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
+				}
 		);
 	}
 
@@ -83,10 +105,10 @@ public class FlowExceptionHandlerTraitDefinition extends AbstractNodeTraitDefini
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> handledNodes = new StartNodes(HANDLED_NODES_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
-		final Property<Iterable<NodeInterface>> dataTarget   = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> handledNodes = new StartNodes(traitsInstance, HANDLED_NODES_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<Iterable<NodeInterface>> dataTarget   = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
 		return newSet(
 			handledNodes,

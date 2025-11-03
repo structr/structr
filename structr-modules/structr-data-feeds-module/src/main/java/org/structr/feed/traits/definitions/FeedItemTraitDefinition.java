@@ -29,6 +29,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -66,7 +67,7 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -107,11 +108,11 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> contentsProperty   = new EndNodes(CONTENTS_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
-		final Property<Iterable<NodeInterface>> enclosuresProperty = new EndNodes(ENCLOSURES_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
-		final Property<NodeInterface> feedProperty                 = new StartNode(FEED_PROPERTY, StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
+		final Property<Iterable<NodeInterface>> contentsProperty   = new EndNodes(traitsInstance, CONTENTS_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
+		final Property<Iterable<NodeInterface>> enclosuresProperty = new EndNodes(traitsInstance, ENCLOSURES_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE);
+		final Property<NodeInterface> feedProperty                 = new StartNode(traitsInstance, FEED_PROPERTY, StructrTraits.DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM);
 
 		final Property<String> urlProperty              = new StringProperty(URL_PROPERTY).indexed().notNull();
 		final Property<String> authorProperty           = new StringProperty(AUTHOR_PROPERTY);
@@ -158,15 +159,15 @@ public class FeedItemTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					NodeInterfaceTraitDefinition.OWNER_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY,
 					URL_PROPERTY, AUTHOR_PROPERTY, COMMENTS_PROPERTY, DESCRIPTION_PROPERTY, PUB_DATE_PROPERTY,
 					UPDATED_DATE_PROPERTY, CONTENTS_PROPERTY, ENCLOSURES_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
 					URL_PROPERTY, AUTHOR_PROPERTY, COMMENTS_PROPERTY, DESCRIPTION_PROPERTY, PUB_DATE_PROPERTY,
-					UPDATED_DATE_PROPERTY, CHECKSUM_PROPERTY, CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY,
-					CONTENTS_PROPERTY, ENCLOSURES_PROPERTY, FEED_PROPERTY
+					UPDATED_DATE_PROPERTY, CONTENTS_PROPERTY, ENCLOSURES_PROPERTY,
+					CHECKSUM_PROPERTY, CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, FEED_PROPERTY
 			)
 		);
 	}

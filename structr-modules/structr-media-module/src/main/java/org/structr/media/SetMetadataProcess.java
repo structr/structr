@@ -85,7 +85,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 			return null;
 		}
 
-		final StringBuilder commandLine = new StringBuilder("avconv -y -i ");
+		final StringBuilder commandLine = new StringBuilder("ffmpeg -y -i ");
 		//final String diskFilePath       = inputVideo.getDiskFilePath(securityContext);
 
 		// build command line from builder options

@@ -12,12 +12,6 @@ jobs:
         include:
           - module: structr-base
             variableName: Base
-          - module: structr-ui
-            variableName: UI
-          - module: structr-core
-            variableName: CORE
-          - module: structr-rest
-            variableName: REST
           - module: structr-db-driver-api
             variableName: DB_DRIVER_API
 #          - module: structr-memgraph-driver
@@ -38,26 +32,46 @@ jobs:
           -p 7687 
           -e NEO4J_AUTH=neo4j/admin123 
           -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes 
-          -e NEO4J_dbms_memory_heap_maxSize=4G 
-          -e NEO4J_dbms_memory_pagecache_size=4G neo4j:4.4 && 
+          -e NEO4J_server_memory_heap_max__size=4G 
+          -e NEO4J_server_memory_pagecache_size=4G neo4j:2025 && 
           echo "ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-test-${{ github.run_id }})" >> $GITHUB_ENV
 
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '24'
+          java-version: '25'
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile and run Tests
         run:  >-
-          mvn clean install -q -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
+          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
           cd ${{ matrix.module }} && 
           mvn install -q -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
 
       - name: Stop Test Database
         if: always()
         run:  docker stop ${{ matrix.module }}-test-${{ github.run_id }}
+
+  run-ui-tests:
+    if: ${{ false && !startsWith( github.actor, 'dependabot' ) }}
+    runs-on: self-hosted
+    environment: build-and-test
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '25'
+          distribution: 'graalvm-community'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile and run Tests
+        run: >-
+          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
+          cd structr-app && 
+          mvn install -q -DskipDockerTestDB -DskipDeb -DskipDocker -DskipDockerTestDB
 
   build-and-deploy:
     runs-on: self-hosted
@@ -77,15 +91,16 @@ jobs:
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '24'
+          java-version: '25'
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
+      - run: mvn -U clean install -Pwith-sources -DskipDockerTestDB -DskipTests -DskipUITests
       - name: Upload binaries
         run: >-
-          scp -v structr-binaries/target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
-          scp -v structr-binaries/target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
+          cd structr-app &&       
+          scp -v target/structr-*.deb download.structr.com:/files/repositories/upload > /dev/null 2>&1 &&
+          scp -v target/structr-*-dist.zip download.structr.com:/files/repositories/upload >/dev/null 2>&1
 
   cleanup-system:
     runs-on: self-hosted
@@ -93,6 +108,6 @@ jobs:
     needs: [run-tests, build-and-deploy]
     steps:
       - name: Cleanup docker
-        run: docker container prune -f && docker image prune -f && docker volume prune -f
+        run: docker rm -f $(docker ps -aq --filter "network=ui-test-network") 2>/dev/null || true && docker container prune -f && docker image prune -f && docker volume prune -f
       - name: Cleanup runner home
-        run: cd ~/actions-runner/_work/structr/ && rm -rf structr
+        run: cd ~/actions-runner/_work/ && rm -rf structr

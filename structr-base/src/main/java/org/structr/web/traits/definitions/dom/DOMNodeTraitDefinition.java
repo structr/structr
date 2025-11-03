@@ -30,16 +30,14 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.InstanceMethod;
 import org.structr.core.datasources.DataSources;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -116,7 +114,7 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -238,7 +236,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 							if (depth == 0 && isPartial) {
 
 								renderContext.setPage(node.getClosestPage());
-
 							}
 
 							final GraphObject dataObject = renderContext.getDataNode(subKey); // renderContext.getSourceDataObject();
@@ -269,15 +266,12 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 											for (Object o : (Iterable) elements) {
 
-												if (o instanceof GraphObject) {
+												if (o instanceof GraphObject graphObject) {
 
-													GraphObject graphObject = (GraphObject) o;
 													renderContext.putDataObject(subKey, graphObject);
 													node.renderContent(renderContext, depth);
-
 												}
 											}
-
 										}
 
 									} else {
@@ -299,13 +293,11 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 															renderContext.putDataObject(subKey, (GraphObject) o);
 															node.renderContent(renderContext, depth);
-
 														}
 													}
 												}
 											}
 										}
-
 									}
 
 									// reset data node in render context
@@ -316,7 +308,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 									renderContext.setListSource(listData);
 									node.renderNodeList(securityContext, renderContext, depth, subKey);
-
 								}
 							}
 
@@ -562,7 +553,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 					// TODO: check hierarchy constraints imposed by the schema
 					// validation successful
-					return;
 				}
 			}
 		);
@@ -632,30 +622,91 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 	@Override
 	public Set<AbstractMethod> getDynamicMethods() {
-		return Set.of();
+
+		return Set.of(
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "cloneNode") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+					final boolean deep = parameters.get("deep") != null && Boolean.parseBoolean(parameters.get("deep").toString());
+
+					final DOMNode clonedNode = node.cloneNode(deep);
+
+					return clonedNode;
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "appendChild") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
+
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
+
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.appendChild(): missing required argument `newChild` of type DOMNode.");
+					}
+				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "setOwnerDocument") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final NodeInterface newChildNode = (NodeInterface) parameters.get("newChild");
+					if (newChildNode != null) {
+
+						final DOMNode newChild = newChildNode.as(DOMNode.class);
+						final DOMNode node     = entity.as(DOMNode.class);
+
+						node.appendChild(newChild);
+
+						return newChild;
+
+					} else {
+
+						throw new FrameworkException(422, "DOMNode.setOwnerDocument(): missing required argument `newChild` of type DOMNode.");
+					}
+				}
+			}
+		);
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> parentProperty                               = new StartNode(PARENT_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes(CHILDREN_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> previousSiblingProperty                      = new StartNode(PREVIOUS_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> nextSiblingProperty                          = new EndNode(NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> sharedComponentProperty                      = new StartNode(SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes(SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
-		final Property<NodeInterface> ownerDocumentProperty                        = new EndNode(OWNER_DOCUMENT_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
-		final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes(RELOADING_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
-		final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes(FAILURE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
-		final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes(SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
-		final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
-		final Property<Iterable<NodeInterface>> processSuccessShowActions          = new EndNodes(PROCESS_SUCCESS_SHOW_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_SUCCESS_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
-		final Property<Iterable<NodeInterface>> processSuccessHideActions          = new EndNodes(PROCESS_SUCCESS_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_SUCCESS_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
-		final Property<Iterable<NodeInterface>> processFailureShowActions          = new EndNodes(PROCESS_FAILURE_SHOW_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_FAILURE_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
-		final Property<Iterable<NodeInterface>> processFailureHideActions          = new EndNodes(PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_FAILURE_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+        final Property<NodeInterface> parentProperty                               = new StartNode(traitsInstance, PARENT_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+        final Property<Iterable<NodeInterface>> childrenProperty                   = new EndNodes(traitsInstance, CHILDREN_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> previousSiblingProperty                      = new StartNode(traitsInstance, PREVIOUS_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+		final Property<NodeInterface> nextSiblingProperty                          = new EndNode(traitsInstance, NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE_CONTAINS_NEXT_SIBLING_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+        final Property<NodeInterface> sharedComponentProperty                      = new StartNode(traitsInstance, SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+        final Property<Iterable<NodeInterface>> syncedNodesProperty                = new EndNodes(traitsInstance, SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE_SYNC_DOM_NODE).category(DOMNode.PAGE_CATEGORY);
+        final Property<NodeInterface> ownerDocumentProperty                        = new EndNode(traitsInstance, OWNER_DOCUMENT_PROPERTY, StructrTraits.DOM_NODE_PAGE_PAGE).category(DOMNode.PAGE_CATEGORY);
+        final Property<Iterable<NodeInterface>> reloadingActionsProperty           = new EndNodes(traitsInstance, RELOADING_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_TARGET_ACTION_MAPPING);
+        final Property<Iterable<NodeInterface>> failureActionsProperty             = new EndNodes(traitsInstance, FAILURE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_TARGET_ACTION_MAPPING);
+        final Property<Iterable<NodeInterface>> successNotificationActionsProperty = new EndNodes(traitsInstance, SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+        final Property<Iterable<NodeInterface>> failureNotificationActionsProperty = new EndNodes(traitsInstance, FAILURE_NOTIFICATION_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
+        final Property<Iterable<NodeInterface>> processSuccessShowActions          = new EndNodes(traitsInstance, PROCESS_SUCCESS_SHOW_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_SUCCESS_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+        final Property<Iterable<NodeInterface>> processSuccessHideActions          = new EndNodes(traitsInstance, PROCESS_SUCCESS_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_SUCCESS_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+        final Property<Iterable<NodeInterface>> processFailureShowActions          = new EndNodes(traitsInstance, PROCESS_FAILURE_SHOW_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_FAILURE_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
+        final Property<Iterable<NodeInterface>> processFailureHideActions          = new EndNodes(traitsInstance, PROCESS_FAILURE_HIDE_ACTIONS_PROPERTY, StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_FAILURE_ACTION_MAPPING).category(DOMNode.EVENT_ACTION_MAPPING_CATEGORY);
 		final Property<Iterable<DOMNode>> sortedChildrenProperty                   = new DOMNodeSortedChildrenProperty(SORTED_CHILDREN_PROPERTY).typeHint("DOMNode[]");
 		final Property<String> childrenIdsProperty                                 = new CollectionIdProperty(CHILDREN_IDS_PROPERTY, StructrTraits.DOM_NODE, DOMNodeTraitDefinition.CHILDREN_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
-		final Property<String> nextSiblingIdProperty                               = new EntityIdProperty(NEXT_SIBLING_ID_PROPERTY, StructrTraits.DOM_NODE, NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
+		final Property<String> previousSiblingIdProperty                           = new EntityIdProperty(NEXT_SIBLING_ID_PROPERTY, StructrTraits.DOM_NODE, PREVIOUS_SIBLING_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
+        final Property<String> nextSiblingIdProperty                               = new EntityIdProperty(NEXT_SIBLING_ID_PROPERTY, StructrTraits.DOM_NODE, NEXT_SIBLING_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> pageIdProperty                                      = new EntityIdProperty(PAGE_ID_PROPERTY, StructrTraits.DOM_NODE, OWNER_DOCUMENT_PROPERTY, StructrTraits.PAGE).category("Page Structure");
 		final Property<String> parentIdProperty                                    = new EntityIdProperty(PARENT_ID_PROPERTY, StructrTraits.DOM_NODE, PARENT_PROPERTY, StructrTraits.DOM_NODE).category("Page Structure");
 		final Property<String> sharedComponentIdProperty                           = new EntityIdProperty(SHARED_COMPONENT_ID_PROPERTY, StructrTraits.DOM_NODE, SHARED_COMPONENT_PROPERTY, StructrTraits.DOM_NODE).format("sharedComponent, {},");
@@ -723,8 +774,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Ui,
 			newSet(
-					DOMNodeTraitDefinition.RELOADING_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_ACTIONS_PROPERTY,
-					DOMNodeTraitDefinition.SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, DOMNodeTraitDefinition.FAILURE_NOTIFICATION_ACTIONS_PROPERTY
+					RELOADING_ACTIONS_PROPERTY, FAILURE_ACTIONS_PROPERTY,
+					SUCCESS_NOTIFICATION_ACTIONS_PROPERTY, FAILURE_NOTIFICATION_ACTIONS_PROPERTY
 			)
 		);
 	}

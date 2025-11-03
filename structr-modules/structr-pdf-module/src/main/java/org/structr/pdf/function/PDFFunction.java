@@ -23,7 +23,7 @@ import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
 import jakarta.servlet.http.HttpSession;
-import org.eclipse.jetty.server.session.Session;
+import org.eclipse.jetty.server.Session;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;

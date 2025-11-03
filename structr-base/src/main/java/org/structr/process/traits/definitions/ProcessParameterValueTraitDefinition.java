@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Set;
@@ -43,11 +44,11 @@ public class ProcessParameterValueTraitDefinition extends AbstractNodeTraitDefin
  */
 
     @Override
-    public Set<PropertyKey> getPropertyKeys() {
+    public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
         final Property<String>        valueProperty           = new StringProperty(VALUE_PROPERTY);
-        final Property<NodeInterface> parameterProperty       = new EndNode(PARAMETER_PROPERTY, StructrTraits.PROCESS_PARAMETER_VALUE_VALUE_OF_PROCESS_PARAMETER);
-        final Property<NodeInterface> processInstanceProperty = new StartNode(PROCESS_INSTANCE_PROPERTY, StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_PROCESS_PARAMETER_VALUE);
+        final Property<NodeInterface> parameterProperty       = new EndNode(traitsInstance, PARAMETER_PROPERTY, StructrTraits.PROCESS_PARAMETER_VALUE_VALUE_OF_PROCESS_PARAMETER);
+        final Property<NodeInterface> processInstanceProperty = new StartNode(traitsInstance, PROCESS_INSTANCE_PROPERTY, StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_PROCESS_PARAMETER_VALUE);
 
         return newSet(
                 valueProperty,

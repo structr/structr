@@ -18,6 +18,7 @@
  */
 package org.structr.core.traits.definitions;
 
+import org.structr.common.PropertyView;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
@@ -27,6 +28,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.wrappers.CorsSettingTraitWrapper;
@@ -54,18 +56,8 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 		super(StructrTraits.CORS_SETTING);
 	}
 
-	/*
-	public static final View uiView = new View(CorsSetting.class, PropertyView.Ui,
-			requestUri, acceptedOrigins, maxAge, allowMethods, allowHeaders, allowCredentials, exposeHeaders, isCorsSetting
-	);
-
-	public static final View publicView = new View(CorsSetting.class, PropertyView.Public,
-			requestUri, acceptedOrigins, maxAge, allowMethods, allowHeaders, allowCredentials, exposeHeaders, isCorsSetting
-	);
-	*/
-
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of(
 
 			IsValid.class,
@@ -91,7 +83,7 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>               requestUri        = new StringProperty(REQUEST_URI_PROPERTY).indexed();
 		final Property<String>               acceptedOrigins   = new StringProperty(ACCEPTED_ORIGINS_PROPERTY).indexed();
@@ -117,5 +109,25 @@ public final class CorsSettingTraitDefinition extends AbstractNodeTraitDefinitio
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+
+				PropertyView.Public,
+				newSet(
+						REQUEST_URI_PROPERTY, ACCEPTED_ORIGINS_PROPERTY, MAX_AGE_PROPERTY, ALLOW_METHODS_PROPERTY,
+						ALLOW_HEADERS_PROPERTY, ALLOW_CREDENTIALS_PROPERTY, EXPOSE_HEADERS_PROPERTY, IS_CORS_SETTING_PROPERTY
+				),
+
+				PropertyView.Ui,
+				newSet(
+						REQUEST_URI_PROPERTY, ACCEPTED_ORIGINS_PROPERTY, MAX_AGE_PROPERTY, ALLOW_METHODS_PROPERTY,
+						ALLOW_HEADERS_PROPERTY, ALLOW_CREDENTIALS_PROPERTY, EXPOSE_HEADERS_PROPERTY, IS_CORS_SETTING_PROPERTY
+				)
+		);
 	}
 }

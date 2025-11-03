@@ -22,9 +22,10 @@ package org.structr.rest.auth;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.server.session.Session;
-import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.session.ManagedSession;
+import org.eclipse.jetty.session.SessionCache;
+import org.eclipse.jetty.websocket.core.server.ServerUpgradeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -82,7 +83,7 @@ public class SessionHelper {
 		}
 	}
 
-	public static HttpSession getSessionBySessionId(final String sessionId) throws FrameworkException {
+	public static ManagedSession getSessionBySessionId(final String sessionId) throws FrameworkException {
 
 		return getSessionFromCache(sessionId);
 	}
@@ -91,7 +92,7 @@ public class SessionHelper {
 
 		if (request.getSession(true) == null) {
 
-			if (request instanceof JettyServerUpgradeRequest) {
+			if (request instanceof ServerUpgradeRequest) {
 				logger.debug("Requested to create a new session on a Websocket request, aborting");
 				return;
 			}
@@ -152,6 +153,14 @@ public class SessionHelper {
 	 */
 	public static void clearInvalidSessions(final Principal user) {
 
+		if (user == null) {
+
+			logger.warn("Trying to clear session for null user, dumping stack.");
+			Thread.dumpStack();
+
+			return;
+		}
+
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
 		final String[] sessionIds = user.getSessionIds();
@@ -162,9 +171,10 @@ public class SessionHelper {
 
 			for (final String sessionId : sessionIds) {
 
-				Session session = getSessionFromCache(sessionCache, sessionId);
+				final ManagedSession session  = getSessionFromCache(sessionCache, sessionId);
+				final HttpSession httpSession = SessionHandler.ServletSessionApi.wrapSession(session);
 
-				if (session == null || SessionHelper.isSessionTimedOut(session)) {
+				if (session == null || SessionHelper.isSessionTimedOut(httpSession)) {
 					SessionHelper.clearSession(sessionId);
 					SessionHelper.invalidateSession(sessionId);
 				}
@@ -224,7 +234,7 @@ public class SessionHelper {
 
 			try {
 
-				getDefaultSessionCache().delete(sessionId);
+				getDefaultSessionCache().get(sessionId).invalidate();
 
 			} catch (final Exception ex) {
 
@@ -361,12 +371,12 @@ public class SessionHelper {
 		return Services.getInstance().getService(HttpService.class, "default").getSessionCache();
 	}
 
-	private static Session getSessionFromCache(final String sessionId) {
+	private static ManagedSession getSessionFromCache(final String sessionId) {
 
 		return getSessionFromCache(getDefaultSessionCache(), sessionId);
 	}
 
-	private static Session getSessionFromCache(final SessionCache sessionCache, final String sessionId) {
+	private static ManagedSession getSessionFromCache(final SessionCache sessionCache, final String sessionId) {
 
 		try {
 

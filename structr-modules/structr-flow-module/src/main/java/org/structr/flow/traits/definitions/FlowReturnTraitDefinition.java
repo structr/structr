@@ -27,15 +27,20 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.impl.FlowReturn;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -50,14 +55,33 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 	public Map<Class, FrameworkMethod> getFrameworkMethods() {
 
 		return Map.of(
-			GetFlowType.class,
-			new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Return;
+				GetFlowType.class,
+				new GetFlowType() {
+
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Return;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowReturnTraitDefinition.RESULT_PROPERTY,                          flowBaseNode.as(FlowReturn.class).getResult());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -70,9 +94,9 @@ public class FlowReturnTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> exceptionHandler = new EndNode(EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
+		final Property<NodeInterface> exceptionHandler = new EndNode(traitsInstance, EXCEPTION_HANDLER_PROPERTY, StructrTraits.FLOW_EXCEPTION_HANDLER_NODES);
 		final Property<String> result                  = new StringProperty(RESULT_PROPERTY);
 
 		return newSet(

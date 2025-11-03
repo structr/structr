@@ -28,7 +28,7 @@ import jakarta.servlet.http.Part;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -87,7 +87,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	@Override
 	public void configureServletHolder(final ServletHolder servletHolder) {
-		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", (long) MEGABYTE * Settings.UploadMaxFileSize.getValue(), (long) MEGABYTE * Settings.UploadMaxRequestSize.getValue(), MEGABYTE);
 		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
 	}
 
@@ -206,7 +206,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
 
-				return;
 			}
 
 		} catch (Throwable t) {

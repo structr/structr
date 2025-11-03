@@ -27,7 +27,9 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
 import org.apache.commons.compress.archivers.sevenz.SevenZArchiveEntry;
 import org.apache.commons.compress.archivers.sevenz.SevenZFile;
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,12 +66,11 @@ import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.URI;
 import java.nio.ByteOrder;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.zip.CRC32;
 
 /**
@@ -850,7 +851,7 @@ public class FileHelper {
 
 			NodeInterface potentialFolder = FileHelper.getFileByAbsolutePath(securityContext, partialPath);
 
-			folder = potentialFolder != null ? potentialFolder : null;
+			folder = potentialFolder;
 
 			if (folder == null) {
 
@@ -907,7 +908,7 @@ public class FileHelper {
 					msgString += " into existing folder {}.";
 				}
 
-				logger.info(msgString, new Object[]{fileName, parentFolderName});
+				logger.info(msgString, fileName, parentFolderName);
 
 				tx.success();
 			}
@@ -986,12 +987,12 @@ public class FileHelper {
 			// ZIP needs special treatment to support "unsupported feature data descriptor"
 			case ArchiveStreamFactory.ZIP: {
 
+				java.io.File zipFileOnDisk = file.getFileOnDisk();
+				ZipFile zipFile = new ZipFile(zipFileOnDisk);
+
 				logger.info("Zip archive format detected");
 
-				try (final ZipArchiveInputStream in = new ZipArchiveInputStream(bufferedIs, null, false, true)) {
-
-					handleArchiveInputStream(in, app, securityContext, existingParentFolder);
-				}
+				handleZipFile(zipFile, app, securityContext, existingParentFolder);
 
 				break;
 			}
@@ -1006,6 +1007,47 @@ public class FileHelper {
 				}
 			}
 		}
+	}
+
+	private static void handleZipFile(final ZipFile zipFile, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {
+
+		int overallCount = 0;
+
+		Enumeration<ZipArchiveEntry> entries = zipFile.getEntries();
+
+		while (entries.hasMoreElements()) {
+
+
+			try (final Tx tx = app.tx(true, true, false)) { // don't send notifications for bulk commands
+
+				int count = 0;
+
+				while (entries.hasMoreElements() && count++ < 50) {
+
+					ZipArchiveEntry entry = entries.nextElement();
+
+					final String entryPath = "/" + PathHelper.clean(entry.getName());
+					logger.info("Entry path: {}", entryPath);
+
+					if (entry.isDirectory()) {
+
+						handleDirectory(securityContext, existingParentFolder, entryPath);
+
+					} else {
+
+						handleFile(securityContext, zipFile.getInputStream(entry), existingParentFolder, entryPath);
+					}
+
+					overallCount++;
+				}
+
+				logger.info("Committing transaction after {} entries.", overallCount);
+
+				tx.success();
+			}
+		}
+
+		logger.info("Unarchived {} entries.", overallCount);
 	}
 
 	private static void handleArchiveInputStream(final ArchiveInputStream in, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {

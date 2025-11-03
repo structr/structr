@@ -38,6 +38,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 
@@ -62,8 +63,8 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	 * @param name
 	 * @param type
 	 */
-	public EndNodes(final String name, final String type) {
-		this(name, type, new ObjectNotion());
+	public EndNodes(final TraitsInstance traitsInstance, final String name, final String type) {
+		this(traitsInstance, name, type, new ObjectNotion());
 	}
 
 	/**
@@ -73,11 +74,11 @@ public class EndNodes extends Property<Iterable<NodeInterface>> implements Relat
 	 * @param type
 	 * @param notion
 	 */
-	public EndNodes(final String name, final String type, final Notion notion) {
+	public EndNodes(final TraitsInstance traitsInstance, final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.traits     = Traits.of(type);
+		this.traits     = traitsInstance.getTraits(type);
 		this.relation   = traits.getRelation();
 		this.notion     = notion;
 		this.sourceType = this.relation.getSourceType();

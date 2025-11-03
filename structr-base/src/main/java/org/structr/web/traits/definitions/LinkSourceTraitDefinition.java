@@ -28,6 +28,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -50,7 +51,7 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -73,9 +74,9 @@ public class LinkSourceTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> linkableProperty = new EndNode(LINKABLE_PROPERTY, StructrTraits.LINK_SOURCE_LINK_LINKABLE);
+		final Property<NodeInterface> linkableProperty = new EndNode(traitsInstance, LINKABLE_PROPERTY, StructrTraits.LINK_SOURCE_LINK_LINKABLE);
 		final Property<String> linkableIdProperty      = new EntityIdProperty(LINKABLE_ID_PROPERTY, StructrTraits.LINK_SOURCE, LINKABLE_PROPERTY, StructrTraits.LINKABLE);
 
 		return Set.of(

@@ -18,29 +18,25 @@
 		</dependency>
 		<dependency>
 			<groupId>com.google.cloud</groupId>
-			<artifactId>gcloud-java-translate</artifactId>
-			<version>0.2.9-SNAPSHOT</version>
+			<artifactId>google-cloud-translate</artifactId>
+			<version>2.75.0</version>
 			<type>jar</type>
 			<exclusions>
 				<exclusion>
-					<groupId>javax.servlet</groupId>
-					<artifactId>servlet-api</artifactId>
+					<groupId>com.google.guava</groupId>
+					<artifactId>failureaccess</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>io.netty</groupId>
-					<artifactId>netty-buffer</artifactId>
+					<groupId>com.google.errorprone</groupId>
+					<artifactId>error_prone_annotations</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>io.netty</groupId>
-					<artifactId>netty-codec</artifactId>
+					<groupId>com.google.android</groupId>
+					<artifactId>annotations</artifactId>
 				</exclusion>
 				<exclusion>
-					<groupId>io.netty</groupId>
-					<artifactId>netty-codec-http</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>io.netty</groupId>
-					<artifactId>netty-codec-http2</artifactId>
+					<groupId>com.google.j2objc</groupId>
+					<artifactId>j2objc-annotations</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
@@ -60,7 +56,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>

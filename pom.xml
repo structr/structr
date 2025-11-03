@@ -41,34 +41,39 @@
 	</developers>
 
 	<prerequisites>
-		<maven>3.6.1</maven>
+		<maven>3.8.7</maven>
 	</prerequisites>
 
 	<properties>
-		<java.version>24</java.version>
-		<maven.compiler.source>24</maven.compiler.source>
-		<maven.compiler.target>24</maven.compiler.target>
+		<java.version>25</java.version>
+		<maven.compiler.source>25</maven.compiler.source>
+		<maven.compiler.target>25</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<test.neo4j.version>neo4j:5.16</test.neo4j.version>
-		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
+		<test.neo4j.version>neo4j:2025</test.neo4j.version>
+		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-		<maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
-		<test.forkCount>4</test.forkCount>
+		<maven.plugin.jar.version>3.4.2</maven.plugin.jar.version>
+		<test.forkCount>1</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
-		<tika.version>2.9.1</tika.version>
-		<pulsar.version>3.2.0</pulsar.version>
+		<tika.version>3.2.3</tika.version>
+		<pulsar.version>4.0.5</pulsar.version>
+		<elk.version>0.11.0</elk.version>
+		<jetty.version>12.0.23</jetty.version>
+		<jaxb.version>2.3.3</jaxb.version>
+		<imageio.version>3.10.1</imageio.version>
+		<batik.version>[1.17,)</batik.version>
+		<graal.version>25.0.0</graal.version>
+		<apache.sshd.version>2.7.0</apache.sshd.version>
 	</properties>
 
 	<modules>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
+		<module>structr-memory-driver</module>
 		<module>structr-base</module>
-		<module>structr-core</module>
-		<module>structr-rest</module>
-		<module>structr-ui</module>
 		<module>structr-modules</module>
-		<module>structr-binaries</module>
+		<module>structr-app</module>
 		<module>structr-test-configuration</module>
 	</modules>
 
@@ -114,20 +119,20 @@
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcmail-jdk15on</artifactId>
-				<version>1.67</version>
+				<artifactId>bcmail-jdk18on</artifactId>
+				<version>1.78.1</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcprov-jdk15on</artifactId>
-				<version>1.67</version>
+				<artifactId>bcprov-jdk18on</artifactId>
+				<version>1.78.1</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
-				<artifactId>bcpkix-jdk15on</artifactId>
-				<version>1.67</version>
+				<artifactId>bcpkix-jdk18on</artifactId>
+				<version>1.78.1</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -144,7 +149,7 @@
 			<dependency>
 				<groupId>commons-beanutils</groupId>
 				<artifactId>commons-beanutils</artifactId>
-				<version>1.9.4</version>
+				<version>1.11.0</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -157,6 +162,12 @@
 				<groupId>commons-logging</groupId>
 				<artifactId>commons-logging</artifactId>
 				<version>1.3.4</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-text</artifactId>
+				<version>1.13.1</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -174,7 +185,8 @@
 			<dependency>
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-lang3</artifactId>
-				<version>3.17.0</version>
+				<version>3.18.0</version>
+				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -206,35 +218,31 @@
 				<artifactId>tika-langdetect</artifactId>
 				<version>${tika.version}</version>
 				<type>pom</type>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-langdetect-optimaize</artifactId>
 				<version>${tika.version}</version>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpcore</artifactId>
 				<version>4.4.11</version>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpmime</artifactId>
 				<version>4.5.9</version>
-				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-core</artifactId>
-				<version>2.14.2</version>
+				<version>2.15.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.fasterxml.jackson.core</groupId>
 				<artifactId>jackson-databind</artifactId>
-				<version>2.14.2</version>
+				<version>2.15.0</version>
 			</dependency>
 			<dependency>
 				<groupId>com.beust</groupId>
@@ -275,7 +283,7 @@
 			<dependency>
 				<groupId>com.opencsv</groupId>
 				<artifactId>opencsv</artifactId>
-				<version>3.9</version>
+				<version>5.12.0</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -293,7 +301,12 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.4.12</version>
+				<version>1.5.20</version>
+			</dependency>
+			<dependency>
+				<groupId>ch.qos.logback</groupId>
+				<artifactId>logback-core</artifactId>
+				<version>1.5.20</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
@@ -309,7 +322,7 @@
 			<dependency>
 				<groupId>org.apache.httpcomponents</groupId>
 				<artifactId>httpclient</artifactId>
-				<version>4.5.13</version>
+				<version>4.5.14</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -341,6 +354,11 @@
 				<artifactId>rome-utils</artifactId>
 				<version>1.7.3</version>
 			</dependency>
+			<dependency>
+				<groupId>com.microsoft.playwright</groupId>
+				<artifactId>playwright</artifactId>
+				<version>1.55.0</version>
+			</dependency>
 			<!-- JAXB API only -->
 			<dependency>
 				<groupId>jakarta.xml.bind</groupId>
@@ -354,6 +372,279 @@
 				<version>2.3.3</version>
 				<scope>runtime</scope>
 			</dependency>
+			<dependency>
+				<groupId>org.dom4j</groupId>
+				<artifactId>dom4j</artifactId>
+				<version>2.2.0</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.commons</groupId>
+				<artifactId>commons-email</artifactId>
+				<version>1.6.0</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>com.graphql-java</groupId>
+				<artifactId>graphql-java</artifactId>
+				<version>24.3</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>com.graphql-java</groupId>
+				<artifactId>graphql-java-extended-scalars</artifactId>
+				<version>24.0</version>
+				<optional>true</optional>
+			</dependency>
+			<!-- https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk -->
+			<dependency>
+				<groupId>org.graalvm.polyglot</groupId>
+				<artifactId>polyglot</artifactId>
+				<version>${graal.version}</version>
+				<type>jar</type>
+			</dependency>
+			<dependency>
+				<groupId>org.graalvm.polyglot</groupId>
+				<artifactId>js-community</artifactId>
+				<version>${graal.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>org.graalvm.polyglot</groupId>
+				<artifactId>python-community</artifactId>
+				<version>${graal.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>org.graalvm.polyglot</groupId>
+				<artifactId>llvm-community</artifactId>
+				<version>${graal.version}</version>
+				<type>pom</type>
+			</dependency>
+			<dependency>
+				<groupId>org.graalvm.tools</groupId>
+				<artifactId>chromeinspector-tool</artifactId>
+				<version>${graal.version}</version>
+				<scope>runtime</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.mongodb</groupId>
+				<artifactId>mongodb-driver-sync</artifactId>
+				<version>5.6.0</version>
+			</dependency>
+			<!-- REST DEPENDENCIES -->
+			<dependency>
+				<groupId>org.tuckey</groupId>
+				<artifactId>urlrewritefilter</artifactId>
+				<version>5.1.3</version>
+			</dependency>
+			<dependency>
+				<groupId>com.auth0</groupId>
+				<artifactId>java-jwt</artifactId>
+				<version>4.5.0</version>
+				<exclusions>
+					<exclusion>
+						<artifactId>jackson-databind</artifactId>
+						<groupId>com.fasterxml.jackson.core</groupId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.auth0</groupId>
+				<artifactId>jwks-rsa</artifactId>
+				<version>0.23.0</version>
+			</dependency>
+			<dependency>
+				<groupId>io.prometheus</groupId>
+				<artifactId>simpleclient</artifactId>
+				<version>0.16.0</version>
+			</dependency>
+			<!-- Prometheus HTTPServer -->
+			<dependency>
+				<groupId>io.prometheus</groupId>
+				<artifactId>simpleclient_servlet_jakarta</artifactId>
+				<version>0.16.0</version>
+			</dependency>
+			<!-- Prometheus Hotspot -->
+			<dependency>
+				<groupId>io.prometheus</groupId>
+				<artifactId>simpleclient_hotspot</artifactId>
+				<version>0.16.0</version>
+			</dependency>
+			<dependency>
+				<groupId>org.bitbucket.cowwoc</groupId>
+				<artifactId>diff-match-patch</artifactId>
+				<version>1.1</version>
+			</dependency>
+			<dependency>
+				<groupId>com.vladsch.flexmark</groupId>
+				<artifactId>flexmark-all</artifactId>
+				<version>0.64.8</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.apache.pdfbox</groupId>
+						<artifactId>xmpbox</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.jetbrains</groupId>
+						<artifactId>annotations</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.vladsch.flexmark</groupId>
+				<artifactId>flexmark-util</artifactId>
+				<version>0.64.8</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.jetbrains</groupId>
+						<artifactId>annotations</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>net.java</groupId>
+				<artifactId>textile-j</artifactId>
+				<version>2.2</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.scribejava</groupId>
+				<artifactId>scribejava-apis</artifactId>
+				<version>8.3.1</version>
+			</dependency>
+			<dependency>
+				<groupId>org.asciidoctor</groupId>
+				<artifactId>asciidoctorj</artifactId>
+				<version>3.0.0</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>net.sf.jmimemagic</groupId>
+				<artifactId>jmimemagic</artifactId>
+				<version>0.1.5</version>
+				<exclusions>
+					<exclusion>
+						<groupId>log4j</groupId>
+						<artifactId>log4j</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>com.twelvemonkeys.imageio</groupId>
+				<artifactId>imageio-core</artifactId>
+				<version>${imageio.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>net.openhft</groupId>
+				<artifactId>zero-allocation-hashing</artifactId>
+				<version>0.8</version>
+			</dependency>
+			<dependency>
+				<groupId>net.lingala.zip4j</groupId>
+				<artifactId>zip4j</artifactId>
+				<version>2.11.5</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.zxing</groupId>
+				<artifactId>core</artifactId>
+				<version>3.5.2</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.zxing</groupId>
+				<artifactId>javase</artifactId>
+				<version>3.5.2</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.github.jai-imageio</groupId>
+						<artifactId>jai-imageio-core</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>net.sourceforge.cssparser</groupId>
+				<artifactId>cssparser</artifactId>
+				<version>0.9.28</version>
+			</dependency>
+			<dependency>
+				<groupId>com.google.guava</groupId>
+				<artifactId>guava</artifactId>
+				<version>33.5.0-jre</version>
+				<scope>compile</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jgroups.kubernetes</groupId>
+				<artifactId>jgroups-kubernetes</artifactId>
+				<version>2.0.1.Final</version>
+			</dependency>
+			<dependency>
+				<groupId>org.neo4j.driver</groupId>
+				<artifactId>neo4j-java-driver</artifactId>
+				<version>5.28.7</version>
+			</dependency>
+			<dependency>
+				<groupId>org.json</groupId>
+				<artifactId>json</artifactId>
+				<version>20250517</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.pdfbox</groupId>
+				<artifactId>pdfbox</artifactId>
+				<version>3.0.5</version>
+			</dependency>
+			<dependency>
+				<groupId>org.antlr</groupId>
+				<artifactId>antlr4-runtime</artifactId>
+				<version>4.9.3</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.elk</groupId>
+				<artifactId>org.eclipse.elk.core</artifactId>
+				<version>${elk.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>org.eclipse.emf</groupId>
+						<artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.eclipse.emf</groupId>
+						<artifactId>org.eclipse.emf.ecore</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>org.eclipse.emf</groupId>
+						<artifactId>org.eclipse.emf.common</artifactId>
+					</exclusion>
+				</exclusions>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.elk</groupId>
+				<artifactId>org.eclipse.elk.graph.json</artifactId>
+				<version>${elk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.elk</groupId>
+				<artifactId>org.eclipse.elk.alg.layered</artifactId>
+				<version>${elk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.elk</groupId>
+				<artifactId>org.eclipse.elk.alg.mrtree</artifactId>
+				<version>${elk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.elk</groupId>
+				<artifactId>org.eclipse.elk.alg.radial</artifactId>
+				<version>${elk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.elk</groupId>
+				<artifactId>org.eclipse.elk.alg.force</artifactId>
+				<version>${elk.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.eclipse.elk</groupId>
+				<artifactId>org.eclipse.elk.alg.disco</artifactId>
+				<version>${elk.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -362,77 +653,69 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.13.0</version>
+				<version>3.14.1</version>
 				<configuration>
-					<source>22</source>
-					<target>22</target>
-					<release>22</release>
+					<source>25</source>
+					<target>25</target>
+					<release>25</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 					<useModulePath>true</useModulePath>
 				 	<showDeprecation>false</showDeprecation>
+					<compilerArgs>
+						<arg>-Xlint:deprecation</arg>
+					</compilerArgs>
 				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-dependency-plugin</artifactId>
-				<version>3.8.1</version>
-				<executions>
-					<execution>
-						<id>copy-dependencies</id>
-						<phase>package</phase>
-						<goals>
-							<goal>copy-dependencies</goal>
-						</goals>
-						<configuration>
-							<outputDirectory>${structr.lib.directory}</outputDirectory>
-						</configuration>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
 				<version>4.6</version>
 				<configuration>
-					<header>header.txt</header>
+					<licenseSets>
+						<licenseSet>
+							<header>header.txt</header>
+							<includes>
+								<include>src/**</include>
+							</includes>
+							<excludes>
+								<exclude>**/README</exclude>
+								<exclude>src/**/.directory</exclude>
+								<exclude>src/**/*.sh</exclude>
+								<exclude>src/**/*.properties</exclude>
+								<exclude>src/main/resources/**/*.html</exclude>
+								<exclude>src/main/resources/**/*.xml</exclude>
+								<exclude>src/main/resources/**/*.xsl*</exclude>
+								<exclude>src/main/resources/**/*.eot</exclude>
+								<exclude>src/main/resources/**/*.woff</exclude>
+								<exclude>src/main/resources/**/*.woff2</exclude>
+								<exclude>src/main/resources/**/*.ttf</exclude>
+								<exclude>src/main/resources/**/*.otf</exclude>
+								<exclude>src/main/resources/**/*.svg</exclude>
+								<exclude>src/main/resources/**/*.properties</exclude>
+								<exclude>src/main/resources/bin/**</exclude>
+								<exclude>src/main/resources/mime.types</exclude>
+								<exclude>src/main/resources/structr/trumbowyg/**</exclude>
+								<exclude>src/main/resources/structr/js/lib/**</exclude>
+								<exclude>src/main/resources/structr/css/lib/**</exclude>
+								<exclude>src/main/resources/structr/docs/**</exclude>
+								<exclude>src/test/javascript/casperjs/**</exclude>
+								<exclude>src/test/javascript/bin/**</exclude>
+								<exclude>src/test/javascript/lib/**</exclude>
+								<exclude>src/test/**/*.html</exclude>
+								<exclude>src/test/**/*.xml</exclude>
+								<exclude>src/test/**/*.csv</exclude>
+								<exclude>src/test/**/selenium/**/*</exclude>
+								<exclude>src/main/resources/deb/**</exclude>
+								<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
+								<exclude>src/main/resources/structr/swagger/**/*</exclude>
+								<exclude>src/test/resources/**/*</exclude>
+							</excludes>
+						</licenseSet>
+					</licenseSets>
 					<mapping>
 						<java>SLASHSTAR_STYLE</java>
 					</mapping>
-					<includes>
-						<include>src/**</include>
-					</includes>
-					<excludes>
-						<exclude>**/README</exclude>
-						<exclude>src/**/.directory</exclude>
-						<exclude>src/**/*.sh</exclude>
-						<exclude>src/**/*.properties</exclude>
-						<exclude>src/main/resources/**/*.html</exclude>
-						<exclude>src/main/resources/**/*.xml</exclude>
-						<exclude>src/main/resources/**/*.xsl*</exclude>
-						<exclude>src/main/resources/**/*.eot</exclude>
-						<exclude>src/main/resources/**/*.woff</exclude>
-						<exclude>src/main/resources/**/*.woff2</exclude>
-						<exclude>src/main/resources/**/*.ttf</exclude>
-						<exclude>src/main/resources/**/*.otf</exclude>
-						<exclude>src/main/resources/**/*.svg</exclude>
-						<exclude>src/main/resources/**/*.properties</exclude>
-						<exclude>src/main/resources/bin/**</exclude>
-						<exclude>src/main/resources/mime.types</exclude>
-						<exclude>src/main/resources/structr/trumbowyg/**</exclude>
-						<exclude>src/main/resources/structr/js/lib/**</exclude>
-						<exclude>src/main/resources/structr/css/lib/**</exclude>
-						<exclude>src/test/javascript/casperjs/**</exclude>
-						<exclude>src/test/javascript/bin/**</exclude>
-						<exclude>src/test/javascript/lib/**</exclude>
-						<exclude>src/test/**/*.html</exclude>
-						<exclude>src/test/**/*.xml</exclude>
-						<exclude>src/test/**/selenium/**/*</exclude>
-						<exclude>src/main/deb/**</exclude>
-						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
-						<exclude>src/main/resources/structr/swagger/**/*</exclude>
-						<exclude>src/test/resources/**/*</exclude>
-					</excludes>
 					<properties>
 						<year>2025</year>
 						<owner>Structr GmbH</owner>
@@ -508,7 +791,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>3.11.2</version>
+						<version>3.12.0</version>
 						<executions>
 							<execution>
 								<id>attach-javadocs</id>
@@ -570,7 +853,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-gpg-plugin</artifactId>
-						<version>3.2.7</version>
+						<version>3.2.8</version>
 						<executions>
 							<execution>
 								<id>sign-artifacts</id>

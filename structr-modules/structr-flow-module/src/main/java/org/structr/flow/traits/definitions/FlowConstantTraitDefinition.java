@@ -29,16 +29,21 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowConstant;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -58,57 +63,77 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final FlowConstant constant           = node.as(FlowConstant.class);
-					final SecurityContext securityContext = node.getSecurityContext();
-					final String cType                    = constant.getConstantType();
-					final Object val                      = constant.getValue();
+						final FlowConstant constant           = node.as(FlowConstant.class);
+						final SecurityContext securityContext = node.getSecurityContext();
+						final String cType                    = constant.getConstantType();
+						final Object val                      = constant.getValue();
 
-					if (val != null) {
+						if (val != null) {
 
-						try {
+							try {
 
-							PropertyConverter converter = null;
+								PropertyConverter converter = null;
 
-							if (cType != null) {
+								if (cType != null) {
 
-								switch (cType) {
+									switch (cType) {
 
-									case "String":
-										converter = new StringProperty("").inputConverter(securityContext, false);
-										break;
-									case "Boolean":
-										converter = new BooleanProperty("").inputConverter(securityContext, false);
-										break;
-									case "Integer":
-										converter = new IntProperty("").inputConverter(securityContext, false);
-										break;
-									case "Double":
-										converter = new DoubleProperty("").inputConverter(securityContext, false);
-										break;
-									default:
-										converter = new StringProperty("").inputConverter(securityContext, false);
+										case "String":
+											converter = new StringProperty("").inputConverter(securityContext, false);
+											break;
+										case "Boolean":
+											converter = new BooleanProperty("").inputConverter(securityContext, false);
+											break;
+										case "Integer":
+											converter = new IntProperty("").inputConverter(securityContext, false);
+											break;
+										case "Double":
+											converter = new DoubleProperty("").inputConverter(securityContext, false);
+											break;
+										default:
+											converter = new StringProperty("").inputConverter(securityContext, false);
+									}
+
 								}
 
+								return converter != null ? converter.convert(val) : val;
+
+							} catch (FrameworkException ex) {
+								logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
 							}
 
-							return converter != null ? converter.convert(val) : val;
-
-						} catch (FrameworkException ex) {
-							logger.warn("FlowConstant: Could not convert given value. " + ex.getMessage());
 						}
 
+						return null;
 					}
+				},
 
-					return null;
+				GetExportData.class,
+				new GetExportData() {
 
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final FlowConstant flowConstant = flowBaseNode.as(FlowConstant.class);
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowConstant.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowConstant.getType());
+						result.put(FlowConstantTraitDefinition.VALUE_PROPERTY,                         flowConstant.getValue());
+						result.put(FlowConstantTraitDefinition.CONSTANT_TYPE_PROPERTY,                 flowConstant.getConstantType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowConstant.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowConstant.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -121,9 +146,9 @@ public class FlowConstantTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 		final Property<String> value                       = new StringProperty(VALUE_PROPERTY);
 		final Property<String> constantType                = new EnumProperty(CONSTANT_TYPE_PROPERTY, FlowConstant.ConstantType.class);
 

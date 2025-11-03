@@ -220,17 +220,16 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public void clearCaches() {
-
 	}
 
 	@Override
 	public Traits getTraits() {
-		return null;
+		return entity.getTraits();
 	}
 
 	@Override
 	public <T> T as(final Class<T> type) {
-		return null;
+		return entity.as(type);
 	}
 
 	@Override

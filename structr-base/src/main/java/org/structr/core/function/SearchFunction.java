@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
@@ -66,9 +67,15 @@ public class SearchFunction extends AbstractQueryFunction {
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = Traits.of(typeString);
 
-				if (type != null) {
+				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
+
+					throw new FrameworkException(422, "Type GraphObject not supported in search(), please use type NodeInterface to search for nodes of all types.");
+				}
+
+				if (Traits.exists(typeString)) {
+
+					type = Traits.of(typeString);
 
 					query.types(type);
 

@@ -23,13 +23,16 @@ import com.google.cloud.translate.Translate.TranslateOption;
 import com.google.cloud.translate.TranslateException;
 import com.google.cloud.translate.TranslateOptions;
 import com.google.cloud.translate.Translation;
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.structr.common.error.FrameworkException;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class TranslateFunction extends UiFunction {
@@ -53,36 +56,36 @@ public class TranslateFunction extends UiFunction {
 	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 3);
 
-			try {
+			final String text = sources[0].toString();
+			final String sourceLanguage = sources[1].toString();
+			final String targetLanguage = sources[2].toString();
 
-				final String text = sources[0].toString();
-				final String sourceLanguage = sources[1].toString();
-				final String targetLanguage = sources[2].toString();
+			// default is google
+			String translationProvider = "google";
 
-				// default is google
-				String translationProvider = "google";
+			if (sources.length == 4 && sources[3] instanceof String) {
+				translationProvider = (String) sources[3];
+			}
 
-				if (sources.length == 4 && sources[3] instanceof String) {
-					translationProvider = (String) sources[3];
-				}
+			switch (translationProvider) {
 
-				switch (translationProvider) {
+				case "google": {
 
-					case "google": {
+					try {
 
 						final String gctAPIKey = TranslationModule.TranslationGoogleAPIKey.getValue();
 
-						if (gctAPIKey == null) {
+						if (gctAPIKey == null || gctAPIKey.isEmpty()) {
 							logger.error("Google Cloud Translation API Key not configured in structr.conf");
 							return "";
 						}
 
-						final Translate translate = TranslateOptions.builder().apiKey(gctAPIKey).build().service();
+						final Translate translate = TranslateOptions.newBuilder().setApiKey(gctAPIKey).build().getService();
 
 						Translation translation = translate.translate(
 							text,
@@ -90,44 +93,56 @@ public class TranslateFunction extends UiFunction {
 							TranslateOption.targetLanguage(targetLanguage)
 						);
 
-						return translation.translatedText();
+						return translation.getTranslatedText();
 					}
-					case "deepl": {
 
-						final String deeplAPIKey = TranslationModule.TranslationDeepLAPIKey.getValue();
+					catch (TranslateException te) {
+						throw new FrameworkException(422, "Could not translate text: " + text + "\nAPI Response: " + te.getLocalizedMessage());
+					}
+				}
 
-						if (deeplAPIKey == null) {
-							logger.error("DeepL Translation API Key not configured in structr.conf");
-							return "";
-						}
+				case "deepl": {
 
-						final String apiBaseURL = deeplAPIKey.contains(":fx") ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate";
+					final String deeplAPIKey = TranslationModule.TranslationDeepLAPIKey.getValue();
+					Gson gson = new Gson();
 
-						final Map<String, Object> responseData = HttpHelper.get(apiBaseURL + "?text=" + encodeURL(text)
-										+ "&source_lang=" + sourceLanguage.toUpperCase()
-										+ "&target_lang=" + targetLanguage.toUpperCase()
-										+ "&auth_key=" + deeplAPIKey,
-								"UTF-8");
+					if (deeplAPIKey == null || deeplAPIKey.isEmpty()) {
+						logger.error("DeepL Translation API Key not configured in structr.conf");
+						return "";
+					}
+
+					final String apiBaseURL = deeplAPIKey.contains(":fx") ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate";
+
+					final Map<String, String> headers = Map.of("Authorization", "DeepL-Auth-Key "+deeplAPIKey, "Content-Type", "application/json");
+
+					Map<String, Object> requestJson = new HashMap<>();
+					requestJson.put("text", new String[]{text});
+					requestJson.put("target_lang", targetLanguage.toUpperCase());
+					requestJson.put("source_lang", sourceLanguage.toUpperCase());
+
+					final Map<String, Object> responseData = HttpHelper.post(apiBaseURL, gson.toJson(requestJson), null, null, headers, "UTF-8", true);
 
 						final String response = responseData.get(HttpHelper.FIELD_BODY) instanceof String ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
-						final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");
 
-						if (translations.size() > 0) {
-							final JsonObject translation = translations.get(0).getAsJsonObject();
-							return translation.get("text").getAsString();
+						if (resultObject.has("translations")) {
+
+							final JsonArray translations = (JsonArray) resultObject.getAsJsonArray("translations");
+
+							if (!translations.isEmpty()) {
+								final JsonObject translation = translations.get(0).getAsJsonObject();
+								return translation.get("text").getAsString();
+							}
 						}
-					}
+						else
+						{
+							throw new FrameworkException(422, "Could not translate text: " + text + "\nAPI Response: " + response);
+						}
 				}
+				default:
+					logger.error("Unknown translation provider - possible values are 'google' and 'deepl'.");
 
-			} catch (TranslateException te) {
-
-				logger.error("TranslateException: {}", te.getLocalizedMessage());
-
-			} catch (Throwable t) {
-
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
 			}
 
 			return "";

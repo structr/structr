@@ -36,17 +36,22 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowTypeQuery;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -65,47 +70,68 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 
 		return Map.of(
 
-			DataSourceOperations.class,
-			new DataSourceOperations() {
+				DataSourceOperations.class,
+				new DataSourceOperations() {
 
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
 
-					final SecurityContext securityContext = node.getSecurityContext();
-					final App app                         = StructrApp.getInstance(securityContext);
-					final FlowTypeQuery dataSource        = node.as(FlowTypeQuery.class);
+						final SecurityContext securityContext = node.getSecurityContext();
+						final App app                         = StructrApp.getInstance(securityContext);
+						final FlowTypeQuery dataSource        = node.as(FlowTypeQuery.class);
 
-					try (Tx tx = app.tx()) {
+						try (Tx tx = app.tx()) {
 
-						final String type = dataSource.getDataType();
+							final String type = dataSource.getDataType();
 
-						JSONObject jsonObject = null;
+							JSONObject jsonObject = null;
 
-						final String queryString = dataSource.getQuery();
-						if (queryString != null) {
-							jsonObject = new JSONObject(queryString);
+							final String queryString = dataSource.getQuery();
+							if (queryString != null) {
+								jsonObject = new JSONObject(queryString);
+							}
+
+							final Query query = app.nodeQuery(type);
+
+							if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
+								dataSource.resolveQueryObject(context, jsonObject, query);
+							}
+
+							final List list = query.getAsList();
+
+							tx.success();
+
+							return list;
+
+						} catch (FrameworkException ex) {
+
+							logger.error("Exception in FlowTypeQuery: " + ex.getMessage());
 						}
 
-						final Query query = app.nodeQuery(type);
-
-						if (jsonObject != null && jsonObject.getJSONArray("operations").length() > 0) {
-							dataSource.resolveQueryObject(context, jsonObject, query);
-						}
-
-						final List list = query.getAsList();
-
-						tx.success();
-
-						return list;
-
-					} catch (FrameworkException ex) {
-
-						logger.error("Exception in FlowTypeQuery: " + ex.getMessage());
+						return null;
 					}
+				},
 
-					return null;
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final FlowTypeQuery flowTypeQuery = flowBaseNode.as(FlowTypeQuery.class);
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowTypeQuery.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowTypeQuery.getType());
+						result.put(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY,                    flowTypeQuery.getDataType());
+						result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       flowTypeQuery.getQuery());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowTypeQuery.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowTypeQuery.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			}
 		);
 	}
 
@@ -118,9 +144,9 @@ public class FlowTypeQueryTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 		final Property<String> dataType                    = new StringProperty(DATA_TYPE_PROPERTY);
 
 		return newSet(

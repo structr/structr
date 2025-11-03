@@ -24,7 +24,6 @@ import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.helper.CaseHelper;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.rest.RestMethodResult;
@@ -92,6 +91,7 @@ public class MeResource extends ExactMatchEndpoint {
             return StructrTraits.USER;
         }
 
+        /*
         @Override
         public String getResourceSignature() {
 
@@ -105,6 +105,7 @@ public class MeResource extends ExactMatchEndpoint {
 
             return signature;
         }
+        */
 
         @Override
         public Set<String> getAllowedHttpMethodsForOptionsCall() {

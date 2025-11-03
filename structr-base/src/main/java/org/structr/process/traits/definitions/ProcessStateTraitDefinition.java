@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
@@ -52,13 +53,13 @@ public class ProcessStateTraitDefinition extends AbstractNodeTraitDefinition {
  */
 
     @Override
-    public Set<PropertyKey> getPropertyKeys() {
+    public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-        final Property<Iterable<NodeInterface>> parametersProperty                = new EndNodes(PARAMETERS_PROPERTY, StructrTraits.PROCESS_STATE_STATE_PARAMETER_PROCESS_PARAMETER);
-        final Property<Iterable<NodeInterface>> processInstancesProperty          = new StartNodes(PROCESS_INSTANCES_PROPERTY, StructrTraits.PROCESS_INSTANCE_CURRENT_STATE_PROCESS_STATE);
-        final Property<NodeInterface>           nextStepProperty                  = new EndNode(NEXT_STEP_PROPERTY, StructrTraits.PROCESS_STATE_NEXT_STEP_PROCESS_STEP);
-        final Property<NodeInterface>           processThisStateIsInitialProperty = new StartNode(PROCESS_THIS_STATE_IS_INITIAL_PROPERTY, StructrTraits.PROCESS_INITIAL_STATE_PROCESS_STATE);
-        final Property<NodeInterface>           decisionProperty                  = new StartNode(DECISION_PROPERTY, StructrTraits.PROCESS_DECISION_POSSIBLE_STATE_PROCESS_STATE);
+        final Property<Iterable<NodeInterface>> parametersProperty                = new EndNodes(traitsInstance, PARAMETERS_PROPERTY, StructrTraits.PROCESS_STATE_STATE_PARAMETER_PROCESS_PARAMETER);
+        final Property<Iterable<NodeInterface>> processInstancesProperty          = new StartNodes(traitsInstance, PROCESS_INSTANCES_PROPERTY, StructrTraits.PROCESS_INSTANCE_CURRENT_STATE_PROCESS_STATE);
+        final Property<NodeInterface>           nextStepProperty                  = new EndNode(traitsInstance, NEXT_STEP_PROPERTY, StructrTraits.PROCESS_STATE_NEXT_STEP_PROCESS_STEP);
+        final Property<NodeInterface>           processThisStateIsInitialProperty = new StartNode(traitsInstance, PROCESS_THIS_STATE_IS_INITIAL_PROPERTY, StructrTraits.PROCESS_INITIAL_STATE_PROCESS_STATE);
+        final Property<NodeInterface>           decisionProperty                  = new StartNode(traitsInstance, DECISION_PROPERTY, StructrTraits.PROCESS_DECISION_POSSIBLE_STATE_PROCESS_STATE);
         final Property<Integer>                 statusProperty                    = new IntProperty(STATUS_PROPERTY);
 
         return newSet(

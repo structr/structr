@@ -101,7 +101,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
 			final App app             = StructrApp.getInstance(ctx);
 
-			if (Settings.CallbacksOnLogin.getValue() == false) {
+			if (!Settings.CallbacksOnLogin.getValue()) {
 				ctx.disableInnerCallbacks();
 			}
 
@@ -395,7 +395,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 			changedProperties.put(confirmationKeyKey, confKey);
 			user.setProperties(securityContext, changedProperties);
 
-		} else if (autoCreate == true) {
+		} else if (autoCreate) {
 
 			final App app = StructrApp.getInstance(securityContext);
 

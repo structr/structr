@@ -28,6 +28,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -41,6 +42,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
@@ -70,7 +72,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -104,11 +106,11 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
-		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
-		final Property<NodeInterface> imgProperty                 = new StartNode(IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
+		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(traitsInstance, HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
+		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(traitsInstance, WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
+		final Property<NodeInterface> imgProperty                 = new StartNode(traitsInstance, IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
 		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed();
 		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
 		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed();
@@ -131,18 +133,23 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 
 			PropertyView.Public,
-			Set.of(IS_USER_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY),
+			Set.of(
+					IS_USER_PROPERTY
+			),
 
 			PropertyView.Ui,
 			Set.of(
-				IS_USER_PROPERTY, CONFIRMATION_KEY_PROPERTY, PrincipalTraitDefinition.EMAIL_PROPERTY, PrincipalTraitDefinition.GROUPS_PROPERTY,
-				HOME_DIRECTORY_PROPERTY, PrincipalTraitDefinition.IS_ADMIN_PROPERTY, PrincipalTraitDefinition.LOCALE_PROPERTY,
-				PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_URL_PROPERTY,
-				PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY, PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY,
-				PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, WORKING_DIRECTORY_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
-				PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
-				PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
-				PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY, SKIP_SECURITY_RELATIONSHIPS_PROPERTY, IMG_PROPERTY
+					IS_USER_PROPERTY,
+					CONFIRMATION_KEY_PROPERTY, HOME_DIRECTORY_PROPERTY, WORKING_DIRECTORY_PROPERTY, SKIP_SECURITY_RELATIONSHIPS_PROPERTY, IMG_PROPERTY,
+					PrincipalTraitDefinition.EMAIL_PROPERTY, PrincipalTraitDefinition.GROUPS_PROPERTY,
+					PrincipalTraitDefinition.IS_ADMIN_PROPERTY, PrincipalTraitDefinition.LOCALE_PROPERTY,
+					PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.PROXY_PASSWORD_PROPERTY,
+					PrincipalTraitDefinition.PROXY_URL_PROPERTY, PrincipalTraitDefinition.PROXY_USERNAME_PROPERTY,
+					PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY,
+					PrincipalTraitDefinition.REFRESH_TOKENS_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY,
+					PrincipalTraitDefinition.IS_TWO_FACTOR_USER_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_CONFIRMED_PROPERTY,
+					PrincipalTraitDefinition.PASSWORD_ATTEMPTS_PROPERTY, PrincipalTraitDefinition.PASSWORD_CHANGE_DATE_PROPERTY,
+					PrincipalTraitDefinition.LAST_LOGIN_DATE_PROPERTY
 			)
 		);
 	}
@@ -168,6 +175,16 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 		try {
 
+			// make sure that username OR email is set
+			final ErrorBuffer errorBuffer      = new ErrorBuffer();
+			final PropertyKey<String> nameKey  = userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+			final PropertyKey<String> eMailKey = userTraits.key(PrincipalTraitDefinition.EMAIL_PROPERTY);
+
+			if (!ValidationHelper.isValidStringNotBlank(user, nameKey, errorBuffer) && !ValidationHelper.isValidStringNotBlank(user, eMailKey, errorBuffer)) {
+
+				throw new FrameworkException(422, "Cannot create a user who has neither a name nor an email address", errorBuffer);
+			}
+
 			// check per-user licensing count
 			final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 			if (licenseManager != null) {
@@ -184,10 +201,10 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			user.setSecurityContext(SecurityContext.getSuperUserInstance());
 
-			final PropertyKey<Boolean> skipSecurityRels = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
-			if (user.getProperty(skipSecurityRels).equals(Boolean.TRUE) && !user.isAdmin()) {
+			final PropertyKey<Boolean> skipSecurityRelationships = Traits.of(StructrTraits.USER).key(SKIP_SECURITY_RELATIONSHIPS_PROPERTY);
+			if (user.getProperty(skipSecurityRelationships).equals(Boolean.TRUE) && !user.isAdmin()) {
 
-				TransactionCommand.simpleBroadcastWarning("Info", "This user has the skipSecurityRels flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
+				TransactionCommand.simpleBroadcastWarning("Info", "This user has the '" + SKIP_SECURITY_RELATIONSHIPS_PROPERTY + "' flag set to true. This flag only works for admin accounts!", Predicate.only(securityContext.getSessionId()));
 			}
 
 			if (user.getTwoFactorSecret() == null) {

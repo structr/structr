@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -45,7 +46,7 @@ public class CssSemanticClassTraitDefinition extends AbstractNodeTraitDefinition
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -68,9 +69,9 @@ public class CssSemanticClassTraitDefinition extends AbstractNodeTraitDefinition
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes(SELECTORS_PROPERTY, StructrTraits.CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR);
+		final Property<Iterable<NodeInterface>> selectorsProperty = new EndNodes(traitsInstance, SELECTORS_PROPERTY, StructrTraits.CSS_SEMANTIC_CLASS_MAPS_TO_CSS_SELECTOR);
 
 		return Set.of(
 			selectorsProperty

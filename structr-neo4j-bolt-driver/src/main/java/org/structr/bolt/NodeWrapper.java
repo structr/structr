@@ -82,39 +82,45 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		buf.append("]->(m)");
 		buf.append(" SET r += $relProperties RETURN r");
 
-		final RelationshipWrapper newRel = tx.getRelationshipWrapper(tx.getRelationship(new SimpleCypherQuery(buf, map)));
-		final NodeWrapper otherNode      = (NodeWrapper)endNode;
-		final String relKey1             = createKey(newRel);
-		final String relKey2             = otherNode.createKey(newRel);
+		final org.neo4j.driver.types.Relationship newRelationship = tx.getRelationship(new SimpleCypherQuery(buf, map));
+		if (newRelationship != null) {
 
-		// we can't simply add the new relationship to the cache, because we don't know
-		// if the cache was initialized before. If it was not initialized, adding the
-		// relationship makes the system think there is only one relationship in the db.
+			final RelationshipWrapper newRel = tx.getRelationshipWrapper(newRelationship);
+			final NodeWrapper otherNode = (NodeWrapper) endNode;
+			final String relKey1 = createKey(newRel);
+			final String relKey2 = otherNode.createKey(newRel);
 
-		if (this.prefetched.contains(relKey1)) {
+			// we can't simply add the new relationship to the cache, because we don't know
+			// if the cache was initialized before. If it was not initialized, adding the
+			// relationship makes the system think there is only one relationship in the db.
 
-			this.storeRelationship(newRel, false);
+			if (this.prefetched.contains(relKey1)) {
 
-		} else {
+				this.storeRelationship(newRel, false);
 
-			this.invalidate();
+			} else {
+
+				this.invalidate();
+			}
+
+			if (((NodeWrapper) endNode).prefetched.contains(relKey2)) {
+
+				((NodeWrapper) endNode).storeRelationship(newRel, false);
+
+			} else {
+
+				endNode.invalidate();
+			}
+
+			// any modification invalidates the transaction prefetched cache
+			db.getCurrentTransaction().prefetchedOutgoing.clear();
+			db.getCurrentTransaction().prefetchedIncoming.clear();
+			db.getCurrentTransaction().prefetchedQueries.clear();
+
+			return newRel;
 		}
 
-		if (((NodeWrapper) endNode).prefetched.contains(relKey2)) {
-
-			((NodeWrapper)endNode).storeRelationship(newRel, false);
-
-		} else {
-
-			endNode.invalidate();
-		}
-
-		// any modification invalidates the transaction prefetched cache
-		db.getCurrentTransaction().prefetchedOutgoing.clear();
-		db.getCurrentTransaction().prefetchedIncoming.clear();
-		db.getCurrentTransaction().prefetchedQueries.clear();
-
-		return newRel;
+		return null;
 	}
 
 	@Override

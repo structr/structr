@@ -22,12 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.traits.definitions.FlowKeyValueTraitDefinition;
 import org.structr.module.api.DeployableEntity;
-
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowKeyValue extends FlowDataSource implements DeployableEntity {
 
@@ -39,19 +35,5 @@ public class FlowKeyValue extends FlowDataSource implements DeployableEntity {
 
 	public final String getKey() {
 		return wrappedObject.getProperty(traits.key(FlowKeyValueTraitDefinition.KEY_PROPERTY));
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(FlowKeyValueTraitDefinition.KEY_PROPERTY,                           getKey());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 }

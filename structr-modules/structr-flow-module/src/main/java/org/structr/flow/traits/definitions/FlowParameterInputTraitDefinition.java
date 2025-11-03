@@ -27,11 +27,17 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowParameterInput;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -50,10 +56,36 @@ public class FlowParameterInputTraitDefinition extends AbstractNodeTraitDefiniti
 		);
 	}
 
-	@Override
-	public Set<PropertyKey> getPropertyKeys() {
 
-		final Property<Iterable<NodeInterface>> call = new EndNodes(CALL_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
+	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(FlowParameterInputTraitDefinition.KEY_PROPERTY,                     flowBaseNode.as(FlowParameterInput.class).getKey());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
+				}
+		);
+	}
+
+	@Override
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
+		final Property<Iterable<NodeInterface>> call = new EndNodes(traitsInstance, CALL_PROPERTY, StructrTraits.FLOW_CALL_PARAMETER);
 		final Property<String> key                   = new StringProperty(KEY_PROPERTY);
 
 		return newSet(

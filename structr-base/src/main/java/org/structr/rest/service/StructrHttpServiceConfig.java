@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.core.auth.Authenticator;
-import org.structr.schema.compiler.NodeExtender;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -99,28 +98,12 @@ public class StructrHttpServiceConfig {
 	// ----- private methods -----
 	private Class loadClass(final String name) {
 
-		ClassLoader loader = NodeExtender.getClassLoader();
-		Class loadedClass  = null;
-
-		if (loader == null) {
-			loader = getClass().getClassLoader();
-		}
-
 		try {
 
-			loadedClass = Class.forName(name, true, loader);
+			return Class.forName(name);
 
 		} catch (Throwable ignore) {}
 
-		if (loadedClass == null) {
-
-			try {
-
-				loadedClass = Class.forName(name);
-
-			} catch (Throwable ignore) {}
-		}
-
-		return loadedClass;
+		return null;
 	}
 }

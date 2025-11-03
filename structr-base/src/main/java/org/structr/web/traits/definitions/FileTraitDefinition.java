@@ -26,6 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -34,11 +35,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -55,6 +54,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.StorageConfiguration;
 import org.structr.web.property.FileDataProperty;
+import org.structr.web.traits.operations.OnUploadCompletion;
 import org.structr.web.traits.wrappers.FileTraitWrapper;
 
 import java.io.IOException;
@@ -92,7 +92,7 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -196,6 +196,36 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 					return getSuper().setProperty(graphObject, key, value, isCreation);
 				}
+			},
+
+			OnUploadCompletion.class,
+			new OnUploadCompletion() {
+				@Override
+				public void onUploadCompletion(File file, SecurityContext securityContext) {
+
+					try {
+
+						try (final Tx tx = StructrApp.getInstance().tx()) {
+
+							FileHelper.updateMetadata(file, true);
+							file.increaseVersion();
+
+							// indexing can be controlled for each file separately
+							if (file.doIndexing()) {
+
+								final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+								indexer.addToFulltextIndex(file);
+							}
+
+							tx.success();
+						}
+
+					} catch (FrameworkException fex) {
+
+						final Logger logger = LoggerFactory.getLogger(File.class);
+						logger.warn("Unable to index {}: {}", this, fex.getMessage());
+					}
+				}
 			}
 		);
 	}
@@ -243,6 +273,18 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 					return entity.as(File.class).getXMLStructure(securityContext);
 				}
+			},
+
+			new JavaMethod("getSearchContext", false, false) {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+					final Number contextLength = (Number)arguments.get("contextLength");
+					final String searchString  = (String)arguments.get("searchString");
+
+					return entity.as(File.class).getSearchContext(securityContext, searchString, contextLength.intValue());
+				}
 			}
 		);
 	}
@@ -261,15 +303,15 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> fileParentProperty  = new StartNode(FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
+		final Property<NodeInterface> fileParentProperty  = new StartNode(traitsInstance, FILE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
 		final Property<String> contentTypeProperty        = new StringProperty(CONTENT_TYPE_PROPERTY);
 		final Property<Boolean> dontCacheProperty         = new BooleanProperty(DONT_CACHE_PROPERTY).defaultValue(false);
 		final Property<Boolean> indexedProperty           = new BooleanProperty(INDEXED_PROPERTY);
 		final Property<String> extractedContentProperty   = new StringProperty(EXTRACTED_CONTENT_PROPERTY).fulltextIndexed().disableSerialization(true);
 		final Property<Boolean> isFileProperty            = new ConstantBooleanProperty(IS_FILE_PROPERTY, true).readOnly();
-		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY);
+		final Property<Boolean> isTemplateProperty        = new BooleanProperty(IS_TEMPLATE_PROPERTY).readOnly();
 		final Property<Integer> cacheForSecondsProperty   = new IntProperty(CACHE_FOR_SECONDS_PROPERTY);
 		final Property<Integer> positionProperty          = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<Integer> versionProperty           = new IntProperty(VERSION_PROPERTY).indexed();
@@ -312,17 +354,17 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY, FILE_MODIFICATION_DATE_PROPERTY,
-					DONT_CACHE_PROPERTY, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY, NodeInterfaceTraitDefinition.OWNER_PROPERTY,
-					CONTENT_TYPE_PROPERTY, AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY,
+					DONT_CACHE_PROPERTY, CONTENT_TYPE_PROPERTY, CHECKSUM_PROPERTY,
+					NodeInterfaceTraitDefinition.OWNER_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY, CACHE_FOR_SECONDS_PROPERTY,
-					VERSION_PROPERTY, CHECKSUM_PROPERTY, MD5_PROPERTY, DONT_CACHE_PROPERTY, AbstractFileTraitDefinition.INCLUDE_IN_FRONTEND_EXPORT_PROPERTY,
-					NodeInterfaceTraitDefinition.OWNER_PROPERTY, AbstractFileTraitDefinition.HAS_PARENT_PROPERTY, AbstractFileTraitDefinition.PATH_PROPERTY,
-					CONTENT_TYPE_PROPERTY
+					URL_PROPERTY, IS_FILE_PROPERTY, IS_TEMPLATE_PROPERTY, INDEXED_PROPERTY, EXTRACTED_CONTENT_PROPERTY, SIZE_PROPERTY,
+					DONT_CACHE_PROPERTY, CONTENT_TYPE_PROPERTY, CHECKSUM_PROPERTY,
+					CACHE_FOR_SECONDS_PROPERTY, VERSION_PROPERTY, MD5_PROPERTY
+
 			)
 		);
 	}

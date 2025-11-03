@@ -42,8 +42,8 @@ import java.util.concurrent.Executors;
 
 public class ExecFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(scriptConfigKey [, parameterArray [, logBehaviour ] ])}. Example: ${exec('my-script', ['param1', 'param2'], 1)}";
-	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{ $.exec(scriptConfigKey  [, parameterArray [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
+	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}";
+	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{ $.exec(scriptConfigKey  [, parameterCollection [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
 
 	public static final String SCRIPTS_FOLDER = "scripts";
 
@@ -54,7 +54,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "scriptConfigKey [, parameterArray [, logBehaviour ] ]";
+		return "scriptConfigKey [, parameterCollection [, logBehaviour ] ]";
 	}
 
 	@Override
@@ -164,7 +164,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the standard output of the script. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked.";
+		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the standard output of the script. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'masked' flag.";
 	}
 
 	protected String getSanityCheckedPathForScriptSetting(final String scriptKey) throws IOException {
@@ -173,7 +173,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 		if (scriptSetting == null) {
 
-			logger.warn("{}(): No script found for key '{}' in structr.conf, nothing executed.", getName(), scriptKey);
+			logger.warn("{}(): Key '{}' not found in structr.conf, nothing executed.", getName(), scriptKey);
 
 		} else if (!scriptSetting.isDynamic()) {
 

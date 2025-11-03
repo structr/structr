@@ -24,6 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.accesscontrollable.AllowedBySchema;
 import org.structr.core.traits.operations.propertycontainer.GetVisibilityFlags;
 
@@ -32,8 +33,8 @@ import java.util.Set;
 
 public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<SchemaNode> {
 
-	public DynamicNodeTraitDefinition(final SchemaNode schemaNode) {
-		super(schemaNode);
+	public DynamicNodeTraitDefinition(final TraitsInstance traitsInstance, final SchemaNode schemaNode) {
+		super(traitsInstance, schemaNode);
 	}
 
 	@Override
@@ -112,14 +113,14 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 	}
 
 	@Override
-	public void initializePropertyKeys(final SchemaNode schemaNode) {
+	public void initializePropertyKeys(TraitsInstance traitsInstance, final SchemaNode schemaNode) {
 
 		// linked properties
 		for (final SchemaRelationshipNode outRel : schemaNode.getRelatedTo()) {
 
 			try {
 
-				propertyKeys.add(outRel.createKey(schemaNode, true));
+				propertyKeys.add(outRel.createKey(traitsInstance, schemaNode, true));
 
 			} catch (FrameworkException e) {
 				e.printStackTrace();
@@ -130,7 +131,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 
 			try {
 
-				propertyKeys.add(inRel.createKey(schemaNode, false));
+				propertyKeys.add(inRel.createKey(traitsInstance, schemaNode, false));
 
 			} catch (FrameworkException e) {
 				e.printStackTrace();
@@ -138,7 +139,7 @@ public class DynamicNodeTraitDefinition extends AbstractDynamicTraitDefinition<S
 		}
 
 		// add normal keys after relationship keys
-		super.initializePropertyKeys(schemaNode);
+		super.initializePropertyKeys(traitsInstance, schemaNode);
 	}
 
 	@Override

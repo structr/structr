@@ -53,7 +53,7 @@ public interface AbstractFile extends NodeInterface {
 	void setHasParent() throws FrameworkException;
 
 	boolean isBinaryDataAccessible(final SecurityContext securityContext);
-	boolean includeInFrontendExport();
+	boolean includeInFrontendExport(final boolean recursive);
 
 	boolean validateAndRenameFileOnce(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 	boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName);
@@ -90,7 +90,7 @@ public interface AbstractFile extends NodeInterface {
 	static String getDirectoryPath(final String uuid) {
 
 		return (uuid != null)
-			? uuid.substring(0, 1) + "/" + uuid.substring(1, 2) + "/" + uuid.substring(2, 3) + "/" + uuid.substring(3, 4)
+			? uuid.charAt(0) + "/" + uuid.charAt(1) + "/" + uuid.charAt(2) + "/" + uuid.charAt(3)
 			: null;
 
 	}

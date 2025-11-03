@@ -20,19 +20,17 @@ package org.structr.rest.service;
 
 
 import jakarta.servlet.DispatcherType;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
-import org.eclipse.jetty.http.HttpCookie;
-import org.eclipse.jetty.http.HttpMethod;
-import org.eclipse.jetty.http.MimeTypes;
-import org.eclipse.jetty.http.UriCompliance;
-import org.eclipse.jetty.http2.parser.WindowRateControl;
+import org.eclipse.jetty.ee10.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.http.*;
+import org.eclipse.jetty.http2.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
@@ -40,16 +38,14 @@ import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
-import org.eclipse.jetty.server.session.DefaultSessionCache;
-import org.eclipse.jetty.server.session.DefaultSessionIdManager;
-import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.JarResource;
+import org.eclipse.jetty.session.DefaultSessionCache;
+import org.eclipse.jetty.session.DefaultSessionIdManager;
+import org.eclipse.jetty.session.SessionCache;
+import org.eclipse.jetty.util.Callback;
 import org.eclipse.jetty.util.resource.Resource;
-import org.eclipse.jetty.util.resource.ResourceCollection;
+import org.eclipse.jetty.util.resource.ResourceFactory;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerInitializer;
+import org.eclipse.jetty.websocket.server.WebSocketUpgradeHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -61,11 +57,13 @@ import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
+import org.structr.websocket.servlet.WebSocketConfigurator;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -98,14 +96,10 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	static {
 
-		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
+		Services.getInstance().registerInitializationCallback(() -> {
 
-			@Override
-			public void initializationDone() {
-
-				if (Settings.ClearSessionsOnStartup.getValue()) {
-					SessionHelper.clearAllSessions();
-				}
+			if (Settings.ClearSessionsOnStartup.getValue()) {
+				SessionHelper.clearAllSessions();
 			}
 		});
 	}
@@ -118,7 +112,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
 		Exception exception = null;
-		int maxAttempts = 3;
+		int maxAttempts = Services.isTesting() ? 12 : 3;
 
 		while (maxAttempts-- > 0) {
 
@@ -243,7 +237,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		final boolean enableGzipCompression = Settings.GzipCompression.getValue();
 		final boolean logRequests           = Settings.RequestLogging.getValue();
 		final String host                   = Settings.ApplicationHost.getValue();
-		final boolean mainteanceModeActive  = Settings.MaintenanceModeEnabled.getValue();
+		final boolean maintenanceModeActive = Settings.MaintenanceModeEnabled.getValue();
 		final int httpPort                  = Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue();
 		final int httpsPort                 = Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue();
 		boolean forceHttps                  = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
@@ -267,11 +261,15 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
+		final ServletContextHandler servletContext = new ServletContextHandler(contextPath, true, true);
 		final ErrorHandler errorHandler = new ErrorHandler();
 
 		errorHandler.setShowStacks(false);
 		servletContext.setErrorHandler(errorHandler);
+		servletContext.getServletHandler().setDecodeAmbiguousURIs(true);
+
+		// websockets (new)
+		servletContext.insertHandler(WebSocketUpgradeHandler.from(server, servletContext, new WebSocketConfigurator("WebSocketServlet")));
 
 		if (enableGzipCompression) {
 			gzipHandler = new GzipHandler();
@@ -280,26 +278,63 @@ public class HttpService implements RunnableService, StatsCallback {
 			gzipHandler.setMinGzipSize(256);
 			gzipHandler.setIncludedMethods("GET", "POST", "PUT", "HEAD", "DELETE");
 			gzipHandler.addIncludedPaths("/*");
-			gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
-
+			//gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
 		}
 
 		servletContext.insertHandler(gzipHandler);
 
 		final List<Connector> connectors = new LinkedList<>();
 
-		// create resource collection from base path & source JAR
-		try {
-			servletContext.setBaseResource(new ResourceCollection(Resource.newResource(basePath), JarResource.newJarResource(Resource.newResource(sourceJarName))));
+		// Enable serving static resources for structr-ui (and redirect to config servlet if the system is not configured yet)
+		{
+			final ResourceHandler resourceHandler = new ResourceHandler(servletContext) {
 
-		} catch (Throwable t) {
+				@Override
+				public boolean handle(final Request request, final Response response, final Callback callback) throws Exception {
 
-			logger.warn("Base resource {} not usable: {}", new Object[]{basePath, t.getMessage()});
+					final String target = Request.getPathInContext(request);
+
+					if (Settings.SetupWizardCompleted.getValue() == false && Settings.ConfigServletEnabled.getValue() == true && ("/".equals(target) || "/index.html".equals(target))) {
+
+						final HttpFields.Mutable headers = response.getHeaders();
+
+						// please don't cache this redirect
+						headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+						headers.add("Expires", (String) null);
+						headers.add("Location", Settings.ApplicationRootPath.getValue() + "/structr/config");
+
+						response.setStatus(HttpServletResponse.SC_FOUND);
+
+						callback.succeeded();
+
+						return true;
+
+					} else {
+
+						return super.handle(request, response, callback);
+					}
+				}
+			};
+
+			// locate static resources (local vs. deb fallback)
+			final String resourceBasePath = (Paths.get("src/main/resources/structr").toFile().exists() ? "src/main/resources/structr" : "structr");
+			final ResourceFactory factory = ResourceFactory.of(resourceHandler);
+			final Resource baseResource   = factory.newResource(URI.create(resourceBasePath).normalize());
+
+			resourceHandler.setDirAllowed(false);
+			resourceHandler.setWelcomeFiles("index.html");
+
+			resourceHandler.setBaseResource(baseResource);
+			resourceHandler.setCacheControl("max-age=0");
+			//resourceHandler.setEtags(true);
+
+			final ContextHandler context = new ContextHandler("/structr");
+			context.setHandler(resourceHandler);
+			context.clearAliasChecks();
+			context.addAliasCheck((pathInContext, resource) -> resource.exists());
+
+			contexts.addHandler(context);
 		}
-
-		// this is needed for the filters to work on the root context "/"
-		servletContext.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
-		servletContext.setInitParameter("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
 
 		if (Settings.ConfigServletEnabled.getValue()) {
 
@@ -307,7 +342,9 @@ public class HttpService implements RunnableService, StatsCallback {
 			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
 		}
 
-		sessionCache = new DefaultSessionCache(servletContext.getSessionHandler());
+		final SessionHandler sessionHandler = servletContext.getSessionHandler();
+
+		sessionCache = new DefaultSessionCache(sessionHandler);
 
 		if (licenseManager != null) {
 
@@ -316,17 +353,17 @@ public class HttpService implements RunnableService, StatsCallback {
 			DefaultSessionIdManager idManager = new DefaultSessionIdManager(server, new SecureRandom(hardwareId.getBytes()));
 			idManager.setWorkerName(hardwareId);
 
-			sessionCache.getSessionHandler().setSessionIdManager(idManager);
+			sessionCache.getSessionManager().setSessionIdManager(idManager);
 		}
 
 		// configure the HttpOnly flag for JSESSIONID cookie
-		sessionCache.getSessionHandler().setHttpOnly(Settings.HttpOnly.getValue());
+		sessionHandler.setHttpOnly(Settings.HttpOnly.getValue());
 
 		// configure the SameSite attribute for JSESSIONID cookie
-		sessionCache.getSessionHandler().setSameSite(HttpCookie.SameSite.valueOf(Settings.CookieSameSite.getValue().toUpperCase()));
+		sessionHandler.setSameSite(HttpCookie.SameSite.valueOf(Settings.CookieSameSite.getValue().toUpperCase()));
 
 		// configure the Secure flag for JSESSIONID cookie
-		sessionCache.getSessionHandler().getSessionCookieConfig().setSecure(Settings.CookieSecure.getValue());
+		sessionHandler.getSessionCookieConfig().setSecure(Settings.CookieSecure.getValue());
 
 		final StructrSessionDataStore sessionDataStore = new StructrSessionDataStore();
 
@@ -342,14 +379,13 @@ public class HttpService implements RunnableService, StatsCallback {
 		// enable request logging
 		if (logRequests) {
 
-			final String logPath                      = basePath + "/logs";
-			final File logDir                         = new File(logPath);
+			final String logPath = basePath + "/logs";
+			final File logDir    = new File(logPath);
 
 			// Create logs directory if not existing
 			if (!logDir.exists()) {
 
 				logDir.mkdir();
-
 			}
 
 			Slf4jRequestLogWriter requestLogWriter = new Slf4jRequestLogWriter();
@@ -357,11 +393,6 @@ public class HttpService implements RunnableService, StatsCallback {
 			final String request_format = "%t \"%r\" %s %{ms}T";
 			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
 			server.setRequestLog(requestLog);
-		}
-
-		final List<ContextHandler> resourceHandler = collectResourceHandlers();
-		for (ContextHandler contextHandler : resourceHandler) {
-			contexts.addHandler(contextHandler);
 		}
 
 		final Map<String, ServletHolder> servlets = collectServlets(licenseManager);
@@ -375,10 +406,9 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			servletHolder.setInitOrder(position++);
 
-			logger.info("Adding servlet {} for {}", new Object[]{servletHolder, path});
+			logger.info("Adding servlet {} for {}", servletHolder, path);
 
 			servletContext.addServlet(servletHolder, path);
-			JettyWebSocketServletContainerInitializer.configure(servletContext, null);
 		}
 
 		// only add metrics filter if metrics servlet is enabled
@@ -392,7 +422,9 @@ public class HttpService implements RunnableService, StatsCallback {
 		if (enableRewriteFilter) {
 
 			final RewriteHandler rewriteHandler = new RewriteHandler();
-			rewriteHandler.setRewriteRequestURI(true);
+
+			//rewriteHandler.setRewriteRequestURI(true);
+
 			rewriteHandler.addRule(new RewriteRegexRule("^(\\/(?!structr$|structr\\/.*).*)", "/structr/html$1"));
 			rewriteHandler.setHandler(contexts);
 			server.setHandler(rewriteHandler);
@@ -410,7 +442,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		httpConfig.setSendServerVersion(false);
 		httpConfig.setSecureScheme("https");
 		httpConfig.setSecurePort(httpsPort);
-		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
+		httpConfig.setOutputBufferSize(1024 * 1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
 
 		switch(Settings.UriCompliance.getValue()) {
@@ -429,13 +461,15 @@ public class HttpService implements RunnableService, StatsCallback {
 				break;
 
 			case "RFC3986_UNAMBIGUOUS":
-				httpConfig.setUriCompliance(UriCompliance.RFC3986_UNAMBIGUOUS);
+				httpConfig.setUriCompliance(UriCompliance.UNAMBIGUOUS);
 				break;
 
 			case "UNSAFE":
 				httpConfig.setUriCompliance(UriCompliance.UNSAFE);
 				break;
 		}
+
+		httpConfig.setUriCompliance(UriCompliance.from("RFC3986,AMBIGUOUS_PATH_SEPARATOR"));
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 
@@ -503,7 +537,7 @@ public class HttpService implements RunnableService, StatsCallback {
 					http2.setRateControlFactory(new WindowRateControl.Factory(Settings.HttpConnectionRateLimit.getValue()));
 
 					if (forceHttps) {
-						sessionCache.getSessionHandler().setSecureRequestOnly(true);
+						sessionHandler.setSecureRequestOnly(true);
 					}
 
 					ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
@@ -552,14 +586,14 @@ public class HttpService implements RunnableService, StatsCallback {
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
 
-		setupMaintenanceServer(mainteanceModeActive);
+		setupMaintenanceServer(maintenanceModeActive);
 
 		return new ServiceResult(true);
 	}
 
-	private void setupMaintenanceServer(final boolean mainteanceModeActive) {
+	private void setupMaintenanceServer(final boolean maintenanceModeActive) {
 
-		if (mainteanceModeActive) {
+		if (maintenanceModeActive) {
 
 			final String keyStorePath           = Settings.KeystorePath.getValue();
 			final String keyStorePassword       = Settings.KeystorePassword.getValue();
@@ -587,24 +621,30 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			if (useDefaultHandler) {
 
-				maintenanceServer.setHandler(new AbstractHandler() {
+				maintenanceServer.setHandler(new Handler.Abstract() {
 					@Override
-					public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
+					public boolean handle(final Request request, final Response response, final Callback callback) throws Exception {
 
-						if (response.isCommitted() || baseRequest.isHandled())
-							return;
-
-						baseRequest.setHandled(true);
+						if (response.isCommitted()) {
+							callback.succeeded();
+							return true;
+						}
 
 						final String method = request.getMethod();
 
 						if (!HttpMethod.GET.is(method)) {
-							response.sendError(HttpServletResponse.SC_NOT_FOUND);
-							return;
+
+							response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+							callback.succeeded();
+
+							return true;
 						}
 
+						final HttpFields.Mutable responseHeaders = response.getHeaders();
+
 						response.setStatus(HttpServletResponse.SC_OK);
-						response.setContentType(MimeTypes.Type.TEXT_HTML_UTF_8.toString());
+
+						responseHeaders.add(HttpHeader.CONTENT_TYPE, MimeTypes.Type.TEXT_HTML_UTF_8.toString());
 
 						final StringBuilder maintenanceHTML = new StringBuilder();
 						maintenanceHTML.append("<!DOCTYPE html>\n");
@@ -616,27 +656,63 @@ public class HttpService implements RunnableService, StatsCallback {
 						maintenanceHTML.append(Settings.MaintenanceMessage.getValue());
 						maintenanceHTML.append("\n</body>\n</html>\n");
 
-						response.setContentLength(maintenanceHTML.length());
+						responseHeaders.add(HttpHeader.CONTENT_LENGTH, maintenanceHTML.length());
 
-						try (OutputStream out = response.getOutputStream()) {
+						try (OutputStream out = Response.asBufferedOutputStream(request, response)) {
 							out.write(maintenanceHTML.toString().getBytes());
 						}
+
+						callback.succeeded();
+
+						return true;
 					}
 				});
 
 			} else {
 
-				final ResourceHandler resourceHandler = new RedirectingResourceHandler();
-				resourceHandler.setDirectoriesListed(false);
+				final ResourceHandler resourceHandler = new ResourceHandler() {
 
-				resourceHandler.setResourceBase(resourceBase);
+					@Override
+					public boolean handle(final Request request, final Response response, final Callback callback) throws Exception {
+
+						final String target     = Request.getPathInContext(request);
+						final Resource resolved = getBaseResource().resolve(target);
+
+						if (!target.equals("/") && (resolved == null || !resolved.exists())) {
+
+							// redirect and don't cache
+							final HttpFields.Mutable headers = response.getHeaders();
+							headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+							headers.add("Expires", (String) null);
+							headers.add("Location", "/");
+
+							response.setStatus(HttpServletResponse.SC_FOUND);
+
+							callback.succeeded();
+
+							return true;
+						}
+
+						return super.handle(request, response, callback);
+					}
+				};
+				resourceHandler.setDirAllowed(false);
+
+				final ResourceFactory factory = ResourceFactory.of(resourceHandler);
+				final Resource baseResource   = factory.newResource(URI.create(resourceBase).normalize());
+				resourceHandler.setWelcomeFiles("index.html");
+				resourceHandler.setDirAllowed(false);
+
+				resourceHandler.setBaseResource(baseResource);
 				resourceHandler.setCacheControl("max-age=0");
 
-				final ContextHandler staticResourceHandler = new ContextHandler();
-				staticResourceHandler.setContextPath(contextPath);
-				staticResourceHandler.setHandler(resourceHandler);
+				final ContextHandler contextHandler = new ContextHandler(contextPath);
+				contextHandler.setHandler(resourceHandler);
 
-				maintenanceServer.setHandler(staticResourceHandler);
+				final RewriteHandler rewriteHandler = new RewriteHandler();
+				rewriteHandler.setHandler(contextHandler);
+
+				maintenanceServer.setHandler(rewriteHandler);
 			}
 
 			final List<Connector> connectors = new LinkedList<>();
@@ -682,6 +758,21 @@ public class HttpService implements RunnableService, StatsCallback {
 			maintenanceServer.setStopTimeout(1000);
 			maintenanceServer.setStopAtShutdown(true);
 		}
+	}
+
+	public int getAllocatedPort() {
+
+		for (final Connector c : server.getConnectors()) {
+
+			if (c instanceof ServerConnector s) {
+
+				final int port = s.getLocalPort();
+
+				return port;
+			}
+		}
+
+		return 0;
 	}
 
 	public void reloadSSLCertificate() {
@@ -801,62 +892,6 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	// ----- private methods -----
-	private List<ContextHandler> collectResourceHandlers() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-
-		final List<ContextHandler> resourceHandlers = new LinkedList<>();
-		final String resourceHandlerList            = Settings.ResourceHandlers.getValue();
-
-		if (resourceHandlerList != null) {
-
-			for (String resourceHandlerName : resourceHandlerList.split("[ \\t]+")) {
-
-				if (StringUtils.isNotBlank(resourceHandlerName)) {
-
-					final String contextPath = Settings.getOrCreateStringSetting(resourceHandlerName, "contextPath").getValue();
-					if (contextPath != null) {
-
-						final String resourceBase = Settings.getOrCreateStringSetting(resourceHandlerName, "resourceBase").getValue();
-						if (resourceBase != null) {
-
-							final ResourceHandler resourceHandler = new RedirectingResourceHandler();
-							resourceHandler.setDirectoriesListed(Settings.getBooleanSetting(resourceHandlerName, "directoriesListed").getValue());
-
-							final String welcomeFiles = Settings.getOrCreateStringSetting(resourceHandlerName, "welcomeFiles").getValue();
-							if (welcomeFiles != null) {
-
-								resourceHandler.setWelcomeFiles(StringUtils.split(welcomeFiles));
-							}
-
-							resourceHandler.setResourceBase(resourceBase);
-							resourceHandler.setCacheControl("max-age=0");
-							//resourceHandler.setEtags(true);
-
-							final ContextHandler staticResourceHandler = new ContextHandler();
-							staticResourceHandler.setContextPath(contextPath);
-							staticResourceHandler.setHandler(resourceHandler);
-
-							resourceHandlers.add(staticResourceHandler);
-
-						} else {
-
-							logger.warn("Unable to register resource handler {}, missing {}.resourceBase", resourceHandlerName, resourceHandlerName);
-						}
-
-					} else {
-
-						logger.warn("Unable to register resource handler {}, missing {}.contextPath", resourceHandlerName, resourceHandlerName);
-					}
-				}
-			}
-
-		} else {
-
-			logger.warn("No resource handlers configured for HttpService.");
-		}
-
-		return resourceHandlers;
-	}
-
 	private Map<String, ServletHolder> collectServlets(final LicenseManager licenseManager) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		final Map<String, ServletHolder> servlets = new LinkedHashMap<>();
@@ -877,9 +912,8 @@ public class HttpService implements RunnableService, StatsCallback {
 							try {
 
 								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).getDeclaredConstructor().newInstance();
-								if (servlet instanceof HttpServiceServlet) {
+								if (servlet instanceof HttpServiceServlet httpServiceServlet) {
 
-									final HttpServiceServlet httpServiceServlet = (HttpServiceServlet)servlet;
 									final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();
 									if (cfg != null) {
 
@@ -977,34 +1011,6 @@ public class HttpService implements RunnableService, StatsCallback {
 						logger.error("Unable to send lifecycle event to listener " + listenerClass, ex);
 					}
 				}
-			}
-		}
-	}
-
-	/**
-	 * A resource handler that redirects all requests to the config
-	 * servlet if the system is not configured yet.
-	 */
-	private class RedirectingResourceHandler extends ResourceHandler {
-
-		@Override
-		public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-
-			if (Settings.SetupWizardCompleted.getValue() == false && ("/".equals(target) || "/index.html".equals(target))) {
-
-				// please don't cache this redirect
-				response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-				response.setHeader("Expires", null);
-
-				// redirect to setup wizard
-				response.resetBuffer();
-				response.setHeader("Location", Settings.ApplicationRootPath.getValue() + "/structr/config");
-				response.setStatus(HttpServletResponse.SC_FOUND);
-				response.flushBuffer();
-
-			} else {
-
-				super.handle(target, baseRequest, request, response);
 			}
 		}
 	}

@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AddToIndex;
@@ -59,7 +60,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -75,10 +76,9 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 					final PropertyKey typeProperty        = traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY);
 					boolean valid = true;
 
-					// the following two checks can be omitted in release 2.4 when Neo4j uniqueness constraints are live
 					valid &= ValidationHelper.isValidStringNotBlank(graphObject, idProperty, errorBuffer);
 
-					if (securityContext != null && securityContext.uuidWasSetManually()) {
+					if (securityContext != null && securityContext.uuidWasSetManually() && graphObject.isNode()) {
 						valid &= ValidationHelper.isValidGloballyUniqueProperty(graphObject, idProperty, errorBuffer);
 					}
 
@@ -164,7 +164,7 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> typeProperty                  = new TypeProperty().category(GraphObject.SYSTEM_CATEGORY);
 		final PropertyKey<String> idProperty                    = new UuidProperty().category(GraphObject.SYSTEM_CATEGORY);
@@ -193,13 +193,15 @@ public final class GraphObjectTraitDefinition extends AbstractNodeTraitDefinitio
 		return Map.of(
 
 			PropertyView.Public,
-			newSet(GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY),
+			newSet(
+					ID_PROPERTY, TYPE_PROPERTY
+			),
 
 			PropertyView.Ui,
 			newSet(
-					GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, GraphObjectTraitDefinition.CREATED_BY_PROPERTY,
-					GraphObjectTraitDefinition.CREATED_DATE_PROPERTY, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY,
-					GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+					ID_PROPERTY, TYPE_PROPERTY, CREATED_BY_PROPERTY,
+					CREATED_DATE_PROPERTY, LAST_MODIFIED_DATE_PROPERTY,
+					VISIBLE_TO_PUBLIC_USERS_PROPERTY, VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
 			)
 		);
 	}

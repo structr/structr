@@ -198,6 +198,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			}
 		}
 	}
+
 	protected void assertArrayHasMinLengthAndTypes(final Object[] array, final int minimum, final Class... types) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length < minimum) {
@@ -211,13 +212,71 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			if (element != null) {
 
-				if (!type.isAssignableFrom(element.getClass())) {
-					throw ArgumentTypeException.wrongTypes(array, minimum, types);
+				if (GraphObject.class.isAssignableFrom(type)) {
+
+					if (element instanceof GraphObject g) {
+
+						if (!g.is(type.getSimpleName())) {
+
+							throw ArgumentTypeException.wrongTypes(array, minimum, types);
+						}
+
+					} else {
+
+						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+					}
+
+				} else {
+
+					if (!type.isAssignableFrom(element.getClass())) {
+						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+					}
 				}
 
 			} else {
 
 				throw ArgumentTypeException.wrongTypes(array, minimum, types);
+			}
+		}
+	}
+
+	protected void assertArrayHasLengthAndTypes(final Object[] array, final int length, final Class... types) throws ArgumentCountException, ArgumentNullException {
+
+		if (array.length != length) {
+			throw ArgumentTypeException.wrongTypes(array, length, types);
+		}
+
+		for (int i=0; (i<array.length && i < types.length); i++) {
+
+			final Object element = array[i];
+			final Class type     = types[i];
+
+			if (element != null) {
+
+				if (GraphObject.class.isAssignableFrom(type)) {
+
+					if (element instanceof GraphObject g) {
+
+						if (!g.is(type.getSimpleName())) {
+
+							throw ArgumentTypeException.wrongTypes(array, length, types);
+						}
+
+					} else {
+
+						throw ArgumentTypeException.wrongTypes(array, length, types);
+					}
+
+				} else {
+
+					if (!type.isAssignableFrom(element.getClass())) {
+						throw ArgumentTypeException.wrongTypes(array, length, types);
+					}
+				}
+
+			} else {
+
+				throw ArgumentTypeException.wrongTypes(array, length, types);
 			}
 		}
 	}
@@ -508,16 +567,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		}
 
 		return null;
-	}
-
-	protected static String serialize(final Gson gson, final Map<String, Object> map) {
-		return gson.toJson(map, new TypeToken<Map<String, String>>() {
-		}.getType());
-	}
-
-	protected static Map<String, Object> deserialize(final Gson gson, final String source) {
-		return gson.fromJson(source, new TypeToken<Map<String, Object>>() {
-		}.getType());
 	}
 
 	protected static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {

@@ -18,6 +18,7 @@
  */
 package org.structr.core.entity;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 
 public interface Localization extends NodeInterface {
@@ -27,4 +28,8 @@ public interface Localization extends NodeInterface {
 	String getDomain();
 
 	boolean isImported();
+
+	void setLocalizedName(final String localizedName) throws FrameworkException;
+	void setLocale(final String locale) throws FrameworkException;
+	void setDomain(final String domain) throws FrameworkException;
 }

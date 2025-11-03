@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 
 import java.util.Map;
@@ -48,13 +49,13 @@ public class ProcessParameterTraitDefinition extends AbstractNodeTraitDefinition
  */
 
     @Override
-    public Set<PropertyKey> getPropertyKeys() {
+    public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
         final Property<String>        displayNameProperty   = new StringProperty(DISPLAY_NAME_PROPERTY).indexed();
         final Property<String>        parameterTypeProperty = new StringProperty(PARAMETER_TYPE_PROPERTY).indexed();
         final Property<Boolean>       requiredProperty      = new BooleanProperty(REQUIRED_PROPERTY).indexed();
-        final Property<NodeInterface> stateProperty         = new StartNode(STATE_PROPERTY, StructrTraits.PROCESS_STATE_STATE_PARAMETER_PROCESS_PARAMETER);
-        final Property<NodeInterface> stepProperty          = new StartNode(STEP_PROPERTY, StructrTraits.PROCESS_STEP_STEP_PARAMETER_PROCESS_PARAMETER);
+        final Property<NodeInterface> stateProperty         = new StartNode(traitsInstance, STATE_PROPERTY, StructrTraits.PROCESS_STATE_STATE_PARAMETER_PROCESS_PARAMETER);
+        final Property<NodeInterface> stepProperty          = new StartNode(traitsInstance, STEP_PROPERTY, StructrTraits.PROCESS_STEP_STEP_PARAMETER_PROCESS_PARAMETER);
 
         return newSet(
                 displayNameProperty,

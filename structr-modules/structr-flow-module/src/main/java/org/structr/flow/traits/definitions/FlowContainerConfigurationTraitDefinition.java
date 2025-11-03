@@ -31,13 +31,20 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -51,7 +58,7 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -67,6 +74,35 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	}
 
 	@Override
+	public Map<Class, FrameworkMethod> getFrameworkMethods() {
+
+		return Map.of(
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final FlowContainerConfiguration flowContainerConfiguration = flowBaseNode.as(FlowContainerConfiguration.class);
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                              flowContainerConfiguration.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                            flowContainerConfiguration.getType());
+						result.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,                          flowContainerConfiguration.getName());
+						result.put(FlowContainerConfigurationTraitDefinition.VALID_FOR_EDITOR_PROPERTY, flowContainerConfiguration.getValidForEditor());
+						result.put(FlowContainerConfigurationTraitDefinition.CONFIG_JSON_PROPERTY,      flowContainerConfiguration.getConfigJson());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,         true);
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY,  true);
+
+						return result;
+					}
+				}
+		);
+	}
+
+	@Override
 	public Map<Class, NodeTraitFactory> getNodeTraitFactories() {
 
 		return Map.of(
@@ -75,10 +111,10 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> flow          = new EndNode(FLOW_PROPERTY, StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW);
-		final Property<NodeInterface> activeForFlow = new EndNode(ACTIVE_FOR_FLOW_PROPERTY, StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION);
+		final Property<NodeInterface> flow          = new EndNode(traitsInstance, FLOW_PROPERTY, StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW);
+		final Property<NodeInterface> activeForFlow = new EndNode(traitsInstance, ACTIVE_FOR_FLOW_PROPERTY, StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION);
 		final Property<String> validForEditor       = new StringProperty(VALID_FOR_EDITOR_PROPERTY).indexed();
 		final Property<String> configJson           = new StringProperty(CONFIG_JSON_PROPERTY);
 

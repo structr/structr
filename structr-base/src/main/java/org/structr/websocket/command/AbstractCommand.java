@@ -78,7 +78,7 @@ public abstract class AbstractCommand {
 
 		if (node != null && node.is(traitName)) {
 
-			return (T)node.as(type);
+			return node.as(type);
 		}
 
 		return null;
@@ -107,7 +107,7 @@ public abstract class AbstractCommand {
 	 */
 	public GraphObject getGraphObject(final String id, final String nodeId) {
 
-		if (isValidUuid(id)) {
+		if (Settings.isValidUuid(id)) {
 
 			final NodeInterface node = getNode(id);
 			if (node != null) {
@@ -254,18 +254,10 @@ public abstract class AbstractCommand {
 	 */
 	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) throws FrameworkException {
 
-		DOMNode child = sourceNode.getFirstChild();
-
-		while (child != null) {
-
-			DOMNode next = (DOMNode) child.getNextSibling();
+		for (final DOMNode child : sourceNode.getChildren()) {
 
 			targetNode.appendChild(child);
-
-			child = next;
-
 		}
-
 	}
 
 	/**
@@ -329,10 +321,5 @@ public abstract class AbstractCommand {
 			securityContext.setDoTransactionNotifications(notify);
 		}
 
-	}
-
-	// ----- private methods -----
-	private static boolean isValidUuid(final String id) {
-		return Settings.isValidUuid(id);
 	}
 }

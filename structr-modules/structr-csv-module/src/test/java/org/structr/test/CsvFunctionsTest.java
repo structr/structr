@@ -28,6 +28,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
@@ -51,8 +52,14 @@ public class CsvFunctionsTest extends StructrUiTest {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerNodeType("CsvTestOne", new CsvTestOneTraitDefinition());
-		StructrTraits.registerNodeType("CsvTestTwo", new CsvTestTwoTraitDefinition());
+		StructrTraits.registerTrait(new CsvTestOneTraitDefinition());
+		StructrTraits.registerTrait(new CsvTestTwoTraitDefinition());
+
+		StructrTraits.registerNodeType("CsvTestOne", "CsvTestOne");
+		StructrTraits.registerNodeType("CsvTestTwo", "CsvTestTwo");
+
+		// create new schema instance that includes the modified root schema
+		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
 	}
 
 	@Test

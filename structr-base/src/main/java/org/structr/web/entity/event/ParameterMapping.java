@@ -27,6 +27,8 @@ import java.util.Map;
 
 public interface ParameterMapping extends NodeInterface {
 
+	ActionMapping getActionMapping();
+
 	DOMElement getInputElement();
 
 	String getParameterType();

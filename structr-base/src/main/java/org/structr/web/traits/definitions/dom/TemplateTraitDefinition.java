@@ -25,10 +25,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -52,7 +49,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -153,7 +150,7 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 		return Set.of();
 	}
 
@@ -163,7 +160,8 @@ public class TemplateTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					ContentTraitDefinition.CONTENT_PROPERTY, ContentTraitDefinition.CONTENT_TYPE_PROPERTY, DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY
+					ContentTraitDefinition.CONTENT_PROPERTY, ContentTraitDefinition.CONTENT_TYPE_PROPERTY,
+					DOMNodeTraitDefinition.CHILDREN_PROPERTY, DOMNodeTraitDefinition.CHILDREN_IDS_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(

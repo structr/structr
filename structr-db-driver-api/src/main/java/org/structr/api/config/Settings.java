@@ -47,7 +47,6 @@ public class Settings {
 	private static String uuidPartRegex;
 	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);
 
-	private static String uuidRegex;
 	private static Pattern uuidPattern;
 
 	public static final String ConfigFileName                 = "structr.conf";
@@ -56,6 +55,8 @@ public class Settings {
 	public static final String DEFAULT_REMOTE_DATABASE_DRIVER = "org.structr.bolt.BoltDatabaseService";
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
+
+	public static final String CRON_EXPRESSION_INFO_HTML      = "A cron expression is defined as <pre>&lt;s&gt; &lt;m&gt; &lt;h&gt; &lt;dom&gt; &lt;m&gt; &lt;dow&gt;</pre> It is similar to a normal cron expression but with a \"seconds\" field at the beginning. Search for \"cron\" or \"periodic task scheduler\" in the documentation to find more info and examples.";
 
 	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
 
@@ -78,7 +79,6 @@ public class Settings {
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
 	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
-	public static final SettingsGroup ldapGroup               = new SettingsGroup("ldap",        "LDAP Settings");
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 	public static final SettingsGroup licensingGroup          = new SettingsGroup("licensing",   "Licensing");
 
@@ -118,19 +118,13 @@ public class Settings {
 	public static final Setting<String> FilesPath                      = new StringSetting(generalGroup,             "Paths",       "files.path",                            System.getProperty("user.dir").concat(File.separator + "files"), "Path to the Structr file storage folder");
 	public static final Setting<String> ChangelogPath                  = new StringSetting(generalGroup,             "Paths",       "changelog.path",                        System.getProperty("user.dir").concat(File.separator + "changelog"), "Path to the Structr changelog storage folder");
 	public static final Setting<String> DataExchangePath               = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",                    "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> SnapshotsPath                  = new StringSetting(generalGroup,             "Paths",       "snapshot.path",                         "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> WebDataPath                    = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",                      "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
 
 	public static final Setting<String> LogLevel                       = new ChoiceSetting(generalGroup,             "Logging",     "log.level",                             "INFO", Settings.getAvailableLogLevels(), "Configures the default log level. Takes effect immediately.");
-	public static final Setting<Boolean> LogSchemaOutput               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",                      false, "Whether to write dynamically created Java code to the logfile, for debugging purposes.");
-	public static final Setting<Boolean> LogSchemaErrors               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",               true);
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
 	public static final Setting<Integer> CallbackLoggingThreshold      = new IntegerSetting(generalGroup,            "Logging",     "log.callback.threshold",                50000, "Number of callbacks after which a transaction will be logged.");
 	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
 	public static final Setting<Boolean> LogFunctionsStackTrace        = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",              false, "If true, the full stacktrace is logged for exceptions in system functions.");
 	public static final Setting<Integer> LogScriptProcessCommandLine   = new IntegerChoiceSetting(generalGroup,        "Logging",     "log.scriptprocess.commandline",         2, Settings.getScriptProcessLogCommandLineOptions(), "Configures the default logging behaviour for the command line generated for script processes. This applies to the exec()- and exec_binary() functions, as well as some processes handling media conversion or processing. For the exec() and exec_binary() function, this can be overridden for each call of the function.");
-	public static final Setting<String> LogPrefix                      = new StringSetting(generalGroup,             "Logging",     "log.prefix",                            "structr");
-	public static final Setting<Boolean> LogJSExcpetionRequest         = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request",      false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
 	public static final Setting<Boolean> LogDirectoryWatchServiceQuiet = new BooleanSetting(generalGroup,            "Logging",     "log.directorywatchservice.scanquietly", false, "Prevents logging of each scan process for every folder processed by the directory watch service");
 
 	public static final Setting<Boolean> SetupWizardCompleted          = new BooleanSetting(generalGroup,            "hidden",      "setup.wizard.completed",                false);
@@ -166,7 +160,6 @@ public class Settings {
 	public static final Setting<Boolean> MaintenanceModeEnabled       = new BooleanSetting(serverGroup, "hidden", MAINTENANCE_PREFIX + ".enabled",                           false, "Enables maintenance mode where all ports can be changed to prevent users from accessing the application during maintenance.");
 
 	// HTTP service settings
-	public static final Setting<String> ResourceHandlers         = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",         "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
 	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
 	public static final Setting<Boolean> GzipCompression         = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",             true,  "Use GZIP compression for HTTP transfers");
 	public static final Setting<Integer> HttpConnectionRateLimit = new IntegerSetting(serverGroup, "HTTP Settings", "httpservice.connection.ratelimit", 100, "Defines the rate limit of HTTP/2 frames per connection for the HTTP Service.");
@@ -220,11 +213,6 @@ public class Settings {
 	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "", "Sets the value of the <code>Access-Control-Expose-Headers</code> header.");
 
 
-	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "structruihandler.contextpath",       "/structr", "Static resource handling configuration.");
-	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "structruihandler.directorieslisted", false);
-	public static final Setting<String> UiHandlerResourceBase       = new StringSetting(serverGroup,  "hidden", "structruihandler.resourcebase",      "src/main/resources/structr");
-	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "structruihandler.welcomefiles",      "index.html");
-
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                  "database.available.connections",   null);
 	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "hidden",                  "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
@@ -237,8 +225,6 @@ public class Settings {
 	public static final Setting<String> ConnectionPassword           = new StringSetting(databaseGroup,  "hidden",                  "database.connection.password",     "neo4j");
 	public static final Setting<String> ConnectionDatabaseName       = new StringSetting(databaseGroup,  "hidden",                  "database.connection.databasename", "neo4j");
 	public static final Setting<String> TenantIdentifier             = new StringSetting(databaseGroup,  "hidden",                  "database.tenant.identifier",       "");
-	public static final Setting<Integer> RelationshipCacheSize       = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.relationship.size", 500000);
-	public static final Setting<Integer> NodeCacheSize               = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.node.size",         100000, "Size of the database driver node cache");
 	public static final Setting<Integer> UuidCacheSize               = new IntegerSetting(databaseGroup, "hidden",                  "database.cache.uuid.size",         1000000, "Size of the database driver relationship cache");
 	public static final Setting<Boolean> ForceResultStreaming        = new BooleanSetting(databaseGroup, "Result Streaming",        "database.result.lazy",             false, "Forces Structr to use lazy evaluation for relationship queries");
 	public static final Setting<Boolean> CypherDebugLogging          = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
@@ -263,7 +249,7 @@ public class Settings {
 	public static final Setting<Boolean> IndexingEnabled             = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.enabled",         true,  "Whether indexing is enabled globally (can be controlled separately for each file)");
 	public static final Setting<Integer> IndexingMaxFileSize         = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",         10,    "Maximum size (MB) of a file to be indexed");
 	public static final Setting<Boolean> FollowSymlinks              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followsymlinks",     true);
-	public static final Setting<String> DefaultUploadFolder          = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                      "", "The default path for files uploaded via the UploadServlet (available from Structr 2.1+)");
+	public static final Setting<String> DefaultUploadFolder          = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                      "/._structr_uploads", "The default upload folder for files uploaded via the UploadServlet. This must be a valid folder path and can not be empty (uploads to the root directory are not allowed).");
 
 	public static final Setting<Boolean> FeedItemIndexRemoteDocument        = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.remote",             true,  "Whether indexing for type FeedItem will index the target URL of the FeedItem or the description");
 	public static final Setting<Boolean> FeedItemContentIndexingEnabled     = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.enabled",     true,  "Whether indexing is enabled for type FeedItemContent");
@@ -316,7 +302,6 @@ public class Settings {
 
 	// advanced settings
 	public static final Setting<Boolean> JsonRedundancyReduction      = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyreduction",       true,  "If enabled, nested nodes (which were already rendered in the current output) are rendered with limited set of attribute (id, type, name).");
-	public static final Setting<Integer> JsonParallelizationThreshold = new IntegerSetting(advancedGroup, "JSON",   "json.parallelization.threshold", 100,   "Collection size threshold for multi-threaded JSON generation");
 	public static final Setting<Boolean> JsonLenient                  = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",                   false, "Whether to use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null. Note: as long as Javascript doesn’t support NaN etc., most of the UI will be broken");
 	public static final Setting<Boolean> ForceArrays                  = new BooleanSetting(advancedGroup, "JSON",   "json.output.forcearrays",        false, "If enabled, collections with a single element are always represented as a collection.");
 	public static final Setting<Integer> JsonReduceNestedObjectsDepth = new IntegerSetting(advancedGroup, "JSON",   "json.reductiondepth",            0,     "For restricted views (ui, custom, all), only a limited amount of attributes (id, type, name) are rendered for nested objects after this depth. The default is 0, meaning that on the root depth (0), all attributes are rendered and reduction starts at depth 1.<br><br>Can be overridden on a per-request basis by using the request parameter <code>" + (Settings.RequestParameterLegacyMode.getValue() ? "" : "_")  + "outputReductionDepth</code>");
@@ -331,8 +316,8 @@ public class Settings {
 
 	// servlets
 	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
-		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
-		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet", "MetricsServlet"),
+		"JsonRestServlet HtmlServlet CsvServlet UploadServlet ProxyServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
+		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet", "MetricsServlet"),
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
@@ -346,7 +331,7 @@ public class Settings {
 	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.user.class",                   "org.structr.dynamic.User", "User class that is instantiated when new users are created via the servlet");
 	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autologin",               false, "Only works in conjunction with the jsonrestservlet.user.autocreate key. Will log in user after self registration.");
 	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autocreate",              false, "Enable this to support user self registration");
-	public static final Setting<String> InputValidationMode   = new ChoiceSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "accept_warn", new LinkedHashSet<>(Arrays.asList("accept", "accept_warn", "ignore", "ignore_warn", "reject", "reject_warn")), "Controls how Structr reacts to unknown keys in JSON input. <code>accept</code> allows the unknown key to be written. <code>ignore</code> removes the key. <code>reject</code> rejects the complete request. The <code>warn</code> options behave identical but also log a warning.");
+	public static final Setting<String> InputValidationMode   = new ChoiceSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "accept_warn", getStringsAsSet("accept", "accept_warn", "ignore", "ignore_warn", "reject", "reject_warn"), "Controls how Structr reacts to unknown keys in JSON input. <code>accept</code> allows the unknown key to be written. <code>ignore</code> removes the key. <code>reject</code> rejects the complete request. The <code>warn</code> options behave identical but also log a warning.");
 
 	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "hidden", "flowservlet.path",             "/structr/flow/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
 	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "hidden", "flowservlet.class",            "org.structr.flow.servlet.FlowServlet");
@@ -403,13 +388,6 @@ public class Settings {
 	public static final Setting<Boolean> UploadAllowAnonymous   = new BooleanSetting(servletsGroup, "UploadServlet", "uploadservlet.allowanonymousuploads", false, "Allows anonymous users to upload files.");
 	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet", "uploadservlet.maxfilesize",           1000, "Maximum allowed file size for single file uploads. Unit is Megabytes");
 	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet", "uploadservlet.maxrequestsize",        1200, "Maximum allowed request size for single file uploads. Unit is Megabytes");
-
-	public static final Setting<String> GraphQLServletPath       = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.path",                  "/structr/graphql", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
-	public static final Setting<String> GraphQLServletClass      = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.class",                 "org.structr.rest.servlet.GraphQLServlet");
-	public static final Setting<String> GraphQLAuthenticator     = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> GraphQLResourceProvider  = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> GraphQLDefaultView       = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.defaultview",           "public", "Default view to use when no view is given in the URL.");
-	public static final Setting<Integer> GraphQLOutputDepth      = new IntegerSetting(servletsGroup, "GraphQLServlet", "graphqlservlet.outputdepth",	   3, "Maximum nesting depth of JSON output.");
 
 	public static final Setting<String> LoginServletPath       = new StringSetting(servletsGroup,  "hidden", "loginservlet.path",                  "/structr/login", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
 	public static final Setting<String> LoginServletClass      = new StringSetting(servletsGroup,  "hidden", "loginservlet.class",                 "org.structr.web.servlet.LoginServlet");
@@ -495,7 +473,7 @@ public class Settings {
 	public static final Setting<String> MetricsServletWhitelist         = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/metrics.");
 
 	// cron settings
-	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations or method names");
+	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations or method names. This only configures the list of tasks. For each task, there needs to be another configuration entry named '<taskname>.cronExpression' with the appropriate cron schedule configuration.");
 	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.");
 
 	//security settings
@@ -503,6 +481,8 @@ public class Settings {
 	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    null, "Password of the superuser").setIsProtected();
 	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security", "application.security.resolution.depth", 5);
 	public static final Setting<Boolean> XMLParserSecurity             = new BooleanSetting(applicationGroup, "Application Security", "application.xml.parser.security", true, "Enables various security measures for XML parsing to prevent exploits.");
+
+	public static final Setting<String> AuthenticationPropertyKeys      = new StringSetting(securityGroup,     "Authentication", "security.authentication.propertykeys", null, "List of property keys separated by space in the form of <Type>.<key> (example: 'Member.memberId') to be used in addition to the default 'Principal.name Principal.eMail'");
 
 	public static final Setting<Boolean> InitialAdminUserCreate        = new BooleanSetting(securityGroup,    "Initial Admin User",   "initialuser.create",    true,    "Enables or disables the creation of an initial admin user when connecting to a database that has never been used with structr.");
 	public static final Setting<String> InitialAdminUserName           = new StringSetting(securityGroup,     "Initial Admin User",   "initialuser.name",      "admin", "Name of the initial admin user. This will only be set if the user is created.");
@@ -646,27 +626,6 @@ public class Settings {
 	public static final Setting<String> OAuthAzureReturnUri             = new StringSetting(oauthGroup, "Azure", "oauth.azure.return_uri", "", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthAzureScope                 = new StringSetting(oauthGroup, "Azure", "oauth.azure.scope", "openid profile email", "Specifies the scope of the authentifcation.");
 	public static final ChoiceSetting OAuthAzureAccessTokenLocation     = new ChoiceSetting(oauthGroup, "Azure", "oauth.azure.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
-
-	// LDAP settings
-	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup,  "General", "ldap.host", "localhost", "Address of the LDAP host.");
-	public static final Setting<Integer> LDAPPort           = new IntegerSetting(ldapGroup, "General", "ldap.port", 389, "Port of the LDAP host.");
-	public static final Setting<Integer> LDAPConnectTimeout = new IntegerSetting(ldapGroup, "General", "ldap.connecttimeout", 1000, "Connection timeout in milliseconds");
-	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup,  "General", "ldap.binddn", "", "DN that is used to authenticate synchronization");
-	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup,  "General", "ldap.secret", "", "Used in conjunction with bind DN to handle authentication.").setIsProtected();
-	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false, "Enables SSL for the LDAP connection.");
-	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE", "Specifies the LDAP scope. Defaults to 'SUBTREE'");
-	public static final Setting<String> LDAPPrimaryKey      = new StringSetting(ldapGroup,  "General", "ldap.primarykey", "dn", "Name of primary identification property of LDAP objects, must uniquely identify users and groups");
-	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup,  "General", "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
-	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup,  "General", "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
-	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds.");
-
-	// payment settings
-	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");
-	public static final Setting<String> PaymentPaypalUsername  = new StringSetting(miscGroup,  "Payment Options", "paypal.username",     "");
-	public static final Setting<String> PaymentPaypalPassword  = new StringSetting(miscGroup,  "Payment Options", "paypal.password",     "");
-	public static final Setting<String> PaymentPaypalSignature = new StringSetting(miscGroup,  "Payment Options", "paypal.signature",    "");
-	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
-	//public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
 	// licence settings
 	public static final Setting<String> LicenseKey                = new StringSetting(licensingGroup,   "Licensing", "license.key",                   "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
@@ -814,10 +773,22 @@ public class Settings {
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
 					);
 
-			// Touch file, if it doesn't exist
-			Path.of(fileName).toFile().createNewFile();
+			// If file does not exist, create it and set default permissions
+			final Path filePath     = Path.of(fileName);
+			final boolean didCreate = filePath.toFile().createNewFile();
+			if (didCreate) {
+
+				try {
+
+					Files.setPosixFilePermissions(filePath, expectedConfigFilePermissions);
+
+				} catch (UnsupportedOperationException | IOException e) {
+					// happens on non-POSIX filesystems, ignore
+				}
+			}
 
 			final PropertiesConfiguration config = builder.getConfiguration();
+			final FileHandler fileHandler        = builder.getFileHandler();
 
 			for (final Setting setting : settings.values()) {
 
@@ -830,33 +801,16 @@ public class Settings {
 				}
 			}
 
-			FileHandler fileHandler = builder.getFileHandler();
+			final long freeSpace = fileHandler.getFile().getFreeSpace();
 
-			final boolean isFileCreation = !fileHandler.getFile().exists();
-
-			final long freeSpace = (!isFileCreation ? fileHandler.getFile().getFreeSpace() : new File(new File("").getAbsolutePath()).getFreeSpace());
-
-			if(freeSpace < 1024 * 1024){
+			if (freeSpace < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
 			fileHandler.save();
 
-			if (isFileCreation) {
-
-				try {
-
-					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
-
-				} catch (UnsupportedOperationException | IOException e) {
-					// happens on non-POSIX filesystems, ignore
-				}
-
-			} else {
-
-				checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
-			}
+			checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 
 		} catch (ConfigurationException ex) {
 
@@ -945,7 +899,7 @@ public class Settings {
 					);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-                        final Iterator<String> keys          = config.getKeys();
+			final Iterator<String> keys          = config.getKeys();
 
 			Settings.checkConfigurationFilePermissions(builder, true);
 

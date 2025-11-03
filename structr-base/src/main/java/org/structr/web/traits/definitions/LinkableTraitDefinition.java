@@ -26,6 +26,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -50,7 +51,7 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -78,9 +79,9 @@ public class LinkableTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes(LINKING_ELEMENTS_PROPERTY, StructrTraits.LINK_SOURCE_LINK_LINKABLE);
+		final Property<Iterable<NodeInterface>> linkingElementsProperty = new StartNodes(traitsInstance, LINKING_ELEMENTS_PROPERTY, StructrTraits.LINK_SOURCE_LINK_LINKABLE);
 		final Property<Iterable<String>> linkingElementsIdsProperty     = new CollectionIdProperty<>(LINKING_ELEMENTS_IDS_PROPERTY, StructrTraits.LINKABLE,LINKING_ELEMENTS_PROPERTY, StructrTraits.LINK_SOURCE);
 		final Property<Boolean> enableBasicAuthProperty                 = new BooleanProperty(ENABLE_BASIC_AUTH_PROPERTY).defaultValue(false).indexed();
 		final Property<String> basicAuthRealmProperty                   = new StringProperty(BASIC_AUTH_REALM_PROPERTY);

@@ -32,7 +32,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.flow.engine.Context;
 import org.structr.flow.traits.definitions.FlowDataSourceTraitDefinition;
 import org.structr.flow.traits.definitions.FlowTypeQueryTraitDefinition;
@@ -40,8 +39,6 @@ import org.structr.module.api.DeployableEntity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
@@ -57,21 +54,6 @@ public class FlowTypeQuery extends FlowDataSource implements DeployableEntity {
 
 	public String getQuery() {
 		return wrappedObject.getProperty(traits.key(FlowDataSourceTraitDefinition.QUERY_PROPERTY));
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-
-		final Map<String, Object> result = new TreeMap<>();
-
-		result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             getUuid());
-		result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           getType());
-		result.put(FlowTypeQueryTraitDefinition.DATA_TYPE_PROPERTY,                    getDataType());
-		result.put(FlowDataSourceTraitDefinition.QUERY_PROPERTY,                       getQuery());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        isVisibleToPublicUsers());
-		result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, isVisibleToAuthenticatedUsers());
-
-		return result;
 	}
 
 	public Query resolveQueryObject(final Context context, final JSONObject object, final Query query) {

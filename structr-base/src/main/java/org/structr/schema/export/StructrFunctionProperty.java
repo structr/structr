@@ -40,11 +40,13 @@ import java.util.Map;
  */
 public class StructrFunctionProperty extends StructrDynamicProperty implements JsonFunctionProperty {
 
-	protected Boolean cachingEnabled	= false;
-	protected String readFunction  		= null;
-	protected String writeFunction 		= null;
-	protected String contentType   		= null;
-	protected String openAPIReturnType	= null;
+	protected Boolean cachingEnabled	                   = false;
+	protected String readFunction  		                   = null;
+	protected String writeFunction 		                   = null;
+	protected boolean writeFunctionWrapJS                  = true;
+	protected boolean readFunctionWrapJS                   = true;
+	protected String contentType                           = null;
+	protected String openAPIReturnType	                   = null;
 
 	public StructrFunctionProperty(final StructrTypeDefinition parent, final String name) {
 
@@ -52,15 +54,15 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	}
 
 	@Override
+	public String getType() {
+		return "function";
+	}
+
+	@Override
 	public JsonFunctionProperty setReadFunction(final String readFunction) {
 
 		this.readFunction = readFunction;
 		return this;
-	}
-
-	@Override
-	public String getType() {
-		return "function";
 	}
 
 	@Override
@@ -78,6 +80,28 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	@Override
 	public String getWriteFunction() {
 		return writeFunction;
+	}
+
+	@Override
+	public JsonFunctionProperty setWriteFunctionWrapJS(boolean wrap) {
+		this.writeFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
+	public Boolean getWriteFunctionWrapJS() {
+		return this.writeFunctionWrapJS;
+	}
+
+	@Override
+	public JsonFunctionProperty setReadFunctionWrapJS(boolean wrap) {
+		this.readFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
+	public Boolean getReadFunctionWrapJS() {
+		return this.readFunctionWrapJS;
 	}
 
 	@Override
@@ -129,6 +153,9 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		if (writeFunction != null) {
 			map.put(JsonSchema.KEY_WRITE_FUNCTION, writeFunction);
 		}
+
+		map.put(JsonSchema.KEY_WRITE_FUNCTION_WRAP_JS, writeFunctionWrapJS);
+		map.put(JsonSchema.KEY_READ_FUNCTION_WRAP_JS, readFunctionWrapJS);
 
 		if (openAPIReturnType != null) {
 			map.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, openAPIReturnType);
@@ -215,6 +242,9 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 
 		setReadFunction(property.getReadFunction());
 		setWriteFunction(property.getWriteFunction());
+		setReadFunctionWrapJS(property.getReadFunctionWrapJS());
+		setWriteFunctionWrapJS(property.getWriteFunctionWrapJS());
+
 		setIsCachingEnabled(property.isCachingEnabled());
 		setContentType(property.getSourceContentType());
 		setOpenAPIReturnType(property.getOpenAPIReturnType());

@@ -20,38 +20,7 @@
 		<dependency>
 			<groupId>org.shredzone.acme4j</groupId>
 			<artifactId>acme4j-client</artifactId>
-			<version>3.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.shredzone.acme4j</groupId>
-			<artifactId>acme4j-utils</artifactId>
-			<version>2.16</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcmail-jdk15on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk15on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcpkix-jdk15on</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcmail-jdk16</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcprov-jdk16</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.bouncycastle</groupId>
-					<artifactId>bcpkix-jdk16</artifactId>
-				</exclusion>
-			</exclusions>
+			<version>3.4.0</version>
 		</dependency>
 	</dependencies>
 
@@ -69,7 +38,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>

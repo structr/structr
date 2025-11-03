@@ -18,20 +18,25 @@
  */
 package org.structr.flow.traits.definitions;
 
+import java.util.TreeMap;
 import org.structr.api.util.Iterables;
 import org.structr.core.entity.Relation;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowAction;
+import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowCondition;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.impl.FlowLogicCondition;
 import org.structr.flow.impl.FlowNode;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.List;
@@ -56,43 +61,60 @@ public class FlowLogicConditionTraitDefinition extends AbstractNodeTraitDefiniti
 
 		return Map.of(
 
-			GetFlowType.class,
-			new GetFlowType() {
+				GetFlowType.class,
+				new GetFlowType() {
 
-				@Override
-				public FlowType getFlowType(FlowNode flowNode) {
-					return FlowType.Exception;
+					@Override
+					public FlowType getFlowType(FlowNode flowNode) {
+						return FlowType.Exception;
+					}
+				},
+
+				DataSourceOperations.class,
+				new DataSourceOperations() {
+
+					@Override
+					public Object get(final Context context, final FlowDataSource node) throws FlowException {
+
+						final FlowLogicCondition flowNode      = node.as(FlowLogicCondition.class);
+						final List<FlowCondition> _dataSources = Iterables.toList(flowNode.getConditions());
+						if (_dataSources.isEmpty()) {
+
+							return flowNode.combine(null, false);
+						}
+
+						if (_dataSources.size() == 1) {
+
+							return flowNode.combine(null, FlowLogicCondition.getBoolean(context, _dataSources.get(0)));
+						}
+
+						Boolean result = null;
+
+						for (final FlowCondition _dataSource : _dataSources) {
+
+							result = flowNode.combine(result, FlowLogicCondition.getBoolean(context, _dataSource));
+						}
+
+						return result;
+					}
+				},
+
+				GetExportData.class,
+				new GetExportData() {
+
+					@Override
+					public Map<String, Object> getExportData(final FlowBaseNode flowBaseNode) {
+
+						final Map<String, Object> result = new TreeMap<>();
+
+						result.put(GraphObjectTraitDefinition.ID_PROPERTY,                             flowBaseNode.getUuid());
+						result.put(GraphObjectTraitDefinition.TYPE_PROPERTY,                           flowBaseNode.getType());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,        flowBaseNode.isVisibleToPublicUsers());
+						result.put(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY, flowBaseNode.isVisibleToAuthenticatedUsers());
+
+						return result;
+					}
 				}
-			},
-
-			DataSourceOperations.class,
-			new DataSourceOperations() {
-
-				@Override
-				public Object get(final Context context, final FlowDataSource node) throws FlowException {
-
-					final FlowLogicCondition flowNode      = node.as(FlowLogicCondition.class);
-					final List<FlowCondition> _dataSources = Iterables.toList(flowNode.getConditions());
-					if (_dataSources.isEmpty()) {
-
-						return flowNode.combine(null, false);
-					}
-
-					if (_dataSources.size() == 1) {
-
-						return flowNode.combine(null, FlowLogicCondition.getBoolean(context, _dataSources.get(0)));
-					}
-
-					Boolean result = null;
-
-					for (final FlowCondition _dataSource : _dataSources) {
-
-						result = flowNode.combine(result, FlowLogicCondition.getBoolean(context, _dataSource));
-					}
-
-					return result;
-				}
-			}
 		);
 	}
 

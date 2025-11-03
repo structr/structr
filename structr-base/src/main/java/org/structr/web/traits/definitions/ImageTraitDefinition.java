@@ -30,10 +30,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -80,7 +77,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -227,12 +224,12 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> imageParentProperty          = new StartNode(IMAGE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_IMAGE);
-		final Property<NodeInterface> imageOfUser                  = new EndNode(IMAGE_OF_USER_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
-		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes(THUMBNAILS_PROPERTY, StructrTraits.IMAGE_THUMBNAIL_IMAGE);
-		final Property<NodeInterface> originalImageProperty        = new StartNode(ORIGINAL_IMAGE_PROPERTY, StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+		final Property<NodeInterface> imageParentProperty          = new StartNode(traitsInstance, IMAGE_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_IMAGE);
+		final Property<NodeInterface> imageOfUser                  = new EndNode(traitsInstance, IMAGE_OF_USER_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
+		final Property<Iterable<NodeInterface>> thumbnailsProperty = new EndNodes(traitsInstance, THUMBNAILS_PROPERTY, StructrTraits.IMAGE_THUMBNAIL_IMAGE);
+		final Property<NodeInterface> originalImageProperty        = new StartNode(traitsInstance, ORIGINAL_IMAGE_PROPERTY, StructrTraits.IMAGE_THUMBNAIL_IMAGE);
 		final Property<NodeInterface> tnMidProperty                = new ThumbnailProperty(TN_MID_PROPERTY).format("300, 300, false").typeHint(StructrTraits.IMAGE);
 		final Property<NodeInterface> tnSmallProperty              = new ThumbnailProperty(TN_SMALL_PROPERTY).format("100, 100, false").typeHint(StructrTraits.IMAGE);
 		final Property<Boolean> isCreatingThumbProperty            = new BooleanProperty(IS_CREATING_THUMB_PROPERTY).indexed();
@@ -274,16 +271,14 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-					AbstractFileTraitDefinition.PARENT_PROPERTY, FileTraitDefinition.CONTENT_TYPE_PROPERTY, EXIF_IFD0_DATA_PROPERTY,
-					EXIF_SUB_IFD_DATA_PROPERTY, GPS_DATA_PROPERTY, HEIGHT_PROPERTY, WIDTH_PROPERTY, IS_IMAGE_PROPERTY, IS_THUMBNAIL_PROPERTY,
-					AbstractFileTraitDefinition.IS_MOUNTED_PROPERTY, ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY
+					EXIF_IFD0_DATA_PROPERTY, EXIF_SUB_IFD_DATA_PROPERTY, GPS_DATA_PROPERTY, HEIGHT_PROPERTY, WIDTH_PROPERTY,
+					IS_IMAGE_PROPERTY, IS_THUMBNAIL_PROPERTY, ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-					AbstractFileTraitDefinition.PARENT_PROPERTY, FileTraitDefinition.CONTENT_TYPE_PROPERTY, EXIF_IFD0_DATA_PROPERTY,
-					EXIF_SUB_IFD_DATA_PROPERTY, GPS_DATA_PROPERTY, HEIGHT_PROPERTY, WIDTH_PROPERTY, IS_IMAGE_PROPERTY, IS_THUMBNAIL_PROPERTY,
-					ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY
+					EXIF_IFD0_DATA_PROPERTY, EXIF_SUB_IFD_DATA_PROPERTY, GPS_DATA_PROPERTY, HEIGHT_PROPERTY, WIDTH_PROPERTY,
+					IS_IMAGE_PROPERTY, IS_THUMBNAIL_PROPERTY, ORIENTATION_PROPERTY, TN_SMALL_PROPERTY, TN_MID_PROPERTY
 			)
 		);
 	}

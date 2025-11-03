@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.wrappers.SchemaMethodParameterTraitWrapper;
 
 import java.util.Map;
@@ -54,9 +55,9 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> schemaMethod = new StartNode(SCHEMA_METHOD_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
+		final Property<NodeInterface> schemaMethod = new StartNode(traitsInstance, SCHEMA_METHOD_PROPERTY, StructrTraits.SCHEMA_METHOD_PARAMETERS);
 		final Property<String> parameterType       = new StringProperty(PARAMETER_TYPE_PROPERTY);
 		final Property<Integer> index              = new IntProperty(INDEX_PROPERTY).defaultValue(0);
 		final Property<String> description         = new StringProperty(DESCRIPTION_PROPERTY);
@@ -83,13 +84,11 @@ public class SchemaMethodParameterTraitDefinition extends AbstractNodeTraitDefin
 
 				PropertyView.Public,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
 				),
 
 				PropertyView.Ui,
 				newSet(
-						GraphObjectTraitDefinition.ID_PROPERTY, GraphObjectTraitDefinition.TYPE_PROPERTY, NodeInterfaceTraitDefinition.NAME_PROPERTY,
 						SCHEMA_METHOD_PROPERTY, PARAMETER_TYPE_PROPERTY, INDEX_PROPERTY, DESCRIPTION_PROPERTY, EXAMPLE_VALUE_PROPERTY
 				),
 

@@ -60,7 +60,6 @@ public abstract class ContextFactory {
 			.option("python.PythonHome", "/.python/.venv")
 			.option("python.StdLibHome", "/.python/lib/std")
 			.option("python.CAPI", "/.python/lib/c")
-			.option("python.JNIHome", "/.python/lib/jni")
 			.option("python.ForceImportSite", "true")
 			.option("python.Executable", "/.python/.venv/bin/python")
 			.option("python.PosixModuleBackend", "java")

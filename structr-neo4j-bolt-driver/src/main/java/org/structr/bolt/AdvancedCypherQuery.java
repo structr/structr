@@ -48,7 +48,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 	private QueryTimer queryTimer                   = null;
 	private int fetchSize                           = Settings.FetchSize.getValue();
 	private boolean hasOptionalParts                = false;
-	private String currentGraphPartIdentifier       = "n";
+	private int graphPartIdentifierIndex            = 1;
+	private String currentGraphPartIdentifier       = null;
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
 	private String relationshipType                 = null;
@@ -650,7 +651,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	private String getNextGraphPartIdentifier() {
 
-		currentGraphPartIdentifier = Character.toString(currentGraphPartIdentifier.charAt(0) + 1);
+		currentGraphPartIdentifier = "n" + graphPartIdentifierIndex++;
 
 		return currentGraphPartIdentifier;
 	}

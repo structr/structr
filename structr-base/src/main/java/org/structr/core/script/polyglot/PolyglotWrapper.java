@@ -104,6 +104,11 @@ public abstract class PolyglotWrapper {
 				return new PolyglotProxyArray(actionContext, enumList.toArray());
 			}
 
+			if (obj instanceof Date) {
+
+				return new PolyglotProxyDate((Date) obj);
+			}
+
 			if (obj instanceof LocalDate lDate) {
 
 				return ProxyDate.from(lDate);
@@ -206,6 +211,17 @@ public abstract class PolyglotWrapper {
 				if (value.canExecute()) {
 
 					return new FunctionWrapper(actionContext, value);
+				}
+
+				if (value.isProxyObject() && value.asProxyObject() instanceof PolyglotProxyDate proxyDate) {
+
+					return proxyDate.getDateDelegate();
+				}
+
+				// Special handling to ensure proper unwrapping of JS Dates and making sure they're not accidentally treated as ZonedDateTime objects
+				if (value.getMetaObject() != null && "Date".equals(value.getMetaObject().getMetaQualifiedName())) {
+
+					return new Date(value.asInstant().toEpochMilli());
 				}
 
 				if (value.isInstant() && value.isTimeZone()) {
@@ -516,12 +532,11 @@ public abstract class PolyglotWrapper {
 						curContext.close();
 						actionContext.removeScriptingContextByValue(curContext);
 					}
-
-					return wrappedResult;
 				}
+
+				return wrappedResult;
 			}
 
-			return null;
 		}
 
 		public Value getValue() {

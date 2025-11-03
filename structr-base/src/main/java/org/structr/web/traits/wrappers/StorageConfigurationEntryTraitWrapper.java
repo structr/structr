@@ -38,7 +38,14 @@ public class StorageConfigurationEntryTraitWrapper extends AbstractNodeTraitWrap
 	}
 
 	public StorageConfiguration getConfiguration() {
-		return wrappedObject.getProperty(traits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY));
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(StorageConfigurationEntryTraitDefinition.CONFIGURATION_PROPERTY));
+		if (node != null) {
+
+			return node.as(StorageConfiguration.class);
+		}
+
+		return null;
 	}
 
 	public void setName(final String name) throws FrameworkException {

@@ -29,7 +29,7 @@ import javax.xml.xpath.*;
 
 public class XPathFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression, returnType)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
+	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression [, returnType ])}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\", \"STRING\")}";
 
 	@Override
 	public String getName() {

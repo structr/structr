@@ -26,6 +26,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.Validator;
+import org.structr.web.function.IsValidEmailFunction;
+import org.structr.web.function.ValidateEmailFunction;
 
 /**
  */
@@ -40,18 +42,15 @@ public class EMailValidator implements Validator<GraphObject> {
 
 		valid &= ValidationHelper.isValidUniqueProperty(node, eMail, errorBuffer);
 
-		final String _eMail = (String)node.getProperty(eMail);
+		final String _eMail = node.getProperty(eMail);
 		if (_eMail != null) {
 
-			// verify that the address contains at least the @ character,
-			// which is a requirement for it to be distinguishable from
-			// a user name, so email addresses can less easily interfere
-			// with user names.
-			if (!_eMail.contains("@")) {
+			final String emailValidationErrorMessage = ValidateEmailFunction.getEmailValidationErrorMessageOrNull(_eMail);
+			if (emailValidationErrorMessage != null) {
 
 				valid = false;
 
-				errorBuffer.add(new SemanticErrorToken(traits.getName(), PrincipalTraitDefinition.EMAIL_PROPERTY, "must_contain_at_character").withDetail(_eMail));
+				errorBuffer.add(new SemanticErrorToken(traits.getName(), PrincipalTraitDefinition.EMAIL_PROPERTY, emailValidationErrorMessage).withDetail(_eMail));
 			}
 		}
 

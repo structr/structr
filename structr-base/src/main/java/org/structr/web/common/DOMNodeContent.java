@@ -19,6 +19,7 @@
 package org.structr.web.common;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
@@ -52,7 +53,7 @@ public class DOMNodeContent {
 			final PropertyMap dataProperties = new PropertyMap();
 
 			// data-widget-elements indicates that the child elements should be preserved
-			data.putSlotElements((List<DOMNode>)source.getChildNodes());
+			data.putSlotElements(Iterables.toList(source.getChildren()));
 
 			// store data properties for slots
 			for (final PropertyKey key : source.getDataPropertyKeys()) {

@@ -22,6 +22,7 @@ import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumericalMethodInputParsingException;
 import org.structr.common.error.SemanticErrorToken;
@@ -139,6 +140,14 @@ public abstract class AbstractMethod {
 							}
 
 							effectiveLocale = inner.getLocale();
+
+							// pass on error tokens
+							if (inner.hasError()) {
+								for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
+									actionContext.getErrorBuffer().add(token);
+								}
+							}
+
 							return result;
 
 						} catch (IllegalArgumentTypeException iaex) {

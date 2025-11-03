@@ -347,7 +347,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", new Object[] { maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time });
+			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time);
 
 			tn.setBytes(baos.toByteArray());
 
@@ -369,7 +369,7 @@ public abstract class ImageHelper extends FileHelper {
 
 			if (in == null || in.available() <= 0) {
 
-				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", new Object[] { originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1 });
+				logger.debug("InputStream of original image {} ({}) is null or not available ({} bytes)", originalImage.getName(), originalImage.getUuid(), in != null ? in.available() : -1);
 				return null;
 			}
 
@@ -441,26 +441,6 @@ public abstract class ImageHelper extends FileHelper {
 		return null;
 	}
 
-	public static Thumbnail createThumbnailForPdf(final File originalFile, final int page, final int maxWidth, final int maxHeight, final String formatString) {
-
-		final Thumbnail.Format format = formatString != null ? Thumbnail.Format.valueOf(formatString) : Thumbnail.defaultFormat;
-
-		try {
-
-			final PDDocument pdfDocument  = PDDocument.load(StorageProviderFactory.getStorageProvider(originalFile).getInputStream());
-			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
-
-			// Create thumbnail of page
-			final BufferedImage source = pdfRenderer.renderImage(page);
-			return createThumbnailFromBufferedImage(source, null, null, null, maxWidth, maxHeight, null);
-
-		} catch (final Throwable t) {
-			logger.warn("Unable to create PDDocument from original file with ID {}.", originalFile.getUuid(), t);
-		}
-
-		return null;
-	}
-
 	private static BufferedImage getRotatedImage(final File originalImage) {
 
 		try {
@@ -475,6 +455,7 @@ public abstract class ImageHelper extends FileHelper {
 				final AffineTransform affineTransform = new AffineTransform();
 				final int sourceWidth                 = source.getWidth();
 				final int sourceHeight                = source.getHeight();
+				boolean swapWidthAndHeight            = false;
 
 				switch (orientation) {
 
@@ -495,30 +476,34 @@ public abstract class ImageHelper extends FileHelper {
 					case 5: // - PI/2 and Flip X
 						affineTransform.rotate(-Math.PI / 2);
 						affineTransform.scale(-1.0, 1.0);
+						swapWidthAndHeight = true;
 						break;
 					case 6: // -PI/2 and -width
 						affineTransform.translate(sourceHeight, 0);
 						affineTransform.rotate(Math.PI / 2);
+						swapWidthAndHeight = true;
 						break;
 					case 7: // PI/2 and Flip
 						affineTransform.scale(-1.0, 1.0);
 						affineTransform.translate(-sourceHeight, 0);
 						affineTransform.translate(0, sourceWidth);
 						affineTransform.rotate(3 * Math.PI / 2);
+						swapWidthAndHeight = true;
 						break;
 					case 8: // PI / 2
 						affineTransform.translate(0, sourceWidth);
 						affineTransform.rotate(3 * Math.PI / 2);
+						swapWidthAndHeight = true;
 						break;
 					default:
 						break;
 				}
 
 				final AffineTransformOp op     = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
-				BufferedImage destinationImage = new BufferedImage(source.getWidth(), source.getHeight(), source.getType());
+				BufferedImage destinationImage = new BufferedImage(swapWidthAndHeight ? source.getHeight() : source.getWidth(), swapWidthAndHeight ? source.getWidth() : source.getHeight(), source.getType());
 
 				final Graphics2D g = destinationImage.createGraphics();
-				g.setBackground(Color.WHITE);
+				//g.setBackground(Color.WHITE);
 				g.clearRect(0, 0, destinationImage.getWidth(), destinationImage.getHeight());
 
 				destinationImage = op.filter(source, destinationImage);
@@ -814,7 +799,7 @@ public abstract class ImageHelper extends FileHelper {
 			}
 
 		} catch (MetadataException | JSONException | FrameworkException ex) {
-			logger.warn("Unable to store orientation information on image {} ({})", new Object[] { originalImage.getName(), originalImage.getUuid() });
+			logger.warn("Unable to store orientation information on image {} ({})", originalImage.getName(), originalImage.getUuid());
 		}
 
 		return 1;
@@ -943,8 +928,8 @@ public abstract class ImageHelper extends FileHelper {
 
 	public static class Base64URIData {
 
-		private String contentType;
-		private String data;
+		private final String contentType;
+		private final String data;
 
 		public Base64URIData(final String rawData) {
 
@@ -966,7 +951,7 @@ public abstract class ImageHelper extends FileHelper {
 	public static class Thumbnail {
 
 		public enum Format {
-			png, jpg, jpeg, gif;
+			png, jpg, jpeg, gif
 		}
 
 		public static Format defaultFormat = Format.png;

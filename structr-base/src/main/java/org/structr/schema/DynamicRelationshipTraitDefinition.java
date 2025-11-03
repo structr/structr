@@ -23,6 +23,7 @@ import org.structr.api.graph.PropagationMode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
 public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefinition<SchemaRelationshipNode> implements RelationshipBaseTraitDefinition {
@@ -41,9 +42,9 @@ public class DynamicRelationshipTraitDefinition extends AbstractDynamicTraitDefi
 	private int cascadingDeleteFlag = 0;
 	private int autocreationFlag    = 0;
 
-	public DynamicRelationshipTraitDefinition(final SchemaRelationshipNode schemaNode) {
+	public DynamicRelationshipTraitDefinition(final TraitsInstance traitsInstance, final SchemaRelationshipNode schemaNode) {
 
-		super(schemaNode);
+		super(traitsInstance, schemaNode);
 
 		this.relationshipType    = schemaNode.getRelationshipType();
 		this.sourceType          = schemaNode.getSchemaNodeSourceType();

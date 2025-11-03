@@ -14,8 +14,7 @@
 		<dependency>
 			<groupId>org.apache.poi</groupId>
 			<artifactId>poi-ooxml</artifactId>
-			<version>5.2.3</version>
-			<optional>true</optional>
+			<version>5.4.1</version>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -38,7 +37,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>
