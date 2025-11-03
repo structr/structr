@@ -27,6 +27,7 @@ import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
@@ -41,6 +42,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 	private static final Logger logger = LoggerFactory.getLogger(DoInNewTransactionFunction.class.getName());
 	private final ActionContext actionContext;
 	private final GraphObject entity;
+	public static final String THREAD_NAME_PREFIX = "NewTransactionHandler_";
 
 	public DoInNewTransactionFunction(final ActionContext actionContext, final GraphObject entity) {
 
@@ -67,6 +69,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 					// Execute main batch function
 					Object result = null;
 					Throwable exception = null;
+					boolean isInterrupted = false;
 
 					if (unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
 
@@ -126,7 +129,10 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 								}
 
 								ContextHelper.decrementReferenceCount(innerContext);
-							} while (result != null && result.equals(true));
+
+								isInterrupted = Thread.currentThread().isInterrupted();
+
+							} while (!isInterrupted && result != null && result.equals(true));
 
 						} finally {
 
@@ -139,9 +145,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 							}
 						}
 					}
-
-
-				});
+				}, THREAD_NAME_PREFIX + NodeServiceCommand.getNextUuid());
 
 				workerThread.start();
 
@@ -154,6 +158,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 			} catch (FrameworkException ex) {
 
 				logger.error("Exception in DoInNewTransactionFunction.", ex);
+
 			} finally {
 
 				if (context != null) {

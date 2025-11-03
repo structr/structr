@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -119,7 +120,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 			final Thread thread      = entry.getKey();
 			final long id            = thread.getId();
 
-			if (!stack.isEmpty()) {
+			if (!stack.isEmpty() || thread.getName().startsWith(DoInNewTransactionFunction.THREAD_NAME_PREFIX)) {
 
 				threads.add(Map.of(
 					"id",       id,
