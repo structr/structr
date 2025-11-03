@@ -25,6 +25,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.files.url.StructrURLStreamHandlerFactory;
 import org.structr.module.StructrModule;
+import org.structr.process.traits.relationship.*;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
@@ -87,6 +88,24 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerTrait(new UserHOME_DIRFolder());
 		StructrTraits.registerTrait(new UserWORKING_DIRFolder());
 
+		StructrTraits.registerTrait(new ActionMappingCONTROLSProcess());
+		StructrTraits.registerTrait(new ActionMappingTRIGGERSProcessStep());
+		StructrTraits.registerTrait(new DOMNodePROCESS_HIDE_ELEMENT_ON_FAILUREActionMapping());
+		StructrTraits.registerTrait(new DOMNodePROCESS_HIDE_ELEMENT_ON_SUCCESSActionMapping());
+		StructrTraits.registerTrait(new DOMNodePROCESS_SHOW_ELEMENT_ON_FAILUREActionMapping());
+		StructrTraits.registerTrait(new DOMNodePROCESS_SHOW_ELEMENT_ON_SUCCESSActionMapping());
+		StructrTraits.registerTrait(new ProcessDecisionPOSSIBLE_STATEProcessState());
+		StructrTraits.registerTrait(new ProcessHAS_STEPProcessStep());
+		StructrTraits.registerTrait(new ProcessINITIAL_STATEProcessState());
+		StructrTraits.registerTrait(new ProcessInstanceCURRENT_STATEProcessState());
+		StructrTraits.registerTrait(new ProcessInstanceHAS_PARAMETERProcessParameterValue());
+		StructrTraits.registerTrait(new ProcessInstanceINSTANCE_OFProcess());
+		StructrTraits.registerTrait(new ProcessParameterValueVALUE_OFProcessParameter());
+		StructrTraits.registerTrait(new ProcessStateNEXT_STEPProcessStep());
+		StructrTraits.registerTrait(new ProcessStateSTATE_PARAMETERProcessParameter());
+		StructrTraits.registerTrait(new ProcessStepLEADS_TOProcessDecision());
+		StructrTraits.registerTrait(new ProcessStepSTEP_PARAMETERProcessParameter());
+
 		// relationships: types
 		StructrTraits.registerRelationshipType(StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION,              StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
 		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING,                     StructrTraits.ACTION_MAPPING_PARAMETER_PARAMETER_MAPPING);
@@ -118,6 +137,23 @@ public class UiModule implements StructrModule {
 		StructrTraits.registerRelationshipType(StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY, StructrTraits.STORAGE_CONFIGURATION_CONFIG_ENTRY_STORAGE_CONFIGURATION_ENTRY);
 		StructrTraits.registerRelationshipType(StructrTraits.USER_HOME_DIR_FOLDER,                                           StructrTraits.USER_HOME_DIR_FOLDER);
 		StructrTraits.registerRelationshipType(StructrTraits.USER_WORKING_DIR_FOLDER,                                        StructrTraits.USER_WORKING_DIR_FOLDER);
+		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_CONTROLS_PROCESS,                                StructrTraits.ACTION_MAPPING_CONTROLS_PROCESS);
+		StructrTraits.registerRelationshipType(StructrTraits.ACTION_MAPPING_TRIGGERS_PROCESS_STEP,                           StructrTraits.ACTION_MAPPING_TRIGGERS_PROCESS_STEP);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_SUCCESS_ACTION_MAPPING,        StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_SUCCESS_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_SUCCESS_ACTION_MAPPING,        StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_SUCCESS_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_FAILURE_ACTION_MAPPING,        StructrTraits.DOM_NODE_PROCESS_HIDE_ELEMENT_ON_FAILURE_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_FAILURE_ACTION_MAPPING,        StructrTraits.DOM_NODE_PROCESS_SHOW_ELEMENT_ON_FAILURE_ACTION_MAPPING);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_DECISION_POSSIBLE_STATE_PROCESS_STATE,                  StructrTraits.PROCESS_DECISION_POSSIBLE_STATE_PROCESS_STATE);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_HAS_STEP_PROCESS_STEP,                                  StructrTraits.PROCESS_HAS_STEP_PROCESS_STEP);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_INITIAL_STATE_PROCESS_STATE,                            StructrTraits.PROCESS_INITIAL_STATE_PROCESS_STATE);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_INSTANCE_CURRENT_STATE_PROCESS_STATE,                   StructrTraits.PROCESS_INSTANCE_CURRENT_STATE_PROCESS_STATE);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_PROCESS_PARAMETER_VALUE,         StructrTraits.PROCESS_INSTANCE_HAS_PARAMETER_PROCESS_PARAMETER_VALUE);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_INSTANCE_INSTANCE_OF_PROCESS,                           StructrTraits.PROCESS_INSTANCE_INSTANCE_OF_PROCESS);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_PARAMETER_VALUE_VALUE_OF_PROCESS_PARAMETER ,            StructrTraits.PROCESS_PARAMETER_VALUE_VALUE_OF_PROCESS_PARAMETER);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_STATE_NEXT_STEP_PROCESS_STEP,                           StructrTraits.PROCESS_STATE_NEXT_STEP_PROCESS_STEP);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_STATE_STATE_PARAMETER_PROCESS_PARAMETER,                StructrTraits.PROCESS_STATE_STATE_PARAMETER_PROCESS_PARAMETER);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_STEP_LEADS_TO_PROCESS_DECISION,                         StructrTraits.PROCESS_STEP_LEADS_TO_PROCESS_DECISION);
+		StructrTraits.registerRelationshipType(StructrTraits.PROCESS_STEP_STEP_PARAMETER_PROCESS_PARAMETER,                  StructrTraits.PROCESS_STEP_STEP_PARAMETER_PROCESS_PARAMETER);
 
 		// nodes: traits
 		StructrTraits.registerTrait(new DOMNodeTraitDefinition());
