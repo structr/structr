@@ -41,7 +41,6 @@ let _Processes = {
     },
     _moduleName: 'processes',
     init: () => {
-        Structr.adaptUiToAvailableFeatures();
         document.getElementById('create-process').addEventListener('click', _Processes.ui.showCreateProcessDialog);
         _Processes.reload();
     },
@@ -333,7 +332,7 @@ let _Processes = {
 
             saveButton.addEventListener('click', async (e) => {
 
-                let processData = _Code.collectDataFromContainer(dialogText, {});
+                let processData = _Code.persistence.collectDataFromContainer(dialogText, {});
 
                 if (!processData.name || processData.name.trim() === '') {
                     _Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
