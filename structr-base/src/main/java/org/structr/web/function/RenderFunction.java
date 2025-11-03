@@ -76,17 +76,17 @@ public class RenderFunction extends UiCommunityFunction {
 
 				n.as(DOMNode.class).render(innerCtx, 0);
 
-			} else if (sources[0] instanceof Collection) {
+			} else if (sources[0] instanceof Collection collection) {
 
-				for (final Object obj : (Collection) sources[0]) {
+				for (final Object obj : collection) {
 
 					if (obj instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 						n.as(DOMNode.class).render(innerCtx, 0);
 					}
 				}
-			} else if (sources[0] instanceof Iterable) {
+			} else if (sources[0] instanceof Iterable iterable) {
 
-				for (final Object obj : Iterables.toList((Iterable) sources[0])) {
+				for (final Object obj : iterable) {
 
 					if (obj instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
