@@ -4262,7 +4262,11 @@ ul.combined-input-select-field li:hover {
 	font-size: 2.25rem;
 	line-height: 2.5rem;
 }
-.text-gray-ddd {
+.text-active-tab-text {
+	color: var(--active-tab-text);
+}
+.text-gray-ddd,
+.hover\:text-gray-ddd:hover {
 	color: var(--gray-ddd);
 }
 .text-gray-999 {
