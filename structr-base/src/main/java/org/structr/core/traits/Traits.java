@@ -103,8 +103,4 @@ public interface Traits {
 	static Set<String> getAllViews() {
 		return TraitsManager.getCurrentInstance().getAllViews();
 	}
-
-	static Map<String, Map<String, PropertyKey>> clearDynamicSchema() {
-		return TraitsManager.getCurrentInstance().getDynamicSchemaTypes();
-	}
 }
