@@ -1491,6 +1491,33 @@ let Structr = {
 
 				if (showScriptingErrorPopups) {
 
+					let getLocationTable = (data) => {
+						return `
+							<table class="scripting-error-location">
+								${(data.nodeType && data.nodeId) ? `
+									<tr>
+										<th>Element:</th>
+										<td class="pl-2">${data.nodeType}[${data.nodeId}]</td>
+									</tr>
+								` : ''}
+								<tr>
+									<th>${data.property ?? 'Location'}:</th>
+									<td class="pl-2">${data.name}</td>
+								</tr>
+								<tr>
+									<th>Row:</th>
+									<td class="pl-2">${data.row}</td>
+								</tr>
+								<tr>
+									<th>Column:</th>
+									<td class="pl-2">${data.column}</td>
+								</tr>
+							</table>
+							<br>
+							${data.message}
+						`;
+					}
+
 					if (data.nodeId && data.nodeType) {
 
 						Command.get(data.nodeId, _Code.helpers.getAttributesToFetchForErrorObject(), (obj) => {
@@ -1531,30 +1558,7 @@ let Structr = {
 									break;
 							}
 
-							let location = `
-								<table class="scripting-error-location">
-									<tr>
-										<th>Element:</th>
-										<td class="pl-2">${data.nodeType}[${data.nodeId}]</td>
-									</tr>
-									<tr>
-										<th>${property}:</th>
-										<td class="pl-2">${name}</td>
-									</tr>
-									<tr>
-										<th>Row:</th>
-										<td class="pl-2">${data.row}</td>
-									</tr>
-									<tr>
-										<th>Column:</th>
-										<td class="pl-2">${data.column}</td>
-									</tr>
-								</table>
-								<br>
-								${data.message}
-							`;
-
-							let builder = new WarningMessage().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).text(location).requiresConfirmation();
+							let builder = new WarningMessage().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).text(getLocationTable({...data, name, property})).requiresConfirmation();
 
 							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty') {
 
@@ -1591,7 +1595,7 @@ let Structr = {
 						});
 
 					} else {
-						new WarningMessage().title('Server-side Scripting Error').text(data.message).requiresConfirmation().show();
+						new WarningMessage().title('Server-side Scripting Error').text(getLocationTable(data)).requiresConfirmation().show();
 					}
 				}
 				break;
