@@ -18,15 +18,196 @@
  */
 package org.structr.translation.test;
 
+import org.structr.api.config.Setting;
+import org.structr.common.error.FrameworkException;
+import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
+import org.structr.translation.TranslateFunction;
+import org.structr.translation.TranslationModule;
 import org.testng.annotations.Test;
+import org.structr.core.graph.*;
+import org.structr.core.script.Scripting;
+import org.structr.api.config.StringSetting;
+import org.structr.api.config.Settings;
+
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.fail;
 
 public class TranslationTest extends StructrUiTest {
 
+
     @Test
-    public void testTranslations()
+    public void testWrongTranslationProvider()
     {
-        System.out.println("Hello World!");
+        try (final Tx tx = this.app.tx()) {
+
+            final StringBuilder func = new StringBuilder();
+            final ActionContext ctx = new ActionContext(securityContext);
+
+            func.append("${{\n");
+            func.append(" Structr.translate('Hello World!', 'en', 'de', 'wrongProvider');");
+            func.append("}}");
+
+            final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+            tx.success();
+
+        } catch (FrameworkException fex) {
+
+            final String message = fex.getMessage();
+            assertEquals("Unknown translation provider - possible values are 'google' and 'deepl'.", message);
+        }
+    }
+
+    @Test
+    public void testGoogleTranslationNotConfigured()
+    {
+        try (final Tx tx = this.app.tx()) {
+
+            final StringBuilder func = new StringBuilder();
+            final ActionContext ctx = new ActionContext(securityContext);
+
+            func.append("${{\n");
+            func.append(" Structr.translate('Hello World!', 'en', 'de');");
+            func.append("}}");
+
+            final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+            tx.success();
+
+        } catch (FrameworkException fex) {
+
+            final String message = fex.getMessage();
+            assertEquals("Google Cloud Translation API Key not configured in structr.conf", message);
+        }
+    }
+
+    @Test
+    public void testGoogleTranslationEmptyApiKey()
+    {
+        TranslationModule.TranslationGoogleAPIKey.setValue("");
+        try (final Tx tx = this.app.tx()) {
+
+            final StringBuilder func = new StringBuilder();
+            final ActionContext ctx = new ActionContext(securityContext);
+
+            func.append("${{\n");
+            func.append(" Structr.translate('Hello World!', 'en', 'de');");
+            func.append("}}");
+
+            final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+            tx.success();
+
+        } catch (FrameworkException fex) {
+
+            final String message = fex.getMessage();
+            assertEquals("Google Cloud Translation API Key not configured in structr.conf", message);
+        }
+    }
+
+    @Test
+    public void testDeeplTranslationNotConfigured()
+    {
+        try (final Tx tx = this.app.tx()) {
+
+            final StringBuilder func = new StringBuilder();
+            final ActionContext ctx = new ActionContext(securityContext);
+
+            func.append("${{\n");
+            func.append(" Structr.translate('Hello World!', 'en', 'de', 'deepl');");
+            func.append("}}");
+
+            final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+            tx.success();
+
+        } catch (FrameworkException fex) {
+
+            final String message = fex.getMessage();
+            assertEquals("DeepL Translation API Key not configured in structr.conf", message);
+        }
+    }
+
+    @Test
+    public void testDeeplTranslationEmptyApiKey()
+    {
+        TranslationModule.TranslationDeepLAPIKey.setValue("");
+
+        try (final Tx tx = this.app.tx()) {
+
+            final StringBuilder func = new StringBuilder();
+            final ActionContext ctx = new ActionContext(securityContext);
+
+            func.append("${{\n");
+            func.append(" Structr.translate('Hello World!', 'en', 'de', 'deepl');");
+            func.append("}}");
+
+            final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+            tx.success();
+
+        } catch (FrameworkException fex) {
+
+            final String message = fex.getMessage();
+            assertEquals("DeepL Translation API Key not configured in structr.conf", message);
+        }
+    }
+
+    @Test
+    public void testGoogleTranslationBadAPIKey()
+    {
+        final String sourceTranslation = "Hello World!";
+        final String expectedMessage = "Could not translate text: "+sourceTranslation+" -- Google API Response: API key not valid. Please pass a valid API key.";
+
+        TranslationModule.TranslationGoogleAPIKey.setValue("badConfigKey!");
+
+        try (final Tx tx = this.app.tx()) {
+
+            final StringBuilder func = new StringBuilder();
+            final ActionContext ctx = new ActionContext(securityContext);
+
+            func.append("${{\n");
+            func.append(" Structr.translate('");
+            func.append(sourceTranslation);
+            func.append("', 'en', 'de', 'google');");
+            func.append("}}");
+
+            final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+            tx.success();
+
+        } catch (FrameworkException fex) {
+
+            final String message = fex.getMessage();
+            assertEquals(expectedMessage, message);
+        }
+    }
+
+    @Test
+    public void testDeeplTranslationBadAPIKey()
+    {
+
+        final String sourceTranslation = "Hello World!";
+        // Checking only first part of message, no API part!
+        final String expectedMessage = "Could not translate text: "+sourceTranslation+" --  Deepl API Response:";
+
+        TranslationModule.TranslationDeepLAPIKey.setValue("badConfigKey!");
+
+        try (final Tx tx = this.app.tx()) {
+
+            final StringBuilder func = new StringBuilder();
+            final ActionContext ctx = new ActionContext(securityContext);
+
+            func.append("${{\n");
+            func.append(" Structr.translate('");
+            func.append(sourceTranslation);
+            func.append("', 'en', 'de', 'deepl');");
+            func.append("}}");
+
+            final String retrievedValue = Scripting.replaceVariables(ctx, null, func.toString());
+            tx.success();
+
+        } catch (FrameworkException fex) {
+
+            final String message = fex.getMessage();
+            final boolean exceptionCheck = message.startsWith(expectedMessage);
+            assertEquals(true, exceptionCheck);
+        }
     }
 
 }

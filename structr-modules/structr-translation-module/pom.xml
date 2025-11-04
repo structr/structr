@@ -22,13 +22,13 @@
 			<version>2.66.0</version>
 			<type>jar</type>
 		</dependency>
-		<dependency>
-			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-base</artifactId>
-			<version>${project.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>structr-base</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-ui</artifactId>
@@ -42,10 +42,17 @@
 			<version>4.13.2</version>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.testng</groupId>
-			<artifactId>testng</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <optional>true</optional>
+            <scope>test</scope>
+        </dependency>
 	</dependencies>
 
 	<build>
