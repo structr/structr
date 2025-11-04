@@ -76,6 +76,10 @@ public class IncludeChildFunction extends IncludeFunction {
 			// Are we are in a Template node?
 			if (caller instanceof NodeInterface n && n.is(StructrTraits.TEMPLATE)) {
 
+				if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+					innerCtx.getBuffer().append("<structr:include-child data-caller-id=\"").append(caller.toString()).append("\">");
+				}
+
 				final Template templateNode                = n.as(Template.class);
 				final List<NodeInterface> childrenWithName = templateNode.treeGetChildren().stream().filter(ni -> (sources[0]).equals(ni.as(DOMNode.class).getName())).toList();
 				final int childrenWithNameCount            = childrenWithName.size();

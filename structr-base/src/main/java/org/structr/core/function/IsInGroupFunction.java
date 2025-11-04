@@ -71,7 +71,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 				boolean checkHierarchy = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean) sources[2] : false;
 
-				final RelationshipType type = StructrApp.getInstance().getDatabaseService().forName(RelationshipType.class, "CONTAINS");
+				final RelationshipType type = StructrApp.getInstance().getDatabaseService().getRelationshipType("CONTAINS");
 				final Group group           = ((NodeInterface)sources[0]).as(Group.class);
 				final Principal principal   = ((NodeInterface)sources[1]).as(Principal.class);
 

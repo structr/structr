@@ -130,10 +130,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		final Node newNode         = createNode(type, labels, nodeProperties);
 		final Node owner           = getNodeById(ownerId);
 
-		final Relationship ownsRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, forName(RelationshipType.class, "OWNS"));
+		final Relationship ownsRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("OWNS"));
 		ownsRelationship.setProperties(ownsProperties);
 
-		final Relationship securityRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, forName(RelationshipType.class, "SECURITY"));
+		final Relationship securityRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("SECURITY"));
 		securityRelationship.setProperties(securityProperties);
 
 		return new NodeWithOwnerResult(newNode, securityRelationship, ownsRelationship);
@@ -178,16 +178,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		}
 
 		return Iterables.map(n -> n, getFilteredNodes(new MemoryTypeFilter<>(type)));
-	}
-
-	@Override
-	public void deleteNodesByLabel(final String label) {
-
-		final MemoryTransaction tx = getCurrentTransaction();
-		for (final Node node : getNodesByLabel(label)) {
-
-			tx.delete((MemoryNode)node);
-		}
 	}
 
 	@Override

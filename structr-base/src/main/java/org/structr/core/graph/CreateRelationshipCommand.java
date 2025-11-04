@@ -60,6 +60,10 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 	private RelationshipInterface createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final String entityType, final PropertyMap attributes) throws FrameworkException {
 
+		if (!Traits.exists(entityType)) {
+			throw new FrameworkException(422, "Relationship type " + entityType + " does not exist");
+		}
+
 		// disable updating access time when creating relationships
 		securityContext.disableModificationOfAccessTime();
 

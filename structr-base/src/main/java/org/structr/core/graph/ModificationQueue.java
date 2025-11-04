@@ -346,6 +346,14 @@ public class ModificationQueue {
 		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
 		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
 
+		if (sourceNode != null) {
+			sourceNode.setSecurityContext(relationship.getSecurityContext());
+		}
+
+		if (targetNode != null) {
+			targetNode.setSecurityContext(relationship.getSecurityContext());
+		}
+
 		modifyEndNodes(user, sourceNode, targetNode, relationship, true);
 
 		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {

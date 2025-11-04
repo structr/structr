@@ -78,6 +78,8 @@ public abstract class OneToMany extends AbstractRelation implements Relation<One
 			final RelationshipInterface incomingRel = targetNode.getIncomingRelationshipAsSuperUser(type);
 			if (incomingRel != null) {
 
+				incomingRel.setSecurityContext(securityContext);
+
 				final Relation relation = incomingRel.getRelation();
 				final Traits sourceTraits = Traits.of(relation.getSourceType());
 

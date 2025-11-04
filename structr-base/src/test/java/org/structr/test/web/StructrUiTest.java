@@ -19,6 +19,7 @@
 package org.structr.test.web;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -398,7 +399,8 @@ public abstract class StructrUiTest {
 					.contentType("application/json; charset=UTF-8")
 					.header(X_USER_HEADER, "superadmin")
 					.header(X_PASSWORD_HEADER, "sehrgeheim")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+					.filter(RequestLoggingFilter.logRequestTo(System.out))
+					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 				.expect()
 					.statusCode(200)
@@ -414,7 +416,8 @@ public abstract class StructrUiTest {
 				.contentType("application/json; charset=UTF-8")
 				.header(X_USER_HEADER, "superadmin")
 				.header(X_PASSWORD_HEADER, "sehrgeheim")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(RequestLoggingFilter.logRequestTo(System.out))
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.body(" { 'signature' : '" + signature + "', 'flags': " + flags + ", 'visibleToPublicUsers': true } ")
 
 			.expect()

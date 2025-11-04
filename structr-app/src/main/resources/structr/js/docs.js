@@ -342,6 +342,8 @@ let _Documentation = {
 			aElementInArticle.addEventListener('click', e => {
 				const el = e.target;
 				const href = el.href;
+				// Don't try to load document for external links
+				if (href.startsWith('http')) { return }
 				_Documentation.loadDoc(href.substring(href.lastIndexOf(':') + 1));
 			});
 		});

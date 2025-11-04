@@ -72,9 +72,14 @@ public class ScriptJob extends ScheduledJob {
 
 			final SecurityContext securityContext = user.getSecurityContext();
 
+			// avoid NPEs in re-used request objects that dont have an internal request reference
+			if (securityContext != null) {
+				securityContext.setRequest(null);
+			}
+
 			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-				final ActionContext actionContext     = new ActionContext(securityContext);
+				final ActionContext actionContext = new ActionContext(securityContext);
 
 				reportBegin();
 

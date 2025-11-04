@@ -1846,7 +1846,7 @@ let Structr = {
 		if (forceShowState) {
 
 			// double check if there are messages to show
-			let messageArea  = document.querySelector('#info-area #messages');
+			let messageArea  = MessageBuilder.getMessagesContainer();
 			let messageCount = messageArea.querySelectorAll('.message').length;
 
 			let hasMessages = (messageCount > 0);
@@ -2433,6 +2433,9 @@ class MessageBuilder {
 		info: 'info'
 	});
 	static closeButtonClass = 'close-message-button';
+	static getMessagesContainer = () => {
+		return document.querySelector('#info-area #messages');
+	}
 
 	constructor (typeClass) {
 
@@ -2485,35 +2488,39 @@ class MessageBuilder {
 	appendButtons(buttonContainer) {
 
 		let shouldStayOpen = (this.params.requiresConfirmation === true);
+		let closeButton    = buttonContainer.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
+
+		closeButton.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.dismiss();
+		});
 
 		if (shouldStayOpen === true) {
 
-			let closeButton = buttonContainer.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
-
 			closeButton.classList.remove('hidden');
-			closeButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-				this.dismiss();
-			});
 
 		} else {
 
 			// only remove message if notifications are visible or if they are hidden AND time-limited notifications should be removed
 			// this is decided before the message delay to prevent a user from showing notifications and it auto-removing itself
-			let isNotificationsAreaHidden                   = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+			let isNotificationsAreaVisible                  = (MessageBuilder.getMessagesContainer().offsetParent !== null);
 			let shouldTimeLimitedNotificationsBeAutoRemoved = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.autoRemoveTimeLimitedNotificationsForHiddenNotificationsAreaKey));
 
-			if (isNotificationsAreaHidden === false || shouldTimeLimitedNotificationsBeAutoRemoved === true) {
+			if (isNotificationsAreaVisible === true || shouldTimeLimitedNotificationsBeAutoRemoved === true) {
 
 				window.setTimeout(() => {
 					this.dismiss();
 				}, this.params.delayDuration);
-			}
 
-			buttonContainer.closest(`#${this.params.msgId}`).addEventListener('click', (e) => {
-				e.stopPropagation();
-				this.dismiss();
-			});
+				buttonContainer.closest(`#${this.params.msgId}`).addEventListener('click', (e) => {
+					e.stopPropagation();
+					this.dismiss();
+				});
+
+			} else {
+
+				closeButton.classList.remove('hidden');
+			}
 		}
 
 		for (let btn of this.params.specialInteractionButtons) {
@@ -2625,7 +2632,10 @@ class MessageBuilder {
 
 			let message = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="${allClasses.join(' ')}" id="${this.params.msgId}" data-unique-count="${this.params.uniqueCount}">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer', 'absolute', 'top-3', 'right-3']))}
+					<div class="absolute top-3 right-3 flex gap-3">
+						<div class="message-time text-sm"></div>
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer']))}
+					</div>
 					<div class="message-icon flex-shrink-0 mr-2">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
@@ -2640,17 +2650,14 @@ class MessageBuilder {
 							${this.params.text}
 						</div>
 
-						<div class="flex justify-between items-end">
-							<div class="message-time text-sm"></div>
-							<div class="message-buttons flex gap-2 justify-end"></div>
-						</div>
+						<div class="message-buttons flex gap-2 justify-end"></div>
 					</div>
 				</div>
 			`);
 
 			this.appendButtons(message.querySelector('.message-buttons'));
 
-			document.querySelector('#info-area #messages').appendChild(message);
+			MessageBuilder.getMessagesContainer().appendChild(message);
 
 			this.updateLastShownTime(message);
 		}
@@ -2699,7 +2706,7 @@ class MessageBuilder {
 
 	updateNotificationIcon() {
 
-		let messageArea  = document.querySelector('#info-area #messages');
+		let messageArea  = MessageBuilder.getMessagesContainer();
 		let messageCount = messageArea.querySelectorAll('.message').length;
 		let notificationCountElement = document.querySelector('[data-notification-count]');
 

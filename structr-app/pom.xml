@@ -172,6 +172,56 @@
             </plugin>
 
             <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>replace-placeholder</id>
+                        <phase>generate-resources</phase>
+                        <configuration>
+                            <target>
+                                <delete file="src/main/resources/structr/index.html"/>
+
+                                <copy file="src/main/resources/structr/index.template.html"
+                                      tofile="src/main/resources/structr/index.html"/>
+
+                                <replace file="src/main/resources/structr/index.html"
+                                         token="@buildNumber@"
+                                         value="${buildNumber}"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>maven-replacer-plugin</artifactId>
+                <version>1.4.1</version>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>src/main/resources/deb/bin/config</file>
+                    <outputFile>target/deb/config</outputFile>
+                    <replacements>
+                        <replacement>
+                            <token>FINAL_NAME</token>
+                            <value>${project.build.finalName}</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
+            </plugin>
+
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.14.1</version>
@@ -252,10 +302,19 @@
                                 <configuration>
                                     <skip>${skipUITests}</skip>
                                     <images>
+                                        <!-- Playwright test runner image -->
+                                        <image>
+                                            <name>structr-playwright-tests</name>
+                                            <build>
+                                                <contextDir>${project.basedir}/src/test/playwright-ui-tests</contextDir>
+                                                <dockerFile>ui-tests.Dockerfile</dockerFile>
+                                            </build>
+                                        </image>
                                         <image>
                                             <name>structr-ui-tests</name>
                                             <build>
                                                 <contextDir>${project.basedir}</contextDir>
+                                                <dockerFile>Dockerfile</dockerFile>
                                                 <args>
                                                     <STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
                                                 </args>
@@ -302,11 +361,8 @@
                                                 <network>
                                                     <mode>custom</mode>
                                                     <name>ui-test-network</name>
-                                                    <alias>structr-ui-tests-</alias>
+                                                    <alias>structr-ui-tests</alias>
                                                 </network>
-                                                <ports>
-                                                    <port>8090:8082</port>
-                                                </ports>
                                                 <wait>
                                                     <log>(.?)Initialization complete(.?)</log>
                                                     <time>200000</time>
@@ -323,72 +379,58 @@
                                     </images>
                                 </configuration>
                             </execution>
+
+                            <!-- Run Playwright tests in container -->
+                            <execution>
+                                <id>ui-run-tests</id>
+                                <phase>integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <skip>${skipUITests}</skip>
+                                    <startParallel>false</startParallel>
+                                    <images>
+                                        <image>
+                                            <name>structr-playwright-tests</name>
+                                            <alias>playwright-runner</alias>
+                                            <run>
+                                                <network>
+                                                    <mode>custom</mode>
+                                                    <name>ui-test-network</name>
+                                                    <alias>playwright-runner</alias>
+                                                </network>
+                                                <shmSize>2147483648</shmSize> <!-- 2GB shared memory -->
+                                                <env>
+                                                    <BASE_URL>http://structr-ui-tests:8082</BASE_URL>
+                                                    <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
+                                                    <DEBUG>pw:api</DEBUG>
+                                                </env>
+                                                <wait>
+                                                    <!-- Wait for container to exit -->
+                                                    <exit>0</exit>
+                                                    <time>36000000</time> <!-- 60 minutes max -->
+                                                </wait>
+                                                <log>
+                                                    <enabled>true</enabled>
+                                                    <prefix>PLAYWRIGHT</prefix>
+                                                    <color>cyan</color>
+                                                </log>
+                                            </run>
+                                        </image>
+                                    </images>
+                                </configuration>
+                            </execution>
                         </executions>
                     </plugin>
 
-                    <!-- Node.js + Playwright setup and test execution -->
-                    <plugin>
-                        <groupId>com.github.eirslett</groupId>
-                        <artifactId>frontend-maven-plugin</artifactId>
-                        <version>1.15.1</version>
-                        <configuration>
-                            <workingDirectory>src/test/ui</workingDirectory>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>install-node-and-npm</id>
-                                <goals>
-                                    <goal>install-node-and-npm</goal>
-                                </goals>
-                                <configuration>
-                                    <nodeVersion>v22.11.0</nodeVersion>
-                                    <npmVersion>10.9.0</npmVersion>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>npm-install</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>install</arguments>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>playwright-install</id>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>run playwright:install</arguments>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>playwright-tests</id>
-                                <phase>integration-test</phase>
-                                <goals>
-                                    <goal>npm</goal>
-                                </goals>
-                                <configuration>
-                                    <arguments>run test</arguments>
-                                    <environmentVariables>
-                                        <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
-                                        <BASE_URL>http://localhost:8090</BASE_URL>
-                                    </environmentVariables>
-                                    <skip>${skipUITests}</skip>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
+
                 </plugins>
             </build>
         </profile>
 
         <!-- zip-dist: Create distribution ZIP
-             Output: target/structr-app-${version}-${timestamp}-dist.zip
+             Output: target/structr-${version}-${timestamp}.${buildNumber}-dist.zip
              Skip: -DskipZip=true -->
         <profile>
             <id>zip-dist</id>
@@ -402,6 +444,7 @@
                         <artifactId>maven-assembly-plugin</artifactId>
                         <version>3.7.1</version>
                         <configuration>
+                            <finalName>structr-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
                             <descriptors>
                                 <descriptor>src/main/resources/assemblies/dist.xml</descriptor>
                             </descriptors>
@@ -436,7 +479,7 @@
                         <artifactId>jdeb</artifactId>
                         <version>1.10</version>
                         <configuration>
-                            <deb>${project.build.directory}/${project.parent.build.finalName}.deb</deb>
+                            <deb>${project.build.directory}/structr-${project.version}-${maven.build.timestamp}.${buildNumber}.deb</deb>
                             <skip>${skipDeb}</skip>
                             <controlDir>${basedir}/src/main/resources/deb/control</controlDir>
                             <dataSet>
@@ -449,8 +492,9 @@
                                         <prefix>/usr/lib/${project.parent.artifactId}/</prefix>
                                     </mapper>
                                 </data>
+
                                 <data>
-                                    <src>${project.basedir}/target/lib</src>
+                                    <src>${basedir}/target/lib</src>
                                     <type>directory</type>
                                     <mapper>
                                         <type>perm</type>
@@ -458,13 +502,74 @@
                                         <filemode>755</filemode>
                                     </mapper>
                                 </data>
+
                                 <data>
-                                    <src>${project.basedir}/src/main/resources/structr</src>
+                                    <src>${basedir}/src/main/resources/structr</src>
                                     <type>directory</type>
                                     <mapper>
                                         <type>perm</type>
                                         <prefix>/usr/lib/${project.parent.artifactId}/structr</prefix>
                                         <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/target/deb/config</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
+                                        <filemode>644</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/resources/deb/bin/start</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/resources/deb/bin/stop</src>
+                                    <type>file</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/usr/lib/${project.parent.artifactId}/bin/</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/resources/deb/init.d</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/init.d</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/resources/deb/systemd</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/lib/systemd/system/</prefix>
+                                        <filemode>755</filemode>
+                                    </mapper>
+                                </data>
+
+                                <data>
+                                    <src>${basedir}/src/main/resources/deb/logrotate.d</src>
+                                    <type>directory</type>
+                                    <mapper>
+                                        <type>perm</type>
+                                        <prefix>/etc/logrotate.d</prefix>
+                                        <filemode>644</filemode>
                                     </mapper>
                                 </data>
                             </dataSet>

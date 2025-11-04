@@ -21,10 +21,12 @@ package org.structr.bolt;
 import org.apache.commons.lang3.StringUtils;
 import org.neo4j.driver.*;
 import org.neo4j.driver.Record;
+import org.neo4j.driver.async.AsyncSession;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
+import org.neo4j.driver.reactive.RxSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.*;
@@ -181,11 +183,11 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			try {
 				if (neo4jMajorVersion >= 4) {
 
-					return new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
+					return new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
 
 				} else {
 
-					return new AsyncSessionTransaction(this, driver.asyncSession());
+					return new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
 				}
 
 
@@ -211,11 +213,11 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 				if (neo4jMajorVersion >= 4) {
 
-					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
+					session = new ReactiveSessionTransaction(this, driver.session(RxSession.class, sessionConfig));
 
 				} else {
 
-					session = new AsyncSessionTransaction(this, driver.asyncSession());
+					session = new AsyncSessionTransaction(this, driver.session(AsyncSession.class));
 				}
 
 				sessions.set(session);
@@ -408,26 +410,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		final Index<Node> index        = nodeIndex();
 
 		return index.query(context, predicate, Integer.MAX_VALUE, 1);
-	}
-
-	@Override
-	public void deleteNodesByLabel(final String label) {
-
-		final StringBuilder buf = new StringBuilder();
-		final String tenantId   = getTenantIdentifier();
-
-		buf.append("MATCH (n");
-
-		if (tenantId != null) {
-			buf.append(":");
-			buf.append(tenantId);
-		}
-
-		buf.append(":");
-		buf.append(label);
-		buf.append(") DETACH DELETE n");
-
-		consume(buf.toString());
 	}
 
 	@Override
@@ -663,7 +645,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		metadata.put("id",         id);
 		metadata.put("pid",        ProcessHandle.current().pid());
-		metadata.put("threadId",   currentThread.getId());
+		metadata.put("threadId",   currentThread.threadId());
 
 		if (currentThread.getName() != null) {
 
@@ -683,7 +665,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 		metadata.put("id",         id);
 		metadata.put("pid",        ProcessHandle.current().pid());
-		metadata.put("threadId",   currentThread.getId());
+		metadata.put("threadId",   currentThread.threadId());
 
 		if (currentThread.getName() != null) {
 
@@ -793,22 +775,21 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		return "0.0.0";
 	}
 
-	private long getCount(final String query, final String resultKey) {
+	private Long getCount(final String query, final String resultKey) {
 
 		for (final Map<String, Object> row : execute(query)) {
 
 			if (row.containsKey(resultKey)) {
 
 				final Object value = row.get(resultKey);
-				if (value != null && value instanceof Number) {
+				if (value != null && value instanceof Number n) {
 
-					final Number number = (Number)value;
-					return number.intValue();
+					return n.longValue();
 				}
 			}
 		}
 
-		return 0;
+		return null;
 	}
 
 	private void configureVersionDependentFeatures() {

@@ -47,10 +47,7 @@ import javax.net.ssl.SSLContext;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -139,7 +136,7 @@ public class HttpHelper {
 				.setRedirectStrategy(new LaxRedirectStrategy())
 				.setDefaultCredentialsProvider(credsProvider);
 
-		if (Boolean.FALSE.equals(validateCertificates)) {
+		if (!validateCertificates) {
 
 			// trust every certificate
 			final SSLContext sslContext = SSLContexts.custom().loadTrustMaterial((x509Certificates, s) -> true).build();
@@ -231,7 +228,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = new URL(address).toURI();
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req = new HttpGet(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
@@ -322,7 +319,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = new URL(address).toURI();
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpHead req = new HttpHead(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates, null);
@@ -352,7 +349,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI url = URI.create(address);
+			final URI url = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPut req = new HttpPatch(url);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
@@ -425,7 +422,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri      = new URL(address).toURI();
+			final URI uri      = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPost req = new HttpPost(uri);
 
 			Integer timeout         = null;
@@ -495,7 +492,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = new URL(address).toURI();
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPut req = new HttpPut(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
@@ -546,7 +543,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI uri = new URL(address).toURI();
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpDelete req = new HttpDelete(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates, null);
@@ -590,7 +587,7 @@ public class HttpHelper {
 
 			final Map<String, Object> responseData = new HashMap<>();
 
-			final URI uri = new URL(address).toURI();
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req = new HttpGet(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
@@ -629,7 +626,7 @@ public class HttpHelper {
 
 			final Map<String, Object> responseData = new HashMap<>();
 
-			final URI uri = new URL(address).toURI();
+			final URI uri = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpPost req = new HttpPost(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true, null);
@@ -687,7 +684,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI url = URI.create(address);
+			final URI url = HttpHelper.checkAddressAgainstWhitelist(address);
 			final HttpGet req = new HttpGet(url);
 
 			logger.info("Downloading from {}", address);
@@ -714,6 +711,7 @@ public class HttpHelper {
 
 				String content = IOUtils.toString(resp.getEntity().getContent(), HttpHelper.charset(resp));
 
+				// FIXME: what do we do with the content here??
 				content = skipBOMIfPresent(content);
 
 				logger.warn("Unable to create file from URI {}: status code was {}", new Object[]{address, statusCode});
@@ -741,15 +739,40 @@ public class HttpHelper {
 		return map;
 	}
 
+	// ----- private methods -----
+	private static URI checkAddressAgainstWhitelist(final String address) throws FrameworkException {
+
+		final String whitelist = Settings.OutgoingURLWhitelist.getValue(null);
+		final URI uri          = URI.create(address);
+
+		if (!"*".equals(whitelist)) {
+
+			// check address against whitelist
+			uri.normalize();
+
+			for (final String part : StringUtils.split(whitelist, ',')) {
+
+				final String cleanedPart = part.strip();
+
+				if (StringUtils.isNotBlank(cleanedPart)) {
+
+					if (address.matches(cleanedPart)) {
+						return uri;
+					}
+				}
+			}
+
+			throw new FrameworkException(422, "Outgoing URL \"" + address + "\" does not match any entry in the " + Settings.OutgoingURLWhitelist.getKey() + " setting. Please update the setting in structr.conf to allow this action.");
+		}
+
+		return uri;
+	}
+
 	// ----- nested classes -----
 	public static class HttpPatch extends HttpPut {
 
-		public HttpPatch() {
-			super();
-		}
-
-		public HttpPatch(final URI uri) throws MalformedURLException, URISyntaxException {
-			super(uri.toURL().toURI());
+		public HttpPatch(final URI uri) {
+			super(uri);
 		}
 
 		@Override

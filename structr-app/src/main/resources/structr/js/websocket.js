@@ -557,7 +557,10 @@ let StructrWS = {
 									if (existingIcon.length) {
 										_Icons.replaceSvgElementWithRawSvg(existingIcon[0], newIcon)
 									}
-									_Entities.removeExpandIcon(syncedEl);
+
+									if (entity.type !== 'Template') {
+										_Entities.removeExpandIcon(syncedEl);
+									}
 								}
 							}
 						}
