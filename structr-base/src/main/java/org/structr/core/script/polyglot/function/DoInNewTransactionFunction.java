@@ -100,9 +100,13 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 									hasError = true;
 									exception = ex;
 
-									// Log if no error handler is given
-									if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
+									if (ex.getCause() != null && ex.getCause() instanceof InterruptedException) {
 
+										logger.warn("Thread was interrupted - breaking out of doInNewTransaction()");
+
+									} else if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
+
+										// Log if no error handler is given
 										Function.logException(logger, ex, "Error in doInNewTransaction(): {}", new Object[]{ ex.toString() });
 									}
 								}
@@ -120,11 +124,11 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 											// Error has been handled, clear error buffer.
 											actionContext.getErrorBuffer().setStatus(0);
 											actionContext.getErrorBuffer().getErrorTokens().clear();
+
 										} catch (Throwable ex) {
 
 											Function.logException(logger, ex, "Error in transaction error handler: {}", new Object[]{ex.getMessage()});
 										}
-
 									}
 								}
 
