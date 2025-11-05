@@ -510,7 +510,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		} catch (Throwable t) {
 
 			final String title          = "Fatal Error";
-			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information.<br><br>" + t.getMessage();
 
 			publishWarningMessage(title, warningMessage);
 
