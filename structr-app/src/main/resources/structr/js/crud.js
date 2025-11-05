@@ -1243,12 +1243,12 @@ let _Crud = {
 				/**
 				 * temporarily hides the entity form and shows the search interface.
 				 */
-				let addButtonClickHandler = (btn) => {
+				let addButtonClickHandler = (btn, searchType) => {
 
 					if (id && !_Dialogs.custom.isDialogOpen()) {
 
-						let { dialogText } = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
-						_Crud.search.displaySearchDialog(type, id, key, simpleType, $(dialogText));
+						let { dialogText } = _Dialogs.custom.openDialog(`Add ${searchType} to ${key}`);
+						_Crud.search.displaySearchDialog(type, id, key, searchType, $(dialogText));
 
 					} else {
 
@@ -1269,7 +1269,12 @@ let _Crud = {
 
 							if (nodeSelected) {
 
-								_Crud.objectList.addRelatedObject(type, id, key, node, () => {});
+								if (!isSourceOrTarget) {
+									_Crud.objectList.addRelatedObject(type, id, key, node, () => {});
+								} else {
+									// fake related node
+									_Crud.objectList.getAndAppendNode(type, id, key, node, cell, node, true);
+								}
 
 								if (!isCollection) {
 
@@ -1292,24 +1297,24 @@ let _Crud = {
 							searchFinishedFunction();
 						});
 
-						_Crud.search.displaySearchDialog(type, id, key, simpleType, dialogText, searchFinishedFunction);
+						_Crud.search.displaySearchDialog(type, id, key, searchType, dialogText, searchFinishedFunction);
 					}
 				};
 
-				let showAddButton = () => {
+				let showAddButton = (searchType) => {
 
 					let addBtn = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
 
 					cell.append($(addBtn));
 
 					addBtn.addEventListener('click', () => {
-						addButtonClickHandler(addBtn);
+						addButtonClickHandler(addBtn, searchType);
 					});
 				};
 
 				if (isCollection) {
 
-					showAddButton();
+					showAddButton(simpleType);
 
 					if (id && !isCollectionIdProperty && !isCollectionNotionProperty) {
 
@@ -1324,7 +1329,14 @@ let _Crud = {
 
 					} else if (simpleType) {
 
-						showAddButton();
+						showAddButton(simpleType);
+
+					} else if (isSourceOrTarget) {
+
+						// show add button for related entities
+						let searchType = _Crud.types[type].relInfo[((key === 'sourceId') ? 'sourceType' : 'targetType')];
+
+						showAddButton(searchType);
 					}
 				}
 			}
@@ -2598,9 +2610,9 @@ let _Crud = {
 		displaySearchDialog: (parentType, id, key, type, el, callbackOverride) => {
 
 			el.append(`
-				<div class="searchBox searchBoxDialog flex justify-end">
-					<input class="search" name="search" size="20" placeholder="Search">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				<div class="searchBox searchBoxDialog absolute top-12 right-4">
+					<input class="search mr-0" name="search" size="20" placeholder="Search">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 			`);
 			let searchBox = $('.searchBoxDialog', el);
@@ -3077,7 +3089,7 @@ let _Crud = {
 
 				// when displaying the on-demand create dialog, focus the first element
 				let firstInputOrTextarea = dialog.dialogText.querySelector('input, textarea');
-				firstInputOrTextarea.focus();
+				firstInputOrTextarea?.focus();
 			});
 		},
 		showCreateDialog: (type, initialData = {}, onSuccess, errors = []) => {
@@ -3127,8 +3139,9 @@ let _Crud = {
 					let isSourceOrTargetNode               = isRelType && (key === Structr.internalKeys.sourceNode || key === Structr.internalKeys.targetNode);
 					let isInternalTimestamp                = isRelType && (key === Structr.internalKeys.internalTimestamp);
 					let isVisibilityFlagOnRelationship     = isRelType && (key === Structr.internalKeys.visibleToPublicUsers || key === Structr.internalKeys.visibleToAuthenticatedUsers);
+					let relatedType                        = _Crud.helpers.getRelatedTypeForAttribute(key, type);
 
-					if (!readOnly && !isBuiltinHiddenProperty && !isBuiltinBaseProperty && !isInternalTimestamp && !isVisibilityFlagOnRelationship && !isSourceOrTargetNode && !isEntityIdProperty && !isCollectionIdProperty && !isCollectionNotionProperty) {
+					if (!readOnly && !relatedType && !isBuiltinHiddenProperty && !isBuiltinBaseProperty && !isInternalTimestamp && !isVisibilityFlagOnRelationship && !isSourceOrTargetNode && !isEntityIdProperty && !isCollectionIdProperty && !isCollectionNotionProperty) {
 
 						let row = _Helpers.createSingleDOMElementFromHTML(`
 							<tr>

@@ -23,6 +23,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -110,7 +111,7 @@ public class TraitsImplementation implements Traits {
 
 		// use wrapper to cache null values as well
 		Wrapper<PropertyKey> wrapper = keyCache.get(name);
-		if (wrapper != null) {
+		if (wrapper != null && wrapper.value != null) {
 
 			return wrapper.value;
 		}
@@ -139,6 +140,16 @@ public class TraitsImplementation implements Traits {
 		}
 
 		return null;
+	}
+
+	@Override
+	public <T> PropertyKey<T> keyOrGenericProperty(final String name) {
+
+		if (hasKey(name)) {
+			return key(name);
+		}
+
+		return new GenericProperty<T>(name);
 	}
 
 	@Override

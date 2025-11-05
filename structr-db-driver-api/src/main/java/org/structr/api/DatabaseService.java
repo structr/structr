@@ -21,6 +21,7 @@ package org.structr.api;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
 import org.structr.api.index.NewIndexConfig;
 import org.structr.api.util.CountResult;
@@ -49,9 +50,8 @@ public interface DatabaseService {
 	boolean initialize(final String serviceName, final String version, final String instanceName);
 	void shutdown();
 	void cleanDatabase();
-	void deleteNodesByLabel(final String label);
 
-	<X> X forName(final Class<X> type, final String name);
+	RelationshipType getRelationshipType(final String name);
 
 	Transaction beginTx();
 	Transaction beginTx(boolean forceNew);

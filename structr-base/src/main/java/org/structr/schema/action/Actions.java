@@ -104,15 +104,6 @@ public class Actions {
 	}
 
 	// ----- public static methods -----
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName, final ModificationQueue modificationEvents, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-
-		final Map<String, Object> parameters = new LinkedHashMap<>();
-
-		parameters.put("modifications", modificationEvents.getModifications(entity));
-
-		return execute(securityContext, entity, source, parameters, methodName, codeSource);
-	}
-
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName) throws FrameworkException, UnlicensedScriptException {
 		return execute(securityContext, entity, source, methodName, null);
 	}
@@ -137,6 +128,8 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
+		context.setCurrentMethod(scriptConfig.getCurrentMethod());
+
 		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource, scriptConfig);
 
 		store.setTemporaryParameters(previousParams);

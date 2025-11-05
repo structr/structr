@@ -301,11 +301,6 @@ input.readonly {
 /*
 * Search
 */
-
-.dialogText input.search {
-	margin-right: 12px;
-}
-
 .searchResults {
 	height: 100%;
 	overflow-y: auto;

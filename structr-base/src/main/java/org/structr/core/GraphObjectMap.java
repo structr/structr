@@ -95,6 +95,16 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			}
 
 			@Override
+			public <T> PropertyKey<T> keyOrGenericProperty(final String name) {
+
+				if (hasKey(name)) {
+					return key(name);
+				}
+
+				return new GenericProperty<T>(name);
+			}
+
+			@Override
 			public boolean hasKey(final String name) {
 				return key(name) != null;
 			}
@@ -248,8 +258,8 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void setProperties(final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
-		properties.putAll(properties);
+	public void setProperties(final SecurityContext securityContext, final PropertyMap newProperties, final boolean isCreation) throws FrameworkException {
+		properties.putAll(newProperties.getRawMap());
 	}
 
 	@Override

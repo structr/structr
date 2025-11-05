@@ -95,6 +95,10 @@ public class IncludeFunction extends UiCommunityFunction {
 				useBuffer = false;
 			}
 
+			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+				innerCtx.getBuffer().append("<structr:include data-caller-id=\"").append(caller.toString()).append("\">");
+			}
+
 			/**
 			 * Nodes can be included via their name property These nodes MUST: 1. be unique in name 2. NOT be in the trash => have an ownerDocument AND a parent (public
 			 * users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
@@ -223,6 +227,10 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				}
 			}
+		}
+
+		if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+			innerCtx.getBuffer().append("</structr:include>");
 		}
 
 		if (useBuffer) {

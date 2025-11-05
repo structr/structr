@@ -120,19 +120,19 @@
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcmail-jdk18on</artifactId>
-				<version>1.78.1</version>
+				<version>1.81</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcprov-jdk18on</artifactId>
-				<version>1.78.1</version>
+				<version>1.81</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.bouncycastle</groupId>
 				<artifactId>bcpkix-jdk18on</artifactId>
-				<version>1.78.1</version>
+				<version>1.81</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -301,12 +301,12 @@
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-classic</artifactId>
-				<version>1.5.13</version>
+				<version>1.5.20</version>
 			</dependency>
 			<dependency>
 				<groupId>ch.qos.logback</groupId>
 				<artifactId>logback-core</artifactId>
-				<version>1.5.13</version>
+				<version>1.5.20</version>
 			</dependency>
 			<dependency>
 				<groupId>commons-io</groupId>
@@ -453,12 +453,6 @@
 				<groupId>com.auth0</groupId>
 				<artifactId>jwks-rsa</artifactId>
 				<version>0.23.0</version>
-				<exclusions>
-					<!--                <exclusion>-->
-					<!--                    <groupId>com.fasterxml.jackson.core</groupId>-->
-					<!--                    <artifactId>jackson-annotations</artifactId>-->
-					<!--                </exclusion>-->
-				</exclusions>
 			</dependency>
 			<dependency>
 				<groupId>io.prometheus</groupId>
@@ -668,69 +662,60 @@
 					<debug>true</debug>
 					<useModulePath>true</useModulePath>
 				 	<showDeprecation>false</showDeprecation>
+					<compilerArgs>
+						<arg>-Xlint:deprecation</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
-<!--			<plugin>-->
-<!--				<groupId>org.apache.maven.plugins</groupId>-->
-<!--				<artifactId>maven-dependency-plugin</artifactId>-->
-<!--				<version>3.8.1</version>-->
-<!--				<executions>-->
-<!--					<execution>-->
-<!--						<id>copy-dependencies</id>-->
-<!--						<phase>package</phase>-->
-<!--						<goals>-->
-<!--							<goal>copy-dependencies</goal>-->
-<!--						</goals>-->
-<!--						<configuration>-->
-<!--							<outputDirectory>${structr.lib.directory}</outputDirectory>-->
-<!--						</configuration>-->
-<!--					</execution>-->
-<!--				</executions>-->
-<!--			</plugin>-->
 			<plugin>
 				<groupId>com.mycila</groupId>
 				<artifactId>license-maven-plugin</artifactId>
 				<version>4.6</version>
 				<configuration>
-					<header>header.txt</header>
+					<licenseSets>
+						<licenseSet>
+							<header>header.txt</header>
+							<includes>
+								<include>src/**</include>
+							</includes>
+							<excludes>
+								<exclude>**/README</exclude>
+								<exclude>src/**/.directory</exclude>
+								<exclude>src/**/*.sh</exclude>
+								<exclude>src/**/*.properties</exclude>
+								<exclude>src/main/resources/**/*.html</exclude>
+								<exclude>src/main/resources/**/*.xml</exclude>
+								<exclude>src/main/resources/**/*.xsl*</exclude>
+								<exclude>src/main/resources/**/*.eot</exclude>
+								<exclude>src/main/resources/**/*.woff</exclude>
+								<exclude>src/main/resources/**/*.woff2</exclude>
+								<exclude>src/main/resources/**/*.ttf</exclude>
+								<exclude>src/main/resources/**/*.otf</exclude>
+								<exclude>src/main/resources/**/*.svg</exclude>
+								<exclude>src/main/resources/**/*.properties</exclude>
+								<exclude>src/main/resources/bin/**</exclude>
+								<exclude>src/main/resources/mime.types</exclude>
+								<exclude>src/main/resources/structr/trumbowyg/**</exclude>
+								<exclude>src/main/resources/structr/js/lib/**</exclude>
+								<exclude>src/main/resources/structr/css/lib/**</exclude>
+								<exclude>src/main/resources/structr/docs/**</exclude>
+								<exclude>src/test/javascript/casperjs/**</exclude>
+								<exclude>src/test/javascript/bin/**</exclude>
+								<exclude>src/test/javascript/lib/**</exclude>
+								<exclude>src/test/**/*.html</exclude>
+								<exclude>src/test/**/*.xml</exclude>
+								<exclude>src/test/**/*.csv</exclude>
+								<exclude>src/test/**/selenium/**/*</exclude>
+								<exclude>src/main/resources/deb/**</exclude>
+								<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
+								<exclude>src/main/resources/structr/swagger/**/*</exclude>
+								<exclude>src/test/resources/**/*</exclude>
+							</excludes>
+						</licenseSet>
+					</licenseSets>
 					<mapping>
 						<java>SLASHSTAR_STYLE</java>
 					</mapping>
-					<includes>
-						<include>src/**</include>
-					</includes>
-					<excludes>
-						<exclude>**/README</exclude>
-						<exclude>src/**/.directory</exclude>
-						<exclude>src/**/*.sh</exclude>
-						<exclude>src/**/*.properties</exclude>
-						<exclude>src/main/resources/**/*.html</exclude>
-						<exclude>src/main/resources/**/*.xml</exclude>
-						<exclude>src/main/resources/**/*.xsl*</exclude>
-						<exclude>src/main/resources/**/*.eot</exclude>
-						<exclude>src/main/resources/**/*.woff</exclude>
-						<exclude>src/main/resources/**/*.woff2</exclude>
-						<exclude>src/main/resources/**/*.ttf</exclude>
-						<exclude>src/main/resources/**/*.otf</exclude>
-						<exclude>src/main/resources/**/*.svg</exclude>
-						<exclude>src/main/resources/**/*.properties</exclude>
-						<exclude>src/main/resources/bin/**</exclude>
-						<exclude>src/main/resources/mime.types</exclude>
-						<exclude>src/main/resources/structr/trumbowyg/**</exclude>
-						<exclude>src/main/resources/structr/js/lib/**</exclude>
-						<exclude>src/main/resources/structr/css/lib/**</exclude>
-						<exclude>src/main/resources/structr/docs/**</exclude>
-						<exclude>src/test/javascript/casperjs/**</exclude>
-						<exclude>src/test/javascript/bin/**</exclude>
-						<exclude>src/test/javascript/lib/**</exclude>
-						<exclude>src/test/**/*.html</exclude>
-						<exclude>src/test/**/*.xml</exclude>
-						<exclude>src/test/**/selenium/**/*</exclude>
-						<exclude>src/main/resources/deb/**</exclude>
-						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
-						<exclude>src/main/resources/structr/swagger/**/*</exclude>
-						<exclude>src/test/resources/**/*</exclude>
-					</excludes>
 					<properties>
 						<year>2025</year>
 						<owner>Structr GmbH</owner>
@@ -806,7 +791,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-javadoc-plugin</artifactId>
-						<version>3.11.2</version>
+						<version>3.12.0</version>
 						<executions>
 							<execution>
 								<id>attach-javadocs</id>

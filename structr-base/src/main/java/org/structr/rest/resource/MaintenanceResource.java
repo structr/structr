@@ -42,7 +42,6 @@ import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.*;
 import org.structr.schema.export.StructrSchema;
-import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaAnalyzer;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
@@ -65,8 +64,6 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 	static {
 
-		maintenanceCommandMap.put("importRdf",                  RDFImporter.class);
-		maintenanceCommandMap.put("importSchemaJson",           SchemaJsonImporter.class);
 		maintenanceCommandMap.put("rebuildIndex",               BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("rebuildIndexForType",        BulkRebuildIndexCommand.class);
 		maintenanceCommandMap.put("createLabels",               BulkCreateLabelsCommand.class);

@@ -188,6 +188,10 @@ let _Schema = {
 			callback?.();
 		});
 	},
+	resize: () => {},
+	dialogSizeChanged: () => {
+		_Editors.resizeVisibleEditors();
+	},
 	showUpdatingSchemaMessage: () => {
 		_Dialogs.loadingMessage.show('Updating Schema', 'Please wait...', 'updating-schema-message');
 	},
@@ -522,15 +526,36 @@ let _Schema = {
 	nodes: {
 		builtinTypePlaceholderPrefix: 'builtin_placeholder_',
 		getIdForBuiltinTypePlacerHolder: typeName => _Schema.nodes.builtinTypePlaceholderPrefix + typeName,
-		populateInheritancePairMap: (list) => {
+		getInheritanceInfoForJsPlumb: (allNodeTypesFromSchemaResource, customTypeNodes) => {
 
-			let nameKeyedList = Object.fromEntries(list.map(entity => {
-				return [entity.name, entity];
+			let allTypeNamesToJsPlumbId = Object.fromEntries(allNodeTypesFromSchemaResource.map(entity => [entity.name, {
+				name: entity.name,
+				inheritedTraitNames: (entity.traits ?? []),
+				jsPlumbClass: _Schema.nodes.getIdForBuiltinTypePlacerHolder(entity.name),
+			}]));
+
+			for (let typeNode of customTypeNodes) {
+
+				allTypeNamesToJsPlumbId[typeNode.name]
+			}
+
+			let customTypeNameToJsPlumbId  = Object.fromEntries(customTypeNodes.map(entity => {
+
+				return [entity.name, {
+					name: entity.name,
+					inheritedTraitNames: (entity.inheritedTraits ?? []).concat(...(allTypeNamesToJsPlumbId[entity.name]?.inheritedTraitNames ?? [])),
+					jsPlumbClass: entity.id,
+				}];
 			}));
 
-			return Object.fromEntries(list.map(entity => {
-				return [entity.id, (entity.inheritedTraits ?? []).map(traitName => nameKeyedList[traitName]?.id).filter(parent => !!parent)]
-			}));
+			let combinedMappingFromNameToJsPlumbId = Object.assign({}, allTypeNamesToJsPlumbId, customTypeNameToJsPlumbId);
+
+			return Object.values(combinedMappingFromNameToJsPlumbId).map(typeConfig => {
+				return {
+					...typeConfig,
+					inheritedTraitsJsPlumbClasses: typeConfig.inheritedTraitNames.filter(traitName => (traitName !== typeConfig.name)).map(traitName => ({ name: traitName, jsPlumbClass: combinedMappingFromNameToJsPlumbId[traitName]?.jsPlumbClass})).filter(config => !!config.jsPlumbClass)
+				};
+			});
 		},
 		loadNodes: async () => {
 
@@ -538,7 +563,6 @@ let _Schema = {
 			if (response.ok) {
 
 				let data                            = await response.json();
-				let inheritanceObject               = _Schema.nodes.populateInheritancePairMap(data.result);
 				_Schema.caches.nodeData             = Object.fromEntries(data.result.map(node => [node.id, node]));
 				let nameToSchemaNodeMap             = Object.fromEntries(data.result.map(node => [node.name, node]));
 				let initialPosition                 = { left: 40, top: 20 };
@@ -568,23 +592,24 @@ let _Schema = {
 				}
 
 				// draw inheritance arrows
-				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
+				let allNodeTypes    = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass);
+				let inheritanceInfo = _Schema.nodes.getInheritanceInfoForJsPlumb(allNodeTypes, data.result);
 
-					let sourceEntity  = _Schema.caches.nodeData[sourceId];
-					let sourceVisible = _Schema.ui.visibility.isTypeVisible(sourceEntity?.name);
+				for (let typeConfig of inheritanceInfo) {
 
-					if (sourceEntity && sourceVisible) {
+					let sourceVisible = _Schema.ui.visibility.isTypeVisible(typeConfig.name);
 
-						for (let targetId of targetIds) {
+					if (sourceVisible) {
 
-							let targetEntity  = _Schema.caches.nodeData[targetId];
-							let targetVisible = _Schema.ui.visibility.isTypeVisible(targetEntity?.name);
+						for (let targetConfig of typeConfig.inheritedTraitsJsPlumbClasses) {
 
-							if (targetEntity && targetVisible) {
+							let targetVisible = _Schema.ui.visibility.isTypeVisible(targetConfig.name);
+
+							if (targetVisible) {
 
 								_Schema.ui.jsPlumbInstance.connect({
-									source: 'id_' + sourceId,
-									target: 'id_' + targetId,
+									source: 'id_' + typeConfig.jsPlumbClass,
+									target: 'id_' + targetConfig.jsPlumbClass,
 									endpoint: 'Blank',
 									anchors: [
 										[ 'Perimeter', { shape: 'Rectangle' } ],
@@ -1084,7 +1109,7 @@ let _Schema = {
 			let offset =     0.2 * relCnt[relIndex];
 
 			let relTypeIsDefaultType = (relationship.relationshipType === _Schema.initialRelType);
-			let textColorClass       = (relationship.isPartOfBuiltInSchema ? 'text-gray-ddd' : '');
+			let labelClasses         = 'label bg-white/60 hover:bg-white ' + (relationship.isPartOfBuiltInSchema ? 'text-gray-999 hover:text-gray-ddd' : 'text-active-tab-text');
 
 			_Schema.ui.jsPlumbInstance.connect({
 				source: _Schema.caches.nodeConnectors[`${relationship.sourceId}_bottom`],
@@ -1095,22 +1120,22 @@ let _Schema = {
 				paintStyle: { lineWidth: 4, strokeStyle: (relationship.permissionPropagation !== 'None') ? "#ffad25" : "#81ce25" },
 				overlays: [
 					["Label", {
-						cssClass: 'label multiplicity',
-						label: `<span class="${textColorClass}">${relationship.sourceMultiplicity ?? '*'}</span>`,
+						cssClass: 'multiplicity ' + labelClasses,
+						label: relationship.sourceMultiplicity ?? '*',
 						location: Math.min(.2 + offset, .4),
 						id: "sourceMultiplicity"
 					}],
 					["Label", {
-						cssClass: 'label multiplicity',
-						label: `<span class="${textColorClass}">${relationship.targetMultiplicity ?? '*'}</span>`,
+						cssClass: 'multiplicity ' + labelClasses,
+						label: relationship.targetMultiplicity ?? '*',
 						location: Math.max(.8 - offset, .6),
 						id: "targetMultiplicity"
 					}],
 					["Label", {
-						cssClass: "label rel-type",
-						label: `<div id="rel_${relationship.id}" class="flex items-center ${textColorClass}" data-name="${relationship.name}" data-source-type="${sourceName}" data-target-type="${targetName}">
+						cssClass: 'rel-type ' + labelClasses,
+						label: `<div id="rel_${relationship.id}" class="flex items-center" data-name="${relationship.name}" data-source-type="${sourceName}" data-target-type="${targetName}">
 							${(relTypeIsDefaultType ? '<span>&nbsp;</span>' : relationship.relationshipType)}
-							${relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship')}
+							${(relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']), 'Edit relationship'))}
 							${(relationship.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']), 'Delete relationship'))}
 						</div>`,
 						location: .5,
@@ -1679,7 +1704,7 @@ let _Schema = {
 						indexedCb.checked = shouldIndex;
 
 						_Helpers.blink(indexedCb.parentNode, '#fff', '#bde5f8');
-						_Dialogs.custom.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 500);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Indexed flag set to default for this property type (overridable).', 'info', 2000, 500);
 					}
 
 					let allowFulltext   = (selectedOption.value === 'String' || selectedOption.value === 'StringArray');
@@ -3008,6 +3033,9 @@ let _Schema = {
 					});
 				}
 
+				// remove keyboard input on select
+				selectElement.on('select2:select', () => gridRow.querySelector('.select2-search__field').value = '');
+
 				callback(selectElement);
 			});
 		},
@@ -3700,7 +3728,7 @@ let _Schema = {
 			};
 
 			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', document.querySelector('#methods-content .editor'), sourceMonacoConfig);
-			_Editors.addEscapeKeyHandlersToPreventPopupClose(entity.id, 'source', sourceEditor);
+			_Editors.addEscapeKeyHandlersToPreventPopupClose(entity?.id ?? methodData.id, 'source', sourceEditor);
 			_Editors.focusEditor(sourceEditor);
 
 			sourceMonacoConfig.changeFn(sourceEditor);
@@ -4214,7 +4242,6 @@ let _Schema = {
 			`,
 		}
 	},
-	resize: () => {},
 	activateAdminTools: () => {
 
 		let registerSchemaToolButtonAction = (btn, target, connectedSelectElement, getPayloadFunction) => {
@@ -4427,6 +4454,7 @@ let _Schema = {
 		showSchemaOverlays: true,
 		connectorStyle: undefined,
 		zoomLevel: undefined,
+		panPos: { x: 0, y: 0 },
 		relHighlightColor: 'red',
 		maxZ: 0,
 		getSavedSchemaLayoutKey: () => 'structrSavedSchemaLayout_' + location.port,
@@ -4461,6 +4489,8 @@ let _Schema = {
 				canvas: true,
 				exclude: nodeElements,
 				startScale: _Schema.ui.zoomLevel,
+				startX: _Schema.ui.panPos.x,
+				startY: _Schema.ui.panPos.y,
 				handleStartEvent: (event) => {
 
 					let shiftPressed       = event.shiftKey;
@@ -4484,6 +4514,8 @@ let _Schema = {
 				if (!event.detail.originalEvent.shiftKey) {
 					schemaContainerParent.style.cursor = 'default';
 				}
+
+				_Schema.ui.setPan(panzoom.getPan());
 			});
 			schemaContainerParent.addEventListener('wheel', (event) => {
 				panzoom.zoomWithWheel(event);
@@ -4594,7 +4626,6 @@ let _Schema = {
 			},
 			clearSelection: () => {
 
-				// deselect selected node
 				$('.node', _Schema.ui.canvas).removeClass('selected');
 				_Schema.ui.selection.selectionStop();
 
@@ -4733,7 +4764,6 @@ let _Schema = {
 			},
 			hideSelectedSchemaTypes: () => {
 
-				// TODO: update to remove from visible types!
 				if (_Schema.ui.selection.selectedNodes.length > 0) {
 
 					let typesToHide = _Schema.ui.selection.selectedNodes.map(n => n.name);
@@ -4833,11 +4863,10 @@ let _Schema = {
 					await _Schema.ui.layouts.applyLayout(loadedConfig, isInitialRestore);
 
 					if (isInitialRestore === true) {
-						new SuccessMessage().text(`No saved schema layout detected, loaded "${data.name}"`).show();
+						new SuccessMessage().text(`No saved schema layout detected, loaded "${node.name}"`).show();
 					}
 
 				} catch (e) {
-
 					Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 				}
 			},
@@ -4870,6 +4899,7 @@ let _Schema = {
 
 						case 3: {
 							_Schema.ui.setZoom(layoutData.zoom);
+							_Schema.ui.setPan(layoutData.pan);
 							_Schema.ui.setOverlayVisibility(layoutData.showRelLabels);
 							_Schema.ui.setInheritanceArrowsVisibility(layoutData.showInheritanceArrows);
 							_Schema.ui.setConnectorStyle(layoutData.connectorStyle);
@@ -4895,6 +4925,7 @@ let _Schema = {
 					_version:              3,
 					positions:             _Schema.ui.layouts.nodePositions,
 					zoom:                  _Schema.ui.zoomLevel,
+					pan:                   _Schema.ui.panPos,
 					connectorStyle:        _Schema.ui.connectorStyle,
 					visibleTypes:          _Schema.ui.visibility.visibleTypes,
 					showRelLabels:         _Schema.ui.showSchemaOverlays,
@@ -4959,9 +4990,20 @@ let _Schema = {
 
 				_Schema.ui.layouts.saveNodePositions(Object.fromEntries(positions));
 			},
-			clearPositions: () => {
+			resetLayout: () => {
 
 				_Schema.ui.layouts.saveNodePositions({});
+				_Schema.ui.setZoom(1);
+
+				_Schema.ui.panzoomInstance.pan(0, 0);
+
+				_Schema.reload();
+			},
+			resetZoom: () => {
+
+				_Schema.ui.setZoom(1);
+
+				_Schema.ui.panzoomInstance.pan(0, 0);
 
 				_Schema.reload();
 			},
@@ -5402,8 +5444,12 @@ let _Schema = {
 			};
 			activateLayoutFunctions();
 
-			document.getElementById('reset-schema-positions').addEventListener('click', (e) => {
-				_Schema.ui.layouts.clearPositions();
+			document.getElementById('reset-schema-layout').addEventListener('click', (e) => {
+				_Schema.ui.layouts.resetLayout();
+			});
+
+			document.getElementById('reset-schema-zoom').addEventListener('click', (e) => {
+				_Schema.ui.layouts.resetZoom();
 			});
 
 			document.getElementById('new-auto-layout').addEventListener('click', (e) => {
@@ -5423,6 +5469,13 @@ let _Schema = {
 			_Schema.ui.zoomLevel = zoom;
 			_Schema.ui.panzoomInstance?.zoom(zoom);
 			_Schema.ui.jsPlumbInstance.setZoom(zoom);
+
+			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
+		},
+		setPan: (pan = { x: 0, y: 0 }) => {
+
+			_Schema.ui.panPos = pan;
+			_Schema.ui.panzoomInstance?.pan(pan.x, pan.y);
 
 			_Schema.ui.layouts.saveCurrentSchemaLayoutToLocalstorage();
 		},
@@ -5575,8 +5628,16 @@ let _Schema = {
 							<div class="separator"></div>
 
 							<div class="row">
-								<a title="Reset the stored node positions." id="reset-schema-positions" class="flex items-center">
+								<a id="reset-schema-layout" class="flex items-center">
 									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout
+								</a>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="row">
+								<a id="reset-schema-zoom" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Zoom
 								</a>
 							</div>
 

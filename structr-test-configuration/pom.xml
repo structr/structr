@@ -9,6 +9,10 @@
 		<version>6.0-SNAPSHOT</version>
 	</parent>
 
+    <properties>
+        <skipDockerTestDB>true</skipDockerTestDB>
+    </properties>
+
 	<artifactId>structr-test-configuration</artifactId>
 	<packaging>pom</packaging>
 	<name>Structr Test Configuration</name>
@@ -44,7 +48,7 @@
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
-							<argLine>-Xms12g -Xmx12g -Duser.timezone=UTC</argLine>
+							<argLine>-Xms2g -Xmx2g -Duser.timezone=UTC</argLine>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
@@ -68,6 +72,11 @@
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
 						<version>0.40.2</version>
+						<configuration>
+						    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+						    <removeMode>all</removeMode>
+						    <keepContainer>false</keepContainer>
+						</configuration>
 						<executions>
 							<execution>
 								<id>prepare-database</id>
@@ -76,6 +85,7 @@
 									<goal>start</goal>
 								</goals>
 								<configuration>
+
 									<images>
 										<image>
 											<name>${test.neo4j.version}</name>
@@ -108,6 +118,7 @@
 								</goals>
 								<configuration>
 									<skip>${skipDockerTestDB}</skip>
+                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
 								</configuration>
 							</execution>
 						</executions>

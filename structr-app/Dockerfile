@@ -1,4 +1,4 @@
-FROM alpine:latest as build
+FROM alpine:latest AS build
 ARG STRUCTR_VERSION
 ADD ./target/structr-$STRUCTR_VERSION-dist.zip /root/
 RUN apk update && \
@@ -6,7 +6,7 @@ RUN apk update && \
     unzip -q /root/structr-$STRUCTR_VERSION-dist.zip -d /root && \
     rm /root/structr-$STRUCTR_VERSION-dist.zip
 
-FROM ghcr.io/graalvm/jdk-community:25 as main
+FROM ghcr.io/graalvm/jdk-community:25 AS main
 COPY --from=build /root/structr-* /var/lib/structr
 WORKDIR /var/lib/structr
 EXPOSE 8082

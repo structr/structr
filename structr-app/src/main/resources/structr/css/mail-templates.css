@@ -62,9 +62,8 @@
 	height: calc(100vh - 28rem);
 }
 
-#mail-template-detail-form .form-row iframe {
+#mail-template-detail-form iframe#mail-template-preview {
 	border: 1px solid var(--input-field-border);
-	/*width: 100%;*/
 	height: calc(100vh - 28rem);
 }
 

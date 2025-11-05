@@ -79,6 +79,8 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
 			if (outgoingRel != null) {
 
+				outgoingRel.setSecurityContext(securityContext);
+
 				final Relation relation   = outgoingRel.getRelation();
 				final Traits targetTraits = Traits.of(relation.getTargetType());
 
@@ -95,6 +97,8 @@ public abstract class OneToOne extends AbstractRelation implements Relation<OneS
 			// check existing relationships
 			final RelationshipInterface incomingRel = targetNode.getIncomingRelationshipAsSuperUser(type);
 			if (incomingRel != null) {
+
+				incomingRel.setSecurityContext(securityContext);
 
 				final Relation relation   = incomingRel.getRelation();
 				final Traits sourceTraits = Traits.of(relation.getSourceType());

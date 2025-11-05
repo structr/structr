@@ -444,3 +444,25 @@ input[type=text]:invalid {
 	color: var(--config-servlet-red);
 	border: 1px solid var(--config-servlet-red);
 }
+
+input.combined {
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+	border-right-style: none;
+}
+
+input[type="submit"] {
+	background-color: var(--structr-green);
+	/*background-color: var(--config-structr-green);*/
+	color: var(--solid-white);
+}
+
+input[type="submit"]:hover {
+	background-color: var(--dark-structr-green);
+}
+
+input[type="submit"].combined {
+	border-top-left-radius: 0;
+	border-bottom-left-radius: 0;
+	border-left-style: none;
+}

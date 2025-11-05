@@ -1,6 +1,0 @@
-*/**/.DS_Store
-package-lock.json
-.bin/
-node/
-node_modules/
-test-results/

@@ -107,7 +107,7 @@ public abstract class AbstractCommand {
 	 */
 	public GraphObject getGraphObject(final String id, final String nodeId) {
 
-		if (isValidUuid(id)) {
+		if (Settings.isValidUuid(id)) {
 
 			final NodeInterface node = getNode(id);
 			if (node != null) {
@@ -321,10 +321,5 @@ public abstract class AbstractCommand {
 			securityContext.setDoTransactionNotifications(notify);
 		}
 
-	}
-
-	// ----- private methods -----
-	private static boolean isValidUuid(final String id) {
-		return Settings.isValidUuid(id);
 	}
 }

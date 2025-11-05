@@ -47,8 +47,8 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ArrayProperty.class.getName());
 
-	private Class<T> componentType = null;
-	private Method valueOfMethod = null;
+	private final Class<T> componentType;
+	private final Method valueOfMethod;
 
 	public ArrayProperty(String name, Class<T> componentType) {
 
