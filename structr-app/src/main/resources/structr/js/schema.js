@@ -594,7 +594,6 @@ let _Schema = {
 				// draw inheritance arrows
 				let allNodeTypes    = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass);
 				let inheritanceInfo = _Schema.nodes.getInheritanceInfoForJsPlumb(allNodeTypes, data.result);
-				console.log(inheritanceInfo)
 
 				for (let typeConfig of inheritanceInfo) {
 
