@@ -526,15 +526,36 @@ let _Schema = {
 	nodes: {
 		builtinTypePlaceholderPrefix: 'builtin_placeholder_',
 		getIdForBuiltinTypePlacerHolder: typeName => _Schema.nodes.builtinTypePlaceholderPrefix + typeName,
-		populateInheritancePairMap: (list) => {
+		getInheritanceInfoForJsPlumb: (allNodeTypesFromSchemaResource, customTypeNodes) => {
 
-			let nameKeyedList = Object.fromEntries(list.map(entity => {
-				return [entity.name, entity];
+			let allTypeNamesToJsPlumbId = Object.fromEntries(allNodeTypesFromSchemaResource.map(entity => [entity.name, {
+				name: entity.name,
+				inheritedTraitNames: (entity.traits ?? []),
+				jsPlumbClass: _Schema.nodes.getIdForBuiltinTypePlacerHolder(entity.name),
+			}]));
+
+			for (let typeNode of customTypeNodes) {
+
+				allTypeNamesToJsPlumbId[typeNode.name]
+			}
+
+			let customTypeNameToJsPlumbId  = Object.fromEntries(customTypeNodes.map(entity => {
+
+				return [entity.name, {
+					name: entity.name,
+					inheritedTraitNames: (entity.inheritedTraits ?? []).concat(...(allTypeNamesToJsPlumbId[entity.name]?.inheritedTraitNames ?? [])),
+					jsPlumbClass: entity.id,
+				}];
 			}));
 
-			return Object.fromEntries(list.map(entity => {
-				return [entity.id, (entity.inheritedTraits ?? []).map(traitName => nameKeyedList[traitName]?.id).filter(parent => !!parent)]
-			}));
+			let combinedMappingFromNameToJsPlumbId = Object.assign({}, allTypeNamesToJsPlumbId, customTypeNameToJsPlumbId);
+
+			return Object.values(combinedMappingFromNameToJsPlumbId).map(typeConfig => {
+				return {
+					...typeConfig,
+					inheritedTraitsJsPlumbClasses: typeConfig.inheritedTraitNames.filter(traitName => (traitName !== typeConfig.name)).map(traitName => ({ name: traitName, jsPlumbClass: combinedMappingFromNameToJsPlumbId[traitName]?.jsPlumbClass})).filter(config => !!config.jsPlumbClass)
+				};
+			});
 		},
 		loadNodes: async () => {
 
@@ -542,7 +563,6 @@ let _Schema = {
 			if (response.ok) {
 
 				let data                            = await response.json();
-				let inheritanceObject               = _Schema.nodes.populateInheritancePairMap(data.result);
 				_Schema.caches.nodeData             = Object.fromEntries(data.result.map(node => [node.id, node]));
 				let nameToSchemaNodeMap             = Object.fromEntries(data.result.map(node => [node.name, node]));
 				let initialPosition                 = { left: 40, top: 20 };
@@ -572,23 +592,25 @@ let _Schema = {
 				}
 
 				// draw inheritance arrows
-				for (let [sourceId, targetIds] of Object.entries(inheritanceObject)) {
+				let allNodeTypes    = await _Schema.caches.getFilteredSchemaTypes(type => !type.isRel && !type.isServiceClass);
+				let inheritanceInfo = _Schema.nodes.getInheritanceInfoForJsPlumb(allNodeTypes, data.result);
+				console.log(inheritanceInfo)
 
-					let sourceEntity  = _Schema.caches.nodeData[sourceId];
-					let sourceVisible = _Schema.ui.visibility.isTypeVisible(sourceEntity?.name);
+				for (let typeConfig of inheritanceInfo) {
 
-					if (sourceEntity && sourceVisible) {
+					let sourceVisible = _Schema.ui.visibility.isTypeVisible(typeConfig.name);
 
-						for (let targetId of targetIds) {
+					if (sourceVisible) {
 
-							let targetEntity  = _Schema.caches.nodeData[targetId];
-							let targetVisible = _Schema.ui.visibility.isTypeVisible(targetEntity?.name);
+						for (let targetConfig of typeConfig.inheritedTraitsJsPlumbClasses) {
 
-							if (targetEntity && targetVisible) {
+							let targetVisible = _Schema.ui.visibility.isTypeVisible(targetConfig.name);
+
+							if (targetVisible) {
 
 								_Schema.ui.jsPlumbInstance.connect({
-									source: 'id_' + sourceId,
-									target: 'id_' + targetId,
+									source: 'id_' + typeConfig.jsPlumbClass,
+									target: 'id_' + targetConfig.jsPlumbClass,
 									endpoint: 'Blank',
 									anchors: [
 										[ 'Perimeter', { shape: 'Rectangle' } ],
