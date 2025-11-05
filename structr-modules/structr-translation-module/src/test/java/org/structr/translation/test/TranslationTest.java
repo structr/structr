@@ -20,7 +20,7 @@ package org.structr.translation.test;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.test.web.StructrUiTest;
+import org.structr.test.common.StructrTest;
 import org.structr.translation.TranslateFunction;
 import org.structr.translation.TranslationModule;
 import org.testng.annotations.Test;
@@ -30,8 +30,7 @@ import org.structr.core.script.Scripting;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
-public class TranslationTest extends StructrUiTest {
-
+public class TranslationTest extends StructrTest {
 
     @Test
     public void testWrongTranslationProvider() {
