@@ -38,8 +38,10 @@ import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
 import org.structr.schema.action.Actions;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDeletion, AfterCreation, AfterModification, AfterDeletion, OnNodeCreation, OnNodeDeletion {
 
@@ -148,7 +150,10 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 					.currentMethod(method)
 					.build();
 
-			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".onSave", null, scriptConfig);
+			final Map<String, Object> parameters = new LinkedHashMap<>();
+			parameters.put("modifications", modificationQueue.getModifications(graphObject));
+
+			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", parameters, type + ".onSave", null, scriptConfig);
 		}
 	}
 
