@@ -137,6 +137,8 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
+		context.setCurrentMethod(scriptConfig.getCurrentMethod());
+
 		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource, scriptConfig);
 
 		store.setTemporaryParameters(previousParams);

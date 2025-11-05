@@ -24,6 +24,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.feed.entity.AbstractFeedItem;
 import org.structr.feed.traits.wrappers.AbstractFeedItemTraitWrapper;
@@ -48,7 +49,7 @@ public class AbstractFeedItemTraitDefinition extends AbstractNodeTraitDefinition
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> contentType = new StringProperty(CONTENT_TYPE_PROPERTY);
 

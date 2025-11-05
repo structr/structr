@@ -205,9 +205,10 @@ public class SchemaHelper {
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
 		final List<GraphObjectMap> resultList = new LinkedList<>();
 		final Traits traits                   = Traits.of(type);
-		final boolean isServiceClass          = traits.isServiceClass();
 
 		if (traits != null) {
+
+			final boolean isServiceClass = traits.isServiceClass();
 
 			if (propertyView != null) {
 
@@ -233,9 +234,12 @@ public class SchemaHelper {
 				final boolean isRel = traits.isRelationshipType();
 
 				schema.setProperty(SchemaResource.urlProperty, url);
+
+				// TODO: three identical properties - remove 2?
 				schema.setProperty(SchemaResource.typeProperty, type);
 				schema.setProperty(SchemaResource.nameProperty, type);
 				schema.setProperty(SchemaResource.classNameProperty, type);
+
 				schema.setProperty(SchemaResource.traitsProperty, traits.getAllTraits());
 				schema.setProperty(SchemaResource.isBuiltinProperty, traits.isBuiltinType());
 				schema.setProperty(SchemaResource.isServiceClassProperty, traits.isServiceClass());

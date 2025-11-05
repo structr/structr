@@ -34,14 +34,8 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 	private static final long nanoEpoch                               = System.nanoTime();
 
 	@Override
-	public <T> T forName(final Class<T> type, final String name) {
-
-		if (RelationshipType.class.equals(type)) {
-
-			return (T)getOrCreateRelationshipType(name);
-		}
-
-		throw new RuntimeException("Cannot create object of type " + type);
+	public RelationshipType getRelationshipType(final String name) {
+		return getOrCreateRelationshipType(name);
 	}
 
 	@Override
@@ -68,54 +62,6 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 
 	// ----- private methods -----
 	private RelationshipType getOrCreateRelationshipType(final String name) {
-
-		RelationshipType relType = relTypeCache.get(name);
-		if (relType == null) {
-
-			relType = new RelationshipTypeImpl(name);
-			relTypeCache.put(name, relType);
-		}
-
-		return relType;
-	}
-
-	// ----- nested classes -----
-	private static class RelationshipTypeImpl implements RelationshipType {
-
-		private String name = null;
-
-		private RelationshipTypeImpl(final String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String name() {
-			return name;
-		}
-
-		@Override
-		public String getSourceType() {
-			return null;
-		}
-
-		@Override
-		public String getTargetType() {
-			return null;
-		}
-
-		@Override
-		public int hashCode() {
-			return name.hashCode();
-		}
-
-		@Override
-		public boolean equals(final Object other) {
-
-			if (other instanceof RelationshipType) {
-				return other.hashCode() == hashCode();
-			}
-
-			return false;
-		}
+		return relTypeCache.computeIfAbsent(name, RelationshipType::forName);
 	}
 }

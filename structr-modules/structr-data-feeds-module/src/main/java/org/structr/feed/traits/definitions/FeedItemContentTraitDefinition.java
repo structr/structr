@@ -30,6 +30,7 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -56,7 +57,7 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 			AfterCreation.class,
@@ -70,9 +71,9 @@ public class FeedItemContentTraitDefinition extends AbstractNodeTraitDefinition 
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> itemProperty = new StartNode(ITEM_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
+		final Property<NodeInterface> itemProperty = new StartNode(traitsInstance, ITEM_PROPERTY, StructrTraits.FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT);
 		final Property<String> modeProperty        = new StringProperty(MODE_PROPERTY);
 		final Property<String> itemTypeProperty    = new StringProperty(ITEM_TYPE_PROPERTY);
 		final Property<String> valueProperty       = new StringProperty(VALUE_PROPERTY);

@@ -25,6 +25,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -50,7 +51,7 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of();
 	}
 
@@ -73,9 +74,9 @@ public class PagePathParameterTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> pathProperty  = new StartNode(PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
+		final Property<NodeInterface> pathProperty  = new StartNode(traitsInstance, PATH_PROPERTY, StructrTraits.PAGE_PATH_HAS_PARAMETER_PAGE_PATH_PARAMETER);
 		final Property<Integer> positionProperty    = new IntProperty(POSITION_PROPERTY).indexed();
 		final Property<String> valueTypeProperty    = new StringProperty(VALUE_TYPE_PROPERTY);
 		final Property<String> defaultValueProperty = new StringProperty(DEFAULT_VALUE_PROPERTY);

@@ -39,11 +39,12 @@ import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsManager;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
+import org.structr.rest.service.HttpService;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.test.helper.ConcurrentPortNumberHelper;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
@@ -68,13 +69,10 @@ public abstract class CsvTestBase {
 	protected String basePath                 = null;
 	protected App app                         = null;
 
-	protected final String contextPath = "/";
 	protected final String host        = "127.0.0.1";
-	protected final int httpPort       = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
-	protected final int ftpPort        = ConcurrentPortNumberHelper.getNextPortNumber(getClass());
 	protected final String restUrl     = "/structr/rest";
 	protected final String htmlUrl     = "/structr/html";
-	protected final String wsUrl       = "/structr/ws";
+	protected int httpPort             = 0;
 	protected String baseUri           = null;
 	protected boolean first            = true;
 
@@ -99,7 +97,7 @@ public abstract class CsvTestBase {
 		Settings.ApplicationHost.setValue(host);
 		Settings.HttpPort.setValue(httpPort);
 
-		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet GraphQLServlet UploadServlet CsvServlet OpenAPIServlet");
+		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet UploadServlet CsvServlet OpenAPIServlet");
 
 		final Services services = Services.getInstance();
 
@@ -108,8 +106,11 @@ public abstract class CsvTestBase {
 			try { Thread.sleep(100); } catch (Throwable t) {}
 		}
 
-		securityContext = SecurityContext.getSuperUserInstance();
+		// use allocated port instead of forced random port
+		httpPort = services.getServiceImplementation(HttpService.class).getAllocatedPort();
+		Settings.HttpPort.setValue(httpPort);
 
+		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);
 
 		baseUri = "http://" + host + ":" + httpPort + htmlUrl + "/";
@@ -123,14 +124,26 @@ public abstract class CsvTestBase {
 	@BeforeMethod(firstTimeOnly = true)
 	public void createSchema() {
 
-		StructrTraits.registerRelationshipType("FourThreeOneToOne", new FourThreeOneToOne());
-		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  new TwoFiveOneToMany());
+		StructrTraits.registerTrait(new FourThreeOneToOne());
+		StructrTraits.registerTrait(new TwoFiveOneToMany());
 
-		StructrTraits.registerNodeType("TestOne",      new TestOneTraitDefinition());
-		StructrTraits.registerNodeType("TestTwo",      new TestTwoTraitDefinition());
-		StructrTraits.registerNodeType("TestThree",    new TestThreeTraitDefinition());
-		StructrTraits.registerNodeType("TestFour",     new TestFourTraitDefinition());
-		StructrTraits.registerNodeType("TestFive",     new TestFiveTraitDefinition());
+		StructrTraits.registerRelationshipType("FourThreeOneToOne", "FourThreeOneToOne");
+		StructrTraits.registerRelationshipType("TwoFiveOneToMany",  "TwoFiveOneToMany");
+
+		StructrTraits.registerTrait(new TestOneTraitDefinition());
+		StructrTraits.registerTrait(new TestTwoTraitDefinition());
+		StructrTraits.registerTrait(new TestThreeTraitDefinition());
+		StructrTraits.registerTrait(new TestFourTraitDefinition());
+		StructrTraits.registerTrait(new TestFiveTraitDefinition());
+
+		StructrTraits.registerNodeType("TestOne",      "TestOne");
+		StructrTraits.registerNodeType("TestTwo",      "TestTwo");
+		StructrTraits.registerNodeType("TestThree",    "TestThree");
+		StructrTraits.registerNodeType("TestFour",     "TestFour");
+		StructrTraits.registerNodeType("TestFive",     "TestFive");
+
+		// create new schema instance that includes the modified root schema
+		TraitsManager.replaceCurrentInstance(TraitsManager.createCopyOfRootInstance());
 	}
 
 	@BeforeMethod

@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -77,7 +78,7 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -145,11 +146,11 @@ public class SchemaNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes(RELATED_TO_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
-		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes(RELATED_FROM_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
-		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes(SCHEMA_GRANTS_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
+		final Property<Iterable<NodeInterface>>          relatedTo              = new EndNodes(traitsInstance, RELATED_TO_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		final Property<Iterable<NodeInterface>>          relatedFrom            = new StartNodes(traitsInstance, RELATED_FROM_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		final Property<Iterable<NodeInterface>>          schemaGrants           = new StartNodes(traitsInstance, SCHEMA_GRANTS_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
 		final Property<String[]>                         inheritedTraits        = new ArrayProperty(INHERITED_TRAITS_PROPERTY, String.class);
 		final Property<String>                           uniqueNameKey          = new StringProperty(NAME_PROPERTY).unique().indexed();
 		final Property<String>                           defaultSortKey         = new StringProperty(DEFAULT_SORT_KEY_PROPERTY);

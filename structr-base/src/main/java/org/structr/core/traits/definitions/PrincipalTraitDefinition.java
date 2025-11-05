@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -78,7 +79,7 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -172,12 +173,12 @@ public class PrincipalTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		return newSet(
-			new StartNodes(GROUPS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL),
-			new EndNodes(OWNED_NODES_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE),
-			new EndNodes(GRANTED_NODES_PROPERTY, StructrTraits.SECURITY),
+			new StartNodes(traitsInstance, GROUPS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL),
+			new EndNodes(traitsInstance, OWNED_NODES_PROPERTY, StructrTraits.PRINCIPAL_OWNS_NODE),
+			new EndNodes(traitsInstance, GRANTED_NODES_PROPERTY, StructrTraits.SECURITY),
 			new BooleanProperty(PrincipalTraitDefinition.IS_ADMIN_PROPERTY).indexed().readOnly(),
 			new BooleanProperty(BLOCKED_PROPERTY),
 			new ArrayProperty(SESSION_IDS_PROPERTY, String.class).indexed(),

@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -32,6 +31,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -40,10 +40,11 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.flow.traits.operations.GetExportData;
+import java.util.TreeMap;
 
 public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -57,7 +58,7 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -110,10 +111,10 @@ public class FlowContainerConfigurationTraitDefinition extends AbstractNodeTrait
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> flow          = new EndNode(FLOW_PROPERTY, StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW);
-		final Property<NodeInterface> activeForFlow = new EndNode(ACTIVE_FOR_FLOW_PROPERTY, StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION);
+		final Property<NodeInterface> flow          = new EndNode(traitsInstance, FLOW_PROPERTY, StructrTraits.FLOW_CONTAINER_CONFIGURATION_FLOW);
+		final Property<NodeInterface> activeForFlow = new EndNode(traitsInstance, ACTIVE_FOR_FLOW_PROPERTY, StructrTraits.FLOW_ACTIVE_CONTAINER_CONFIGURATION);
 		final Property<String> validForEditor       = new StringProperty(VALID_FOR_EDITOR_PROPERTY).indexed();
 		final Property<String> configJson           = new StringProperty(CONFIG_JSON_PROPERTY);
 

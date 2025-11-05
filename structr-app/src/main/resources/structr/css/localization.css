@@ -1,0 +1,120 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+@charset "UTF-8";
+
+#localization-table {
+	display: table;
+}
+
+#localization-table a {
+	text-decoration: underline;
+}
+
+#localization-list-th-actions {
+	/*width: 50px;*/
+	min-width: initial;
+}
+
+#localization-detail {
+	padding: 1rem;
+	vertical-align: top;
+}
+
+#localization-detail input.invalid {
+	border: 1px solid var(--input-invalid-border-color);
+	background-color: var(--input-invalid-bg-color);
+}
+
+#localization-table th {
+	text-align: left;
+}
+
+#localization-pager {
+	display: inline-block;
+}
+
+#localization-main {
+	display: none;
+	height: calc(100% - 3rem);
+	margin: 0 2rem 2rem 2rem;
+}
+
+#localization-list {
+	vertical-align: top;
+	height: 100%;
+	padding-top: 1rem;
+}
+
+#localization-detail-container {
+	margin-left: 2rem;
+	padding: 1rem;
+	vertical-align: top;
+	overflow: auto;
+	height: calc(100% - 1rem);
+	background: var(--solid-white);
+	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
+}
+
+#localization-detail-table {
+	margin-top: 2rem;
+}
+
+#localization-list td.allow-break {
+	word-break: break-all;
+}
+
+#localization div.allow-break {
+	word-break: break-all;
+	white-space: normal;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	overflow: hidden;
+	-webkit-box-orient: vertical;
+	text-overflow: ellipsis;
+}
+
+.localization-row.selected {
+	background-color: var(--structr-green) !important;
+}
+
+.localization-row:hover {
+	cursor: pointer;
+	background-color: var(--structr-light-green) !important;
+}
+
+#localization .node.nodeHover tr:not(.has-value) .delete,
+#localization .node:not(.nodeHover) .delete {
+	display: none;
+}
+
+#localization .node.nodeHover .has-value .delete {
+	display: inline;
+}
+
+.localization td {
+	padding: 0.5rem 1.5rem;
+}
+
+.localization input {
+	width: 100%;
+}
+
+.localization textarea {
+	width: 100% !important;
+}

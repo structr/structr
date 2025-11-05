@@ -32,6 +32,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -73,7 +74,7 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -145,15 +146,15 @@ public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes(WORK_FOLDER_OF_USERS_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
-		final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes(CHILDREN_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);
-		final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes(FILES_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
-		final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes(FOLDERS_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
-		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes(IMAGES_PROPERTY, StructrTraits.FOLDER_CONTAINS_IMAGE);
-		final Property<NodeInterface> folderParentProperty                = new StartNode(FOLDER_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
-		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode(HOME_FOLDER_OF_USER_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
+		final Property<Iterable<NodeInterface>> workFolderOfUsersProperty = new StartNodes(traitsInstance, WORK_FOLDER_OF_USERS_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
+		final Property<Iterable<NodeInterface>> childrenProperty          = new EndNodes(traitsInstance, CHILDREN_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE);
+		final Property<Iterable<NodeInterface>> filesProperty             = new EndNodes(traitsInstance, FILES_PROPERTY, StructrTraits.FOLDER_CONTAINS_FILE);
+		final Property<Iterable<NodeInterface>> foldersProperty           = new EndNodes(traitsInstance, FOLDERS_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
+		final Property<Iterable<NodeInterface>> imagesProperty            = new EndNodes(traitsInstance, IMAGES_PROPERTY, StructrTraits.FOLDER_CONTAINS_IMAGE);
+		final Property<NodeInterface> folderParentProperty                = new StartNode(traitsInstance, FOLDER_PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_FOLDER);
+		final Property<NodeInterface> homeFolderOfUserProperty            = new StartNode(traitsInstance, HOME_FOLDER_OF_USER_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
 		final Property<Boolean> isFolderProperty                          = new ConstantBooleanProperty(IS_FOLDER_PROPERTY, true).readOnly();
 		final Property<Boolean> mountDoFulltextIndexingProperty           = new BooleanProperty(MOUNT_DO_FULLTEXT_INDEXING_PROPERTY);
 		final Property<Boolean> mountWatchContentsProperty                = new BooleanProperty(MOUNT_WATCH_CONTENTS_PROPERTY);

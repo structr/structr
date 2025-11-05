@@ -36,6 +36,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
 import org.structr.core.traits.operations.graphobject.OnCreation;
@@ -67,7 +68,7 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -103,10 +104,10 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface>  principal    = new StartNode(PRINCIPAL_PROPERTY, StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
-		final Property<NodeInterface> schemaNode    = new EndNode(SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
+		final Property<NodeInterface>  principal    = new StartNode(traitsInstance, PRINCIPAL_PROPERTY, StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
+		final Property<NodeInterface> schemaNode    = new EndNode(traitsInstance, SCHEMA_NODE_PROPERTY, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
 		final Property<String> staticSchemaNodeName = new StringProperty(STATIC_SCHEMA_NODE_NAME_PROPERTY);
 		final Property<Boolean> allowRead           = new BooleanProperty(ALLOW_READ_PROPERTY);
 		final Property<Boolean> allowWrite          = new BooleanProperty(ALLOW_WRITE_PROPERTY);

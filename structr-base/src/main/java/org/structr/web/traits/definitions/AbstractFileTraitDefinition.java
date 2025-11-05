@@ -33,6 +33,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.RelationshipTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -70,7 +71,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -165,10 +166,10 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> storageConfigurationProperty = new EndNode(STORAGE_CONFIGURATION_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
-		final Property<NodeInterface> parentProperty               = new StartNode(PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE).updateCallback(AbstractFileTraitDefinition::updateHasParent);
+		final Property<NodeInterface> storageConfigurationProperty = new EndNode(traitsInstance, STORAGE_CONFIGURATION_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
+		final Property<NodeInterface> parentProperty               = new StartNode(traitsInstance, PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE).updateCallback(AbstractFileTraitDefinition::updateHasParent);
 		final Property<String> parentIdProperty                    = new EntityIdProperty(PARENT_ID_PROPERTY, StructrTraits.ABSTRACT_FILE, PARENT_PROPERTY, StructrTraits.FOLDER);
 		final Property<Boolean> hasParentProperty                  = new BooleanProperty(HAS_PARENT_PROPERTY).indexed();
 		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty(INCLUDE_IN_FRONTEND_EXPORT_PROPERTY).indexed();

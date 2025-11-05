@@ -42,6 +42,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
@@ -71,7 +72,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -105,11 +106,11 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
-		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
-		final Property<NodeInterface> imgProperty                 = new StartNode(IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
+		final Property<NodeInterface> homeDirectoryProperty       = new EndNode(traitsInstance, HOME_DIRECTORY_PROPERTY, StructrTraits.USER_HOME_DIR_FOLDER);
+		final Property<NodeInterface> workingDirectoryProperty    = new EndNode(traitsInstance, WORKING_DIRECTORY_PROPERTY, StructrTraits.USER_WORKING_DIR_FOLDER);
+		final Property<NodeInterface> imgProperty                 = new StartNode(traitsInstance, IMG_PROPERTY, StructrTraits.IMAGE_PICTURE_OF_USER);
 		final Property<String> confirmationKeyProperty            = new StringProperty(CONFIRMATION_KEY_PROPERTY).indexed();
 		final Property<String> localStorageProperty               = new StringProperty(LOCAL_STORAGE_PROPERTY);
 		final Property<Boolean> skipSecurityRelationshipsProperty = new BooleanProperty(SKIP_SECURITY_RELATIONSHIPS_PROPERTY).defaultValue(false).indexed();

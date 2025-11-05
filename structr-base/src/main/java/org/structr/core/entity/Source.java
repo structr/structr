@@ -37,4 +37,6 @@ public interface Source<R, S> {
 
 	R getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
 	boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
+
+	String getPropertyName();
 }

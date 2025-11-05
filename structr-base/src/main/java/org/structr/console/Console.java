@@ -40,7 +40,8 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.polyglot.config.ScriptConfig;
-import org.structr.core.script.polyglot.config.ScriptConfigBuilder;
+import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.TraitsManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.CommandLineUtils;
@@ -59,6 +60,7 @@ public class Console {
 	};
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
+	private final TraitsInstance traitsInstance;
 	private ConsoleMode mode                                                     = null;
 	private ActionContext actionContext                                          = null;
 	private String username                                                      = null;
@@ -66,14 +68,19 @@ public class Console {
 
 	public Console(final SecurityContext securityContext, final ConsoleMode consoleMode, final Map<String, Object> parameters) {
 
-		this.actionContext = new ActionContext(securityContext, parameters);
-		this.mode          = consoleMode;
+		this.actionContext  = new ActionContext(securityContext, parameters);
+		this.traitsInstance = TraitsManager.getCurrentInstance();
+		this.mode           = consoleMode;
 
 		tabCompletionProviders.put(ConsoleMode.Cypher,        new CypherTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.JavaScript,    new JavaScriptTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.StructrScript, new StructrScriptTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.AdminShell,    new AdminTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.REST,          new RestTabCompletionProvider());
+	}
+
+	public boolean hasStillTheSameTraitsInstance() {
+		return TraitsManager.getCurrentInstance().isSameAs(traitsInstance);
 	}
 
 	public String runForTest(final String line) throws FrameworkException {

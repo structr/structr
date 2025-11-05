@@ -38,6 +38,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -107,11 +108,11 @@ public class ODFExporterTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final PropertyKey<NodeInterface> resultDocumentProperty         = new EndNode(RESULT_DOCUMENT_PROPERTY, StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
-		final PropertyKey<NodeInterface> documentTemplateProperty       = new EndNode(DOCUMENT_TEMPLATE_PROPERTY, StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
-		final PropertyKey<NodeInterface> transformationProviderProperty = new EndNode(TRANSFORMATION_PROVIDER_PROPERTY, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
+		final PropertyKey<NodeInterface> resultDocumentProperty         = new EndNode(traitsInstance, RESULT_DOCUMENT_PROPERTY, StructrTraits.ODF_EXPORTER_EXPORTS_TO_FILE);
+		final PropertyKey<NodeInterface> documentTemplateProperty       = new EndNode(traitsInstance, DOCUMENT_TEMPLATE_PROPERTY, StructrTraits.ODF_EXPORTER_USES_TEMPLATE_FILE);
+		final PropertyKey<NodeInterface> transformationProviderProperty = new EndNode(traitsInstance, TRANSFORMATION_PROVIDER_PROPERTY, StructrTraits.ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE);
 
 		return newSet(
 			resultDocumentProperty,

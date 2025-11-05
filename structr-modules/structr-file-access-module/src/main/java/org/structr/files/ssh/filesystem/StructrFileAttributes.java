@@ -94,7 +94,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			final Principal owner = file.as(AccessControllable.class).getOwnerNode();
 			if (owner != null) {
 
-				groups.addAll(Iterables.toList(owner.getGroups()));
+				groups.addAll(Iterables.toList(owner.getParents()));
 			}
 
 			tx.success();

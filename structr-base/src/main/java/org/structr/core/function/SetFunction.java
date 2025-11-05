@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -27,20 +25,18 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
 public class SetFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SET = "Usage: ${set(entity, propertyKey, value, ...)}. Example: ${set(this, \"email\", lower(this.email))}";
-	public static final String ERROR_MESSAGE_SET_JS = "Usage: ${{Structr.set(entity, propertyKey, value, ...)}}. Example: ${{Structr.set(this, \"email\", lower(this.email))}}";
+	public static final String ERROR_MESSAGE_SET    = "Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}. Example: ${set(this, \"email\", lower(this.email))}";
+	public static final String ERROR_MESSAGE_SET_JS = "Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}. Example: ${{ $.set(this, { \"email\": $.lower($.this.email) } ) }}";
 
 	@Override
 	public String getName() {
@@ -59,9 +55,8 @@ public class SetFunction extends CoreFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || (sources[0] instanceof GraphObjectMap);
 			final SecurityContext securityContext          = ctx.getSecurityContext();
-			final ConfigurationProvider config             = StructrApp.getConfiguration();
 
 			Traits type = null;
 			PropertyMap propertyMap = null;
@@ -87,17 +82,6 @@ public class SetFunction extends CoreFunction {
 
 				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), ((GraphObjectMap)sources[1]).toMap());
 
-			} else if (sources.length == 2 && sources[1] instanceof String) {
-
-				final Gson gson = new GsonBuilder().create();
-
-				final Map<String, Object> values = deserialize(gson, sources[1].toString());
-				if (values != null) {
-
-					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), values);
-
-				}
-
 			} else if (sources.length > 2) {
 
 				propertyMap               = new PropertyMap();
@@ -111,7 +95,7 @@ public class SetFunction extends CoreFunction {
 				for (int c = 1; c < parameter_count; c += 2) {
 
 					final String keyName  = sources[c].toString();
-					final PropertyKey key = type.key(keyName);
+					final PropertyKey key = (useGenericPropertyForUnknownKeys ? type.keyOrGenericProperty(keyName) : type.key(keyName));
 
 					if (key != null) {
 
@@ -128,13 +112,13 @@ public class SetFunction extends CoreFunction {
 					} else {
 
 						// key does not exist and generic property is not desired => log warning
-						logger.warn("Unknown property {}.{}, value will not be set.", type.getName(), keyName);
+						logger.warn("set(): Unknown property {}.{}, value will not be set.", type.getName(), keyName);
 					}
 				}
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid use of builtin method set, usage: set(entity, params..)");
+				throw new FrameworkException(422, "Invalid use of builtin method set, usage: set(entity, params..) or set(entity, map)");
 			}
 
 			if (propertyMap != null) {
@@ -161,6 +145,6 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Sets a value on an entity";
+		return "Sets a value or multiple values on an entity. The values can be provided as a map or as a list of alternating keys and values.";
 	}
 }

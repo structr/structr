@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.wrappers.MailTemplateTraitWrapper;
 
 import java.util.Map;
@@ -52,7 +53,7 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String> textProperty = new StringProperty(TEXT_PROPERTY);
 		final Property<String> localeProperty = new StringProperty(LOCALE_PROPERTY).indexed();

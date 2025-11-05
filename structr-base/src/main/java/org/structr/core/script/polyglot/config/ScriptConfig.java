@@ -19,10 +19,12 @@
 package org.structr.core.script.polyglot.config;
 
 import org.structr.api.config.Settings;
+import org.structr.core.api.AbstractMethod;
 
 public class ScriptConfig {
     private boolean wrapJsInMain                                  = Settings.WrapJSInMainFunction.getValue(false);
     private boolean keepContextOpen                               = false;
+    private AbstractMethod currentMethod                          = null;
 
     protected ScriptConfig() {}
 
@@ -44,6 +46,14 @@ public class ScriptConfig {
 
     protected void setWrapJsInMain(boolean wrapJsInMain) {
         this.wrapJsInMain = wrapJsInMain;
+    }
+
+    protected void setCurrentMethod(final AbstractMethod currentMethod) {
+        this.currentMethod = currentMethod;
+    }
+
+    public AbstractMethod getCurrentMethod() {
+        return this.currentMethod;
     }
 
 }

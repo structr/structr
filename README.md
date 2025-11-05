@@ -48,4 +48,4 @@ You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https
 
 ## Copyright and License
 
-Copyright 2010-2024 Structr GmbH
+Copyright 2010-2025 Structr GmbH

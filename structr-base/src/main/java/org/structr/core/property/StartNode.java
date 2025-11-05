@@ -37,6 +37,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 import org.structr.core.notion.ObjectNotion;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 
@@ -67,8 +68,8 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	 * @param name
 	 * @param type
 	 */
-	public StartNode(final String name, final String type) {
-		this(name, type, new ObjectNotion());
+	public StartNode(final TraitsInstance traitsInstance, final String name, final String type) {
+		this(traitsInstance, name, type, new ObjectNotion());
 	}
 
 	/**
@@ -81,18 +82,18 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 	 * @param type
 	 * @param notion
 	 */
-	public StartNode(final String name, final String type, final Notion notion) {
+	public StartNode(final TraitsInstance traitsInstance, final String name, final String type, final Notion notion) {
 
 		super(name);
 
-		this.traits     = Traits.of(type);
+		this.traits     = traitsInstance.getTraits(type);
 		this.relation   = traits.getRelation();
 		this.notion     = notion;
 		this.sourceType = relation.getSourceType();
-		this.destType   = relation.getSourceType();
+		this.destType   = relation.getTargetType();
 
 		// configure notion
-		this.notion.setType(destType);
+		this.notion.setType(sourceType);
 		this.notion.setRelationProperty(this);
 		this.relation.setSourceProperty(this);
 	}
@@ -159,6 +160,9 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 			if (cause instanceof FrameworkException) {
 
 				throw (FrameworkException)cause;
+
+			} else {
+				r.printStackTrace();
 			}
 		}
 
@@ -167,7 +171,7 @@ public class StartNode extends Property<NodeInterface> implements RelationProper
 
 	@Override
 	public String relatedType() {
-		return destType;
+		return sourceType;
 	}
 
 	@Override

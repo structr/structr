@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
@@ -71,11 +72,11 @@ public class FlowDecisionTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> condition    = new StartNode(CONDITION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
-		final Property<NodeInterface> trueElement  = new EndNode(TRUE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_TRUE);
-		final Property<NodeInterface> falseElement = new EndNode(FALSE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_FALSE);
+		final Property<NodeInterface> condition    = new StartNode(traitsInstance, CONDITION_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
+		final Property<NodeInterface> trueElement  = new EndNode(traitsInstance, TRUE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_TRUE);
+		final Property<NodeInterface> falseElement = new EndNode(traitsInstance, FALSE_ELEMENT_PROPERTY, StructrTraits.FLOW_DECISION_FALSE);
 
 		return newSet(
 			condition,

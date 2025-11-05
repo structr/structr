@@ -20,6 +20,7 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.session.ManagedSession;
@@ -54,6 +55,7 @@ import org.structr.websocket.command.PingCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
@@ -163,16 +165,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 	@Override
 	public void onWebSocketError(Throwable t) {
 
-		if (QuietException.isQuiet(t)) {
-			// ignore exceptions which (by jettys standards) should be handled less verbosely
-		} else if (t.getCause() instanceof TimeoutException) {
-			// also ignore timeoutexceptions
-		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
-			// also ignore simple "Closed" exception
-		} else {
-
-			logger.warn("Unable to send websocket message to remote client: {}", t);
-		}
+		handleWebSocketException(t);
 	}
 
 	@Override
@@ -423,16 +416,7 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 		} catch (Throwable t) {
 
-			if (QuietException.isQuiet(t)) {
-				// ignore exceptions which (by jettys standards) should be handled less verbosely
-			} else if (t.getCause() instanceof TimeoutException) {
-				// also ignore timeoutexceptions
-			} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
-				// also ignore simple "Closed" exception
-			} else {
-
-				logger.warn("Unable to send websocket message to remote client: {}", t);
-			}
+			handleWebSocketException(t);
 		}
 	}
 
@@ -588,19 +572,29 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		this.console = null;
 	}
 
-	public Console getConsole(final ConsoleMode mode) {
+	public Pair<Console, Boolean> getConsole(final ConsoleMode mode) {
 
 		if (this.securityContext != null) {
 
 			if (this.console != null) {
 
-				return this.console;
+				if (this.console.hasStillTheSameTraitsInstance()) {
+
+					// return console and false because the traits instance has not changed
+					return Pair.of(this.console, false);
+
+				} else {
+
+					// return console and true because the traits instance has changed
+					this.console = new Console(securityContext, mode, null);
+					return Pair.of(this.console, true);
+				}
 
 			} else {
 
+				// return console and false because there was no console in the context before
 				this.console = new Console(securityContext, mode, null);
-				return this.console;
-
+				return Pair.of(this.console, false);
 			}
 		}
 
@@ -619,5 +613,22 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 		logger.debug("Session ID of security context " + securityContext + " set to " + sessionId);
 
 		timedOut = false;
+	}
+
+	private void handleWebSocketException(Throwable t) {
+
+		if (QuietException.isQuiet(t)) {
+			// ignore exceptions which (by jettys standards) should be handled less verbosely
+		} else if (t.getCause() instanceof TimeoutException) {
+			// also ignore timeoutexceptions
+		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
+			// also ignore simple "Closed" exception
+		} else if (t instanceof EOFException && t.getMessage().equals("Reset cancel_stream_error")) {
+			// also ignore EOFExceptions that happen on page close
+		} else {
+
+			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
+
+		}
 	}
 }

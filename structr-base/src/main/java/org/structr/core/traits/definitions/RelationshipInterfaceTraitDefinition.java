@@ -23,6 +23,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 
 import java.util.Map;
 import java.util.Set;
@@ -48,7 +49,7 @@ public final class RelationshipInterfaceTraitDefinition extends AbstractNodeTrai
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>        internalTimestamp  = new StringProperty(INTERNAL_TIMESTAMP_PROPERTY).systemInternal().unvalidated().writeOnce().category(SYSTEM_CATEGORY);
 		final Property<String>        relType            = new RelationshipTypeProperty();

@@ -1,0 +1,138 @@
+/**
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 200;
+  font-display: swap;
+  src: url("PublicSans-ExtraLight.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 200;
+  font-display: swap;
+  src: url("PublicSans-ExtraLightItalic.ttf");
+}
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("PublicSans-Light.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("PublicSans-LightItalic.ttf");
+}
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("PublicSans-Regular.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("PublicSans-Italic.ttf");
+}
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("PublicSans-Medium.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("PublicSans-MediumItalic.ttf");
+}
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("PublicSans-SemiBold.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("PublicSans-SemiBoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("PublicSans-Bold.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("PublicSans-BoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("PublicSans-ExtraBold.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url("PublicSans-ExtraBoldItalic.ttf");
+}
+
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url("PublicSans-Black.ttf");
+}
+@font-face {
+  font-family: 'PublicSans';
+  font-style:  italic;
+  font-weight: 900;
+  font-display: swap;
+  src: url("PublicSans-BlackItalic.ttf");
+}

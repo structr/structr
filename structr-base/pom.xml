@@ -7,23 +7,13 @@
 
     <parent>
         <groupId>org.structr</groupId>
-        <artifactId>structr-test-configuration</artifactId>
+        <artifactId>structr</artifactId>
         <version>6.0-SNAPSHOT</version>
-        <relativePath>../structr-test-configuration</relativePath>
     </parent>
 
     <artifactId>structr-base</artifactId>
     <packaging>jar</packaging>
     <version>6.0-SNAPSHOT</version>
-
-    <properties>
-        <jetty.version>12.0.23</jetty.version>
-        <jaxb.version>2.3.3</jaxb.version>
-        <imageio.version>3.10.1</imageio.version>
-        <batik.version>[1.17,)</batik.version>
-        <graal.version>24.2.2</graal.version>
-        <apache.sshd.version>2.7.0</apache.sshd.version>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -33,9 +23,50 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-neo4j-bolt-driver</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.structr</groupId>
+            <artifactId>structr-memory-driver</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.jcip</groupId>
+            <artifactId>jcip-annotations</artifactId>
+            <version>1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
+            <version>1.55.0</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-csv</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -88,11 +119,6 @@
             <version>${jetty.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.rest-assured</groupId>
-            <artifactId>rest-assured</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
             <groupId>commons-io</groupId>
             <artifactId>commons-io</artifactId>
         </dependency>
@@ -101,16 +127,6 @@
             <artifactId>commons-codec</artifactId>
         </dependency>
         <!-- CORE DEPENDENCIES -->
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-neo4j-bolt-driver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
-            <artifactId>structr-memory-driver</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <!--dependency>
             <groupId>org.structr</groupId>
             <artifactId>structr-memgraph-driver</artifactId>
@@ -127,23 +143,15 @@
         <dependency>
             <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
-            <version>2.1.3</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-email</artifactId>
-            <version>1.5</version>
-        </dependency>
-        <dependency>
-            <groupId>com.graphql-java</groupId>
-            <artifactId>graphql-java</artifactId>
-            <version>12.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk -->
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>polyglot</artifactId>
-            <version>${graal.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -155,25 +163,21 @@
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>python-community</artifactId>
-            <version>${graal.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.graalvm.polyglot</groupId>
             <artifactId>llvm-community</artifactId>
-            <version>${graal.version}</version>
             <type>pom</type>
         </dependency>
         <dependency>
             <groupId>org.graalvm.tools</groupId>
             <artifactId>chromeinspector-tool</artifactId>
-            <version>${graal.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.2.3</version>
         </dependency>
         <!-- REST DEPENDENCIES -->
         <dependency>
@@ -181,9 +185,16 @@
             <artifactId>httpclient</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.tuckey</groupId>
             <artifactId>urlrewritefilter</artifactId>
-            <version>4.0.4</version>
         </dependency>
         <dependency>
             <groupId>com.opencsv</groupId>
@@ -192,7 +203,6 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>3.16.0</version>
             <exclusions>
                 <exclusion>
                     <artifactId>jackson-databind</artifactId>
@@ -203,25 +213,27 @@
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>jwks-rsa</artifactId>
-            <version>0.22.1</version>
+            <exclusions>
+<!--                <exclusion>-->
+<!--                    <groupId>com.fasterxml.jackson.core</groupId>-->
+<!--                    <artifactId>jackson-annotations</artifactId>-->
+<!--                </exclusion>-->
+            </exclusions>
         </dependency>
         <!-- Prometheus -->
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient</artifactId>
-            <version>0.16.0</version>
         </dependency>
         <!-- Prometheus HTTPServer -->
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_servlet_jakarta</artifactId>
-            <version>0.16.0</version>
         </dependency>
         <!-- Prometheus Hotspot -->
         <dependency>
             <groupId>io.prometheus</groupId>
             <artifactId>simpleclient_hotspot</artifactId>
-            <version>0.15.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tika</groupId>
@@ -234,22 +246,28 @@
         <dependency>
             <groupId>org.bitbucket.cowwoc</groupId>
             <artifactId>diff-match-patch</artifactId>
-            <version>1.1</version>
         </dependency>
         <dependency>
             <groupId>com.vladsch.flexmark</groupId>
             <artifactId>flexmark-all</artifactId>
-            <version>0.64.8</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.pdfbox</groupId>
+                    <artifactId>xmpbox</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jetbrains</groupId>
+                    <artifactId>annotations</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.vladsch.flexmark</groupId>
             <artifactId>flexmark-util</artifactId>
-            <version>0.64.8</version>
         </dependency>
         <dependency>
             <groupId>net.java</groupId>
             <artifactId>textile-j</artifactId>
-            <version>2.2</version>
         </dependency>
         <dependency>
             <groupId>org.jsoup</groupId>
@@ -262,48 +280,34 @@
         <dependency>
             <groupId>com.github.scribejava</groupId>
             <artifactId>scribejava-apis</artifactId>
-            <version>8.3.1</version>
         </dependency>
         <dependency>
             <groupId>org.asciidoctor</groupId>
             <artifactId>asciidoctorj</artifactId>
-            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>net.sf.jmimemagic</groupId>
             <artifactId>jmimemagic</artifactId>
-            <version>0.1.5</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.twelvemonkeys.imageio</groupId>
             <artifactId>imageio-core</artifactId>
-            <version>${imageio.version}</version>
         </dependency>
         <dependency>
             <groupId>net.openhft</groupId>
             <artifactId>zero-allocation-hashing</artifactId>
-            <version>0.8</version>
         </dependency>
         <dependency>
             <groupId>net.lingala.zip4j</groupId>
             <artifactId>zip4j</artifactId>
-            <version>2.11.5</version>
         </dependency>
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>core</artifactId>
-            <version>3.5.2</version>
         </dependency>
         <dependency>
             <groupId>com.google.zxing</groupId>
             <artifactId>javase</artifactId>
-            <version>3.5.2</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.github.jai-imageio</groupId>
@@ -314,83 +318,81 @@
         <dependency>
             <groupId>net.sourceforge.cssparser</groupId>
             <artifactId>cssparser</artifactId>
-            <version>0.9.28</version>
         </dependency>
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>33.4.8-jre</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.jgroups.kubernetes</groupId>
             <artifactId>jgroups-kubernetes</artifactId>
-            <version>2.0.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.neo4j.driver</groupId>
             <artifactId>neo4j-java-driver</artifactId>
-            <version>5.28.7</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.18.0</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20240303</version>
         </dependency>
         <dependency>
             <groupId>org.apache.pdfbox</groupId>
             <artifactId>pdfbox</artifactId>
-            <version>3.0.5</version>
         </dependency>
         <dependency>
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.9.3</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.core</artifactId>
-            <version>${elk.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.eclipse.emf</groupId>
+                    <artifactId>org.eclipse.emf.ecore.xmi</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.emf</groupId>
+                    <artifactId>org.eclipse.emf.ecore</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.eclipse.emf</groupId>
+                    <artifactId>org.eclipse.emf.common</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.graph.json</artifactId>
-            <version>${elk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.alg.layered</artifactId>
-            <version>${elk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.alg.mrtree</artifactId>
-            <version>${elk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.alg.radial</artifactId>
-            <version>${elk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.alg.force</artifactId>
-            <version>${elk.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.alg.disco</artifactId>
-            <version>${elk.version}</version>
         </dependency>
     </dependencies>
 
     <build>
-        <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
 
         <resources>
             <resource>
@@ -402,8 +404,16 @@
                 <directory>src/test/resources</directory>
             </testResource>
         </testResources>
-
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.1</version>
+                <configuration>
+                    <source>25</source>
+                    <target>25</target>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
@@ -430,89 +440,176 @@
                     </archive>
                 </configuration>
             </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <shortRevisionLength>5</shortRevisionLength>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>replace-placeholder</id>
-                        <phase>generate-resources</phase>
-                        <configuration>
-                            <target>
-                                <delete file="src/main/resources/structr/index.html"/>
-
-                                <copy file="src/main/resources/structr/index.template.html"
-                                      tofile="src/main/resources/structr/index.html"/>
-
-                                <replace file="src/main/resources/structr/index.html"
-                                         token="@buildNumber@"
-                                         value="${buildNumber}"/>
-                            </target>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>18</source>
-                    <target>18</target>
-                </configuration>
-            </plugin>
         </plugins>
 
-        <!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
-        <pluginManagement>
-            <plugins>
-                <!-- Ignore/Execute plugin execution -->
-                <plugin>
-                    <groupId>org.eclipse.m2e</groupId>
-                    <artifactId>lifecycle-mapping</artifactId>
-                    <version>1.0.0</version>
-                    <configuration>
-                        <lifecycleMappingMetadata>
-                            <pluginExecutions>
-                                <!-- copy-dependency plugin -->
-                                <pluginExecution>
-                                    <pluginExecutionFilter>
-                                        <groupId>org.apache.maven.plugins</groupId>
-                                        <artifactId>maven-dependency-plugin</artifactId>
-                                        <versionRange>[1.0.0,)</versionRange>
-                                        <goals>
-                                            <goal>copy-dependencies</goal>
-                                        </goals>
-                                    </pluginExecutionFilter>
-                                    <action>
-                                        <ignore/>
-                                    </action>
-                                </pluginExecution>
-                            </pluginExecutions>
-                        </lifecycleMappingMetadata>
-                    </configuration>
-                </plugin>
-            </plugins>
-        </pluginManagement>
+<!--        &lt;!&ndash; Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b &ndash;&gt;-->
+<!--        <pluginManagement>-->
+<!--            <plugins>-->
+<!--                &lt;!&ndash; Ignore/Execute plugin execution &ndash;&gt;-->
+<!--                <plugin>-->
+<!--                    <groupId>org.eclipse.m2e</groupId>-->
+<!--                    <artifactId>lifecycle-mapping</artifactId>-->
+<!--                    <version>1.0.0</version>-->
+<!--                    <configuration>-->
+<!--                        <lifecycleMappingMetadata>-->
+<!--                            <pluginExecutions>-->
+<!--                                &lt;!&ndash; copy-dependency plugin &ndash;&gt;-->
+<!--                                <pluginExecution>-->
+<!--                                    <pluginExecutionFilter>-->
+<!--                                        <groupId>org.apache.maven.plugins</groupId>-->
+<!--                                        <artifactId>maven-dependency-plugin</artifactId>-->
+<!--                                        <versionRange>[1.0.0,)</versionRange>-->
+<!--                                        <goals>-->
+<!--                                            <goal>copy-dependencies</goal>-->
+<!--                                        </goals>-->
+<!--                                    </pluginExecutionFilter>-->
+<!--                                    <action>-->
+<!--                                        <ignore/>-->
+<!--                                    </action>-->
+<!--                                </pluginExecution>-->
+<!--                            </pluginExecutions>-->
+<!--                        </lifecycleMappingMetadata>-->
+<!--                    </configuration>-->
+<!--                </plugin>-->
+<!--            </plugins>-->
+<!--        </pluginManagement>-->
     </build>
+
+    <profiles>
+        <profile>
+            <id>test-neo4j</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>database</name>
+                    <value>neo4j</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.5.4</version>
+                        <configuration>
+                            <argLine>-Duser.language=en -Duser.region=GB -Duser.timezone=UTC</argLine>
+                            <excludes>
+                                <exclude>**/*.java</exclude>
+                            </excludes>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>3.5.4</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <argLine>-Xms2g -Xmx2g -Duser.timezone=UTC</argLine>
+                            <reuseForks>false</reuseForks>
+                            <forkCount>${test.forkCount}</forkCount>
+                            <skipTests>${skipTests}</skipTests>
+                            <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                            <!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
+                            <systemPropertyVariables>
+                                <testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+                                <testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
+                            </systemPropertyVariables>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>integration-test</goal>
+                                    <goal>verify</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>io.fabric8</groupId>
+                        <artifactId>docker-maven-plugin</artifactId>
+                        <version>0.40.2</version>
+                        <executions>
+                            <execution>
+                                <id>prepare-database</id>
+                                <phase>pre-integration-test</phase>
+                                <goals>
+                                    <goal>start</goal>
+                                </goals>
+                                <configuration>
+                                    <images>
+                                        <image>
+                                            <name>${test.neo4j.version}</name>
+                                            <alias>database</alias>
+                                            <run>
+                                                <ports>
+                                                    <port>7689:7687</port>
+                                                </ports>
+                                                <wait>
+                                                    <log>(.?)Bolt enabled on(.?)</log>
+                                                    <time>20000</time>
+                                                </wait>
+                                                <env>
+                                                    <NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
+                                                    <NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+                                                    <NEO4J_server_memory_heap_max__size>4G</NEO4J_server_memory_heap_max__size>
+                                                    <NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
+                                                </env>
+                                            </run>
+                                        </image>
+                                    </images>
+                                    <skip>${skipDockerTestDB}</skip>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>remove-database</id>
+                                <phase>post-integration-test</phase>
+                                <goals>
+                                    <goal>stop</goal>
+                                </goals>
+                                <configuration>
+                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
+                                    <skip>${skipDockerTestDB}</skip>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>test-in-memory-database</id>
+            <activation>
+                <property>
+                    <name>database</name>
+                    <value>in-memory</value>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.5.4</version>
+                        <configuration>
+                            <includes>
+                                <include>**/*Test.java</include>
+                            </includes>
+                            <argLine>-Xms8g -Xmx8g -Duser.timezone=UTC</argLine>
+                            <reuseForks>false</reuseForks>
+                            <forkCount>${test.forkCount}</forkCount>
+                            <skipTests>${skipTests}</skipTests>
+                            <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                            <systemPropertyVariables>
+                                <testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <licenses>
         <license>

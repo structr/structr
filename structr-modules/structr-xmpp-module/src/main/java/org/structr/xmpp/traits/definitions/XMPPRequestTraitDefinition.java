@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.xmpp.XMPPRequest;
 import org.structr.xmpp.traits.wrappers.XMPPRequestTraitWrapper;
@@ -48,9 +49,9 @@ public class XMPPRequestTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> client = new StartNode(CLIENT_PROPERTY, StructrTraits.XMPP_CLIENT_REQUEST);
+		final Property<NodeInterface> client = new StartNode(traitsInstance, CLIENT_PROPERTY, StructrTraits.XMPP_CLIENT_REQUEST);
 		final Property<String> sender        = new StringProperty(SENDER_PROPERTY).indexed();
 		final Property<String> content       = new StringProperty(CONTENT_PROPERTY);
 		final Property<String> requestType   = new EnumProperty(REQUEST_TYPE_PROPERTY, Type.class);

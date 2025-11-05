@@ -22,7 +22,7 @@ import org.structr.api.*;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
 import org.structr.api.index.Index;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
@@ -31,10 +31,7 @@ import org.structr.memory.index.MemoryNodeIndex;
 import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.*;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  */
@@ -133,10 +130,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		final Node newNode         = createNode(type, labels, nodeProperties);
 		final Node owner           = getNodeById(ownerId);
 
-		final Relationship ownsRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, forName(RelationshipType.class, "OWNS"));
+		final Relationship ownsRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("OWNS"));
 		ownsRelationship.setProperties(ownsProperties);
 
-		final Relationship securityRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, forName(RelationshipType.class, "SECURITY"));
+		final Relationship securityRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("SECURITY"));
 		securityRelationship.setProperties(securityProperties);
 
 		return new NodeWithOwnerResult(newNode, securityRelationship, ownsRelationship);
@@ -184,16 +181,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void deleteNodesByLabel(final String label) {
-
-		final MemoryTransaction tx = getCurrentTransaction();
-		for (final Node node : getNodesByLabel(label)) {
-
-			tx.delete((MemoryNode)node);
-		}
-	}
-
-	@Override
 	public Iterable<Relationship> getAllRelationships() {
 		return Iterables.map(r -> r, getFilteredRelationships(null));
 	}
@@ -231,7 +218,8 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly) {
+	public void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList) {
+		// no indexes here..
 	}
 
 	@Override

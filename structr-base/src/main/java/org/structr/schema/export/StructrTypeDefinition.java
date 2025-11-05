@@ -59,8 +59,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
 
 	private final Set<String> filterPropertyBlacklist             = new LinkedHashSet<>(Arrays.asList("id", "type", "hidden"));
+	protected final Set<String> inheritedTraits                   = new LinkedHashSet<>();
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
-	protected final Set<String> inheritedTraits                   = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
 	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();

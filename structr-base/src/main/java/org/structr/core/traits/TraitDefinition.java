@@ -36,7 +36,7 @@ public interface TraitDefinition extends Comparable<TraitDefinition> {
 	String getName();
 	String getLabel();
 
-	Map<Class, LifecycleMethod> getLifecycleMethods();
+	Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance);
 	Map<Class, FrameworkMethod> getFrameworkMethods();
 	Map<Class, RelationshipTraitFactory> getRelationshipTraitFactories();
 	Map<Class, NodeTraitFactory> getNodeTraitFactories();
@@ -44,7 +44,7 @@ public interface TraitDefinition extends Comparable<TraitDefinition> {
 	Map<String, Set<String>> getViews();
 	boolean isRelationship();
 
-	Set<PropertyKey> getPropertyKeys();
+	Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance);
 
 	Relation getRelation();
 

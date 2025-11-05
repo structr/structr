@@ -32,7 +32,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
-import java.net.URI;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.Attributes;
@@ -49,10 +48,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
-	public static final URI StaticSchemaRootURI      = URI.create("https://structr.org/v2.0/#");
-	public static final String DYNAMIC_TYPES_PACKAGE = "org.structr.dynamic";
-
-	private static final Set<String> coreModules                                                   = new HashSet<>(Arrays.asList("core", "rest", "ui"));
 	private final Map<String, Class<? extends Agent>> agentClassCache                              = new ConcurrentHashMap<>(100);
 	private final Map<String, StructrModule> modules                                               = new ConcurrentHashMap<>(100);
 	private final Set<String> agentPackages                                                        = new LinkedHashSet<>();
@@ -214,12 +209,21 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			final String moduleName = structrModule.getName();
 
+			logger.info("Activating module {}", moduleName);
+
 			try {
+
 				structrModule.registerModuleFunctions(licenseManager);
-			} catch (Throwable t) {}
+
+			} catch (Throwable t) {
+
+				logger.error("Error loading module '{}'", moduleName);
+				logger.error("", t);
+
+				System.exit(1);
+			}
 
 			modules.put(moduleName, structrModule);
-			logger.info("Activating module {}", moduleName);
 
 			structrModule.onLoad();
 		}

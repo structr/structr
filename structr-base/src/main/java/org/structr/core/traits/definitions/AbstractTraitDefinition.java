@@ -21,10 +21,7 @@ package org.structr.core.traits.definitions;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.TraitDefinition;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 
@@ -65,7 +62,7 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(final TraitsInstance traitsInstance) {
 		return new LinkedHashMap<>();
 	}
 
@@ -90,7 +87,7 @@ public abstract class AbstractTraitDefinition implements TraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 		return Set.of();
 	}
 

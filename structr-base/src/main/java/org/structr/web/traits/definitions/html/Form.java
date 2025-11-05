@@ -22,6 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 
 import java.util.Map;
 import java.util.Set;
@@ -42,7 +43,7 @@ public class Form extends GenericHtmlElementTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final PropertyKey<String> acceptCharsetProperty = new StringProperty(ACCEPT_CHARSET_PROPERTY);
 		final PropertyKey<String> actionProperty        = new StringProperty(ACTION_PROPERTY);

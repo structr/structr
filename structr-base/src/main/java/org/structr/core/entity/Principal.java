@@ -35,7 +35,6 @@ public interface Principal extends NodeInterface {
 	String getName();
 
 	Iterable<NodeInterface> getOwnedNodes();
-	Iterable<Group> getGroups();
 	String getSessionData();
 	String getEMail();
 	void setSessionData(final String sessionData) throws FrameworkException;

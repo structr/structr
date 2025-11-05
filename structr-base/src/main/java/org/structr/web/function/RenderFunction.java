@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
@@ -67,22 +68,41 @@ public class RenderFunction extends UiCommunityFunction {
 				useBuffer = false;
 			}
 
+			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+				innerCtx.getBuffer().append("<structr:render data-caller-id=\"").append(caller.toString()).append("\">");
+			}
+
 			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
 				n.as(DOMNode.class).render(innerCtx, 0);
 
-			} else if (sources[0] instanceof Collection) {
+			} else if (sources[0] instanceof Collection collection) {
 
-				for (final Object obj : (Collection)sources[0]) {
+				for (final Object obj : collection) {
 
 					if (obj instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 						n.as(DOMNode.class).render(innerCtx, 0);
 					}
 				}
+			} else if (sources[0] instanceof Iterable iterable) {
 
+				for (final Object obj : iterable) {
+
+					if (obj instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
+
+						n.as(DOMNode.class).render(innerCtx, 0);
+
+					} else {
+						// TODO: Render data object with its attached template
+					}
+				}
 			} else {
 
 				logger.warn("Error: Parameter 1 is neither node nor collection. Parameters: {}", getParametersAsString(sources));
+			}
+
+			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+				innerCtx.getBuffer().append("</structr:render>");
 			}
 
 			if (useBuffer) {

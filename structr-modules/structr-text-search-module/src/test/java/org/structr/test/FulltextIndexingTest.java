@@ -25,7 +25,10 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -33,6 +36,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.IndexingTest;
@@ -56,6 +60,8 @@ public class FulltextIndexingTest extends IndexingTest {
 	@Test
 	public void testBasicFulltextSearchOnNodes() {
 
+		final String indexName = "Test_test_fulltext";
+
 		// create fulltext indexed property
 		try (final Tx tx = app.tx()) {
 
@@ -74,7 +80,7 @@ public class FulltextIndexingTest extends IndexingTest {
 			fail("Unexpected exception");
 		}
 
-		waitForIndex(60);
+		waitForIndex();
 
 		// create some data
 		try (final Tx tx = app.tx()) {
@@ -98,7 +104,6 @@ public class FulltextIndexingTest extends IndexingTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String indexName                  = "Test_test";
 			final String searchString               = "eight";
 			final Map<NodeInterface, Double> result = app.getNodesFromFulltextIndex(indexName, searchString, 10, 1);
 			final List<NodeInterface> list          = new LinkedList<>(result.keySet());
@@ -120,7 +125,7 @@ public class FulltextIndexingTest extends IndexingTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Wrong fulltext index query result in $.searchFulltext() function", "Test5", Scripting.replaceVariables(new ActionContext(securityContext), null, "${{ $.searchFulltext('Test_test', 'eight')[0].node.name; }}"));
+			assertEquals("Wrong fulltext index query result in $.searchFulltext() function", "Test5", Scripting.replaceVariables(new ActionContext(securityContext), null, "${{ $.searchFulltext('" + indexName + "', 'eight')[0].node.name; }}"));
 
 			tx.success();
 
@@ -133,6 +138,8 @@ public class FulltextIndexingTest extends IndexingTest {
 
 	@Test
 	public void testBasicFulltextSearchOnRelationships() {
+
+		final String indexName = "TEST_test_fulltext";
 
 		// create fulltext indexed property
 		try (final Tx tx = app.tx()) {
@@ -154,7 +161,7 @@ public class FulltextIndexingTest extends IndexingTest {
 			fail("Unexpected exception");
 		}
 
-		waitForIndex(60);
+		waitForIndex();
 
 		final PropertyKey<Iterable<NodeInterface>> relationshipKey = Traits.of("Test1").key("children");
 		final PropertyKey<String> key                              = Traits.of("Test1TESTTest2").key("test");
@@ -189,7 +196,6 @@ public class FulltextIndexingTest extends IndexingTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final String indexName                          = "TEST_test";
 			final String searchString                       = "eight";
 			final Map<RelationshipInterface, Double> result = app.getRelationshipsFromFulltextIndex(indexName, searchString, 10, 1);
 			final List<RelationshipInterface> list          = new LinkedList<>(result.keySet());
@@ -212,7 +218,7 @@ public class FulltextIndexingTest extends IndexingTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("Wrong fulltext index query result in $.searchRelationshipsFulltext() function", "eight", Scripting.replaceVariables(new ActionContext(securityContext), null, "${{ $.searchRelationshipsFulltext('TEST_test', 'eight')[0].relationship.test; }}"));
+			assertEquals("Wrong fulltext index query result in $.searchRelationshipsFulltext() function", "eight", Scripting.replaceVariables(new ActionContext(securityContext), null, "${{ $.searchRelationshipsFulltext('" + indexName + "', 'eight')[0].relationship.test; }}"));
 
 			tx.success();
 
@@ -318,6 +324,223 @@ public class FulltextIndexingTest extends IndexingTest {
 		testFile("ignoring");
 	}
 
+	@Test
+	public void testIndexManagement() {
+
+		//**********************************************************************************************************************************************************
+		// create fulltext indexed property
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonObjectType type = schema.addType("Project");
+
+			type.addStringProperty("test").setIndexed(true, false);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		waitForIndex();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> result = Iterables.toList(app.query("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE name CONTAINS 'Project' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}", Map.of()));
+
+			assertFalse("Index was not created", result.isEmpty());
+
+			final GraphObject g = result.get(0);
+
+			if (g instanceof GraphObjectMap map) {
+
+				final Map<String, Object> data = map.toMap();
+
+				// name=Project_test, state=ONLINE, type=TEXT, properties=[test], labels=[Project]}
+
+				assertEquals("Invalid index name", "Project_test", data.get("name"));
+				assertEquals("Invalid index state", "ONLINE", data.get("state"));
+				assertEquals("Invalid index type", "TEXT", data.get("type"));
+				assertEquals("Invalid index properties", "[test]", data.get("properties").toString());
+				assertEquals("Invalid index lables", "[Project]", data.get("labels").toString());
+
+			} else {
+
+				fail("Unexpected result, expected GraphObjectMap, got " + g.getClass().getSimpleName());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		//**********************************************************************************************************************************************************
+		// modify existing property, add fulltext flag
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaProperty property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getFirst().as(SchemaProperty.class);
+
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY), true);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		waitForIndex();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> result = Iterables.toList(app.query("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE name CONTAINS 'Project' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}", Map.of()));
+
+			System.out.println(result);
+
+			assertEquals("Index was not created", 2, result.size());
+
+			final GraphObject g1 = result.get(0);
+			final GraphObject g2 = result.get(1);
+
+			if (g1 instanceof GraphObjectMap map) {
+
+				final Map<String, Object> data = map.toMap();
+
+				// name=Project_test, state=ONLINE, type=TEXT, properties=[test], labels=[Project]}
+
+				assertEquals("Invalid index name", "Project_test", data.get("name"));
+				assertEquals("Invalid index state", "ONLINE", data.get("state"));
+				assertEquals("Invalid index type", "TEXT", data.get("type"));
+				assertEquals("Invalid index properties", "[test]", data.get("properties").toString());
+				assertEquals("Invalid index labels", "[Project]", data.get("labels").toString());
+
+			} else {
+
+				fail("Unexpected result, expected GraphObjectMap, got " + g1.getClass().getSimpleName());
+			}
+
+			if (g2 instanceof GraphObjectMap map) {
+
+				final Map<String, Object> data = map.toMap();
+
+				// name=Project_test, state=ONLINE, type=TEXT, properties=[test], labels=[Project]}
+
+				assertEquals("Invalid index name", "Project_test_fulltext", data.get("name"));
+				assertEquals("Invalid index state", "ONLINE", data.get("state"));
+				assertEquals("Invalid index type", "FULLTEXT", data.get("type"));
+				assertEquals("Invalid index properties", "[test]", data.get("properties").toString());
+				assertEquals("Invalid index lables", "[Project]", data.get("labels").toString());
+
+			} else {
+
+				fail("Unexpected result, expected GraphObjectMap, got " + g2.getClass().getSimpleName());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		//**********************************************************************************************************************************************************
+		// modify existing property, remove indexed flag
+		try (final Tx tx = app.tx()) {
+
+			final SchemaProperty property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getFirst().as(SchemaProperty.class);
+
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.INDEXED_PROPERTY), false);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		waitForIndex();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> result = Iterables.toList(app.query("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE name CONTAINS 'Project' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}", Map.of()));
+
+			System.out.println(result);
+
+			assertEquals("Number of indexes is wrong after index change", 1, result.size());
+
+			final GraphObject g1 = result.get(0);
+
+			if (g1 instanceof GraphObjectMap map) {
+
+				final Map<String, Object> data = map.toMap();
+
+				// name=Project_test, state=ONLINE, type=TEXT, properties=[test], labels=[Project]}
+
+				assertEquals("Invalid index name", "Project_test_fulltext", data.get("name"));
+				assertEquals("Invalid index state", "ONLINE", data.get("state"));
+				assertEquals("Invalid index type", "FULLTEXT", data.get("type"));
+				assertEquals("Invalid index properties", "[test]", data.get("properties").toString());
+				assertEquals("Invalid index lables", "[Project]", data.get("labels").toString());
+
+			} else {
+
+				fail("Unexpected result, expected GraphObjectMap, got " + g1.getClass().getSimpleName());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		//**********************************************************************************************************************************************************
+		// modify existing property, remove fulltext indexing flag
+
+		try (final Tx tx = app.tx()) {
+
+			final var property = app.nodeQuery(StructrTraits.SCHEMA_PROPERTY).getFirst().as(SchemaProperty.class);
+
+			property.setProperty(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.FULLTEXT_PROPERTY), false);
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		waitForIndex();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> result = Iterables.toList(app.query("SHOW INDEXES YIELD name, type, state, labelsOrTypes, properties WHERE name CONTAINS 'Project' RETURN {name: name, type: type, labels: labelsOrTypes, properties: properties, state: state}", Map.of()));
+
+			assertTrue("Index was not removed", result.isEmpty());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods -----
 	private void testFile(final String searchText) {
 
@@ -365,30 +588,29 @@ public class FulltextIndexingTest extends IndexingTest {
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 
 		try (final Tx tx = app.tx()) {
 
-			final Map<NodeInterface, Double> result = app.getNodesFromFulltextIndex("File_extractedContent", searchText, 10, 1);
+			final Map<NodeInterface, Double> result = app.getNodesFromFulltextIndex("File_extractedContent_fulltext", searchText, 10, 1);
 
 			assertEquals("Invalid index query result size", 1, result.size());
 
 			tx.success();
 
 		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 			fail("Unexpected exception.");
 		}
 	}
 
 	private void waitForIndex() {
-		waitForIndex(60);
-	}
-
-	private void waitForIndex(final long seconds) {
 
 		// wait for one minute maximum
-		final long timeoutTimestamp = System.currentTimeMillis() + (seconds * 1000);
+		final long timeoutTimestamp = System.currentTimeMillis() + (120 * 1000);
+		int count = 1;
 
 		while (System.currentTimeMillis() < timeoutTimestamp) {
 
@@ -399,7 +621,9 @@ public class FulltextIndexingTest extends IndexingTest {
 				return;
 			}
 
-			try { Thread.sleep(1000); } catch (Throwable t) {}
+			try { Thread.sleep(10000); } catch (Throwable t) {}
+
+			System.out.println((10 * count++) + " seconds..");
 		}
 
 		throw new RuntimeException("Timeout waiting for index update.");

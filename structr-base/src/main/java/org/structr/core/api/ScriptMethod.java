@@ -57,7 +57,7 @@ public class ScriptMethod extends AbstractMethod {
 		this.isStaticMethod  = method.isStaticMethod();
 		this.returnRawResult = method.returnRawResult();
 		this.httpVerb        = method.getHttpVerb();
-		this.wrapJsInMain = method.wrapJsInMain();
+		this.wrapJsInMain    = method.wrapJsInMain();
 
 		final AbstractSchemaNode declaringClass = method.getSchemaNode();
 		if (declaringClass == null) {
@@ -72,7 +72,7 @@ public class ScriptMethod extends AbstractMethod {
 
 	@Override
 	public String toString() {
-		return name + "(" + parameters.toString() + ")";
+		return name + "(" + parameters.toString() + "): " + getSnippet().getSource();
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public class ScriptMethod extends AbstractMethod {
 
 			if ("js".equals(splitSource[0])) {
 
-				snippet = new Snippet(name, splitSource[1], true);
+				snippet = new Snippet(name, splitSource[1], this.wrapJsInMain);
 			} else {
 
 				snippet = new Snippet(name, splitSource[1], false);
@@ -137,6 +137,7 @@ public class ScriptMethod extends AbstractMethod {
 
 			final ScriptConfig scriptConfig = ScriptConfig.builder()
 					.wrapJsInMain(this.wrapJsInMain)
+					.currentMethod(this)
 					.build();
 
 			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, uuid, scriptConfig);

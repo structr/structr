@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
@@ -28,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNodes;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -37,12 +37,9 @@ import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowCollectionDataSource;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.structr.flow.traits.operations.GetExportData;
+
+import java.util.*;
 
 public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -107,9 +104,9 @@ public class FlowCollectionDataSourceTraitDefinition extends AbstractNodeTraitDe
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
+		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(traitsInstance, DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
 
 		return newSet(
 			dataSources

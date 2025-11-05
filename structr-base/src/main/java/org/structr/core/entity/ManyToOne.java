@@ -45,12 +45,24 @@ public abstract class ManyToOne extends AbstractRelation implements Relation<Man
 
 	@Override
 	public ManyStartpoint getSource() {
-		return new ManyStartpoint(this);
+
+		if (getSourceProperty() == null) {
+
+			throw new RuntimeException("Invalid schema setup: missing StartNode(s) property for " + getType() + " in " + getTargetType());
+		}
+
+		return new ManyStartpoint(this, getSourceProperty().jsonName());
 	}
 
 	@Override
 	public OneEndpoint getTarget() {
-		return new OneEndpoint(this);
+
+		if (getTargetProperty() == null) {
+
+			throw new RuntimeException("Invalid schema setup: missing EndNode(s) property for " + getType() + " in " + getSourceType());
+		}
+
+		return new OneEndpoint(this, getTargetProperty().jsonName());
 	}
 
 	@Override
@@ -65,6 +77,8 @@ public abstract class ManyToOne extends AbstractRelation implements Relation<Man
 			// check existing relationships
 			final RelationshipInterface outgoingRel = sourceNode.getOutgoingRelationshipAsSuperUser(type);
 			if (outgoingRel != null) {
+
+				outgoingRel.setSecurityContext(securityContext);
 
 				final Relation relation   = outgoingRel.getRelation();
 				final Traits targetTraits = Traits.of(relation.getTargetType());

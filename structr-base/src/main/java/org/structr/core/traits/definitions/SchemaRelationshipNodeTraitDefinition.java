@@ -41,6 +41,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.IsValid;
@@ -85,7 +86,7 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -256,10 +257,10 @@ public class SchemaRelationshipNodeTraitDefinition extends AbstractNodeTraitDefi
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> sourceNode          = new StartNode(RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
-		final Property<NodeInterface> targetNode          = new EndNode(RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		final Property<NodeInterface> sourceNode          = new StartNode(traitsInstance, RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		final Property<NodeInterface> targetNode          = new EndNode(traitsInstance, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
 		final Property<String>     sourceId               = new EntityNotionProperty<>(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_NODE, RelationshipInterfaceTraitDefinition.SOURCE_NODE_PROPERTY, StructrTraits.SCHEMA_NODE, new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String>     targetId               = new EntityNotionProperty<>(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY, StructrTraits.SCHEMA_RELATIONSHIP_NODE, RelationshipInterfaceTraitDefinition.TARGET_NODE_PROPERTY, StructrTraits.SCHEMA_NODE, new PropertyNotion(GraphObjectTraitDefinition.ID_PROPERTY));
 		final Property<String>     sourceType             = new StringProperty(SOURCE_TYPE_PROPERTY);

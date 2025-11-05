@@ -18,8 +18,6 @@
  */
 package org.structr.core.traits;
 
-import org.structr.core.traits.definitions.*;
-
 public class StructrTraits {
 
 	// node types
@@ -69,8 +67,6 @@ public class StructrTraits {
 	public static final String WIDGET                              = "Widget";
 	public static final String VIRTUAL_TYPE                        = "VirtualType";
 	public static final String VIRTUAL_PROPERTY                    = "VirtualProperty";
-	public static final String LDAP_GROUP                          = "LDAPGroup";
-	public static final String LDAP_USER                           = "LDAPUser";
 	public static final String MESSAGE_CLIENT                      = "MessageClient";
 	public static final String MESSAGE_SUBSCRIBER                  = "MessageSubscriber";
 	public static final String KAFKA_CLIENT                        = "KafkaClient";
@@ -80,8 +76,6 @@ public class StructrTraits {
 	public static final String ODF_EXPORTER                        = "ODFExporter";
 	public static final String ODS_EXPORTER                        = "ODSExporter";
 	public static final String ODT_EXPORTER                        = "ODTExporter";
-	public static final String PAYMENT_NODE                        = "PaymentNode";
-	public static final String PAYMENT_ITEM_NODE                   = "PaymentItemNode";
 	public static final String ABSTRACT_FEED_ITEM                  = "AbstractFeedItem";
 	public static final String DATA_FEED                           = "DataFeed";
 	public static final String FEED_ITEM                           = "FeedItem";
@@ -285,7 +279,6 @@ public class StructrTraits {
 	public static final String ODF_EXPORTER_EXPORTS_TO_FILE                                   = "ODFExporterEXPORTS_TOFile";
 	public static final String ODF_EXPORTER_GETS_TRANSFORMATION_FROM_VIRTUAL_TYPE             = "ODFExporterGETS_TRANSFORMATION_FROMVirtualType";
 	public static final String ODF_EXPORTER_USES_TEMPLATE_FILE                                = "ODFExporterUSES_TEMPLATEFile";
-	public static final String PAYMENT_NODE_PAYMENT_ITEM_PAYMENT_ITEM                         = "PaymentNodepaymentItemPaymentItem";
 	public static final String DATA_FEED_HAS_FEED_ITEMS_FEED_ITEM                             = "DataFeedHAS_FEED_ITEMSFeedItem";
 	public static final String FEED_ITEM_FEED_ITEM_CONTENTS_FEED_ITEM_CONTENT                 = "FeedItemFEED_ITEM_CONTENTSFeedItemContent";
 	public static final String FEED_ITEM_FEED_ITEM_ENCLOSURES_FEED_ITEM_ENCLOSURE             = "FeedItemFEED_ITEM_ENCLOSURESFeedItemEnclosure";
@@ -352,103 +345,31 @@ public class StructrTraits {
 	public static final String FLOW_VALUE_INPUT                                               = "FlowValueInput";
 
 
+	public static void registerTrait(final TraitDefinition definition) {
+
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+
+		rootInstance.registerTrait(new Trait(rootInstance, definition, false));
+	}
+
 	public static void registerBaseType(final TraitDefinition definition) {
 
-		final Traits traits = new TraitsImplementation(definition.getName(), true, false, false, false, false);
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
 
-		traits.registerImplementation(definition, false);
+		rootInstance.registerBaseType(definition);
 	}
 
-	public static void registerNodeInterface() {
+	public static void registerNodeType(final String typeName, final String... traits) {
 
-		final Traits traits = new TraitsImplementation(StructrTraits.NODE_INTERFACE, true, true, false, false, false);
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
 
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
+		rootInstance.registerNodeType(typeName, traits);
 	}
 
-	public static void registerRelationshipInterface() {
+	public static void registerRelationshipType(final String typeName, final String... traits) {
 
-		final Traits traits = new TraitsImplementation(StructrTraits.RELATIONSHIP_INTERFACE, true, false, true, false, false);
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
 
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
-	}
-
-	public static void registerDynamicNodeType(final String typeName, final boolean changelogEnabled, final boolean isServiceClass, final TraitDefinition... definitions) {
-
-		Traits traits;
-
-		// do not overwrite types
-		if (Traits.getAllTypes(null).contains(typeName)) {
-
-			// caution: this might return a relationship type..
-			traits = Traits.of(typeName);
-
-		} else {
-
-			traits = new TraitsImplementation(typeName, false, true, false, changelogEnabled, isServiceClass);
-
-			// Node types consist of at least the following traits
-			traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-			traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-			traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
-			traits.registerImplementation(new AccessControllableTraitDefinition(), false);
-		}
-
-		// add implementation (allow extension of existing types)
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, true);
-		}
-	}
-
-	public static void registerDynamicRelationshipType(final String typeName, final boolean changelogEnabled, final TraitDefinition... definitions) {
-
-		// do not overwrite types
-		if (Traits.getAllTypes(null).contains(typeName)) {
-			return;
-		}
-
-		final Traits traits = new TraitsImplementation(typeName, false, false, true, changelogEnabled, false);
-
-		// Node types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
-
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, true);
-		}
-	}
-
-	public static void registerNodeType(final String typeName, final TraitDefinition... definitions) {
-
-		final Traits traits = new TraitsImplementation(typeName, true, true, false, false, false);
-
-		// Node types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new NodeInterfaceTraitDefinition(), false);
-		traits.registerImplementation(new AccessControllableTraitDefinition(), false);
-
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, false);
-		}
-	}
-
-	public static void registerRelationshipType(final String typeName, final TraitDefinition... definitions) {
-
-		final Traits traits = new TraitsImplementation(typeName, true, false, true, false, false);
-
-		// Relationship types consist of at least the following traits
-		traits.registerImplementation(new PropertyContainerTraitDefinition(), false);
-		traits.registerImplementation(new GraphObjectTraitDefinition(), false);
-		traits.registerImplementation(new RelationshipInterfaceTraitDefinition(), false);
-
-		for (final TraitDefinition definition : definitions) {
-			traits.registerImplementation(definition, false);
-		}
+		rootInstance.registerRelationshipType(typeName, traits);
 	}
 }

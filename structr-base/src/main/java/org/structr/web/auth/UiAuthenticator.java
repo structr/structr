@@ -64,10 +64,7 @@ import org.structr.web.servlet.HtmlServlet;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -472,10 +469,33 @@ public class UiAuthenticator implements Authenticator {
 	}
 
 	@Override
-	public Principal doLogin(final HttpServletRequest reqt, final String emailOrUsername, final String password) throws FrameworkException {
+	public Principal doLogin(final HttpServletRequest reqt, final String userProvidedValueForAuthenticationKey, final String password) throws FrameworkException {
 
-		final PropertyKey<String> eMailKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
-		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
+		// Default is eMail
+		final PropertyKey<String> defaultAuthenticationPropertyKey = Traits.of(StructrTraits.USER).key(PrincipalTraitDefinition.EMAIL_PROPERTY);
+
+		final Set<PropertyKey<String>> authenticationPropertyKeySet = new HashSet<>();
+		authenticationPropertyKeySet.add(defaultAuthenticationPropertyKey);
+
+		final String authenticationPropertyKeysSetting = Settings.AuthenticationPropertyKeys.getValue();
+
+		if (StringUtils.isNotBlank(authenticationPropertyKeysSetting)) {
+
+			final List<String> authenticationPropertyKeys = Arrays.asList(StringUtils.split(authenticationPropertyKeysSetting, " "));
+
+			for (final String key : authenticationPropertyKeys) {
+
+				final String[] typeAndKey = StringUtils.split(key, ".");
+
+				if (typeAndKey.length == 2 && Traits.exists(typeAndKey[0])) {
+
+					final PropertyKey<String> authenticationPropertyKey = Traits.of(typeAndKey[0]).key(typeAndKey[1]);
+					authenticationPropertyKeySet.add(authenticationPropertyKey);
+				}
+			}
+		}
+
+		final Principal user = AuthHelper.getPrincipalForKeysAndPassword(authenticationPropertyKeySet, userProvidedValueForAuthenticationKey, password);
 
 		if  (user != null) {
 

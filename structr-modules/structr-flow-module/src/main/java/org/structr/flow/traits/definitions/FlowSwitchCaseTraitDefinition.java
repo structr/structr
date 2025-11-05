@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
@@ -28,19 +27,20 @@ import org.structr.core.property.StartNode;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowNode;
-import org.structr.flow.impl.FlowStore;
 import org.structr.flow.impl.FlowSwitchCase;
 import org.structr.flow.traits.operations.GetExportData;
 import org.structr.flow.traits.operations.GetFlowType;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -94,9 +94,9 @@ public class FlowSwitchCaseTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> switchNode = new StartNode(SWITCH_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
+		final Property<NodeInterface> switchNode = new StartNode(traitsInstance, SWITCH_PROPERTY, StructrTraits.FLOW_SWITCH_CASES);
 		final Property<String> switchCase        = new StringProperty(CASE_PROPERTY);
 
 		return newSet(

@@ -35,16 +35,23 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public void onLoad() {
+
+		StructrTraits.registerTrait(new EMailMessageHAS_ATTACHMENTFile());
+		StructrTraits.registerTrait(new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
+
+		StructrTraits.registerRelationshipType(StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE,             StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE);
+		StructrTraits.registerRelationshipType(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
+
+		StructrTraits.registerTrait(new EMailMessageTraitDefinition());
+		StructrTraits.registerTrait(new MailboxTraitDefinition());
+
+		StructrTraits.registerNodeType(StructrTraits.EMAIL_MESSAGE, StructrTraits.EMAIL_MESSAGE);
+		StructrTraits.registerNodeType(StructrTraits.MAILBOX,       StructrTraits.MAILBOX);
+
 	}
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
-
-		StructrTraits.registerRelationshipType(StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE,             new EMailMessageHAS_ATTACHMENTFile());
-		StructrTraits.registerRelationshipType(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE, new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
-
-		StructrTraits.registerNodeType(StructrTraits.EMAIL_MESSAGE, new EMailMessageTraitDefinition());
-		StructrTraits.registerNodeType(StructrTraits.MAILBOX,       new MailboxTraitDefinition());
 
 		Functions.put(licenseManager, new MailBeginFunction(this));
 		Functions.put(licenseManager, new MailSetFromFunction(this));

@@ -29,6 +29,7 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.AfterCreation;
 import org.structr.core.traits.operations.graphobject.AfterModification;
@@ -80,7 +81,7 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return Map.of(
 
 			IsValid.class,
@@ -138,7 +139,7 @@ public class ResourceAccessTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String>               signature          = new StringProperty(SIGNATURE_PROPERTY).indexed();
 		final Property<Long>                 flags              = new LongProperty(FLAGS_PROPERTY).indexed();

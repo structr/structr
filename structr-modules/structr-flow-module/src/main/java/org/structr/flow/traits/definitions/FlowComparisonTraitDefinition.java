@@ -18,13 +18,13 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -34,10 +34,11 @@ import org.structr.flow.impl.FlowBaseNode;
 import org.structr.flow.impl.FlowComparison;
 import org.structr.flow.impl.FlowDataSource;
 import org.structr.flow.traits.operations.DataSourceOperations;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.flow.traits.operations.GetExportData;
+import java.util.TreeMap;
 
 public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -146,12 +147,12 @@ public class FlowComparisonTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String> operation                    = new EnumProperty(OPERATION_PROPERTY, FlowComparison.Operation.class);
-		final Property<NodeInterface> valueSource           = new StartNode(VALUE_SOURCE_PROPERTY, StructrTraits.FLOW_VALUE_INPUT);
-		final Property<Iterable<NodeInterface>> decisions   = new EndNodes(DECISIONS_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
-		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
+		final Property<NodeInterface> valueSource           = new StartNode(traitsInstance, VALUE_SOURCE_PROPERTY, StructrTraits.FLOW_VALUE_INPUT);
+		final Property<Iterable<NodeInterface>> decisions   = new EndNodes(traitsInstance, DECISIONS_PROPERTY, StructrTraits.FLOW_DECISION_CONDITION);
+		final Property<Iterable<NodeInterface>> dataSources = new StartNodes(traitsInstance, DATA_SOURCES_PROPERTY, StructrTraits.FLOW_DATA_INPUTS);
 
 		return newSet(
 			operation,

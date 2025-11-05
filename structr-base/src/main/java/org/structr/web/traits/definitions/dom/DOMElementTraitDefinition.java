@@ -31,6 +31,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.GraphObjectMap;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.InstanceMethod;
 import org.structr.core.api.Methods;
@@ -44,10 +45,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.StructrTraits;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
@@ -187,7 +185,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -515,16 +513,15 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 							if (value != null) {
 
-								String key = attribute.jsonName().substring(PropertyView.Html.length());
+								final String key = attribute.jsonName().substring(PropertyView.Html.length());
 
 								out.append(" ").append(key).append("=\"").append(value).append("\"");
-
 							}
 						}
 
 						// make repeater data object ID available
 						final GraphObject repeaterDataObject = renderContext.getDataObject();
-						if (repeaterDataObject != null && StringUtils.isNotBlank(node.getDataKey())) {
+						if (repeaterDataObject != null && StringUtils.isNotBlank(node.getDataKey()) && !(repeaterDataObject instanceof GraphObjectMap)) {
 
 							out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 						}
@@ -970,14 +967,14 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes(RELOAD_SOURCES_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
-		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes(RELOAD_TARGETS_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
-		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes(TRIGGERED_ACTIONS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
+		final Property<Iterable<NodeInterface>> reloadSourcesProperty     = new StartNodes(traitsInstance, RELOAD_SOURCES_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> reloadTargetsProperty     = new EndNodes(traitsInstance, RELOAD_TARGETS_PROPERTY, StructrTraits.DOM_ELEMENT_RELOADS_DOM_ELEMENT);
+		final Property<Iterable<NodeInterface>> triggeredActionsProperty  = new EndNodes(traitsInstance, TRIGGERED_ACTIONS_PROPERTY, StructrTraits.DOM_ELEMENT_TRIGGERED_BY_ACTION_MAPPING);
 
 		// FIXME ? why does DOMElement have parameter mappings? they are/should be attached to ActionMapping nodes (it is also not defined on ParameterMapping...)
-		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes(PARAMETER_MAPPINGS_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
+		final Property<Iterable<NodeInterface>> parameterMappingsProperty = new EndNodes(traitsInstance, PARAMETER_MAPPINGS_PROPERTY, StructrTraits.DOM_ELEMENT_INPUT_ELEMENT_PARAMETER_MAPPING);
 
 		final Property<String> tagProperty                  = new StringProperty(TAG_PROPERTY).indexed().category(PAGE_CATEGORY);
 		final Property<String> pathProperty                 = new StringProperty(PATH_PROPERTY).indexed();
@@ -2092,9 +2089,13 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 			String selector = "[data-structr-id='" + node.getUuid() + "']";
 
 			final String dataKey = node.as(DOMNode.class).getDataKey();
-			if (dataKey != null && renderContext.getDataNode(dataKey) != null) {
+			if (dataKey != null) {
 
-				selector += "[data-repeater-data-object-id='" + renderContext.getDataNode(dataKey).getUuid() + "']";
+				final GraphObject obj = renderContext.getDataNode(dataKey);
+				if (obj != null) {
+
+					selector += "[data-repeater-data-object-id='" + obj.getUuid() + "']";
+				}
 			}
 
 			selectors.add(selector);

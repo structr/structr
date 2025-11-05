@@ -18,7 +18,6 @@
  */
 package org.structr.flow.traits.definitions;
 
-import java.util.TreeMap;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -31,16 +30,18 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.traits.operations.GetExportData;
 
 import java.util.Map;
 import java.util.Set;
-import org.structr.flow.traits.operations.GetExportData;
+import java.util.TreeMap;
 
 public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
@@ -52,7 +53,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of(
 
@@ -100,10 +101,10 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<NodeInterface> flowContainer = new StartNode(FLOW_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_BASE_NODE).indexed();
-		final Property<NodeInterface> dataSource    = new StartNode(DATA_SOURCE_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<NodeInterface> flowContainer = new StartNode(traitsInstance, FLOW_CONTAINER_PROPERTY, StructrTraits.FLOW_CONTAINER_BASE_NODE).indexed();
+		final Property<NodeInterface> dataSource    = new StartNode(traitsInstance, DATA_SOURCE_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
 
 		return newSet(
 			flowContainer,
@@ -118,7 +119,7 @@ public class FlowBaseNodeTraitDefinition extends AbstractNodeTraitDefinition {
 
 			PropertyView.Ui,
 			newSet(
-					FLOW_CONTAINER_PROPERTY
+				FLOW_CONTAINER_PROPERTY
 			)
 		);
 	}

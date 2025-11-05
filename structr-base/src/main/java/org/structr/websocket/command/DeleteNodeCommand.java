@@ -31,6 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -96,20 +97,31 @@ public class DeleteNodeCommand extends AbstractCommand {
 			try {
 
 				final List<NodeInterface> filteredResults = new LinkedList<>();
-				if (obj.is(StructrTraits.DOM_NODE)) {
 
-					DOMNode node = obj.as(DOMNode.class);
+				if (obj.is(StructrTraits.PAGE)) {
+
+					final Page node = obj.as(Page.class);
+
+					for (final NodeInterface childNode : node.getAllChildNodes()) {
+
+						final DOMNode domNode = childNode.as(DOMNode.class);
+						RemoveCommand.recursivelyRemoveNodesFromPage(domNode, securityContext);
+					}
+
+				} else if (obj.is(StructrTraits.DOM_NODE)) {
+
+					final DOMNode node = obj.as(DOMNode.class);
 
 					filteredResults.addAll(node.getAllChildNodes());
 
 				} else if (obj.is(StructrTraits.FOLDER)) {
 
-					Folder node = obj.as(Folder.class);
+					final Folder node = obj.as(Folder.class);
 
 					filteredResults.addAll(node.getAllChildNodes());
 				}
 
-				for (NodeInterface node : filteredResults) {
+				for (final NodeInterface node : filteredResults) {
 					app.delete(node);
 				}
 

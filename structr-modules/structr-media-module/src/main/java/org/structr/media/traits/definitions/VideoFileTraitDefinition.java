@@ -34,6 +34,7 @@ import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
@@ -41,8 +42,6 @@ import org.structr.media.AVConv;
 import org.structr.media.VideoFile;
 import org.structr.media.traits.wrappers.VideoFileTraitWrapper;
 import org.structr.web.entity.File;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FileTraitDefinition;
 import org.structr.web.traits.operations.OnUploadCompletion;
 
 import java.util.List;
@@ -74,7 +73,7 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 
 		return Map.of();
 	}
@@ -122,11 +121,11 @@ public class VideoFileTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> convertedVideosProperty = new EndNodes(CONVERTED_VIDEOS_PROPERTY, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE);
-		final Property<NodeInterface> posterImageProperty               = new EndNode(POSTER_IMAGE_PROPERTY, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE);
-		final Property<NodeInterface> originalVideoProperty             = new StartNode(ORIGINAL_VIDEO_PROPERTY, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE);
+		final Property<Iterable<NodeInterface>> convertedVideosProperty = new EndNodes(traitsInstance, CONVERTED_VIDEOS_PROPERTY, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE);
+		final Property<NodeInterface> posterImageProperty               = new EndNode(traitsInstance, POSTER_IMAGE_PROPERTY, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE);
+		final Property<NodeInterface> originalVideoProperty             = new StartNode(traitsInstance, ORIGINAL_VIDEO_PROPERTY, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE);
 		final PropertyKey<Boolean> isVideoProperty                      = new ConstantBooleanProperty(IS_VIDEO_PROPERTY, true);
 		final PropertyKey<String> videoCodecNameProperty                = new StringProperty(VIDEO_CODEC_NAME_PROPERTY);
 		final PropertyKey<String> videoCodecProperty                    = new StringProperty(VIDEO_CODEC_PROPERTY);

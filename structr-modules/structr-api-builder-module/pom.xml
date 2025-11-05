@@ -7,6 +7,7 @@
 		<artifactId>structr-modules</artifactId>
 		<version>6.0-SNAPSHOT</version>
 	</parent>
+
 	<artifactId>structr-api-builder-module</artifactId>
 	<packaging>jar</packaging>
 
@@ -15,12 +16,10 @@
 			<groupId>${project.groupId}</groupId>
 			<artifactId>structr-base</artifactId>
 			<version>${project.version}</version>
-			<type>test-jar</type>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-ui</artifactId>
+			<artifactId>structr-base</artifactId>
 			<version>${project.version}</version>
 			<type>test-jar</type>
 			<scope>test</scope>
@@ -36,6 +35,7 @@
 			<optional>true</optional>
 			<scope>test</scope>
 		</dependency>
+
     </dependencies>
 
 	<build>
@@ -52,7 +52,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>

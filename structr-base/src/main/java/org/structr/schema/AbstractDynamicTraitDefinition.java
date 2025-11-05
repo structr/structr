@@ -31,10 +31,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.entity.SchemaView;
 import org.structr.core.property.PropertyKey;
-import org.structr.core.traits.NodeTraitFactory;
-import org.structr.core.traits.RelationshipTraitFactory;
-import org.structr.core.traits.TraitDefinition;
-import org.structr.core.traits.Traits;
+import org.structr.core.traits.*;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.LifecycleMethodAdapter;
@@ -53,7 +50,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 	protected final String label;
 	protected final String name;
 
-	public AbstractDynamicTraitDefinition(final T schemaNode) {
+	public AbstractDynamicTraitDefinition(final TraitsInstance traitsInstance, final T schemaNode) {
 
 		this.label = schemaNode.getClassName();
 		this.name  = this.label + "." + schemaNode.getUuid();
@@ -61,7 +58,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 		initializeLifecycleMethods(schemaNode);
 		initializeFrameworkMethods(schemaNode);
 		initializeDynamicMethods(schemaNode);
-		initializePropertyKeys(schemaNode);
+		initializePropertyKeys(traitsInstance, schemaNode);
 		initializeViews(schemaNode);
 	}
 
@@ -76,7 +73,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 	}
 
 	@Override
-	public Map<Class, LifecycleMethod> getLifecycleMethods() {
+	public Map<Class, LifecycleMethod> createLifecycleMethods(TraitsInstance traitsInstance) {
 		return lifecycleMethods;
 	}
 
@@ -106,7 +103,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 	}
 
 	@Override
-	public Set<PropertyKey> getPropertyKeys() {
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 		return propertyKeys;
 	}
 
@@ -251,7 +248,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 		}
 	}
 
-	protected void initializePropertyKeys(final T schemaNode) {
+	protected void initializePropertyKeys(final TraitsInstance traitsInstance, final T schemaNode) {
 
 		final String className = schemaNode.getClassName();
 

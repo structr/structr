@@ -18,8 +18,10 @@
  */
 package org.structr.websocket.command;
 
+import com.drew.lang.Charsets;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -70,18 +72,28 @@ public class ConsoleCommand extends AbstractCommand {
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
 
-		final String  line       = webSocketData.getNodeDataStringValue(LINE_KEY);
-		final String  mode       = webSocketData.getNodeDataStringValue(MODE_KEY);
-		final Boolean completion = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
+		final String  line                   = webSocketData.getNodeDataStringValue(LINE_KEY);
+		final String  mode                   = webSocketData.getNodeDataStringValue(MODE_KEY);
+		final Boolean completion             = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
+		final ByteArrayOutputStream out      = new ByteArrayOutputStream();
+		final OutputStreamWritable writeable = new OutputStreamWritable(out);
 
-		Console console = getWebSocket().getConsole((StringUtils.isNotBlank(mode) ? ConsoleMode.valueOf(mode) : ConsoleMode.JavaScript));
-
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OutputStreamWritable writeable = new OutputStreamWritable(out);
+		final Pair<Console, Boolean> consoleAndChangedFlag = getWebSocket().getConsole((StringUtils.isNotBlank(mode) ? ConsoleMode.valueOf(mode) : ConsoleMode.JavaScript));
+		final Console console                              = consoleAndChangedFlag.getKey();
+		final Boolean hasChanged                           = consoleAndChangedFlag.getValue();
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			tx.prefetchHint("Websocket ConsoleCommand");
+
+			if (hasChanged) {
+
+				writeable.println("");
+				writeable.println("");
+				writeable.println("----- Note: console was reloaded because the schema has changed ----- ");
+				writeable.println("");
+				writeable.println("");
+			}
 
 			if (Boolean.TRUE.equals(completion)) {
 
@@ -128,7 +140,7 @@ public class ConsoleCommand extends AbstractCommand {
 					.data(MODE_KEY, console.getMode())
 					.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
 					.data(IS_JSON_KEY, true)
-					.message(message)
+					.message(hasChanged ? out.toString(Charsets.UTF_8) + message : message)
 					.build(), true);
 
 		} catch (final IOException ex) {

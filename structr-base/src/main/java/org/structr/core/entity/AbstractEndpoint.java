@@ -44,6 +44,16 @@ import java.util.Set;
  */
 public abstract class AbstractEndpoint {
 
+	private final String propertyName;
+
+	public AbstractEndpoint(final String propertyName) {
+		this.propertyName = propertyName;
+	}
+
+	public String getPropertyName() {
+		return propertyName;
+	}
+
 	public Relationship getSingle(final SecurityContext securityContext, final Node dbNode, final RelationshipType relationshipType, final Direction direction, final String otherNodeType) {
 
 		final Iterable<Relationship> relationships = getMultiple(securityContext, dbNode, relationshipType, direction, otherNodeType, null);

@@ -213,11 +213,6 @@ public class ServicePrincipal implements Principal {
 	}
 
 	@Override
-	public Iterable<Group> getGroups() {
-		return Collections.EMPTY_LIST;
-	}
-
-	@Override
 	public Iterable<Group> getParents() {
 		return Collections.EMPTY_LIST;
 	}
