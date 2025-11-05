@@ -2610,9 +2610,9 @@ let _Crud = {
 		displaySearchDialog: (parentType, id, key, type, el, callbackOverride) => {
 
 			el.append(`
-				<div class="searchBox searchBoxDialog absolute top-12 right-12">
-					<input class="search" name="search" size="20" placeholder="Search">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				<div class="searchBox searchBoxDialog absolute top-12 right-4">
+					<input class="search mr-0" name="search" size="20" placeholder="Search">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 			`);
 			let searchBox = $('.searchBoxDialog', el);

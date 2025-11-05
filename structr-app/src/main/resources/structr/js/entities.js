@@ -1191,7 +1191,7 @@ let _Entities = {
 		el.append(`
 			<div class="searchBox searchBoxDialog flex justify-end">
 				<input class="search" name="search" size="20" placeholder="Search">
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`);
 
