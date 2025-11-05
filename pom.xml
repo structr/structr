@@ -54,7 +54,7 @@
 		<structr.lib.directory>${structr.root.directory}/structr-app/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.4.2</maven.plugin.jar.version>
-		<test.forkCount>1</test.forkCount>
+		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
 		<tika.version>3.2.3</tika.version>
 		<pulsar.version>4.0.5</pulsar.version>
