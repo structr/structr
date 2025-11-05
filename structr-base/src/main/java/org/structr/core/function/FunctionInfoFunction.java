@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.ScriptMethod;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
@@ -33,6 +34,9 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_FUNCTION_INFO    = "Usage: ${function_info([type, name])}. Example ${function_info()}";
 	public static final String ERROR_MESSAGE_FUNCTION_INFO_JS = "Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}";
+
+	public static final String DECLARING_CLASS_KEY            = "declaringClass";
+	public static final String IS_USER_DEFINED_FUNCTION_KEY   = "isUserDefinedFunction";
 
 	@Override
 	public String getName() {
@@ -126,6 +130,16 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 		if (method.getParameters() != null) {
 			info.put(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY, method.getParameters());
+		}
+
+		if (method instanceof ScriptMethod sm) {
+			if (sm.getDeclaringClass() != null) {
+				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, sm.getDeclaringClass().getName());
+				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, false);
+			} else {
+				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, null);
+				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, true);
+			}
 		}
 
 		return info;

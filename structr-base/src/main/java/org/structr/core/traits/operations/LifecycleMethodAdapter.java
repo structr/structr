@@ -18,13 +18,21 @@
  */
 package org.structr.core.traits.operations;
 
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
+import org.structr.core.api.ScriptMethod;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
+import org.structr.core.traits.Traits;
 import org.structr.core.traits.operations.graphobject.*;
 import org.structr.core.traits.operations.nodeinterface.OnNodeCreation;
 import org.structr.core.traits.operations.nodeinterface.OnNodeDeletion;
@@ -35,14 +43,14 @@ import java.util.List;
 
 public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDeletion, AfterCreation, AfterModification, AfterDeletion, OnNodeCreation, OnNodeDeletion {
 
-	private final List<String> sources = new LinkedList<>();
+	private final List<ScriptMethod> methods = new LinkedList<>();
 
-	public LifecycleMethodAdapter(final String input) {
-		this.sources.add(input.trim());
+	public LifecycleMethodAdapter(final SchemaMethod schemaMethod) {
+		this.methods.add(new ScriptMethod(schemaMethod));
 	}
 
-	public void addSource(final String source) {
-		this.sources.add(source);
+	public void addMethod(final SchemaMethod schemaMethod) {
+		this.methods.add(new ScriptMethod(schemaMethod));
 	}
 
 	@Override
@@ -50,8 +58,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		final String type = graphObject.getTraits().getName();
 
-		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".onCreate");
+		for (final ScriptMethod method : methods) {
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+					.currentMethod(method)
+					.build();
+
+			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".onCreate", null, scriptConfig);
 		}
 	}
 
@@ -60,8 +73,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		final String type = graphObject.getTraits().getName();
 
-		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".afterCreate");
+		for (final ScriptMethod method : methods) {
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+					.currentMethod(method)
+					.build();
+
+			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".afterCreate", null, scriptConfig);
 		}
 	}
 
@@ -75,9 +93,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 			securityContext.getContextStore().setConstant("data", properties.getAsMap());
 
 			// entity is null because it is deleted, properties are available via "data" keyword
-			for (final String source : sources) {
+			for (final ScriptMethod method : methods) {
+				final ScriptConfig scriptConfig = ScriptConfig.builder()
+						.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+						.currentMethod(method)
+						.build();
 
-				Actions.execute(securityContext, null, "${" + source + "}", type + ".afterDelete");
+				Actions.execute(securityContext, null, "${" + method.getRawSource().trim() + "}", null, type + ".afterDelete", null, scriptConfig);
 			}
 
 		} catch (FrameworkException ex) {
@@ -90,8 +112,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		final String type = graphObject.getTraits().getName();
 
-		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".afterSave");
+		for (final ScriptMethod method : methods) {
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+					.currentMethod(method)
+					.build();
+
+			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".afterSave", null, scriptConfig);
 		}
 	}
 
@@ -100,8 +127,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		final String type = graphObject.getTraits().getName();
 
-		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".onDelete");
+		for (final ScriptMethod method : methods) {
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+					.currentMethod(method)
+					.build();
+
+			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".onDelete", null, scriptConfig);
 		}
 	}
 
@@ -110,8 +142,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		final String type = graphObject.getTraits().getName();
 
-		for (final String source : sources) {
-			Actions.execute(securityContext, graphObject, "${" + source + "}", type + ".onSave", modificationQueue, null);
+		for (final ScriptMethod method : methods) {
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+					.currentMethod(method)
+					.build();
+
+			Actions.execute(securityContext, graphObject, "${" + method.getRawSource().trim() + "}", null, type + ".onSave", null, scriptConfig);
 		}
 	}
 
@@ -120,8 +157,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		final String type = nodeInterface.getTraits().getName();
 
-		for (final String source : sources) {
-			Actions.execute(securityContext, nodeInterface, "${" + source + "}", type + ".onNodeCreation");
+		for (final ScriptMethod method : methods) {
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+					.currentMethod(method)
+					.build();
+
+			Actions.execute(securityContext, nodeInterface, "${" + method.getRawSource().trim() + "}", null, type + ".onNodeCreation", null, scriptConfig);
 		}
 	}
 
@@ -130,8 +172,13 @@ public class LifecycleMethodAdapter implements OnCreation, OnModification, OnDel
 
 		final String type = nodeInterface.getTraits().getName();
 
-		for (final String source : sources) {
-			Actions.execute(securityContext, nodeInterface, "${" + source + "}", type + ".onNodeDeletion");
+		for (final ScriptMethod method : methods) {
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+					.currentMethod(method)
+					.build();
+
+			Actions.execute(securityContext, nodeInterface, "${" + method.getRawSource().trim() + "}", null, type + ".onNodeDeletion", null, scriptConfig);
 		}
 	}
 }
