@@ -134,7 +134,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 		if (method instanceof ScriptMethod sm) {
 			if (sm.getDeclaringClass() != null) {
-				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, sm.getDeclaringClass().getName());
+				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, sm.getDeclaringClass());
 				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, false);
 			} else {
 				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, null);

@@ -39,7 +39,7 @@ public class ScriptMethod extends AbstractMethod {
 	private String uuid                         = null;
 	private String name                         = null;
 	private String fullName                     = null;
-	private AbstractSchemaNode declaringClass   = null;
+	private String declaringClass               = null;
 	private boolean isPrivateMethod             = false;
 	private boolean isStaticMethod              = false;
 	private boolean returnRawResult             = false;
@@ -67,12 +67,12 @@ public class ScriptMethod extends AbstractMethod {
 
 		} else {
 
-			this.declaringClass = declaringClass;
-			fullName = "method ‛" + declaringClass.getName() + "." + name + "‛";
+			this.declaringClass = declaringClass.getName();
+			fullName = "method ‛" + this.declaringClass + "." + name + "‛";
 		}
 	}
 
-	public AbstractSchemaNode getDeclaringClass() {
+	public String getDeclaringClass() {
 		return this.declaringClass;
 	}
 
