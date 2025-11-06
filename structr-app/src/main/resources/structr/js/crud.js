@@ -298,10 +298,10 @@ let _Crud = {
 					let isFlowType      = type.traits.includes('FlowBaseNode');
 					let isOtherType     = !(isRelType || isDynamicType || isHtmlType || isFlowType);
 
-					let hide = (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) ||
-						(!typeVisibility.html && isHtmlType) || (!typeVisibility.flow && isFlowType) || (!typeVisibility.other && isOtherType);
+					let show = (typeVisibility.rels && isBuiltInRel) || (typeVisibility.customRels && isCustomRelType) || (typeVisibility.custom && isDynamicType) ||
+						(typeVisibility.html && isHtmlType) || (typeVisibility.flow && isFlowType) || (typeVisibility.other && isOtherType);
 
-					return !hide;
+					return show;
 				});
 			},
 			filterTypes: () => {
