@@ -1839,14 +1839,6 @@ let _Dashboard = {
 						<td>${config.envInfo.version} ${config.envInfo.build} ${config.envInfo.date} <span id="version-update-info"></span></td>
 					</tr>
 					<tr>
-						<td class="key">Edition</td>
-						<td>
-							<div class="flex items-center">
-								${_Icons.getSvgIcon(_Icons.getIconForEdition(config.envInfo.edition), 16,16,['mr-2'], `Structr ${config.envInfo.edition} Edition`)} (Structr ${config.envInfo.edition} Edition)
-							</div>
-						</td>
-					</tr>
-					<tr>
 						<td class="key">Modules</td>
 						<td>${Object.keys(config.envInfo.modules).join(', ')}</td>
 					</tr>
@@ -1868,7 +1860,7 @@ let _Dashboard = {
 					</tr>
 					<tr>
 						<td class="key">Database Driver</td>
-						<td><div class="db-driver flex items-center">${config.databaseDriver}</div></td>
+						<td><div class="db-driver flex items-center gap-2">${config.databaseDriver}</div></td>
 					</tr>
 					<tr>
 						<td class="key">UUID Format</td>

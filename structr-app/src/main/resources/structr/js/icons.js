@@ -39,11 +39,6 @@ let _Icons = {
 	monacoGlyphMarginClassName: 'monaco-editor-warning-glyph',
 
 	/* SVG element icons */
-	iconEditionEnterprise:    'edition-enterprise',
-	iconEditionSmallBusiness: 'edition-small-business',
-	iconEditionBasic:         'edition-basic',
-	iconEditionCommunity:     'edition-community',
-
 	iconTerminal:             'terminal',
 	iconNotificationBell:     'notification-bell',
 
@@ -354,26 +349,9 @@ let _Icons = {
 	getFolderIconSVG: (d) => {
 		return (d.isMounted) ? _Icons.iconMountedFolderClosed : _Icons.iconFolderClosed
 	},
-	getIconForEdition: (edition) => {
-		switch (edition) {
-			case 'Enterprise':
-				return _Icons.iconEditionEnterprise;
-
-			case 'Small Business':
-				return _Icons.iconEditionSmallBusiness;
-
-			case 'Basic':
-				return _Icons.iconEditionBasic;
-
-			case 'Community':
-			default:
-				return _Icons.iconEditionCommunity;
-		}
-	},
 	getIconForPrincipal: (principal) => {
 
 		// admin group
-
 		if (principal.isGroup) {
 
 			if (principal.isAdmin) {

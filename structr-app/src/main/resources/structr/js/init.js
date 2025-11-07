@@ -174,7 +174,6 @@ let Structr = {
 	mainModule: undefined,
 	subModule: undefined,
 	expandedIdsKey: 'structrTreeExpandedIds_' + location.port,
-	edition: '',
 	classes: [],
 	expanded: {},
 	msgCount: 0,
@@ -784,15 +783,9 @@ let Structr = {
 
 			if (envInfo.databaseService) {
 
-				let driverName = Structr.getDatabaseDriverNameForDatabaseServiceName(envInfo.databaseService);
-
 				Structr.isInMemoryDatabase = (envInfo.databaseService === 'MemoryDatabaseService');
 
-				if (!Structr.isInMemoryDatabase) {
-
-					//dbInfoEl.html(`${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}`);
-
-				} else {
+				if (Structr.isInMemoryDatabase) {
 
 					Structr.appendInMemoryInfoToElement(dbInfoEl);
 
@@ -822,22 +815,19 @@ let Structr = {
 
 			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
 
-			let ui = envInfo.components['structr-base'];
+			let ui = envInfo.components['structr-app'];
 			if (ui) {
 
 				let build       = ui.build;
 				let date        = ui.date;
 				let versionInfo = `
-					${`Structr ${envInfo.edition} Edition | `}
-					<span>${ui.version}</span>
+					Structr <span>${ui.version}</span>
 					${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
 				`;
 
 				$('.structr-version').html(versionInfo);
 
 				if (envInfo.edition) {
-
-					Structr.edition = envInfo.edition;
 
 					_Dashboard.tabs['about-structr'].checkLicenseEnd(envInfo, $('.structr-version'), {
 						offsetX: -300,
