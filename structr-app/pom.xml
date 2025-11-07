@@ -17,8 +17,6 @@
         <assemblies.base.path>${project.parent.basedir}/structr-app/target</assemblies.base.path>
         <assemblies.resources.path>${project.parent.basedir}/structr-app/src/main/resources</assemblies.resources.path>
 
-        <maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-
         <!-- Skip flags -->
         <skipUITests>${skipTests}</skipUITests>
         <skipZip>false</skipZip>
@@ -149,28 +147,10 @@
     -->
 
     <build>
-        <!-- Artifact name: structr-app-6.0-SNAPSHOT-202510261155.abc12.jar -->
-        <finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
+        <!-- Artifact name: structr-6.0-SNAPSHOT-202510261155.abc12.jar -->
+        <finalName>structr-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
 
         <plugins>
-            <!-- Generate Git-based build number -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>buildnumber-maven-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>create</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <shortRevisionLength>5</shortRevisionLength>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <artifactId>maven-antrun-plugin</artifactId>
                 <version>3.1.0</version>
@@ -218,16 +198,6 @@
                             <value>${project.build.finalName}</value>
                         </replacement>
                     </replacements>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
-                <configuration>
-                    <source>25</source>
-                    <target>25</target>
                 </configuration>
             </plugin>
 
@@ -316,7 +286,7 @@
                                                 <contextDir>${project.basedir}</contextDir>
                                                 <dockerFile>Dockerfile</dockerFile>
                                                 <args>
-                                                    <STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
+                                                    <STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
                                                 </args>
                                             </build>
                                         </image>
@@ -444,7 +414,7 @@
                         <artifactId>maven-assembly-plugin</artifactId>
                         <version>3.7.1</version>
                         <configuration>
-                            <finalName>structr-${project.version}-${maven.build.timestamp}.${buildNumber}</finalName>
+                            <finalName>${project.build.finalName}</finalName>
                             <descriptors>
                                 <descriptor>src/main/resources/assemblies/dist.xml</descriptor>
                             </descriptors>
@@ -479,7 +449,7 @@
                         <artifactId>jdeb</artifactId>
                         <version>1.10</version>
                         <configuration>
-                            <deb>${project.build.directory}/structr-${project.version}-${maven.build.timestamp}.${buildNumber}.deb</deb>
+                            <deb>${project.build.directory}/${project.build.finalName}.deb</deb>
                             <skip>${skipDeb}</skip>
                             <controlDir>${basedir}/src/main/resources/deb/control</controlDir>
                             <dataSet>
@@ -611,7 +581,7 @@
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <args>
-                                            <STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
+                                            <STRUCTR_VERSION>${project.build.finalName}</STRUCTR_VERSION>
                                         </args>
                                         <buildx>
                                             <builderName>structr-buildx</builderName>

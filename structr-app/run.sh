@@ -14,8 +14,8 @@ fi
 BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 cd $BASE_DIR
 JAVA=`which java`
-LATEST=`ls target/structr-app-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
-VERSION=${LATEST#target/structr-app-};VERSION=${VERSION%%.jar}
+LATEST=`ls target/structr-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
+VERSION=${LATEST#target/structr-};VERSION=${VERSION%%.jar}
 
 STRUCTR="-Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Djava.util.logging.config.file=logging.properties.debug -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -cp ./target/lib/*:./plugins/*:$LATEST org.structr.Server"
 STRUCTR_ARGS="-server -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:+UseNUMA -XX:+UseG1GC -XX:+UseCodeCacheFlushing -Dinstance=$NAME"
