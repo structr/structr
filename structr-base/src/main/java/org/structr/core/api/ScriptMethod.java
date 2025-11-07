@@ -34,16 +34,17 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class ScriptMethod extends AbstractMethod {
 
-	private Parameters parameters   = null;
-	private String source           = null;
-	private String uuid             = null;
-	private String name             = null;
-	private String fullName         = null;
-	private boolean isPrivateMethod = false;
-	private boolean isStaticMethod  = false;
-	private boolean returnRawResult = false;
-	private boolean wrapJsInMain = true;
-	private String httpVerb         = null;
+	private Parameters parameters               = null;
+	private String source                       = null;
+	private String uuid                         = null;
+	private String name                         = null;
+	private String fullName                     = null;
+	private String declaringClass               = null;
+	private boolean isPrivateMethod             = false;
+	private boolean isStaticMethod              = false;
+	private boolean returnRawResult             = false;
+	private boolean wrapJsInMain                = true;
+	private String httpVerb                     = null;
 
 	public ScriptMethod(final SchemaMethod method) {
 
@@ -66,8 +67,17 @@ public class ScriptMethod extends AbstractMethod {
 
 		} else {
 
-			fullName = "method ‛" + declaringClass.getName() + "." + name + "‛";
+			this.declaringClass = declaringClass.getName();
+			fullName = "method ‛" + this.declaringClass + "." + name + "‛";
 		}
+	}
+
+	public String getDeclaringClass() {
+		return this.declaringClass;
+	}
+
+	public String getRawSource() {
+		return this.source;
 	}
 
 	@Override

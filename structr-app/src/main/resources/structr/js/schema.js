@@ -543,7 +543,7 @@ let _Schema = {
 
 				return [entity.name, {
 					name: entity.name,
-					inheritedTraitNames: (entity.inheritedTraits ?? []).concat(...(allTypeNamesToJsPlumbId[entity.name]?.inheritedTraitNames ?? [])),
+					inheritedTraitNames: (entity.inheritedTraits ?? []),
 					jsPlumbClass: entity.id,
 				}];
 			}));

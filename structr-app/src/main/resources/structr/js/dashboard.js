@@ -603,10 +603,16 @@ let _Dashboard = {
 						_Dashboard.tabs.deployment.history.addEntry(data);
 
 						// do not listen for errors - they are sent by the backend via WS
-						await fetch(`${Structr.rootUrl}maintenance/deploy`, {
+						let response = await fetch(`${Structr.rootUrl}maintenance/deploy`, {
 							method: 'POST',
 							body: JSON.stringify(data)
 						});
+
+						if (!response.ok) {
+
+							let responseData = await response.json();
+							new WarningMessage().title(`Unable to ${mode} application ${(mode === 'export') ? 'to' : 'from'} local directory`).text(responseData.error).requiresConfirmation().show();
+						}
 					}
 				},
 				deployData: async (mode, location, types) => {
@@ -635,10 +641,16 @@ let _Dashboard = {
 					if (confirm === true) {
 
 						// do not listen for errors - they are sent by the backend via WS
-						await fetch(`${Structr.rootUrl}maintenance/deployData`, {
+						let response = await fetch(`${Structr.rootUrl}maintenance/deployData`, {
 							method: 'POST',
 							body: JSON.stringify(data)
 						});
+
+						if (!response.ok) {
+
+							let responseData = await response.json();
+							new WarningMessage().title(`Unable to ${mode} data ${(mode === 'export') ? 'to' : 'from'} local directory`).text(responseData.error).requiresConfirmation().show();
+						}
 
 						// update data to distinguish it in our history
 						data.mode += 'Data';
