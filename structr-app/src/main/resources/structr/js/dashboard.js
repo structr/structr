@@ -146,7 +146,7 @@ let _Dashboard = {
 
 							if (!groups[key]) {
 								groups[key] = {
-									id: group,
+									id: ''+group,	// display legend correctly
 									content: key,
 									className: 'http-statistics-' + key
 								};
@@ -154,32 +154,19 @@ let _Dashboard = {
 
 							for (let date of Object.keys(local)) {
 
-								let dateNumber = new Number(date);
+								let dateNumber = Number(date);
 								min = Math.min(dateNumber, min);
 								max = Math.max(dateNumber, max);
 								items.push({
 									x: new Date(dateNumber).toISOString(),
 									//x2: new Date(dateNumber + interval).toISOString(),
 									y: local[date],
-									group: group
+									group: ''+group,	// display legend correctly
 								});
 							}
 						}
 
-						// console.log(items);
-
 						let groupList = Object.values(groups);
-
-						let timeAxisScale = {
-							//'1000': 'second',
-							'60000': 'minute',
-							'3600000': 'hour'
-						};
-						let timeAxisStep = {
-							//'1000': 600,
-							'60000': 15,
-							'3600000': 1
-						};
 
 						let options = {
 							start: new Date(min - interval).toISOString(),
@@ -198,10 +185,8 @@ let _Dashboard = {
 									}
 								}
 							},
-							timeAxis: {
-								scale: timeAxisScale[interval],
-								step: timeAxisStep[interval]
-							}
+							zoomMax: 86400000 * 31,		// ~ 1 month
+							zoomMin: 3600000			//   1 hour
 						};
 
 						new vis.Graph2d(httpStatisticsCell.querySelector("#statistics-diagram-container"), new vis.DataSet(items), new vis.DataSet(groupList), options);
@@ -618,10 +603,16 @@ let _Dashboard = {
 						_Dashboard.tabs.deployment.history.addEntry(data);
 
 						// do not listen for errors - they are sent by the backend via WS
-						await fetch(`${Structr.rootUrl}maintenance/deploy`, {
+						let response = await fetch(`${Structr.rootUrl}maintenance/deploy`, {
 							method: 'POST',
 							body: JSON.stringify(data)
 						});
+
+						if (!response.ok) {
+
+							let responseData = await response.json();
+							new WarningMessage().title(`Unable to ${mode} application ${(mode === 'export') ? 'to' : 'from'} local directory`).text(responseData.error).requiresConfirmation().show();
+						}
 					}
 				},
 				deployData: async (mode, location, types) => {
@@ -650,10 +641,16 @@ let _Dashboard = {
 					if (confirm === true) {
 
 						// do not listen for errors - they are sent by the backend via WS
-						await fetch(`${Structr.rootUrl}maintenance/deployData`, {
+						let response = await fetch(`${Structr.rootUrl}maintenance/deployData`, {
 							method: 'POST',
 							body: JSON.stringify(data)
 						});
+
+						if (!response.ok) {
+
+							let responseData = await response.json();
+							new WarningMessage().title(`Unable to ${mode} data ${(mode === 'export') ? 'to' : 'from'} local directory`).text(responseData.error).requiresConfirmation().show();
+						}
 
 						// update data to distinguish it in our history
 						data.mode += 'Data';
@@ -1971,7 +1968,11 @@ let _Dashboard = {
 			</div>
 		`,
 		tabContentUIConfig: config => `
-			<div class="tab-content" id="dashboard-ui-config">
+			<div class="tab-content relative" id="dashboard-ui-config">
+
+				<div class="absolute top-2 right-0">
+					<button class="ml-2 action" id="clear-local-storage-on-server">Reset <strong>all</strong> stored UI settings</button>
+				</div>						
 
 				<div class="flex">
 
@@ -1996,9 +1997,6 @@ let _Dashboard = {
 
 						</div>
 
-						<div>
-							<button class="action" id="clear-local-storage-on-server">Reset <strong>all</strong> stored UI settings</button>
-						</div>
 					</div>
 				</div>
 			</div>

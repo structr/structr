@@ -175,9 +175,7 @@
 }
 
 #schema-graph .label {
-	color: var(--active-tab-text);
 	font-size: .875rem;
-	background: var(--solid-white);
 	min-width: 1rem;
 	text-align: center;
 	padding: .5rem;

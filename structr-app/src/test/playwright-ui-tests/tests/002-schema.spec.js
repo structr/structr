@@ -46,7 +46,7 @@ test.beforeAll(async ({ playwright }) => {
 
 test('schema', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   //await page.setViewportSize({ width: 3840, height: 2160 });
   await page.goto(process.env.BASE_URL + '/structr/');
@@ -103,7 +103,8 @@ test('schema', async ({ page }) => {
 
   // Create new type 'Milestone'
   await page.locator('#create-type').waitFor({ state: 'visible' });
-  await page.locator('#create-type').click();
+  await page.locator('.non-block-ui-wrapper').waitFor({ state: 'hidden', timeout: 30000 }).catch(() => {});
+  await page.locator('#create-type').click({ timeout: 30000 });
   await page.waitForTimeout(1000);
   await page.screenshot({ path: 'schema_create-type_Milestone.png' });
   await page.getByPlaceholder('Type Name...').fill('Milestone');

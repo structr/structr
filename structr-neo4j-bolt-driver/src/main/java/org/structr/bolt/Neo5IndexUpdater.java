@@ -70,15 +70,15 @@ public class Neo5IndexUpdater extends IndexUpdater {
 
 		if (newIndexConfig.isFulltextIndex()) {
 
-			return "CREATE FULLTEXT INDEX " + identifier + " IF NOT EXISTS FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]";
+			return "CREATE FULLTEXT INDEX " + identifier + " FOR " + indexDescription + " ON EACH [n.`" + propertyKey + "`]";
 
 		} else if (newIndexConfig.isTextIndex()) {
 
-			return "CREATE TEXT INDEX " + identifier + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
+			return "CREATE TEXT INDEX " + identifier + " FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
 
 		} else {
 
-			return "CREATE INDEX " + identifier + " IF NOT EXISTS FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
+			return "CREATE INDEX " + identifier + " FOR " + indexDescription + " ON (n.`" + propertyKey + "`)";
 		}
 	}
 

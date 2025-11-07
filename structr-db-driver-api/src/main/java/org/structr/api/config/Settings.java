@@ -267,11 +267,12 @@ public class Settings {
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
 	public static final ChoiceSetting   ProxyServletMode          = new ChoiceSetting(applicationGroup,  "Proxy",        "application.proxy.mode",                      "disabled", Set.of("disabled", "protected", "public"), "Sets the mode of the proxy servlet. Possible values are 'disabled' (off, servlet responds with 503 error code), 'protected' (only authenticated requests allowed) and 'public' (anonymous requests allowed). Default is disabled.");
 
-	public static final Setting<Integer> HttpConnectionRequestTimeout = new IntegerSetting(applicationGroup, "Outbound Connections",   "application.httphelper.timeouts.connectionrequest",   60,            "Timeout for outbound connections in <b>seconds</b> to wait when requesting a connection from the connection manager. A timeout value of zero is interpreted as an infinite timeout.");
-	public static final Setting<Integer> HttpConnectTimeout           = new IntegerSetting(applicationGroup, "Outbound Connections",   "application.httphelper.timeouts.connect",             60,            "Timeout for outbound connections in <b>seconds</b> to wait until a connection is established. A timeout value of zero is interpreted as an infinite timeout.");
-	public static final Setting<Integer> HttpSocketTimeout            = new IntegerSetting(applicationGroup, "Outbound Connections",   "application.httphelper.timeouts.socket",              600,           "Socket timeout for outbound connections in <b>seconds</b> to wait for data or, put differently, a maximum inactivity period between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.");
-	public static final Setting<String>  HttpUserAgent                = new StringSetting(applicationGroup,  "Outbound Connections",   "application.httphelper.useragent",                    "curl/7.35.0", "User agent string for outbound connections");
-	public static final Setting<String>  HttpDefaultCharset           = new StringSetting(applicationGroup,  "Outbound Connections",   "application.httphelper.charset",                      "ISO-8859-1",  "Default charset for outbound connections");
+	public static final Setting<Integer> HttpConnectionRequestTimeout = new IntegerSetting(applicationGroup, "Outbound Connections","application.httphelper.timeouts.connectionrequest",   60,            "Timeout for outbound connections in <b>seconds</b> to wait when requesting a connection from the connection manager. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<Integer> HttpConnectTimeout           = new IntegerSetting(applicationGroup, "Outbound Connections","application.httphelper.timeouts.connect",             60,            "Timeout for outbound connections in <b>seconds</b> to wait until a connection is established. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<Integer> HttpSocketTimeout            = new IntegerSetting(applicationGroup, "Outbound Connections","application.httphelper.timeouts.socket",              600,           "Socket timeout for outbound connections in <b>seconds</b> to wait for data or, put differently, a maximum inactivity period between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<String>  HttpUserAgent                = new StringSetting(applicationGroup,  "Outbound Connections","application.httphelper.useragent",                    "curl/7.35.0", "User agent string for outbound connections");
+	public static final Setting<String>  HttpDefaultCharset           = new StringSetting(applicationGroup,  "Outbound Connections","application.httphelper.charset",                      "ISO-8859-1",  "Default charset for outbound connections");
+	public static final Setting<String>  OutgoingURLWhitelist         = new StringSetting(applicationGroup,  "Outbound Connections","application.httphelper.urlwhitelist",                 "*",           "A comma-separated list of URL patterns that can be used in HTTP request scripting functions (GET, PUT, POST etc.). If this value is anything other than *, whitelisting is applied to all outgoing requests.");
 
 	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false,  "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false,  "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
@@ -773,10 +774,22 @@ public class Settings {
 							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
 					);
 
-			// Touch file, if it doesn't exist
-			Path.of(fileName).toFile().createNewFile();
+			// If file does not exist, create it and set default permissions
+			final Path filePath     = Path.of(fileName);
+			final boolean didCreate = filePath.toFile().createNewFile();
+			if (didCreate) {
+
+				try {
+
+					Files.setPosixFilePermissions(filePath, expectedConfigFilePermissions);
+
+				} catch (UnsupportedOperationException | IOException e) {
+					// happens on non-POSIX filesystems, ignore
+				}
+			}
 
 			final PropertiesConfiguration config = builder.getConfiguration();
+			final FileHandler fileHandler        = builder.getFileHandler();
 
 			for (final Setting setting : settings.values()) {
 
@@ -789,33 +802,16 @@ public class Settings {
 				}
 			}
 
-			FileHandler fileHandler = builder.getFileHandler();
+			final long freeSpace = fileHandler.getFile().getFreeSpace();
 
-			final boolean isFileCreation = !fileHandler.getFile().exists();
-
-			final long freeSpace = (!isFileCreation ? fileHandler.getFile().getFreeSpace() : new File(new File("").getAbsolutePath()).getFreeSpace());
-
-			if(freeSpace < 1024 * 1024){
+			if (freeSpace < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
 			fileHandler.save();
 
-			if (isFileCreation) {
-
-				try {
-
-					Files.setPosixFilePermissions(Paths.get(fileHandler.getFile().toURI()), Settings.expectedConfigFilePermissions);
-
-				} catch (UnsupportedOperationException | IOException e) {
-					// happens on non-POSIX filesystems, ignore
-				}
-
-			} else {
-
-				checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
-			}
+			checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 
 		} catch (ConfigurationException ex) {
 
@@ -904,7 +900,7 @@ public class Settings {
 					);
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-                        final Iterator<String> keys          = config.getKeys();
+			final Iterator<String> keys          = config.getKeys();
 
 			Settings.checkConfigurationFilePermissions(builder, true);
 

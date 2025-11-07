@@ -34,6 +34,7 @@ public interface Traits {
 	Set<String> getLabels();
 	boolean contains(final String type);
 	<T> PropertyKey<T> key(final String name);
+	<T> PropertyKey<T> keyOrGenericProperty(final String name);
 	boolean hasKey(final String name);
 	String getName();
 	boolean isNodeType();
@@ -101,9 +102,5 @@ public interface Traits {
 
 	static Set<String> getAllViews() {
 		return TraitsManager.getCurrentInstance().getAllViews();
-	}
-
-	static Map<String, Map<String, PropertyKey>> clearDynamicSchema() {
-		return TraitsManager.getCurrentInstance().getDynamicSchemaTypes();
 	}
 }

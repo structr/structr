@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
+import org.structr.storage.util.VirtualFileChannel;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.StorageConfiguration;
 
@@ -107,14 +108,25 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options) {
+
 		try {
 
+			final AbstractFile file = getAbstractFile();
+			final SeekableByteChannel channel;
+
 			if (options.isEmpty()) {
+
 				ensureFileExists();
-				return FileChannel.open(fsHelper.getFileOnDisk(getAbstractFile()).toPath(), new java.util.HashSet<OpenOption>(Set.of(CREATE, READ, WRITE, SYNC)));
+				channel = FileChannel.open(fsHelper.getFileOnDisk(file).toPath(), new java.util.HashSet<OpenOption>(Set.of(CREATE, READ, WRITE, SYNC)));
+
+			} else {
+
+				channel = FileChannel.open(fsHelper.getFileOnDisk(file).toPath(), options);
 			}
 
-			return FileChannel.open(fsHelper.getFileOnDisk(getAbstractFile()).toPath(), options);
+			// wrap channel so we can do things after closing
+			return new VirtualFileChannel(file, channel);
+
 		} catch (IOException ex) {
 
 			logger.error("Could not open file", ex);

@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	/* Message-area: Hook up "Close All" button */
 	document.querySelector('#info-area #close-all-button').addEventListener('click', () => {
 		for (let confirmButton of document.querySelectorAll(`#info-area .${MessageBuilder.closeButtonClass}`)) {
-			confirmButton.dispatchEvent(new Event('click'));
+			confirmButton.dispatchEvent(new Event('click', { bubbles: true }));
 		}
 	});
 
@@ -1491,6 +1491,33 @@ let Structr = {
 
 				if (showScriptingErrorPopups) {
 
+					let getLocationTable = (data) => {
+						return `
+							<table class="scripting-error-location">
+								${(data.nodeType && data.nodeId) ? `
+									<tr>
+										<th>Element:</th>
+										<td class="pl-2">${data.nodeType}[${data.nodeId}]</td>
+									</tr>
+								` : ''}
+								<tr>
+									<th>${data.property ?? 'Location'}:</th>
+									<td class="pl-2">${data.name}</td>
+								</tr>
+								<tr>
+									<th>Row:</th>
+									<td class="pl-2">${data.row}</td>
+								</tr>
+								<tr>
+									<th>Column:</th>
+									<td class="pl-2">${data.column}</td>
+								</tr>
+							</table>
+							<br>
+							${data.message}
+						`;
+					}
+
 					if (data.nodeId && data.nodeType) {
 
 						Command.get(data.nodeId, _Code.helpers.getAttributesToFetchForErrorObject(), (obj) => {
@@ -1531,30 +1558,7 @@ let Structr = {
 									break;
 							}
 
-							let location = `
-								<table class="scripting-error-location">
-									<tr>
-										<th>Element:</th>
-										<td class="pl-2">${data.nodeType}[${data.nodeId}]</td>
-									</tr>
-									<tr>
-										<th>${property}:</th>
-										<td class="pl-2">${name}</td>
-									</tr>
-									<tr>
-										<th>Row:</th>
-										<td class="pl-2">${data.row}</td>
-									</tr>
-									<tr>
-										<th>Column:</th>
-										<td class="pl-2">${data.column}</td>
-									</tr>
-								</table>
-								<br>
-								${data.message}
-							`;
-
-							let builder = new WarningMessage().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).text(location).requiresConfirmation();
+							let builder = new WarningMessage().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).text(getLocationTable({...data, name, property})).requiresConfirmation();
 
 							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty') {
 
@@ -1591,7 +1595,7 @@ let Structr = {
 						});
 
 					} else {
-						new WarningMessage().title('Server-side Scripting Error').text(data.message).requiresConfirmation().show();
+						new WarningMessage().title('Server-side Scripting Error').text(getLocationTable(data)).requiresConfirmation().show();
 					}
 				}
 				break;
@@ -1846,7 +1850,7 @@ let Structr = {
 		if (forceShowState) {
 
 			// double check if there are messages to show
-			let messageArea  = document.querySelector('#info-area #messages');
+			let messageArea  = MessageBuilder.getMessagesContainer();
 			let messageCount = messageArea.querySelectorAll('.message').length;
 
 			let hasMessages = (messageCount > 0);
@@ -2433,6 +2437,9 @@ class MessageBuilder {
 		info: 'info'
 	});
 	static closeButtonClass = 'close-message-button';
+	static getMessagesContainer = () => {
+		return document.querySelector('#info-area #messages');
+	}
 
 	constructor (typeClass) {
 
@@ -2445,19 +2452,19 @@ class MessageBuilder {
 		// defaults
 		this.params = {
 			text: 'Default message',
+			updatesText: false,
+			appendsText: false,
+			appendSelector: '',
+			prependsText: false,
+			prependSelector: '',
 			delayDuration: 3000,
 			uniqueClass: undefined,
 			uniqueCount: 1,
-			updatesText: false,
+			incrementsUniqueCount: false,
 			updatesButtons: false,
-			appendsText: false,
-			prependsText: false,
-			appendSelector: '',
-			prependSelector: '',
 			replacesElement: false,
 			replacesSelector: '',
 			replaceInParentSelector: '',
-			incrementsUniqueCount: false,
 			specialInteractionButtons: []
 		};
 	}
@@ -2482,37 +2489,48 @@ class MessageBuilder {
 		return this;
 	};
 
-	appendButtons(buttonElement) {
+	appendButtons(buttonContainer) {
 
-		// message should not automatically be removed if:
-		// - it is not configured as such
-		// - the whole area is not shown
-		let shouldStayOpen = (this.params.requiresConfirmation === true) || (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
+		let shouldStayOpen = (this.params.requiresConfirmation === true);
+		let closeButton    = buttonContainer.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
+
+		closeButton.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.dismiss();
+		});
 
 		if (shouldStayOpen === true) {
 
-			let closeButton = buttonElement.closest('.message').querySelector('.' + MessageBuilder.closeButtonClass);
-
 			closeButton.classList.remove('hidden');
-			closeButton.addEventListener('click', (e) => {
-				this.dismiss();
-			});
 
 		} else {
 
-			window.setTimeout(() => {
-				this.dismiss();
-			}, this.params.delayDuration);
+			// only remove message if notifications are visible or if they are hidden AND time-limited notifications should be removed
+			// this is decided before the message delay to prevent a user from showing notifications and it auto-removing itself
+			let isNotificationsAreaVisible                  = (MessageBuilder.getMessagesContainer().offsetParent !== null);
+			let shouldTimeLimitedNotificationsBeAutoRemoved = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.autoRemoveTimeLimitedNotificationsForHiddenNotificationsAreaKey));
 
-			buttonElement.closest(`#${this.params.msgId}`).addEventListener('click', () => {
-				this.dismiss();
-			});
+			if (isNotificationsAreaVisible === true || shouldTimeLimitedNotificationsBeAutoRemoved === true) {
+
+				window.setTimeout(() => {
+					this.dismiss();
+				}, this.params.delayDuration);
+
+				buttonContainer.closest(`#${this.params.msgId}`).addEventListener('click', (e) => {
+					e.stopPropagation();
+					this.dismiss();
+				});
+
+			} else {
+
+				closeButton.classList.remove('hidden');
+			}
 		}
 
 		for (let btn of this.params.specialInteractionButtons) {
 
 			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mr-0">${btn.text}</button>`);
-			buttonElement.appendChild(specialBtn);
+			buttonContainer.appendChild(specialBtn);
 
 			specialBtn.addEventListener('click', () => {
 
@@ -2534,11 +2552,13 @@ class MessageBuilder {
 			let existingMessage = document.querySelector(`#info-area .message.${this.params.uniqueClass}`);
 			if (existingMessage) {
 
+				this.updateLastShownTime(existingMessage);
+
 				uniqueMessageAlreadyPresented = true;
 				this.params.msgId             = existingMessage.id;
 				this.params.uniqueCount       = existingMessage.dataset['uniqueCount'];
 
-				let titleElement = existingMessage.querySelector('.title');
+				let titleElement = existingMessage.querySelector('.message-title');
 
 				existingMessage.querySelector('.message-icon').innerHTML = _Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass));
 
@@ -2546,7 +2566,7 @@ class MessageBuilder {
 					this.params.uniqueCount++;
 
 					existingMessage.dataset['uniqueCount'] = this.params.uniqueCount;
-					existingMessage.querySelector('span.uniqueCount')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
+					existingMessage.querySelector('.message-unique-count')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
 				}
 
 				existingMessage.setAttribute('class', allClasses.join(' '));
@@ -2616,15 +2636,24 @@ class MessageBuilder {
 
 			let message = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="${allClasses.join(' ')}" id="${this.params.msgId}" data-unique-count="${this.params.uniqueCount}">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer', 'absolute', 'top-3', 'right-3']))}
+					<div class="absolute top-3 right-3 flex gap-3">
+						<div class="message-time text-sm"></div>
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon([MessageBuilder.closeButtonClass, 'hidden', 'icon-grey', 'cursor-pointer']))}
+					</div>
 					<div class="message-icon flex-shrink-0 mr-2">
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg title">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
+
+						<div class="flex gap-1 font-bold text-lg">
+							<div class="-mt-1 message-title empty:hidden">${this.params.title ?? ''}</div>
+							${this.getUniqueCountElement()}
+						</div>
+
 						<div class="message-text mb-2 overflow-y-auto">
 							${this.params.text}
 						</div>
+
 						<div class="message-buttons flex gap-2 justify-end"></div>
 					</div>
 				</div>
@@ -2632,7 +2661,9 @@ class MessageBuilder {
 
 			this.appendButtons(message.querySelector('.message-buttons'));
 
-			document.querySelector('#info-area #messages').appendChild(message);
+			MessageBuilder.getMessagesContainer().appendChild(message);
+
+			this.updateLastShownTime(message);
 		}
 
 		this.updateNotificationIcon();
@@ -2644,19 +2675,42 @@ class MessageBuilder {
 
 		if (msgElement) {
 
-			msgElement.addEventListener('animationend', () => {
-				_Helpers.fastRemoveElement(msgElement);
+			let isNotificationsAreaHidden = (true === UISettings.getValueForSetting(UISettings.settingGroups.global.settings.hideAllPopupMessagesKey));
 
-				this.updateNotificationIcon();
-			});
+			if (isNotificationsAreaHidden) {
+
+				this.removeMessageElement(msgElement);
+
+			} else {
+
+				msgElement.addEventListener('animationend', () => {
+					this.removeMessageElement(msgElement);
+				});
+			}
 
 			msgElement.classList.add('dismissed');
 		}
 	};
 
+	removeMessageElement(msgElement) {
+
+		_Helpers.fastRemoveElement(msgElement);
+
+		this.updateNotificationIcon();
+	}
+
+	updateLastShownTime(messageEl) {
+
+		let lang = navigator.language ?? navigator.languages?.[0] ?? 'en-US'
+		let datetimeString = new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false }).format(new Date())
+
+		let timeEl = messageEl.querySelector('.message-time');
+		timeEl.textContent = datetimeString;
+	}
+
 	updateNotificationIcon() {
 
-		let messageArea  = document.querySelector('#info-area #messages');
+		let messageArea  = MessageBuilder.getMessagesContainer();
 		let messageCount = messageArea.querySelectorAll('.message').length;
 		let notificationCountElement = document.querySelector('[data-notification-count]');
 
@@ -2726,7 +2780,7 @@ class MessageBuilder {
 	}
 
 	getUniqueCountElement() {
-		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
+		return `<span class="-mt-1 message-unique-count empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
 }
 
@@ -3050,6 +3104,13 @@ let UISettings = {
 					onUpdate: () => {
 						Structr.determineNotificationAreaVisibility();
 					}
+				},
+				autoRemoveTimeLimitedNotificationsForHiddenNotificationsAreaKey: {
+					text: 'Auto-remove time-limited notifications (when notification area is hidden)',
+					storageKey: 'autoRemoveTimeLimitedNotificationsForHiddenNotificationsArea' + location.port,
+					defaultValue: true,
+					type: 'checkbox',
+					infoText: 'Should notifications, that normally disappear after a while, still do so when the notification area is hidden?'
 				},
 				showScriptingErrorPopupsKey: {
 					text: 'Show notifications for scripting errors',

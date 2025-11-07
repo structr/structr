@@ -568,10 +568,7 @@ public class DeployDataCommand extends DeployCommand {
 
 			for (final String parentType : clonedTypes) {
 
-				final Traits parentTraits = Traits.of(parentType);
-
-				// FIXME: this might be wrong with traits
-				if (parentType != childType && parentTraits.contains(childType)) {
+				if (parentType != childType && childTraits.contains(parentType)) {
 
 					removedTypes.put(childType, parentType);
 

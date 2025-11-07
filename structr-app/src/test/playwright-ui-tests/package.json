@@ -6,7 +6,8 @@
     "test": "node_modules/.bin/playwright test --workers=1",
     "test:headed": "node_modules/.bin/playwright test --headed",
     "test:debug": "node_modules/.bin/playwright test --debug",
-    "playwright:install": "node_modules/.bin/playwright install --with-deps"
+    "playwright:install": "node_modules/.bin/playwright install",
+    "playwright:install-with-debs": "node_modules/.bin/playwright install --with-deps"
   },
   "keywords": [],
   "author": "",

@@ -39,6 +39,12 @@ public class TranslateFunction extends UiFunction {
 
 	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate(\"Hello world!\", \"en\", \"ru\", \"deepl\")}";
 	public static final String ERROR_MESSAGE_TRANSLATE_JS = "Usage: ${{Structr.translate(text, sourceLanguage, targetLanguage[, translationProvider])}}. Supported translation providers: google, deepl. Example: ${{Structr.translate(\"Hello world!\", \"en\", \"ru\", \"deepl\"))}";
+	public static final String ERROR_NO_GOOGLE_API_KEY    = "Google Cloud Translation API Key not configured in structr.conf";
+	public static final String ERROR_NO_DEEPL_API_KEY     = "DeepL Translation API Key not configured in structr.conf";
+	public static final String ERROR_UNKNOWN_PROVIDER     = "Unknown translation provider - possible values are 'google' and 'deepl'.";
+	public static final String ERROR_DEEPL_FAILED         = "Could not translate text: %s --  Deepl API Response: %s";
+	public static final String ERROR_GOOGLE_FAILED        = "Could not translate text: %s --  Google API Response: %s";
+	public static final String ERROR_DEEPL_API_FAILED     = "Could not translate text: %s --  Deepl API failed to response!";
 
 	@Override
 	public String getName() {
@@ -81,8 +87,7 @@ public class TranslateFunction extends UiFunction {
 						final String gctAPIKey = TranslationModule.TranslationGoogleAPIKey.getValue();
 
 						if (gctAPIKey == null || gctAPIKey.isEmpty()) {
-							logger.error("Google Cloud Translation API Key not configured in structr.conf");
-							return "";
+							throw new FrameworkException(422, ERROR_NO_GOOGLE_API_KEY);
 						}
 
 						final Translate translate = TranslateOptions.newBuilder().setApiKey(gctAPIKey).build().getService();
@@ -97,7 +102,8 @@ public class TranslateFunction extends UiFunction {
 					}
 
 					catch (TranslateException te) {
-						throw new FrameworkException(422, "Could not translate text: " + text + "\nAPI Response: " + te.getLocalizedMessage());
+
+						throw new FrameworkException(422, String.format(ERROR_GOOGLE_FAILED, text, te.getLocalizedMessage()));
 					}
 				}
 
@@ -107,8 +113,7 @@ public class TranslateFunction extends UiFunction {
 					Gson gson = new Gson();
 
 					if (deeplAPIKey == null || deeplAPIKey.isEmpty()) {
-						logger.error("DeepL Translation API Key not configured in structr.conf");
-						return "";
+						throw new FrameworkException(422, ERROR_NO_DEEPL_API_KEY);
 					}
 
 					final String apiBaseURL = deeplAPIKey.contains(":fx") ? "https://api-free.deepl.com/v2/translate" : "https://api.deepl.com/v2/translate";
@@ -122,8 +127,10 @@ public class TranslateFunction extends UiFunction {
 
 					final Map<String, Object> responseData = HttpHelper.post(apiBaseURL, gson.toJson(requestJson), null, null, headers, "UTF-8", true);
 
-						final String response = responseData.get(HttpHelper.FIELD_BODY) instanceof String ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
+					final String response = responseData.get(HttpHelper.FIELD_BODY) instanceof String ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
+					if (response != null)
+					{
 						final JsonObject resultObject = new JsonParser().parse(response).getAsJsonObject();
 
 						if (resultObject.has("translations")) {
@@ -137,15 +144,20 @@ public class TranslateFunction extends UiFunction {
 						}
 						else
 						{
-							throw new FrameworkException(422, "Could not translate text: " + text + "\nAPI Response: " + response);
+							throw new FrameworkException(422, String.format(ERROR_DEEPL_FAILED, text, response));
 						}
+					}
+					else
+					{
+						throw new FrameworkException(422, String.format(ERROR_DEEPL_API_FAILED, text));
+					}
+
+
 				}
 				default:
-					logger.error("Unknown translation provider - possible values are 'google' and 'deepl'.");
-
+					throw new FrameworkException(422, ERROR_UNKNOWN_PROVIDER);
 			}
 
-			return "";
 
 		} catch (IllegalArgumentException e) {
 

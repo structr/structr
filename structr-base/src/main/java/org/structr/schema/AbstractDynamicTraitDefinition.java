@@ -185,8 +185,7 @@ public abstract class AbstractDynamicTraitDefinition<T extends AbstractSchemaNod
 						final LifecycleMethod existingMethod = lifecycleMethods.get(type);
 						if (existingMethod instanceof LifecycleMethodAdapter adapter) {
 
-							adapter.addSource(method.getSource());
-
+							adapter.addMethod(method);
 						} else {
 
 							throw new RuntimeException("Unexpected lifecycle method " + method.getName() + ", expected LifecycleMethodAdapter!");

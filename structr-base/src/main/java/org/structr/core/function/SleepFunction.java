@@ -60,7 +60,9 @@ public class SleepFunction extends CoreFunction {
 				Thread.sleep(milliseconds);
 
 			} catch (InterruptedException iex) {
+
 				logger.warn("Interrupted while waiting for {} milliseconds: {}", milliseconds, iex.getMessage());
+				Thread.currentThread().interrupt();
 			}
 
 			return sources[0].toString().toUpperCase();

@@ -159,6 +159,7 @@ public class StructrFilePath extends StructrPath {
 					final File file = actualFile.as(File.class);
 
 					channel = StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(options);
+
 				}
 
 				tx.success();

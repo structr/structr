@@ -314,6 +314,51 @@ public class RepeaterTest extends StructrUiTest {
 			.get("/html/page1");
 	}
 
+	@Test
+	public void testGraphObjectMapRepeater() {
+
+		createAdminUser();
+
+		// create page
+		final Page page1;
+
+		try (final Tx tx = app.tx()) {
+
+			page1 = Page.createSimplePage(securityContext, "page2");
+			final DOMNode div    = page1.getElementsByTagName("div").get(0);
+
+			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "{ [ { id: 1, name: 'test1' }, { id: 2, name: 'test2' }]; }");
+			div.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "obj");
+
+			div.getFirstChild().setProperty(Traits.of(StructrTraits.CONTENT).key("content"), "${obj.name}");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/";
+
+		// test 2: assert selected attributes are set now
+		RestAssured
+			.given()
+			.header(X_USER_HEADER,     ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
+			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+			.expect()
+			.statusCode(200)
+			.body("html.head.title",                                Matchers.equalTo("Page2"))
+			.body("html.body.h1",                                   Matchers.equalTo("Page2"))
+			.body("html.body.div[0]",                               Matchers.equalTo("test1"))
+			.body("html.body.div[0].@data-repeater-data-object-id",  Matchers.nullValue())
+			.body("html.body.div[1]",                               Matchers.equalTo("test2"))
+			.body("html.body.div[1].@data-repeater-data-object-id",  Matchers.nullValue())
+			.when()
+			.get("/html/page2");
+	}
+
 	protected DOMElement createElement(final Page page, final DOMNode parent, final String tag, final String... content) throws FrameworkException {
 
 		final DOMElement child = page.createElement(tag);

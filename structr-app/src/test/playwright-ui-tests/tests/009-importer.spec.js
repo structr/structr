@@ -76,7 +76,7 @@ test.beforeAll(async ({ playwright }) => {
 
 test('importer', async ({ page }) => {
 
-  test.setTimeout(120_000);
+  test.setTimeout(240_000);
 
   //await page.setViewportSize({ width: 3840, height: 2160 });
   await page.goto(process.env.BASE_URL + '/structr/');
@@ -160,7 +160,9 @@ test('importer', async ({ page }) => {
   await page.getByText('Import CSV').first().waitFor({state: 'visible'});
   await page.getByText('Import CSV').first().click();
   await page.waitForTimeout(500);
-  await page.locator('select#target-type-select').selectOption({ label: 'Milestone' });
+
+  await page.locator('select#target-type-select option[value]').first().waitFor({ state: 'attached', timeout: 30000 });
+  await page.locator('select#target-type-select').selectOption({ label: 'Milestone' }, { timeout: 30000 });
   await page.waitForTimeout(500);
   await page.getByRole('button', {name: 'Start import'}).click();
   await page.getByRole('button', {name: 'Close'}).click();

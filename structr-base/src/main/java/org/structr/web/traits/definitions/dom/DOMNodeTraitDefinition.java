@@ -674,6 +674,16 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 						throw new FrameworkException(422, "DOMNode.setOwnerDocument(): missing required argument `newChild` of type DOMNode.");
 					}
 				}
+			},
+
+			new InstanceMethod(StructrTraits.DOM_NODE, "getOwnerDocument") {
+
+				@Override
+				public Object execute(final SecurityContext securityContext, final GraphObject entity, final Map<String, Object> parameters) throws FrameworkException {
+
+					final DOMNode node = entity.as(DOMNode.class);
+					return node.getOwnerDocument();
+				}
 			}
 		);
 	}
