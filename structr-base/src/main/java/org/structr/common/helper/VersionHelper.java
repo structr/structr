@@ -81,7 +81,9 @@ public class VersionHelper {
 								components.putIfAbsent("structr", module);
 							} else if (StringUtils.isNotBlank(moduleName)) {
 								components.put(moduleName, module);
-							}
+							} else {
+                                logger.warn("Missing build information in manifest for {}", jarFile.getName());
+                            }
 						}
 					}
 				}
