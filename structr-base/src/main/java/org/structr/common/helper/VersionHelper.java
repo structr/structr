@@ -18,6 +18,7 @@
  */
 package org.structr.common.helper;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -78,7 +79,7 @@ public class VersionHelper {
 								components.put("structr", module);
 							} else if ("structr-app".equals(moduleName)) {
 								components.putIfAbsent("structr", module);
-							} else {
+							} else if (StringUtils.isNotBlank(moduleName)) {
 								components.put(moduleName, module);
 							}
 						}
