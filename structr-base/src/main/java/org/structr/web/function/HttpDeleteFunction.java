@@ -23,6 +23,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
@@ -102,6 +103,29 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTTP DELETE request to the given URL and returns the response body";
+		return """
+Sends an HTTP DELETE request with an optional content type to the given url. This method can be used to make HTTP requests **from within the Structr Server**, triggered by a frontend control like a button etc.
+
+The `DELETE()` method will return a response object with the following structure:
+
+| Field | Description | Type |
+| --- | --- | --- |
+status | HTTP status of the request | Integer |
+headers | Response headers | Map |
+body | Response body | Map or String |
+			""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.ss("${DELETE('http://localhost:8082/structr/rest/User/6aa10d68569d45beb384b42a1fc78c50')}"));
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `DELETE()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()`.",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+		);
 	}
 }
