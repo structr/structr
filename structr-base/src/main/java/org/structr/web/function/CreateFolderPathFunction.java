@@ -21,9 +21,11 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 
+import java.util.List;
 import java.util.Map;
 
 public class CreateFolderPathFunction extends UiAdvancedFunction {
@@ -37,8 +39,8 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type [, parameterMap ]");
 	}
 
 	@Override
@@ -79,7 +81,7 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates a new folder in the virtual file system including all parent folders if they don't exist already.";
 	}
 

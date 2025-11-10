@@ -22,12 +22,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 public class KeysFunction extends CoreFunction {
 
@@ -40,8 +38,8 @@ public class KeysFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity [, viewName ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("entity [, viewName ]");
 	}
 
 	@Override
@@ -91,7 +89,7 @@ public class KeysFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the property keys of the given entity";
 	}
 

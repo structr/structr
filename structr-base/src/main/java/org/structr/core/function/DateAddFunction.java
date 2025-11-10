@@ -22,12 +22,14 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.TemporalDateConverter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class DateAddFunction extends CoreFunction {
 
@@ -40,8 +42,8 @@ public class DateAddFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "date, years[, months[, days[, hours[, minutes[, seconds]]]]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("date, years[, months[, days[, hours[, minutes[, seconds]]]]]");
 	}
 
 	@Override
@@ -122,7 +124,7 @@ public class DateAddFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Adds the given values to a date";
 	}
 }

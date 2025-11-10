@@ -18,7 +18,10 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class AddHeaderFunction extends UiAdvancedFunction {
 
@@ -31,8 +34,8 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name, value");
 	}
 
 	@Override
@@ -71,7 +74,7 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Adds the given header field and value to the next request";
 	}
 }

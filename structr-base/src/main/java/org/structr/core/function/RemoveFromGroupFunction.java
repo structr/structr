@@ -26,7 +26,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
@@ -39,8 +42,8 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "group, user";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("group, user");
 	}
 
 	@Override
@@ -88,7 +91,7 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Removes the given user from the given group";
 	}
 }

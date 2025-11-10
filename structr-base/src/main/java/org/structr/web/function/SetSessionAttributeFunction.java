@@ -24,9 +24,11 @@ import org.graalvm.polyglot.Value;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
@@ -41,8 +43,8 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key, value");
 	}
 
 	@Override
@@ -89,7 +91,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Store a value under the given key in the users session";
 	}
 }

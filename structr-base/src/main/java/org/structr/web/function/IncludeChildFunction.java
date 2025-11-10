@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -48,8 +49,8 @@ public class IncludeChildFunction extends IncludeFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name [, collection, dataKey]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name [, collection, dataKey]");
 	}
 
 	@Override
@@ -120,7 +121,7 @@ public class IncludeChildFunction extends IncludeFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Includes the content of the child node with the given name (optionally as a repeater element)";
 	}
 }

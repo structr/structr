@@ -19,15 +19,16 @@
 package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collection;
+import java.util.List;
 
 public class RenderFunction extends UiCommunityFunction {
 
@@ -40,8 +41,8 @@ public class RenderFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("list");
 	}
 
 	@Override
@@ -130,7 +131,7 @@ public class RenderFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Renders the children of the current node";
 	}
 }

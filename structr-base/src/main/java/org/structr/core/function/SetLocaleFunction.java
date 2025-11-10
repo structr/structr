@@ -21,8 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Locale;
 
 public class SetLocaleFunction extends CoreFunction {
@@ -36,8 +38,8 @@ public class SetLocaleFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "locale";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("locale");
 	}
 
 	@Override
@@ -74,7 +76,7 @@ public class SetLocaleFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the locale in the current context to the given value.";
 	}
 }

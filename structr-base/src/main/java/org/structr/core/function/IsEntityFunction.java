@@ -23,7 +23,10 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.SuperUser;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class IsEntityFunction extends CoreFunction {
 
@@ -35,8 +38,8 @@ public class IsEntityFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value");
 	}
 
 	@Override
@@ -66,7 +69,7 @@ public class IsEntityFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if the given argument is a Structr entity";
 	}
 }

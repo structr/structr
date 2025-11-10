@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -35,8 +36,8 @@ public class SizeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "collection";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("collection");
 	}
 
 	@Override
@@ -80,7 +81,7 @@ public class SizeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the size of the given collection";
 	}
 }

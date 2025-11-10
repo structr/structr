@@ -19,14 +19,17 @@
 package org.structr.geo;
 
 import org.geotools.api.geometry.Position;
-import org.geotools.geometry.Position2D;
-import org.geotools.referencing.CRS;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.geometry.Position2D;
+import org.geotools.referencing.CRS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class LatLonToUTMFunction extends GeoFunction {
 
@@ -40,8 +43,8 @@ public class LatLonToUTMFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "latitude, longitude";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("latitude, longitude");
 	}
 
 	@Override
@@ -126,7 +129,7 @@ public class LatLonToUTMFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts the given latitude/longitude coordinates into an UTM string.";
 	}
 

@@ -25,11 +25,13 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class LogEventFunction extends UiAdvancedFunction {
@@ -43,8 +45,8 @@ public class LogEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "action, message [, subject [, object ]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("action, message [, subject [, object ]]");
 	}
 
 	@Override
@@ -113,7 +115,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Logs an event to the Structr log";
 	}
 }

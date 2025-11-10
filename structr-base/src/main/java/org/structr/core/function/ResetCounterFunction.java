@@ -21,7 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ResetCounterFunction extends CoreFunction {
 
@@ -33,8 +36,8 @@ public class ResetCounterFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "level";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("level");
 	}
 
 	@Override
@@ -70,7 +73,7 @@ public class ResetCounterFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Resets the value of the counter with the given index";
 	}
 }

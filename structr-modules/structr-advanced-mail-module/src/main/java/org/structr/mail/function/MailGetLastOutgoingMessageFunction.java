@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFunction {
 
@@ -38,7 +41,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -55,7 +58,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the last outgoing message sent by the advanced mail module in the current script";
 	}
 }

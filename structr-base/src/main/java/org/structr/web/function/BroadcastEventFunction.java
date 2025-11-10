@@ -18,8 +18,11 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.servlet.EventSourceServlet;
+
+import java.util.List;
 
 public class BroadcastEventFunction extends UiAdvancedFunction {
 
@@ -37,8 +40,8 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]]");
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Triggers the sending of a sever-sent event all authenticated and/or anonymous users with an open connection.";
 	}
 }

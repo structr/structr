@@ -20,7 +20,10 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class CopyPermissionsFunction extends CoreFunction {
 
@@ -33,8 +36,8 @@ public class CopyPermissionsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target [, overwrite ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source, target [, overwrite ]");
 	}
 
 	@Override
@@ -75,7 +78,7 @@ public class CopyPermissionsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Copies the security configuration of an entity to another entity.";
 	}
 }

@@ -29,7 +29,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class IsAllowedFunction extends AdvancedScriptingFunction {
 
@@ -42,8 +45,8 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "user, node, permissions";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("user, node, permissions");
 	}
 
 	@Override
@@ -115,7 +118,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns whether the principal has all of the permission(s) on the given node.";
 	}
 }

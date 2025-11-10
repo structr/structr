@@ -21,11 +21,13 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Base64;
+import java.util.List;
 
 public class Base64DecodeFunction extends CoreFunction {
 
@@ -38,8 +40,8 @@ public class Base64DecodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "text [, scheme, charset ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("text [, scheme, charset ]");
 	}
 
 	@Override
@@ -109,7 +111,7 @@ public class Base64DecodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Decodes the given base64-encoded value and returns a string";
 	}
 }

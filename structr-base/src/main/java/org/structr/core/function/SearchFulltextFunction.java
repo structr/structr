@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -40,8 +41,8 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 	}
 
 	@Override
-	public String getSignature() {
-		return "indexName, searchString";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("indexName, searchString");
 	}
 
 	@Override
@@ -97,7 +98,7 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a map of entities and search scores matching the given search string from the given fulltext index. Searches case-insensitve / inexact.";
 	}
 }

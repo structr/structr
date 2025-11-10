@@ -21,7 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FloorFunction extends CoreFunction {
 
@@ -33,8 +36,8 @@ public class FloorFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value");
 	}
 
 	@Override
@@ -64,7 +67,7 @@ public class FloorFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the largest integer that is less than or equal to the argument";
 	}
 }

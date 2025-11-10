@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.RenderContext;
@@ -59,8 +60,8 @@ public class IncludeFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name [, collection, dataKey]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name [, collection, dataKey]");
 	}
 
 	@Override
@@ -152,7 +153,7 @@ public class IncludeFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Includes the content of the node with the given name (optionally as a repeater element)";
 	}
 

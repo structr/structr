@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -37,8 +38,8 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, blacklist ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type [, blacklist ]");
 	}
 
 	@Override
@@ -102,7 +103,7 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the names of the child types of the given type and filters out all entries of the blacklist collection.";
 	}
 }

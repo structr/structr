@@ -18,6 +18,10 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.docs.*;
+
+import java.util.List;
+
 public class KeywordHint extends AbstractHint {
 
 	public KeywordHint(final String name, final String documentation, final String replacement) {
@@ -41,7 +45,37 @@ public class KeywordHint extends AbstractHint {
 	}
 
 	@Override
-	public String getType() {
-		return "Keyword";
+	public String getShortDescription() {
+		return documentation;
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return null;
+	}
+
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.Keyword;
 	}
 }

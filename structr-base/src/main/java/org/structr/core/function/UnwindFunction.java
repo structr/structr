@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -34,8 +35,8 @@ public class UnwindFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list1, list2, ...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("list1, list2, ...");
 	}
 
 	@Override
@@ -82,7 +83,7 @@ public class UnwindFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts a list of lists into a flat list";
 	}
 }

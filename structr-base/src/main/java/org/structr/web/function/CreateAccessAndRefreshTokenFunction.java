@@ -21,11 +21,13 @@ package org.structr.web.function;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 
 import java.util.Calendar;
+import java.util.List;
 import java.util.Map;
 
 public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
@@ -39,8 +41,8 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
     }
 
     @Override
-    public String getSignature() {
-        return "user, accessTokenTimeout, refreshTokenTimeout";
+    public List<Signature> getSignatures() {
+        return Signature.forAllLanguages("user, accessTokenTimeout, refreshTokenTimeout");
     }
 
     @Override
@@ -84,7 +86,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
     }
 
     @Override
-    public String shortDescription() {
+    public String getShortDescription() {
         return "Creates an access token and an refresh token for the given user";
     }
 }

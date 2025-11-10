@@ -22,8 +22,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+
+import java.util.List;
 
 /**
  * Dummy function that replaces unlicensed functions to prevent
@@ -52,7 +55,7 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Placeholder for unlicensed functions";
 	}
 
@@ -62,7 +65,7 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 

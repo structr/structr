@@ -23,9 +23,11 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class ContainsFunction extends CoreFunction {
@@ -38,8 +40,8 @@ public class ContainsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "stringOrList, wordOrObject";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("stringOrList, wordOrObject");
 	}
 
 	@Override
@@ -92,7 +94,7 @@ public class ContainsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if the given string or collection contains an element";
 	}
 }

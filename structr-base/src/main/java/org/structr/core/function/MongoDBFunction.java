@@ -26,6 +26,7 @@ import org.bson.Document;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -42,8 +43,8 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "url, database, collection";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url, database, collection");
 	}
 
 	@Override
@@ -90,7 +91,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Opens and returns a connection to an external MongoDB instance";
 	}
 }

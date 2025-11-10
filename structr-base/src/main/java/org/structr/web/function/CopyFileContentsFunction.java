@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -34,6 +35,7 @@ import org.structr.web.traits.definitions.FileTraitDefinition;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
 
@@ -46,8 +48,8 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "sourceFile, destinationFile";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("sourceFile, destinationFile");
 	}
 
 	@Override
@@ -115,7 +117,7 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates a copy of the file content linked to the given File entity and links it to the other File entity.";
 	}
 }

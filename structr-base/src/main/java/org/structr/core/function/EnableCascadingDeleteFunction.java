@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
@@ -35,7 +38,7 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -53,7 +56,7 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Enables cascading delete in the Structr Backend for the current transaction";
 	}
 

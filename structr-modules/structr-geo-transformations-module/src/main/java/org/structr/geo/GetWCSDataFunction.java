@@ -25,9 +25,11 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GetWCSDataFunction extends AbstractGeoserverFunction {
@@ -41,8 +43,8 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "baseUrl, coverageId, bBox, min, max";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("baseUrl, coverageId, bBox, min, max");
 	}
 
 	@Override
@@ -89,7 +91,7 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads coverage data from a WCS endpoint and returns it";
 	}
 }

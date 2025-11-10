@@ -29,8 +29,10 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class SetFunction extends CoreFunction {
@@ -44,8 +46,8 @@ public class SetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, parameterMap";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("entity, parameterMap");
 	}
 
 	@Override
@@ -144,7 +146,7 @@ public class SetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets a value or multiple values on an entity. The values can be provided as a map or as a list of alternating keys and values.";
 	}
 }

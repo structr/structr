@@ -18,10 +18,13 @@
  */
 package org.structr.web.function;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.schema.action.ActionContext;
+
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
-import org.structr.common.error.FrameworkException;
-import org.structr.schema.action.ActionContext;
+import java.util.List;
 
 public class ValidateEmailFunction extends UiAdvancedFunction {
 
@@ -34,8 +37,8 @@ public class ValidateEmailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "address";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("address");
 	}
 
 	@Override
@@ -62,7 +65,7 @@ public class ValidateEmailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Validates the given address against the syntax rules of RFC 822. The current implementation checks many, but not all, syntax rules. If it is a valid email according to the RFC, nothing is returned. Otherwise the error text is returned.";
 	}
 

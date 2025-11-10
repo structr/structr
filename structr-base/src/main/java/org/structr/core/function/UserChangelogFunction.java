@@ -20,8 +20,10 @@ package org.structr.core.function;
 
 import org.structr.api.config.Settings;
 import org.structr.core.GraphObject;
+import org.structr.docs.Signature;
 
 import java.io.IOException;
+import java.util.List;
 
 public class UserChangelogFunction extends ChangelogFunction {
 
@@ -34,8 +36,8 @@ public class UserChangelogFunction extends ChangelogFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "user [, resolve=false [, filterKey, filterValue ]... ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("user [, resolve=false [, filterKey, filterValue ]... ]");
 	}
 
 	@Override

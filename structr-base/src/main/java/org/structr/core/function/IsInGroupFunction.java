@@ -28,9 +28,11 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class IsInGroupFunction extends AdvancedScriptingFunction {
@@ -44,8 +46,8 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "group, user [, checkHierarchy = false ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("group, user [, checkHierarchy = false ]");
 	}
 
 	@Override
@@ -116,7 +118,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if a user is in the given group. If the optional parameter checkHierarchy is set to false, only a direct group membership is checked. Otherwise the group hierarchy is checked.";
 	}
 }

@@ -25,7 +25,10 @@ import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class PrivilegedFindFunction extends AbstractQueryFunction {
 
@@ -38,8 +41,8 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, options...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type, options...");
 	}
 
 	@Override
@@ -117,7 +120,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
 	}
 }

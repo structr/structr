@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -43,8 +44,8 @@ public class CoordsFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "geometry";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("geometry");
 	}
 
 	@Override
@@ -124,7 +125,7 @@ public class CoordsFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the coordinates of a geometry.";
 	}
 }

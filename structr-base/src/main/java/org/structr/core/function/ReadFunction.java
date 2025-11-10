@@ -22,11 +22,13 @@ import org.apache.commons.io.IOUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.List;
 
 public class ReadFunction extends AdvancedScriptingFunction {
 
@@ -38,8 +40,8 @@ public class ReadFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "filename";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("filename");
 	}
 
 	@Override
@@ -86,7 +88,7 @@ public class ReadFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads and returns the contents of the given file from the exchange directoy";
 	}
 }

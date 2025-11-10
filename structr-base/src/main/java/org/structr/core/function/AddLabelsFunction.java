@@ -34,7 +34,7 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Adds the given set of labels to the given node";
 	}
 

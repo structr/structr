@@ -33,6 +33,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -52,8 +53,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
-		return "nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]");
 	}
 
 	@Override
@@ -147,7 +148,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates Excel from given data";
 	}
 

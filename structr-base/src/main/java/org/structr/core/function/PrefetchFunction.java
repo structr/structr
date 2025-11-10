@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
@@ -34,13 +35,13 @@ public class PrefetchFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Prefetches a subgraph.";
 	}
 
 	@Override
-	public String getSignature() {
-		return "query, listOfKeys";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("query, listOfKeys");
 	}
 
 	@Override

@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class AndFunction extends CoreFunction {
 
@@ -31,8 +34,8 @@ public class AndFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "bool1, bool2, ...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("bool1, bool2, ...");
 	}
 
 	@Override
@@ -80,7 +83,7 @@ public class AndFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the conjunction of the given arguments";
 	}
 }

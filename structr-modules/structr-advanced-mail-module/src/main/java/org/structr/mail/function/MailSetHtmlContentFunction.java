@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 
@@ -37,8 +40,8 @@ public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "html";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("html");
 	}
 
 	@Override
@@ -65,7 +68,7 @@ public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the HTML content of the current mail";
 	}
 }

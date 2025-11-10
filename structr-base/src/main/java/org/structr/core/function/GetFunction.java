@@ -31,6 +31,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -47,8 +48,8 @@ public class GetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, propertyName";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("entity, propertyName");
 	}
 
 	@Override
@@ -158,7 +159,7 @@ public class GetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the value with the given name of the given entity, or an empty string";
 	}
 }

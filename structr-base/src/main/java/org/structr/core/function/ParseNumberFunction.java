@@ -20,10 +20,12 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Locale;
 
 public class ParseNumberFunction extends CoreFunction {
@@ -37,8 +39,8 @@ public class ParseNumberFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "number [, locale ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("number [, locale ]");
 	}
 
 	@Override
@@ -94,7 +96,7 @@ public class ParseNumberFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Parses the given string using the given (optional) locale";
 	}
 }

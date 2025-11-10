@@ -21,7 +21,10 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ToGraphObjectFunction extends UiCommunityFunction {
 
@@ -34,8 +37,8 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "obj";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("obj");
 	}
 
 	@Override
@@ -84,7 +87,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts the given entity to GraphObjectMap";
 	}
 }

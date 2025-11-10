@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractBinaryProcess;
@@ -30,6 +31,7 @@ import org.structr.util.AbstractBinaryProcess;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -46,8 +48,8 @@ public class ExecBinaryFunction extends ExecFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]");
 	}
 
 	@Override
@@ -156,7 +158,7 @@ public class ExecBinaryFunction extends ExecFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the raw output directly into the output stream. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'masked' flag.";
 	}
 

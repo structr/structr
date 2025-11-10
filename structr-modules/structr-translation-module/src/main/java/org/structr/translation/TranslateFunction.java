@@ -28,11 +28,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class TranslateFunction extends UiFunction {
@@ -52,8 +54,8 @@ public class TranslateFunction extends UiFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "text, sourceLanguage, targetLanguage, translationProvider";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("text, sourceLanguage, targetLanguage, translationProvider");
 	}
 
 	@Override
@@ -172,7 +174,7 @@ public class TranslateFunction extends UiFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Translates the given string from the source language to the target language.";
 	}
 }

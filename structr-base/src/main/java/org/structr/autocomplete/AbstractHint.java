@@ -21,6 +21,8 @@ package org.structr.autocomplete;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Documentable;
+import org.structr.docs.Signature;
 
 import java.util.List;
 
@@ -28,21 +30,17 @@ import java.util.List;
  *
  *
  */
-public abstract class AbstractHint {
+public abstract class AbstractHint implements Documentable {
 
 	public static final Property<String> text             = new StringProperty("text");
 	public static final Property<String> documentationKey = new StringProperty("documentation");
 	public static final Property<String> replacementKey   = new StringProperty("replacement");
 	public static final Property<String> typeKey          = new StringProperty("type");
 
-	private boolean dontModify     = false;
 	private boolean isDynamic      = false;
 	protected String name          = null;
 	protected String documentation = null;
 	protected String replacement   = null;
-
-	public abstract String getName();
-	public abstract String getType();
 
 	public String getDocumentation() {
 	    return documentation;
@@ -57,16 +55,19 @@ public abstract class AbstractHint {
 		return getName();
 	}
 
+	public String getFirstSignature() {
+
+		final List<Signature> sigs = getSignatures();
+		if (sigs != null && !sigs.isEmpty()) {
+
+			return sigs.getFirst().getSignature();
+		}
+
+		return null;
+	}
+
 	public String getDisplayName() {
 		return getName();
-	}
-
-	public void allowNameModification(final boolean allowModification) {
-		this.dontModify = !allowModification;
-	}
-
-	public boolean mayModify() {
-		return !dontModify;
 	}
 
 	public void setIsDynamic(final boolean isDynamic) {
@@ -92,7 +93,7 @@ public abstract class AbstractHint {
 		item.put(text,             getDisplayName());
 		item.put(documentationKey, getDocumentation());
 		item.put(replacementKey,   getReplacement());
-		item.put(typeKey,          getType());
+		item.put(typeKey,          getType().getDisplayName());
 
 		return item;
 	}

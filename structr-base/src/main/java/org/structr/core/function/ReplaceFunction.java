@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -38,8 +39,8 @@ public class ReplaceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "template, entity";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("template, entity");
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public class ReplaceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Replaces script expressions in the given template with values from the given entity";
 	}
 }

@@ -20,10 +20,12 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class StartsWithFunction extends CoreFunction {
 
@@ -35,8 +37,8 @@ public class StartsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, prefix";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("str, prefix");
 	}
 
 	@Override
@@ -89,7 +91,7 @@ public class StartsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if the given string starts with the given prefix";
 	}
 }

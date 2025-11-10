@@ -29,6 +29,7 @@ import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.common.helper.MailHelper;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -48,8 +49,8 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]");
 	}
 
 	@Override
@@ -123,7 +124,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sends an HTML e-mail";
 	}
 }

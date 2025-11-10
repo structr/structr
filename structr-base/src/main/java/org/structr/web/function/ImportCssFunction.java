@@ -27,6 +27,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -51,8 +52,8 @@ public class ImportCssFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "file";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("file");
 	}
 
 	@Override
@@ -109,7 +110,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Imports CSS classes, media queries etc. from given CSS file.";
 	}
 

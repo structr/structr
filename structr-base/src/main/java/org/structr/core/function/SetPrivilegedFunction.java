@@ -20,7 +20,10 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
@@ -36,8 +39,8 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, parameterMap";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("entity, parameterMap");
 	}
 
 	@Override
@@ -69,7 +72,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the given key/value pair(s) on the given entity with super-user privileges";
 	}
 

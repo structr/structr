@@ -21,11 +21,13 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 
 import javax.xml.namespace.QName;
 import javax.xml.xpath.*;
+import java.util.List;
 
 public class XPathFunction extends AdvancedScriptingFunction {
 
@@ -37,8 +39,8 @@ public class XPathFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "document, xpath [, returnType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("document, xpath [, returnType ]");
 	}
 
 	@Override
@@ -92,7 +94,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the value of the given XPath expression from the given XML DOM. The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING.";
 	}
 }

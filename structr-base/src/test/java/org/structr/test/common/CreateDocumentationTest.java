@@ -1,0 +1,144 @@
+/*
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.test.common;
+
+import org.apache.commons.lang3.StringUtils;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.function.Functions;
+import org.structr.core.graph.Tx;
+import org.structr.core.script.polyglot.function.DoAsFunction;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
+import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
+import org.structr.docs.Documentable;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.test.web.StructrUiTest;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+
+public class CreateDocumentationTest extends StructrUiTest {
+
+	// disabled so no docs are created @Test
+	public void createDocumentationTest() {
+
+		try (final Tx tx = app.tx()) {
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+		}
+
+		final List<Documentable> functions = new LinkedList<>(Functions.getFunctions());
+		final List<String> lines           = new LinkedList<>();
+
+		// add functions that are not registered as module functions
+		functions.add(new DoInNewTransactionFunction(null, null));
+		functions.add(new DoPrivilegedFunction(null));
+		functions.add(new DoAsFunction(null));
+
+		// sort by name
+		Collections.sort(functions, Comparator.comparing(Documentable::getName));
+
+		// header
+		lines.add("# Built-In functions");
+
+		for (final Documentable function : functions) {
+
+			final List<Signature> signatures = function.getSignatures();
+			final List<Parameter> parameters = function.getParameters();
+			final List<Example> examples     = function.getExamples();
+			final List<String> notes         = function.getNotes();
+			final String name                = function.getName();
+
+			lines.add("## " + name);
+			lines.add(function.getShortDescription());
+
+			if (notes != null) {
+
+				lines.add("### Notes");
+
+				for (final String note : notes) {
+					lines.add(note);
+				}
+			}
+
+			if (signatures != null) {
+
+				lines.add("### Signature");
+				lines.add("");
+				lines.add("```");
+
+				for (final Signature signature : signatures) {
+					lines.add(name + "(" + signature.getSignature() + ")");
+				}
+
+				lines.add("```");
+				lines.add("");
+			}
+
+			if (parameters != null) {
+
+				lines.add("### Parameters");
+
+				lines.add("");
+				lines.add("|Name|Description|Optional|");
+				lines.add("|---|---|---|");
+
+				for (final Parameter parameter : parameters) {
+					lines.add("|" + parameter.getName() + "|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
+				}
+
+				lines.add("");
+			}
+
+			if (examples != null) {
+
+				lines.add("### Examples");
+				lines.add("");
+				lines.add("```");
+
+				for (final Example example : examples) {
+
+					lines.add(example.text);
+				}
+
+				lines.add("```");
+			}
+
+			lines.add("");
+		}
+
+		try {
+
+			Files.writeString(Path.of("/tmp/test.md"), StringUtils.join(lines, "\n"));
+
+		} catch (IOException e) {
+
+			e.printStackTrace();
+		}
+	}
+}

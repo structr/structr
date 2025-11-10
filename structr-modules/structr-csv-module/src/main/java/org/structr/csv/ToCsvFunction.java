@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Signature;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.schema.action.ActionContext;
 
@@ -47,8 +48,8 @@ public class ToCsvFunction extends CsvFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "nodes, propertiesOrView [, delimiterChar, quoteChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("nodes, propertiesOrView [, delimiterChar, quoteChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain ]");
 	}
 
 	@Override
@@ -158,7 +159,7 @@ public class ToCsvFunction extends CsvFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a CSV representation of the given nodes";
 	}
 

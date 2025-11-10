@@ -21,7 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class NotFunction extends CoreFunction {
 
@@ -33,8 +36,8 @@ public class NotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "bool";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("bool");
 	}
 
 	@Override
@@ -65,7 +68,7 @@ public class NotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Negates the given argument";
 	}
 }

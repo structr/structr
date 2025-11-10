@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -39,8 +40,8 @@ public class CleanFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("str");
 	}
 
 	@Override
@@ -93,7 +94,7 @@ public class CleanFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Cleans the given string";
 	}
 }

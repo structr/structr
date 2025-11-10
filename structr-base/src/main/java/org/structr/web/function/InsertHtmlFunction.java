@@ -21,10 +21,13 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
+
+import java.util.List;
 
 public class InsertHtmlFunction extends UiAdvancedFunction {
 
@@ -37,8 +40,8 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "parent, html";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("parent, html");
 	}
 
 	@Override
@@ -58,7 +61,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Inserts a new HTML subtree into the DOM";
 	}
 

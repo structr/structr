@@ -18,6 +18,10 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.docs.*;
+
+import java.util.List;
+
 public class PropertyHint extends AbstractHint {
 
 	public PropertyHint(final String name, final String documentation) {
@@ -32,7 +36,37 @@ public class PropertyHint extends AbstractHint {
 	}
 
 	@Override
-	public String getType() {
-		return "Property";
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.Property;
 	}
 }

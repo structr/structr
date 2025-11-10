@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -40,8 +41,8 @@ public class ConcatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "values...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("values...");
 	}
 
 	@Override
@@ -92,7 +93,7 @@ public class ConcatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Concatenates all its parameters to a single string with the given separator";
 	}
 

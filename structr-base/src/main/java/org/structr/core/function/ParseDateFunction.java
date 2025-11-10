@@ -22,10 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 public class ParseDateFunction extends CoreFunction {
 
@@ -38,8 +40,8 @@ public class ParseDateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, pattern";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("str, pattern");
 	}
 
 	@Override
@@ -92,7 +94,7 @@ public class ParseDateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Parses the given date string using the given format string";
 	}
 }

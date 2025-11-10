@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class EndsWithFunction extends CoreFunction {
 
@@ -31,8 +34,8 @@ public class EndsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, suffix";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("str, suffix");
 	}
 
 	@Override
@@ -60,7 +63,7 @@ public class EndsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if the given string ends with the given suffix";
 	}
 }

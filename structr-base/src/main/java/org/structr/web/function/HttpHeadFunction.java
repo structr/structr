@@ -18,7 +18,10 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
@@ -34,8 +37,8 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "url [, username, password ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url [, username, password ]");
 	}
 
 	@Override
@@ -81,7 +84,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sends an HTTP HEAD request to the given URL and returns the response headers";
 	}
 

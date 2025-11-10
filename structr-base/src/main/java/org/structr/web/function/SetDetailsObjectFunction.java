@@ -19,8 +19,11 @@
 package org.structr.web.function;
 
 import org.structr.core.GraphObject;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
+
+import java.util.List;
 
 public class SetDetailsObjectFunction extends UiCommunityFunction {
 
@@ -33,8 +36,8 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "obj";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("obj");
 	}
 
 	@Override
@@ -74,7 +77,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the given object as the detail object";
 	}
 }

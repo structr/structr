@@ -24,8 +24,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 
 public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
@@ -39,8 +41,8 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key");
 	}
 
 	@Override
@@ -80,7 +82,7 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Remove key/value pair from the user session.";
 	}
 }

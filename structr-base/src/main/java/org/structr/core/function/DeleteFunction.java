@@ -26,9 +26,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
@@ -45,8 +47,8 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "objectOrList";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("objectOrList");
 	}
 
 	@Override
@@ -70,7 +72,7 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Deletes the given entity from the database";
 	}
 

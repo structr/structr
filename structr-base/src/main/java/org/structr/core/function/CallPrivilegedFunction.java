@@ -19,8 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 public class CallPrivilegedFunction extends CallFunction {
 
@@ -33,8 +35,8 @@ public class CallPrivilegedFunction extends CallFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "functionName [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("functionName [, parameterMap ]");
 	}
 
 	@Override
@@ -43,7 +45,7 @@ public class CallPrivilegedFunction extends CallFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Calls the given global schema method with a superuser context";
 	}
 

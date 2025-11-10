@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
@@ -37,8 +40,8 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "bccAddress [, bccName ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("bccAddress [, bccName ]");
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Adds a BCC address and optional BCC name to the current mail";
 	}
 }

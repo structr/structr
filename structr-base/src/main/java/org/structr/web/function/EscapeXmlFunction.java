@@ -22,7 +22,10 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class EscapeXmlFunction extends UiCommunityFunction {
 
@@ -35,8 +38,8 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "string";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("string");
 	}
 
 	@Override
@@ -66,7 +69,7 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Replaces XML characters with their corresponding XML entities";
 	}
 }

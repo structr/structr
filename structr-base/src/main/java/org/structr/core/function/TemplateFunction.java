@@ -29,7 +29,10 @@ import org.structr.core.script.Scripting;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class TemplateFunction extends AdvancedScriptingFunction {
 
@@ -42,8 +45,8 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name, locale, entity";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name, locale, entity");
 	}
 
 	@Override
@@ -105,7 +108,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a MailTemplate object with the given name, replaces the placeholders with values from the given entity";
 	}
 }

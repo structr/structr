@@ -21,7 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class StoreFunction extends CoreFunction {
 
@@ -34,8 +37,8 @@ public class StoreFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key, value");
 	}
 
 	@Override
@@ -75,7 +78,7 @@ public class StoreFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Stores the given value with the given key in the temporary store";
 	}
 }

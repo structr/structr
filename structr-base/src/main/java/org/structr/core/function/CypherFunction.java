@@ -26,9 +26,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CypherFunction extends CoreFunction {
@@ -42,8 +44,8 @@ public class CypherFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "query [, parameterMap, runInNewTransaction]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("query [, parameterMap, runInNewTransaction]");
 	}
 
 	@Override
@@ -117,7 +119,7 @@ public class CypherFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the result of the given Cypher query";
 	}
 

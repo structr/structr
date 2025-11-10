@@ -20,7 +20,10 @@ package org.structr.core.function;
 
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class IsValidUuidFunction extends CoreFunction {
 
@@ -32,8 +35,8 @@ public class IsValidUuidFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "string";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("string");
 	}
 
 	@Override
@@ -53,7 +56,7 @@ public class IsValidUuidFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if the given string is a valid UUID according to the configured UUID format. Returns false otherwise and if non-string arguments are given.";
 	}
 }

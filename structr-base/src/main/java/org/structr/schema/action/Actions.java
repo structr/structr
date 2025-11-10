@@ -40,8 +40,12 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -90,8 +94,8 @@ public class Actions {
 			return logName;
 		}
 
-		public String getSignature() {
-			return signature;
+		public List<Signature> getSignatures() {
+			return Signature.forAllLanguages(signature);
 		}
 
 		public String getParameters() {

@@ -18,6 +18,8 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.docs.DocumentableType;
+
 public class UserDefinedFunctionHint extends MethodHint {
 
 	public UserDefinedFunctionHint(final String name, final String summary, final String description) {
@@ -30,7 +32,7 @@ public class UserDefinedFunctionHint extends MethodHint {
 	}
 
 	@Override
-	public String getType() {
-		return "User-defined function";
+	public DocumentableType getType() {
+		return DocumentableType.UserDefinedFunction;
 	}
 }

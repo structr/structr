@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
@@ -32,6 +33,7 @@ import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
+import java.util.List;
 import java.util.Map;
 
 public class FlowFunction extends Function<Object, Object> {
@@ -48,8 +50,8 @@ public class FlowFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name");
 	}
 
 	@Override
@@ -134,7 +136,7 @@ public class FlowFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the evaluation result of the Flow with the given name";
 	}
 }

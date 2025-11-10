@@ -19,6 +19,10 @@
 package org.structr.autocomplete;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.*;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class MethodHint extends AbstractHint {
 
@@ -40,7 +44,17 @@ public class MethodHint extends AbstractHint {
 
 	@Override
 	public String getDocumentation() {
-		return "**Summary**: " + openAPISummary + "\n\n" + "**Description**: " + openAPIDescription;
+
+		// this is the place where we assemble the hint text
+		final List<String> buf = new LinkedList<>();
+
+		buf.add("**Summary**");
+		buf.add(openAPISummary);
+		buf.add("");
+		buf.add("**Description**");
+		buf.add(openAPIDescription);
+
+		return StringUtils.join(buf, "\n");
 	}
 
 	@Override
@@ -59,7 +73,37 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public String getType() {
-		return "Method";
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return null;
+	}
+
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.Method;
 	}
 }

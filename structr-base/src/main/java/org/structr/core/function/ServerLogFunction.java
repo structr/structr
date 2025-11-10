@@ -22,6 +22,7 @@ import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
@@ -42,8 +43,8 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) ] ] ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) ] ] ]");
 	}
 
 	@Override
@@ -77,7 +78,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the last n lines from the server log file";
 	}
 

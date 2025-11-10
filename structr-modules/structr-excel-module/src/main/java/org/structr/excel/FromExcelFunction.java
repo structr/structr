@@ -31,6 +31,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProviderFactory;
@@ -52,8 +53,8 @@ public class FromExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
-		return "file [, sheetIndexOrName = 0 ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("file [, sheetIndexOrName = 0 ]");
 	}
 
 	@Override
@@ -118,7 +119,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads data from a given Excel sheet. The sheet can be passed as zero-indexed sheet number or by sheet name.";
 	}
 

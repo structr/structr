@@ -25,6 +25,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import javax.imageio.ImageIO;
@@ -32,6 +33,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BarcodeFunction extends UiAdvancedFunction {
@@ -45,8 +47,8 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, data [, width, height, hintKey, hintValue ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type, data [, width, height, hintKey, hintValue ]");
 	}
 
 	@Override
@@ -146,7 +148,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates a barcode of given type with the given data.";
 	}
 }

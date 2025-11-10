@@ -20,8 +20,11 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 
@@ -38,7 +41,7 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -56,7 +59,7 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the last error message (or null if no error has occured)";
 	}
 }

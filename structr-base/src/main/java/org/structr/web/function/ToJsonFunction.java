@@ -24,11 +24,11 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Signature;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 
 import java.io.StringWriter;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -43,8 +43,8 @@ public class ToJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "obj [, view, depth = 3, serializeNulls = true ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("obj [, view, depth = 3, serializeNulls = true ]");
 	}
 
 	@Override
@@ -126,7 +126,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Serializes the given object to JSON";
 	}
 }

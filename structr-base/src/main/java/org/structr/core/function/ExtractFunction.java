@@ -22,6 +22,7 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -40,8 +41,8 @@ public class ExtractFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list, propertyName";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("list, propertyName");
 	}
 
 	@Override
@@ -130,7 +131,7 @@ public class ExtractFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a collection of all the elements with a given name from a collection";
 	}
 

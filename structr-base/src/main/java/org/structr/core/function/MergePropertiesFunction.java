@@ -23,9 +23,11 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MergePropertiesFunction extends CoreFunction {
@@ -38,8 +40,8 @@ public class MergePropertiesFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target, keys";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source, target, keys");
 	}
 
 	@Override
@@ -97,7 +99,7 @@ public class MergePropertiesFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Copies property values from source entity to target entity, using the given list of keys";
 	}
 }

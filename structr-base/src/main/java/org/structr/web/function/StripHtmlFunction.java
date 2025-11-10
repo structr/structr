@@ -21,7 +21,10 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class StripHtmlFunction extends UiCommunityFunction {
 
@@ -34,8 +37,8 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "html";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("html");
 	}
 
 	@Override
@@ -65,7 +68,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Strips all (HTML) tags from the given string";
 	}
 }

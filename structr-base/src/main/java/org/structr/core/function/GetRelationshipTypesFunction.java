@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Signature;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -45,8 +46,8 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "node, lookupType [, direction ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("node, lookupType [, direction ]");
 	}
 
 	@Override
@@ -162,7 +163,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the list of available relationship types form and/or to this node. Either potentially available (schema) or actually available (database).";
 	}
 }

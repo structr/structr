@@ -19,8 +19,11 @@
 package org.structr.messaging.implementation.mqtt.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 
@@ -33,8 +36,8 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "client, topic";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("client, topic");
 	}
 
 	@Override
@@ -69,7 +72,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Unsubscribes given topic on given mqtt client.";
 	}
 }

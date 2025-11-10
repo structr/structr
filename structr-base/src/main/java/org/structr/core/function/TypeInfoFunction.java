@@ -19,8 +19,11 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class TypeInfoFunction extends AdvancedScriptingFunction {
 
@@ -33,8 +36,8 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, view]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type [, view]");
 	}
 
 	@Override
@@ -62,7 +65,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the type information for the specified type";
 	}
 }

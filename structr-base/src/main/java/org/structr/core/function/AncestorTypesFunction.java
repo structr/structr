@@ -18,13 +18,15 @@
  */
 package org.structr.core.function;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
@@ -37,8 +39,8 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, blacklist ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type [, blacklist ]");
 	}
 
 	@Override
@@ -102,7 +104,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the names of the parent types of the given type and filters out all entries of the blacklist collection.";
 	}
 }

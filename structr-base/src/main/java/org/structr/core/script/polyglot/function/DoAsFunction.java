@@ -30,9 +30,14 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
@@ -111,16 +116,19 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	}
 
 	@Override
-	public String shortDescription() {
-		return """
-			**JavaScript-only**
+	public String getShortDescription() {
+		return "Runs the given function in the context of the given user.";
+	}
 
-			Runs the given function in the context of the given user.
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
 
-			**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
-
-			Example:
-			```
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.js(
+			"""
 			${{
 			    let user = $.find('User', { name: 'user_to_impersonate' })[0];
 
@@ -129,12 +137,28 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 			        // code to be run as the given user
 			    });
 			}}
-			```
-			""";
+			"""
+		));
 	}
 
 	@Override
-	public String getSignature() {
-		return "user, function";
+	public List<String> getNotes() {
+
+		return List.of(
+			"**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+
+		return List.of(
+			Signature.of("user, function", Language.values())
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.Javascript);
 	}
 }

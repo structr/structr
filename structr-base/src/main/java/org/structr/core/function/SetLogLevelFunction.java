@@ -23,7 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SetLogLevelFunction extends CoreFunction {
 
@@ -38,8 +41,8 @@ public class SetLogLevelFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("str");
 	}
 
 	@Override
@@ -72,7 +75,7 @@ public class SetLogLevelFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the application log level to the given level, if supported. Change takes effect immediately until another call is made or the application is restarted. On system start, the configuration value is used.";
 	}
 

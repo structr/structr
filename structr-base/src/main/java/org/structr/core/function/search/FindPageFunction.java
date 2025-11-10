@@ -20,7 +20,10 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FindPageFunction extends AdvancedScriptingFunction {
 
@@ -67,7 +70,7 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
@@ -77,7 +80,7 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 }

@@ -18,11 +18,11 @@
  */
 package org.structr.geo;
 
-import org.geotools.referencing.CRS;
 import org.geotools.api.geometry.Position;
-import org.geotools.geometry.Position2D;
 import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
 import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.geometry.Position2D;
+import org.geotools.referencing.CRS;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
@@ -30,7 +30,10 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.DoubleProperty;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class UTMToLatLonFunction extends GeoFunction {
 
@@ -47,8 +50,8 @@ public class UTMToLatLonFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "utmString";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("utmString");
 	}
 
 	@Override
@@ -117,7 +120,7 @@ public class UTMToLatLonFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts the given UTM string to latitude/longitude coordinates.";
 	}
 

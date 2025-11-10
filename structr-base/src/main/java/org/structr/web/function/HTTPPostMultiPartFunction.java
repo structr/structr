@@ -31,6 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -42,6 +43,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HTTPPostMultiPartFunction extends HttpPostFunction {
@@ -55,8 +57,8 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "url, partsMap, contentType";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url, partsMap, contentType");
 	}
 
 	@Override
@@ -89,7 +91,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sends a multi-part HTTP POST request to the given URL and returns the response body";
 	}
 

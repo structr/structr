@@ -19,7 +19,10 @@
 package org.structr.web.function;
 
 import org.structr.core.scheduler.JobQueueManager;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class JobListFunction extends UiAdvancedFunction {
 
@@ -32,7 +35,7 @@ public class JobListFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -55,7 +58,7 @@ public class JobListFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a list of running jobs";
 	}
 }

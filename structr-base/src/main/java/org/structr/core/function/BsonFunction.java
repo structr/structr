@@ -23,8 +23,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class BsonFunction extends AdvancedScriptingFunction {
@@ -37,8 +39,8 @@ public class BsonFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "data";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("data");
 	}
 
 	@Override
@@ -69,7 +71,7 @@ public class BsonFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates BSON document from a map / object";
 	}
 }

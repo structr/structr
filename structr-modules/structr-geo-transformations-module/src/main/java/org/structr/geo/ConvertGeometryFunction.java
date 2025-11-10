@@ -19,15 +19,18 @@
 package org.structr.geo;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.api.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ConvertGeometryFunction extends GeoFunction {
 
@@ -40,8 +43,8 @@ public class ConvertGeometryFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "sourceCRS, destCRS, geometry";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("sourceCRS, destCRS, geometry");
 	}
 
 	@Override
@@ -85,7 +88,7 @@ public class ConvertGeometryFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts the given geometry from source CRS to destination CRS";
 	}
 }

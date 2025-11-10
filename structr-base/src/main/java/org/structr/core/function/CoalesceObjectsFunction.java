@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 public class CoalesceObjectsFunction extends CoreFunction {
@@ -33,8 +36,8 @@ public class CoalesceObjectsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "obj1, obj2, obj3, ...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("obj1, obj2, obj3, ...");
 	}
 
 	@Override
@@ -69,7 +72,7 @@ public class CoalesceObjectsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned";
 	}
 

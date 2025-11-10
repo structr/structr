@@ -25,15 +25,16 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
 
 public class CreateZipFunction extends UiAdvancedFunction {
 
@@ -46,8 +47,8 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "archiveFileName, files [, password [, encryptionMethod ] ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("archiveFileName, files [, password [, encryptionMethod ] ]");
 	}
 
 	@Override
@@ -177,7 +178,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 
 		return "Create a ZIP archive file with the given files and folders.";
 	}

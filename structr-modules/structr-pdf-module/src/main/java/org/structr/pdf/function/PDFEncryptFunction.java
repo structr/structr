@@ -30,11 +30,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
+import java.util.List;
 
 public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
@@ -48,8 +50,8 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "file, password";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("file, password");
 	}
 
 	@Override
@@ -117,7 +119,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Encrypts a PDF file so that it can't be opened without password.";
 	}
 }

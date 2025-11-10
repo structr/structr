@@ -21,7 +21,10 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RequestStoreGetFunction extends UiAdvancedFunction {
 
@@ -34,8 +37,8 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key");
 	}
 
 	@Override
@@ -65,7 +68,7 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Retrieves a stored value from the request level store.";
 	}
 }

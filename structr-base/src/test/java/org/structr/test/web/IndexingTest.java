@@ -65,8 +65,6 @@ public abstract class IndexingTest extends StructrUiTest {
 
 		Services.enableIndexConfiguration();
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized

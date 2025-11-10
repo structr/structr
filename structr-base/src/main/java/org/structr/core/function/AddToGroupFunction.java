@@ -26,7 +26,13 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class AddToGroupFunction extends AdvancedScriptingFunction {
 
@@ -39,8 +45,32 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "group, user";
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("group", "The group to add to"),
+			Parameter.mandatory("principal", "The user or group to add to the given group")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return Language.all();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("group, user");
 	}
 
 	@Override
@@ -88,7 +118,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Adds a user to a group.";
 	}
 }

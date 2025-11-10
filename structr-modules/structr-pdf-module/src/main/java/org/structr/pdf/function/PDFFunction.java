@@ -27,6 +27,7 @@ import org.eclipse.jetty.server.Session;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.docs.Signature;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -49,8 +50,8 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
-		return "pageName [, wkthtmlParams, baseUrl, runWithX, xSettings ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("pageName [, wkthtmlParams, baseUrl, runWithX, xSettings ]");
 	}
 
 	@Override
@@ -252,7 +253,7 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates the PDF representation of a given page.";
 	}
 }

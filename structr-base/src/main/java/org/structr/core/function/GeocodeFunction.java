@@ -25,9 +25,11 @@ import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.traits.definitions.LocationTraitDefinition;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GeocodeFunction extends AdvancedScriptingFunction {
@@ -40,8 +42,8 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "street, city, country";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("street, city, country");
 	}
 
 	@Override
@@ -117,7 +119,7 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the geolocation (latitude, longitude) for the given street address using the configured geocoding provider";
 	}
 }

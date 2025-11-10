@@ -33,6 +33,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
@@ -51,8 +52,8 @@ public class RemoteCypherFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "url, username, password, query [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url, username, password, query [, parameterMap ]");
 	}
 
 	@Override
@@ -108,7 +109,7 @@ public class RemoteCypherFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the result of the given Cypher query against a remote instance";
 	}
 

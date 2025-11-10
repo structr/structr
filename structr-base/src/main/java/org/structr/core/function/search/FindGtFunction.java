@@ -20,7 +20,10 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FindGtFunction extends AdvancedScriptingFunction {
 
@@ -32,7 +35,7 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -62,7 +65,7 @@ public class FindGtFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a gt predicate that can be used in find() function calls";
 	}
 

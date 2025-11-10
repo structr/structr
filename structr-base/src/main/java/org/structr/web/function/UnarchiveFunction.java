@@ -20,17 +20,19 @@ package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+
+import java.util.List;
 
 public class UnarchiveFunction extends UiAdvancedFunction {
 
@@ -43,8 +45,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "file, [, parentFolder ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("file, [, parentFolder ]");
 	}
 
 	@Override
@@ -95,7 +97,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 
 		return "Unarchives given file to an optional parent folder.";
 	}

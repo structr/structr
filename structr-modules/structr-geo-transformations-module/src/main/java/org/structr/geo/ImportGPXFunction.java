@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.property.*;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -80,8 +81,8 @@ public class ImportGPXFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "gpxString";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("gpxString");
 	}
 
 	@Override
@@ -172,7 +173,7 @@ public class ImportGPXFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Imports a GPX file and creates a list of objects of a given type from it.";
 	}
 

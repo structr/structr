@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.sql.*;
@@ -39,8 +40,8 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "jdbcUrl, sqlQuery[, username, password]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("jdbcUrl, sqlQuery[, username, password]");
 	}
 
 	@Override
@@ -130,7 +131,7 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Fetches data from a JDBC source";
 	}
 

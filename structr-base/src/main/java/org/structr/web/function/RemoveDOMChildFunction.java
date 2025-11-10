@@ -22,10 +22,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.command.RemoveCommand;
+
+import java.util.List;
 
 public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
@@ -38,8 +41,8 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "parent, child";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("parent, child");
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Removes a node from the DOM";
 	}
 

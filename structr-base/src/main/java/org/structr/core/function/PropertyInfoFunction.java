@@ -23,8 +23,11 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
@@ -38,8 +41,8 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, propertyName";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type, propertyName");
 	}
 
 	@Override
@@ -63,13 +66,13 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 				} else {
 
-					logger.warn("Error: Unknown property \"{}.{}\". Parameters: {}", new Object[] { typeName, keyName, getParametersAsString(sources) });
+					logger.warn("Error: Unknown property \"{}.{}\". Parameters: {}", typeName, keyName, getParametersAsString(sources));
 					return "Unknown property " + typeName + "." + keyName;
 				}
 
 			} else {
 
-				logger.warn("Error: Unknown type \"{}\". Parameters: {}", new Object[] { typeName, getParametersAsString(sources) });
+				logger.warn("Error: Unknown type \"{}\". Parameters: {}", typeName, getParametersAsString(sources));
 				return "Unknown type " + typeName;
 			}
 
@@ -91,7 +94,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the schema information for the given property";
 	}
 }

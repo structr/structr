@@ -22,7 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.Scripting;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class LogFunction extends CoreFunction {
 
@@ -37,8 +40,8 @@ public class LogFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("str");
 	}
 
 	@Override
@@ -73,7 +76,7 @@ public class LogFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Logs the given string to the logfile";
 	}
 }

@@ -24,6 +24,7 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -41,8 +42,8 @@ public class FromJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source");
 	}
 
 	@Override
@@ -142,7 +143,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Parses the given JSON string and returns an object";
 	}
 

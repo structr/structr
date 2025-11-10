@@ -22,6 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -31,6 +32,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.List;
 
 public class XmlFunction extends AdvancedScriptingFunction {
 
@@ -42,8 +44,8 @@ public class XmlFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source");
 	}
 
 	@Override
@@ -95,7 +97,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Parses the given string to an XML DOM";
 	}
 

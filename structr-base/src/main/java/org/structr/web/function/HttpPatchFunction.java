@@ -23,9 +23,11 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Signature;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class HttpPatchFunction extends UiAdvancedFunction {
@@ -39,8 +41,8 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "url, body [, contentType, charset ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url, body [, contentType, charset ]");
 	}
 
 	@Override
@@ -105,7 +107,7 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sends an HTTP PATCH request to the given URL and returns the response body";
 	}
 }

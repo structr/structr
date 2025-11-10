@@ -31,6 +31,7 @@ import org.structr.core.property.ByteArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Signature;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -54,8 +55,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "url [, contentType [, username, password] ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url [, contentType [, username, password] ]");
 	}
 
 	@Override
@@ -183,7 +184,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sends an HTTP GET request to the given URL and returns the response headers and body";
 	}
 

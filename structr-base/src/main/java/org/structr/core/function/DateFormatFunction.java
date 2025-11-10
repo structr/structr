@@ -22,11 +22,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.TemporalDateConverter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 public class DateFormatFunction extends CoreFunction {
 
@@ -39,8 +41,8 @@ public class DateFormatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value, pattern";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value, pattern");
 	}
 
 	@Override
@@ -104,7 +106,7 @@ public class DateFormatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Formats the given value as a date string with the given format string";
 	}
 }

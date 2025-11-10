@@ -22,6 +22,7 @@ import org.structr.autocomplete.AbstractHint;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -37,8 +38,8 @@ public class RetrieveFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key");
 	}
 
 	@Override
@@ -72,7 +73,7 @@ public class RetrieveFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the value associated with the given key from the temporary store";
 	}
 

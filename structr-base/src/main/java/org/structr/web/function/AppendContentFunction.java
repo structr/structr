@@ -23,11 +23,13 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 public class AppendContentFunction extends UiAdvancedFunction {
 
@@ -40,8 +42,8 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "file, content [, encoding=UTF-8 ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("file, content [, encoding=UTF-8 ]");
 	}
 
 	@Override
@@ -103,5 +105,5 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() { return "Appends the content to the given file. Content can either be of type String or byte[]."; }
+	public String getShortDescription() { return "Appends the content to the given file. Content can either be of type String or byte[]."; }
 }

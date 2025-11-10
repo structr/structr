@@ -27,9 +27,11 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.awt.geom.Point2D;
+import java.util.List;
 
 public class LineSegmentFunction extends GeoFunction {
 
@@ -42,8 +44,8 @@ public class LineSegmentFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "point, azimuth, length";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("point, azimuth, length");
 	}
 
 	@Override
@@ -98,7 +100,7 @@ public class LineSegmentFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a line segment with start point, azimuth and length";
 	}
 }

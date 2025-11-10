@@ -18,7 +18,10 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
@@ -31,8 +34,8 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "boolean";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("boolean");
 	}
 
 	@Override
@@ -53,7 +56,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Disables or enables strict certificate checking when performing a request in a scripting context. The setting remains for the whole request.";
 	}
 }

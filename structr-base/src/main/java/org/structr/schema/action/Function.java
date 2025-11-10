@@ -18,8 +18,6 @@
  */
 package org.structr.schema.action;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -35,6 +33,10 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
+import org.structr.docs.DocumentableType;
+import org.structr.docs.Example;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.File;
@@ -61,6 +63,35 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	public String getNamespaceIdentifier() {
 		return null;
+	}
+
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.BuiltInFunction;
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		// override this method to modify default behaviour
+		return Language.all();
 	}
 
 	public int hashCode() {

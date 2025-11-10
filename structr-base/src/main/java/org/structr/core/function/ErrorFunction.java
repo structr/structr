@@ -22,7 +22,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ErrorFunction extends AdvancedScriptingFunction {
 
@@ -34,8 +37,8 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "propertyName, errorToken [, errorMessage]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("propertyName, errorToken [, errorMessage]");
 	}
 
 	@Override
@@ -91,7 +94,7 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Signals an error to the caller";
 	}
 

@@ -22,9 +22,11 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
+import java.util.List;
 import java.util.Set;
 
 public class StopWordsFunction extends Function<Object, Object> {
@@ -38,8 +40,8 @@ public class StopWordsFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
-		return "language";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("language");
 	}
 
 	@Override
@@ -75,7 +77,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a list of words (for the given language) which can be ignored for NLP purposes";
 	}
 

@@ -22,9 +22,11 @@ import org.apache.commons.io.IOUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.*;
+import java.util.List;
 
 public class WriteFunction extends AdvancedScriptingFunction {
 
@@ -36,8 +38,8 @@ public class WriteFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "fileName, text";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("fileName, text");
 	}
 
 	@Override
@@ -96,7 +98,7 @@ public class WriteFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Writes to the given file in the exchange directoy";
 	}
 }

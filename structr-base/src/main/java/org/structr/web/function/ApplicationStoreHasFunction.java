@@ -22,7 +22,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 
@@ -35,8 +38,8 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key");
 	}
 
 	@Override
@@ -66,7 +69,7 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Checks if a key is present in the application level store.";
 	}
 }

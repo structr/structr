@@ -28,8 +28,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class FindRelationshipFunction extends CoreFunction {
@@ -44,8 +46,8 @@ public class FindRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type [, parameterMap ]");
 	}
 
 	@Override
@@ -154,7 +156,7 @@ public class FindRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs";
 	}
 

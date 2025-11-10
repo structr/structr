@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import javax.crypto.Mac;
@@ -28,6 +29,7 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public class HMACFunction extends CoreFunction {
 
@@ -103,13 +105,13 @@ public class HMACFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm,";
 	}
 
 	@Override
-	public String getSignature() {
-		return "value, secret [, hashAlgorithm ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value, secret [, hashAlgorithm ]");
 	}
 
 	@Override

@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 
@@ -37,8 +40,8 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-			return "smtpHost = 'localhost', smtpPort = 25, smtpUser = null, smtpPassword = null, smtpUseTLS = true, smtpRequireTLS = true";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("smtpHost = 'localhost', smtpPort = 25, smtpUser = null, smtpPassword = null, smtpUseTLS = true, smtpRequireTLS = true");
 	}
 
 	@Override
@@ -97,7 +100,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets a manual SMTP configuration for the current mail";
 	}
 }

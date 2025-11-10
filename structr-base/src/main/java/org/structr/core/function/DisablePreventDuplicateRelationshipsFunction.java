@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
@@ -35,7 +38,7 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -53,7 +56,7 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Disables prevention of duplicate relationships in many-to-many rels in the Structr Backend for the current transaction - USE AT YOUR OWN RISK!";
 	}
 

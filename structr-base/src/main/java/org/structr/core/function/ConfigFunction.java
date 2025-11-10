@@ -24,7 +24,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ConfigFunction extends AdvancedScriptingFunction {
 
@@ -37,8 +40,8 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "configKey [, defaultValue ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("configKey [, defaultValue ]");
 	}
 
 	@Override
@@ -91,7 +94,7 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the structr.conf value for the given key";
 	}
 }

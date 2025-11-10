@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
@@ -32,8 +35,8 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "secretKey";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("secretKey");
 	}
 
 	@Override
@@ -67,7 +70,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf";
 	}
 }

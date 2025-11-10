@@ -18,10 +18,15 @@
  */
 package org.structr.autocomplete;
 
-public abstract class BuiltinFunctionHint extends AbstractHint {
+import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.DocumentableType;
+import org.structr.docs.Example;
+import org.structr.docs.Language;
 
-	public abstract String shortDescription();
-	public abstract String getSignature();
+import java.util.LinkedList;
+import java.util.List;
+
+public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	@Override
 	public String getDisplayName() {
@@ -32,7 +37,49 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	@Override
 	public String getDocumentation() {
-		return shortDescription();
+
+		// this is the place where we assemble the hint text
+		final List<String> buf = new LinkedList<>();
+
+		if (isJavascriptOnly()) { buf.add("**Javascript only**"); }
+		if (isStructrScriptOnly()) { buf.add("**StructrScript only**"); }
+
+		// newline
+		buf.add("");
+
+		buf.add(getShortDescription());
+
+		if (hasExamples()) {
+
+			final List<Example> examples = getExamples();
+
+			if (examples.size() == 1) {
+
+				buf.add("**Example:**");
+
+			} else {
+
+				buf.add("**Examples:**");
+			}
+
+			for (final Example example : examples) {
+
+				// newline
+				buf.add("");
+				buf.add("```");
+				buf.add(example.text);
+				buf.add("```");
+
+				// example description
+				if (example.description != null) {
+
+					buf.add("");
+					buf.add(example.text);
+				}
+			}
+		}
+
+		return StringUtils.join(buf, "\n");
 	}
 
 	@Override
@@ -43,7 +90,7 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 		buf.append(getName());
 		buf.append("(");
 
-		final String signature = getSignature();
+		final String signature = getFirstSignature();
 		if (signature != null) {
 
 			buf.append(signature);
@@ -55,7 +102,25 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 	}
 
 	@Override
-	public String getType() {
-		return "Built-in function";
+	public DocumentableType getType() {
+		return DocumentableType.BuiltInFunction;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	// ----- private methods -----
+	private boolean isJavascriptOnly() {
+		return getLanguages().containsAll(List.of(Language.Javascript));
+	}
+
+	private boolean isStructrScriptOnly() {
+		return getLanguages().containsAll(List.of(Language.StructrScript));
+	}
+
+	private boolean hasExamples() {
+		return getExamples() != null;
 	}
 }

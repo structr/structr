@@ -28,9 +28,11 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class GrantFunction extends AdvancedScriptingFunction {
@@ -44,8 +46,8 @@ public class GrantFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "user, node, permissions";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("user, node, permissions");
 	}
 
 	@Override
@@ -119,7 +121,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Grants the given permissions on the given entity to a user";
 	}
 }

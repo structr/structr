@@ -28,8 +28,11 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
+
+import java.util.List;
 
 public class StructrEnvFunction extends AdvancedScriptingFunction {
 
@@ -42,8 +45,8 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "";
+	public List<Signature> getSignatures() {
+		return null;
 	}
 
 	@Override
@@ -57,7 +60,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns Structr runtime env information.";
 	}
 

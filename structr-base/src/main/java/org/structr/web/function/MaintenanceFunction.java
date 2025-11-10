@@ -30,11 +30,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Signature;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MaintenanceFunction extends UiAdvancedFunction {
@@ -50,8 +52,8 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "command [, key, value [, ... ]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("command [, key, value [, ... ]]");
 	}
 
 	@Override
@@ -175,7 +177,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Executes a maintenance command.";
 	}
 }

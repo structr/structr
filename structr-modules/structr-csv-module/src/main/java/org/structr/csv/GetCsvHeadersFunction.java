@@ -21,9 +21,11 @@ package org.structr.csv;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.StringReader;
+import java.util.List;
 
 public class GetCsvHeadersFunction extends CsvFunction {
 
@@ -36,8 +38,8 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' ]]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' ]]]");
 	}
 
 	@Override
@@ -100,7 +102,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Parses the given CSV string and returns a list of column headers";
 	}
 }

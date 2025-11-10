@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailAddToFunction extends AdvancedMailModuleFunction {
 
@@ -37,8 +40,8 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "toAddress [, toName ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("toAddress [, toName ]");
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Adds a FROM address and optional FROM name to the current mail";
 	}
 }

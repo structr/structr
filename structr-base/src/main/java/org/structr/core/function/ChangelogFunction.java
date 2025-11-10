@@ -38,6 +38,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
@@ -65,8 +66,8 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity [, resolve=false [, filterKey, filterValue ]... ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("entity [, resolve=false [, filterKey, filterValue ]... ]");
 	}
 
 	@Override
@@ -143,7 +144,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the changelog object";
 	}
 

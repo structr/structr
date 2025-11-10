@@ -22,6 +22,7 @@ import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
@@ -29,6 +30,7 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.net.MalformedURLException;
+import java.util.List;
 
 public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 
@@ -45,8 +47,8 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "content, contentType";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("content, contentType");
 	}
 
 	@Override
@@ -75,7 +77,7 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Adds an attachment file and an optional file name to the current mail";
 	}
 

@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
@@ -34,8 +37,8 @@ public class OneFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "number, oneValue, otherValue";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("number, oneValue, otherValue");
 	}
 
 	@Override
@@ -58,7 +61,7 @@ public class OneFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Checks if a number is equal to 1, returns the oneValue if yes, the otherValue if no.";
 	}
 

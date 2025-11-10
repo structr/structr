@@ -22,7 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class JoinFunction extends CoreFunction {
 
@@ -34,8 +37,8 @@ public class JoinFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list, separator";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("list, separator");
 	}
 
 	@Override
@@ -74,7 +77,7 @@ public class JoinFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Joins all its parameters to a single string using the given separator";
 	}
 }

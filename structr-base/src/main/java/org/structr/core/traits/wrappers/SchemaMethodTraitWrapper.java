@@ -20,7 +20,6 @@ package org.structr.core.traits.wrappers;
 
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.api.ScriptMethod;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;

@@ -19,7 +19,12 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 public class CoalesceFunction extends CoreFunction {
@@ -33,8 +38,23 @@ public class CoalesceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2, value3, ...";
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("strings..", "a list of strings to coalesce")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.ss("coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null"),
+			Example.js("$.coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value1, value2, value3, ...");
 	}
 
 	@Override
@@ -67,7 +87,7 @@ public class CoalesceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned";
 	}
 

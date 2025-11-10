@@ -26,8 +26,10 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class CreateFunction extends CoreFunction {
@@ -41,8 +43,8 @@ public class CreateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type [, parameterMap ]");
 	}
 
 	@Override
@@ -119,7 +121,7 @@ public class CreateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates a new entity with the given key/value pairs in the database";
 	}
 

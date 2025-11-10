@@ -20,7 +20,10 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FindNotFunction extends CoreFunction {
 
@@ -64,7 +67,7 @@ public class FindNotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a query predicate that can be used with find() or search().";
 	}
 
@@ -74,7 +77,7 @@ public class FindNotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 }

@@ -22,7 +22,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class InvalidateCacheValueFunction extends CoreFunction {
 
@@ -35,8 +38,8 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "cacheKey";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("cacheKey");
 	}
 
 	@Override
@@ -65,7 +68,7 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Invalidates the cached value for the given key (if present).";
 	}
 }

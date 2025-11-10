@@ -18,17 +18,18 @@
  */
 package org.structr.geo;
 
+import org.geotools.api.coverage.processing.Operation;
+import org.geotools.api.parameter.ParameterValueGroup;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.processing.CoverageProcessor;
 import org.locationtech.jts.geom.Geometry;
-import org.geotools.api.coverage.processing.Operation;
-import org.geotools.api.parameter.ParameterValueGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import javax.media.jai.Histogram;
@@ -50,8 +51,8 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "baseUrl, coverageId, bBox [, bins, lowValue ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("baseUrl, coverageId, bBox [, bins, lowValue ]");
 	}
 
 	@Override
@@ -156,7 +157,7 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads coverage data from a WCS endpoint and returns it";
 	}
 }

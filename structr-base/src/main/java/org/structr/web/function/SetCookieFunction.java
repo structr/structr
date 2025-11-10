@@ -24,8 +24,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 
 public class SetCookieFunction extends UiAdvancedFunction {
@@ -39,8 +41,8 @@ public class SetCookieFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]");
 	}
 
 	@Override
@@ -112,7 +114,7 @@ public class SetCookieFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the given cookie";
 	}
 }

@@ -22,8 +22,10 @@ package org.structr.web.function;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 
 public class SetResponseCodeFunction extends UiAdvancedFunction {
@@ -37,8 +39,8 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "code";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("code");
 	}
 
 	@Override
@@ -82,7 +84,7 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the response code of the current rendering run";
 	}
 

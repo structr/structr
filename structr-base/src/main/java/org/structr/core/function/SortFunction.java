@@ -25,6 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
@@ -40,8 +41,8 @@ public class SortFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list [, propertyName [, descending=false] ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("list [, propertyName [, descending=false] ]");
 	}
 
 	@Override
@@ -126,7 +127,7 @@ public class SortFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sorts the given collection or array according to the given property key. Default sort key is 'name'.";
 	}
 

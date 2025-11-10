@@ -23,11 +23,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class HasCssClassFunction extends UiAdvancedFunction {
@@ -41,8 +43,8 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "element, css";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("element, css");
 	}
 
 	@Override
@@ -87,7 +89,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns whether the given element has the given CSS class(es).";
 	}
 }

@@ -23,7 +23,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SleepFunction extends CoreFunction {
 
@@ -36,8 +39,8 @@ public class SleepFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "milliseconds";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("milliseconds");
 	}
 
 	@Override
@@ -85,7 +88,7 @@ public class SleepFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Pauses the execution of the current thread for the given number of milliseconds.";
 	}
 }

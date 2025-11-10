@@ -22,6 +22,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.StringReader;
@@ -41,8 +42,8 @@ public class FromCsvFunction extends CsvFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' [, header [, escapeChar = '\\\\' ]]]]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' [, header [, escapeChar = '\\\\' ]]]]]");
 	}
 
 	@Override
@@ -115,7 +116,7 @@ public class FromCsvFunction extends CsvFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Parses the given CSV string and returns a list objects";
 	}
 }

@@ -18,8 +18,11 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ConfirmationKeyFunction extends UiCommunityFunction {
 
@@ -32,7 +35,7 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -48,7 +51,7 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates a confirmation key to use as a one-time token. Used for user confirmation or password reset.";
 	}
 }

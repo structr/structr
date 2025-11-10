@@ -23,12 +23,14 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Scanner;
 
 public class GetContentFunction extends UiAdvancedFunction {
@@ -42,8 +44,8 @@ public class GetContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "file [, encoding=UTF-8 ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("file [, encoding=UTF-8 ]");
 	}
 
 	@Override
@@ -93,7 +95,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the content of the given file";
 	}
 }

@@ -21,7 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class DecryptFunction extends AdvancedScriptingFunction {
 
@@ -34,8 +37,8 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value [, secret ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value [, secret ]");
 	}
 
 	@Override
@@ -101,7 +104,7 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Decrypts the given string with a secret key from structr.conf or argument 2";
 	}
 }

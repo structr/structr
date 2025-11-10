@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -35,8 +36,8 @@ public class ComplementFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "sourceList, obj, ...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("sourceList, obj, ...");
 	}
 
 	@Override
@@ -91,7 +92,7 @@ public class ComplementFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the complement of all lists";
 	}
 

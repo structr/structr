@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
@@ -37,8 +40,8 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name, value");
 	}
 
 	@Override
@@ -68,7 +71,7 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets a SMTP header in the current mail";
 	}
 }

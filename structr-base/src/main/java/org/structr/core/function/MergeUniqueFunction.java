@@ -19,10 +19,12 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 public class MergeUniqueFunction extends CoreFunction {
@@ -35,8 +37,8 @@ public class MergeUniqueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list1, list2, list3...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("list1, list2, list3...");
 	}
 
 	@Override
@@ -72,7 +74,7 @@ public class MergeUniqueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Merges the given collections / objects into a single collection, removing duplicates";
 	}
 

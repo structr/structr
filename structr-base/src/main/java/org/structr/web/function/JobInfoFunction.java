@@ -19,8 +19,10 @@
 package org.structr.web.function;
 
 import org.structr.core.scheduler.JobQueueManager;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class JobInfoFunction extends UiAdvancedFunction {
@@ -34,8 +36,8 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "jobId";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("jobId");
 	}
 
 	@Override
@@ -72,7 +74,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns job information for the given job id - if the job does not exist, false is returned";
 	}
 }

@@ -20,7 +20,10 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RollbackTransactionFunction extends CoreFunction {
 
@@ -47,13 +50,13 @@ public class RollbackTransactionFunction extends CoreFunction {
         }
 
         @Override
-        public String shortDescription() {
+        public String getShortDescription() {
                 return "Marks the current transaction as failed and prevents all objects from being persisted in the database.";
         }
 
         @Override
-        public String getSignature() {
-                return "";
+        public List<Signature> getSignatures() {
+		return null;
         }
 
         @Override

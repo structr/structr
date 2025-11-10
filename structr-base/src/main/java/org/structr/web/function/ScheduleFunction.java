@@ -22,10 +22,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.scheduler.JobQueueManager;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
 
 import java.util.Collections;
+import java.util.List;
 
 public class ScheduleFunction extends UiAdvancedFunction {
 
@@ -38,8 +40,8 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "script [, title ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("script [, title ]");
 	}
 
 	@Override
@@ -83,7 +85,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Schedules a script or a function to be executed in a separate thread.";
 	}
 }

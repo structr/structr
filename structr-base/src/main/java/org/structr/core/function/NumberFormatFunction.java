@@ -21,10 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.List;
 import java.util.Locale;
 
 public class NumberFormatFunction extends CoreFunction {
@@ -38,8 +40,8 @@ public class NumberFormatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value, locale, format";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value, locale, format");
 	}
 
 	@Override
@@ -84,7 +86,7 @@ public class NumberFormatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Formats the given value using the given locale and format string";
 	}
 }

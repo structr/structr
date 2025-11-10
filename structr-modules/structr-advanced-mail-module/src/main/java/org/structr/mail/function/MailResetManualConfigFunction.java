@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
@@ -37,8 +40,8 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-			return "";
+	public List<Signature> getSignatures() {
+		return null;
 	}
 
 	@Override
@@ -63,7 +66,7 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Resets a manual SMTP configuration for the current mail";
 	}
 }

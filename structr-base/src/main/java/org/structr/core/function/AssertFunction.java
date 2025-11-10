@@ -20,7 +20,10 @@ package org.structr.core.function;
 
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class AssertFunction extends AdvancedScriptingFunction {
 
@@ -33,8 +36,8 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "condition, statusCode, message";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("condition, statusCode, message");
 	}
 
 	@Override
@@ -78,7 +81,7 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Aborts the current request if the given condition evaluates to false.";
 	}
 

@@ -25,7 +25,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MakePolygonValidFunction extends GeoFunction {
 
@@ -38,8 +41,8 @@ public class MakePolygonValidFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "polygon";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("polygon");
 	}
 
 	@Override
@@ -82,7 +85,7 @@ public class MakePolygonValidFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Makes a polygon valid.";
 	}
 }

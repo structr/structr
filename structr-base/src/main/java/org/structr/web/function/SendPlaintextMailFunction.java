@@ -23,7 +23,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
@@ -35,8 +38,8 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "from, fromName, to, toName, subject, content";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("from, fromName, to, toName, subject, content");
 	}
 
 	@Override
@@ -82,7 +85,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sends a plaintext e-mail";
 	}
 }

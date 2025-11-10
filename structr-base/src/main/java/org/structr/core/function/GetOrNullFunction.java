@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -40,8 +41,8 @@ public class GetOrNullFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, propertyName";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("entity, propertyName");
 	}
 
 	@Override
@@ -107,7 +108,7 @@ public class GetOrNullFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the value with the given name of the given entity, or null";
 	}
 }

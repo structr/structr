@@ -20,9 +20,11 @@ package org.structr.core.function;
 
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.*;
+import java.util.List;
 
 public class AppendFunction extends AdvancedScriptingFunction {
 
@@ -34,8 +36,8 @@ public class AppendFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "fileName, text";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("fileName, text");
 	}
 
 	@Override
@@ -83,7 +85,7 @@ public class AppendFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Appends to the given file in the exchange directoy";
 	}
 }

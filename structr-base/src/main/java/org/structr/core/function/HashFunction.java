@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.math.BigInteger;
@@ -28,63 +29,64 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.util.List;
 import java.util.TreeSet;
 
 public class HashFunction extends CoreFunction {
 
-    public static final String ERROR_MESSAGE_HASH    = "Usage: ${hash(algorithm, value)}. Example: ${hash(\"SHA-256\", \"test\")}";
-    public static final String ERROR_MESSAGE_HASH_JS = "Usage: ${{ $.hash(algorithm, value); }}. Example: ${{ $.hash(\"SHA-256\", \"test\")}}";
+	public static final String ERROR_MESSAGE_HASH = "Usage: ${hash(algorithm, value)}. Example: ${hash(\"SHA-256\", \"test\")}";
+	public static final String ERROR_MESSAGE_HASH_JS = "Usage: ${{ $.hash(algorithm, value); }}. Example: ${{ $.hash(\"SHA-256\", \"test\")}}";
 
-    @Override
-    public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	@Override
+	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-        try {
+		try {
 
-            assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-            final String algorithm     = (String) sources[0];
-            final String text          = (String) sources[1];
+			final String algorithm = (String) sources[0];
+			final String text = (String) sources[1];
 
-            final byte[] bytes          = MessageDigest.getInstance(algorithm).digest(text.getBytes(StandardCharsets.UTF_8));
-            final BigInteger bigInteger = new BigInteger(1, bytes);
+			final byte[] bytes = MessageDigest.getInstance(algorithm).digest(text.getBytes(StandardCharsets.UTF_8));
+			final BigInteger bigInteger = new BigInteger(1, bytes);
 
-            return String.format("%0" + (bytes.length << 1) + "x", bigInteger);
+			return String.format("%0" + (bytes.length << 1) + "x", bigInteger);
 
-        } catch (NoSuchAlgorithmException e) {
+		} catch (NoSuchAlgorithmException e) {
 
-            logger.warn("{}: Given algorithm \"{}\" not available - the following algorithms are available: \"{}\"", getReplacement(), sources[0], String.join(", ", new TreeSet(Security.getAlgorithms("MessageDigest"))));
+			logger.warn("{}: Given algorithm \"{}\" not available - the following algorithms are available: \"{}\"", getReplacement(), sources[0], String.join(", ", new TreeSet(Security.getAlgorithms("MessageDigest"))));
 
-        } catch (ArgumentNullException pe) {
+		} catch (ArgumentNullException pe) {
 
-            logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-            return usage(ctx.isJavaScriptContext());
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
-        } catch (ArgumentCountException pe) {
+		} catch (ArgumentCountException pe) {
 
-            logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-            return usage(ctx.isJavaScriptContext());
-        }
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    public String usage(boolean inJavaScriptContext) {
-        return (inJavaScriptContext ? ERROR_MESSAGE_HASH_JS : ERROR_MESSAGE_HASH);
-    }
+	@Override
+	public String usage(boolean inJavaScriptContext) {
+		return (inJavaScriptContext ? ERROR_MESSAGE_HASH_JS : ERROR_MESSAGE_HASH);
+	}
 
-    @Override
-    public String shortDescription() {
-        return "Returns the hash (as a hexadecimal string) of a given string, using the given algorithm (if available via the underlying JVM).";
-    }
+	@Override
+	public String getShortDescription() {
+		return "Returns the hash (as a hexadecimal string) of a given string, using the given algorithm (if available via the underlying JVM).";
+	}
 
-    @Override
-    public String getSignature() {
-        return "algorithm, value";
-    }
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("algorithm, value");
+	}
 
-    @Override
-    public String getName() {
-        return "hash";
-    }
+	@Override
+	public String getName() {
+		return "hash";
+	}
 }

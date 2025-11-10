@@ -32,10 +32,15 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
+import org.structr.docs.Example;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class DoInNewTransactionFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
@@ -181,24 +186,17 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 	}
 
 	@Override
-	public String shortDescription() {
-		return """
-**JavaScript-only**
+	public List<Parameter> getParameters() {
 
-Runs the given function in a new transaction context. This makes all sorts of use-cases possible, for example
-batching of a given expression, i.e. if the expression contains a long-running function (for example the deletion of all nodes of a given type).
-Useful in situations where large (or unknown) numbers of nodes are created, modified or deleted.
+		return List.of(
+			Parameter.mandatory("function", "the lambda function to execute"),
+			Parameter.optional("errorHandler", "an optional error handler that receives the error / exception as an argument")
+		);
+	}
 
-The paging/batching must be done manually.
-
-The return value of the function (and of the error handler) determines if the processing continues or stops.
-Returning a truthy value lets the function run again. Returning a truthy value in the error handler
-lets the first function run again.
-
-Be careful to never simply put "return true;" in the first function as this will create an infinite loop.
-
-Example:
-```
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.js("""
 ${{
     /* Iterate over all users in packets of 10 and do stuff */
     let pageSize = 10;
@@ -221,12 +219,41 @@ ${{
         return false;
     });
 }}
-```
+"""));
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.Javascript);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return """
+Runs the given function in a new transaction context. This makes all sorts of use-cases possible, for example
+batching of a given expression, i.e. if the expression contains a long-running function (for example the deletion of all nodes of a given type).
+Useful in situations where large (or unknown) numbers of nodes are created, modified or deleted.
+
+The paging/batching must be done manually.
+
+The return value of the function (and of the error handler) determines if the processing continues or stops.
+Returning a truthy value lets the function run again. Returning a truthy value in the error handler
+lets the first function run again.
+
+Be careful to never simply put "return true;" in the first function as this will create an infinite loop.
 """;
 	}
 
 	@Override
-	public String getSignature() {
-		return "workerFunction [, errorHandlerFunction]";
+	public List<Signature> getSignatures() {
+
+		return List.of(
+			Signature.of("workerFunction [, errorHandlerFunction]", Language.values())
+		);
 	}
 }

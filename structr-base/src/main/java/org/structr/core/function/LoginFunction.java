@@ -25,8 +25,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class LoginFunction extends AdvancedScriptingFunction {
 
@@ -39,8 +42,8 @@ public class LoginFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "user, password";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("user, password");
 	}
 
 	@Override
@@ -80,7 +83,7 @@ public class LoginFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Logs the given user in if the given password is correct. Returns true on successful login.";
 	}
 }

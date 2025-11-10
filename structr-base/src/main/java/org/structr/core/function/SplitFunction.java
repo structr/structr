@@ -22,9 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class SplitFunction extends CoreFunction {
 
@@ -36,8 +38,8 @@ public class SplitFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str [, separator ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("str [, separator ]");
 	}
 
 	@Override
@@ -76,7 +78,7 @@ public class SplitFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Splits the given string by the whole separator string";
 	}
 }

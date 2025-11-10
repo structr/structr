@@ -22,7 +22,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 
@@ -37,8 +40,8 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name");
 	}
 
 	@Override
@@ -80,7 +83,7 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the value of the given request header field";
 	}
 }

@@ -22,11 +22,13 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SendEventFunction extends UiAdvancedFunction {
@@ -45,8 +47,8 @@ public class SendEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "eventType, message, recipient(s)";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("eventType, message, recipient(s)");
 	}
 
 	@Override
@@ -99,7 +101,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Triggers the sending of a sever-sent event to a given list of recipients. The message will only be sent if they have an open connection.";
 	}
 }

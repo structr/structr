@@ -22,7 +22,10 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RandomFunction extends CoreFunction {
 
@@ -34,8 +37,8 @@ public class RandomFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "length";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("length");
 	}
 
 	@Override
@@ -76,7 +79,7 @@ public class RandomFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a random alphanumeric string of the given length";
 	}
 }

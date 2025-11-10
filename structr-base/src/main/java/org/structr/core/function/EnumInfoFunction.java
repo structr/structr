@@ -24,9 +24,11 @@ import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public class EnumInfoFunction extends AdvancedScriptingFunction {
@@ -40,8 +42,8 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, propertyName [, raw]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type, propertyName [, raw]");
 	}
 
 	@Override
@@ -117,7 +119,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the enum values as an array";
 	}
 }

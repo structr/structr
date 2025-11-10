@@ -20,8 +20,11 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 
@@ -38,8 +41,8 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "bounceAddress";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("bounceAddress");
 	}
 
 	@Override
@@ -67,7 +70,7 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sets the bounce address of the current mail";
 	}
 }

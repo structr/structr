@@ -19,7 +19,10 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FromXmlFunction extends UiAdvancedFunction {
 
@@ -32,8 +35,8 @@ public class FromXmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source");
 	}
 
 	@Override
@@ -71,7 +74,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Parses the given XML and returns a JSON representation of the XML";
 	}
 }

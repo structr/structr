@@ -21,7 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ModFunction extends CoreFunction {
 
@@ -33,8 +36,8 @@ public class ModFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value1, value2");
 	}
 
 	@Override
@@ -69,7 +72,7 @@ public class ModFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the remainder of the division";
 	}
 }

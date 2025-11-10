@@ -18,7 +18,10 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ClearHeadersFunction extends UiAdvancedFunction {
 
@@ -31,7 +34,7 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
     }
 
     @Override
-    public String getSignature() {
+    public List<Signature> getSignatures() {
         return null;
     }
 
@@ -57,7 +60,7 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
     }
 
     @Override
-    public String shortDescription() {
+    public String getShortDescription() {
         return "Clears headers for the next request";
     }
 }

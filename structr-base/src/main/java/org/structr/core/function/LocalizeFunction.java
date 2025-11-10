@@ -33,6 +33,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -51,8 +52,8 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key [, domain ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key [, domain ]");
 	}
 
 	@Override
@@ -114,7 +115,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a (cached) Localization result for the given key and optional domain";
 	}
 

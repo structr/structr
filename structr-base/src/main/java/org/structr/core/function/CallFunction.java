@@ -22,11 +22,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 
@@ -41,8 +43,8 @@ public class CallFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "functionName [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("functionName [, parameterMap ]");
 	}
 
 	@Override
@@ -104,7 +106,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Calls the given global schema method in the current users context";
 	}
 

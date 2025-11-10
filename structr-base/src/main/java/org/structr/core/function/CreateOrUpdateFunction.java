@@ -27,9 +27,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class CreateOrUpdateFunction extends CoreFunction {
@@ -44,8 +46,8 @@ public class CreateOrUpdateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, propertyMap";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type, propertyMap");
 	}
 
 	@Override
@@ -164,7 +166,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates an object with the given properties or updates an existing object if it could be identified by a unique property.";
 	}
 }

@@ -22,7 +22,13 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.SecurityContext;
+import org.structr.docs.Example;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
@@ -76,16 +82,23 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return """
-**JavaScript-only**
-
 Runs the given function in a privileged (superuser) context. This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
 
 **Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
+			""";
+	}
 
-Example:
-```
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(Example.js("""
 ${{
 	let userToDelete = $.find('User', { name: 'user_to_delete' })[0];
 
@@ -101,12 +114,22 @@ ${{
 		$.delete(user);
 	});
 }}
-```
-""";
+			""", null));
 	}
 
 	@Override
-	public String getSignature() {
-		return "function";
+	public List<Language> getLanguages() {
+
+		return List.of(
+			Language.Javascript
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+
+		return List.of(
+			Signature.of("function", Language.values())
+		);
 	}
 }

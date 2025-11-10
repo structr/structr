@@ -19,7 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class AddFunction extends CoreFunction {
 
@@ -31,8 +34,8 @@ public class AddFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "values...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("values...");
 	}
 
 	@Override
@@ -69,7 +72,7 @@ public class AddFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the sum of the given arguments";
 	}
 }

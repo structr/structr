@@ -22,7 +22,10 @@ import org.structr.api.graph.Node;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class InstantiateFunction extends AdvancedScriptingFunction {
 
@@ -34,8 +37,8 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "node";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("node");
 	}
 
 	@Override
@@ -70,7 +73,7 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Instantiates the given Neo4j node into a Structr node";
 	}
 }

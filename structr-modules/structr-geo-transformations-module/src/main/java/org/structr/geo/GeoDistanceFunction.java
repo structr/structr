@@ -26,7 +26,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class GeoDistanceFunction extends GeoFunction {
 
@@ -39,8 +42,8 @@ public class GeoDistanceFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "point1, point2";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("point1, point2");
 	}
 
 	@Override
@@ -90,7 +93,7 @@ public class GeoDistanceFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the distance between two geometries.";
 	}
 }

@@ -19,11 +19,13 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
 import javax.mail.internet.MimeUtility;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 
@@ -40,8 +42,8 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "text";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("text");
 	}
 
 	@Override
@@ -74,7 +76,7 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Decodes RFC 822 \"text\" token from mail-safe form as per RFC 2047";
 	}
 }

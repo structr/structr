@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -42,8 +43,8 @@ public class CoordsToMultipointFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("list");
 	}
 
 	@Override
@@ -97,7 +98,7 @@ public class CoordsToMultipointFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts a coordinate array into a multipoint geometry.";
 	}
 }

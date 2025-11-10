@@ -24,9 +24,11 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GetWFSDataFunction extends AbstractGeoserverFunction {
@@ -40,8 +42,8 @@ public class GetWFSDataFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "baseUrl, version, typeName, [, params ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("baseUrl, version, typeName, [, params ]");
 	}
 
 	@Override
@@ -87,7 +89,7 @@ public class GetWFSDataFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads features from a WFS endpoint and returns geometries.";
 	}
 }

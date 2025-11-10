@@ -19,6 +19,9 @@
 package org.structr.geo;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.data.PrjFileReader;
 import org.geotools.data.shapefile.dbf.DbaseFileHeader;
 import org.geotools.data.shapefile.dbf.DbaseFileReader;
@@ -30,9 +33,6 @@ import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
-import org.geotools.api.referencing.FactoryException;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.api.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -40,6 +40,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
@@ -58,8 +59,8 @@ public class ReadShapefileFunction extends GeoFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "filename";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("filename");
 	}
 
 	@Override
@@ -179,7 +180,7 @@ public class ReadShapefileFunction extends GeoFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads a shapefile from a Structr path and returns it as a list of WKT strings.";
 	}
 

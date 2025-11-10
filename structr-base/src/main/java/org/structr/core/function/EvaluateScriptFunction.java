@@ -22,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
@@ -37,8 +40,8 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, source";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("entity, source");
 	}
 
 	@Override
@@ -64,7 +67,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Evaluates a serverside script string in the context of the given entity";
 	}
 }

@@ -19,7 +19,10 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 
@@ -33,8 +36,8 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "";
+	public List<Signature> getSignatures() {
+		return null;
 	}
 
 	@Override
@@ -49,7 +52,7 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Lists all keys stored in the request level store.";
 	}
 }

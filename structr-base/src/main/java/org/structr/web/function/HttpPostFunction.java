@@ -27,11 +27,13 @@ import org.structr.core.property.ByteArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Signature;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
+import java.util.List;
 import java.util.Map;
 
 public class HttpPostFunction extends UiAdvancedFunction {
@@ -48,8 +50,8 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "url, body [, contentType, charset, username, password, configMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url, body [, contentType, charset, username, password, configMap ]");
 	}
 
 	@Override
@@ -125,7 +127,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Sends an HTTP POST request to the given URL and returns the response body. The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.";
 	}
 

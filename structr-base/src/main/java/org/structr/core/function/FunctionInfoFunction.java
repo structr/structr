@@ -25,9 +25,11 @@ import org.structr.core.api.ScriptMethod;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FunctionInfoFunction extends AdvancedScriptingFunction {
@@ -44,8 +46,8 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "[type, name]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("[type, name]");
 	}
 
 	@Override
@@ -106,7 +108,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns information about the currently running Structr method, OR about the method defined in the given type and name.";
 	}
 

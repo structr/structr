@@ -25,23 +25,18 @@ import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FindFunction extends AbstractQueryFunction {
 
 	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
 	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND = "Error in find(): type not found: ";
-
-	@Override
-	public String getName() {
-		return "find";
-	}
-
-	@Override
-	public String getSignature() {
-		return "type, options...";
-	}
 
 	@Override
 	public String getNamespaceIdentifier() {
@@ -113,12 +108,42 @@ public class FindFunction extends AbstractQueryFunction {
 	}
 
 	@Override
+	public String getName() {
+		return "find";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+
+		return List.of(
+			Signature.js( "type, map"),
+			Signature.ss( "type, key, value")
+		);
+	}
+
+	@Override
 	public String usage(boolean inJavaScriptContext) {
 		return ERROR_MESSAGE_FIND;
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "the type to return (includes inherited types"),
+			Parameter.optional("predicates", "a list of predicates")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.js("$.find('User', '168f6c0b775a4118a160bf928fed8dae');", "Returns the user with the given UUID.'."),
+			Example.js("$.find('User', { name: 'tester' });", "Returns all users with the name 'tester'.")
+		);
 	}
 }

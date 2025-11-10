@@ -20,9 +20,11 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,8 +40,8 @@ public class EmptyFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value");
 	}
 
 	@Override
@@ -84,7 +86,7 @@ public class EmptyFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if the given value is null or empty";
 	}
 

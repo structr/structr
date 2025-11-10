@@ -26,6 +26,7 @@ import org.structr.core.Services;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeService;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -46,7 +47,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 
@@ -78,7 +79,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns information about the system.";
 	}
 

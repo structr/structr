@@ -19,8 +19,10 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Locale;
 
 public class IsLocaleFunction extends UiAdvancedFunction {
@@ -34,8 +36,8 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "locales...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("locales...");
 	}
 
 	@Override
@@ -70,7 +72,7 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns true if the current user locale is equal to the given argument";
 	}
 }

@@ -29,8 +29,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class CreateRelationshipFunction extends CoreFunction {
@@ -44,8 +46,8 @@ public class CreateRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "from, to, relType [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("from, to, relType [, parameterMap ]");
 	}
 
 	@Override
@@ -144,7 +146,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates a relationship of the given type between two entities";
 	}
 }

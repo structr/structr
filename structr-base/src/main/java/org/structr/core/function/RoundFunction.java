@@ -20,7 +20,10 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RoundFunction extends AdvancedScriptingFunction {
 
@@ -32,8 +35,8 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value [, decimalPlaces ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("value [, decimalPlaces ]");
 	}
 
 	@Override
@@ -102,7 +105,7 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Rounds the given argument to an integer";
 	}
 

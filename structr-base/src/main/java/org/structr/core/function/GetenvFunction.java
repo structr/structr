@@ -21,7 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class GetenvFunction extends CoreFunction {
 
@@ -34,8 +37,8 @@ public class GetenvFunction extends CoreFunction {
     }
 
     @Override
-    public String getSignature() {
-        return "[variable]";
+    public List<Signature> getSignatures() {
+        return Signature.forAllLanguages("[variable]");
     }
 
     @Override
@@ -76,7 +79,7 @@ public class GetenvFunction extends CoreFunction {
     }
 
     @Override
-    public String shortDescription() {
+    public String getShortDescription() {
         return "Returns the value of the specified environment variable. If no value is specified, all environment variables are returned as a map. An environment variable is a system-dependent external named value.";
     }
 }

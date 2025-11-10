@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.time.DayOfWeek;
@@ -28,6 +29,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.List;
 
 public class WeekDaysFunction extends CoreFunction {
 
@@ -40,8 +42,8 @@ public class WeekDaysFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "from, to";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("from, to");
 	}
 
 	@Override
@@ -95,7 +97,7 @@ public class WeekDaysFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Calculates the number of week days (working days) between given dates.";
 	}
 }

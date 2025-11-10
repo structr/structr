@@ -19,8 +19,11 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 
@@ -37,8 +40,8 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name");
 	}
 
 	@Override
@@ -65,7 +68,7 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Removes a specific custom header from the current mail";
 	}
 }

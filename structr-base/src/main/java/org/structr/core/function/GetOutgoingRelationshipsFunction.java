@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.docs.Signature;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -39,8 +40,8 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target [, relType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("source, target [, relType ]");
 	}
 
 	@Override
@@ -121,7 +122,7 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the outgoing relationships of the given entity with an optional relationship type";
 	}
 }
