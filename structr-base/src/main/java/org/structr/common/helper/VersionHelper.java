@@ -18,14 +18,21 @@
  */
 package org.structr.common.helper;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.module.StructrModule;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.jar.Attributes;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,6 +40,7 @@ import java.util.regex.Pattern;
  * Helper class to gather and provide information about the running Structr version.
  */
 public class VersionHelper {
+	private static final Logger logger = LoggerFactory.getLogger(VersionHelper.class);
 
 	private static final String classPath;
 	private static final Map<String, Map<String, Object>> modules    = new HashMap<>();
@@ -41,28 +49,50 @@ public class VersionHelper {
 
 	static {
 
-		classPath                            = System.getProperty("java.class.path");
-		final Pattern outerPattern           = Pattern.compile("(structr-[^:;]*\\.jar)");
-		final Pattern innerPattern           = Pattern.compile("(structr-base|structr-app|structr)-([^-]*(?:-SNAPSHOT|-(?:rc|RC)\\d){0,1})-{0,1}(?:([0-9]{0,12})\\.{0,1}([0-9a-f]{0,32}))\\.jar");
+		classPath = System.getProperty("java.class.path");
 
-		final Matcher outerMatcher           = outerPattern.matcher(classPath);
+		final Pattern structrJarFilePattern = Pattern.compile("([^:;]*structr-[^:;]*\\.jar)");
 
-		while (outerMatcher.find()) {
+		final Matcher structrJarFileMatcher = structrJarFilePattern.matcher(classPath);
 
-			final String group               = outerMatcher.group();
-			final Matcher innerMatcher       = innerPattern.matcher(group);
-			final Map<String, String> module = new HashMap<>();
+		while (structrJarFileMatcher.find()) {
+			final String structrJarPath = structrJarFileMatcher.group(1);
 
-			if (innerMatcher.matches()) {
+			try {
+				File jarFile = new File(structrJarPath);
 
-				module.put("version", innerMatcher.group(2));
-				module.put("date", innerMatcher.group(3));
-				module.put("build", innerMatcher.group(4));
+				if (jarFile.exists()) {
+					// Read manifest from the JAR file
+					try (JarFile jar = new JarFile(jarFile)) {
+						Manifest manifest = jar.getManifest();
 
-				components.put(innerMatcher.group(1), module);
+						if (manifest != null) {
+							Attributes attrs = manifest.getMainAttributes();
+
+							Map<String, String> module = new HashMap<>();
+							module.put("version", attrs.getValue("Implementation-Version"));
+							module.put("date", attrs.getValue("Build-Timestamp"));
+							module.put("build", attrs.getValue("Build-Number"));
+
+							String moduleName = attrs.getValue("Implementation-Title");
+							if ("structr-app-enterprise".equals(moduleName)) {
+								components.put("structr", module);
+							} else if ("structr-app".equals(moduleName)) {
+								components.putIfAbsent("structr", module);
+							} else if (StringUtils.isNotBlank(moduleName)) {
+								components.put(moduleName, module);
+							} else {
+                                logger.warn("Missing build information in manifest for {}", jarFile.getName());
+                            }
+						}
+					}
+				}
+			} catch (Exception e) {
+				logger.error("Error parsing module manifest  \"{}\".", e.getMessage());
 			}
 		}
 	}
+
 
 	public static String getFullVersionInfo() {
 
@@ -72,14 +102,13 @@ public class VersionHelper {
 			return VersionHelper.getFullVersionInfoFromModule(structrModule);
 		}
 
-		Map<String, String> structrBaseModule = getComponents().get("structr-app");
+		Map<String, String> structrBaseModule = components.get("structr-base");
 
 		if (structrBaseModule != null) {
 			return VersionHelper.getFullVersionInfoFromModule(structrBaseModule);
 		}
 
 		return "Could not determine version string";
-
 	}
 
 	private static String getFullVersionInfoFromModule(final Map<String, String> module) {

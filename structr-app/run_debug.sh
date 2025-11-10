@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # determine latest Structr version
-LATEST=`ls target/structr-app-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
+LATEST=`ls target/structr-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 
 if [ -z "$SUSPEND" ]; then
 	SUSPEND=n

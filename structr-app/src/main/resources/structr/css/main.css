@@ -2221,7 +2221,7 @@ th.center {
 	right: 4px;
 	top: var(--header-height);
 	overflow-y: auto;
-	max-height: 100vh;
+	max-height: calc(100vh - var(--header-height));
 }
 
 #info-area.force-show {
