@@ -144,7 +144,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 		try {
 
-			Files.writeString(Path.of("/tmp/test.md"), StringUtils.join(lines, "\n"));
+			Files.writeString(Path.of("Functions.md"), StringUtils.join(lines, "\n"));
 
 		} catch (IOException e) {
 

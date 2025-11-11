@@ -123,6 +123,11 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Includes the content of the child node with the given name (optionally as a repeater element)";
+		return "Includes the content of the child node with the given name (optionally as a repeater element).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

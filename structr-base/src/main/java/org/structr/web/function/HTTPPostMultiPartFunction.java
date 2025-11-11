@@ -93,7 +93,12 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends a multi-part HTTP POST request to the given URL and returns the response body";
+		return "Sends a multi-part HTTP POST request to the given URL and returns the response body.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	private MultipartEntityBuilder addInputStreamToMultiPartBuilder(MultipartEntityBuilder builder, AbstractFile abstractFile, final String partKey) {

@@ -41,13 +41,18 @@ public class CallPrivilegedFunction extends CallFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${call_privileged(key [, key, value]}. Example ${call_privileged('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
-			Usage.javaScript("Usage: ${{Structr.call_privileged(key [, parameterMap]}}. Example ${{Structr.call_privileged('myEvent', {key1: 'value1', key2: 'value2'})}}")
+			Usage.javaScript("Usage: ${{ $.callPrivileged(key [, parameterMap]}}. Example ${{ $.callPrivileged('myEvent', {key1: 'value1', key2: 'value2'})}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Calls the given global schema method with a superuser context";
+		return "Calls the given global schema method with a superuser context.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override
