@@ -73,4 +73,9 @@ public class ApplicationStorePutFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Stores a value in the application level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

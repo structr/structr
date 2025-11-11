@@ -73,4 +73,9 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Checks if a key is present in the application level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -125,6 +125,11 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the relationships of the given entity with an optional relationship type";
+		return "Returns the relationships of the given entity with an optional relationship type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

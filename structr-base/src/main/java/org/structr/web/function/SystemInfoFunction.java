@@ -85,6 +85,11 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 		return "Returns information about the system.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	public static Map getSystemInfo () {
 
 		final Map<String, Object> info = new LinkedHashMap<>();

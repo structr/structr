@@ -71,6 +71,11 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Replaces HTML characters with their corresponding HTML entities";
+		return "Replaces HTML characters with their corresponding HTML entities.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

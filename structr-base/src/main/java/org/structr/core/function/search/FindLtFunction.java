@@ -68,7 +68,12 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns an lt predicate that can be used in find() function calls";
+		return "Returns an lt predicate that can be used in find() function calls.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

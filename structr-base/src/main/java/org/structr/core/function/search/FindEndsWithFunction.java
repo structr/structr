@@ -79,6 +79,11 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public boolean isHidden() {
 		return true;
 	}

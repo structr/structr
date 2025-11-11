@@ -96,6 +96,11 @@ public class ParseDateFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given date string using the given format string";
+		return "Parses the given date string using the given format string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

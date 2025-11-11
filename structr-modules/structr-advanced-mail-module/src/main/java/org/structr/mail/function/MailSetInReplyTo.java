@@ -77,4 +77,9 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	public String getShortDescription() {
 		return "Automatically sets the In-reply-to header for the outgoing mail so the recipient mail client knows to which message the mail is a reply.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

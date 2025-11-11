@@ -99,8 +99,11 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-
 		return "Unarchives given file to an optional parent folder.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

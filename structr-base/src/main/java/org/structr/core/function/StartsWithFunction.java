@@ -94,6 +94,11 @@ public class StartsWithFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given string starts with the given prefix";
+		return "Returns true if the given string starts with the given prefix.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

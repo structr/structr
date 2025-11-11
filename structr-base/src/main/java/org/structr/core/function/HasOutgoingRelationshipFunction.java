@@ -121,6 +121,11 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given entity has outgoing relationships of the given type";
+		return "Returns true if the given entity has outgoing relationships of the given type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

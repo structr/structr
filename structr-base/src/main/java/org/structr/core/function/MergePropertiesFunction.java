@@ -102,7 +102,12 @@ public class MergePropertiesFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Copies property values from source entity to target entity, using the given list of keys";
+		return "Copies property values from source entity to target entity, using the given list of keys.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

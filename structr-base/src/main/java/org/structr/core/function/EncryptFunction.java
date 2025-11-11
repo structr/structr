@@ -106,6 +106,11 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Encrypts the given string with a secret key from structr.conf or argument 2";
+		return "Encrypts the given string with a secret key from structr.conf or argument 2.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

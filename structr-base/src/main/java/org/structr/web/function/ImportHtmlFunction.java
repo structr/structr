@@ -84,6 +84,11 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Imports HTML source code into an element";
+		return "Imports HTML source code into an element.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

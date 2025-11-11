@@ -179,8 +179,12 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-
 		return "Create a ZIP archive file with the given files and folders.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	private void addFileToZipArchive(final String path, final File file, final ZipFile zipFile, final ZipParameters params) throws IOException {

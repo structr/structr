@@ -99,6 +99,11 @@ public class OutgoingFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the outgoing relationships of the given entity";
+		return "Returns the outgoing relationships of the given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

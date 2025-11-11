@@ -61,6 +61,11 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if an error occurred while sending the mail";
+		return "Returns true if an error occurred while sending the mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -186,7 +186,11 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTTP GET request to the given URL and returns the response headers and body";
+		return "Sends an HTTP GET request to the given URL and returns the response headers and body.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

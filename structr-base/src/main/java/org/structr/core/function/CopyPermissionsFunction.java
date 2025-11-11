@@ -82,4 +82,9 @@ public class CopyPermissionsFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Copies the security configuration of an entity to another entity.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

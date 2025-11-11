@@ -122,4 +122,9 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Returns whether the principal has all of the permission(s) on the given node.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

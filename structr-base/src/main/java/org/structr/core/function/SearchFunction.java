@@ -122,4 +122,9 @@ public class SearchFunction extends AbstractQueryFunction {
 	public String getShortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

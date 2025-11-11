@@ -107,7 +107,12 @@ public class HMACFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm,";
+		return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

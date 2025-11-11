@@ -91,7 +91,12 @@ public class DivFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Integer division, first argument / second argument";
+		return "Integer division, first argument / second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

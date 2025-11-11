@@ -71,6 +71,11 @@ public class CapitalizeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Capitalizes the given string";
+		return "Capitalizes the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

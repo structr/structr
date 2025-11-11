@@ -99,6 +99,11 @@ public class IncomingFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the incoming relationships of the given entity";
+		return "Returns the incoming relationships of the given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

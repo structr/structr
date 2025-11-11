@@ -72,6 +72,11 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf";
+		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

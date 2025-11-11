@@ -80,7 +80,12 @@ public class DoubleSumFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the sum of the given arguments as a floating-point number";
+		return "Returns the sum of the given arguments as a floating-point number.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

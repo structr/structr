@@ -126,6 +126,11 @@ public class UTMToLatLonFunction extends GeoFunction {
 		return "Converts the given UTM string to latitude/longitude coordinates.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	// ----- private methods -----
 
 	private String getHemisphereFromZone(final String zone) {

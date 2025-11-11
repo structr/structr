@@ -111,6 +111,11 @@ public class Base64EncodeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Encodes the given string and returns a base64-encoded string";
+		return "Encodes the given string and returns a base64-encoded string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

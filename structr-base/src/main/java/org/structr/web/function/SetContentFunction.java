@@ -109,4 +109,9 @@ public class SetContentFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Sets the content of the given file. Content can either be of type String or byte[].";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

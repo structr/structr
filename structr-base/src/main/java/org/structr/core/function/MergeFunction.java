@@ -75,8 +75,11 @@ public class MergeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Merges the given collections / objects into a single collection";
+		return "Merges the given collections / objects into a single collection.";
 	}
 
-
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

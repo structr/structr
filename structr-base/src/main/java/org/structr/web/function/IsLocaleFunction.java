@@ -74,6 +74,11 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the current user locale is equal to the given argument";
+		return "Returns true if the current user locale is equal to the given argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

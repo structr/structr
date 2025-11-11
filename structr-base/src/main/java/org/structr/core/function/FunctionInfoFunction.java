@@ -115,6 +115,11 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 		return "Returns information about the currently running Structr method, OR about the method defined in the given type and name.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	// ----- private methods -----
 	private Map<String, Object> getFunctionInfo(final AbstractMethod method) {
 

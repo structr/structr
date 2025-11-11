@@ -60,6 +60,11 @@ public class MailClearCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes all CC addresses from the current mail";
+		return "Removes all CC addresses from the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

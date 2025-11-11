@@ -73,6 +73,11 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets fromAddress and optional fromName of the current mail";
+		return "Sets fromAddress and optional fromName of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

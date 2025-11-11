@@ -108,7 +108,12 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Calls the given global schema method in the current users context";
+		return "Calls the given global schema method in the current users context.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	/*

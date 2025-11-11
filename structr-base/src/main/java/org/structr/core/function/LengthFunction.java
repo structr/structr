@@ -70,7 +70,12 @@ public class LengthFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the length of the given string";
+		return "Returns the length of the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

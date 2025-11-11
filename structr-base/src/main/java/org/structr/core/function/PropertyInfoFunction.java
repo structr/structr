@@ -96,6 +96,11 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the schema information for the given property";
+		return "Returns the schema information for the given property.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

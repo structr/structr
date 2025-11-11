@@ -70,6 +70,11 @@ public class CeilFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the smallest integer that is greater than or equal to the argument";
+		return "Returns the smallest integer that is greater than or equal to the argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

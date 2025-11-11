@@ -54,7 +54,12 @@ public class LteFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the first argument is less or equal to the second argument";
+		return "Returns true if the first argument is less or equal to the second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

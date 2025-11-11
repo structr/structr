@@ -80,7 +80,12 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Unlocks any system property for a single access";
+		return "Unlocks any system property for a single access.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

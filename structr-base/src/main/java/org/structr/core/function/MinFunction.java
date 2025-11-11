@@ -75,7 +75,12 @@ public class MinFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the smaller value of the given arguments";
+		return "Returns the smaller value of the given arguments.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

@@ -58,7 +58,11 @@ public class DisableCascadingDeleteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Disables cascading delete in the Structr Backend for the current transaction";
+		return "Disables cascading delete in the Structr Backend for the current transaction.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

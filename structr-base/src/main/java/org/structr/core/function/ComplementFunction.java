@@ -95,7 +95,12 @@ public class ComplementFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the complement of all lists";
+		return "Returns the complement of all lists.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

@@ -82,7 +82,12 @@ public class OrFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the disjunction of the given arguments";
+		return "Returns the disjunction of the given arguments.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

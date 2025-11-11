@@ -133,6 +133,11 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Renders the children of the current node";
+		return "Renders the children of the current node.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

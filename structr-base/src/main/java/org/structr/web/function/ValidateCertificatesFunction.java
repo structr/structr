@@ -60,4 +60,9 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Disables or enables strict certificate checking when performing a request in a scripting context. The setting remains for the whole request.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -116,6 +116,11 @@ public class SetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the given cookie";
+		return "Sets the given cookie.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

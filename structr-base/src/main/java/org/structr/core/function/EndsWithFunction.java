@@ -66,6 +66,11 @@ public class EndsWithFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given string ends with the given suffix";
+		return "Returns true if the given string ends with the given suffix.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

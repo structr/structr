@@ -59,6 +59,11 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the last outgoing message sent by the advanced mail module in the current script";
+		return "Returns the last outgoing message sent by the advanced mail module in the current script.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

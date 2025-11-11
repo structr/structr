@@ -123,6 +123,11 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Grants the given permissions on the given entity to a user";
+		return "Grants the given permissions on the given entity to a user.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

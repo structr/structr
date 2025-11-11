@@ -79,6 +79,11 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the given header field from the server response";
+		return "Removes the given header field from the server response.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

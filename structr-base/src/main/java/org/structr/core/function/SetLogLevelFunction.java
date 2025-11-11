@@ -80,6 +80,11 @@ public class SetLogLevelFunction extends CoreFunction {
 		return "Sets the application log level to the given level, if supported. Change takes effect immediately until another call is made or the application is restarted. On system start, the configuration value is used.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	public static boolean setLogLevel(final String level) {
 
 		final ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.structr");

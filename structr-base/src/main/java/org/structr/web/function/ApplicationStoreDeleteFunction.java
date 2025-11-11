@@ -75,4 +75,9 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Removes a stored value from the application level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -117,7 +117,12 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a (cached) Localization result for the given key and optional domain";
+		return "Returns a (cached) Localization result for the given key and optional domain.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static List getLocalizedList(final ActionContext ctx, final Object caller, final List<String> keyList, final String domain) throws FrameworkException {

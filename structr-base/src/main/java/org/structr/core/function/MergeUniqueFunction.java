@@ -78,7 +78,12 @@ public class MergeUniqueFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Merges the given collections / objects into a single collection, removing duplicates";
+		return "Merges the given collections / objects into a single collection, removing duplicates.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

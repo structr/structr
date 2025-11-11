@@ -121,4 +121,9 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Creates a copy of the file content linked to the given File entity and links it to the other File entity.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

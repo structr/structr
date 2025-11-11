@@ -150,4 +150,9 @@ public class SetFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Sets a value or multiple values on an entity. The values can be provided as a map or as a list of alternating keys and values.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

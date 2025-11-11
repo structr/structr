@@ -162,4 +162,9 @@ public class GetOrCreateFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Returns an entity with the given properties, creating one if it doesn't exist.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

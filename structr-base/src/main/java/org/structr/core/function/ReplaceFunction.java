@@ -97,6 +97,11 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Replaces script expressions in the given template with values from the given entity";
+		return "Replaces script expressions in the given template with values from the given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

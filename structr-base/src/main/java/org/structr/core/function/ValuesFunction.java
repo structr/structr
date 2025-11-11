@@ -84,7 +84,12 @@ public class ValuesFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the property values of the given entity";
+		return "Returns the property values of the given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

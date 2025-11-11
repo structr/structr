@@ -90,6 +90,11 @@ public class NumberFormatFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Formats the given value using the given locale and format string";
+		return "Formats the given value using the given locale and format string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

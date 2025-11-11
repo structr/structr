@@ -128,6 +128,11 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Serializes the given object to JSON";
+		return "Serializes the given object to JSON.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -78,6 +78,11 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public List<Parameter> getParameters() {
 		return null;
 	}

@@ -84,7 +84,12 @@ public class ToDateFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts the given number to a date";
+		return "Converts the given number to a date.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

@@ -85,7 +85,12 @@ public class IntSumFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the sum of the given arguments as an integer";
+		return "Returns the sum of the given arguments as an integer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

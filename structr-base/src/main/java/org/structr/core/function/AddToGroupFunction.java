@@ -118,4 +118,9 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Adds a user to a group.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

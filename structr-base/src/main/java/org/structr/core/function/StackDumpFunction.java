@@ -67,4 +67,9 @@ public class StackDumpFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Logs the current execution stack.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

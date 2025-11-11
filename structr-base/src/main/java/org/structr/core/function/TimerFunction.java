@@ -100,7 +100,12 @@ public class TimerFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Starts/Stops/Pings a timer";
+		return "Starts/Stops/Pings a timer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

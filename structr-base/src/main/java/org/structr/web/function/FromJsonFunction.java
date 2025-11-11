@@ -145,7 +145,12 @@ public class FromJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given JSON string and returns an object";
+		return "Parses the given JSON string and returns an object.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

@@ -70,6 +70,11 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the subject of the current mail";
+		return "Sets the subject of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

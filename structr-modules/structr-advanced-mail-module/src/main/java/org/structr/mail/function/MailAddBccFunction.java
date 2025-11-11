@@ -73,6 +73,11 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds a BCC address and optional BCC name to the current mail";
+		return "Adds a BCC address and optional BCC name to the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -115,6 +115,11 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		return "Imports CSS classes, media queries etc. from given CSS file.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	private NodeInterface importCSSRule(final CSSRule rule) throws FrameworkException {
 
 		// Check if rule already exists and skip if yes

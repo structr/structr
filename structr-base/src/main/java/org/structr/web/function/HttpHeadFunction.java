@@ -86,7 +86,12 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTTP HEAD request to the given URL and returns the response headers";
+		return "Sends an HTTP HEAD request to the given URL and returns the response headers.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

@@ -80,4 +80,9 @@ public class SetLocaleFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Sets the locale in the current context to the given value.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

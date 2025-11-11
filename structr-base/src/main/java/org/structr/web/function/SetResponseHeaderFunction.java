@@ -84,7 +84,12 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds the given header field and value to the response of the current rendering run";
+		return "Adds the given header field and value to the response of the current rendering run.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

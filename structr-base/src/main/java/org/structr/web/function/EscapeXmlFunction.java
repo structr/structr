@@ -71,6 +71,11 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Replaces XML characters with their corresponding XML entities";
+		return "Replaces XML characters with their corresponding XML entities.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

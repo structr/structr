@@ -92,6 +92,11 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Abbreviates the given string to the given length and appends the abbreviation (default = '…')";
+		return "Abbreviates the given string to the given length and appends the abbreviation (default = '…').";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

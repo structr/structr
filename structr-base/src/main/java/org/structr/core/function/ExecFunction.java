@@ -174,6 +174,11 @@ public class ExecFunction extends AdvancedScriptingFunction {
 		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the standard output of the script. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'masked' flag.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	protected String getSanityCheckedPathForScriptSetting(final String scriptKey) throws IOException {
 
 		final Setting<String> scriptSetting = Settings.getStringSetting(scriptKey);

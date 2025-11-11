@@ -165,4 +165,9 @@ public class GetFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Returns the value with the given name of the given entity, or an empty string.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

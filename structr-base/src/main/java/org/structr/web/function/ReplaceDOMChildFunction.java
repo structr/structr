@@ -66,7 +66,12 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Replaces a node from the DOM with new HTML";
+		return "Replaces a node from the DOM with new HTML.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static DOMNode apply(final SecurityContext securityContext, final DOMElement parent, final DOMNode child, final String htmlSource) throws FrameworkException {

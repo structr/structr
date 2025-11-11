@@ -81,6 +81,11 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates an access token for the given user";
+		return "Creates an access token for the given user.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

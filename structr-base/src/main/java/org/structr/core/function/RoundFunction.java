@@ -109,7 +109,12 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Rounds the given argument to an integer";
+		return "Rounds the given argument to the nearest integer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

@@ -84,7 +84,12 @@ public class RintFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a random integer in the given range";
+		return "Returns a random integer in the given range.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

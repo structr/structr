@@ -68,6 +68,11 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Resets a manual SMTP configuration for the current mail";
+		return "Resets a manual SMTP configuration for the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

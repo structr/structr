@@ -70,6 +70,11 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 
 	@Override
 	public String getShortDescription() {
-		return "If set to true, the mail will be saved after it has been sent and can be retrieved via the getLastOutgoingMessage() function";
+		return "If set to true, the mail will be saved after it has been sent and can be retrieved via the getLastOutgoingMessage() function.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

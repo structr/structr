@@ -133,4 +133,9 @@ public class SortFunction extends CoreFunction {
 		return "Sorts the given collection or array according to the given property key. Default sort key is 'name'.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 }

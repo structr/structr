@@ -67,6 +67,11 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the type information for the specified type";
+		return "Returns the type information for the specified type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

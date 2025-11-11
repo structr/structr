@@ -100,6 +100,11 @@ public class NthFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the element with the given index of the given collection";
+		return "Returns the element with the given index of the given collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

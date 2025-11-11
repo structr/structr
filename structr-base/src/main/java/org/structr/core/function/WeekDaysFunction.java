@@ -101,4 +101,9 @@ public class WeekDaysFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Calculates the number of week days (working days) between given dates.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

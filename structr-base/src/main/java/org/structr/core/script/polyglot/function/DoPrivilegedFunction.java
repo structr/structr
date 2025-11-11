@@ -80,8 +80,13 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 
 	@Override
 	public String getShortDescription() {
+		return "Runs the given function in a privileged (superuser) context.";
+	}
+
+	@Override
+	public String getLongDescription() {
 		return """
-Runs the given function in a privileged (superuser) context. This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
+This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
 
 **Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
 			""";

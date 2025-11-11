@@ -71,6 +71,11 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 		return "Checks if the given address conforms to the syntax rules of RFC 822. The current implementation checks many, but not all, syntax rules. Only email addresses without personal name are accepted and leading/trailing fails validation.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	public static boolean isValidEmail(final String email) {
 
 		try {

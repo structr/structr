@@ -87,4 +87,9 @@ public class LoginFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Logs the given user in if the given password is correct. Returns true on successful login.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

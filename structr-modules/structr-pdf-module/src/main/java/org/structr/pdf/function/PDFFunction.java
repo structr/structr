@@ -257,4 +257,9 @@ public class PDFFunction extends Function<Object, Object> {
 	public String getShortDescription() {
 		return "Creates the PDF representation of a given page.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

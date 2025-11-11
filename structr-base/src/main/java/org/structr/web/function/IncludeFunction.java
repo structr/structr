@@ -155,7 +155,12 @@ public class IncludeFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Includes the content of the node with the given name (optionally as a repeater element)";
+		return "Includes the content of the node with the given name (optionally as a repeater element).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node, final boolean useBuffer) throws FrameworkException {

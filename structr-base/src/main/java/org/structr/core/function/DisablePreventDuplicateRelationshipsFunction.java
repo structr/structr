@@ -57,8 +57,20 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 	}
 
 	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"USE AT YOUR OWN RISK!"
+		);
+	}
+
+	@Override
 	public String getShortDescription() {
-		return "Disables prevention of duplicate relationships in many-to-many rels in the Structr Backend for the current transaction - USE AT YOUR OWN RISK!";
+		return "Disables the check that prevents the creation of duplicate relationships in the Structr Backend for the current transaction.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

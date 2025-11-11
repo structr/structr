@@ -127,6 +127,11 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTML e-mail";
+		return "Sends an HTML e-mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

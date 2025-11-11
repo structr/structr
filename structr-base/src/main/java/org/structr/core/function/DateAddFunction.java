@@ -126,6 +126,11 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds the given values to a date";
+		return "Adds the given values to a date.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

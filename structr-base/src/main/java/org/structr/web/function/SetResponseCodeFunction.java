@@ -86,7 +86,11 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the response code of the current rendering run";
+		return "Sets the response code of the current rendering run.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

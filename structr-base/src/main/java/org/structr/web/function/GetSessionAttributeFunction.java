@@ -97,4 +97,9 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Retrieve a value for the given key from the user session.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

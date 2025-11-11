@@ -106,5 +106,12 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getShortDescription() { return "Appends the content to the given file. Content can either be of type String or byte[]."; }
+	public String getShortDescription() {
+		return "Appends the content to the given file. Content can either be of type String or byte[].";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

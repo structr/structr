@@ -97,6 +97,11 @@ public class ContainsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given string or collection contains an element";
+		return "Returns true if the given string or collection contains an element.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

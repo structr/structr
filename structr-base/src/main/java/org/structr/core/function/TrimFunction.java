@@ -95,6 +95,11 @@ public class TrimFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes whitespace at the edges of the given string";
+		return "Removes whitespace at the edges of the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

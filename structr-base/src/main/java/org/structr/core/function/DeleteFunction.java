@@ -75,7 +75,12 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Deletes the given entity from the database";
+		return "Deletes the given entity from the database.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	// ----- interface BatchableFunction -----

@@ -103,6 +103,11 @@ public class LineSegmentFunction extends GeoFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a line segment with start point, azimuth and length";
+		return "Returns a line segment with start point, azimuth and length.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

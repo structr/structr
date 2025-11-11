@@ -80,7 +80,12 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 
 	@Override
 	public String getShortDescription() {
-		return "Unlocks any read-only property for a single access";
+		return "Unlocks any read-only property for a single access.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

@@ -70,6 +70,11 @@ public class HasCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Checks if a cached value exists for the given key";
+		return "Checks if a cached value exists for the given key.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

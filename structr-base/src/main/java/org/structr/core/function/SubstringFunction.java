@@ -80,6 +80,11 @@ public class SubstringFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the substring of the given string";
+		return "Returns the substring of the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -98,6 +98,11 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given string using the given (optional) locale";
+		return "Parses the given string using the given (optional) locale.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

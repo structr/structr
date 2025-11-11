@@ -111,7 +111,12 @@ public class RemoteCypherFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the result of the given Cypher query against a remote instance";
+		return "Returns the result of the given Cypher query against a remote instance.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 

@@ -104,6 +104,11 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given CSV string and returns a list of column headers";
+		return "Parses the given CSV string and returns a list of column headers.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

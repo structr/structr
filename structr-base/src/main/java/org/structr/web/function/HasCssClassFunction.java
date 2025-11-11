@@ -93,4 +93,9 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Returns whether the given element has the given CSS class(es).";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

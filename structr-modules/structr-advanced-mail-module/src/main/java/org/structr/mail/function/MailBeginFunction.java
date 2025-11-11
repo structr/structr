@@ -105,4 +105,9 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	public String getShortDescription() {
 		return "Begins a new mail configuration - previously started configurations are cleared.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

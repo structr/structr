@@ -80,6 +80,11 @@ public class StoreFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Stores the given value with the given key in the temporary store";
+		return "Stores the given value with the given key in the temporary store.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

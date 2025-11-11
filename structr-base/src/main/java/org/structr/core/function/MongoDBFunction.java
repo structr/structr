@@ -94,6 +94,11 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Opens and returns a connection to an external MongoDB instance";
+		return "Opens and returns a connection to an external MongoDB instance.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -113,6 +113,11 @@ public class Base64DecodeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Decodes the given base64-encoded value and returns a string";
+		return "Decodes the given base64-encoded value and returns a string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

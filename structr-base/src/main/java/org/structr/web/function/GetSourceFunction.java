@@ -85,4 +85,9 @@ public class GetSourceFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Returns the rendered HTML content for the given element.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

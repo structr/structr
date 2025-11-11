@@ -89,4 +89,9 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Schedules a script or a function to be executed in a separate thread.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

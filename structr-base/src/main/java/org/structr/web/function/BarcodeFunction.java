@@ -152,4 +152,9 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Creates a barcode of given type with the given data.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

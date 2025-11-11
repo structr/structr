@@ -72,4 +72,9 @@ public class RequestStoreHasFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Checks if a key is present in the request level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

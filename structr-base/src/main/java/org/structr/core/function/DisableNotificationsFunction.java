@@ -58,7 +58,11 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Disables the Websocket notifications in the Structr Ui for the current transaction";
+		return "Disables the Websocket notifications in the Structr Ui for the current transaction.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -34,7 +34,12 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the given set of labels from the given node";
+		return "Removes the given set of labels from the given node.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

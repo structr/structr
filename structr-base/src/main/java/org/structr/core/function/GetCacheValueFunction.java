@@ -72,4 +72,9 @@ public class GetCacheValueFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Retrieves the cached value for the given key. Returns null if no cached value exists.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

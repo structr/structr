@@ -75,4 +75,9 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Triggers the sending of a sever-sent event all authenticated and/or anonymous users with an open connection.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

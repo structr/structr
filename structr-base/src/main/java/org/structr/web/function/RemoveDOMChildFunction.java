@@ -73,7 +73,12 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes a node from the DOM";
+		return "Removes a node from the DOM.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static void apply(final SecurityContext securityContext, final DOMElement parent, final DOMNode child) throws FrameworkException {

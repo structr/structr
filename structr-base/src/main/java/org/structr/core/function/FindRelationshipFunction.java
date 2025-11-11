@@ -160,7 +160,11 @@ public class FindRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs";
+		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

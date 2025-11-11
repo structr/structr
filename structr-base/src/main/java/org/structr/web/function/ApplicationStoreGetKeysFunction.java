@@ -56,4 +56,9 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Lists all keys stored in the application level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

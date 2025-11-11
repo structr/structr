@@ -63,7 +63,12 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Inserts a new HTML subtree into the DOM";
+		return "Inserts a new HTML subtree into the DOM.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static DOMNode apply(final SecurityContext securityContext, final NodeInterface parent, final String htmlSource) throws FrameworkException {

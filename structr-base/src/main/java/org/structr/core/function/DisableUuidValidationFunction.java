@@ -57,8 +57,19 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "Disables the validation of user-supplied UUIDs when creating objects. (Note: this is a performance optimization for large imports, use at your own risk!)";
+	public List<String> getNotes() {
+		return List.of(
+			"This is a performance optimization for large imports, use at your own risk!"
+		);
 	}
 
+	@Override
+	public String getShortDescription() {
+		return "Disables the validation of user-supplied UUIDs when creating objects.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

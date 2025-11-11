@@ -70,6 +70,11 @@ public class UpperFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the uppercase value of its parameter";
+		return "Returns the uppercase value of its parameter.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

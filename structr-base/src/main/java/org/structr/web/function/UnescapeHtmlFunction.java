@@ -71,6 +71,11 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Relaces escaped HTML entities with the actual characters, e.g. &lt; with <";
+		return "Relaces escaped HTML entities with the actual characters, e.g. &lt; with <.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

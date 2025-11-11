@@ -88,6 +88,11 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends a plaintext e-mail";
+		return "Sends a plaintext e-mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

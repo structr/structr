@@ -98,4 +98,9 @@ public class WKTToGeometryFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Converts a WKT string into a geometry object.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

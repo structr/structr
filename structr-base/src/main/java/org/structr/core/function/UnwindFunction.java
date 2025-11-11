@@ -86,6 +86,11 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts a list of lists into a flat list";
+		return "Converts a list of lists into a flat list.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -161,7 +161,12 @@ public class ToCsvFunction extends CsvFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a CSV representation of the given nodes";
+		return "Returns a CSV representation of the given nodes.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static void writeCsv(

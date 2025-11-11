@@ -124,6 +124,11 @@ public class FromExcelFunction extends Function<Object, Object> {
 		return "Reads data from a given Excel sheet. The sheet can be passed as zero-indexed sheet number or by sheet name.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	private Object readExcel(final InputStream is, final String sheetName) throws Throwable {
 
 		final Workbook workbook      = new XSSFWorkbook(is);

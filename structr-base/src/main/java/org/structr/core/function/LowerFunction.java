@@ -71,7 +71,12 @@ public class LowerFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the lowercase value of its parameter";
+		return "Returns the lowercase value of its parameter.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

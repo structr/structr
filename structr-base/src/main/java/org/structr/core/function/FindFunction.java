@@ -135,6 +135,11 @@ public class FindFunction extends AbstractQueryFunction {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
 			Parameter.mandatory("type", "the type to return (includes inherited types"),

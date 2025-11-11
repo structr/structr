@@ -72,4 +72,9 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Invalidates the cached value for the given key (if present).";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

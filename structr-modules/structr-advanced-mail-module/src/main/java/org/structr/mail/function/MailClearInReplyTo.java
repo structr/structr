@@ -61,6 +61,11 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the In-Reply-To from the current mail";
+		return "Removes the In-Reply-To from the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

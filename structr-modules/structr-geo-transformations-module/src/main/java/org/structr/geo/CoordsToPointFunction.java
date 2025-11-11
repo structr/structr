@@ -87,6 +87,11 @@ public class CoordsToPointFunction extends GeoFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts a coordinate into a point";
+		return "Converts a coordinate into a point.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

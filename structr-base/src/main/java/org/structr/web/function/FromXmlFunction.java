@@ -76,6 +76,11 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given XML and returns a JSON representation of the XML";
+		return "Parses the given XML and returns a JSON representation of the XML.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

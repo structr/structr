@@ -78,7 +78,12 @@ public class TitleizeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Titleizes the given string";
+		return "Titleizes the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

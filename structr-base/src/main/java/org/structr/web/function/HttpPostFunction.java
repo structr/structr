@@ -129,7 +129,12 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTTP POST request to the given URL and returns the response body. The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.";
+		return "Sends an HTTP POST request to the given URL and returns the response body.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.";
 	}
 
 	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final String contentType) throws FrameworkException {

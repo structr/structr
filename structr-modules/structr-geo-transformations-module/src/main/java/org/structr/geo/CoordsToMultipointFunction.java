@@ -103,4 +103,9 @@ public class CoordsToMultipointFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Converts a coordinate array into a multipoint geometry.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -75,6 +75,11 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Selects a configuration prefix for the mail configuration (as configured in structr.conf)";
+		return "Selects a configuration prefix for the mail configuration (as configured in structr.conf).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

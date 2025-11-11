@@ -96,7 +96,12 @@ public class ConcatFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Concatenates all its parameters to a single string with the given separator";
+		return "Concatenates all its parameters to a single string with the given separator.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

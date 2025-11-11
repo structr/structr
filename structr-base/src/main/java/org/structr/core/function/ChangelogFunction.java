@@ -146,7 +146,12 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the changelog object";
+		return "Returns the changelog object.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	private String getChangelogForObject (final Object obj) throws IOException {

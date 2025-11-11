@@ -53,7 +53,12 @@ public class GtFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the first argument is greater than the second argument";
+		return "Returns true if the first argument is greater than the second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

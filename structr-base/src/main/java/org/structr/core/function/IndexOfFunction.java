@@ -73,7 +73,12 @@ public class IndexOfFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the position of the given word in the given string, or -1";
+		return "Returns the position of the given word in the given string, or -1.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

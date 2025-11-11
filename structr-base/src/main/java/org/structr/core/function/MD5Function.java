@@ -71,6 +71,11 @@ public class MD5Function extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the MD5 hash of its parameter";
+		return "Returns the MD5 hash of its parameter.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

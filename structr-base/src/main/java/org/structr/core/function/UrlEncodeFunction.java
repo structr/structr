@@ -70,6 +70,11 @@ public class UrlEncodeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "URL-encodes the given string";
+		return "URL-encodes the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -76,7 +76,12 @@ public class ResetCounterFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Resets the value of the counter with the given index";
+		return "Resets the value of the counter with the given index.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

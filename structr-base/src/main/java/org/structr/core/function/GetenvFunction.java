@@ -83,4 +83,9 @@ public class GetenvFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Returns the value of the specified environment variable. If no value is specified, all environment variables are returned as a map. An environment variable is a system-dependent external named value.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

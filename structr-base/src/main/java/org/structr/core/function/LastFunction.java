@@ -90,7 +90,12 @@ public class LastFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the last element of the given collection";
+		return "Returns the last element of the given collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

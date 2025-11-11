@@ -121,7 +121,11 @@ public class CypherFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the result of the given Cypher query";
+		return "Returns the result of the given Cypher query.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -63,6 +63,11 @@ public class IsValidUuidFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
 	}

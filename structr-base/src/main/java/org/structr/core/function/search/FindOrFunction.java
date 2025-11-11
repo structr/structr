@@ -67,6 +67,11 @@ public class FindOrFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public boolean isHidden() {
 		return true;
 	}

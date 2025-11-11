@@ -121,6 +121,11 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the enum values as an array";
+		return "Returns the enum values as an array.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

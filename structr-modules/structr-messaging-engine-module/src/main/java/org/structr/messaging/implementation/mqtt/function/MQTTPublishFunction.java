@@ -80,4 +80,9 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 	public String getShortDescription() {
 		return "Publishes message on given mqtt client with given topic.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

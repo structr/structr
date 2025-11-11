@@ -76,6 +76,11 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Instantiates the given Neo4j node into a Structr node";
+		return "Instantiates the given Neo4j node into a Structr node.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

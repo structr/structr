@@ -231,8 +231,13 @@ ${{
 
 	@Override
 	public String getShortDescription() {
+		return "Runs the given function in a new transaction context.";
+	}
+
+	@Override
+	public String getLongDescription() {
 		return """
-Runs the given function in a new transaction context. This makes all sorts of use-cases possible, for example
+This makes all sorts of use-cases possible, for example
 batching of a given expression, i.e. if the expression contains a long-running function (for example the deletion of all nodes of a given type).
 Useful in situations where large (or unknown) numbers of nodes are created, modified or deleted.
 

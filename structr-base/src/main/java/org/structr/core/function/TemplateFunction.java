@@ -110,6 +110,11 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a MailTemplate object with the given name, replaces the placeholders with values from the given entity";
+		return "Returns a MailTemplate object with the given name, replaces the placeholders with values from the given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

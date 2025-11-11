@@ -94,4 +94,9 @@ public class GetWFSDataFunction extends AbstractGeoserverFunction {
 	public String getShortDescription() {
 		return "Reads features from a WFS endpoint and returns geometries.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

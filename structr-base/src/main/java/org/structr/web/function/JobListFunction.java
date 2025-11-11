@@ -60,6 +60,11 @@ public class JobListFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a list of running jobs";
+		return "Returns a list of running jobs.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

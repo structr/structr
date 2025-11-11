@@ -75,7 +75,12 @@ public class ModFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the remainder of the division";
+		return "Returns the remainder of the division.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

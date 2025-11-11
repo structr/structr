@@ -65,6 +65,11 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		return "Returns Structr runtime env information.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	public static GraphObjectMap getStructrEnv() throws FrameworkException {
 
 		final GraphObjectMap info = new GraphObjectMap();

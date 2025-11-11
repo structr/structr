@@ -98,4 +98,9 @@ public class GeoAzimuthFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Returns the azimuth between two geometries.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -70,6 +70,11 @@ public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the HTML content of the current mail";
+		return "Sets the HTML content of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

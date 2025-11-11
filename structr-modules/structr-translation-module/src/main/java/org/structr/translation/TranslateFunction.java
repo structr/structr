@@ -179,4 +179,9 @@ public class TranslateFunction extends UiFunction {
 	public String getShortDescription() {
 		return "Translates the given string from the source language to the target language.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

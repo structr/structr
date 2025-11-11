@@ -56,6 +56,11 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a random UUID";
+		return "Returns a random UUID.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

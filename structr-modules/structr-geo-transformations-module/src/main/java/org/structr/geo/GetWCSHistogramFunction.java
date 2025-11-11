@@ -160,6 +160,11 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Reads coverage data from a WCS endpoint and returns it";
+		return "Reads coverage data from a WCS endpoint and returns it.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

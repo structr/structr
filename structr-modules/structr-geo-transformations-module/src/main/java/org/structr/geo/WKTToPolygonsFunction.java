@@ -107,6 +107,11 @@ public class WKTToPolygonsFunction extends GeoFunction {
 		return "Converts a WKT string into a list of polygons.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	// ----- private methods -----
 	private void handleGeometry(final Geometry source, final List result) {
 

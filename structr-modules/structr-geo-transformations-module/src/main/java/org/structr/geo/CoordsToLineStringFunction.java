@@ -107,4 +107,9 @@ public class CoordsToLineStringFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Converts a coordinate array into a line string geometry.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

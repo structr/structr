@@ -74,7 +74,11 @@ public class CoalesceObjectsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned";
+		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

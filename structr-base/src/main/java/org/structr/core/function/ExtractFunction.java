@@ -132,7 +132,12 @@ public class ExtractFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a collection of all the elements with a given name from a collection";
+		return "Returns a collection of all the elements with a given name from a collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

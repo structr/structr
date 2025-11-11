@@ -91,6 +91,11 @@ public class ReadFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Reads and returns the contents of the given file from the exchange directoy";
+		return "Reads and returns the contents of the given file from the exchange directoy.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

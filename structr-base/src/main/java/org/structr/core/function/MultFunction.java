@@ -83,7 +83,12 @@ public class MultFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Multiplies the first argument by the second argument";
+		return "Multiplies the first argument by the second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

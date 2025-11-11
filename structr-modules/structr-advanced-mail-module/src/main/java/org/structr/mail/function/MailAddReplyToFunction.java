@@ -73,6 +73,11 @@ public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets replyTo address and optional replyName of the current mail";
+		return "Sets replyTo address and optional replyName of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

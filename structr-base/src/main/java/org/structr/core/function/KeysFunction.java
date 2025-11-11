@@ -91,7 +91,12 @@ public class KeysFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the property keys of the given entity";
+		return "Returns the property keys of the given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

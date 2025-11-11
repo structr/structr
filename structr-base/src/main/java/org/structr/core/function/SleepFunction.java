@@ -94,4 +94,9 @@ public class SleepFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Pauses the execution of the current thread for the given number of milliseconds.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

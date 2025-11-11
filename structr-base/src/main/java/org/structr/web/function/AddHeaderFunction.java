@@ -76,6 +76,11 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds the given header field and value to the next request";
+		return "Adds the given header field and value to the next request.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

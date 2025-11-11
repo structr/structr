@@ -65,6 +65,11 @@ public class PrintFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Prints the given strings or objects to the output buffer";
+		return "Prints the given strings or objects to the output buffer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

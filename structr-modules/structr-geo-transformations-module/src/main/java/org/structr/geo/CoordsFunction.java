@@ -130,4 +130,9 @@ public class CoordsFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Returns the coordinates of a geometry.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

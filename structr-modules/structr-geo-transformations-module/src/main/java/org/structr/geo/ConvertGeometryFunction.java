@@ -91,6 +91,11 @@ public class ConvertGeometryFunction extends GeoFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts the given geometry from source CRS to destination CRS";
+		return "Converts the given geometry from source CRS to destination CRS.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

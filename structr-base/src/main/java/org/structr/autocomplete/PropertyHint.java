@@ -41,6 +41,11 @@ public class PropertyHint extends AbstractHint {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public List<Parameter> getParameters() {
 		return List.of();
 	}

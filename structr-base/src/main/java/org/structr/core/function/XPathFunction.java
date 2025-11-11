@@ -99,4 +99,9 @@ public class XPathFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Returns the value of the given XPath expression from the given XML DOM. The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

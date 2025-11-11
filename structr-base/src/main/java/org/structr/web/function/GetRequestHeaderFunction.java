@@ -85,6 +85,11 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the value of the given request header field";
+		return "Returns the value of the given request header field.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

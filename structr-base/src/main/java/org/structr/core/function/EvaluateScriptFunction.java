@@ -66,6 +66,11 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Evaluates a serverside script string in the context of the given entity";
+		return "Evaluates a serverside script string in the context of the given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -101,6 +101,11 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Writes to the given file in the exchange directoy";
+		return "Writes to the given file in the exchange directory.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

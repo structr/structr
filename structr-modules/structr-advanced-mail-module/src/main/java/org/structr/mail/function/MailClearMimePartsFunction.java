@@ -60,6 +60,11 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes all custom MIME parts from the current mail";
+		return "Removes all custom MIME parts from the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

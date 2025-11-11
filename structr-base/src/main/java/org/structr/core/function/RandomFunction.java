@@ -83,6 +83,11 @@ public class RandomFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a random alphanumeric string of the given length";
+		return "Returns a random alphanumeric string of the given length.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

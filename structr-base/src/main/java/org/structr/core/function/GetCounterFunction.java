@@ -76,7 +76,12 @@ public class GetCounterFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the value of the counter with the given index";
+		return "Returns the value of the counter with the given index.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

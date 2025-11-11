@@ -74,6 +74,11 @@ public class BsonFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates BSON document from a map / object";
+		return "Creates BSON document from a map / object.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

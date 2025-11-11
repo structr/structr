@@ -86,4 +86,9 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 		return "Creates a new folder in the virtual file system including all parent folders if they don't exist already.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 }

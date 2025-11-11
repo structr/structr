@@ -71,6 +71,11 @@ public class EscapeJavascriptFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Escapes the given string for use with Javascript";
+		return "Escapes the given string for use with Javascript.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

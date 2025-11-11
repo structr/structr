@@ -110,6 +110,11 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Formats the given value as a date string with the given format string";
+		return "Formats the given value as a date string with the given format string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

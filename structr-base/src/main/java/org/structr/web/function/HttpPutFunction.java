@@ -109,6 +109,11 @@ public class HttpPutFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTTP PUT request to the given URL and returns the response body";
+		return "Sends an HTTP PUT request to the given URL and returns the response body.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

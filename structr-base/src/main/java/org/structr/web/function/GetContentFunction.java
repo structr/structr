@@ -97,6 +97,11 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the content of the given file";
+		return "Returns the content of the given file.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

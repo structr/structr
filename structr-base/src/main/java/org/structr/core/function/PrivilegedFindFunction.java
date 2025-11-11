@@ -126,4 +126,9 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	public String getShortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

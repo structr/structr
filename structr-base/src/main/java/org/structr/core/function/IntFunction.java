@@ -90,7 +90,12 @@ public class IntFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts the given string to an integer";
+		return "Converts the given string to an integer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

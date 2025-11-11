@@ -118,6 +118,11 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public List<Parameter> getParameters() {
 		return null;
 	}

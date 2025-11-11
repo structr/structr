@@ -88,6 +88,11 @@ public class IncCounterFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Increases the value of the counter with the given index";
+		return "Increases the value of the counter with the given index.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -103,4 +103,9 @@ public class CoordsToPolygonFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Converts a coordinate array into a polygon.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

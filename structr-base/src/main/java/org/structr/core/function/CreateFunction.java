@@ -123,7 +123,11 @@ public class CreateFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates a new entity with the given key/value pairs in the database";
+		return "Creates a new entity with the given key/value pairs in the database.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

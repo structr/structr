@@ -84,6 +84,8 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 			lines.add("## " + name);
 			lines.add(function.getShortDescription());
+			lines.add("");
+			lines.add(function.getLongDescription());
 
 			if (notes != null) {
 
@@ -162,7 +164,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 		// verify that the short description ends with a period
 		final String desc = func.getShortDescription();
-		if (desc != null && !desc.endsWith(".")) {
+		if (!desc.endsWith(".")) {
 
 			errors.add("Short description of " + func.getName() + " does not end with a period character.");
 		}

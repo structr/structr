@@ -78,7 +78,12 @@ public class NumFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts the given string to a floating-point number";
+		return "Converts the given string to a floating-point number.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

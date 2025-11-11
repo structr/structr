@@ -75,7 +75,12 @@ public class AddFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the sum of the given arguments";
+		return "Returns the sum of the given arguments.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

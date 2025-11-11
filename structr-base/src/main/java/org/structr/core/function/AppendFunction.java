@@ -88,6 +88,11 @@ public class AppendFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Appends to the given file in the exchange directoy";
+		return "Appends to the given file in the exchange directory.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

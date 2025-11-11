@@ -122,4 +122,9 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Returns true if a user is in the given group. If the optional parameter checkHierarchy is set to false, only a direct group membership is checked. Otherwise the group hierarchy is checked.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

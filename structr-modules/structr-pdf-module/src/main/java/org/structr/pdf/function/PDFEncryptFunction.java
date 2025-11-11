@@ -124,4 +124,9 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Encrypts a PDF file so that it can't be opened without password.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

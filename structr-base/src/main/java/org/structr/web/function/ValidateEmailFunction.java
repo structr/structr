@@ -68,7 +68,12 @@ public class ValidateEmailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Validates the given address against the syntax rules of RFC 822. The current implementation checks many, but not all, syntax rules. If it is a valid email according to the RFC, nothing is returned. Otherwise the error text is returned.";
+		return "Validates the given address against the syntax rules of RFC 822.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The current implementation checks many, but not all, syntax rules. If it is a valid email according to the RFC, nothing is returned. Otherwise the error text is returned.";
 	}
 
 	public static String getEmailValidationErrorMessageOrNull(final String email) {

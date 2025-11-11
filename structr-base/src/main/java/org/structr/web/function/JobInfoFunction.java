@@ -76,6 +76,11 @@ public class JobInfoFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns job information for the given job id - if the job does not exist, false is returned";
+		return "Returns job information for the given job id - if the job does not exist, false is returned.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

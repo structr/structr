@@ -85,7 +85,12 @@ public class FormUrlEncodeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Encodes the given object to an application/x-www-form-urlencoded string";
+		return "Encodes the given object to an application/x-www-form-urlencoded string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	// ----- private methods -----

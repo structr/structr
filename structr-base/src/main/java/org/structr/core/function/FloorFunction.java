@@ -70,7 +70,12 @@ public class FloorFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the largest integer that is less than or equal to the argument";
+		return "Returns the largest integer that is less than or equal to the argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

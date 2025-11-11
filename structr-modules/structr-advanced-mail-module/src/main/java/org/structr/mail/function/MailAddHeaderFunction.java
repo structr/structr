@@ -73,6 +73,11 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets a SMTP header in the current mail";
+		return "Sets a SMTP header in the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

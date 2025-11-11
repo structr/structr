@@ -78,6 +78,11 @@ public class LogFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Logs the given string to the logfile";
+		return "Logs the given string to the logfile.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

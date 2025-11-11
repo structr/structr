@@ -117,6 +117,11 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Logs an event to the Structr log";
+		return "Logs an event to the Structr log.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

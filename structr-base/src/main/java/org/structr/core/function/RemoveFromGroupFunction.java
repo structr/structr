@@ -93,6 +93,11 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the given user from the given group";
+		return "Removes the given user from the given group.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

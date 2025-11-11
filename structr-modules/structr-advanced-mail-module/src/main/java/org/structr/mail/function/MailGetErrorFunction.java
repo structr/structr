@@ -61,6 +61,11 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the last error message (or null if no error has occured)";
+		return "Returns the last error message (or null if no error has occured).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

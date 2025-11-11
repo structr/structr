@@ -77,6 +77,11 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public boolean isHidden() {
 		return true;
 	}

@@ -89,7 +89,11 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given value is null or empty";
+		return "Returns true if the given value is null or empty.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

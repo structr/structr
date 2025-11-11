@@ -127,14 +127,19 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.jdbc(url, query[, username, password ])}. Example: ${{$.jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\", \"user\", \"p4ssw0rd\");}}"),
-			Usage.structrScript("Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\", \"user\", \"p4ssw0rd\")}")
+			Usage.javaScript("Usage: ${{$.jdbc(url, query[, username, password ])}. Example: ${{$.jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd');}}"),
+			Usage.structrScript("Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd')}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Fetches data from a JDBC source";
+		return "Fetches data from a JDBC source.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	private Connection getConnection(final String url, final String username, final String password) throws SQLException {

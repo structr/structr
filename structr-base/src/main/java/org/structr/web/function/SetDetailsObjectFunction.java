@@ -79,6 +79,11 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the given object as the detail object";
+		return "Sets the given object as the detail object.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

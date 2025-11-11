@@ -100,7 +100,12 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given string to an XML DOM";
+		return "Parses the given string to an XML DOM.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {

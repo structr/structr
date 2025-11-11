@@ -76,4 +76,9 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 	public String getShortDescription() {
 		return "Unsubscribes given topic on given mqtt client.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

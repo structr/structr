@@ -108,4 +108,9 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Returns the names of the parent types of the given type and filters out all entries of the blacklist collection.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

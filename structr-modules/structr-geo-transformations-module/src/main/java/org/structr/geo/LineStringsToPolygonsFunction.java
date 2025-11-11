@@ -109,4 +109,9 @@ public class LineStringsToPolygonsFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Merges line strings to polygons.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

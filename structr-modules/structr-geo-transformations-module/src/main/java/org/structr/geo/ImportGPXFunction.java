@@ -179,6 +179,11 @@ public class ImportGPXFunction extends GeoFunction {
 		return "Imports a GPX file and creates a list of objects of a given type from it.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	// ----- private methods -----
 	private void readWaypoint(final Element waypoint, final List<GraphObjectMap> resultList) {
 

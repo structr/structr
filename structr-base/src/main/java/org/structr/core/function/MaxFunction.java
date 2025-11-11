@@ -76,7 +76,12 @@ public class MaxFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the larger value of the given arguments";
+		return "Returns the larger value of the given arguments.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

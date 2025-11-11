@@ -91,7 +91,12 @@ public class QuotFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Divides the first argument by the second argument";
+		return "Divides the first argument by the second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

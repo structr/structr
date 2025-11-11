@@ -72,7 +72,12 @@ public class IsEntityFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given argument is a Structr entity";
+		return "Returns true if the given argument is a Structr entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

@@ -72,7 +72,12 @@ public class NotFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Negates the given argument";
+		return "Negates the given argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

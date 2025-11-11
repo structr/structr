@@ -98,6 +98,11 @@ public class GetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the requested cookie if it exists";
+		return "Returns the requested cookie if it exists.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

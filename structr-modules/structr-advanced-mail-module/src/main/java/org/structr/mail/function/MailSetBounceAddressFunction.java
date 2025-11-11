@@ -72,6 +72,11 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the bounce address of the current mail";
+		return "Sets the bounce address of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

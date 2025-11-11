@@ -110,6 +110,11 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the value with the given name of the given entity, or null";
+		return "Returns the value with the given name of the given entity, or null.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

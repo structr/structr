@@ -51,6 +51,11 @@ public class RollbackTransactionFunction extends CoreFunction {
                 return "Marks the current transaction as failed and prevents all objects from being persisted in the database.";
         }
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
         @Override
         public List<Signature> getSignatures() {
 		return null;

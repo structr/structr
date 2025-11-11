@@ -70,6 +70,11 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes a specific custom header from the current mail";
+		return "Removes a specific custom header from the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

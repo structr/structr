@@ -123,6 +123,11 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Revokes the given permissions on the given entity from a user";
+		return "Revokes the given permissions on the given entity from a user.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

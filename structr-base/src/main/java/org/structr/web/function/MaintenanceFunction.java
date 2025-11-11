@@ -181,4 +181,9 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Executes a maintenance command.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

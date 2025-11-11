@@ -26,6 +26,7 @@ public interface Documentable {
 
 	String getName();
 	String getShortDescription();
+	String getLongDescription();
 	List<Parameter> getParameters();
 	List<Example> getExamples();
 	List<String> getNotes();

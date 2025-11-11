@@ -70,6 +70,11 @@ public class StripHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Strips all (HTML) tags from the given string";
+		return "Strips all (HTML) tags from the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

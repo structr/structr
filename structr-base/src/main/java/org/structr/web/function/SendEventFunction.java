@@ -105,4 +105,9 @@ public class SendEventFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Triggers the sending of a sever-sent event to a given list of recipients. The message will only be sent if they have an open connection.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

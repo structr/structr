@@ -73,6 +73,11 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds a CC address and optional CC name to the current mail";
+		return "Adds a CC address and optional CC name to the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

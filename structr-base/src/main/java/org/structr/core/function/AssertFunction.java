@@ -82,6 +82,10 @@ public class AssertFunction extends AdvancedScriptingFunction {
 		return "Aborts the current request if the given condition evaluates to false.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 
 	// ----- private methods -----
 	private boolean toBoolean(final Object[] args, final int index) {

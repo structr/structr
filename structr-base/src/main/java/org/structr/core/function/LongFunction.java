@@ -80,7 +80,12 @@ public class LongFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts the given string to a long";
+		return "Converts the given string to a long.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

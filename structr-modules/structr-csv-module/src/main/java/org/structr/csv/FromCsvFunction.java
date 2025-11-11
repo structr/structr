@@ -119,6 +119,11 @@ public class FromCsvFunction extends CsvFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given CSV string and returns a list objects";
+		return "Parses the given CSV string and returns a list objects.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

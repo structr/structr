@@ -81,6 +81,11 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Splits the given string by the whole separator string";
+		return "Splits the given string by the whole separator string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

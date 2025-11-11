@@ -104,8 +104,13 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
+		return "Sends an HTTP DELETE request with an optional content type to the given url.";
+	}
+
+	@Override
+	public String getLongDescription() {
 		return """
-Sends an HTTP DELETE request with an optional content type to the given url. This method can be used to make HTTP requests **from within the Structr Server**, triggered by a frontend control like a button etc.
+This method can be used to make HTTP requests **from within the Structr Server**, triggered by a frontend control like a button etc.
 
 The `DELETE()` method will return a response object with the following structure:
 

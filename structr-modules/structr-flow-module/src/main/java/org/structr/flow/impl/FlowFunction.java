@@ -139,6 +139,11 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the evaluation result of the Flow with the given name";
+		return "Returns the evaluation result of the Flow with the given name.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

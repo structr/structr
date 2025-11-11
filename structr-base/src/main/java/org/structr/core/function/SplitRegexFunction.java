@@ -79,6 +79,11 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Splits the given string by given regex";
+		return "Splits the given string by given regex.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

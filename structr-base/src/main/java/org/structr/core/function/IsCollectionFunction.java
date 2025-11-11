@@ -70,7 +70,12 @@ public class IsCollectionFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given argument is a collection";
+		return "Returns true if the given argument is a collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

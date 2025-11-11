@@ -58,7 +58,11 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Enables the Websocket notifications in the Structr Ui for the current transaction";
+		return "Enables the Websocket notifications in the Structr Ui for the current transaction.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

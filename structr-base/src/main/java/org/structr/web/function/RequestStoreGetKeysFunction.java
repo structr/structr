@@ -55,4 +55,9 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Lists all keys stored in the request level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

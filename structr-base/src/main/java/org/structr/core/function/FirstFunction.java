@@ -87,6 +87,11 @@ public class FirstFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the first element of the given collection";
+		return "Returns the first element of the given collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

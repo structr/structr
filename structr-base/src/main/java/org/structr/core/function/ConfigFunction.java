@@ -96,6 +96,11 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the structr.conf value for the given key";
+		return "Returns the structr.conf value for the given key.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

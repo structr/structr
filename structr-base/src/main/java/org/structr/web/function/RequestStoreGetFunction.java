@@ -72,4 +72,9 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Retrieves a stored value from the request level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

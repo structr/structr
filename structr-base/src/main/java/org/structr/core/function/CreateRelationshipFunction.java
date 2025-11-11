@@ -148,6 +148,11 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates a relationship of the given type between two entities";
+		return "Creates a relationship of the given type between two entities.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

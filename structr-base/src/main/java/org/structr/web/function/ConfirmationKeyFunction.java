@@ -55,4 +55,9 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	public String getShortDescription() {
 		return "Creates a confirmation key to use as a one-time token. Used for user confirmation or password reset.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

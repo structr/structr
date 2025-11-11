@@ -172,4 +172,9 @@ public class CreateOrUpdateFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Creates an object with the given properties or updates an existing object if it could be identified by a unique property.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

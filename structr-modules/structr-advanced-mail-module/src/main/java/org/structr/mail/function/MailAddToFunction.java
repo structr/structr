@@ -73,6 +73,11 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds a FROM address and optional FROM name to the current mail";
+		return "Adds a FROM address and optional FROM name to the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

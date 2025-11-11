@@ -167,4 +167,9 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	public String getShortDescription() {
 		return "Returns the list of available relationship types form and/or to this node. Either potentially available (schema) or actually available (database).";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

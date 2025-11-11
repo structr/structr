@@ -82,7 +82,12 @@ public class EqualFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given arguments are equal";
+		return "Returns true if the given arguments are equal.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

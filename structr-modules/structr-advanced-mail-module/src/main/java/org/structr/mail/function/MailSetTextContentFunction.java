@@ -70,6 +70,11 @@ public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the text content of the current mail";
+		return "Sets the text content of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

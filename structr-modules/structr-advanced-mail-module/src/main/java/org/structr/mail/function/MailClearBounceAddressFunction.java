@@ -60,6 +60,11 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the bounce address from the current mail";
+		return "Removes the bounce address from the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

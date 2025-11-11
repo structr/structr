@@ -74,7 +74,11 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the given key/value pair(s) on the given entity with super-user privileges";
+		return "Sets the given key/value pair(s) on the given entity with super-user privileges.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

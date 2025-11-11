@@ -147,8 +147,12 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-
 		return "Packs the given files and folders into zipped archive.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	private void addFileToZipArchive(final String path, final File file, final ArchiveOutputStream aps) throws IOException {

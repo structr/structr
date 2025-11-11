@@ -122,6 +122,11 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the geolocation (latitude, longitude) for the given street address using the configured geocoding provider";
+		return "Returns the geolocation (latitude, longitude) for the given street address using the configured geocoding provider.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

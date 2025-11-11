@@ -79,7 +79,12 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds an attachment file and an optional file name to the current mail";
+		return "Adds an attachment file and an optional file name to the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {

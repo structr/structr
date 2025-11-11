@@ -150,7 +150,12 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates Excel from given data";
+		return "Creates Excel from given data.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public Workbook writeExcel(final List list, final String propertyView, final List<String> properties, final boolean includeHeader, final boolean localizeHeader, final String headerLocalizationDomain, final Locale locale, final Integer maxCellLength, final String overflowMode) throws IOException {

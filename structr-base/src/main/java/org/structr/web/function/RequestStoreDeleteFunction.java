@@ -74,4 +74,9 @@ public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Removes a stored value from the request level store.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

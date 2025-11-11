@@ -85,7 +85,12 @@ public class SizeFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the size of the given collection";
+		return "Returns the size of the given collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

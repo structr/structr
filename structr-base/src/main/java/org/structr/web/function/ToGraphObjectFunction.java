@@ -89,6 +89,11 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts the given entity to GraphObjectMap";
+		return "Converts the given entity to GraphObjectMap.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

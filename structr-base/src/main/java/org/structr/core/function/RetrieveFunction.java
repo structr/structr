@@ -75,7 +75,12 @@ public class RetrieveFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the value associated with the given key from the temporary store";
+		return "Returns the value associated with the given key from the temporary store.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

@@ -186,6 +186,11 @@ public class ReadShapefileFunction extends GeoFunction {
 		return "Reads a shapefile from a Structr path and returns it as a list of WKT strings.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	// ----- private methods -----
 	private static CoordinateReferenceSystem readCRS(ShpFiles shpFiles, ShapefileReader shpReader) {
 

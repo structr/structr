@@ -97,7 +97,12 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Signals an error to the caller";
+		return "Signals an error to the caller.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 }

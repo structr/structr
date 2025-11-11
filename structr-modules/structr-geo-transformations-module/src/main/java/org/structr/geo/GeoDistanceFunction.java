@@ -98,4 +98,9 @@ public class GeoDistanceFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Returns the distance between two geometries.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

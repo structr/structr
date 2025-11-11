@@ -90,4 +90,9 @@ public class MakePolygonValidFunction extends GeoFunction {
 	public String getShortDescription() {
 		return "Makes a polygon valid.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

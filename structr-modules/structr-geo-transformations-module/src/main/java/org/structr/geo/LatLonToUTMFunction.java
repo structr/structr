@@ -135,6 +135,11 @@ public class LatLonToUTMFunction extends GeoFunction {
 		return "Converts the given latitude/longitude coordinates into an UTM string.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
 	// ----- private methods -----
 	private int getUTMZone(final double lat, final double lon) {
 

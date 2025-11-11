@@ -80,7 +80,12 @@ public class JoinFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Joins all its parameters to a single string using the given separator";
+		return "Joins all its parameters to a single string using the given separator.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

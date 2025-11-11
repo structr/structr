@@ -86,4 +86,9 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	public String getShortDescription() {
 		return "Remove key/value pair from the user session.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

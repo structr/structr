@@ -93,6 +93,11 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Store a value under the given key in the users session";
+		return "Store a value under the given key in the users session.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

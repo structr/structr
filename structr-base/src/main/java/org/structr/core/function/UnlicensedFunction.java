@@ -58,7 +58,12 @@ public class UnlicensedFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
-		return "Placeholder for unlicensed functions";
+		return "Placeholder for unlicensed functions.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

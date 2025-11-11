@@ -77,4 +77,9 @@ public class StrReplaceFunction extends CoreFunction {
 	public String getShortDescription() {
 		return "Replaces each substring of the subject that matches the given regular expression with the given replacement.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

@@ -102,4 +102,9 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 	public String getShortDescription() {
 		return "Returns a map of entities and search scores matching the given search string from the given fulltext index. Searches case-insensitve / inexact.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

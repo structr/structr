@@ -76,4 +76,9 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 	public String getShortDescription() {
 		return "Subscribes given topic on given mqtt client.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

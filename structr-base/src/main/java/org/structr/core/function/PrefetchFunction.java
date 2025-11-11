@@ -41,6 +41,11 @@ public class PrefetchFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllLanguages("query, listOfKeys");
 	}

@@ -71,6 +71,11 @@ public class EscapeJsonFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Escapes the given string for use within JSON";
+		return "Escapes the given string for use within JSON.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

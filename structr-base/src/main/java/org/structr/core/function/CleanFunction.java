@@ -97,6 +97,11 @@ public class CleanFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Cleans the given string";
+		return "Cleans the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

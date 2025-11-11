@@ -86,7 +86,12 @@ public class SubtFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Substracts the second argument from the first argument";
+		return "Subtracts the second argument from the first argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

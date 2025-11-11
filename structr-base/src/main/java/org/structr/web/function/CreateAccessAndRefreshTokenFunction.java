@@ -88,6 +88,11 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates an access token and an refresh token for the given user";
+		return "Creates an access token and an refresh token for the given user.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -62,6 +62,11 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Clears headers for the next request";
+		return "Clears headers for the next request.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }
