@@ -138,7 +138,7 @@ public class GetFunction extends CoreFunction {
 
 			} else {
 
-				return usage(ctx.isJavaScriptContext());
+				return ERROR_MESSAGE_GET_ENTITY;
 			}
 
 		} catch (ArgumentNullException pe) {
