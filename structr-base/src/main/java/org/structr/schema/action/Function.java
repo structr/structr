@@ -33,10 +33,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
 import org.structr.core.traits.Traits;
-import org.structr.docs.DocumentableType;
-import org.structr.docs.Example;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
+import org.structr.docs.*;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.File;
@@ -54,7 +51,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
 
 	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
-	public abstract String usage(boolean inJavaScriptContext);
 	public abstract String getRequiredModule();
 
 	public List<String> aliases() {
@@ -94,6 +90,12 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return Language.all();
 	}
 
+	@Override
+	public List<Usage> getUsages() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
 	public int hashCode() {
 		return getName().hashCode();
 	}
@@ -105,6 +107,34 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		}
 
 		return false;
+	}
+
+	public final String usage(boolean inJavaScriptContext) {
+
+		Usage first = null;
+
+		for (final Usage usage : getUsages()) {
+
+			// store first to return it later
+			if (first == null) {
+				first = usage;
+			}
+
+			if (usage.isJavascript() && inJavaScriptContext) {
+				return usage.getUsage();
+			}
+
+			if (usage.isStructrScript() && !inJavaScriptContext) {
+				return usage.getUsage();
+			}
+		}
+
+		if (first != null) {
+			return first.getUsage();
+		}
+
+		// there should always be at least one Usage object...
+		throw new RuntimeException("No Usage defined in function " + getName());
 	}
 
 	/**

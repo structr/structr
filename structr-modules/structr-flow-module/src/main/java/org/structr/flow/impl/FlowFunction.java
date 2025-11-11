@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
@@ -131,8 +132,9 @@ public class FlowFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? USAGE_JS : USAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
@@ -34,7 +35,6 @@ import java.util.Map;
 
 public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_FUNCTION_INFO    = "Usage: ${function_info([type, name])}. Example ${function_info()}";
 	public static final String ERROR_MESSAGE_FUNCTION_INFO_JS = "Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}";
 
 	public static final String DECLARING_CLASS_KEY            = "declaringClass";
@@ -103,8 +103,11 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FUNCTION_INFO_JS : ERROR_MESSAGE_FUNCTION_INFO);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${function_info([type, name])}. Example ${function_info()}"),
+			Usage.javaScript("Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}")
+		);
 	}
 
 	@Override

@@ -32,6 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProviderFactory;
@@ -43,9 +44,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class FromExcelFunction extends Function<Object, Object> {
-
-	public static final String ERROR_MESSAGE_FROM_EXCEL    = "Usage: ${from_excel(file[, sheetIndexOrName = 0 ])}. Example: ${from_excel(first(find('File', 'name', 'test.xlsx')))}";
-	public static final String ERROR_MESSAGE_FROM_EXCEL_JS = "Usage: ${{Structr.fromExcel(file[, sheetIndexOrName = 0 ])}}. Example: ${{ $.fromExcel(fileNode); }}";
 
 	@Override
 	public String getName() {
@@ -114,8 +112,11 @@ public class FromExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_EXCEL_JS : ERROR_MESSAGE_FROM_EXCEL);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${from_excel(file[, sheetIndexOrName = 0 ])}. Example: ${from_excel(first(find('File', 'name', 'test.xlsx')))}"),
+			Usage.javaScript("Usage: ${{Structr.fromExcel(file[, sheetIndexOrName = 0 ])}}. Example: ${{ $.fromExcel(fileNode); }}")
+		);
 	}
 
 	@Override

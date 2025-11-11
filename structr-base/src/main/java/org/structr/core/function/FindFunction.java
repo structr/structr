@@ -28,15 +28,15 @@ import org.structr.core.traits.Traits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindFunction extends AbstractQueryFunction {
 
-	public static final String ERROR_MESSAGE_FIND = "Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\"}";
 	public static final String ERROR_MESSAGE_FIND_NO_TYPE_SPECIFIED = "Error in find(): no type specified.";
-	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND = "Error in find(): type not found: ";
+	public static final String ERROR_MESSAGE_FIND_TYPE_NOT_FOUND    = "Error in find(): type not found: ";
 
 	@Override
 	public String getNamespaceIdentifier() {
@@ -116,14 +116,17 @@ public class FindFunction extends AbstractQueryFunction {
 	public List<Signature> getSignatures() {
 
 		return List.of(
-			Signature.js( "type, map"),
-			Signature.ss( "type, key, value")
+			Signature.javaScript( "type, map"),
+			Signature.structrScript( "type, key, value")
 		);
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_FIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.find(type, key, value); }}. Example: ${{ $.find(\"User\", { eMail: 'tester@test.com' }); }}"),
+			Usage.structrScript("Usage: ${find(type, key, value)}. Example: ${find(\"User\", \"email\", \"tester@test.com\")}")
+		);
 	}
 
 	@Override
@@ -142,8 +145,8 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.js("$.find('User', '168f6c0b775a4118a160bf928fed8dae');", "Returns the user with the given UUID.'."),
-			Example.js("$.find('User', { name: 'tester' });", "Returns all users with the name 'tester'.")
+			Example.javaScript("$.find('User', '168f6c0b775a4118a160bf928fed8dae');", "Returns the user with the given UUID.'."),
+			Example.javaScript("$.find('User', { name: 'tester' });", "Returns all users with the name 'tester'.")
 		);
 	}
 }

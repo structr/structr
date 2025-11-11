@@ -23,6 +23,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
@@ -32,9 +33,6 @@ import java.util.List;
 import java.util.Set;
 
 public class SendEventFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SEND_EVENT    = "Usage: ${send_event(eventType, message, recipient(s))}. Example: ${send_event(\"message\", \"Welcome!\", find('User', 'name', 'Bob'))}";
-	public static final String ERROR_MESSAGE_SEND_EVENT_JS = "Usage: ${{Structr.send_event(eventType, message, recipient(s))}}. Example: ${{Structr.send_event(\"message\", \"Welcome!\", $.find('User', 'name', 'Bob'))}}";
 
 	@Override
 	public boolean isHidden() {
@@ -96,8 +94,11 @@ public class SendEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SEND_EVENT_JS : ERROR_MESSAGE_SEND_EVENT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${send_event(eventType, message, recipient(s))}. Example: ${send_event(\"message\", \"Welcome!\", find('User', 'name', 'Bob'))}"),
+			Usage.javaScript("Usage: ${{ $.sendEvent(eventType, message, recipient(s))}}. Example: ${{ $.sendEvent(\"message\", \"Welcome!\", $.find('User', 'name', 'Bob'))}}")
+		);
 	}
 
 	@Override

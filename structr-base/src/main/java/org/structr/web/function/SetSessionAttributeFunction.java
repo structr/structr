@@ -26,14 +26,12 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class SetSessionAttributeFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE    = "Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.set_session_attribute(key, value)}}. Example: ${{Structr.set_session_attribute(\"do_not_track\", true)}}";
 
 	private int retryCount = 0;
 
@@ -86,8 +84,11 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS : ERROR_MESSAGE_SET_SESSION_ATTRIBUTE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute('do_no_track', true)}"),
+			Usage.javaScript("Usage: ${{Structr.setSessionAttribute(key, value)}}. Example: ${{Structr.setSessionAttribute('do_not_track', true)}}")
+		);
 	}
 
 	@Override

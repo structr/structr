@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
@@ -30,9 +31,6 @@ import java.util.Base64;
 import java.util.List;
 
 public class Base64EncodeFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_BASE64ENCODE = "Usage: ${base64encode(text[, scheme[, charset]])}. Example: ${base64encode(\"Check out http://structr.com\")}";
-	public static final String ERROR_MESSAGE_BASE64ENCODE_JS = "Usage: ${{Structr.base64encode(text[, scheme[, charset]])}}. Example: ${{Structr.base64encode(\"Check out http://structr.com\")}}";
 
 	@Override
 	public String getName() {
@@ -104,8 +102,11 @@ public class Base64EncodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_BASE64ENCODE_JS : ERROR_MESSAGE_BASE64ENCODE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${base64encode(text[, scheme[, charset]])}. Example: ${base64encode(\"Check out http://structr.com\")}"),
+			Usage.structrScript("Usage: ${{Structr.base64encode(text[, scheme[, charset]])}}. Example: ${{Structr.base64encode(\"Check out http://structr.com\")}}")
+		);
 	}
 
 	@Override

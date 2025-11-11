@@ -26,6 +26,7 @@ import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.traits.definitions.LocationTraitDefinition;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
@@ -33,8 +34,6 @@ import java.util.List;
 import java.util.Map;
 
 public class GeocodeFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_GEOCODE = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
 
 	@Override
 	public String getName() {
@@ -114,8 +113,11 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_GEOCODE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.geocode(street, city, country)}}. Example: ${{$.set($.this, $.geocode($.this.street, $.this.city, $.this.country))}}"),
+			Usage.structrScript("Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}")
+		);
 	}
 
 	@Override

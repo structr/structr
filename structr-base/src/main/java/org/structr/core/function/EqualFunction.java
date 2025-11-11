@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -29,8 +30,6 @@ import java.util.List;
  *
  */
 public class EqualFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_EQUAL = "Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}";
 
 	@Override
 	public String getName() {
@@ -74,8 +73,11 @@ public class EqualFunction extends CoreFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_EQUAL;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${$.equal(value1, value2)}. Example: ${$.equal($.this.children.size, 0)}"),
+			Usage.structrScript("Usage: ${equal(value1, value2)}. Example: ${equal(this.children.size, 0)}")
+		);
 	}
 
 	@Override

@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindContainsFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_CONTAINS_FIND = "Usage: ${contains(key, value). Example: ${find('Group', and(contains('name', 'Test')))}";
 
 	@Override
 	public String getName() {
@@ -67,8 +66,11 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CONTAINS_FIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.contains('name', 'Test'))) }}"),
+			Usage.structrScript("Usage: ${contains(key, value). Example: ${find('Group', and(contains('name', 'Test')))}")
+		);
 	}
 
 	@Override

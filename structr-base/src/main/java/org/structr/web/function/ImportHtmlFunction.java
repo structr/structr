@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.importer.Importer;
@@ -29,9 +30,6 @@ import org.structr.web.importer.Importer;
 import java.util.List;
 
 public class ImportHtmlFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_IMPORT_HTML    = "Usage: ${import_html(parent, html)}. Example: ${import_html(this, '<div></div>')}";
-	public static final String ERROR_MESSAGE_IMPORT_HTML_JS = "Usage: ${{Structr.importHtml(parent, html)}}. Example: ${{Structr.importHtml(this, '<div></div>')}}";
 
 	@Override
 	public String getName() {
@@ -77,8 +75,11 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_IMPORT_HTML_JS : ERROR_MESSAGE_IMPORT_HTML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${import_html(parent, html)}. Example: ${import_html(this, '<div></div>')}"),
+			Usage.javaScript("Usage: ${{Structr.importHtml(parent, html)}}. Example: ${{Structr.importHtml(this, '<div></div>')}}")
+		);
 	}
 
 	@Override

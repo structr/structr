@@ -28,6 +28,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -37,9 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpPostFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_POST    = "Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}";
-	public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}";
 
 	protected final String DEFAULT_CONTENT_TYPE = "application/json";
 	protected final String DEFAULT_CHARSET      = "UTF-8";
@@ -122,8 +120,11 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
+			Usage.javaScript("Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
+		);
 	}
 
 	@Override

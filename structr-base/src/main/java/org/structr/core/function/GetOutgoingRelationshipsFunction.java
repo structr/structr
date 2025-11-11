@@ -24,15 +24,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class GetOutgoingRelationshipsFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS    = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS = "Usage: ${{Structr.get_outgoing_relationships(from, to [, relType])}}. Example: ${{Structr.get_outgoing_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
 
 	@Override
 	public String getName() {
@@ -117,8 +115,11 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}"),
+			Usage.javaScript("Usage: ${{$.getOutgoingRelationships(from, to [, relType])}}. Example: ${{$.getOutgoingRelationships(Structr.get('me'), user, 'FOLLOWS')}}")
+		);
 	}
 
 	@Override

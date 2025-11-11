@@ -20,15 +20,13 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${ mail_reset_manual_config() }";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_reset_manual_config() }}";
 
 	public MailResetManualConfigFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -61,8 +59,11 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ mail_reset_manual_config() }"),
+			Usage.javaScript("Usage: ${{ Structr.mailResetManualConfig() }}")
+		);
 	}
 
 	@Override

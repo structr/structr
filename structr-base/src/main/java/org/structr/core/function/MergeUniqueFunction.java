@@ -19,7 +19,9 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
@@ -29,7 +31,6 @@ import java.util.Set;
 
 public class MergeUniqueFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_MERGE_UNIQUE = "Usage: ${merge_unique(list1, list2, list3...)}. Example: ${merge_unique(this.children, this.siblings)}";
 
 	@Override
 	public String getName() {
@@ -69,8 +70,10 @@ public class MergeUniqueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_MERGE_UNIQUE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${merge_unique(list1, list2, list3...)}. Example: ${merge_unique(this.children, this.siblings)}")
+		);
 	}
 
 	@Override
@@ -78,4 +81,8 @@ public class MergeUniqueFunction extends CoreFunction {
 		return "Merges the given collections / objects into a single collection, removing duplicates";
 	}
 
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
 }

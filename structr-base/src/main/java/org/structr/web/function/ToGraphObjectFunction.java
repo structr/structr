@@ -22,14 +22,12 @@ import org.structr.common.SecurityContext;
 import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class ToGraphObjectFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_TO_GRAPH_OBJECT    = "Usage: ${to_graph_object(obj)}";
-	public static final String ERROR_MESSAGE_TO_GRAPH_OBJECT_JS = "Usage: ${{Structr.to_graph_object(obj)}}";
 
 	@Override
 	public String getName() {
@@ -82,8 +80,11 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_GRAPH_OBJECT_JS : ERROR_MESSAGE_TO_GRAPH_OBJECT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${to_graph_object(obj)}"),
+			Usage.javaScript("Usage: ${{ $.toGraphObject(obj) }}")
+		);
 	}
 
 	@Override

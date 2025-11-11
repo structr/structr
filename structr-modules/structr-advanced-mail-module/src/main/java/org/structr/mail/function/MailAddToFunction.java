@@ -20,15 +20,13 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class MailAddToFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_to(toAddress[, toName])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_to(toAddress[, toName]) }}";
 
 	public MailAddToFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -66,8 +64,11 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_add_to(toAddress[, toName])}"),
+			Usage.javaScript("Usage: ${{ Structr.mailAddTo(toAddress[, toName]) }}")
+		);
 	}
 
 	@Override

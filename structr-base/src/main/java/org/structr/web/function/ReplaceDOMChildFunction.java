@@ -21,6 +21,7 @@ package org.structr.web.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.DOMNodeContent;
 import org.structr.web.entity.dom.DOMElement;
@@ -32,9 +33,6 @@ import org.structr.websocket.command.RemoveCommand;
 import java.util.List;
 
 public class ReplaceDOMChildFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_REPLACE_DOM_CHILD    = "Usage: ${replace_dom_child(parent, child, html)}. Example: ${replace_dom_child(this, child, html)}";
-	public static final String ERROR_MESSAGE_REPLACE_DOM_CHILD_JS = "Usage: ${{Structr.replaceDomChild(parent, child, html)}}. Example: ${{Structr.replaceDomChild(this, child, html)}}";
 
 	@Override
 	public String getName() {
@@ -59,8 +57,11 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REPLACE_DOM_CHILD_JS : ERROR_MESSAGE_REPLACE_DOM_CHILD);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${replace_dom_child(parent, child, html)}. Example: ${replace_dom_child(this, child, html)}"),
+			Usage.javaScript("Usage: ${{Structr.replaceDomChild(parent, child, html)}}. Example: ${{Structr.replaceDomChild(this, child, html)}}")
+		);
 	}
 
 	@Override

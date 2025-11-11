@@ -32,6 +32,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.RenderContext;
@@ -50,9 +51,6 @@ import java.util.List;
  * behavior (instead of including the node).
  */
 public class IncludeFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
-	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
 
 	@Override
 	public String getName() {
@@ -148,8 +146,11 @@ public class IncludeFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INCLUDE_JS : ERROR_MESSAGE_INCLUDE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${include(name)}. Example: ${include(\"Main Template\")}"),
+			Usage.javaScript("Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}")
+		);
 	}
 
 	@Override

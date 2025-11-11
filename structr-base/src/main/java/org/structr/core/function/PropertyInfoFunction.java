@@ -24,15 +24,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class PropertyInfoFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_PROPERTY_INFO    = "Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}";
-	public static final String ERROR_MESSAGE_PROPERTY_INFO_JS = "Usage: ${Structr.propertyInfo(type, name)}. Example ${Structr.propertyInfo('User', 'name')}";
 
 
 	@Override
@@ -89,8 +87,11 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PROPERTY_INFO_JS : ERROR_MESSAGE_PROPERTY_INFO);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}"),
+			Usage.javaScript("Usage: ${Structr.propertyInfo(type, name)}. Example ${Structr.propertyInfo('User', 'name')}")
+		);
 	}
 
 	@Override

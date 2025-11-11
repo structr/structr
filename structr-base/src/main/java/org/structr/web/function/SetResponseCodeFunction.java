@@ -23,15 +23,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 
 public class SetResponseCodeFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SET_RESPONSE_CODE    = "Usage: ${set_response_code(int)}. Example: ${set_response_header(302)}";
-	public static final String ERROR_MESSAGE_SET_RESPONSE_CODE_JS = "Usage: ${{Structr.setResponseCode(int)}}. Example: ${{Structr.setResponseHeader(302)}}";
 
 	@Override
 	public String getName() {
@@ -79,8 +77,11 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_RESPONSE_CODE_JS : ERROR_MESSAGE_SET_RESPONSE_CODE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_response_code(int)}. Example: ${set_response_header(302)}"),
+			Usage.javaScript("Usage: ${{Structr.setResponseCode(int)}}. Example: ${{Structr.setResponseHeader(302)}}")
+		);
 	}
 
 	@Override

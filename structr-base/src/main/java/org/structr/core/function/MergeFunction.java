@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -27,7 +28,6 @@ import java.util.List;
 
 public class MergeFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_MERGE = "Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}";
 
 	@Override
 	public String getName() {
@@ -66,8 +66,11 @@ public class MergeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_MERGE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${{$.merge(list1, list2, list3, ...)}}. Example: ${{$.merge($.this.children, $.this.siblings)}}"),
+			Usage.structrScript("Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}")
+		);
 	}
 
 	@Override

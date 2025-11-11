@@ -21,14 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class AssertFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE    = "Usage: ${assert(condition, statusCode, message)}. Example: ${assert(empty(str), 422, 'str must be empty!')}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.assert(condition, statusCode, message);}}. Example: ${{Structr.assert(empty(str), 422, 'str must be empty!');}}";
 
 	@Override
 	public String getName() {
@@ -71,13 +69,12 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
+	public List<Usage> getUsages() {
 
-		if (inJavaScriptContext) {
-
-			return ERROR_MESSAGE_JS;
-		}
-		return ERROR_MESSAGE;
+		return List.of(
+			Usage.structrScript("Usage: ${assert(condition, statusCode, message)}. Example: ${assert(empty(str), 422, 'str must be empty!')}"),
+			Usage.javaScript("Usage: ${{Structr.assert(condition, statusCode, message);}}. Example: ${{Structr.assert(empty(str), 422, 'str must be empty!');}}")
+		);
 	}
 
 	@Override

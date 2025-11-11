@@ -25,6 +25,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.property.*;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -168,8 +169,9 @@ public class ImportGPXFunction extends GeoFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override

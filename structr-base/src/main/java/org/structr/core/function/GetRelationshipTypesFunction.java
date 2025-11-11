@@ -27,6 +27,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -36,9 +37,6 @@ import java.util.Set;
 
 
 public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES    = "Usage: ${get_relationship_types(node, lookupType [, direction])}. Example: ${get_relationship_types(me, 'existing', 'both')}";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES_JS = "Usage: ${{Structr.get_relationship_types(node, lookupType [, direction ])}}. Example: ${{Structr.get_relationship_types(me, 'existing', 'both')}}";
 
 	@Override
 	public String getName() {
@@ -158,8 +156,11 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_RELATIONSHIP_TYPES_JS : ERROR_MESSAGE_GET_RELATIONSHIP_TYPES);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get_relationship_types(node, lookupType [, direction])}. Example: ${get_relationship_types(me, 'existing', 'both')}"),
+			Usage.javaScript("Usage: ${{$.getRelationshipTypes(node, lookupType [, direction ])}}. Example: ${{$.getRelationshipTypes(me, 'existing', 'both')}}")
+		);
 	}
 
 	@Override

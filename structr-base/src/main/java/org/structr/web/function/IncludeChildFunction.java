@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -39,9 +40,6 @@ import java.util.List;
  * Convenience method to render named child nodes.
  */
 public class IncludeChildFunction extends IncludeFunction {
-
-	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include_child(name)}. Example: ${include_child(\"Child Node\")}";
-	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.includeChild(name)}}. Example: ${{Structr.includeChild(\"Child Node\")}}";
 
 	@Override
 	public String getName() {
@@ -116,8 +114,11 @@ public class IncludeChildFunction extends IncludeFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INCLUDE_JS : ERROR_MESSAGE_INCLUDE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${include_child(name)}. Example: ${include_child('Child Node')}"),
+			Usage.javaScript("Usage: ${{Structr.includeChild(name)}}. Example: ${{Structr.includeChild('Child Node')}}")
+		);
 	}
 
 	@Override

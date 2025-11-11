@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindRangeFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_RANGE = "Usage: ${range(start, end)}. Example: ${find(\"Event\", \"date\", range(\"2018-12-31\", \"2019-01-01\"))}";
 
 	@Override
 	public String getName() {
@@ -74,8 +73,11 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_RANGE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.range(start, end) }}. Example: ${{ $.find('Event', { date: $.predicate.range('2018-12-31', '2019-01-01') }); }}"),
+			Usage.structrScript("Usage: ${range(start, end)}. Example: ${find('Event', 'date', range('2018-12-31', '2019-01-01'))}")
+		);
 	}
 
 	@Override

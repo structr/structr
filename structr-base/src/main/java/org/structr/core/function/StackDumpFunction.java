@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -31,9 +32,6 @@ import java.util.List;
 public class StackDumpFunction extends CoreFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(StackDumpFunction.class.getName());
-
-	public static final String ERROR_MESSAGE_STACK_DUMP    = "Usage: ${stack_dump()}. Example ${stack_dump()}";
-	public static final String ERROR_MESSAGE_LOG_JS = "Usage: ${{ $.stackDump(); }}. Example ${{ $.stackDump(); }}";
 
 	@Override
 	public String getName() {
@@ -58,8 +56,11 @@ public class StackDumpFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOG_JS : ERROR_MESSAGE_STACK_DUMP);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${stack_dump()}. Example ${stack_dump()}"),
+			Usage.javaScript("Usage: ${{ $.stackDump(); }}. Example ${{ $.stackDump(); }}")
+		);
 	}
 
 	@Override

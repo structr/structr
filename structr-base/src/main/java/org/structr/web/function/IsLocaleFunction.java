@@ -20,15 +20,13 @@ package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 import java.util.Locale;
 
 public class IsLocaleFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_IS_LOCALE    = "Usage: ${is_locale(locales...)}";
-	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
 
 	@Override
 	public String getName() {
@@ -67,8 +65,11 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_IS_LOCALE_JS : ERROR_MESSAGE_IS_LOCALE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${is_locale(locales...)}"),
+			Usage.javaScript("Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}")
+		);
 	}
 
 	@Override

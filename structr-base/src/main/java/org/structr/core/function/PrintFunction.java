@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -28,9 +29,6 @@ import java.util.List;
  *
  */
 public class PrintFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_PRINT    = "Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}";
-	public static final String ERROR_MESSAGE_PRINT_JS = "Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}";
 
 	@Override
 	public String getName() {
@@ -58,8 +56,11 @@ public class PrintFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PRINT_JS : ERROR_MESSAGE_PRINT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}"),
+			Usage.javaScript("Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}")
+		);
 	}
 
 	@Override

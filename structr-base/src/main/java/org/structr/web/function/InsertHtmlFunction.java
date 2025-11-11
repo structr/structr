@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.importer.Importer;
@@ -30,9 +31,6 @@ import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import java.util.List;
 
 public class InsertHtmlFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_INSERT_HTML    = "Usage: ${insert_html(parent, html)}. Example: ${insert_html(this, html)}";
-	public static final String ERROR_MESSAGE_INSERT_HTML_JS = "Usage: ${{Structr.insertHtml(parent, html)}}. Example: ${{Structr.insertHtml(this, html)}}";
 
 	@Override
 	public String getName() {
@@ -56,8 +54,11 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INSERT_HTML_JS : ERROR_MESSAGE_INSERT_HTML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${insert_html(parent, html)}. Example: ${insert_html(this, html)}"),
+			Usage.javaScript("Usage: ${{Structr.insertHtml(parent, html)}}. Example: ${{Structr.insertHtml(this, html)}}")
+		);
 	}
 
 	@Override

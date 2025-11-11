@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
@@ -35,9 +36,6 @@ import java.util.EnumSet;
 import java.util.List;
 
 public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_GET_AVAILABLE_SERVERLOGS    = "Usage: ${get_available_serverlogs()}. Example: ${get_available_serverlogs()}";
-	public static final String ERROR_MESSAGE_GET_AVAILABLE_SERVERLOGS_JS = "Usage: ${{ $.get_available_serverlogs(); }}. Example: ${{ $.get_available_serverlogs(); }}";
 
 	private static final Logger logger = LoggerFactory.getLogger(ServerLogFunction.class.getName());
 
@@ -58,8 +56,11 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_AVAILABLE_SERVERLOGS_JS : ERROR_MESSAGE_GET_AVAILABLE_SERVERLOGS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get_available_serverlogs()}. Example: ${get_available_serverlogs()}"),
+			Usage.javaScript("Usage: ${{ $.getAvailableServerlogs(); }}. Example: ${{ $.getAvailableServerlogs(); }}")
+		);
 	}
 
 	@Override

@@ -23,14 +23,14 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.SuperUser;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class IsEntityFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_IS_ENTITY = "Usage: ${is_entity(value)}. Example: ${is_entity(this)}";
 
 	@Override
 	public String getName() {
@@ -64,12 +64,19 @@ public class IsEntityFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_IS_ENTITY;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${is_entity(value)}. Example: ${is_entity(this)}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Returns true if the given argument is a Structr entity";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

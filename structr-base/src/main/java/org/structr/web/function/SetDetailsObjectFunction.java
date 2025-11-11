@@ -20,15 +20,13 @@ package org.structr.web.function;
 
 import org.structr.core.GraphObject;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 
 import java.util.List;
 
 public class SetDetailsObjectFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT    = "Usage: ${set_details_object(obj)}. Example: ${set_details_object(this)}";
-	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT_JS = "Usage: ${{Structr.setDetailsObject(obj)}}. Example: ${{Structr.setDetailsObject(Structr.this)}}";
 
 	@Override
 	public String getName() {
@@ -72,8 +70,11 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_DETAILS_OBJECT_JS : ERROR_MESSAGE_SET_DETAILS_OBJECT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_details_object(obj)}. Example: ${set_details_object(this)}"),
+			Usage.javaScript("Usage: ${{Structr.setDetailsObject(obj)}}. Example: ${{Structr.setDetailsObject(Structr.this)}}")
+		);
 	}
 
 	@Override

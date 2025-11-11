@@ -66,6 +66,12 @@ public class TypeNameHint extends AbstractHint {
 	}
 
 	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+		);
+	}
+
+	@Override
 	public String getDocumentation() {
 		return "Schema type **" + this.documentation + "**";
 	}

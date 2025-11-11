@@ -22,6 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
@@ -32,54 +33,54 @@ import java.util.Map;
 
 public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
-    public static final String ERROR_MESSAGE    = "Usage: ${create_access_token(user [, accessTokenTimeout])}. Example: ${create_access_token(me [, 15])}";
-    public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.create_access_token(user [, accessTokenTimeout])}}. Example: ${{Structr.create_access_token(Structr.me [, 15])}";
+	@Override
+	public String getName() {
+		return "create_access_token";
+	}
 
-    @Override
-    public String getName() {
-        return "create_access_token";
-    }
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("user, accessTokenTimeout");
+	}
 
-    @Override
-    public List<Signature> getSignatures() {
-        return Signature.forAllLanguages("user, accessTokenTimeout");
-    }
+	@Override
+	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-    @Override
-    public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+		try {
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
+			final User user = (User) sources[0];
+			int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
+			int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
-        try {
-            assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
-            final User user = (User) sources[0];
-            int accessTokenTimeout = Settings.JWTExpirationTimeout.getValue();
-            int refreshTokenTimeout = Settings.JWTRefreshTokenExpirationTimeout.getValue();
+			if (sources.length > 1) {
+				accessTokenTimeout = (int) sources[1];
+			}
 
-            if (sources.length > 1) {
-                accessTokenTimeout = (int) sources[1];
-            }
+			Calendar accessTokenExpirationDate = Calendar.getInstance();
+			accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
 
-            Calendar accessTokenExpirationDate = Calendar.getInstance();
-            accessTokenExpirationDate.add(Calendar.MINUTE, accessTokenTimeout);
+			Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
 
-            Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
+			return tokens.get("access_token");
 
-            return tokens.get("access_token");
+		} catch (ArgumentCountException pe) {
 
-        } catch (ArgumentCountException pe) {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
 
-            logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-            return usage(ctx.isJavaScriptContext());
+		}
+	}
 
-        }
-    }
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${create_access_token(user [, accessTokenTimeout])}. Example: ${create_access_token(me [, 15])}"),
+			Usage.javaScript("Usage: ${{Structr.createAccessToken(user [, accessTokenTimeout])}}. Example: ${{Structr.createAccessToken(Structr.me [, 15])}")
+		);
+	}
 
-    @Override
-    public String usage(boolean inJavaScriptContext) {
-        return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
-    }
-
-    @Override
-    public String getShortDescription() {
-        return "Creates an access token for the given user";
-    }
+	@Override
+	public String getShortDescription() {
+		return "Creates an access token for the given user";
+	}
 }

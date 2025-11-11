@@ -23,13 +23,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FirstFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_FIRST = "Usage: ${first(collection)}. Example: ${first(this.children)}";
 
 	@Override
 	public String getName() {
@@ -79,8 +78,11 @@ public class FirstFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_FIRST;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.first(collection)}}. Example: ${{$.first($.this.children)}}"),
+			Usage.structrScript("Usage: ${first(collection)}. Example: ${first(this.children)}")
+		);
 	}
 
 	@Override

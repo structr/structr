@@ -21,14 +21,12 @@ package org.structr.core.function;
 import org.structr.api.config.Settings;
 import org.structr.core.GraphObject;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 
 import java.io.IOException;
 import java.util.List;
 
 public class UserChangelogFunction extends ChangelogFunction {
-
-	public static final String ERROR_MESSAGE_USER_CHANGELOG    = "Usage: ${user_changelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: ${user_changelog(current, false, 'verb', 'change', 'timeTo', now)}";
-	public static final String ERROR_MESSAGE_USER_CHANGELOG_JS = "Usage: ${{Structr.userChangelog(user[, resolve=false[, filterObject]])}}. Example: ${{Structr.userChangelog(Structr.get('me'), false, {verb:\"change\", timeTo: new Date()}))}}";
 
 	@Override
 	public String getName() {
@@ -41,8 +39,11 @@ public class UserChangelogFunction extends ChangelogFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_USER_CHANGELOG_JS : ERROR_MESSAGE_USER_CHANGELOG);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${user_changelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: ${user_changelog(current, false, 'verb', 'change', 'timeTo', now)}"),
+			Usage.javaScript("Usage: ${{Structr.userChangelog(user[, resolve=false[, filterObject]])}}. Example: ${{Structr.userChangelog(Structr.get('me'), false, {verb:\"change\", timeTo: new Date()}))}}")
+		);
 	}
 
 	@Override

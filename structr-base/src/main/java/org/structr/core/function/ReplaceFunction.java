@@ -24,14 +24,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
 import java.util.List;
 
 public class ReplaceFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_REPLACE = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
 
 	@Override
 	public String getName() {
@@ -89,8 +88,11 @@ public class ReplaceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_REPLACE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.replace(template, source)}}. Example: ${{$.replace(\"${this.id}\", this)}}"),
+			Usage.structrScript("Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}")
+		);
 	}
 
 	@Override

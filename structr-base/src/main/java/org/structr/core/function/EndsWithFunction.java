@@ -20,13 +20,12 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class EndsWithFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_ENDS_WITH = "Usage: ${ends_with(string, suffix)}. Example: ${ends_with(locale, \"de\")}";
 
 	@Override
 	public String getName() {
@@ -58,8 +57,11 @@ public class EndsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ENDS_WITH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${$.endsWith(string, suffix)}. Example: ${$.endsWith(locale, \"de\")}"),
+			Usage.structrScript("Usage: ${ends_with(string, suffix)}. Example: ${ends_with(locale, \"de\")}")
+		);
 	}
 
 	@Override

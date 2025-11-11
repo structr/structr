@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.UnsupportedEncodingException;
@@ -31,8 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 public class FormUrlEncodeFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_URLENCODE = "Usage: ${formurlencode(object)}. Example: ${formurlencode(data)}";
 
 	@Override
 	public String getName() {
@@ -77,8 +76,11 @@ public class FormUrlEncodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_URLENCODE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{formurlencode(object)}}. Example: ${{formurlencode(data)}}"),
+			Usage.structrScript("Usage: ${formurlencode(object)}. Example: ${formurlencode(data)}")
+		);
 	}
 
 	@Override

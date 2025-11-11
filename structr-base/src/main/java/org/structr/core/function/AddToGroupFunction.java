@@ -26,18 +26,12 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
-import org.structr.docs.Example;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class AddToGroupFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE    = "Usage: ${add_to_group(group, user)}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.addToGroup(group, user);}}";
 
 	@Override
 	public String getName() {
@@ -113,8 +107,11 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${add_to_group(group, user)}"),
+			Usage.javaScript("Usage: ${{$.addToGroup(group, user);}}")
+		);
 	}
 
 	@Override

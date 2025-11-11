@@ -26,6 +26,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -33,9 +34,6 @@ import java.util.List;
 
 
 public class GetSessionAttributeFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key)}. Example: ${get_session_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";
 
 	private int retryCount = 0;
 
@@ -88,8 +86,11 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS : ERROR_MESSAGE_GET_SESSION_ATTRIBUTE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get_session_attribute(key)}. Example: ${get_session_attribute('do_no_track')}"),
+			Usage.javaScript("Usage: ${{ $.getSessionAttribute(key)}}. Example: ${{ $.getSessionAttribute('do_not_track')}}")
+		);
 	}
 
 	@Override

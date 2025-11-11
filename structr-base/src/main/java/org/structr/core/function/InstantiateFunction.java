@@ -23,13 +23,12 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class InstantiateFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_INSTANTIATE = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
 
 	@Override
 	public String getName() {
@@ -68,8 +67,11 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_INSTANTIATE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${{$.instantiate(node)}}. Example: ${{$.instantiate(result.node)}}"),
+			Usage.structrScript("Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}")
+		);
 	}
 
 	@Override

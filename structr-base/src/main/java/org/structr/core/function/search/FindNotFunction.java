@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindNotFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(predicate, ...). Example: ${find('Group', not(equals('name', 'Test')))}";
 
 	@Override
 	public String getName() {
@@ -62,8 +61,11 @@ public class FindNotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_NOT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{not(predicate, ...) }} Example: ${{ $.find('Group', $.predicate.not($.predicate.equals('name', 'Test'))) }}"),
+			Usage.structrScript("Usage: ${not(predicate, ...). Example: ${find('Group', not(equals('name', 'Test')))}")
+		);
 	}
 
 	@Override

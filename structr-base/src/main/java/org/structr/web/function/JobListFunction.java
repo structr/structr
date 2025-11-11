@@ -20,14 +20,12 @@ package org.structr.web.function;
 
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class JobListFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_JOB_LIST    = "Usage: ${job_list()}. Example: ${job_info(1)}";
-	public static final String ERROR_MESSAGE_JOB_LIST_JS = "Usage: ${{Structr.job_list()}}. Example: ${{Structr.job_list(}}";
 
 	@Override
 	public String getName() {
@@ -53,8 +51,11 @@ public class JobListFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JOB_LIST : ERROR_MESSAGE_JOB_LIST_JS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${job_list()}. Example: ${job_list()}"),
+			Usage.javaScript("Usage: ${{Structr.jobList()}}. Example: ${{Structr.jobList()}}")
+		);
 	}
 
 	@Override

@@ -23,13 +23,12 @@ import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class ErrorFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_ERROR = "Usage: ${error(property, token[, detail])}. Example: ${error(\"name\", \"already_taken\"[, \"Another node with that name already exists\"])}";
 
 	@Override
 	public String getName() {
@@ -89,8 +88,11 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ERROR;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${$.error(property, token[, detail])}. Example: ${$.error(\"name\", \"already_taken\"[, \"Another node with that name already exists\"])}"),
+			Usage.structrScript("Usage: ${error(property, token[, detail])}. Example: ${error(\"name\", \"already_taken\"[, \"Another node with that name already exists\"])}")
+		);
 	}
 
 	@Override

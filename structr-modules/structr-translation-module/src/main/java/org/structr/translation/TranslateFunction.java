@@ -29,6 +29,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.UiFunction;
@@ -39,8 +40,6 @@ import java.util.Map;
 
 public class TranslateFunction extends UiFunction {
 
-	public static final String ERROR_MESSAGE_TRANSLATE    = "Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate(\"Hello world!\", \"en\", \"ru\", \"deepl\")}";
-	public static final String ERROR_MESSAGE_TRANSLATE_JS = "Usage: ${{Structr.translate(text, sourceLanguage, targetLanguage[, translationProvider])}}. Supported translation providers: google, deepl. Example: ${{Structr.translate(\"Hello world!\", \"en\", \"ru\", \"deepl\"))}";
 	public static final String ERROR_NO_GOOGLE_API_KEY    = "Google Cloud Translation API Key not configured in structr.conf";
 	public static final String ERROR_NO_DEEPL_API_KEY     = "DeepL Translation API Key not configured in structr.conf";
 	public static final String ERROR_UNKNOWN_PROVIDER     = "Unknown translation provider - possible values are 'google' and 'deepl'.";
@@ -169,8 +168,11 @@ public class TranslateFunction extends UiFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TRANSLATE_JS : ERROR_MESSAGE_TRANSLATE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${translate(text, sourceLanguage, targetLanguage[, translationProvider])}. Supported translation providers: google, deepl. Example: ${translate('Hello world!', 'en', 'ru', 'deepl')}"),
+			Usage.javaScript("Usage: ${{Structr.translate(text, sourceLanguage, targetLanguage[, translationProvider])}}. Supported translation providers: google, deepl. Example: ${{Structr.translate('Hello world!', 'en', 'ru', 'deepl'))}")
+		);
 	}
 
 	@Override

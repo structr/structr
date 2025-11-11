@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
@@ -33,9 +34,6 @@ import java.net.MalformedURLException;
 import java.util.List;
 
 public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_mime_part(content, contentType)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mailAddMimePart(content, contentType) }}";
 
 	public MailAddMimePartFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -72,8 +70,11 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_add_mime_part(content, contentType)}"),
+			Usage.javaScript("Usage: ${{ Structr.mailAddMimePart(content, contentType) }}")
+		);
 	}
 
 	@Override

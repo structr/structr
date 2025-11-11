@@ -21,14 +21,14 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class LengthFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_LENGTH = "Usage: ${length(string)}. Example: ${length(this.name)}";
 
 	@Override
 	public String getName() {
@@ -62,12 +62,19 @@ public class LengthFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_LENGTH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${length(string)}. Example: ${length(this.name)}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Returns the length of the given string";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

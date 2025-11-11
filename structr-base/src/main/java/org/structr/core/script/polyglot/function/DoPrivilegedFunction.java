@@ -22,10 +22,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.SecurityContext;
-import org.structr.docs.Example;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -98,7 +95,7 @@ Runs the given function in a privileged (superuser) context. This can be useful 
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(Example.js("""
+		return List.of(Example.javaScript("""
 ${{
 	let userToDelete = $.find('User', { name: 'user_to_delete' })[0];
 
@@ -123,6 +120,11 @@ ${{
 		return List.of(
 			Language.Javascript
 		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return null;
 	}
 
 	@Override

@@ -22,14 +22,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class JoinFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_JOIN = "Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}";
 
 	@Override
 	public String getName() {
@@ -72,12 +72,19 @@ public class JoinFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_JOIN;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Joins all its parameters to a single string using the given separator";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

@@ -23,14 +23,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class UnescapeHtmlFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_UNESCAPE_HTML    = "Usage: ${unescape_html(text)}. Example: ${unescape_html(\"test &amp; test\")}";
-	public static final String ERROR_MESSAGE_UNESCAPE_HTML_JS = "Usage: ${{Structr.unescape_html(text)}}. Example: ${{Structr.unescape_html(\"test &amp; test\")}}";
 
 	@Override
 	public String getName() {
@@ -64,8 +62,11 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_UNESCAPE_HTML_JS : ERROR_MESSAGE_UNESCAPE_HTML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${unescape_html(text)}. Example: ${unescape_html('test &amp; test')}"),
+			Usage.javaScript("Usage: ${{Structr.unescapeHtml(text)}}. Example: ${{Structr.unescapeHtml('test &amp; test')}}")
+		);
 	}
 
 	@Override

@@ -26,14 +26,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class IncomingFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_INCOMING    = "Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}";
-	public static final String ERROR_MESSAGE_INCOMING_JS = "Usage: ${{Structr.incoming(entity [, relType])}}. Example: ${{Structr.incoming(Structr.this, 'PARENT_OF')}}";
 
 	@Override
 	public String getName() {
@@ -92,8 +90,11 @@ public class IncomingFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INCOMING_JS : ERROR_MESSAGE_INCOMING);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}"),
+			Usage.javaScript("Usage: ${{Structr.incoming(entity [, relType])}}. Example: ${{Structr.incoming(Structr.this, 'PARENT_OF')}}")
+		);
 	}
 
 	@Override

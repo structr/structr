@@ -22,13 +22,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class IncCounterFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_INC_COUNTER = "Usage: ${inc_counter(level[, resetLowerLevels])}. Example: ${inc_counter(1, true)}";
 
 	@Override
 	public String getName() {
@@ -81,8 +80,10 @@ public class IncCounterFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_INC_COUNTER;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${inc_counter(level[, resetLowerLevels])}. Example: ${inc_counter(1, true)}")
+		);
 	}
 
 	@Override

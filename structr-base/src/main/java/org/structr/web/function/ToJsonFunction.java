@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 
@@ -33,9 +34,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ToJsonFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view[, depth = 3[, serializeNulls = true ]]])}. Example: ${to_json(this, 'public', 4)}";
-	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view[, depth = 3[, serializeNulls = true ]]])}}. Example: ${{Structr.to_json(Structr.get('this'), 'public', 4)}}";
 
 	@Override
 	public String getName() {
@@ -121,8 +119,11 @@ public class ToJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_JSON_JS : ERROR_MESSAGE_TO_JSON);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${to_json(obj [, view[, depth = 3[, serializeNulls = true ]]])}. Example: ${to_json(this, 'public', 4)}"),
+			Usage.javaScript("Usage: ${{Structr.toJson(obj [, view[, depth = 3[, serializeNulls = true ]]])}}. Example: ${{Structr.toJson($.this, 'public', 4)}}")
+		);
 	}
 
 	@Override

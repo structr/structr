@@ -27,15 +27,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 import java.util.Map;
 
 public class CreateFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_CREATE    = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
-	public static final String ERROR_MESSAGE_CREATE_JS = "Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}";
 
 	@Override
 	public String getName() {
@@ -116,8 +114,11 @@ public class CreateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}"),
+			Usage.javaScript("Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}")
+		);
 	}
 
 	@Override

@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -29,9 +30,6 @@ import java.util.List;
  *
  */
 public class SetPrivilegedFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_SET_PRIVILEGED    = "Usage: ${set_privileged(entity, propertyKey, value)}. Example: ${set_privileged(this, \"email\", lower(this.email))}";
-	public static final String ERROR_MESSAGE_SET_PRIVILEGED_JS = "Usage: ${{Structr.setPrvileged(entity, propertyKey, value)}}. Example: ${{Structr.setPrivileged(Structr.this, \"email\", lower(Structr.this.email))}}";
 
 	@Override
 	public String getName() {
@@ -67,8 +65,11 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_privileged(entity, propertyKey, value)}. Example: ${set_privileged(this, \"email\", lower(this.email))}"),
+			Usage.javaScript("Usage: ${{Structr.setPrvileged(entity, propertyKey, value)}}. Example: ${{Structr.setPrivileged(Structr.this, \"email\", lower(Structr.this.email))}}")
+		);
 	}
 
 	@Override

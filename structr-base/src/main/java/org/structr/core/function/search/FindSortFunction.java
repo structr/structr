@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindSortFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(key [, descending]). Example: ${find('Group', sort('name'))}";
 
 	@Override
 	public String getName() {
@@ -67,8 +66,11 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SORT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.sort(key [, descending]) }}. Example: ${{ $.find('Group', $.predicate.sort('name')) }}"),
+			Usage.structrScript("Usage: ${sort(key [, descending]). Example: ${find('Group', sort('name'))}")
+		);
 	}
 
 	@Override

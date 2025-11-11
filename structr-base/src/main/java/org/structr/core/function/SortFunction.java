@@ -26,14 +26,13 @@ import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
 import java.util.List;
 
 public class SortFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_SORT = "Usage: ${sort(list1, [key [, descending=false]])}. Example: ${sort(this.children, \"name\")}";
 
 	@Override
 	public String getName() {
@@ -122,8 +121,11 @@ public class SortFunction extends CoreFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SORT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.sort(list1, [key [, descending=false]])}}. Example: ${{$.sort($.this.children, \"name\")}}"),
+			Usage.structrScript("Usage: ${sort(list1, [key [, descending=false]])}. Example: ${sort(this.children, \"name\")}")
+		);
 	}
 
 	@Override

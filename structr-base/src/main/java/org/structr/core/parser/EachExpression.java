@@ -42,7 +42,7 @@ public class EachExpression extends Expression {
 
 	private static final Logger logger = LoggerFactory.getLogger(EachExpression.class);
 
-	public static final String ERROR_MESSAGE_EACH = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
+	private static final String ERROR_MESSAGE_EACH = "Usage: ${each(collection, expression)}. Example: ${each(this.children, \"set(this, \"email\", lower(get(this.email))))\")}";
 
 	private Expression listExpression = null;
 	private Expression eachExpression = null;

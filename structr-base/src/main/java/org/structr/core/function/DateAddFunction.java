@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.TemporalDateConverter;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
@@ -32,9 +33,6 @@ import java.util.Date;
 import java.util.List;
 
 public class DateAddFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${date_add(this.createdDate, 1, -1, 0, 0, 0, 0)}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}}. Example: ${{Structr.date_add(Structr.this.createdDate, 1, -1, 0, 0, 0, 0)}}";
 
 	@Override
 	public String getName() {
@@ -119,8 +117,11 @@ public class DateAddFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DATE_FORMAT_JS : ERROR_MESSAGE_DATE_FORMAT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${date_add(this.createdDate, 1, -1, 0, 0, 0, 0)}"),
+			Usage.javaScript("Usage: ${{Structr.date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}}. Example: ${{Structr.date_add(Structr.this.createdDate, 1, -1, 0, 0, 0, 0)}}")
+		);
 	}
 
 	@Override

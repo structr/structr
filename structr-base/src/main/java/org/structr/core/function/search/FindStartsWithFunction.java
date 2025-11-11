@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindStartsWithFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_STARTS_WITH_FIND = "Usage: ${startsWith(key, value). Example: ${find('Group', and(startsWith('name', 'Test')))}";
 
 	@Override
 	public String getName() {
@@ -67,8 +66,11 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_STARTS_WITH_FIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.startsWith(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.startsWith('name', 'Test'))) }}"),
+			Usage.structrScript("Usage: ${startsWith(key, value). Example: ${find('Group', and(startsWith('name', 'Test')))}")
+		);
 	}
 
 	@Override

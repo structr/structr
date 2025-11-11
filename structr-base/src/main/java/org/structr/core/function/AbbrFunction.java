@@ -21,14 +21,12 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class AbbrFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_ABBR    = "Usage: ${abbr(longString, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}";
-	public static final String ERROR_MESSAGE_ABBR_JS = "Usage: ${{Structr.abbr(longString, maxLength[, abbr = '…'])}}. Example: ${{Structr.abbr(this.title, 20)}}";
 
 	@Override
 	public String getName() {
@@ -85,8 +83,11 @@ public class AbbrFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ABBR_JS : ERROR_MESSAGE_ABBR);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${abbr(longString, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}"),
+			Usage.javaScript("Usage: ${{Structr.abbr(longString, maxLength[, abbr = '…'])}}. Example: ${{Structr.abbr(this.title, 20)}}")
+		);
 	}
 
 	@Override

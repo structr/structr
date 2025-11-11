@@ -30,14 +30,12 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class TemplateFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_TEMPLATE    = "Usage: ${template(name, locale, source)}. Example: ${template(\"TEXT_TEMPLATE_1\", \"en_EN\", this)}";
-	public static final String ERROR_MESSAGE_TEMPLATE_JS = "Usage: ${{Structr.template(name, locale, source)}}. Example: ${{Structr.template(\"TEXT_TEMPLATE_1\", \"en_EN\", Structr.get('this'))}}";
 
 	@Override
 	public String getName() {
@@ -103,8 +101,11 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TEMPLATE_JS : ERROR_MESSAGE_TEMPLATE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${template(name, locale, source)}. Example: ${template('TEXT_TEMPLATE_1', 'en_EN', this)}"),
+			Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}. Example: ${{ $.template('TEXT_TEMPLATE_1', 'en_EN', $.this)}}")
+		);
 	}
 
 	@Override

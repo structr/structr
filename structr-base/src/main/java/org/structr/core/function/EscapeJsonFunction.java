@@ -23,14 +23,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class EscapeJsonFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_ESCAPE_JSON = "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
-	public static final String ERROR_MESSAGE_ESCAPE_JSON_JS = "Usage: ${{ Structr.escape_json(string) }}. Example: ${{ Structr.escape_json(this.name); }}";
 
 	@Override
 	public String getName() {
@@ -64,8 +62,11 @@ public class EscapeJsonFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ESCAPE_JSON_JS : ERROR_MESSAGE_ESCAPE_JSON);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}"),
+			Usage.javaScript("Usage: ${{ Structr.escape_json(string) }}. Example: ${{ Structr.escape_json(this.name); }}")
+		);
 	}
 
 	@Override

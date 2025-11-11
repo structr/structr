@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.time.DayOfWeek;
@@ -32,9 +33,6 @@ import java.util.Date;
 import java.util.List;
 
 public class WeekDaysFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_WEEK_DAYS    = "Usage: ${week_days(from, to)}. Example: ${week_days(parse_date(\"2014-01-01\", \"yyyy-MM-dd\"), parse_date(\"2014-01-15\", \"yyyy-MM-dd\"))}";
-	public static final String ERROR_MESSAGE_WEEK_DAYS_JS = "Usage: ${{Structr.weekDays(from, to)}}. Example: ${{Structr.weekDays(Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), Structr.parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}}";
 
 	@Override
 	public String getName() {
@@ -92,8 +90,11 @@ public class WeekDaysFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_WEEK_DAYS_JS : ERROR_MESSAGE_WEEK_DAYS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${week_days(from, to)}. Example: ${week_days(parse_date(\"2014-01-01\", \"yyyy-MM-dd\"), parse_date(\"2014-01-15\", \"yyyy-MM-dd\"))}"),
+			Usage.javaScript("Usage: ${{Structr.weekDays(from, to)}}. Example: ${{Structr.weekDays(Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), Structr.parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}}")
+		);
 	}
 
 	@Override

@@ -39,6 +39,7 @@ import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
@@ -54,9 +55,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ChangelogFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_CHANGELOG = "Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}";
-	public static final String ERROR_MESSAGE_CHANGELOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false[, filterObject]])}}. Example: ${{Structr.changelog(Structr.get('current'), false, {verb:\"change\", timeTo: new Date()}))}}";
 
 	private static final Logger logger = LoggerFactory.getLogger(ChangelogFunction.class.getName());
 
@@ -139,8 +137,11 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CHANGELOG_JS : ERROR_MESSAGE_CHANGELOG);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}"),
+			Usage.javaScript("Usage: ${{Structr.changelog(entity[, resolve=false[, filterObject]])}}. Example: ${{Structr.changelog(Structr.get('current'), false, {verb:\"change\", timeTo: new Date()}))}}")
+		);
 	}
 
 	@Override

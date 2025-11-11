@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
@@ -28,8 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 
 public class StartsWithFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_STARTS_WITH = "Usage: ${starts_with(string, prefix)}. Example: ${starts_with(locale, \"de\")}";
 
 	@Override
 	public String getName() {
@@ -86,8 +85,11 @@ public class StartsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_STARTS_WITH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}. Example: ${{ $.startsWith(locale, \"de\") }}"),
+			Usage.structrScript("Usage: ${starts_with(string, prefix)}. Example: ${starts_with(locale, \"de\")}")
+		);
 	}
 
 	@Override

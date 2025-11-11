@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.sql.*;
@@ -31,8 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 public class JdbcFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\", \"user\", \"p4ssw0rd\")}";
 
 	@Override
 	public String getName() {
@@ -126,8 +125,11 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.jdbc(url, query[, username, password ])}. Example: ${{$.jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\", \"user\", \"p4ssw0rd\");}}"),
+			Usage.structrScript("Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\", \"user\", \"p4ssw0rd\")}")
+		);
 	}
 
 	@Override

@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -29,9 +30,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class AncestorTypesFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_ANCESTOR_TYPES    = "Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User', ['Principal'])}";
-	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User', ['Principal'])}";
 
 	@Override
 	public String getName() {
@@ -99,8 +97,11 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ANCESTOR_TYPES_JS : ERROR_MESSAGE_ANCESTOR_TYPES);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User', ['Principal'])}"),
+			Usage.javaScript("Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User', ['Principal'])}")
+		);
 	}
 
 	@Override

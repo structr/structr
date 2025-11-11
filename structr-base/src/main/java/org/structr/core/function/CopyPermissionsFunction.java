@@ -21,14 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class CopyPermissionsFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE    = "Usage: ${copy_permissions(source, target[, overwrite])}. Example: ${copy_permissions(this, this.child)}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.copy_permissions(source, target[, overwrite]); }}. Example: ${{ Structr.copy_permissions(Structr.this, Structr.this.child); }}";
 
 	@Override
 	public String getName() {
@@ -73,8 +71,11 @@ public class CopyPermissionsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${copy_permissions(source, target[, overwrite])}. Example: ${copy_permissions(this, this.child)}"),
+			Usage.javaScript("Usage: ${{ $..copyPermissions(source, target[, overwrite]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
+		);
 	}
 
 	@Override

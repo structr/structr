@@ -30,6 +30,7 @@ import org.structr.common.helper.MailHelper;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -40,8 +41,6 @@ import java.util.List;
 public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(SendHtmlMailFunction.class.getName());
-
-	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files])}.";
 
 	@Override
 	public String getName() {
@@ -119,8 +118,11 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SEND_HTML_MAIL;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.sendHtmlMail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]) }}."),
+			Usage.structrScript("Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files])}.")
+		);
 	}
 
 	@Override

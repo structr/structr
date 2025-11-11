@@ -34,7 +34,7 @@ import java.util.List;
 
 public class FilterExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
+	private static final String ERROR_MESSAGE_FILTER = "Usage: ${filter(list, expression)}. Example: ${filter(this.children, gt(size(data.children), 0))}";
 
 	private Expression listExpression   = null;
 	private Expression filterExpression = null;

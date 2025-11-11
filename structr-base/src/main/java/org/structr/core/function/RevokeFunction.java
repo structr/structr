@@ -29,6 +29,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -36,9 +37,6 @@ import java.util.List;
 import java.util.Set;
 
 public class RevokeFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_REVOKE    = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
-	public static final String ERROR_MESSAGE_REVOKE_JS = "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
 
 	@Override
 	public String getName() {
@@ -116,8 +114,11 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REVOKE_JS : ERROR_MESSAGE_REVOKE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}"),
+			Usage.javaScript("Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}")
+		);
 	}
 
 	@Override

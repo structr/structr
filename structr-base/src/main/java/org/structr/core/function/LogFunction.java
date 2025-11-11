@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.Scripting;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -30,9 +31,6 @@ import java.util.List;
 public class LogFunction extends CoreFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(LogFunction.class.getName());
-
-	public static final String ERROR_MESSAGE_LOG    = "Usage: ${log(string)}. Example ${log('Hello World!')}";
-	public static final String ERROR_MESSAGE_LOG_JS = "Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}";
 
 	@Override
 	public String getName() {
@@ -71,8 +69,11 @@ public class LogFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOG_JS : ERROR_MESSAGE_LOG);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${log(string)}. Example ${log('Hello World!')}"),
+			Usage.javaScript("Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}")
+		);
 	}
 
 	@Override

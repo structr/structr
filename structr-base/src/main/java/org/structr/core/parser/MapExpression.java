@@ -34,7 +34,7 @@ import java.util.List;
 
 public class MapExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_MAP = "Usage: ${map(list, expression)}. Example: ${map(this.children, data.name)}";
+	private static final String ERROR_MESSAGE_MAP = "Usage: ${map(list, expression)}. Example: ${map(this.children, data.name)}";
 
 	private Expression listExpression = null;
 	private Expression mapExpression  = null;

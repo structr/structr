@@ -21,14 +21,14 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class IndexOfFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_INDEX_OF = "Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}";
 
 	@Override
 	public String getName() {
@@ -65,12 +65,19 @@ public class IndexOfFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_INDEX_OF;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Returns the position of the given word in the given string, or -1";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

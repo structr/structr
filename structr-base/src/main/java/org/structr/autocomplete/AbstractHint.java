@@ -23,6 +23,8 @@ import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Documentable;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Usage;
 
 import java.util.List;
 

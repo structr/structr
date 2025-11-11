@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -40,9 +41,6 @@ import java.util.regex.Pattern;
 
 
 public class PDFFunction extends Function<Object, Object> {
-
-	public static final String ERROR_MESSAGE_PDF = "Usage: ${ pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]) }";
-	public static final String ERROR_MESSAGE_PDF_JS = "Usage: ${{ Structr.pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]); }}";
 
 	@Override
 	public String getName() {
@@ -248,8 +246,11 @@ public class PDFFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PDF_JS : ERROR_MESSAGE_PDF);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]) }"),
+			Usage.javaScript("Usage: ${{ Structr.pdf(page [, wkhtmltopdfParameter, baseUrl, runWithXServer, xServerSettings]); }}")
+		);
 	}
 
 	@Override

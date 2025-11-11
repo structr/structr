@@ -19,14 +19,12 @@
 package org.structr.web.function;
 
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class ValidateCertificatesFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${ validate_certificates(boolean) }. Example: ${ validate_certificates(false) }";
-	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{ $.validateCertificates(boolean) }}. Example: ${{ $.validateCertificates(false) }}";
 
 	@Override
 	public String getName() {
@@ -51,8 +49,11 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ validate_certificates(boolean) }. Example: ${ validate_certificates(false) }"),
+			Usage.javaScript("Usage: ${{ $.validateCertificates(boolean) }}. Example: ${{ $.validateCertificates(false) }}")
+		);
 	}
 
 	@Override

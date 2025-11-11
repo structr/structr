@@ -29,6 +29,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -36,9 +37,6 @@ import java.util.List;
 import java.util.Set;
 
 public class IsInGroupFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE    = "Usage: ${is_in_group(group, principal [, checkHierarchy = false ])}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.isInGroup(group, principal [, checkHierarchy = false ]);}}";
 
 	@Override
 	public String getName() {
@@ -113,8 +111,11 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${is_in_group(group, principal [, checkHierarchy = false ])}"),
+			Usage.javaScript("Usage: ${{Structr.isInGroup(group, principal [, checkHierarchy = false ]);}}")
+		);
 	}
 
 	@Override

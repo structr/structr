@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -28,9 +29,6 @@ import java.util.List;
  *
  */
 public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS    = "Usage: ${disable_prevent_duplicate_relationships()}";
-	public static final String ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS_JS = "Usage: ${Structr.disablePreventDuplicateRelationships()}";
 
 	@Override
 	public String getName() {
@@ -51,8 +49,11 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS_JS : ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${disable_prevent_duplicate_relationships()}"),
+			Usage.javaScript("Usage: ${Structr.disablePreventDuplicateRelationships()}")
+		);
 	}
 
 	@Override

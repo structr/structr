@@ -20,15 +20,13 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.List;
 
 public class ToDateFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_TO_DATE    = "Usage: ${to_date(value)}. Example: ${to_date(1473201885000)}";
-	public static final String ERROR_MESSAGE_TO_DATE_JS = "Usage: ${{Structr.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}";
 
 	@Override
 	public String getName() {
@@ -77,8 +75,11 @@ public class ToDateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_DATE_JS : ERROR_MESSAGE_TO_DATE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${to_date(value)}. Example: ${to_date(1473201885000)}"),
+			Usage.javaScript("Usage: ${{$.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}")
+		);
 	}
 
 	@Override

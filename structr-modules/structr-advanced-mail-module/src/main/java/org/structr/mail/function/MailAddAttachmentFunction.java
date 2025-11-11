@@ -25,6 +25,7 @@ import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
@@ -35,9 +36,6 @@ import java.net.MalformedURLException;
 import java.util.List;
 
 public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_attachment(file[, name])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_attachment(file[, name]) }}";
 
 	public MailAddAttachmentFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -87,8 +85,11 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_add_attachment(file[, name])}"),
+			Usage.javaScript("Usage: ${{ Structr.mailAddAttachment(file[, name]) }}")
+		);
 	}
 
 	@Override

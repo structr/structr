@@ -20,14 +20,13 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class UnwindFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_UNWIND = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
 
 	@Override
 	public String getName() {
@@ -78,8 +77,11 @@ public class UnwindFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_UNWIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.unwind(list1, ...) }}. Example: ${{ $.unwind($.this.children) }}"),
+			Usage.structrScript("Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}")
+		);
 	}
 
 	@Override

@@ -25,6 +25,7 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -32,9 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 public class HttpDeleteFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_DELETE    = "Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}";
-	public static final String ERROR_MESSAGE_DELETE_JS = "Usage: ${{Structr.DELETE(URL[, contentType])}}. Example: ${{Structr.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}";
 
 	@Override
 	public String getName() {
@@ -97,8 +95,11 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DELETE_JS : ERROR_MESSAGE_DELETE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}"),
+			Usage.javaScript("Usage: ${{Structr.DELETE(URL[, contentType])}}. Example: ${{Structr.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}")
+		);
 	}
 
 	@Override
@@ -118,7 +119,7 @@ body | Response body | Map or String |
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.ss("${DELETE('http://localhost:8082/structr/rest/User/6aa10d68569d45beb384b42a1fc78c50')}"));
+		return List.of(Example.structrScript("${DELETE('http://localhost:8082/structr/rest/User/6aa10d68569d45beb384b42a1fc78c50')}"));
 	}
 
 	@Override

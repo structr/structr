@@ -20,14 +20,12 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_SET_KEY    = "Usage: ${set_encryption_key(secret)}";
-	public static final String ERROR_MESSAGE_SET_KEY_JS = "Usage: ${{Structr.setEncryptionKey(secret)}}";
 
 	@Override
 	public String getName() {
@@ -65,8 +63,11 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_KEY_JS : ERROR_MESSAGE_SET_KEY);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_encryption_key(secret)}"),
+			Usage.javaScript("Usage: ${{Structr.setEncryptionKey(secret)}}")
+		);
 	}
 
 	@Override

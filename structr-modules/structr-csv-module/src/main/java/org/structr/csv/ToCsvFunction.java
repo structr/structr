@@ -27,6 +27,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.schema.action.ActionContext;
 
@@ -38,9 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public class ToCsvFunction extends CsvFunction {
-
-	public static final String ERROR_MESSAGE_TO_CSV    = "Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}";
-	public static final String ERROR_MESSAGE_TO_CSV_JS = "Usage: ${{Structr.to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}";
 
 	@Override
 	public String getName() {
@@ -154,8 +152,11 @@ public class ToCsvFunction extends CsvFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_CSV_JS : ERROR_MESSAGE_TO_CSV);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}"),
+			Usage.javaScript("Usage: ${{Structr.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}")
+		);
 	}
 
 	@Override

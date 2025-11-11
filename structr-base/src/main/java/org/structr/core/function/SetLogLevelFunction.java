@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -31,9 +32,6 @@ import java.util.List;
 public class SetLogLevelFunction extends CoreFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(SetLogLevelFunction.class.getName());
-
-	public static final String ERROR_MESSAGE_SET_LOG_LEVEL    = "Usage: ${set_log_level(string)}. Example ${set_log_level('WARN')}";
-	public static final String ERROR_MESSAGE_SET_LOG_LEVEL_JS = "Usage: ${{Structr.setLogLevel(string)}}. Example ${{Structr.setLogLevel('WARN')}}";
 
 	@Override
 	public String getName() {
@@ -70,8 +68,11 @@ public class SetLogLevelFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_LOG_LEVEL_JS : ERROR_MESSAGE_SET_LOG_LEVEL);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_log_level(string)}. Example ${set_log_level('WARN')}"),
+			Usage.javaScript("Usage: ${{Structr.setLogLevel(string)}}. Example ${{Structr.setLogLevel('WARN')}}")
+		);
 	}
 
 	@Override

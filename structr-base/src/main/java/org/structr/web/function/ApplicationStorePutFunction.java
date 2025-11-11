@@ -23,14 +23,12 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class ApplicationStorePutFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT    = "Usage: ${application_store_put(key,value)}. Example: ${application_store_put(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT_JS = "Usage: ${{ $.application_store_put(key,value); }}. Example: ${{ $.application_store_put(\"do_not_track\", true); }}";
 
 	@Override
 	public String getName() {
@@ -64,8 +62,11 @@ public class ApplicationStorePutFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_PUT_JS : ERROR_MESSAGE_APPLICATION_STORE_PUT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${application_store_put(key,value)}. Example: ${application_store_put('do_no_track', true)}"),
+			Usage.javaScript("Usage: ${{ $.applicationStorePut(key,value); }}. Example: ${{ $.applicationStorePut('do_not_track', true); }}")
+		);
 	}
 
 	@Override

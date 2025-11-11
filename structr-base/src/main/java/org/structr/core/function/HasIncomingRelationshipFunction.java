@@ -24,14 +24,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class HasIncomingRelationshipFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP    = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS = "Usage: ${{Structr.has_incoming_relationship(from, to [, relType])}}. Example: ${{Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}}";
 
 	@Override
 	public String getName() {
@@ -114,8 +112,11 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}"),
+			Usage.javaScript("Usage: ${{Structr.has_incoming_relationship(from, to [, relType])}}. Example: ${{Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}}")
+		);
 	}
 
 	@Override

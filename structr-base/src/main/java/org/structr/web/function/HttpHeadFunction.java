@@ -19,6 +19,7 @@
 package org.structr.web.function;
 
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -27,9 +28,6 @@ import java.util.List;
  *
  */
 public class HttpHeadFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_HEAD    = "Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}";
-	public static final String ERROR_MESSAGE_HEAD_JS = "Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}";
 
 	@Override
 	public String getName() {
@@ -79,8 +77,11 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_HEAD_JS : ERROR_MESSAGE_HEAD);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}"),
+			Usage.javaScript("Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}")
+		);
 	}
 
 	@Override

@@ -29,6 +29,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -36,7 +37,6 @@ import java.util.Map;
 
 public class FindRelationshipFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP = "Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship(\"PersonRELATED_TOPerson\"}";
 	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED = "Error in find_relationship(): no type specified.";
 	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND = "Error in find_relationship(): type not found: ";
 
@@ -114,7 +114,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 				if (parameter_count % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND_RELATIONSHIP);
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
 				for (int c = 1; c < parameter_count; c += 2) {
@@ -151,8 +151,11 @@ public class FindRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_FIND_RELATIONSHIP;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{findRelationship(type, key, value)}}. Example: ${{findRelationship(\"PersonRELATED_TOPerson\")}}"),
+			Usage.structrScript("Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship(\"PersonRELATED_TOPerson\")}")
+		);
 	}
 
 	@Override

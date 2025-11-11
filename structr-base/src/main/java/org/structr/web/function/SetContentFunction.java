@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
@@ -32,9 +33,6 @@ import java.io.OutputStream;
 import java.util.List;
 
 public class SetContentFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SET_CONTENT    = "Usage: ${set_content(file, content[, encoding = \"UTF-8\"])}. Example: ${set_content(first(find('File', 'name', 'test.txt')), 'Overwritten content')}";
-	public static final String ERROR_MESSAGE_SET_CONTENT_JS = "Usage: ${{Structr.setContent(file, content[, encoding = \"UTF-8\"])}}. Example: ${{Structr.setContent(fileNode, 'Overwritten content')}}";
 
 	@Override
 	public String getName() {
@@ -100,8 +98,11 @@ public class SetContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_CONTENT_JS : ERROR_MESSAGE_SET_CONTENT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_content(file, content[, encoding = \"UTF-8\"])}. Example: ${set_content(first(find('File', 'name', 'test.txt')), 'Overwritten content')}"),
+			Usage.javaScript("Usage: ${{Structr.setContent(file, content[, encoding = \"UTF-8\"])}}. Example: ${{Structr.setContent(fileNode, 'Overwritten content')}}")
+		);
 	}
 
 	@Override

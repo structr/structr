@@ -20,9 +20,9 @@ package org.structr.docs;
 
 public class Example {
 
-	public final String text;
-	public final String description;
-	public final Language language;
+	private final String text;
+	private final String description;
+	private final Language language;
 
 	public Example(final String text, final String descriptionm, final Language language) {
 
@@ -31,19 +31,31 @@ public class Example {
 		this.language    = language;
 	}
 
-	public static Example js(final String example) {
+	public String getText() {
+		return text;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public Language getLanguage() {
+		return language;
+	}
+
+	public static Example javaScript(final String example) {
 		return new Example(example, null, Language.Javascript);
 	}
 
-	public static Example js(final String example, final String description) {
+	public static Example javaScript(final String example, final String description) {
 		return new Example(example, description, Language.Javascript);
 	}
 
-	public static Example ss(final String text, final String description) {
+	public static Example structrScript(final String text, final String description) {
 		return new Example(text, description, Language.StructrScript);
 	}
 
-	public static Example ss(final String text) {
+	public static Example structrScript(final String text) {
 		return new Example(text, null, Language.StructrScript);
 	}
 }

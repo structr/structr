@@ -29,6 +29,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -36,9 +37,7 @@ import java.util.Map;
 
 public class GetOrCreateFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET_OR_CREATE     = "Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}";
-	public static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in get_or_create(): no type specified.";
-	public static final String ERROR_MESSAGE_TYPE_NOT_FOUND    = "Error in get_or_create(): type not found: ";
+	private static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in get_or_create(): no type specified.";
 
 	@Override
 	public String getName() {
@@ -102,7 +101,7 @@ public class GetOrCreateFunction extends CoreFunction {
 
 				if (parameter_count % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_GET_OR_CREATE);
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
 				for (int c = 1; c < parameter_count; c += 2) {
@@ -152,8 +151,11 @@ public class GetOrCreateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_GET_OR_CREATE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.getOrCreate(type, properties)}}. Example: ${{ $.getOrCreate(\"User\", { eMail: 'tester@test.com' }); }}"),
+			Usage.structrScript("Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}")
+		);
 	}
 
 	@Override

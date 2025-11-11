@@ -23,13 +23,12 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
 
 public class ValuesFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_VALUES = "Usage: ${values(entity, viewName)}. Example: ${values(this, \"ui\")}";
 
 	@Override
 	public String getName() {
@@ -76,8 +75,11 @@ public class ValuesFunction extends CoreFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_VALUES;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.values(entity, viewName) }}. Example: ${{ $.values($.this, \"ui\") }}"),
+			Usage.structrScript("Usage: ${values(entity, viewName)}. Example: ${values(this, \"ui\")}")
+		);
 	}
 
 	@Override

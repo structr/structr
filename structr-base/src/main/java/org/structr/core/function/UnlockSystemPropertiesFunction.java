@@ -23,14 +23,12 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE    = "Usage: ${unlock_system_properties_once(node)}. Example ${unlock_system_properties_once(this)}";
-	public static final String ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE_JS = "Usage: ${{Structr.unlock_system_properties_once(node)}}. Example ${{Structr.unlock_system_properties_once(Structr.get('this'))}}";
 
 	@Override
 	public String getName() {
@@ -73,8 +71,11 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${unlock_system_properties_once(node)}. Example ${unlock_system_properties_once(this)}"),
+			Usage.javaScript("Usage: ${{Structr.unlock_system_properties_once(node)}}. Example ${{Structr.unlock_system_properties_once(Structr.get('this'))}}")
+		);
 	}
 
 	@Override

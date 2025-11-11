@@ -34,7 +34,7 @@ import java.util.List;
 
 public class NoneExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_ALL = "Usage: ${none(collection, expression)}. Example: ${none(user.groups, is_allowed(data, current, 'read'))}";
+	private static final String ERROR_MESSAGE_ALL = "Usage: ${none(collection, expression)}. Example: ${none(user.groups, is_allowed(data, current, 'read'))}";
 
 	private Expression listExpression = null;
 	private Expression noneExpression = null;

@@ -23,13 +23,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class MD5Function extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_MD5 = "Usage: ${md5(string)}. Example: ${md5(this.email)}";
 
 	@Override
 	public String getName() {
@@ -63,8 +62,11 @@ public class MD5Function extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_MD5;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${{$.md5(string)}}. Example: ${{$.md5(this.email)}}"),
+			Usage.structrScript("Usage: ${md5(string)}. Example: ${md5(this.email)}")
+		);
 	}
 
 	@Override

@@ -32,6 +32,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
@@ -47,9 +48,6 @@ import java.util.List;
 import java.util.Map;
 
 public class HTTPPostMultiPartFunction extends HttpPostFunction {
-
-	public static final String ERROR_MESSAGE_POST_MULTI_PART    = "Usage: ${POST_multi_part(URL, partsMap [, responseContentType])}. Example: ${POST_multi_part('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}";
-	public static final String ERROR_MESSAGE_POST_MULTI_PART_JS = "Usage: ${{ $.POSTMultiPart(URL, partsMap[, responseContentType]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}";
 
 	@Override
 	public String getName() {
@@ -86,8 +84,11 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_POST_MULTI_PART_JS : ERROR_MESSAGE_POST_MULTI_PART);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${POST_multi_part(URL, partsMap [, responseContentType])}. Example: ${POST_multi_part('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
+			Usage.javaScript("Usage: ${{ $.POSTMultiPart(URL, partsMap[, responseContentType]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
+		);
 	}
 
 	@Override

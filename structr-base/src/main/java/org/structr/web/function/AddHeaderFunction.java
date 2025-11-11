@@ -19,14 +19,12 @@
 package org.structr.web.function;
 
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class AddHeaderFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
-	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
 
 	@Override
 	public String getName() {
@@ -69,8 +67,11 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}"),
+			Usage.javaScript("Usage: ${{ $.addHeader(field, value)}}. Example: ${{ $.addHeader('X-User', 'johndoe')}}")
+		);
 	}
 
 	@Override

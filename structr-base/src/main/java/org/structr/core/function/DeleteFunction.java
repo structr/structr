@@ -27,6 +27,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Iterator;
@@ -35,8 +36,6 @@ import java.util.List;
 public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteFunction.class);
-
-	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(objectOrList)}. Example: ${delete(this)}";
 
 	private boolean batched = false;
 	private int batchSize   = -1;
@@ -67,8 +66,11 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_DELETE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.delete(objectOrList)}}. Example: ${{$.delete(this)}}"),
+			Usage.structrScript("Usage: ${delete(objectOrList)}. Example: ${delete(this)}")
+		);
 	}
 
 	@Override

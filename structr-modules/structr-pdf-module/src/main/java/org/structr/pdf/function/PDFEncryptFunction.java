@@ -31,6 +31,7 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -39,8 +40,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class PDFEncryptFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_PDF_ENCRYPT = "Usage: ${pdf_encrypt(file, password)}. Example: ${pdf_encrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}";
 
 	private static final int keyLength = 256;
 
@@ -114,8 +113,11 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_PDF_ENCRYPT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${pdf_encrypt(file, password)}. Example: ${pdf_encrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}"),
+			Usage.javaScript("Usage: ${{ $.pdfEncrypt(file, password) }}. Example: ${{ $.pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword') }}")
+		);
 	}
 
 	@Override

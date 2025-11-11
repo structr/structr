@@ -28,6 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
@@ -42,9 +43,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ImportCssFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_IMPORT_CSS    = "Usage: ${import_css(file)}. Example: ${import_css(cssFile)}";
-	public static final String ERROR_MESSAGE_IMPORT_CSS_JS = "Usage: ${{Structr.importCss(file)}}. Example: ${{Structr.importCss(cssFile)}}";
 
 	@Override
 	public String getName() {
@@ -105,8 +103,11 @@ public class ImportCssFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_IMPORT_CSS_JS : ERROR_MESSAGE_IMPORT_CSS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${import_css(file)}. Example: ${import_css(cssFile)}"),
+			Usage.javaScript("Usage: ${{Structr.importCss(file)}}. Example: ${{Structr.importCss(cssFile)}}")
+		);
 	}
 
 	@Override

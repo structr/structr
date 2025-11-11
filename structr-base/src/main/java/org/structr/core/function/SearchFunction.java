@@ -25,14 +25,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class SearchFunction extends AbstractQueryFunction {
-
-	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
-	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";
 
 	@Override
 	public String getName() {
@@ -113,8 +111,11 @@ public class SearchFunction extends AbstractQueryFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SEARCH_JS : ERROR_MESSAGE_SEARCH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}"),
+			Usage.javaScript("Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}")
+		);
 	}
 
 	@Override

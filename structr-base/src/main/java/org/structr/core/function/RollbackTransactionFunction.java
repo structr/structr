@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -37,16 +38,12 @@ public class RollbackTransactionFunction extends CoreFunction {
         }
 
         @Override
-        public String usage(final boolean inJavaScriptContext) {
+        public List<Usage> getUsages() {
 
-                if (inJavaScriptContext) {
-
-                        return "Usage: ${{ $.rollbackTransaction(); }}";
-
-                } else {
-
-                        return "Usage: ${rollback_transaction()}";
-                }
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.rollbackTransaction(); }}"),
+			Usage.structrScript("Usage: ${rollback_transaction()}")
+		);
         }
 
         @Override

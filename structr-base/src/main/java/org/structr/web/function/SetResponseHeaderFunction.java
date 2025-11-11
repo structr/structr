@@ -22,15 +22,13 @@ package org.structr.web.function;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 
 public class SetResponseHeaderFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER    = "Usage: ${set_response_header(field, value [, override = false ])}. Example: ${set_response_header('X-User', 'johndoe', true)}";
-	public static final String ERROR_MESSAGE_SET_RESPONSE_HEADER_JS = "Usage: ${{Structr.setResponseHeader(field, value [, override = false ])}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe', true)}}";
 
 	@Override
 	public String getName() {
@@ -77,8 +75,11 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_RESPONSE_HEADER_JS : ERROR_MESSAGE_SET_RESPONSE_HEADER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_response_header(field, value [, override = false ])}. Example: ${set_response_header('X-User', 'johndoe', true)}"),
+			Usage.javaScript("Usage: ${{Structr.setResponseHeader(field, value [, override = false ])}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe', true)}}")
+		);
 	}
 
 	@Override

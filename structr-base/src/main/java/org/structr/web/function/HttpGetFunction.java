@@ -32,6 +32,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -45,9 +46,6 @@ import java.util.Map;
  *
  */
 public class HttpGetFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_GET    = "Usage: ${GET(URL[, contentType[, username, password]])}. Example: ${GET('http://structr.org', 'text/html')}";
-	public static final String ERROR_MESSAGE_GET_JS = "Usage: ${{Structr.GET(URL[, contentType[, username, password]])}}. Example: ${{Structr.GET('http://structr.org', 'text/html')}}";
 
 	@Override
 	public String getName() {
@@ -179,8 +177,11 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_JS : ERROR_MESSAGE_GET);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${GET(URL[, contentType[, username, password]])}. Example: ${GET('http://structr.org', 'text/html')}"),
+			Usage.javaScript("Usage: ${{Structr.GET(URL[, contentType[, username, password]])}}. Example: ${{Structr.GET('http://structr.org', 'text/html')}}")
+		);
 	}
 
 	@Override

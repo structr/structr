@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 
@@ -30,8 +31,6 @@ import javax.xml.xpath.*;
 import java.util.List;
 
 public class XPathFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression [, returnType ])}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\", \"STRING\")}";
 
 	@Override
 	public String getName() {
@@ -89,8 +88,11 @@ public class XPathFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_XPATH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.xpath(xmlDocument, expression [, returnType ]) }}. Example: ${{ $.xpath(xml($.this.xmlSource), '/test/testValue', 'STRING') }}"),
+			Usage.structrScript("Usage: ${xpath(xmlDocument, expression [, returnType ])}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\", \"STRING\")}")
+		);
 	}
 
 	@Override

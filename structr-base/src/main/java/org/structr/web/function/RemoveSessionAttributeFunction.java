@@ -25,15 +25,13 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 
 public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE    = "Usage: ${remove_session_attribute(key)}. Example: ${remove_session_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.remove_session_attribute(key)}}. Example: ${{Structr.remove_session_attribute(\"do_not_track\")}}";
 
 	@Override
 	public String getName() {
@@ -77,8 +75,11 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE_JS : ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${remove_session_attribute(key)}. Example: ${remove_session_attribute('do_no_track')}"),
+			Usage.javaScript("Usage: ${{Structr.removeSessionAttribute(key)}}. Example: ${{Structr.removeSessionAttribute('do_not_track')}}")
+		);
 	}
 
 	@Override

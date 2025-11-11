@@ -26,15 +26,13 @@ import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class LoginFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_LOGIN = "Usage: ${login(user, password)}";
-	public static final String ERROR_MESSAGE_LOGIN_JS = "Usage: ${{$.login(user, password)}}";
 
 	@Override
 	public String getName() {
@@ -78,8 +76,11 @@ public class LoginFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOGIN_JS : ERROR_MESSAGE_LOGIN);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${login(user, password)}"),
+			Usage.javaScript("Usage: ${{$.login(user, password)}}")
+		);
 	}
 
 	@Override

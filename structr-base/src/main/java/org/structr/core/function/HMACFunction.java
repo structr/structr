@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import javax.crypto.Mac;
@@ -32,9 +33,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public class HMACFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_HMAC = "Usage: ${hmac(value, secret [, hashAlgorithm ])}. Example: ${hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}";
-	public static final String ERROR_MESSAGE_HMAC_JS = "Usage: ${{Structr.hmac(value, secret [, hashAlgorithm ])}}. Example: ${{Structr.hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}}";
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
@@ -100,8 +98,11 @@ public class HMACFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_HMAC_JS : ERROR_MESSAGE_HMAC);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${hmac(value, secret [, hashAlgorithm ])}. Example: ${hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}"),
+			Usage.javaScript("Usage: ${{Structr.hmac(value, secret [, hashAlgorithm ])}}. Example: ${{Structr.hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}}")
+		);
 	}
 
 	@Override

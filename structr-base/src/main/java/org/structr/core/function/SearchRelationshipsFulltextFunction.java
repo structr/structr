@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -30,9 +31,6 @@ import java.util.List;
 import java.util.Map;
 
 public class SearchRelationshipsFulltextFunction extends CoreFunction implements QueryFunction {
-
-	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search_relationships_fulltext(indexName, searchString)}. Example: ${search_relationships_fulltext(\"User_name\", \"abc\")}";
-	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.searchRelationshipsFulltext(indexName, value)}}. Example: ${{Structr.searchRelationshipsFulltext(\"User_name\", \"abc\")}}";
 
 	@Override
 	public String getName() {
@@ -83,8 +81,11 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SEARCH_JS : ERROR_MESSAGE_SEARCH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${search_relationships_fulltext(indexName, searchString)}. Example: ${search_relationships_fulltext(\"User_name\", \"abc\")}"),
+			Usage.javaScript("Usage: ${{Structr.searchRelationshipsFulltext(indexName, value)}}. Example: ${{Structr.searchRelationshipsFulltext(\"User_name\", \"abc\")}}")
+		);
 	}
 
 	@Override

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
@@ -31,9 +32,6 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 public class ServerLogFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_SERVERLOG = "Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}";
-	public static final String ERROR_MESSAGE_SERVERLOG_JS = "Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}";
 
 	private static final Logger logger = LoggerFactory.getLogger(ServerLogFunction.class.getName());
 
@@ -73,8 +71,11 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SERVERLOG_JS : ERROR_MESSAGE_SERVERLOG);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}"),
+			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}")
+		);
 	}
 
 	@Override

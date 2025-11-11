@@ -24,6 +24,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -31,7 +32,6 @@ import java.util.List;
 public class SleepFunction extends CoreFunction {
 
 	private static final Logger logger             = LoggerFactory.getLogger(SleepFunction.class);
-	public static final String ERROR_MESSAGE_SLEEP = "Usage: ${sleep(milliseconds)}. Example: ${sleep(1000)}";
 
 	@Override
 	public String getName() {
@@ -83,8 +83,11 @@ public class SleepFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SLEEP;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.sleep(milliseconds)}}. Example: ${{$.sleep(1000)}}"),
+			Usage.structrScript("Usage: ${sleep(milliseconds)}. Example: ${sleep(1000)}")
+		);
 	}
 
 	@Override

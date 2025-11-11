@@ -31,6 +31,7 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 
@@ -42,9 +43,6 @@ import java.util.Map;
 public class MaintenanceFunction extends UiAdvancedFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(MaintenanceFunction.class);
-
-	public static final String ERROR_MESSAGE_MAINTENANCE    = "Usage: ${maintenance(command [, key, value [, ... ]])}. Example: ${maintenance('rebuildIndex', 'mode', 'nodesOnly'))')}";
-	public static final String ERROR_MESSAGE_MAINTENANCE_JS = "Usage: ${{Structr.maintenance(command [, key, value [, ... ]])}}. Example: ${{Structr.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}";
 
 	@Override
 	public String getName() {
@@ -172,8 +170,11 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MAINTENANCE_JS : ERROR_MESSAGE_MAINTENANCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${maintenance(command [, key, value [, ... ]])}. Example: ${maintenance('rebuildIndex', 'mode', 'nodesOnly'))')}"),
+			Usage.javaScript("Usage: ${{Structr.maintenance(command [, key, value [, ... ]])}}. Example: ${{Structr.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}")
+		);
 	}
 
 	@Override

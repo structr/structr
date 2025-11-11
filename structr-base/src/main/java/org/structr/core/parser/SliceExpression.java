@@ -44,7 +44,7 @@ public class SliceExpression extends Expression {
 
 	private static final Logger logger = LoggerFactory.getLogger(SliceExpression.class);
 
-	public static final String ERROR_MESSAGE_SLICE = "Usage: ${slice(collection, start, end)}. Example: ${slice(this.children, 0, 10)}";
+	private static final String ERROR_MESSAGE_SLICE = "Usage: ${slice(collection, start, end)}. Example: ${slice(this.children, 0, 10)}";
 
 	private Expression listExpression  = null;
 	private Expression startExpression = null;

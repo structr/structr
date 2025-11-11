@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.text.NumberFormat;
@@ -29,9 +30,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class ParseNumberFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_PARSE_NUMBER    = "Usage: ${parse_number(value, locale)}. Example: ${parse_number('12345.6789', 'en')}";
-	public static final String ERROR_MESSAGE_PARSE_NUMBER_JS = "Usage: ${{Structr.parseNumber(value, locale)}}. Example: ${{Structr.parseNumber('12345.6789', 'en')}}";
 
 	@Override
 	public String getName() {
@@ -91,8 +89,11 @@ public class ParseNumberFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_NUMBER_JS : ERROR_MESSAGE_PARSE_NUMBER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${parse_number(value, locale)}. Example: ${parse_number('12345.6789', 'en')}"),
+			Usage.javaScript("Usage: ${{Structr.parseNumber(value, locale)}}. Example: ${{Structr.parseNumber('12345.6789', 'en')}}")
+		);
 	}
 
 	@Override

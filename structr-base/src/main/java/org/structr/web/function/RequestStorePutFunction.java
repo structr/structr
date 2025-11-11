@@ -22,15 +22,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class RequestStorePutFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_REQUEST_STORE_PUT    = "Usage: ${request_store_put(key,value)}. Example: ${request_store_put(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_REQUEST_STORE_PUT_JS = "Usage: ${{ $.request_store_put(key,value); }}. Example: ${{ $.request_store_put(\"do_not_track\", true); }}";
-
 
 	@Override
 	public String getName() {
@@ -71,8 +68,11 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_PUT_JS : ERROR_MESSAGE_REQUEST_STORE_PUT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${request_store_put(key,value)}. Example: ${request_store_put('do_no_track', true)}"),
+			Usage.javaScript("Usage: ${{ $.requestStorePut(key,value); }}. Example: ${{ $.requestStorePut('do_not_track', true); }}")
+		);
 	}
 
 	@Override

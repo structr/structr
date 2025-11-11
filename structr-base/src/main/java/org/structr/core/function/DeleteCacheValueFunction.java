@@ -23,14 +23,12 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class DeleteCacheValueFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_DELETE_CACHE_VALUE    = "Usage: ${delete_cache_value(cacheKey)}. Example: ${delete_cache_value('mykey')}";
-	public static final String ERROR_MESSAGE_DELETE_CACHE_VALUE_JS = "Usage: ${{ Structr.delete_cache_value(cacheKey); }}. Example: ${{ Structr.delete_cache_value('mykey'); }}";
 
 	@Override
 	public String getName() {
@@ -65,8 +63,11 @@ public class DeleteCacheValueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return inJavaScriptContext ? ERROR_MESSAGE_DELETE_CACHE_VALUE_JS : ERROR_MESSAGE_DELETE_CACHE_VALUE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${delete_cache_value(cacheKey)}. Example: ${delete_cache_value('mykey')}"),
+			Usage.javaScript("Usage: ${{ Structr.delete_cache_value(cacheKey); }}. Example: ${{ Structr.delete_cache_value('mykey'); }}")
+		);
 	}
 
 	@Override

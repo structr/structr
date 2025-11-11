@@ -22,13 +22,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class UpperFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_UPPER = "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
 
 	@Override
 	public String getName() {
@@ -62,8 +61,11 @@ public class UpperFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_UPPER;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.upper(string) }}. Example: ${{ $.upper($.this.nickName) }}"),
+			Usage.structrScript("Usage: ${upper(string)}. Example: ${upper(this.nickName)}")
+		);
 	}
 
 	@Override

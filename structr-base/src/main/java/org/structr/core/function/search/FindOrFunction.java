@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindOrFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_OR = "Usage: ${or(predicate, ...). Example: ${find('Group', or(equals('name', 'Test1'), equals('name', 'Test2')))}";
 
 	@Override
 	public String getName() {
@@ -55,8 +54,11 @@ public class FindOrFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_OR;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.or(predicate, ...)}} Example: ${{ $.find('Group', $.predicate.or($.predicate.equals('name', 'Test1'), $.predicate.equals('name', 'Test2')))}}"),
+			Usage.structrScript("Usage: ${or(predicate, ...). Example: ${find('Group', or(equals('name', 'Test1'), equals('name', 'Test2')))}")
+		);
 	}
 
 	@Override

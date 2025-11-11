@@ -41,6 +41,8 @@ import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Usage;
 
 import java.util.Collections;
 import java.util.HashMap;

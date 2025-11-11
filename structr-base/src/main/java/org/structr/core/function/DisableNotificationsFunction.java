@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -28,9 +29,6 @@ import java.util.List;
  *
  */
 public class DisableNotificationsFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_DISABLE_NOTIFICATIONS    = "Usage: ${disable_notifications()}";
-	public static final String ERROR_MESSAGE_DISABLE_NOTIFICATIONS_JS = "Usage: ${Structr.disableNotifications()}";
 
 	@Override
 	public String getName() {
@@ -51,8 +49,11 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DISABLE_NOTIFICATIONS_JS : ERROR_MESSAGE_DISABLE_NOTIFICATIONS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${disable_notifications()}"),
+			Usage.javaScript("Usage: ${Structr.disableNotifications()}")
+		);
 	}
 
 	@Override

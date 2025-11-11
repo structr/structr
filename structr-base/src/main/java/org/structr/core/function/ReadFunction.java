@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
@@ -31,8 +32,6 @@ import java.io.IOException;
 import java.util.List;
 
 public class ReadFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_READ = "Usage: ${read(filename)}. Example: ${read(\"text.xml\")}";
 
 	@Override
 	public String getName() {
@@ -83,8 +82,11 @@ public class ReadFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_READ;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.read(filename)}}. Example: ${{$.read(\"text.xml\")}}"),
+			Usage.structrScript("Usage: ${read(filename)}. Example: ${read(\"text.xml\")}")
+		);
 	}
 
 	@Override

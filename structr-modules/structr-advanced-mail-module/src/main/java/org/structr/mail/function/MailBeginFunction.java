@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
@@ -30,9 +31,6 @@ import java.net.MalformedURLException;
 import java.util.List;
 
 public class MailBeginFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}";
 
 	public MailBeginFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -96,8 +94,11 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}"),
+			Usage.javaScript("Usage: ${{ Structr.mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}")
+		);
 	}
 
 	@Override

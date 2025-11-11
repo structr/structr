@@ -34,6 +34,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -42,9 +43,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public class LocalizeFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_LOCALIZE    = "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
-	public static final String ERROR_MESSAGE_LOCALIZE_JS = "Usage: ${{Structr.localize(key[, domain])}}. Example ${{Structr.localize('HELLO_WORLD', 'myDomain')}}";
 
 	@Override
 	public String getName() {
@@ -110,8 +108,11 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOCALIZE_JS : ERROR_MESSAGE_LOCALIZE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}"),
+			Usage.javaScript("Usage: ${{Structr.localize(key[, domain])}}. Example ${{Structr.localize('HELLO_WORLD', 'myDomain')}}")
+		);
 	}
 
 	@Override

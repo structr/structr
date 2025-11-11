@@ -23,14 +23,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class RetrieveFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_RETRIEVE    = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
-	public static final String ERROR_MESSAGE_RETRIEVE_JS = "Usage: ${{Structr.retrieve(key)}}. Example: ${{Structr.retrieve('tmpUser')}}";
 
 	@Override
 	public String getName() {
@@ -68,8 +66,11 @@ public class RetrieveFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_RETRIEVE_JS : ERROR_MESSAGE_RETRIEVE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}"),
+			Usage.javaScript("Usage: ${{Structr.retrieve(key)}}. Example: ${{Structr.retrieve('tmpUser')}}")
+		);
 	}
 
 	@Override

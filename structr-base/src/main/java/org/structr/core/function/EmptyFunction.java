@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
@@ -31,8 +32,6 @@ import java.util.Map;
  *
  */
 public class EmptyFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_EMPTY = "Usage: ${empty(string|array|collection)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
 
 	@Override
 	public String getName() {
@@ -81,8 +80,11 @@ public class EmptyFunction extends CoreFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_EMPTY;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.empty(string|array|collection)}}. Example: ${{if($.empty(possibleEmptyString), \"empty\", \"non-empty\")}}"),
+			Usage.structrScript("Usage: ${empty(string|array|collection)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}")
+		);
 	}
 
 	@Override

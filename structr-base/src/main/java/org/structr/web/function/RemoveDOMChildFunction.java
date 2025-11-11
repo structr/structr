@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -31,9 +32,6 @@ import org.structr.websocket.command.RemoveCommand;
 import java.util.List;
 
 public class RemoveDOMChildFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_REMOVE_DOM_CHILD    = "Usage: ${remove_dom_child(parent, child)}. Example: ${remove_dom_child(this, child)}";
-	public static final String ERROR_MESSAGE_REMOVE_DOM_CHILD_JS = "Usage: ${{Structr.removeDomChild(parent, child)}}. Example: ${{Structr.removeDomChild(this, child)}}";
 
 	@Override
 	public String getName() {
@@ -66,8 +64,11 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REMOVE_DOM_CHILD_JS : ERROR_MESSAGE_REMOVE_DOM_CHILD);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${remove_dom_child(parent, child)}. Example: ${remove_dom_child(this, child)}"),
+			Usage.javaScript("Usage: ${{Structr.removeDomChild(parent, child)}}. Example: ${{Structr.removeDomChild(this, child)}}")
+		);
 	}
 
 	@Override

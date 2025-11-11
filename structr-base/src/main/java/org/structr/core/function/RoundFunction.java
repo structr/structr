@@ -20,14 +20,15 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class RoundFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_ROUND = "Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}";
 
 	@Override
 	public String getName() {
@@ -100,8 +101,10 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ROUND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}")
+		);
 	}
 
 	@Override
@@ -109,4 +112,8 @@ public class RoundFunction extends AdvancedScriptingFunction {
 		return "Rounds the given argument to an integer";
 	}
 
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
 }

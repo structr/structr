@@ -26,6 +26,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
@@ -38,9 +39,6 @@ import java.io.OutputStream;
 import java.util.List;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS = "Usage: ${ copy_file_contents(sourceFile, targetFile) }";
-	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS_JS = "Usage: ${{ Structr.copy_file_contents(sourceFile, targetFile); }}";
 
 	@Override
 	public String getName() {
@@ -112,8 +110,11 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_COPY_FILE_CONTENTS_JS : ERROR_MESSAGE_COPY_FILE_CONTENTS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ copy_file_contents(sourceFile, targetFile) }"),
+			Usage.javaScript("Usage: ${{ Structr.copyFileContents(sourceFile, targetFile); }}")
+		);
 	}
 
 	@Override

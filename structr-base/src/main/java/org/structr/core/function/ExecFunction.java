@@ -25,6 +25,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractProcess;
@@ -43,9 +44,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ExecFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_EXEC    = "Usage: ${exec(scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}";
-	public static final String ERROR_MESSAGE_EXEC_JS = "Usage: ${{ $.exec(scriptConfigKey  [, parameterCollection [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
 
 	public static final String SCRIPTS_FOLDER = "scripts";
 
@@ -164,8 +162,11 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_EXEC_JS : ERROR_MESSAGE_EXEC);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey  [, parameterCollection [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}")
+		);
 	}
 
 	@Override

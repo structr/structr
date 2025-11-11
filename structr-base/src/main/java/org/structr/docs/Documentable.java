@@ -31,4 +31,5 @@ public interface Documentable {
 	List<String> getNotes();
 	List<Signature> getSignatures();
 	List<Language> getLanguages();
+	List<Usage> getUsages();
 }

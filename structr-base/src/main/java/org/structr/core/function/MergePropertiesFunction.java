@@ -23,7 +23,9 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
@@ -31,8 +33,6 @@ import java.util.List;
 import java.util.Set;
 
 public class MergePropertiesFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_MERGE_PROPERTIES = "Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}";
 
 	@Override
 	public String getName() {
@@ -94,12 +94,19 @@ public class MergePropertiesFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_MERGE_PROPERTIES;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Copies property values from source entity to target entity, using the given list of keys";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

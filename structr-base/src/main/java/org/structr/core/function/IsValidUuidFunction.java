@@ -20,14 +20,14 @@ package org.structr.core.function;
 
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class IsValidUuidFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_IS_VALID_UUID = "Usage: ${is_valid_uuid(string)}. Example: ${is_valid_uuid(retrieve('request_parameter_id'))}";
 
 	@Override
 	public String getName() {
@@ -51,12 +51,19 @@ public class IsValidUuidFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_IS_VALID_UUID;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${is_valid_uuid(string)}. Example: ${is_valid_uuid(retrieve('request_parameter_id'))}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Returns true if the given string is a valid UUID according to the configured UUID format. Returns false otherwise and if non-string arguments are given.";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

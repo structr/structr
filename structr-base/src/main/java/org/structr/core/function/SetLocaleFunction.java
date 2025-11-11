@@ -22,15 +22,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 import java.util.Locale;
 
 public class SetLocaleFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_SET_LOCALE    = "Usage: ${set_locale(locale)}. Example: ${set_locale('de_DE')}";
-	public static final String ERROR_MESSAGE_SET_LOCALE_JS = "Usage: ${{Structr.setLocale(locale)}}. Example: ${{Structr.setLocale('de_DE');}}";
 
 	@Override
 	public String getName() {
@@ -71,8 +69,11 @@ public class SetLocaleFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_LOCALE_JS : ERROR_MESSAGE_SET_LOCALE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set_locale(locale)}. Example: ${set_locale('de_DE')}"),
+			Usage.javaScript("Usage: ${{Structr.setLocale(locale)}}. Example: ${{Structr.setLocale('de_DE');}}")
+		);
 	}
 
 	@Override

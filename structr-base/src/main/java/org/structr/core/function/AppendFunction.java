@@ -21,14 +21,13 @@ package org.structr.core.function;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.*;
 import java.util.List;
 
 public class AppendFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_APPEND = "Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}";
 
 	@Override
 	public String getName() {
@@ -80,8 +79,11 @@ public class AppendFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_APPEND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.append(filename, value)}}. Example: ${{$.append(\"test.txt\", $.this.name)}}"),
+			Usage.structrScript("Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}")
+		);
 	}
 
 	@Override

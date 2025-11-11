@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -27,8 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ComplementFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_COMPLEMENT = "Usage: ${complement(sourceList, obj, ...)}. (The resulting list contains no duplicates) Example: ${complement(allUsers, me)} => List of all users except myself";
 
 	@Override
 	public String getName() {
@@ -87,8 +86,11 @@ public class ComplementFunction extends CoreFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_COMPLEMENT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.complement(sourceList, obj, ...)}}. (The resulting list contains no duplicates) Example: ${{$.complement(allUsers, $.me)}} => List of all users except myself"),
+			Usage.structrScript("Usage: ${complement(sourceList, obj, ...)}. (The resulting list contains no duplicates) Example: ${complement(allUsers, me)} => List of all users except myself")
+		);
 	}
 
 	@Override

@@ -22,14 +22,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class RequestStoreDeleteFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_REQUEST_STORE_DELETE    = "Usage: ${request_store_delete(key)}. Example: ${request_store_delete(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_REQUEST_STORE_DELETE_JS = "Usage: ${{ $.request_store_delete(key); }}. Example: ${{ $.request_store_delete(\"do_not_track\"); }}";
 
 	@Override
 	public String getName() {
@@ -65,8 +63,11 @@ public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_DELETE_JS : ERROR_MESSAGE_REQUEST_STORE_DELETE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${request_store_delete(key)}. Example: ${request_store_delete('do_no_track')}"),
+			Usage.javaScript("Usage: ${{ $.requestStoreDelete(key); }}. Example: ${{ $.requestStoreDelete('do_not_track'); }}")
+		);
 	}
 
 	@Override

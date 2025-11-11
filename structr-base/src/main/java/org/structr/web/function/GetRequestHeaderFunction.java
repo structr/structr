@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -30,9 +31,6 @@ import java.util.List;
 
 
 public class GetRequestHeaderFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER    = "Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}";
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.getRequestHeader(name)}}. Example: ${{Structr.getRequestHeader('User-Agent')}}";
 
 	@Override
 	public String getName() {
@@ -78,8 +76,11 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_REQUEST_HEADER_JS : ERROR_MESSAGE_GET_REQUEST_HEADER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}"),
+			Usage.javaScript("Usage: ${{ $.getRequestHeader(name) }}. Example: ${{ $.getRequestHeader('User-Agent')}}")
+		);
 	}
 
 	@Override

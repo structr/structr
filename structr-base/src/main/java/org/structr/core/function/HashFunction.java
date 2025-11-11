@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.math.BigInteger;
@@ -33,9 +34,6 @@ import java.util.List;
 import java.util.TreeSet;
 
 public class HashFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_HASH = "Usage: ${hash(algorithm, value)}. Example: ${hash(\"SHA-256\", \"test\")}";
-	public static final String ERROR_MESSAGE_HASH_JS = "Usage: ${{ $.hash(algorithm, value); }}. Example: ${{ $.hash(\"SHA-256\", \"test\")}}";
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
@@ -71,8 +69,11 @@ public class HashFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_HASH_JS : ERROR_MESSAGE_HASH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${hash(algorithm, value)}. Example: ${hash(\"SHA-256\", \"test\")}"),
+			Usage.javaScript("Usage: ${{ $.hash(algorithm, value); }}. Example: ${{ $.hash(\"SHA-256\", \"test\")}}")
+		);
 	}
 
 	@Override

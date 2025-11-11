@@ -20,15 +20,13 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class TypeInfoFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_TYPE_INFO    = "Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}";
-	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${$.typeInfo(type[, view])}. Example ${$.typeInfo('User', 'public')}";
 
 	@Override
 	public String getName() {
@@ -60,8 +58,11 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TYPE_INFO_JS : ERROR_MESSAGE_TYPE_INFO);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}"),
+			Usage.javaScript("Usage: ${$.typeInfo(type[, view])}. Example ${$.typeInfo('User', 'public')}")
+		);
 	}
 
 	@Override

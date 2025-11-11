@@ -21,14 +21,15 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class MaxFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_MAX = "Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}";
 
 	@Override
 	public String getName() {
@@ -67,12 +68,19 @@ public class MaxFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_MAX;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${max(value1, value2)}. Example: ${max(this.children, 10)}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Returns the larger value of the given arguments";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

@@ -26,6 +26,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -35,9 +36,6 @@ import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 import java.util.List;
 
 public class UnarchiveFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_UNARCHIVE    = "Usage: ${unarchive(archiveFile [, parentFolder])}. Example: ${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}";
-	public static final String ERROR_MESSAGE_UNARCHIVE_JS = "Usage: ${{$.unarchive(archiveFile [, parentFolder])}}. Example: ${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}";
 
 	@Override
 	public String getName() {
@@ -91,9 +89,12 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
+	public List<Usage> getUsages() {
 
-		return (inJavaScriptContext ? ERROR_MESSAGE_UNARCHIVE_JS : ERROR_MESSAGE_UNARCHIVE);
+		return List.of(
+			Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder])}. Example: ${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}"),
+			Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder])}}. Example: ${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}")
+		);
 	}
 
 	@Override

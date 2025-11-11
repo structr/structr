@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_AROUND_FIND = "Usage: ${within_distance(latitude, longitude, meters). Example: ${find('Location', and(within_distance(51, 7, 10)))}";
 
 	@Override
 	public String getName() {
@@ -61,8 +60,11 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_AROUND_FIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.withinDistance(latitude, longitude, meters) }}. Example: ${{ $.find('Location', $.predicate.and($.predicate.withinDistance(51, 7, 10))) }}"),
+			Usage.structrScript("Usage: ${within_distance(latitude, longitude, meters). Example: ${find('Location', and(within_distance(51, 7, 10)))}")
+		);
 	}
 
 	@Override

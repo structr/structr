@@ -70,6 +70,12 @@ public class KeywordHint extends AbstractHint {
 	}
 
 	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+		);
+	}
+
+	@Override
 	public List<Language> getLanguages() {
 		return null;
 	}

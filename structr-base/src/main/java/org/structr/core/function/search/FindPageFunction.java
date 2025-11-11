@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindPageFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_SORT = "Usage: ${page(page, pageSize). Example: ${find('Group', page(1, 10))}";
 
 	@Override
 	public String getName() {
@@ -65,8 +64,11 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SORT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.page(page, pageSize) }}. Example: ${{ $.find('Group', $.predicate.page(1, 10)) }}"),
+			Usage.structrScript("Usage: ${page(page, pageSize). Example: ${find('Group', page(1, 10))}")
+		);
 	}
 
 	@Override

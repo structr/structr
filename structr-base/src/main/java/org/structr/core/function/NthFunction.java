@@ -23,13 +23,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class NthFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_NTH = "Usage: ${nth(list, index)}. Example: ${nth(this.children, 2)}";
 
 	@Override
 	public String getName() {
@@ -92,8 +91,11 @@ public class NthFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_NTH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.nth(list, index)}}. Example: ${{$.nth($.this.children, 2)}}"),
+			Usage.structrScript("Usage: ${nth(list, index)}. Example: ${nth(this.children, 2)}")
+		);
 	}
 
 	@Override

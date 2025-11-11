@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
@@ -32,9 +33,6 @@ import java.io.OutputStream;
 import java.util.List;
 
 public class AppendContentFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_APPEND_CONTENT    = "Usage: ${append_content(file, content[, encoding = \"UTF-8\"])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}";
-	public static final String ERROR_MESSAGE_APPEND_CONTENT_JS = "Usage: ${{ $.appendContent(file, content[, encoding = \"UTF-8\"]) }}. Example: ${{ $.appendContent(fileNode, 'additional content') }}";
 
 	@Override
 	public String getName() {
@@ -100,8 +98,11 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPEND_CONTENT_JS : ERROR_MESSAGE_APPEND_CONTENT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${append_content(file, content[, encoding = 'UTF-8'])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}"),
+			Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding = 'UTF-8']) }}. Example: ${{ $.appendContent(fileNode, 'additional content') }}")
+		);
 	}
 
 	@Override

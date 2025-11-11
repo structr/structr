@@ -20,15 +20,13 @@ package org.structr.messaging.implementation.mqtt.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
-
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE    = "Usage: ${mqtt_unsubscribe(client, topic)}. Example ${mqtt_unsubscribe(client, 'myTopic')}";
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_unsubscribe(client, topic)}}. Example ${{Structr.mqtt_unsubscribe(client, topic)}}";
 
 	@Override
 	public String getName() {
@@ -67,8 +65,11 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS : ERROR_MESSAGE_MQTTUNSUBSCRIBE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mqtt_unsubscribe(client, topic)}. Example ${mqtt_unsubscribe(client, 'myTopic')}"),
+			Usage.javaScript("Usage: ${{Structr.mqttUnsubscribe(client, topic)}}. Example ${{Structr.mqtt_unsubscribe(client, topic)}}")
+		);
 	}
 
 	@Override

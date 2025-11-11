@@ -23,14 +23,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class SplitFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(str[, separator])}. Example: ${split(this.commaSeparatedItems)}";
 
 	@Override
 	public String getName() {
@@ -73,8 +72,11 @@ public class SplitFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SPLIT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.split(str[, separator]) }}. Example: ${{ $.split($.this.commaSeparatedItems) }}"),
+			Usage.structrScript("Usage: ${split(str[, separator])}. Example: ${split(this.commaSeparatedItems)}")
+		);
 	}
 
 	@Override

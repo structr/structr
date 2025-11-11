@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -32,9 +33,6 @@ import java.util.List;
 import java.util.Set;
 
 public class EnumInfoFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_ENUM_INFO    = "Usage: ${enum_info(type, enumProperty[, raw])}. Example ${enum_info('Document', 'documentType')}";
-	public static final String ERROR_MESSAGE_ENUM_INFO_JS = "Usage: ${Structr.enum_info(type, enumProperty[, raw])}. Example ${Structr.enum_info('Document', 'documentType')}";
 
 	@Override
 	public String getName() {
@@ -114,8 +112,11 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ENUM_INFO_JS : ERROR_MESSAGE_ENUM_INFO);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${enum_info(type, enumProperty[, raw])}. Example ${enum_info('Document', 'documentType')}"),
+			Usage.javaScript("Usage: ${Structr.enum_info(type, enumProperty[, raw])}. Example ${Structr.enum_info('Document', 'documentType')}")
+		);
 	}
 
 	@Override

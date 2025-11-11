@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
@@ -52,15 +53,11 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
+	public List<Usage> getUsages() {
 
-		if (inJavaScriptContext) {
-
-			return "addLabels(node, [ 'LABEL1', 'LABEL2' ])";
-
-		} else {
-
-			return "add_labels(node, merge('LABEL1', 'LABEL2'))";
-		}
+		return List.of(
+			Usage.javaScript("addLabels(node, [ 'LABEL1', 'LABEL2' ])"),
+			Usage.structrScript("add_labels(node, merge('LABEL1', 'LABEL2'))")
+		);
 	}
 }

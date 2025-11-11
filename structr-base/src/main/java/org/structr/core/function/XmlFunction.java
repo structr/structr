@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -35,8 +36,6 @@ import java.io.StringReader;
 import java.util.List;
 
 public class XmlFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_XML = "Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}";
 
 	@Override
 	public String getName() {
@@ -92,8 +91,11 @@ public class XmlFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_XML;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.xml(xmlSource) }}. Example: ${{ $.xpath($.xml($.this.xmlSource), \"/test/testValue\") }}"),
+			Usage.structrScript("Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}")
+		);
 	}
 
 	@Override

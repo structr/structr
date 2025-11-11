@@ -26,7 +26,7 @@ import org.structr.schema.action.EvaluationHints;
 
 public class IsExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_IS = "Usage: ${is(condition, trueValue)}. Example: ${is(equal(this.name, request.name), 'selected')}";
+	private static final String ERROR_MESSAGE_IS = "Usage: ${is(condition, trueValue)}. Example: ${is(equal(this.name, request.name), 'selected')}";
 
 	public IsExpression(final int row, final int column) {
 		super("is", row, column);

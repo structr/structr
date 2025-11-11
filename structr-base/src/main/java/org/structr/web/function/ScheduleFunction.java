@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
 
@@ -30,9 +31,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class ScheduleFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SCHEDULE    = "Usage: ${schedule(script[, title])}. Example: ${schedule(\"delete(find('User'))\", \"Delete all users!\")}";
-	public static final String ERROR_MESSAGE_SCHEDULE_JS = "Usage: ${{Structr.schedule(script[, title])}}. Example: ${{Structr.schedule(function() {}, 'This is a no-op!')}}";
 
 	@Override
 	public String getName() {
@@ -80,8 +78,11 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SCHEDULE_JS : ERROR_MESSAGE_SCHEDULE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${schedule(script[, title])}. Example: ${schedule(\"delete(find('User'))\", \"Delete all users!\")}"),
+			Usage.javaScript("Usage: ${{Structr.schedule(script[, title])}}. Example: ${{Structr.schedule(function() {}, 'This is a no-op!')}}")
+		);
 	}
 
 	@Override

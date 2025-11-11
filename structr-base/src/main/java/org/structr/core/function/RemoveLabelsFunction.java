@@ -20,11 +20,13 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class RemoveLabelsFunction extends ManageLabelsFunction {
+
 	@Override
 	public String getName() {
 		return "remove_labels";
@@ -51,15 +53,11 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
+	public List<Usage> getUsages() {
 
-		if (inJavaScriptContext) {
-
-			return "removeLabels(node, [ 'LABEL1', 'LABEL2' ])";
-
-		} else {
-
-			return "remove_labels(node, merge('LABEL1', 'LABEL2'))";
-		}
+		return List.of(
+			Usage.javaScript("$.removeLabels(node, [ 'LABEL1', 'LABEL2' ])"),
+			Usage.structrScript("remove_labels(node, merge('LABEL1', 'LABEL2'))")
+		);
 	}
 }

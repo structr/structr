@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -32,8 +33,6 @@ import java.util.List;
  *
  */
 public class ExtractFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_EXTRACT = "Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, \"amount\")}";
 
 	@Override
 	public String getName() {
@@ -121,13 +120,14 @@ public class ExtractFunction extends CoreFunction {
 		}
 
 		return null;
-
 	}
 
-
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_EXTRACT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: $.extract(list, propertyName). Example: $.extract($.this.children, 'amount')"),
+			Usage.structrScript("Usage: extract(list, propertyName). Example: extract(this.children, \"amount\")")
+		);
 	}
 
 	@Override

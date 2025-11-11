@@ -22,15 +22,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
 import java.util.List;
 
 public class TimerFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_TIMER = "Usage: ${timer(name, action)}. Example: ${timer('benchmark1', 'start')}";
-	public static final String ERROR_MESSAGE_TIMER_JS = "Usage: ${{Structr.timer(name, action)}}. Example: ${{Structr.timer('benchmark1', 'start')}}";
 
 	@Override
 	public String getName() {
@@ -93,8 +91,11 @@ public class TimerFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TIMER_JS : ERROR_MESSAGE_TIMER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${timer(name, action)}. Example: ${timer('benchmark1', 'start')}"),
+			Usage.javaScript("Usage: ${{$.timer(name, action)}}. Example: ${{$.timer('benchmark1', 'start')}}")
+		);
 	}
 
 	@Override

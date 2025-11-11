@@ -26,6 +26,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import javax.imageio.ImageIO;
@@ -37,9 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 public class BarcodeFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_BARCODE = "Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }";
-	public static final String ERROR_MESSAGE_BARCODE_JS = "Usage: ${{ Structr.barcode(type, data[, width, height[, hintsMap]]); }}";
 
 	@Override
 	public String getName() {
@@ -63,7 +61,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 			final Number width      = (sources.length >= 3) ? (Number)sources[2] : 200;
 			final Number height     = (sources.length >= 4) ? (Number)sources[3] : 200;
 
-			final Map<String, Object> hints = (sources.length >= 5 && sources[4] instanceof Map) ? (Map)sources[4] : BarcodeFunction.parseParametersAsMap(sources, 4);
+			final Map<String, Object> hints = (sources.length >= 5 && sources[4] instanceof Map) ? (Map)sources[4] : parseParametersAsMap(sources, 4);
 
 			return BarcodeFunction.getQRCode(barcodeData, barcodeType, width, height, hints);
 
@@ -104,13 +102,13 @@ public class BarcodeFunction extends UiAdvancedFunction {
 		return "";
 	}
 
-	public static Map<String, Object> parseParametersAsMap(final Object[] sources, final int startIndex) throws FrameworkException {
+	public Map<String, Object> parseParametersAsMap(final Object[] sources, final int startIndex) throws FrameworkException {
 
 		final int parameter_count = sources.length - startIndex;
 
 		if (parameter_count % 2 != 0) {
 
-			throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". " + ERROR_MESSAGE_BARCODE);
+			throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". " + usage(true));
 		}
 
 		final Map<String, Object> params = new HashMap();
@@ -143,8 +141,11 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_BARCODE_JS : ERROR_MESSAGE_BARCODE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }"),
+			Usage.javaScript("Usage: ${{ Structr.barcode(type, data[, width, height[, hintsMap]]); }}")
+		);
 	}
 
 	@Override

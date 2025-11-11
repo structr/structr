@@ -24,6 +24,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
@@ -31,8 +32,6 @@ import java.util.List;
 import java.util.Set;
 
 public class ContainsFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_CONTAINS = "Usage: ${contains(string, word)} or ${contains(collection, element)}. Example: ${contains(this.name, \"the\")} or ${contains(find('Page'), page)}";
 
 	@Override
 	public String getName() {
@@ -89,8 +88,11 @@ public class ContainsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CONTAINS;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.contains(string, word)}} or ${{$.contains(collection, element)}}. Example: ${{$.contains($.this.name, \"the\")}} or ${{$.contains($.find('Page'), page)}}"),
+			Usage.structrScript("Usage: ${contains(string, word)} or ${contains(collection, element)}. Example: ${contains(this.name, \"the\")} or ${contains(find('Page'), page)}")
+		);
 	}
 
 	@Override

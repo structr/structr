@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindLtFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_LT = "Usage: ${lt(other)}. Example: ${find(\"User\", \"age\", lt(\"42\"))}";
 
 	@Override
 	public String getName() {
@@ -60,8 +59,11 @@ public class FindLtFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_LT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.lt(value)}}. Example: ${{ $.find('User', { age: $.predicate.lt(42) }); }}"),
+			Usage.structrScript("Usage: ${lt(value)}. Example: ${find('User', 'age', lt(42))}")
+		);
 	}
 
 	@Override

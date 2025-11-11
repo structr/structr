@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 
@@ -30,9 +31,6 @@ import java.util.List;
 public class MQTTPublishFunction extends MessagingModuleFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(MQTTPublishFunction.class.getName());
-
-	public static final String ERROR_MESSAGE_MQTTPUBLISH    = "Usage: ${mqtt_publish(client, topic, message)}. Example ${mqtt_publish(client, 'myTopic', 'myMessage')}";
-	public static final String ERROR_MESSAGE_MQTTPUBLISH_JS = "Usage: ${{Structr.mqtt_publish(client, topic, message)}}. Example ${{Structr.mqtt_publish(client, topic, message)}}";
 
 	@Override
 	public String getName() {
@@ -71,8 +69,11 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTPUBLISH_JS : ERROR_MESSAGE_MQTTPUBLISH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mqtt_publish(client, topic, message)}. Example ${mqtt_publish(client, 'myTopic', 'myMessage')}"),
+			Usage.javaScript("Usage: ${{Structr.mqttPublish(client, topic, message)}}. Example ${{Structr.mqtt_publish(client, topic, message)}}")
+		);
 	}
 
 	@Override

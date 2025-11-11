@@ -25,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -32,9 +33,6 @@ import java.util.List;
 import java.util.Map;
 
 public class FromJsonFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_FROM_JSON    = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
-	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
 
 	@Override
 	public String getName() {
@@ -138,8 +136,11 @@ public class FromJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_JSON_JS : ERROR_MESSAGE_FROM_JSON);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}"),
+			Usage.javaScript("Usage: ${{Structr.fromJson(src)}}. Example: ${{Structr.fromJson('{name:test}')}}")
+		);
 	}
 
 	@Override

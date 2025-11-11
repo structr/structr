@@ -20,14 +20,12 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class HasErrorFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_HAS_ERROR    = "Usage: ${has_error()}";
-	public static final String ERROR_MESSAGE_HAS_ERROR_JS = "Usage: ${{ Structr.has_error() }}";
 
 	@Override
 	public String getName() {
@@ -46,8 +44,11 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return inJavaScriptContext ? ERROR_MESSAGE_HAS_ERROR_JS : ERROR_MESSAGE_HAS_ERROR;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${has_error()}"),
+			Usage.javaScript("Usage: ${{ Structr.has_error() }}")
+		);
 	}
 
 	@Override

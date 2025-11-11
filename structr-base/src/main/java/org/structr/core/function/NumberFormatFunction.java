@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.text.DecimalFormat;
@@ -31,8 +32,7 @@ import java.util.Locale;
 
 public class NumberFormatFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT    = "Usage: ${number_format(value, locale, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS = "Usage: ${{Structr.numberFormat(value, locale, pattern)}}. Example: ${{Structr.numberFormat(12345.6789, 'en', '#,##0.00')}}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${number_format(value, locale, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
 
 	@Override
 	public String getName() {
@@ -81,8 +81,11 @@ public class NumberFormatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_NUMBER_FORMAT_JS : ERROR_MESSAGE_NUMBER_FORMAT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${number_format(value, locale, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}"),
+			Usage.javaScript("Usage: ${{Structr.numberFormat(value, locale, pattern)}}. Example: ${{Structr.numberFormat(12345.6789, 'en', '#,##0.00')}}")
+		);
 	}
 
 	@Override

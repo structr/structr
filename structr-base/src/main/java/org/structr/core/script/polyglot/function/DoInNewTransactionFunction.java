@@ -32,10 +32,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
-import org.structr.docs.Example;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -196,7 +193,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.js("""
+		return List.of(Example.javaScript("""
 ${{
     /* Iterate over all users in packets of 10 and do stuff */
     let pageSize = 10;
@@ -255,5 +252,10 @@ Be careful to never simply put "return true;" in the first function as this will
 		return List.of(
 			Signature.of("workerFunction [, errorHandlerFunction]", Language.values())
 		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return null;
 	}
 }

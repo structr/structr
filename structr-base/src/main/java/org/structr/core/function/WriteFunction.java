@@ -23,14 +23,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.*;
 import java.util.List;
 
 public class WriteFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_WRITE = "Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}";
 
 	@Override
 	public String getName() {
@@ -93,8 +92,11 @@ public class WriteFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_WRITE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.write(filename, value) }}. Example: ${{ $.write('text.txt', $.this.name) }}"),
+			Usage.structrScript("Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}")
+		);
 	}
 
 	@Override

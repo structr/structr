@@ -26,6 +26,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -37,9 +38,6 @@ import java.util.Collection;
 import java.util.List;
 
 public class CreateZipFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_CREATE_ZIP    = "Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip(\"archive\", find(\"File\"))}";
-	public static final String ERROR_MESSAGE_CREATE_ZIP_JS = "Usage: ${{Structr.createZip(archiveFileName, files [, password [, encryptionMethod ] ])}}. Example: ${{Structr.createZip(\"archive\", Structr.find(\"File\"))}}";
 
 	@Override
 	public String getName() {
@@ -172,9 +170,11 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-
-		return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_ZIP_JS : ERROR_MESSAGE_CREATE_ZIP);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip('archive', find('File'))}"),
+			Usage.javaScript("Usage: ${{Structr.createZip(archiveFileName, files [, password [, encryptionMethod ] ])}}. Example: ${{Structr.createZip('archive', Structr.find('File'))}}")
+		);
 	}
 
 	@Override

@@ -30,10 +30,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.traits.StructrTraits;
-import org.structr.docs.Example;
-import org.structr.docs.Language;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -127,7 +124,7 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.js(
+		return List.of(Example.javaScript(
 			"""
 			${{
 			    let user = $.find('User', { name: 'user_to_impersonate' })[0];
@@ -160,5 +157,10 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.Javascript);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return null;
 	}
 }

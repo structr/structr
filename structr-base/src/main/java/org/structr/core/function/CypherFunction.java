@@ -27,6 +27,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
@@ -34,9 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 public class CypherFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}";
-	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";
 
 	@Override
 	public String getName() {
@@ -114,8 +112,11 @@ public class CypherFunction extends CoreFunction {
     }
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CYPHER_JS : ERROR_MESSAGE_CYPHER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}"),
+			Usage.javaScript("Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}")
+		);
 	}
 
 	@Override

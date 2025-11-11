@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObjectMap;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 
@@ -33,9 +34,6 @@ import java.util.Map;
 
 
 public class CallFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_CALL    = "Usage: ${call(key [, key, value]}. Example ${call('myEvent', 'key1', 'value1', 'key2', 'value2')}";
-	public static final String ERROR_MESSAGE_CALL_JS = "Usage: ${{Structr.call(key [, parameterMap]}}. Example ${{Structr.call('myEvent', {key1: 'value1', key2: 'value2'})}}";
 
 	@Override
 	public String getName() {
@@ -101,8 +99,11 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CALL_JS : ERROR_MESSAGE_CALL);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${call(key [, key, value]}. Example ${call('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
+			Usage.javaScript("Usage: ${{Structr.call(key [, parameterMap]}}. Example ${{Structr.call('myEvent', {key1: 'value1', key2: 'value2'})}}")
+		);
 	}
 
 	@Override

@@ -19,15 +19,13 @@
 package org.structr.web.function;
 
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.servlet.EventSourceServlet;
 
 import java.util.List;
 
 public class BroadcastEventFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_BROADCAST_EVENT    = "Usage: ${broadcast_event(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}. Example: ${broadcast_event(\"message\", \"Welcome!\", true, false)}";
-	public static final String ERROR_MESSAGE_BROADCAST_EVENT_JS = "Usage: ${{Structr.broadcast_event(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}}. Example: ${{Structr.broadcast_event(\"message\", \"Welcome!\", true, false)}}";
 
 	@Override
 	public boolean isHidden() {
@@ -66,8 +64,11 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_BROADCAST_EVENT_JS : ERROR_MESSAGE_BROADCAST_EVENT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${broadcast_event(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}. Example: ${broadcast_event(\"message\", \"Welcome!\", true, false)}"),
+			Usage.javaScript("Usage: ${{ $.broadcastEvent(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}}. Example: ${{ $.broadcastEvent(\"message\", \"Welcome!\", true, false)}}")
+		);
 	}
 
 	@Override

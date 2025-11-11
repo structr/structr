@@ -29,6 +29,7 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -36,9 +37,6 @@ import java.util.List;
 import java.util.Set;
 
 public class GrantFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_GRANT    = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
-	public static final String ERROR_MESSAGE_GRANT_JS = "Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}";
 
 	@Override
 	public String getName() {
@@ -116,8 +114,11 @@ public class GrantFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GRANT_JS : ERROR_MESSAGE_GRANT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}"),
+			Usage.javaScript("Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}")
+		);
 	}
 
 	@Override

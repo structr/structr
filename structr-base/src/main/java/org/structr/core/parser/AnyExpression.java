@@ -34,7 +34,7 @@ import java.util.List;
 
 public class AnyExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_ANY = "Usage: ${any(collection, expression)}. Example: ${any(user.groups, is_allowed(data, current, 'read'))}";
+	private static final String ERROR_MESSAGE_ANY = "Usage: ${any(collection, expression)}. Example: ${any(user.groups, is_allowed(data, current, 'read'))}";
 
 	private Expression listExpression = null;
 	private Expression anyExpression  = null;

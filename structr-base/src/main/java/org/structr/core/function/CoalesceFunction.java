@@ -22,15 +22,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 
 public class CoalesceFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_COALESCE = "Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}";
-	public static final String ERROR_MESSAGE_COALESCE_JS = "Usage: ${{Structr.coalesce(string1, string2...)}}. Example: ${{Structr.coalesce(node.name, node.title, node.id)}}";
 
 	@Override
 	public String getName() {
@@ -47,8 +45,8 @@ public class CoalesceFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.ss("coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null"),
-			Example.js("$.coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null")
+			Example.structrScript("coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null"),
+			Example.javaScript("$.coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null")
 		);
 	}
 
@@ -82,8 +80,11 @@ public class CoalesceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_COALESCE_JS : ERROR_MESSAGE_COALESCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}"),
+			Usage.javaScript("Usage: ${{Structr.coalesce(string1, string2...)}}. Example: ${{Structr.coalesce(node.name, node.title, node.id)}}")
+		);
 	}
 
 	@Override

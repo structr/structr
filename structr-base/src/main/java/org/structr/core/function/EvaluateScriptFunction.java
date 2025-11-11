@@ -18,21 +18,16 @@
  */
 package org.structr.core.function;
 
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class EvaluateScriptFunction extends AdvancedScriptingFunction {
-
-	private static final org.slf4j.Logger logger = LoggerFactory.getLogger(EvaluateScriptFunction.class.getName());
-
-	public static final String ERROR_MESSAGE_EVALUATE_SCRIPT	 = "Usage: ${evaluate_script(entity, script)}";
-	public static final String ERROR_MESSAGE_EVALUATE_SCRIPT_JS	 = "Usage: ${Structr.evaluate_script(entity, script)}";
 
 	@Override
 	public String getName() {
@@ -62,8 +57,11 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_EVALUATE_SCRIPT_JS : ERROR_MESSAGE_EVALUATE_SCRIPT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${evaluate_script(entity, script)}"),
+			Usage.javaScript("Usage: ${$.evaluate_script(entity, script)}")
+		);
 	}
 
 	@Override

@@ -30,6 +30,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,9 +40,11 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
+import static org.testng.AssertJUnit.fail;
+
 public class CreateDocumentationTest extends StructrUiTest {
 
-	// disabled so no docs are created @Test
+	@Test
 	public void createDocumentationTest() {
 
 		try (final Tx tx = app.tx()) {
@@ -54,6 +57,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 		final List<Documentable> functions = new LinkedList<>(Functions.getFunctions());
 		final List<String> lines           = new LinkedList<>();
+		final List<String> errors          = new LinkedList<>();
 
 		// add functions that are not registered as module functions
 		functions.add(new DoInNewTransactionFunction(null, null));
@@ -68,6 +72,10 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 		for (final Documentable function : functions) {
 
+			// check metadata for style errors etc.
+			errors.addAll(checkFunctionMetadata(function));
+
+			// build Markdown
 			final List<Signature> signatures = function.getSignatures();
 			final List<Parameter> parameters = function.getParameters();
 			final List<Example> examples     = function.getExamples();
@@ -123,7 +131,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 				for (final Example example : examples) {
 
-					lines.add(example.text);
+					lines.add(example.getText());
 				}
 
 				lines.add("```");
@@ -140,5 +148,26 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 			e.printStackTrace();
 		}
+
+		if (!errors.isEmpty()) {
+
+			fail(StringUtils.join(errors, "\n"));
+		}
+	}
+
+	// ----- private methods -----
+	private List<String> checkFunctionMetadata(final Documentable func) {
+
+		final List<String> errors = new LinkedList<>();
+
+		// verify that the short description ends with a period
+		final String desc = func.getShortDescription();
+		if (desc != null && !desc.endsWith(".")) {
+
+			errors.add("Short description of " + func.getName() + " does not end with a period character.");
+		}
+
+
+		return errors;
 	}
 }

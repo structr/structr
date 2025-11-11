@@ -30,15 +30,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 import java.util.Map;
 
 public class SetFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_SET    = "Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}. Example: ${set(this, \"email\", lower(this.email))}";
-	public static final String ERROR_MESSAGE_SET_JS = "Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}. Example: ${{ $.set(this, { \"email\": $.lower($.this.email) } ) }}";
 
 	@Override
 	public String getName() {
@@ -91,7 +89,7 @@ public class SetFunction extends CoreFunction {
 
 				if (parameter_count % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + (ctx.isJavaScriptContext() ? ERROR_MESSAGE_SET_JS : ERROR_MESSAGE_SET));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
 				for (int c = 1; c < parameter_count; c += 2) {
@@ -141,8 +139,11 @@ public class SetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SET;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}. Example: ${set(this, 'email', lower(this.email))}"),
+			Usage.javaScript("Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}. Example: ${{ $.set(this, { 'email': $.lower($.this.email) } ) }}")
+		);
 	}
 
 	@Override

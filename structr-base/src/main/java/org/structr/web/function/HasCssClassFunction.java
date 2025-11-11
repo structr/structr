@@ -24,6 +24,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 
@@ -33,9 +34,6 @@ import java.util.List;
 import java.util.Set;
 
 public class HasCssClassFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_HAS_CSS_CLASS    = "Usage: ${has_css_class(element, css)}. Example: ${has_css_class(this, 'active')}";
-	public static final String ERROR_MESSAGE_HAS_CSS_CLASS_JS = "Usage: ${{Structr.hasCssClass(element, css)}}. Example: ${{Structr.hasCssClass(this, 'active')}}";
 
 	@Override
 	public String getName() {
@@ -84,8 +82,11 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_HAS_CSS_CLASS_JS : ERROR_MESSAGE_HAS_CSS_CLASS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${has_css_class(element, css)}. Example: ${has_css_class(this, 'active')}"),
+			Usage.javaScript("Usage: ${{Structr.hasCssClass(element, css)}}. Example: ${{Structr.hasCssClass(this, 'active')}}")
+		);
 	}
 
 	@Override

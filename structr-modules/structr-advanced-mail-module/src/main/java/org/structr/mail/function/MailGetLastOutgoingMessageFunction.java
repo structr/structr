@@ -20,16 +20,13 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFunction {
-
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_get_last_outgoing_message()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_get_last_outgoing_message() }}";
 
 	public MailGetLastOutgoingMessageFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -53,8 +50,11 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_get_last_outgoing_message()}"),
+			Usage.javaScript("Usage: ${{ Structr.mailGetLastOutgoingMessage() }}")
+		);
 	}
 
 	@Override

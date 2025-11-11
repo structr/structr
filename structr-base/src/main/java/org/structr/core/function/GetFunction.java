@@ -32,6 +32,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -39,7 +40,6 @@ import java.util.Map;
 
 public class GetFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET        = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_ENTITY = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
 
 	@Override
@@ -138,7 +138,7 @@ public class GetFunction extends CoreFunction {
 
 			} else {
 
-				return ERROR_MESSAGE_GET_ENTITY;
+				return usage(ctx.isJavaScriptContext());
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -154,12 +154,15 @@ public class GetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_GET;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get(entity, propertyKey)}. Example: ${get(this, 'children')}"),
+			Usage.javaScript("Usage: ${{ $.get(entity, propertyKey) }}. Example: ${{ $.get($.this, 'children')}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the value with the given name of the given entity, or an empty string";
+		return "Returns the value with the given name of the given entity, or an empty string.";
 	}
 }

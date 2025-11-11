@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 
@@ -29,9 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 public class CreateFolderPathFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_CREATE_FOLDER_PATH    = "Usage: ${create_folder_path(path)}. Example: ${create_folder_path(\"/img/icons/large\")}";
-	public static final String ERROR_MESSAGE_CREATE_FOLDER_PATH_JS = "Usage: ${{ Structr.createFolderPath({ path: value})}}. Example: ${{ Structr.createFolderPath({ path: \"/img/icons/large\"})}}";
 
 	@Override
 	public String getName() {
@@ -76,8 +74,11 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_FOLDER_PATH_JS : ERROR_MESSAGE_CREATE_FOLDER_PATH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${create_folder_path(path)}. Example: ${create_folder_path(\"/img/icons/large\")}"),
+			Usage.javaScript("Usage: ${{ Structr.createFolderPath({ path: value})}}. Example: ${{ Structr.createFolderPath({ path: \"/img/icons/large\"})}}")
+		);
 	}
 
 	@Override

@@ -31,7 +31,7 @@ import org.structr.schema.action.EvaluationHints;
 
 public class IfExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
+	private static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 
 	public IfExpression(final int row, final int column) {
 		super("if", row, column);

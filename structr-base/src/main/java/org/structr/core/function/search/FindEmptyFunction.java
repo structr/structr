@@ -21,13 +21,12 @@ package org.structr.core.function.search;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindEmptyFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_FIND_EMPTY = "Usage: ${empty(key). Example: ${find('Group', empty('name'))}";
 
 	@Override
 	public String getName() {
@@ -52,8 +51,11 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_FIND_EMPTY;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.empty(key) }}. Example: ${{ $.find('Group', $.predicate.empty('name')) }}"),
+			Usage.structrScript("Usage: ${empty(key). Example: ${find('Group', empty('name'))}")
+		);
 	}
 
 	@Override

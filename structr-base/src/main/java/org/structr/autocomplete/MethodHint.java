@@ -103,6 +103,12 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+		);
+	}
+
+	@Override
 	public DocumentableType getType() {
 		return DocumentableType.Method;
 	}

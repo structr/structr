@@ -22,14 +22,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class EncryptFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_ENCRYPT    = "Usage: ${encrypt(value[, key])}";
-	public static final String ERROR_MESSAGE_ENCRYPT_JS = "Usage: ${{Structr.encrypt(value[, key])}}";
 
 	@Override
 	public String getName() {
@@ -99,8 +97,11 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ENCRYPT_JS : ERROR_MESSAGE_ENCRYPT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${encrypt(value[, key])}"),
+			Usage.javaScript("Usage: ${{Structr.encrypt(value[, key])}}")
+		);
 	}
 
 	@Override

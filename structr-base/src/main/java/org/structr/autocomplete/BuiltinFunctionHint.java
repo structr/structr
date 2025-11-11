@@ -67,14 +67,14 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 				// newline
 				buf.add("");
 				buf.add("```");
-				buf.add(example.text);
+				buf.add(example.getText());
 				buf.add("```");
 
 				// example description
-				if (example.description != null) {
+				if (example.getDescription() != null) {
 
 					buf.add("");
-					buf.add(example.text);
+					buf.add(example.getDescription());
 				}
 			}
 		}

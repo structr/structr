@@ -23,14 +23,12 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class ApplicationStoreHasFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_HAS    = "Usage: ${application_store_has(key)}. Example: ${application_store_has(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_HAS_JS = "Usage: ${{ $.application_store_has(key); }}. Example: ${{ $.application_store_has(\"do_not_track\"); }}";
 
 	@Override
 	public String getName() {
@@ -64,8 +62,11 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_HAS_JS : ERROR_MESSAGE_APPLICATION_STORE_HAS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${application_store_has(key)}. Example: ${application_store_has('do_no_track')}"),
+			Usage.javaScript("Usage: ${{ $.applicationStoreHas(key); }}. Example: ${{ $.applicationStoreHas('do_not_track'); }}")
+		);
 	}
 
 	@Override

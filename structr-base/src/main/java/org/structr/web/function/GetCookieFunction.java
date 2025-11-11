@@ -25,15 +25,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 
 public class GetCookieFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_GET_COOKIE    = "Usage: ${get_cookie(name)}. Example: ${get_cookie('cartId')}";
-	public static final String ERROR_MESSAGE_GET_COOKIE_JS = "Usage: ${{Structr.getCookie(name)}}. Example: ${{Structr.getCookie('cartId')}}";
 
 	@Override
 	public String getName() {
@@ -91,8 +89,11 @@ public class GetCookieFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_COOKIE_JS : ERROR_MESSAGE_GET_COOKIE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get_cookie(name)}. Example: ${get_cookie('cartId')}"),
+			Usage.javaScript("Usage: ${{Structr.getCookie(name)}}. Example: ${{Structr.getCookie('cartId')}}")
+		);
 	}
 
 	@Override

@@ -21,14 +21,12 @@ package org.structr.web.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS    = "Usage: ${application_store_get_keys()}. Example: ${application_store_get_keys()}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS_JS = "Usage: ${{ $.application_store_get_keys(); }}. Example: ${{ $.application_store_get_keys(); }}";
 
 	@Override
 	public String getName() {
@@ -47,8 +45,11 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS_JS : ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${application_store_get_keys()}. Example: ${application_store_get_keys()}"),
+			Usage.javaScript("Usage: ${{ $.applicationStoreGetKeys(); }}. Example: ${{ $.applicationStoreGetKeys(); }}")
+		);
 	}
 
 	@Override

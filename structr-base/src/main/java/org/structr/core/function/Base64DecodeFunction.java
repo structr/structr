@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
@@ -30,9 +31,6 @@ import java.util.Base64;
 import java.util.List;
 
 public class Base64DecodeFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_BASE64DECODE = "Usage: ${base64decode(text[, scheme[, charset]])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}";
-	public static final String ERROR_MESSAGE_BASE64DECODE_JS = "Usage: ${{Structr.base64decode(text[, scheme[, charset]])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}}";
 
 	@Override
 	public String getName() {
@@ -106,8 +104,11 @@ public class Base64DecodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_BASE64DECODE_JS : ERROR_MESSAGE_BASE64DECODE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${base64decode(text[, scheme[, charset]])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}"),
+			Usage.structrScript("Usage: ${{Structr.base64decode(text[, scheme[, charset]])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}}")
+		);
 	}
 
 	@Override

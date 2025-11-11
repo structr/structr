@@ -34,6 +34,7 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -43,9 +44,6 @@ import java.io.IOException;
 import java.util.*;
 
 public class ToExcelFunction extends Function<Object, Object> {
-
-	public static final String ERROR_MESSAGE_TO_EXCEL    = "Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${to_excel(find('Page'), 'ui')}";
-	public static final String ERROR_MESSAGE_TO_EXCEL_JS = "Usage: ${{Structr.to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}}. Example: ${{Structr.to_excel(Structr.find('Page'), 'ui'))}}";
 
 	@Override
 	public String getName() {
@@ -143,8 +141,11 @@ public class ToExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_EXCEL_JS : ERROR_MESSAGE_TO_EXCEL);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${to_excel(find('Page'), 'ui')}"),
+			Usage.javaScript("Usage: ${{Structr.toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}}. Example: ${{Structr.to_excel(Structr.find('Page'), 'ui'))}}")
+		);
 	}
 
 	@Override

@@ -29,15 +29,13 @@ import org.structr.core.Services;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
 import java.util.List;
 
 public class StructrEnvFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_STRUCTR_ENV    = "Usage: ${structr_env()}. Example ${structr_env()}";
-	public static final String ERROR_MESSAGE_STRUCTR_ENV_JS = "Usage: ${Structr.structr_env()}. Example ${Structr.structr_env()}";
 
 	@Override
 	public String getName() {
@@ -55,8 +53,11 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_STRUCTR_ENV : ERROR_MESSAGE_STRUCTR_ENV_JS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${structr_env()}. Example ${structr_env()}"),
+			Usage.javaScript("Usage: ${{ $.structrEnv()}. Example ${{ $.structrEnv()}")
+		);
 	}
 
 	@Override

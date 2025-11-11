@@ -22,14 +22,13 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class SplitRegexFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_SPLIT_REGEX = "Usage: ${split_regex(str[, regex])}. Example: ${split_regex('foo:bar;baz', ':|;')}";
 
 	@Override
 	public String getName() {
@@ -71,8 +70,11 @@ public class SplitRegexFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SPLIT_REGEX;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.splitRegex(str[, regex]) }}. Example: ${{ $.splitRegex('foo:bar;baz', ':|;') }}"),
+			Usage.structrScript("Usage: ${split_regex(str[, regex])}. Example: ${split_regex('foo:bar;baz', ':|;')}")
+		);
 	}
 
 	@Override

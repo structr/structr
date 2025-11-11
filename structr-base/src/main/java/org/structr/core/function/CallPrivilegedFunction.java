@@ -20,14 +20,12 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class CallPrivilegedFunction extends CallFunction {
-
-	public static final String ERROR_MESSAGE_CALL_PRIVILEGED    = "Usage: ${call_privileged(key [, key, value]}. Example ${call_privileged('myEvent', 'key1', 'value1', 'key2', 'value2')}";
-	public static final String ERROR_MESSAGE_CALL_PRIVILEGED_JS = "Usage: ${{Structr.call_privileged(key [, parameterMap]}}. Example ${{Structr.call_privileged('myEvent', {key1: 'value1', key2: 'value2'})}}";
 
 	@Override
 	public String getName() {
@@ -40,8 +38,11 @@ public class CallPrivilegedFunction extends CallFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CALL_PRIVILEGED_JS : ERROR_MESSAGE_CALL_PRIVILEGED);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${call_privileged(key [, key, value]}. Example ${call_privileged('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
+			Usage.javaScript("Usage: ${{Structr.call_privileged(key [, parameterMap]}}. Example ${{Structr.call_privileged('myEvent', {key1: 'value1', key2: 'value2'})}}")
+		);
 	}
 
 	@Override

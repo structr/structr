@@ -24,6 +24,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractBinaryProcess;
@@ -38,9 +39,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class ExecBinaryFunction extends ExecFunction {
-
-	public static final String ERROR_MESSAGE_EXEC_BINARY    = "Usage: ${exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}";
-	public static final String ERROR_MESSAGE_EXEC_BINARY_JS = "Usage: ${{Structr.exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}";
 
 	@Override
 	public String getName() {
@@ -153,8 +151,11 @@ public class ExecBinaryFunction extends ExecFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_EXEC_BINARY_JS : ERROR_MESSAGE_EXEC_BINARY);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{Structr.exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}")
+		);
 	}
 
 	@Override

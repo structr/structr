@@ -24,13 +24,12 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class SendPlaintextMailFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
 
 	@Override
 	public String getName() {
@@ -80,8 +79,11 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SEND_PLAINTEXT_MAIL;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content) }}."),
+			Usage.structrScript("Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.")
+		);
 	}
 
 	@Override

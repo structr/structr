@@ -22,13 +22,12 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class SubstringFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_SUBSTRING = "Usage: ${substring(string, start [, length ])}. Example: ${substring(this.name, 19, 3)}";
 
 	@Override
 	public String getName() {
@@ -72,8 +71,11 @@ public class SubstringFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SUBSTRING;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.substring(string, start [, length ]) }}. Example: ${{ $.substring($.this.name, 19, 3) }}"),
+			Usage.structrScript("Usage: ${substring(string, start [, length ])}. Example: ${substring(this.name, 19, 3)}")
+		);
 	}
 
 	@Override

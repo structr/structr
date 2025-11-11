@@ -27,6 +27,7 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeService;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -38,8 +39,6 @@ import java.util.List;
 import java.util.Map;
 
 public class SystemInfoFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_SYSTEM_INFO = "Usage: ${system_info([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.";
 
 	@Override
 	public String getName() {
@@ -74,8 +73,11 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SYSTEM_INFO;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info."),
+			Usage.structrScript("Usage: ${system_info([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.")
+		);
 	}
 
 	@Override

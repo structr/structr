@@ -23,6 +23,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
@@ -31,9 +32,6 @@ import java.util.Collection;
 import java.util.List;
 
 public class RenderFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_RENDER    = "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
-	public static final String ERROR_MESSAGE_RENDER_JS = "Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}. Example: ${{Structr.render(Structr.get('this').children)}}";
 
 	@Override
 	public String getName() {
@@ -126,8 +124,11 @@ public class RenderFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_RENDER_JS : ERROR_MESSAGE_RENDER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}"),
+			Usage.javaScript("Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}. Example: ${{Structr.render(Structr.get('this').children)}}")
+		);
 	}
 
 	@Override

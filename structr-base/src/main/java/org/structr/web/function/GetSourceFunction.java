@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
@@ -32,9 +33,6 @@ import org.structr.web.entity.dom.DOMNode;
 import java.util.List;
 
 public class GetSourceFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_GET_SOURCE    = "Usage: ${get_source(element, editMode)}. Example: ${get_source(this, 1)}";
-	public static final String ERROR_MESSAGE_GET_SOURCE_JS = "Usage: ${{Structr.getSource(element, editMode)}}. Example: ${{Structr.getSource(this, 1)}}";
 
 	@Override
 	public String getName() {
@@ -76,8 +74,11 @@ public class GetSourceFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_SOURCE_JS : ERROR_MESSAGE_GET_SOURCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get_source(element, editMode)}. Example: ${get_source(this, 1)}"),
+			Usage.javaScript("Usage: ${{Structr.getSource(element, editMode)}}. Example: ${{Structr.getSource(this, 1)}}")
+		);
 	}
 
 	@Override

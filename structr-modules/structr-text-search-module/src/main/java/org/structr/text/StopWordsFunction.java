@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -30,9 +31,6 @@ import java.util.List;
 import java.util.Set;
 
 public class StopWordsFunction extends Function<Object, Object> {
-
-	public static final String ERROR_MESSAGE    = "Usage: ${stop_words(language)}. Example: ${stop_words(\"de\")}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.stopWords(language)}}. Example: ${{Structr.stopWords(\"de\")}}";
 
 	@Override
 	public String getName() {
@@ -72,8 +70,11 @@ public class StopWordsFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${stop_words(language)}. Example: ${stop_words(\"de\")}"),
+			Usage.javaScript("Usage: ${{Structr.stopWords(language)}}. Example: ${{Structr.stopWords(\"de\")}}")
+		);
 	}
 
 	@Override

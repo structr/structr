@@ -20,10 +20,23 @@ package org.structr.docs;
 
 import java.util.List;
 
-public interface Signature {
+public class Signature {
 
-	List<Language> getLanguages();
-	String getSignature();
+	private final List<Language> languages;
+	private final String signature;
+
+	public Signature(final String signature, final Language... languages) {
+		this.languages = List.of(languages);
+		this.signature = signature;
+	}
+
+	public List<Language> getLanguages() {
+		return languages;
+	}
+
+	public String getSignature() {
+		return signature;
+	}
 
 	/**
 	 * Returns a Signature for the given language and signature string.
@@ -33,52 +46,27 @@ public interface Signature {
 	 *
 	 * @return a Signature for the given language and signature string
 	 */
-	static Signature of(final String signature, final Language... languages) {
-
-		return new Signature() {
-
-			@Override
-			public List<Language> getLanguages() {
-				return List.of(languages);
-			}
-
-			@Override
-			public String getSignature() {
-				return signature;
-			}
-		};
+	public static Signature of(final String signature, final Language... languages) {
+		return new Signature(signature, languages);
 	}
 
-	static Signature js(final String signature) {
-
-		return new Signature() {
-
-			@Override
-			public List<Language> getLanguages() {
-				return List.of(Language.Javascript);
-			}
-
-			@Override
-			public String getSignature() {
-				return signature;
-			}
-		};
+	/**
+	 * Returns a Signature for Javascript.
+	 *
+	 * @param signature
+	 * @return
+	 */
+	public static Signature javaScript(final String signature) {
+		return new Signature(signature, Language.Javascript);
 	}
 
-	static Signature ss(final String signature) {
-
-		return new Signature() {
-
-			@Override
-			public List<Language> getLanguages() {
-				return List.of(Language.StructrScript);
-			}
-
-			@Override
-			public String getSignature() {
-				return signature;
-			}
-		};
+	/**
+	 * Returns a Signature for StructrScript.
+	 * @param signature
+	 * @return
+	 */
+	public static Signature structrScript(final String signature) {
+		return new Signature(signature, Language.StructrScript);
 	}
 
 	/**
@@ -89,7 +77,7 @@ public interface Signature {
 	 *
 	 * @return a list of Signatures for all languages
 	 */
-	static List<Signature> forAllLanguages(final String signature) {
+	public static List<Signature> forAllLanguages(final String signature) {
 
 		return List.of(
 			Signature.of(signature, Language.values())

@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -28,9 +29,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class InheritingTypesFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_INHERITING_TYPES    = "Usage: ${inheriting_types(type[, blacklist])}. Example ${inheriting_types('User')}";
-	public static final String ERROR_MESSAGE_INHERITING_TYPES_JS = "Usage: ${Structr.inheriting_types(type[, blacklist])}. Example ${Structr.inheriting_types('User')}";
 
 	@Override
 	public String getName() {
@@ -98,8 +96,11 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INHERITING_TYPES_JS : ERROR_MESSAGE_INHERITING_TYPES);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${inheriting_types(type[, blacklist])}. Example ${inheriting_types('User')}"),
+			Usage.javaScript("Usage: ${Structr.inheriting_types(type[, blacklist])}. Example ${Structr.inheriting_types('User')}")
+		);
 	}
 
 	@Override

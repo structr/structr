@@ -31,7 +31,7 @@ import org.structr.schema.action.EvaluationHints;
 
 public class ReduceExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_MAP = "Usage: ${reduce(list, initialValue, reduceExpression)}. Example: ${reduce(this.children, 0, sum(accumulator, data.value)))}";
+	private static final String ERROR_MESSAGE_MAP = "Usage: ${reduce(list, initialValue, reduceExpression)}. Example: ${reduce(this.children, 0, sum(accumulator, data.value)))}";
 
 	private Expression listExpression         = null;
 	private Expression initialValueExpression = null;

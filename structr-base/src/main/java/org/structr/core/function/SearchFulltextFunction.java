@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -31,9 +32,6 @@ import java.util.List;
 import java.util.Map;
 
 public class SearchFulltextFunction extends CoreFunction implements QueryFunction {
-
-	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search_fulltext(indexName, searchString)}. Example: ${search_fulltext(\"User_name\", \"abc\")}";
-	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.searchFulltext(indexName, value)}}. Example: ${{Structr.searchFulltext(\"User_name\", \"abc\")}}";
 
 	@Override
 	public String getName() {
@@ -93,8 +91,11 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SEARCH_JS : ERROR_MESSAGE_SEARCH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${search_fulltext(indexName, searchString)}. Example: ${search_fulltext(\"User_name\", \"abc\")}"),
+			Usage.javaScript("Usage: ${{Structr.searchFulltext(indexName, value)}}. Example: ${{Structr.searchFulltext(\"User_name\", \"abc\")}}")
+		);
 	}
 
 	@Override

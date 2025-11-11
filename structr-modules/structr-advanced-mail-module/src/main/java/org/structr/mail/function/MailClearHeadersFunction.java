@@ -20,15 +20,13 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_clear_headers()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_clear_headers() }}";
 
 	public MailClearHeadersFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -53,8 +51,11 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_clear_headers()}"),
+			Usage.javaScript("Usage: ${{ Structr.mailClearHeaders() }}")
+		);
 	}
 
 	@Override

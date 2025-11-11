@@ -19,14 +19,15 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class LteFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_LTE = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
 
 	@Override
 	public String getName() {
@@ -45,12 +46,19 @@ public class LteFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_LTE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}")
+		);
 	}
 
 	@Override
 	public String getShortDescription() {
 		return "Returns true if the first argument is less or equal to the second argument";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }
