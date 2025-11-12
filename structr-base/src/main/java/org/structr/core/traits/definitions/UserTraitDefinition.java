@@ -18,8 +18,6 @@
  */
 package org.structr.core.traits.definitions;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
@@ -31,11 +29,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
@@ -51,8 +47,6 @@ import org.structr.core.traits.wrappers.UserTraitWrapper;
 import org.structr.rest.auth.TimeBasedOneTimePasswordHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
-import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
-import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 import java.util.Map;
 import java.util.Set;
@@ -170,7 +164,6 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 	public void onCreateAndModify(final User user, final SecurityContext securityContext) throws FrameworkException {
 
 		final SecurityContext previousSecurityContext = user.getSecurityContext();
-		final Traits folderTraits                     = Traits.of(StructrTraits.FOLDER);
 		final Traits userTraits                       = Traits.of(StructrTraits.USER);
 
 		try {
@@ -216,40 +209,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			if (Settings.FilesystemEnabled.getValue()) {
 
-				final PropertyKey<NodeInterface> homeFolderKey = folderTraits.key(FolderTraitDefinition.HOME_FOLDER_OF_USER_PROPERTY);
-				final PropertyKey<NodeInterface> parentKey     = folderTraits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
-
-				try {
-
-					Folder homeDir = user.getHomeDirectory();
-					if (homeDir == null) {
-
-						// create home directory
-						final App app            = StructrApp.getInstance();
-						NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).key(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").key(parentKey, null).getFirst();
-
-						if (homeFolder == null) {
-
-							homeFolder = app.create(StructrTraits.FOLDER,
-								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home"),
-								new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), null),
-								new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
-							);
-						}
-
-						app.create(StructrTraits.FOLDER,
-							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()),
-							new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user),
-							new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true),
-							new NodeAttribute(parentKey, homeFolder),
-							new NodeAttribute(homeFolderKey, user)
-						);
-					}
-
-				} catch (Throwable t) {
-
-					LoggerFactory.getLogger(User.class).error("{}", ExceptionUtils.getStackTrace(t));
-				}
+				final Folder homeDir = user.getOrCreateHomeDirectory();
 			}
 
 		} finally {
