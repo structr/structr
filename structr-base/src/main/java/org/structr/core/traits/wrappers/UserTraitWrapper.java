@@ -18,14 +18,24 @@
  */
 package org.structr.core.traits.wrappers;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
-import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.FolderTraitDefinition;
 
 public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
@@ -40,6 +50,72 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 		if (node != null) {
 
 			return node.as(Folder.class);
+		}
+
+		return null;
+	}
+
+	@Override
+	public Folder getOrCreateHomeDirectory() {
+
+		final User user = wrappedObject.as(User.class);
+		Folder homeDir  = user.getHomeDirectory();
+
+		if (homeDir != null) {
+			return homeDir;
+		}
+
+		// create home directory
+		final Traits folderTraits                      = Traits.of(StructrTraits.FOLDER);
+		final PropertyKey<NodeInterface> homeFolderKey = folderTraits.key(FolderTraitDefinition.HOME_FOLDER_OF_USER_PROPERTY);
+		final PropertyKey<NodeInterface> parentKey     = folderTraits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			final App app            = StructrApp.getInstance();
+			NodeInterface homeFolder = app.nodeQuery(StructrTraits.FOLDER).key(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home").key(parentKey, null).getFirst();
+
+			if (homeFolder == null) {
+
+				homeFolder = app.create(StructrTraits.FOLDER,
+						new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "home"),
+						new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), null),
+						new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true)
+				);
+			}
+
+			NodeInterface userHomeDir = app.nodeQuery(StructrTraits.FOLDER).key(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()).key(parentKey, homeFolder).getFirst();
+
+			if (userHomeDir == null) {
+
+				app.create(StructrTraits.FOLDER,
+						new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()),
+						new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user),
+						new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true),
+						new NodeAttribute(parentKey, homeFolder),
+						new NodeAttribute(homeFolderKey, user)
+				);
+
+			} else {
+
+				userHomeDir.setProperty(homeFolderKey, user);
+			}
+
+			tx.success();
+
+			// FIXME: if the node already existed, "user.getHomeDirectory()" returns null. this is why the found node is returned.
+			if (userHomeDir == null) {
+
+				return user.getHomeDirectory();
+
+			} else {
+
+				return userHomeDir.as(Folder.class);
+			}
+
+		} catch (Throwable t) {
+
+			LoggerFactory.getLogger(User.class).error("Unable to create user home directory: {}", ExceptionUtils.getStackTrace(t));
 		}
 
 		return null;
