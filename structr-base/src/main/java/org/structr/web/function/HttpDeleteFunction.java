@@ -24,6 +24,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
@@ -40,11 +41,6 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url [, contentType ]");
-	}
-
-	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -55,8 +51,8 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 			String contentType = "application/json";
 
 			// override default content type
-			if (sources.length >= 3 && sources[2] != null) {
-				contentType = sources[2].toString();
+			if (sources.length >= 2 && sources[1] != null) {
+				contentType = sources[1].toString();
 			}
 
 			final Map<String, Object> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders(), ctx.isValidateCertificates());
@@ -95,10 +91,24 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url [, contentType]");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("contentType", "content type")
+		);
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${DELETE(URL[, contentType])}. Example: ${DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}"),
-			Usage.javaScript("Usage: ${{Structr.DELETE(URL[, contentType])}}. Example: ${{Structr.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}")
+			Usage.javaScript("Usage: ${{ $.DELETE(URL[, contentType])}}. Example: ${{ $.DELETE('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', 'application/json')}}")
 		);
 	}
 

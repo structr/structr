@@ -23,6 +23,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
@@ -36,11 +37,6 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "PATCH";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, body [, contentType, charset ]");
 	}
 
 	@Override
@@ -97,6 +93,22 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url, body [, contentType, charset ]");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("body", "request body (JSON data)"),
+			Parameter.optional("contentType", "content type of the request body"),
+			Parameter.optional("charset", "charset of the request body")
+		);
 	}
 
 	@Override

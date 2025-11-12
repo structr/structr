@@ -31,6 +31,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
@@ -163,7 +164,17 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	// ----- documentation -----
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, partsMap, contentType");
+		return Signature.forAllLanguages("url, partsMap [, responseContentType]");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("partsMap", "map with multipart parts (type, content)"),
+			Parameter.optional("responseContentType", "expected content type of the response body")
+		);
 	}
 
 	@Override

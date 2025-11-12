@@ -27,6 +27,7 @@ import org.structr.core.property.ByteArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
@@ -140,6 +141,20 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("body", "request body (JSON data)"),
+			Parameter.optional("contentType", "content type of the request body"),
+			Parameter.optional("charset", "charset of the request body"),
+			Parameter.optional("username", "username for the connection"),
+			Parameter.optional("password", "password for the connection"),
+			Parameter.optional("configMap", "JSON object for request configuration, supports `timeout` in seconds, `redirects` with true or false to follow redirects")
+		);
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
@@ -173,7 +188,9 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	public List<String> getNotes() {
 		return List.of(
 			"The `POST()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
-			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
+			"`contentType` is the expected response content type. If you need to define the request content type, use `add_header('Content-Type', 'your-content-type-here')`",
+			"If the `contentType` is `application/json`, the response body is automatically parsed and the `body` key of the returned object is a map"
 		);
 	}
 }

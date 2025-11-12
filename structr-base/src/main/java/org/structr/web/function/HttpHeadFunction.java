@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -32,11 +33,6 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "HEAD";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url [, username, password ]");
 	}
 
 	@Override
@@ -77,10 +73,25 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url [, username, password]]");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("username", "username for the connection"),
+			Parameter.optional("password", "password for the connection")
+		);
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${HEAD(url[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}"),
-			Usage.javaScript("Usage: ${{Structr.HEAD(url[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}")
+			Usage.javaScript("Usage: ${{ $.HEAD(url[, username, password]])}}. Example: ${{ $.HEAD('http://structr.org', 'foo', 'bar')}}")
 		);
 	}
 
