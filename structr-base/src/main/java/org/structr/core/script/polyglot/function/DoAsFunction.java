@@ -147,7 +147,7 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	public List<String> getNotes() {
 
 		return List.of(
-			"**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems."
+			"**Important**: Any node resource that was loaded outside of the function scope must be looked up again **inside** the function scope to prevent access problems."
 		);
 	}
 
@@ -155,7 +155,7 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	public List<Signature> getSignatures() {
 
 		return List.of(
-			Signature.of("user, function", Language.values())
+			Signature.of("user, function", Language.Javascript)
 		);
 	}
 
@@ -166,6 +166,8 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 
 	@Override
 	public List<Usage> getUsages() {
-		return null;
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.doAs(user, function) }}. Example: ${{ $.doAs(user, () => log($.me))}")
+		);
 	}
 }

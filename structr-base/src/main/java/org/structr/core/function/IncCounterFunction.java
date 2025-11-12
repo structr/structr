@@ -82,7 +82,8 @@ public class IncCounterFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${inc_counter(level[, resetLowerLevels])}. Example: ${inc_counter(1, true)}")
+			Usage.javaScript("Usage: ${{ $.incCounter(level[, resetLowerLevels=false]) }}. Example: ${{ $.incCounter(1, true) }}"),
+			Usage.structrScript("Usage: ${inc_counter(level[, resetLowerLevels=false])}. Example: ${inc_counter(1, true)}")
 		);
 	}
 

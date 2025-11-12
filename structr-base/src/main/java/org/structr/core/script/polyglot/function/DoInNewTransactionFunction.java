@@ -255,12 +255,14 @@ Be careful to never simply put "return true;" in the first function as this will
 	public List<Signature> getSignatures() {
 
 		return List.of(
-			Signature.of("workerFunction [, errorHandlerFunction]", Language.values())
+			Signature.of("workerFunction [, errorHandlerFunction]", Language.Javascript)
 		);
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return null;
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.doInNewTransaction(function) }}. Example: ${{ $.doInNewTransaction(() => log($.me))}")
+		);
 	}
 }

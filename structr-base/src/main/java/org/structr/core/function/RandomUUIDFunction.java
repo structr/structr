@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.docs.Signature;
@@ -30,9 +28,6 @@ import java.util.List;
 
 public class RandomUUIDFunction extends CoreFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(RandomUUIDFunction.class);
-	public static final String ERROR_MESSAGE = "Usage: ${random_uuid()}.";
-
 	@Override
 	public String getName() {
 		return "random_uuid";
@@ -40,7 +35,8 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		// empty signature, no parameters
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -51,6 +47,8 @@ public class RandomUUIDFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
+			Usage.structrScript("Usage: ${random_uuid()}."),
+			Usage.javaScript("Usage: ${{ $.randomUuid() }}.")
 		);
 	}
 

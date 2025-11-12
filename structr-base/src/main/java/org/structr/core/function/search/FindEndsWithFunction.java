@@ -84,12 +84,12 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public boolean isHidden() {
-		return true;
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key, value");
 	}
 
 	@Override
-	public List<Signature> getSignatures() {
-		return null;
+	public boolean isHidden() {
+		return true;
 	}
 }

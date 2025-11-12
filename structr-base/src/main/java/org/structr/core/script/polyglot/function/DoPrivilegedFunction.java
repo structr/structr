@@ -120,6 +120,11 @@ ${{
 	}
 
 	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
 	public List<Language> getLanguages() {
 
 		return List.of(
@@ -129,7 +134,9 @@ ${{
 
 	@Override
 	public List<Usage> getUsages() {
-		return null;
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.doPrivileged(function) }}. Example: ${{ $.doPrivileged(() => log($.me))}")
+		);
 	}
 
 	@Override

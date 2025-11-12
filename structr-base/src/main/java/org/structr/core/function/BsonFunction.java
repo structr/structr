@@ -32,8 +32,6 @@ import java.util.Map;
 
 public class BsonFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${bson(data)}. Example: ${bson({ name: 'Test' })}";
-
 	@Override
 	public String getName() {
 		return "bson";
@@ -69,6 +67,8 @@ public class BsonFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
+			Usage.javaScript("Usage: ${{ $.bson(data) }}. Example: ${{ $.bson({ name: 'Test' }) }}"),
+			Usage.structrScript("Usage: ${bson(data)}. Example: ${bson({ name: 'Test' })}")
 		);
 	}
 

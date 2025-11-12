@@ -68,7 +68,7 @@ public class MergeFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${{$.merge(list1, list2, list3, ...)}}. Example: ${{$.merge($.this.children, $.this.siblings)}}"),
+			Usage.javaScript("Usage: ${{$.merge(list1, list2, list3, ...)}}. Example: ${{$.merge($.this.children, $.this.siblings)}}"),
 			Usage.structrScript("Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}")
 		);
 	}

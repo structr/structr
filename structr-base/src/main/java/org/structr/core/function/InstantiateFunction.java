@@ -69,7 +69,7 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${{$.instantiate(node)}}. Example: ${{$.instantiate(result.node)}}"),
+			Usage.javaScript("Usage: ${{$.instantiate(node)}}. Example: ${{$.instantiate(result.node)}}"),
 			Usage.structrScript("Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}")
 		);
 	}

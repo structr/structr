@@ -78,7 +78,7 @@ public class FindOrFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("predicates");
 	}
 
 	// ----- private methods -----

@@ -46,11 +46,6 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Signature> getSignatures() {
-		return null;
-	}
-
-	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final Map<String, Object> systemInfo = getSystemInfo();
@@ -88,6 +83,12 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllLanguages("");
 	}
 
 	public static Map getSystemInfo () {

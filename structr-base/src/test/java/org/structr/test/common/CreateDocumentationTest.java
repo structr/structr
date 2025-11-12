@@ -25,10 +25,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
-import org.structr.docs.Documentable;
-import org.structr.docs.Example;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
+import org.structr.docs.*;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -169,7 +166,91 @@ public class CreateDocumentationTest extends StructrUiTest {
 			errors.add("Short description of " + func.getName() + " does not end with a period character.");
 		}
 
+		// verify that a function has at least one language
+		final List<Language> languages = func.getLanguages();
+		if (languages.isEmpty()) {
+
+			errors.add("Function " + func.getName() + " has no languages.");
+		}
+
+		// verify that a function has at least one signature
+		final List<Signature> signatures = func.getSignatures();
+		if (signatures == null || signatures.isEmpty()) {
+
+			errors.add("Function " + func.getName() + " has no signatures.");
+		}
+
+		// verify that a function has at least one usage
+		final List<Usage> usages = func.getUsages();
+		if (usages == null || usages.isEmpty()) {
+
+			errors.add("Function " + func.getName() + " has no usages.");
+		}
+
+		// verify that a function has a usage and a signature for all languages
+		for (final Language language : func.getLanguages()) {
+
+			boolean hasUsage     = false;
+			boolean hasSignature = false;
+
+			if (usages != null) {
+
+				for (final Usage usage : usages) {
+
+					if (usage.getLanguages().contains(language)) {
+
+						hasUsage = true;
+					}
+				}
+			}
+
+			if (signatures != null) {
+
+				for (final Signature signature : signatures) {
+
+					if (signature.getLanguages().contains(language)) {
+
+						hasSignature = true;
+					}
+				}
+			}
+
+			if (!hasUsage) {
+
+				errors.add("Function " + func.getName() + " has no usage for language " + language.name());
+			}
+
+			if (!hasSignature) {
+
+				errors.add("Function " + func.getName() + " has no signature for language " + language.name());
+			}
+		}
 
 		return errors;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

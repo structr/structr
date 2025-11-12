@@ -29,9 +29,6 @@ import java.util.List;
 
 public class IsValidEmailFunction extends UiAdvancedFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${is_valid_email(address)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ $.is_valid_email(address) }}";
-
 	@Override
 	public String getName() {
 		return "is_valid_email";
@@ -63,6 +60,8 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
+			Usage.structrScript("Usage: ${is_valid_email(address)}"),
+			Usage.javaScript("Usage: ${{ $.is_valid_email(address) }}")
 		);
 	}
 

@@ -34,7 +34,8 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		// empty signature, no parameters
+		return Signature.forAllLanguages("");
 	}
 
 	@Override

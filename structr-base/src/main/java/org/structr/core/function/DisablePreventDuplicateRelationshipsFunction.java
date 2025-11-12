@@ -37,7 +37,8 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		// empty signature, no parameters
+		return Signature.forAllLanguages("");
 	}
 
 	@Override

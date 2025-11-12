@@ -36,8 +36,6 @@ import java.util.Map;
 
 public class MongoDBFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${mongodb(url, database, collection)}. Example: ${mongodb(\"mongodb://localhost:27017\", \"database1\", \"collection1\")}";
-
 	@Override
 	public String getName() {
 		return "mongodb";
@@ -89,6 +87,8 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
+			Usage.structrScript("Usage: ${mongodb(url, database, collection)}. Example: ${mongodb('mongodb://localhost:27017', 'database1', 'collection1')}"),
+			Usage.javaScript("Usage: ${{ $.mongodb(url, database, collection) }}. Example: ${{ $.mongodb('mongodb://localhost:27017', 'database1', 'collection1') }}")
 		);
 	}
 

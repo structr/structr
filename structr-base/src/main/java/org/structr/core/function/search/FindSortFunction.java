@@ -90,6 +90,6 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("key, value");
 	}
 }

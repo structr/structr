@@ -106,11 +106,6 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 		return DocumentableType.BuiltInFunction;
 	}
 
-	@Override
-	public List<String> getNotes() {
-		return null;
-	}
-
 	// ----- private methods -----
 	private boolean isJavascriptOnly() {
 		return getLanguages().containsAll(List.of(Language.Javascript));

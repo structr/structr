@@ -20,6 +20,7 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -84,6 +85,15 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("latitude, longitude, distance");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("latitude", "The latitude of the distance search"),
+			Parameter.mandatory("longitude", "The longitude of the distance search"),
+			Parameter.mandatory("distance", "The circumference of the distance search")
+		);
 	}
 }

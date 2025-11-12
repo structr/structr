@@ -64,7 +64,7 @@ public class MD5Function extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${{$.md5(string)}}. Example: ${{$.md5(this.email)}}"),
+			Usage.javaScript("Usage: ${{$.md5(string)}}. Example: ${{$.md5(this.email)}}"),
 			Usage.structrScript("Usage: ${md5(string)}. Example: ${md5(this.email)}")
 		);
 	}
