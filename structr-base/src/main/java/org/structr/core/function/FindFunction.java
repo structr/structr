@@ -142,8 +142,8 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("type", "the type to return (includes inherited types"),
-			Parameter.optional("predicates", "a list of predicates")
+			Parameter.mandatory("type", "type to return (includes inherited types"),
+			Parameter.optional("predicates", "list of predicates")
 		);
 	}
 

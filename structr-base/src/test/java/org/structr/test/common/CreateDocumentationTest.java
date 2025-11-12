@@ -199,6 +199,36 @@ public class CreateDocumentationTest extends StructrUiTest {
 			errors.add("Function " + func.getName() + " has no usages.");
 		}
 
+		// verify the parameters
+		final List<Parameter> parameters = func.getParameters();
+		if (parameters != null && !parameters.isEmpty()) {
+
+			for (final Parameter parameter : parameters) {
+
+				if (StringUtils.isEmpty(parameter.getName())) {
+					errors.add("Function " + func.getName() + " has empty parameter name.");
+				}
+
+				if (Character.isUpperCase(parameter.getName().charAt(0))) {
+					errors.add("Parameter " + parameter.getName() + " of function " + func.getName() + " should not start with an uppercase letter.");
+				}
+
+				if (parameter.getDescription() != null) {
+
+					if (parameter.getDescription().endsWith(".")) {
+						errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not end with a period character.");
+					}
+
+					// check some things in the description text
+					final String d = parameter.getDescription().strip().toLowerCase();
+
+					if (d.startsWith("the ") || d.startsWith("a ") || d.startsWith("an ") || d.startsWith("optional ")) {
+						errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not start with the words 'the', 'a', 'an', or 'optional'.");
+					}
+				}
+			}
+		}
+
 		// verify that a function has a usage and a signature for all languages
 		for (final Language language : func.getLanguages()) {
 

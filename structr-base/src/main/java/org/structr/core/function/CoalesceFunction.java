@@ -38,7 +38,7 @@ public class CoalesceFunction extends CoreFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("strings..", "a list of strings to coalesce")
+			Parameter.mandatory("strings..", "list of strings to coalesce")
 		);
 	}
 

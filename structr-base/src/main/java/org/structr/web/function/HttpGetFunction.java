@@ -32,6 +32,7 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
@@ -180,6 +181,17 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			Signature.structrScript("url [, contentType [, username, password]]"),
 			Signature.structrScript("url, 'text/html', selector"),
 			Signature.structrScript("url, 'application/octet-stream' [, username, password]]")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("contentType", "expected content type (see notes)"),
+			Parameter.optional("username", "username for the connection"),
+			Parameter.optional("password", "password for the connection")
 		);
 	}
 

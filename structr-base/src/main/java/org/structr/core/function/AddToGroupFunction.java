@@ -42,8 +42,8 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("group", "The group to add to"),
-			Parameter.mandatory("principal", "The user or group to add to the given group")
+			Parameter.mandatory("group", "group to add to"),
+			Parameter.mandatory("principal", "user or group to add to the given group")
 		);
 	}
 
