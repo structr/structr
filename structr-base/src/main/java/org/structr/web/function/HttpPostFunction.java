@@ -48,11 +48,6 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, body [, contentType, charset, username, password, configMap ]");
-	}
-
-	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -119,24 +114,6 @@ public class HttpPostFunction extends UiAdvancedFunction {
 		}
 	}
 
-	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
-			Usage.javaScript("Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
-		);
-	}
-
-	@Override
-	public String getShortDescription() {
-		return "Sends an HTTP POST request to the given URL and returns the response body.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return "The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.";
-	}
-
 	protected GraphObjectMap processResponseData(final ActionContext ctx, final Object caller, final Map<String, Object> responseData, final String contentType) throws FrameworkException {
 
 		final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : "";
@@ -155,5 +132,48 @@ public class HttpPostFunction extends UiAdvancedFunction {
 		}
 
 		return response;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("url, body [, contentType, charset, username, password, configMap ]");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${POST(URL, body [, contentType, charset, username, password, configMap])}. Example: ${POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}"),
+			Usage.javaScript("Usage: ${{Structr.POST(URL, body [, contentType, charset, username, password, configMap])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\"}', 'application/json', 'UTF-8')}}")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Sends an HTTP POST request to the given URL and returns the response body.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+			This method can be used in a script to make an HTTP POST request **from within the Structr Server**, triggered by a frontend control like a button etc.
+
+			The `POST()` method will return a response object containing the response headers, body and status code. The object has the following structure:
+
+			| Field | Description | Type |
+			| --- | --- | --- |
+			status | HTTP status of the request | Integer |
+			headers | Response headers | Map |
+			body | Response body | Map or String |
+
+			The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.
+			""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `POST()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+		);
 	}
 }

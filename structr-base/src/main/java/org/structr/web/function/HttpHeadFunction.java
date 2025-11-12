@@ -79,19 +79,35 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${HEAD(URL[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}"),
-			Usage.javaScript("Usage: ${{Structr.HEAD(URL[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}")
+			Usage.structrScript("Usage: ${HEAD(url[, username, password])}. Example: ${HEAD('http://structr.org', 'foo', 'bar')}"),
+			Usage.javaScript("Usage: ${{Structr.HEAD(url[, username, password]])}}. Example: ${{Structr.HEAD('http://structr.org', 'foo', 'bar')}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTTP HEAD request to the given URL and returns the response headers.";
+		return "Sends an HTTP HEAD request with optional username and password to the given URL and returns the response headers.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			This method can be used in a script to make an HTTP HEAD request **from within the Structr Server**, triggered by a frontend control like a button etc. The optional username and password parameters can be used to authenticate the request.
+
+			The `HEAD()` method will return a response object with the following structure:
+
+			| Field | Description | Type |
+			| --- | --- | --- |
+			status | HTTP status of the request | Integer |
+			headers | Response headers | Map |
+			""";
 	}
 
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `HEAD()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+		);
+	}
 }

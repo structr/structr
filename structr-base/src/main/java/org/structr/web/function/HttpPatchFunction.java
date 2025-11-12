@@ -109,11 +109,29 @@ public class HttpPatchFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTTP PATCH request to the given URL and returns the response body.";
+		return "Sends an HTTP PATCH request to the given URL and returns the response headers and body.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			This method can be used in a script to make an HTTP PATCH request **from within the Structr Server**, triggered by a frontend control like a button etc.
+
+			The `PATCH()` method will return a response object containing the response headers, body and status code. The object has the following structure:
+
+			| Field | Description | Type |
+			| --- | --- | --- |
+			status | HTTP status of the request | Integer |
+			headers | Response headers | Map |
+			body | Response body | Map or String |
+			""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `PATCH()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+		);
 	}
 }

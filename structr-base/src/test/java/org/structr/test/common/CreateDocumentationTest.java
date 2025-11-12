@@ -89,13 +89,15 @@ public class CreateDocumentationTest extends StructrUiTest {
 				lines.add("### Notes");
 
 				for (final String note : notes) {
-					lines.add(note);
+					lines.add("- " + note);
 				}
+
+				lines.add("");
 			}
 
 			if (signatures != null) {
 
-				lines.add("### Signature");
+				lines.add("### Signatures");
 				lines.add("");
 				lines.add("```");
 
@@ -124,16 +126,26 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 			if (examples != null) {
 
+				int index = 1;
+
 				lines.add("### Examples");
-				lines.add("");
-				lines.add("```");
 
 				for (final Example example : examples) {
 
-					lines.add(example.getText());
-				}
+					if (StringUtils.isNotBlank(example.getTitle())) {
 
-				lines.add("```");
+						lines.add("##### " + index + ". " + example.getTitle());
+
+					} else {
+
+						lines.add("##### Example " + index);
+					}
+					lines.add("```");
+					lines.add(example.getText());
+					lines.add("```");
+
+					index++;
+				}
 			}
 
 			lines.add("");

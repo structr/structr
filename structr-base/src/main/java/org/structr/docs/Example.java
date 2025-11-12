@@ -21,13 +21,13 @@ package org.structr.docs;
 public class Example {
 
 	private final String text;
-	private final String description;
+	private final String title;
 	private final Language language;
 
-	public Example(final String text, final String descriptionm, final Language language) {
+	public Example(final String text, final String title, final Language language) {
 
 		this.text        = text;
-		this.description = descriptionm;
+		this.title = title;
 		this.language    = language;
 	}
 
@@ -35,8 +35,8 @@ public class Example {
 		return text;
 	}
 
-	public String getDescription() {
-		return description;
+	public String getTitle() {
+		return title;
 	}
 
 	public Language getLanguage() {
@@ -47,12 +47,19 @@ public class Example {
 		return new Example(example, null, Language.Javascript);
 	}
 
-	public static Example javaScript(final String example, final String description) {
-		return new Example(example, description, Language.Javascript);
+	public static Example javaScript(final String example, final String title) {
+		return new Example(example, title, Language.Javascript);
 	}
 
-	public static Example structrScript(final String text, final String description) {
-		return new Example(text, description, Language.StructrScript);
+	/**
+	 * Creates a new StructrScript example with the given text and title.
+	 *
+	 * @param text
+	 * @param title
+	 * @return
+	 */
+	public static Example structrScript(final String text, final String title) {
+		return new Example(text, title, Language.StructrScript);
 	}
 
 	public static Example structrScript(final String text) {
