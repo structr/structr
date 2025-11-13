@@ -186,8 +186,8 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("function", "the lambda function to execute"),
-			Parameter.optional("errorHandler", "an optional error handler that receives the error / exception as an argument")
+			Parameter.mandatory("function", "lambda function to execute"),
+			Parameter.optional("errorHandler", "error handler that receives the error / exception as an argument")
 		);
 	}
 

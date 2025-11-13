@@ -91,9 +91,9 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("latitude", "The latitude of the distance search"),
-			Parameter.mandatory("longitude", "The longitude of the distance search"),
-			Parameter.mandatory("distance", "The circumference of the distance search")
+			Parameter.mandatory("latitude", "latitude of the center point"),
+			Parameter.mandatory("longitude", "longitude of the center point"),
+			Parameter.mandatory("distance", "circumference of the circle around the center point")
 		);
 	}
 }

@@ -49,6 +49,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
+import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -68,6 +69,7 @@ import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.User;
 import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
@@ -158,10 +160,10 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			logger.warn("Unable to send response", ioex);
 		}
 
-		SecurityContext securityContext = null;
-		String redirectUrl              = null;
-		boolean appendUuidOnRedirect    = false;
-		String path                     = null;
+		SecurityContext securityContext  = null;
+		String redirectUrl               = null;
+		boolean appendUuidOnRedirect     = false;
+		String uploadFolderPathParameter = null;
 
 		// isolate request authentication in a transaction
 		try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -252,7 +254,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 					} else if (UPLOAD_FOLDER_PATH_PARAMETER.equals(fieldName)) {
 
-						path = fieldValue;
+						uploadFolderPathParameter = fieldValue;
 
 					} else if (FILE_SCHEMA_TYPE_PARAMETER.equals(fieldName)) {
 
@@ -342,8 +344,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						throw new FrameworkException(422, "Additional file properties found which are not allowed to be set during upload: '" + forbiddenProperties + "'. Only custom properties and the following properties may be set: '" + AllowedProperties + "'");
 					}
 
-					Folder uploadFolder                         = null;
-					final String defaultUploadFolderConfigValue = getDefaultUploadFolderPathValue();
+					Folder uploadFolder                                  = null;
+					final String contextSensitiveDefaultUploadFolderPath = getContextSensitiveDefaultUploadFolderPath(securityContext);
 
 					if (params.containsKey(AbstractFileTraitDefinition.PARENT_PROPERTY)) {
 
@@ -366,22 +368,22 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						// If a path attribute was sent, create all folders on the fly.
 						if (uploadFolder == null) {
 
-							if (path != null) {
+							if (uploadFolderPathParameter != null) {
 
-								final boolean isUnderneathDefaultFolder = path.startsWith(defaultUploadFolderConfigValue);
+								final boolean isUploadPathParameterAllowed = isUploadFolderPathParameterAllowed(securityContext, uploadFolderPathParameter);
 
-								if (isUnderneathDefaultFolder && securityContext.getUser(false) != null) {
+								if (isUploadPathParameterAllowed) {
 
-									uploadFolder = getOrCreateFolderPath(securityContext, path);
+									uploadFolder = getOrCreateFolderPathInAllowedLocation(uploadFolderPathParameter);
 
 								} else {
 
-									throw new NotAllowedException("Using the '" + UPLOAD_FOLDER_PATH_PARAMETER + "' parameter is only allowed for authenticated users and only underneath the default upload folder.");
+									throw new NotAllowedException("Using the '" + UPLOAD_FOLDER_PATH_PARAMETER + "' parameter is only allowed for authenticated users. Furthermore it is only allowed for paths underneath the configured default upload folder (or the users home directory, if that feature is enabled). Usually it is preferred to use the parameter \"parent=FOLDER_UUID\" to point to a specific folder.");
 								}
 
-							} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
+							} else if (StringUtils.isNotBlank(contextSensitiveDefaultUploadFolderPath)) {
 
-								uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+								uploadFolder = getOrCreateFolderPathInAllowedLocation(contextSensitiveDefaultUploadFolderPath);
 							}
 						}
 
@@ -717,15 +719,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		return new LinkedHashMap<>();
 	}
 
-	private synchronized Folder getOrCreateFolderPath(final SecurityContext securityContext, final String path) {
+	private synchronized Folder getOrCreateFolderPathInAllowedLocation(final String path) {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final NodeInterface newFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
-			Folder folder = newFolder != null ? newFolder.as(Folder.class) : null;
-
-			// prevent folders from being committed to the DB if creating them should not be allowed
-			checkUploadFolderRightsIfNecessary(securityContext, folder);
+			final Folder folder           = (newFolder != null) ? newFolder.as(Folder.class) : null;
 
 			tx.success();
 
@@ -738,40 +737,64 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		return null;
 	}
 
-	/**
-	 * Checks the given targetFolder if it is underneath the default upload folder.
-	 * If yes, no write rights are necessary.
-	 * If no, the current user must have write rights to the folder.
-	 *
-	 * To get the full folder path of the folder, it is re-fetched from database in a privileged context
-	 *
-	 * This targets 2 scenarios:
-	 * - upload data contains "parent" or "parentId" attribute: If this folder is not underneath the default upload folder, the user must be allowed to write to it
-	 * - upload data contains "uploadFolderPath" where a complete folder path is being created: If it is not underneath the default upload folder, the user must be allowed to write to it
-	 * @param securityContext
-	 * @param targetFolder
-	 * @throws FrameworkException
-	 * @throws NotAllowedException
-	 */
 	private void checkUploadFolderRightsIfNecessary(final SecurityContext securityContext, final Folder targetFolder) throws FrameworkException, NotAllowedException {
+
+		final boolean requiredWriteRights = areWriteRightsRequiredForTargetFolder(securityContext, targetFolder);
+
+		if (requiredWriteRights) {
+
+			final boolean isAllowed = targetFolder.isGranted(Permission.write, securityContext);
+
+			if (!isAllowed) {
+
+				throw new NotAllowedException("User is not allowed to write to given folder.");
+			}
+		}
+	}
+
+	private boolean isUploadFolderPathParameterAllowed(final SecurityContext securityContext, final String uploadFolderPathParameter) throws FrameworkException {
+
+		final boolean userPresent = (securityContext.getUser(false) != null);
+
+		return userPresent && !isRestrictedPath(securityContext, addFinalSlash(uploadFolderPathParameter));
+	}
+
+	private boolean isRestrictedPath(final SecurityContext securityContext, final String targetFolderPath) throws FrameworkException {
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			final boolean isUnderneathConfiguredDefaultUploadFolder = targetFolderPath.startsWith(getDefaultUploadFolderPathValueFromSetting());
+			if (isUnderneathConfiguredDefaultUploadFolder) {
+				return false;
+			}
+
+			final boolean filesystemEnabled = Settings.FilesystemEnabled.getValue();
+			final Principal user = securityContext.getUser(false);
+
+			if (filesystemEnabled && user != null) {
+
+				final Folder homeFolder              = user.as(User.class).getOrCreateHomeDirectory();
+				final String homeFolderPath          = addFinalSlash(homeFolder.getPath());
+				final boolean isUnderneathHomeFolder = targetFolderPath.startsWith(homeFolderPath);
+
+				if (isUnderneathHomeFolder) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	private boolean areWriteRightsRequiredForTargetFolder(final SecurityContext securityContext, final Folder targetFolder) throws FrameworkException {
 
 		final App privilegedApp = StructrApp.getInstance();
 		try (final Tx tx = privilegedApp.tx()) {
 
 			final Folder folder_privileged          = privilegedApp.getNodeById(StructrTraits.FOLDER, targetFolder.getUuid()).as(Folder.class);
-			final String givenFolderPath            = folder_privileged.getPath();
-			final boolean isUnderneathDefaultFolder = givenFolderPath.startsWith(getDefaultUploadFolderPathValue());
-			final boolean requiredWriteRights       = (false == isUnderneathDefaultFolder);
+			final String givenFolderPath            = addFinalSlash(folder_privileged.getPath());
 
-			if (requiredWriteRights) {
-
-				final boolean isAllowed = targetFolder.isGranted(Permission.write, securityContext);
-
-				if (!isAllowed) {
-
-					throw new NotAllowedException("User is not allowed to write to given folder.");
-				}
-			}
+			return isRestrictedPath(securityContext, givenFolderPath);
 		}
 	}
 
@@ -789,15 +812,34 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			}
 
 			folder = node.as(Folder.class);
-		}
 
-		checkUploadFolderRightsIfNecessary(securityContext, folder);
+			checkUploadFolderRightsIfNecessary(securityContext, folder);
+		}
 
 		return folder;
 	}
 
-	private String getDefaultUploadFolderPathValue () {
-		return Settings.DefaultUploadFolder.getValue() + (Settings.DefaultUploadFolder.getValue().endsWith("/") ? "" : "/");
+	private String getContextSensitiveDefaultUploadFolderPath(final SecurityContext securityContext) throws FrameworkException{
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			final boolean filesystemEnabled = Settings.FilesystemEnabled.getValue();
+			final Principal user = securityContext.getUser(false);
+
+			if (filesystemEnabled && user != null) {
+				return addFinalSlash(user.as(User.class).getOrCreateHomeDirectory().getPath());
+			}
+
+			return getDefaultUploadFolderPathValueFromSetting();
+		}
+	}
+
+	private String getDefaultUploadFolderPathValueFromSetting() {
+		return addFinalSlash(Settings.DefaultUploadFolder.getValue());
+	}
+
+	private String addFinalSlash(final String path) {
+		return path + (path.endsWith("/") ? "" : "/");
 	}
 
 	private String errorPage(final FrameworkException t) {

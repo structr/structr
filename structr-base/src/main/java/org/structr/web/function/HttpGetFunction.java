@@ -31,6 +31,8 @@ import org.structr.core.property.ByteArrayProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
@@ -50,11 +52,6 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "GET";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url [, contentType [, username, password] ]");
 	}
 
 	@Override
@@ -177,6 +174,28 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public List<Signature> getSignatures() {
+
+		return List.of(
+			Signature.javaScript("url [, contentType [, username, password]]"),
+			Signature.structrScript("url [, contentType [, username, password]]"),
+			Signature.structrScript("url, 'text/html', selector"),
+			Signature.structrScript("url, 'application/octet-stream' [, username, password]]")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("contentType", "expected content type (see notes)"),
+			Parameter.optional("username", "username for the connection"),
+			Parameter.optional("password", "password for the connection")
+		);
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${GET(URL[, contentType[, username, password]])}. Example: ${GET('http://structr.org', 'text/html')}"),
@@ -191,6 +210,50 @@ public class HttpGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			This method can be used in a script to make an HTTP GET request **from within the Structr Server**, triggered by a frontend control like a button etc.
+
+			The `GET()` method will return a response object with the following structure:
+
+			| Field | Description | Type |
+			| --- | --- | --- |
+			status | HTTP status of the request | Integer |
+			headers | Response headers | Map |
+			body | Response body | Map or String |
+			""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${GET('http://localhost:8082/structr/rest/User')}", "Return an 'Access denied' error message with code 401 from the local Structr instance (depending on the configuration of that instance), because you cannot access the User collection from the outside without authentication."),
+			Example.structrScript("""
+			${
+				(
+				  add_header('X-User', 'admin'),
+				  add_header('X-Password', 'admin'),
+				  GET('http://localhost:8082/structr/rest/User')
+				)
+			}
+			""", "Return the list of users from the local Structr instance (depending on the configuration of that instance)."),
+			Example.structrScript("${GET('http://www.google.com', 'text/html')}", "Return the HTML source code of the front page of google.com."),
+			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=UTF-8')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
+			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=ISO-8859-1')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
+			Example.structrScript("${GET('http://www.google.com', 'text/html', '#footer')}", "Return the HTML content of the element with the ID 'footer' from google.com."),
+			Example.structrScript("${set_content(create('File', 'name', 'google_logo.png'), GET('https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png', 'application/octet-stream'))}", "Create a new file with the google logo in the local Structr instance.")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"From version 3.5 onwards, GET() supports binary content by setting the `contentType` parameter to `application/octet-stream`. (This is helpful when creating files - see example.)",
+			"v4.0+: `contentType` can be used like the `Content-Type` header - to set the **expected** response mime type and to set the `charset` with which the response will be interpreted (**unless** the server sends provides a charset, then this charset will be used).",
+			"Prior to v4.0: `contentType` is the **expected** response content type (it does not influence the charset of the response - the charset from the **sending server** will be used).",
+			"The parameters `username` and `password` are intended for HTTP Basic Auth. For header authentication use `add_header()`.",
+			"The `GET()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+		);
 	}
 }

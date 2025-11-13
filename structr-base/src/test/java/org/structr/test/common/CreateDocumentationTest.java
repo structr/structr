@@ -89,13 +89,15 @@ public class CreateDocumentationTest extends StructrUiTest {
 				lines.add("### Notes");
 
 				for (final String note : notes) {
-					lines.add(note);
+					lines.add("- " + note);
 				}
+
+				lines.add("");
 			}
 
 			if (signatures != null) {
 
-				lines.add("### Signature");
+				lines.add("### Signatures");
 				lines.add("");
 				lines.add("```");
 
@@ -124,16 +126,26 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 			if (examples != null) {
 
+				int index = 1;
+
 				lines.add("### Examples");
-				lines.add("");
-				lines.add("```");
 
 				for (final Example example : examples) {
 
-					lines.add(example.getText());
-				}
+					if (StringUtils.isNotBlank(example.getTitle())) {
 
-				lines.add("```");
+						lines.add("##### " + index + ". " + example.getTitle());
+
+					} else {
+
+						lines.add("##### Example " + index);
+					}
+					lines.add("```");
+					lines.add(example.getText());
+					lines.add("```");
+
+					index++;
+				}
 			}
 
 			lines.add("");
@@ -185,6 +197,36 @@ public class CreateDocumentationTest extends StructrUiTest {
 		if (usages == null || usages.isEmpty()) {
 
 			errors.add("Function " + func.getName() + " has no usages.");
+		}
+
+		// verify the parameters
+		final List<Parameter> parameters = func.getParameters();
+		if (parameters != null && !parameters.isEmpty()) {
+
+			for (final Parameter parameter : parameters) {
+
+				if (StringUtils.isEmpty(parameter.getName())) {
+					errors.add("Function " + func.getName() + " has empty parameter name.");
+				}
+
+				if (Character.isUpperCase(parameter.getName().charAt(0))) {
+					errors.add("Parameter " + parameter.getName() + " of function " + func.getName() + " should not start with an uppercase letter.");
+				}
+
+				if (parameter.getDescription() != null) {
+
+					if (parameter.getDescription().endsWith(".")) {
+						errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not end with a period character.");
+					}
+
+					// check some things in the description text
+					final String d = parameter.getDescription().strip().toLowerCase();
+
+					if (d.startsWith("the ") || d.startsWith("a ") || d.startsWith("an ") || d.startsWith("optional ")) {
+						errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not start with the words 'the', 'a', 'an', or 'optional'.");
+					}
+				}
+			}
 		}
 
 		// verify that a function has a usage and a signature for all languages

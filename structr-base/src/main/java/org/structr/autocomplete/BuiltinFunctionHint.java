@@ -71,10 +71,10 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 				buf.add("```");
 
 				// example description
-				if (example.getDescription() != null) {
+				if (example.getTitle() != null) {
 
 					buf.add("");
-					buf.add(example.getDescription());
+					buf.add(example.getTitle());
 				}
 			}
 		}

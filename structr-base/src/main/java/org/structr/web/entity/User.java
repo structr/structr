@@ -23,11 +23,12 @@ import org.structr.core.entity.Principal;
 
 public interface User extends Principal {
 
-        Folder getHomeDirectory();
-        void setWorkingDirectory(final Folder workDir) throws FrameworkException;
-        Folder getWorkingDirectory();
-        void setLocalStorage(final String localStorage) throws FrameworkException;
+	Folder getHomeDirectory();
+	Folder getOrCreateHomeDirectory();
+	void setWorkingDirectory(final Folder workDir) throws FrameworkException;
+	Folder getWorkingDirectory();
+	void setLocalStorage(final String localStorage) throws FrameworkException;
 
-        String getLocalStorage();
-        String getConfirmationKey();
+	String getLocalStorage();
+	String getConfirmationKey();
 }

@@ -165,13 +165,13 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey  [, parameterCollection [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', masked: true }], 2); }}")
+			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey  [, parameterCollection [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the standard output of the script. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'masked' flag.";
+		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the standard output of the script. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'mask' flag.";
 	}
 
 	@Override
