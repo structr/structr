@@ -22,15 +22,85 @@ import java.util.List;
 
 public interface Documentable {
 
+	/**
+	 * Returns the type of this Documentable.
+	 *
+	 * @return
+	 */
 	DocumentableType getType();
 
+	/**
+	 * Returns the name of this Documentable.
+	 *
+	 * @return the name
+	 */
 	String getName();
+
+	/**
+	 * Returns the short description of this Documentable. This method
+	 * must return a non-null value, otherwise a NullPointerException
+	 * will be thrown, because every Documentable needs at least a
+	 * short description.
+	 *
+	 * @return the short description
+	 */
 	String getShortDescription();
+
+	/**
+	 * Returns the long description of this Documentable. This method
+	 * may return null or the empty string to indicate that the object
+	 * has no long description.
+	 *
+	 * @return the long description or null
+	 */
 	String getLongDescription();
+
+	/**
+	 * Returns the parameters of this Documentable, or null if no
+	 * parameters are defined.
+	 *
+	 * @return the parameters or null
+	 */
 	List<Parameter> getParameters();
+
+	/**
+	 * Returns examples for this Documentable, or null if no examples
+	 * exist.
+	 *
+	 * @return the examples or null
+	 */
 	List<Example> getExamples();
+
+	/**
+	 * Returns notes for this Documentable, or null if no notes
+	 * exist.
+	 *
+	 * @return the notes or null
+	 */
 	List<String> getNotes();
+
+	/**
+	 * Returns the signatures of this Documentable, or null if no
+	 * signatures are defined.
+	 *
+	 * @return the signatures or null
+	 */
 	List<Signature> getSignatures();
+
+	/**
+	 * Returns the languages for which this Documentable is valid. This
+	 * method must return a non-null value, otherwise a NullPointerException
+	 * is thrown, because every Documentable must specify the languages
+	 * for which it is valid.
+	 *
+	 * @return the languages
+	 */
 	List<Language> getLanguages();
+
+	/**
+	 * Returns the usages of this Documentable, or null if no usages exist.
+	 *
+	 * @return the usages or null
+	 */
 	List<Usage> getUsages();
 }

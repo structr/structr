@@ -68,8 +68,6 @@ import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.testng.AssertJUnit.*;
@@ -1556,38 +1554,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid find gte date result",  19, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date', gte(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gte date test")).size());
 			assertEquals("Invalid find gt date result",   18, ((List)Scripting.evaluate(ctx, testOne, "${find('TestSix', 'date',  gt(parse_date('04.01.2018', 'dd.MM.yyyy')))}", "find gt date test")).size());
 
-			// slice with find
-			final List sliceResult2 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  0,  5)}", "slice test");
-			final List sliceResult3 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'),  5, 10)}", "slice test");
-			final List sliceResult4 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'), 10, 15)}", "slice test");
-			final List sliceResult5 = (List)Scripting.evaluate(ctx, testOne, "${slice(sort(find('TestSix'), 'name'), 15, 20)}", "slice test");
-
-			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult2.size());
-			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult3.size());
-			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult4.size());
-			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResult5.size());
-			assertEquals("Invalid slice() result", testSixs.get( 0), sliceResult2.get(0));
-			assertEquals("Invalid slice() result", testSixs.get( 1), sliceResult2.get(1));
-			assertEquals("Invalid slice() result", testSixs.get( 2), sliceResult2.get(2));
-			assertEquals("Invalid slice() result", testSixs.get( 3), sliceResult2.get(3));
-
-			assertEquals("Invalid slice() result", testSixs.get( 4), sliceResult2.get(4));
-			assertEquals("Invalid slice() result", testSixs.get( 5), sliceResult3.get(0));
-			assertEquals("Invalid slice() result", testSixs.get( 6), sliceResult3.get(1));
-			assertEquals("Invalid slice() result", testSixs.get( 7), sliceResult3.get(2));
-			assertEquals("Invalid slice() result", testSixs.get( 8), sliceResult3.get(3));
-			assertEquals("Invalid slice() result", testSixs.get( 9), sliceResult3.get(4));
-			assertEquals("Invalid slice() result", testSixs.get(10), sliceResult4.get(0));
-			assertEquals("Invalid slice() result", testSixs.get(11), sliceResult4.get(1));
-			assertEquals("Invalid slice() result", testSixs.get(12), sliceResult4.get(2));
-			assertEquals("Invalid slice() result", testSixs.get(13), sliceResult4.get(3));
-			assertEquals("Invalid slice() result", testSixs.get(14), sliceResult4.get(4));
-			assertEquals("Invalid slice() result", testSixs.get(15), sliceResult5.get(0));
-			assertEquals("Invalid slice() result", testSixs.get(16), sliceResult5.get(1));
-			assertEquals("Invalid slice() result", testSixs.get(17), sliceResult5.get(2));
-			assertEquals("Invalid slice() result", testSixs.get(18), sliceResult5.get(3));
-			assertEquals("Invalid slice() result", testSixs.get(19), sliceResult5.get(4));
-
 			// first / last / nth with null
 			assertEquals("Invalid first() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${first(this.alwaysNull)}"));
 			assertEquals("Invalid last() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${last(this.alwaysNull)}"));
@@ -1597,12 +1563,6 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, 12)}"));
 			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, this.alwaysNull)}"));
 			assertEquals("Invalid nth() result with null value",  "", Scripting.replaceVariables(ctx, testOne, "${nth(this.alwaysNull, blah)}"));
-
-			// each with null
-
-			// get with null
-
-			// set with null
 
 			// set date (JS scripting)
 			assertNotNull("Setting the current date/time should not produce output (JS)", Scripting.replaceVariables(ctx, testOne, "${{var t = Structr.get('this'); (t.aDate = new Date());}}"));
@@ -1634,6 +1594,14 @@ public class ScriptingTest extends StructrTest {
 			// each expression
 			assertEquals("Invalid each() result", "abc", Scripting.replaceVariables(ctx, testOne, "${each(split('a,b,c', ','), print(data))}"));
 			assertEquals("Invalid each() result", "abc", Scripting.replaceVariables(ctx, testOne, "${each(this.aStringArray, print(data))}"));
+
+			// map expression
+			assertEquals("Invalid map() result", "[a1, b1, c1]", Scripting.replaceVariables(ctx, testOne, "${map(split('a,b,c', ','), concat(data, '1'))}"));
+			assertEquals("Invalid map() result", "[a2, b2, c2]", Scripting.replaceVariables(ctx, testOne, "${map(this.aStringArray, concat(data, '2'))}"));
+
+			// reduce expression
+			assertEquals("Invalid reduce() result", "24.0", Scripting.replaceVariables(ctx, testOne, "${reduce(merge(1, 2, 3, 4), 1, mult(accumulator, data))}"));
+			assertEquals("Invalid reduce() result", "Xabc", Scripting.replaceVariables(ctx, testOne, "${reduce(this.aStringArray, 'X', concat(accumulator, data))}"));
 
 			// complex each expression, sets the value of "testString" to the concatenated IDs of all testSixs that are linked to "this"
 			Scripting.replaceVariables(ctx, testOne, "${each(this.manyToManyTestSixs, set(this, \"testString\", concat(get(this, \"testString\"), data.id)))}");
@@ -1912,7 +1880,6 @@ public class ScriptingTest extends StructrTest {
 			// test string array property support in collection access methods
 			assertEquals("Invalid string array access result with join()", "one,two,three,four", Scripting.replaceVariables(ctx, testFour, "${join(this.stringArrayProperty, ',')}"));
 			assertEquals("Invalid string array access result with concat()", "onetwothreefour", Scripting.replaceVariables(ctx, testFour, "${concat(this.stringArrayProperty)}"));
-			assertEquals("Invalid string array access result with slice()", "two,three", Scripting.replaceVariables(ctx, testFour, "${join(slice(this.stringArrayProperty, 1, 3), ',')}"));
 			assertEquals("Invalid string array access result with first()", "one", Scripting.replaceVariables(ctx, testFour, "${first(this.stringArrayProperty)}"));
 			assertEquals("Invalid string array access result with last()", "four", Scripting.replaceVariables(ctx, testFour, "${last(this.stringArrayProperty)}"));
 			assertEquals("Invalid string array access result with size()", "4", Scripting.replaceVariables(ctx, testFour, "${size(this.stringArrayProperty)}"));
@@ -2446,7 +2413,7 @@ public class ScriptingTest extends StructrTest {
 
 			func.append("${{\n");
 			func.append("    Structr.doInNewTransaction(function() {\n");
-			func.append("        var toDelete = Structr.find('TestOne').slice(0, 100);\n");
+			func.append("        var toDelete = Structr.find('TestOne', $.predicate.page(1, 100));\n");
 			func.append("        if (toDelete && toDelete.length) {\n");
 			func.append("            Structr.log('Deleting ' + toDelete.length + ' nodes..');\n");
 			func.append("            Structr.delete(toDelete);\n");
@@ -5743,90 +5710,6 @@ public class ScriptingTest extends StructrTest {
 			logger.warn("", fex);
 
 			fail("Unexpected exception");
-		}
-	}
-
-	@Test
-	public void testSlice() {
-
-		final ActionContext ctx         = new ActionContext(securityContext);
-		final List<String> testSixNames = new LinkedList<>();
-		NodeInterface testOne           = null;
-		List<NodeInterface> testSixs    = null;
-		int index                       = 0;
-
-		try (final Tx tx = app.tx()) {
-
-			testOne        = createTestNode("TestOne");
-			testSixs       = createTestNodes("TestSix", 20, 1);
-
-			final Calendar cal = GregorianCalendar.getInstance();
-
-			// set calendar to 2018-01-01T00:00:00+0000
-			cal.set(2018, 0, 1, 0, 0, 0);
-
-			for (final NodeInterface testSix : testSixs) {
-
-				final String name = "TestSix" + StringUtils.leftPad(Integer.toString(index), 2, "0");
-
-				testSix.setProperty(Traits.of("TestSix").key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
-				testSix.setProperty(Traits.of("TestSix").key("index"), index);
-				testSix.setProperty(Traits.of("TestSix").key("date"), cal.getTime());
-
-				index++;
-				cal.add(Calendar.DAY_OF_YEAR, 3);
-
-				// build list of names
-				testSixNames.add(name);
-			}
-
-			testOne.setProperty(Traits.of("TestOne").key("manyToManyTestSixs"), testSixs);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
-
-		try (final Tx tx = app.tx()) {
-
-			// slice
-			final Object sliceResult = Scripting.evaluate(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 5)}", "slice test");
-			assertTrue("Invalid slice() result, must return collection for valid results", sliceResult instanceof Collection);
-			assertTrue("Invalid slice() result, must return list for valid results", sliceResult instanceof List);
-			final List sliceResultList = (List)sliceResult;
-			assertEquals("Invalid slice() result, must return a list of 5 objects", 5, sliceResultList.size());
-
-			// slice with find
-			final Object sliceWithFindResult = Scripting.evaluate(ctx, null, "${slice(find('TestSix'), 0, 2)}", "slice test with find");
-			assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindResult instanceof Collection);
-			assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindResult instanceof List);
-			final List sliceWithFindResultList = (List)sliceWithFindResult;
-			assertEquals("Invalid slice() result, must return a list of 2 object", 2, sliceWithFindResultList.size());
-
-			// slice with find JS
-			//final Object sliceWithFindJSResult = Scripting.evaluate(ctx, null, "${{ return $.slice(function() { return $.find('TestSix') }, 0, 2); }}", "slice test with find in JS");
-			//assertTrue("Invalid slice() result, must return collection for valid results", sliceWithFindJSResult instanceof Collection);
-			//assertTrue("Invalid slice() result, must return list for valid results", sliceWithFindJSResult instanceof List);
-			//final List sliceWithFindJSResultList = (List)sliceWithFindJSResult;
-			//assertEquals("Invalid slice() result, must return a list of 2 objects", 2, sliceWithFindJSResultList.size());
-
-			// test error cases
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.alwaysNull, 1, 2)}"));
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, -1, 1)}"));
-			assertEquals("Invalid slice() result for invalid inputs", "", Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 2, 1)}"));
-
-			// test with interval larger than number of elements
-			assertEquals("Invalid slice() result for invalid inputs",
-					Iterables.toList((Iterable)testOne.getProperty(Traits.of("TestOne").key("manyToManyTestSixs"))).toString(),
-					Scripting.replaceVariables(ctx, testOne, "${slice(this.manyToManyTestSixs, 0, 1000)}")
-			);
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			fex.printStackTrace();
 		}
 	}
 

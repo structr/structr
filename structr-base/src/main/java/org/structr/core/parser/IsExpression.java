@@ -21,8 +21,11 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.List;
 
 public class IsExpression extends Expression {
 
@@ -93,5 +96,63 @@ public class IsExpression extends Expression {
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
+	}
+
+	@Override
+	public String getName() {
+		return "is";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Evaluates a condition and executes an expressions if the result is `true`.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("condition", "condition to evaluate"),
+			Parameter.mandatory("trueExpression", "expression to evaluate if condition is `true`")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${is(me.isAdmin, 'background-color-red')}", "Make the background color of an element red if the current user is an admin user")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function is only available in StructrScript.",
+			"This function is often used in HTML attributes, for example to conditionally output CSS classes or other attributes.",
+			"This function is essentially a shortcut for the 'if()` function that only evaluates the trueExpression and does nothing if the condition evaluates to `false`."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of(
+			Signature.structrScript("condition, trueExpression")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${is(condition, trueExpression)}. Example: ${is(me.isAdmin, 'background-color-red')}")
+		);
 	}
 }

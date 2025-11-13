@@ -21,6 +21,8 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -31,7 +33,7 @@ import java.util.List;
  *
  *
  */
-public abstract class Expression {
+public abstract class Expression implements Documentable {
 
 	protected List<Expression> expressions = new LinkedList<>();
 	protected Expression parent            = null;
@@ -51,7 +53,7 @@ public abstract class Expression {
 		this.column = column;
 	}
 
-	public String name() {
+	public String getName() {
 		return name;
 	}
 
@@ -73,9 +75,12 @@ public abstract class Expression {
 
 	public List<Expression> getChildren() {
 		return expressions;
-
 	}
 
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.BuiltInFunction;
+	}
 
 	public Expression getParent() {
 		return parent;

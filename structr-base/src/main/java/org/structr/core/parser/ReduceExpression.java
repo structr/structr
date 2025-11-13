@@ -21,8 +21,12 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *
@@ -73,8 +77,12 @@ public class ReduceExpression extends Expression {
 			return ERROR_MESSAGE_MAP;
 		}
 
-		final Object listSource = listExpression.evaluate(ctx, entity, hints);
-		Object accumulator      = initialValueExpression.evaluate(ctx, entity, hints);
+		Object accumulator = initialValueExpression.evaluate(ctx, entity, hints);
+		Object listSource = listExpression.evaluate(ctx, entity, hints);
+
+		if (listSource != null && listSource.getClass().isArray()) {
+			listSource = Arrays.asList((Object[]) listSource);
+		}
 
 		if (listSource != null && listSource instanceof Iterable && accumulator != null) {
 
@@ -100,5 +108,63 @@ public class ReduceExpression extends Expression {
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
+	}
+
+	@Override
+	public String getName() {
+		return "map";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Returns a single result from all elements of a list by applying a reduction function.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function evaluates the reductionExpression for each element of the list and returns a single value. Inside the reduction expression, the keyword `accumulator` refers to the result of the previous reduction, and `data` refers to the current element. See also: `map()`, `each()` and `filter()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("list", "list of elements to loop over"),
+			Parameter.mandatory("initialValue", "expression that creates the initial value, e.g. 0"),
+			Parameter.mandatory("reductionExpression", "reduce expression that gets `accumulator` and `data` to reduce the two to a single value")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${reduce(merge(1, 2, 3, 4), 0, add(accumulator, data))}", "Add")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.reduce()`).",
+			"The collection can also be a list of strings or numbers (see example 2)."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of(
+			Signature.structrScript("list, initialValue, reductionExpression")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${reduce(list, initialValue, reduceExpression)}. Example: ${reduce(this.children, 0, sum(accumulator, data.value)))}")
+		);
 	}
 }

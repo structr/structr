@@ -330,7 +330,7 @@ public class Functions {
 				return new ReduceExpression(row, column);
 
 			case "slice":
-				return new SliceExpression(row, column);
+				throw new FrameworkException(422, "The slice() function is not supported any more, please use the page() predicate which does exactly the same, but with database support.");
 
 			case "data":
 				return new ValueExpression("data", row, column);

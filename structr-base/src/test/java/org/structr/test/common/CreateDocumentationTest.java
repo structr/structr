@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
+import org.structr.core.parser.*;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
@@ -60,6 +61,16 @@ public class CreateDocumentationTest extends StructrUiTest {
 		functions.add(new DoInNewTransactionFunction(null, null));
 		functions.add(new DoPrivilegedFunction(null));
 		functions.add(new DoAsFunction(null));
+		functions.add(new CacheExpression(0, 0));
+		functions.add(new IfExpression(0, 0));
+		functions.add(new IsExpression(0, 0));
+		functions.add(new EachExpression(0, 0));
+		functions.add(new FilterExpression(0, 0));
+		functions.add(new MapExpression(0, 0));
+		functions.add(new ReduceExpression(0, 0));
+		functions.add(new AnyExpression(0, 0));
+		functions.add(new AllExpression(0, 0));
+		functions.add(new NoneExpression(0, 0));
 
 		// sort by name
 		Collections.sort(functions, Comparator.comparing(Documentable::getName));
@@ -77,12 +88,18 @@ public class CreateDocumentationTest extends StructrUiTest {
 			final List<Parameter> parameters = function.getParameters();
 			final List<Example> examples     = function.getExamples();
 			final List<String> notes         = function.getNotes();
+			final String longDescription     = function.getLongDescription();
 			final String name                = function.getName();
 
 			lines.add("## " + name);
 			lines.add(function.getShortDescription());
-			lines.add("");
-			lines.add(function.getLongDescription());
+
+			// longDescription can be empty
+			if (StringUtils.isNotEmpty(longDescription)) {
+
+				lines.add("");
+				lines.add(longDescription);
+			}
 
 			if (notes != null) {
 
