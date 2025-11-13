@@ -19,16 +19,11 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 
-/**
- *
- *
- */
 public class BooleanPropertyRestTest extends StructrRestTestBase {
 
 	@Test
@@ -47,8 +42,6 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].booleanProperty", equalTo(Boolean.TRUE))
@@ -58,10 +51,6 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(" { 'constantBooleanProperty' : false } ")
 		.expect()
 			.statusCode(422)
@@ -71,10 +60,6 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 		// PUT with old value should be ignored
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(" { 'constantBooleanProperty' : true } ")
 		.expect()
 			.statusCode(200)

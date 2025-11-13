@@ -19,7 +19,6 @@
 package org.structr.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -81,6 +80,8 @@ public abstract class CsvTestBase {
 	public void setup(@Optional String testDatabaseConnection) {
 
 		final long timestamp = System.currentTimeMillis();
+
+		RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
 
 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
 
@@ -387,7 +388,6 @@ public abstract class CsvTestBase {
 				.contentType("application/json; charset=UTF-8")
 				.header(X_USER_HEADER, "superadmin")
 				.header(X_PASSWORD_HEADER, "sehrgeheim")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 
 				.expect()
 				.statusCode(200)
@@ -403,7 +403,6 @@ public abstract class CsvTestBase {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body(" { 'signature' : '" + signature + "', 'flags': " + flags + ", 'visibleToPublicUsers': true } ")
 
 			.expect()
@@ -590,8 +589,6 @@ public abstract class CsvTestBase {
 			RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body(buf.toString())
 				.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}
@@ -608,14 +605,6 @@ public abstract class CsvTestBase {
 			RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.header(X_USER_HEADER, name)
 				.header(X_PASSWORD_HEADER, password)
 
@@ -638,14 +627,6 @@ public abstract class CsvTestBase {
 			RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.header(X_USER_HEADER, Settings.SuperUserName.getValue())
 				.header(X_PASSWORD_HEADER, Settings.SuperUserPassword.getValue())
 

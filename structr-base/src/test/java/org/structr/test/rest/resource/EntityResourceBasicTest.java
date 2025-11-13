@@ -21,7 +21,6 @@ package org.structr.test.rest.resource;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -67,8 +66,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -79,8 +76,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -91,8 +86,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -103,8 +96,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -255,7 +246,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.body("{name: modified, id: " + uuid + "}")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 				.statusCode(200)
 			.when()
@@ -266,7 +256,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 				.statusCode(200)
 				.body("result_count",		equalTo(1))
@@ -313,7 +302,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 				RestAssured
 					.given()
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 						.contentType("application/json; charset=UTF-8")
 						.body(json)
 					.expect()
@@ -343,7 +331,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 				RestAssured
 					.given()
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 						.contentType("application/json; charset=UTF-8")
 						.body(json)
 					.expect()
@@ -372,7 +359,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 				RestAssured
 					.given()
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 						.contentType("application/json; charset=UTF-8")
 						.body(json)
 					.expect()
@@ -405,7 +391,6 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 
 				RestAssured
 					.given()
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 						.contentType("application/json; charset=UTF-8")
 						.body(jsonToClear)
 					.expect()

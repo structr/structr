@@ -19,7 +19,6 @@
 package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.specification.ResponseSpecification;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
@@ -149,7 +148,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 		RestAssured
 
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 
 			.expect()
@@ -198,7 +196,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 		RestAssured
 
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 
 			.expect()
@@ -277,7 +274,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 		RestAssured
 
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 
 			.expect()
@@ -447,10 +443,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 		return RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(statusCode);
 	}
@@ -460,8 +452,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 		return RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 			.expect()
 				.statusCode(statusCode);
 	}

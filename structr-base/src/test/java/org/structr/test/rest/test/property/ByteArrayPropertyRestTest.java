@@ -19,16 +19,11 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 
-/**
- *
- *
- */
 public class ByteArrayPropertyRestTest extends StructrRestTestBase {
 
 	@Test
@@ -49,8 +44,6 @@ public class ByteArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].byteArrayProperty", equalTo(testString))
@@ -69,8 +62,6 @@ public class ByteArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 				.body("result[0].byteArrayProperty", equalTo(testString))

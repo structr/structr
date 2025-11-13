@@ -43,6 +43,8 @@ public abstract class IndexingTest extends StructrRestTestBase {
 
 		final long timestamp = System.nanoTime();
 
+		RestAssured.enableLoggingOfRequestAndResponseIfValidationFails();
+
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");

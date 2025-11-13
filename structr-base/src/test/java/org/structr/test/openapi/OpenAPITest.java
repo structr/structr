@@ -19,8 +19,6 @@
 package org.structr.test.openapi;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
@@ -745,8 +743,6 @@ public class OpenAPITest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(RequestLoggingFilter.logRequestTo(System.out))
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 				.statusCode(401)
 			.when()
@@ -789,7 +785,6 @@ public class OpenAPITest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header("X-User", "admin")
 			.header("X-Password", "admin")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.body("{ param1: '2022-01-01T00:00:00+0100', moep1: test, param2: '2022-01-01T23:59:59+0100' }")
 			.expect()
 			.statusCode(200)
@@ -829,7 +824,6 @@ public class OpenAPITest extends StructrUiTest {
 		return RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 				.header(X_USER_HEADER,     username)
 				.header(X_PASSWORD_HEADER, password)

@@ -19,7 +19,6 @@
 package org.structr.test.csv;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.internal.RestAssuredResponseImpl;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -38,10 +37,6 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.*;
 
-/**
- *
- *
- */
 public class CsvTest extends StructrCsvTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvTest.class.getName());
@@ -117,8 +112,6 @@ public class CsvTest extends StructrCsvTest {
 		// create some objects
 
 		String test0Id = getUuidFromLocation(RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
 			.expect().statusCode(201).when().post(restUrl + testOneResource).getHeader("Location"));
 
@@ -155,11 +148,6 @@ public class CsvTest extends StructrCsvTest {
 
 			.given()
 				.contentType("application/csv; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 			.when()
@@ -188,11 +176,6 @@ public class CsvTest extends StructrCsvTest {
 
 			.given()
 				.contentType("application/csv; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 			.when()
@@ -216,11 +199,6 @@ public class CsvTest extends StructrCsvTest {
 
 			.given()
 				.contentType("application/csv; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 			.when()
@@ -499,11 +477,6 @@ public class CsvTest extends StructrCsvTest {
 
 			.given()
 				.contentType("application/csv; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 			.when()
@@ -530,11 +503,6 @@ public class CsvTest extends StructrCsvTest {
 
 			.given()
 				.contentType("application/csv; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 			.when()
@@ -562,11 +530,6 @@ public class CsvTest extends StructrCsvTest {
 
 			.given()
 				.contentType("application/csv; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 			.when()

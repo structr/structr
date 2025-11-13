@@ -19,7 +19,6 @@
 package org.structr.odf;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -78,7 +77,6 @@ public class ODFTest extends ODSTestBase {
 		// use RestAssured to call exported methods on file
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.header(X_USER_HEADER, ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
@@ -89,7 +87,6 @@ public class ODFTest extends ODSTestBase {
 		// use RestAssured to call exported methods on file
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.header(X_USER_HEADER, ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
@@ -104,7 +101,6 @@ public class ODFTest extends ODSTestBase {
 		// use RestAssured to call exported methods on file
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.header(X_USER_HEADER, ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()

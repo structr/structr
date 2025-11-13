@@ -34,11 +34,7 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.fail;
 
-/**
- *
- */
 public class ProxyServletTest extends StructrUiTest {
-
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)

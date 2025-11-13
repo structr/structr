@@ -18,9 +18,7 @@
  */
 package org.structr.test.rest.test;
 
-
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -92,7 +90,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -120,7 +117,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -230,7 +226,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -265,7 +260,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -349,7 +343,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -378,7 +371,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.statusCode(200)
 					.body("result.id",                                 equalTo(testThreeUUID))
@@ -394,7 +386,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.statusCode(200)
 					.body("result.id",                                                  equalTo(testThreeUUID))
@@ -419,7 +410,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 				.statusCode(200)
 				.body("result.id",                                                  equalTo(testThreeUUID))
@@ -454,7 +444,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.body("{ name: '" + textFileName + "', base64Data: '" + textData + "' }")
 			.expect()
 			.statusCode(201)
@@ -464,7 +453,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.body("{ name: '" + imageFileName + "', base64Data: '" + imageData + "' }")
 			.expect()
 			.statusCode(201)
@@ -474,7 +462,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result[0].type",         equalTo("Image"))
 			.body("result[0].name",         equalTo("test.png"))
@@ -528,7 +515,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.body("{ name: '" + dummyName + "', notSerialized: \"should not be serialized in any view\" }")
 				.expect()
 					.statusCode(201)
@@ -538,7 +524,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.body("result[0].type",          equalTo("DummyType"))
 					.body("result[0].name",          equalTo(dummyName))
@@ -549,7 +534,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.body("result[0].type",          equalTo("DummyType"))
 					.body("result[0].name",          equalTo(dummyName))
@@ -560,7 +544,6 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		RestAssured
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.body("result[0].type",          equalTo("DummyType"))
 					.body("result[0].name",          equalTo(dummyName))

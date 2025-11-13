@@ -19,7 +19,6 @@
 package org.structr.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
@@ -33,8 +32,6 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
-/**
- */
 public class TestFeeds extends StructrUiTest {
 
 	@Test
@@ -73,7 +70,6 @@ public class TestFeeds extends StructrUiTest {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
@@ -128,7 +124,6 @@ public class TestFeeds extends StructrUiTest {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()

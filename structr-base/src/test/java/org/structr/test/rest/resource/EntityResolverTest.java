@@ -19,7 +19,6 @@
 package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -33,8 +32,6 @@ import java.util.List;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
 
-/**
- */
 public class EntityResolverTest extends StructrRestTestBase {
 
 	@Test
@@ -57,7 +54,6 @@ public class EntityResolverTest extends StructrRestTestBase {
 			RestAssured
 
 				.given()
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.contentType("application/json; charset=UTF-8")
 					.body(" { ids: [\"" + mailTemplateIds.get(2) + "\", \"" + mailTemplateIds.get(5) + "\", \"" + mailTemplateIds.get(7) + "\", \"" + mailTemplateIds.get(8) + "\"] } ")
 				.expect()
@@ -73,7 +69,6 @@ public class EntityResolverTest extends StructrRestTestBase {
 			RestAssured
 
 				.given()
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.contentType("application/json; charset=UTF-8")
 					.body(" { ids: [\"" + mailTemplateIds.get(2) + "\", \"" + mailTemplateIds.get(5) + "\"] } ")
 				.expect()
@@ -88,7 +83,6 @@ public class EntityResolverTest extends StructrRestTestBase {
 			RestAssured
 
 				.given()
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.contentType("application/json; charset=UTF-8")
 					.body(" { name: test } ")
 				.expect()
@@ -113,7 +107,6 @@ public class EntityResolverTest extends StructrRestTestBase {
 		RestAssured
 
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.contentType("application/json; charset=UTF-8")
 			.expect()
 			.statusCode(200)
@@ -127,7 +120,6 @@ public class EntityResolverTest extends StructrRestTestBase {
 		RestAssured
 
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
