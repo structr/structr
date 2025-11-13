@@ -23,6 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -102,6 +103,28 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+
+		return """
+				Retrieves the content of the given file from the Structr filesystem. 
+				This method can be used to access the binary content of a file stored in Structr.
+				""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.javaScript(
+				"""
+				${get_content(first(find('File', 'name', 'test.txt')))}
+				"""
+				)
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The parameter `encoding` is available from version 2.3.9+",
+				"This function is not recommended for raw binary content!"
+		);
 	}
 }

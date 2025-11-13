@@ -28,6 +28,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
@@ -182,6 +183,32 @@ public class TranslateFunction extends UiFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				  Supported translation providers:
+				  - google (Google Cloud Translation API, default)
+				  - deepl (DeepL REST API)""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.javaScript(
+				"""
+				${translate("Structr is awesome", "en", "de")}
+				"""
+		),
+		Example.javaScript(
+				"""
+				${translate("Structr is awesome", "en", "de", "deepl")}
+				"""
+				)
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"An API Key has to be configured in structr.conf.",
+				"See the documentation on the Translation module for more info."
+		);
 	}
 }
