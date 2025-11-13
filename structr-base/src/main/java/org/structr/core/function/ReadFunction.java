@@ -22,6 +22,8 @@ import org.apache.commons.io.IOUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -36,11 +38,6 @@ public class ReadFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "read";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("filename");
 	}
 
 	@Override
@@ -82,20 +79,57 @@ public class ReadFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.read(filename)}}. Example: ${{$.read(\"text.xml\")}}"),
-			Usage.structrScript("Usage: ${read(filename)}. Example: ${read(\"text.xml\")}")
-		);
-	}
-
-	@Override
 	public String getShortDescription() {
-		return "Reads and returns the contents of the given file from the exchange directoy.";
+		return "Reads text from a file in the `exchange/` folder.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			This function reads text from the file with the given file name in the exchange/ folder. If the file does not exist, nothing will be returned, but no error will be thrown.
+			
+			To prevent data leaks, Structr allows very limited access to the underlying file system. The only way to read or write files on the harddisk is to use files in the exchange/ folder of the Structr runtime directory. All calls to `read()`, `write()` and `append()` will check that before reading from or writing to the disk.";
+			""";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("filename");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("filename", "name of the file to read from")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${read('test.txt')}", "Read from a file named 'test.txt' in the exchange/ folder."),
+			Example.javaScript("${{ $.read('test.txt'); }}", "Read from a file named 'test.txt' in the exchange/ folder.")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `exchange/` folder itself may be a symbolic link.",
+			"The canonical path of a file has to be identical to the provided filepath in order to prevent directory traversal attacks. This means that symbolic links inside the `exchange/` folder are forbidden",
+			"Absolute paths and relative paths that traverse out of the exchange/ folder are forbidden.",
+			"Allowed 'sub/dir/file.txt'",
+			"Forbidden '../../../../etc/passwd'",
+			"Forbidden '/etc/passwd'"
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${read(filename)}. Example: ${read('test.txt')}"),
+			Usage.javaScript("Usage: ${{ $.read(filename); }}. Example: ${{ $.read('test.txt'); }}")
+		);
 	}
 }
