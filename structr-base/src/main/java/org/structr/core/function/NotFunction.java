@@ -21,9 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -66,18 +64,39 @@ public class NotFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${not(bool)}. Example: ${not(\"true\")}")
+			Usage.structrScript("Usage: ${not(bool)}. Example: ${not(me.isAdmin)}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("expression", "boolean expression to negate")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Negates the given argument.";
+		return "Returns the logical negation given boolean expression.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function takes a single arguments and returns the negation of its boolean value.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${not(true)}", "Return false")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (the ! operator)."
+		);
 	}
 
 	@Override
