@@ -91,7 +91,7 @@ public class CreateDocumentationTest extends StructrUiTest {
 			final String longDescription     = function.getLongDescription();
 			final String name                = function.getName();
 
-			lines.add("## " + name);
+			lines.add("## " + name + "()");
 			lines.add(function.getShortDescription());
 
 			// longDescription can be empty
