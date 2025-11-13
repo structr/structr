@@ -7228,10 +7228,11 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
-	public void testInheritingAndAncestorTypesFunctions() {
+	public void testInheritingAndAncestorTypesFunctionsInStructrScript() {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 
+		// schema setup
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
@@ -7249,6 +7250,51 @@ public class ScriptingTest extends StructrTest {
 			fail("Unexpected exception during test setup.");
 		}
 
+		// test
+		try (final Tx tx = app.tx()) {
+
+			final String result1 = Scripting.evaluate(actionContext, null, "${sort(inheriting_types('Principal'))}", "test1").toString();
+			final String result2 = Scripting.evaluate(actionContext, null, "${sort(inheriting_types('Principal', merge('SubUser', 'SubSubUser')))}", "test1").toString();
+			final String result3 = Scripting.evaluate(actionContext, null, "${sort(ancestor_types('SubSubUser'))}", "test1").toString();
+			final String result4 = Scripting.evaluate(actionContext, null, "${sort(ancestor_types('SubSubUser', merge('SubUser', 'User')))}", "test1").toString();
+
+			assertEquals("Invalid result for inheriting_types() function.", "[Group, SubSubUser, SubUser, User]", result1);
+			assertEquals("Invalid result for inheriting_types() function.", "[Group, User]", result2);
+			assertEquals("Invalid result for ancestor_types() function.", "[Principal, SubUser, User]", result3);
+			assertEquals("Invalid result for ancestor_types() function.", "[Principal]", result4);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			t.printStackTrace();
+			fail("Unexpected exception during test setup.");
+		}
+	}
+
+	@Test
+	public void testInheritingAndAncestorTypesFunctions() {
+
+		final ActionContext actionContext = new ActionContext(securityContext);
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
+			final JsonType subUser    = schema.addType("SubUser").addTrait(StructrTraits.USER);
+			final JsonType subSubUser = schema.addType("SubSubUser").addTrait("SubUser");
+
+			final JsonType serviceClass = schema.addType("SomeServiceClass").setIsServiceClass();
+
+			StructrSchema.replaceDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+			logger.error("", t);
+			fail("Unexpected exception during test setup.");
+		}
+
+		// tests
 		try (final Tx tx = app.tx()) {
 
 			// happy path
