@@ -271,8 +271,8 @@ public class DataFeedTraitWrapper extends AbstractNodeTraitWrapper implements Da
 						feedProps.put(nameKey, syndFeed.getTitle());
 					}
 
-					feedProps.put(feedTraits.key(DataFeedTraitDefinition.FEED_TYPE_PROPERTY),    this.getFeedType());
-					feedProps.put(feedTraits.key(DataFeedTraitDefinition.DESCRIPTION_PROPERTY),  this.getDescription());
+					feedProps.put(feedTraits.key(DataFeedTraitDefinition.FEED_TYPE_PROPERTY),    syndFeed.getFeedType());
+					feedProps.put(feedTraits.key(DataFeedTraitDefinition.DESCRIPTION_PROPERTY),  syndFeed.getDescription());
 					feedProps.put(feedTraits.key(DataFeedTraitDefinition.ITEMS_PROPERTY),        newItems);
 					feedProps.put(feedTraits.key(DataFeedTraitDefinition.LAST_UPDATED_PROPERTY), new Date());
 

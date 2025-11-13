@@ -32,7 +32,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
-public class TestFeeds extends StructrUiTest {
+public class FeedsTest extends StructrUiTest {
 
 	@Test
 	public void testFeeds() {
@@ -56,7 +56,7 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.URL_PROPERTY),            "https://structr.com/blog/rss"),
+				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.URL_PROPERTY),            "https://download.structr.com/blog/rss"),
 				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.UPDATE_INTERVAL_PROPERTY), 86400000),
 				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.MAX_ITEMS_PROPERTY),       3)
 			);
@@ -80,7 +80,7 @@ public class TestFeeds extends StructrUiTest {
 				.body("result[0].maxAge",         equalTo(null))
 				.body("result[0].maxItems",       equalTo(3))
 				.body("result[0].updateInterval", equalTo(86400000))
-				.body("result[0].url",            equalTo("https://structr.com/blog/rss"))
+				.body("result[0].url",            equalTo("https://download.structr.com/blog/rss"))
 				.body("result[0].items",          hasSize(3))
 				.body("result[0].items[0].type",  equalTo(StructrTraits.FEED_ITEM))
 				.body("result[0].items[1].type",  equalTo(StructrTraits.FEED_ITEM))
@@ -112,7 +112,7 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(remoteDocumentTraits.key("url"), "https://structr.com/blog")
+				new NodeAttribute<>(remoteDocumentTraits.key("url"), "https://download.structr.com/blog")
 			);
 
 			tx.success();
