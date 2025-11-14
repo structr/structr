@@ -243,9 +243,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				return;
 			}
 
-			if (securityContext.getUser(false) == null && !Settings.DeploymentAllowAnonymousUploads.getValue()) {
+			if (!securityContext.isSuperUser()) {
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes(StandardCharsets.UTF_8));
+				response.getOutputStream().write("ERROR (401): Import of ZIP file only allowed for admins.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 

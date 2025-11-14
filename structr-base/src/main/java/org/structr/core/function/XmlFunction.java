@@ -22,6 +22,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -44,7 +45,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("source");
+		return Signature.forAllLanguages("xmlString");
 	}
 
 	@Override
@@ -93,19 +94,49 @@ public class XmlFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.xml(xmlSource) }}. Example: ${{ $.xpath($.xml($.this.xmlSource), \"/test/testValue\") }}"),
-			Usage.structrScript("Usage: ${xml(xmlSource)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\")}")
+			Usage.javaScript("Usage: ${{ $.xml(xmlString) }}. Example: ${{ $.xpath($.xml($.this.text), \"/test/testValue\") }}"),
+			Usage.structrScript("Usage: ${xml(xmlString)}. Example: ${xpath(xml(this.text), \"/test/testValue\")}")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${xml(read('test.xml'))}", "Read file test.xml from exchange/ directory and return parsed document"),
+				Example.structrScript("${xml(get_content(first(find('File', 'name', 'test.xml'))))}", "Read first file named test.xml from virtual filesystem and return parsed document")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Parses the given string to an XML DOM.";
+		return "Tries to parse the contents of the given string into an XML document, returning the document on success.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This method can be used in conjunction with `xpath()` to extract data from an XML document.
+
+		By default, the following features of DocumentBuilderFactory are active to protect against malicious input.
+		This is controlled via the configuration setting `%s`:
+
+		```
+		factory.setNamespaceAware(true);
+		factory.setXIncludeAware(false);
+		factory.setExpandEntityReferences(false);
+		factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+		factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+		factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+		factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+		```
+		""".formatted(Settings.XMLParserSecurity.getKey());
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Disabling `%s` reduces protection against malicious input. Do this only when the data source is fully trusted and you accept the associated risks.".formatted(Settings.XMLParserSecurity.getKey())
+		);
 	}
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {
