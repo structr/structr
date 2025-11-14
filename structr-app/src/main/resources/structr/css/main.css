@@ -3642,28 +3642,17 @@ ul.combined-input-select-field li:hover {
 	z-index: 12000;
 }
 
+.monaco-editor .suggest-details {
+	min-width: 600px;
+}
+
 .form-input.input-invalid {
 	border: 1px solid var(--input-invalid-border-color);
 	background-color: var(--input-invalid-bg-color);
 }
 
 /**
- * Active Elements
- **/
-.active-elements-container svg {
-	margin-bottom: -5px;
-}
-.active-elements-container svg > * {
-	filter: drop-shadow(0 0 .625rem rgba(0, 0, 0, .1));
-}
-
-.active-elements-container svg *:hover,
-.active-elements-container svg * text:hover {
-	stroke: #bbbbbb;
-}
-
-/**
- * Tailwind classes
+ * BEGIN Tailwind classes
  */
 .box-border {
 	box-sizing: border-box;
@@ -4784,45 +4773,6 @@ ul.combined-input-select-field li:hover {
 .-rotate-180 {
 	transform: rotate(-180deg);
 }
-
 /**
-	statistics tab
+ * END Tailwind classes
  */
-.http-statistics-GET {
-	fill: #61affe;
-}
-
-.http-statistics-PUT {
-	fill: #fca130;
-}
-
-.http-statistics-PATCH {
-	fill: #fca130;
-}
-
-.http-statistics-POST {
-	fill: #49cc40;
-}
-
-.http-statistics-DELETE {
-	fill: #f93e3e;
-}
-
-.http-statistics-OPTIONS {
-	fill: #999999;
-}
-
-.http-statistics-HEAD {
-	fill: #94c9fe;
-}
-
-/**
- Active Elements
- */
-svg g.diagram-element[data-type="ActionMapping"] rect {
-	fill: #ff8800;
-}
-
-svg *[data-type="ListDataSource"] {
-	fill: #2222aa;
-}
