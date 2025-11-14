@@ -18,7 +18,6 @@
  */
 package org.structr.test.common;
 
-import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,8 +48,8 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.test.core.traits.definitions.*;
 import org.structr.test.core.traits.definitions.relationships.*;
-import org.testng.annotations.Optional;
 import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -69,18 +68,12 @@ public class StructrTest {
 
 	@BeforeMethod
 	protected void starting(Method method) {
-
-		System.out.println("######################################################################################");
-		System.out.println("# Starting " + this.getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
-		System.out.println("######################################################################################");
+		System.out.println("##### Starting " + this.getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@AfterMethod
 	protected void finished(Method method) {
-
-		System.out.println("######################################################################################");
-		System.out.println("# Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
-		System.out.println("######################################################################################");
+		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@BeforeMethod

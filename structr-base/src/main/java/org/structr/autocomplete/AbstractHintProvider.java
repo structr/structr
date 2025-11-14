@@ -22,7 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.autocomplete.keywords.ApplicationStoreHint;
+import org.structr.autocomplete.keywords.*;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -195,17 +195,7 @@ public abstract class AbstractHintProvider {
 		// If you change something here, make sure to change AutocompleteTest.java accordingly.
 
 		// add keywords, keep in sync and include everything from StructrBinding.getMemberKeys()
-		//hints.add(0, createKeywordHint("this",                "The current object", "this"));
-		//hints.add(0, createKeywordHint("session",             "The current session", "session"));
-		//hints.add(0, createKeywordHint("response",            "The current response",       "response"));
-		//hints.add(0, createKeywordHint("request",             "The current request", "request"));
-		//hints.add(0, createKeywordHint("predicate",           "Search predicate", "predicate"));
-		//hints.add(0, createKeywordHint("page",                "The current page",           "page"));
-		//hints.add(0, createKeywordHint("methodParameters",    "Access method parameters", "methodParameters"));
-		//hints.add(0, createKeywordHint("me",                  "The current user", "me"));
-		//hints.add(0, createKeywordHint("locale",              "The current locale",         "locale"));
-		//hints.add(0, createKeywordHint("current",             "The current details object", "current"));
-		hints.add(0, new ApplicationStoreHint());
+		AbstractHintProvider.addKeywordHints(hints);
 
 		// add global schema methods to show at the start of the list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -456,6 +446,29 @@ public abstract class AbstractHintProvider {
 		final List<String> lines = documentable.createMarkdownDocumentation();
 
 		return StringUtils.join(lines, "\n");
+	}
+
+	public static void addKeywordHints(final List<Documentable> hints) {
+
+		hints.add(0, new ThisHint());
+		hints.add(0, new TenantIdentifierHint());
+		hints.add(0, new SessionHint());
+		hints.add(0, new RequestHint());
+		hints.add(0, new QueryStringHint());
+		hints.add(0, new PredicateHint());
+		hints.add(0, new PathInfoHint());
+		hints.add(0, new ParameterMapHint());
+		hints.add(0, new PageHint());
+		hints.add(0, new NowHint());
+		hints.add(0, new MethodParametersHint());
+		hints.add(0, new MeHint());
+		hints.add(0, new LocaleHint());
+		hints.add(0, new IPHint());
+		hints.add(0, new HostHint());
+		hints.add(0, new CurrentHint());
+		hints.add(0, new ApplicationStoreHint());
+		hints.add(0, new ApplicationRootPathHint());
+
 	}
 
 	// ----- nested classes -----

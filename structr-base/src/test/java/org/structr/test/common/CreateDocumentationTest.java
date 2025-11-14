@@ -19,13 +19,10 @@
 package org.structr.test.common;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.autocomplete.AbstractHintProvider;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.Tx;
-import org.structr.core.parser.*;
-import org.structr.core.script.polyglot.function.DoAsFunction;
-import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
-import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.docs.*;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -57,20 +54,9 @@ public class CreateDocumentationTest extends StructrUiTest {
 		final List<String> lines           = new LinkedList<>();
 		final List<String> errors          = new LinkedList<>();
 
-		// add functions that are not registered as module functions
-		functions.add(new DoInNewTransactionFunction(null, null));
-		functions.add(new DoPrivilegedFunction(null));
-		functions.add(new DoAsFunction(null));
-		functions.add(new CacheExpression(0, 0));
-		functions.add(new IfExpression(0, 0));
-		functions.add(new IsExpression(0, 0));
-		functions.add(new EachExpression(0, 0));
-		functions.add(new FilterExpression(0, 0));
-		functions.add(new MapExpression(0, 0));
-		functions.add(new ReduceExpression(0, 0));
-		functions.add(new AnyExpression(0, 0));
-		functions.add(new AllExpression(0, 0));
-		functions.add(new NoneExpression(0, 0));
+		// add expressions and hints that are not registered as module functions
+		Functions.addExpressions(functions);
+		AbstractHintProvider.addKeywordHints(functions);
 
 		// sort by name
 		Collections.sort(functions, Comparator.comparing(Documentable::getName));
@@ -120,86 +106,90 @@ public class CreateDocumentationTest extends StructrUiTest {
 			errors.add("Function " + func.getName() + " has no languages.");
 		}
 
-		// verify that a function has at least one signature
-		final List<Signature> signatures = func.getSignatures();
-		if (signatures == null || signatures.isEmpty()) {
+		// verify signatures, usages and parameters only for built-in functions
+		if (DocumentableType.UserDefinedFunction.equals(func.getType())) {
 
-			errors.add("Function " + func.getName() + " has no signatures.");
-		}
+			// verify that a function has at least one signature
+			final List<Signature> signatures = func.getSignatures();
+			if (signatures == null || signatures.isEmpty()) {
 
-		// verify that a function has at least one usage
-		final List<Usage> usages = func.getUsages();
-		if (usages == null || usages.isEmpty()) {
-
-			errors.add("Function " + func.getName() + " has no usages.");
-		}
-
-		// verify the parameters
-		final List<Parameter> parameters = func.getParameters();
-		if (parameters != null && !parameters.isEmpty()) {
-
-			for (final Parameter parameter : parameters) {
-
-				if (StringUtils.isEmpty(parameter.getName())) {
-					errors.add("Function " + func.getName() + " has empty parameter name.");
-				}
-
-				if (Character.isUpperCase(parameter.getName().charAt(0))) {
-					errors.add("Parameter " + parameter.getName() + " of function " + func.getName() + " should not start with an uppercase letter.");
-				}
-
-				if (parameter.getDescription() != null) {
-
-					if (parameter.getDescription().endsWith(".")) {
-						errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not end with a period character.");
-					}
-
-					// check some things in the description text
-					final String d = parameter.getDescription().strip().toLowerCase();
-
-					if (d.startsWith("the ") || d.startsWith("a ") || d.startsWith("an ") || d.startsWith("optional ")) {
-						errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not start with the words 'the', 'a', 'an', or 'optional'.");
-					}
-				}
+				errors.add("Function " + func.getName() + " has no signatures.");
 			}
-		}
 
-		// verify that a function has a usage and a signature for all languages
-		for (final Language language : func.getLanguages()) {
+			// verify that a function has at least one usage
+			final List<Usage> usages = func.getUsages();
+			if (usages == null || usages.isEmpty()) {
 
-			boolean hasUsage     = false;
-			boolean hasSignature = false;
+				errors.add("Function " + func.getName() + " has no usages.");
+			}
 
-			if (usages != null) {
+			// verify the parameters
+			final List<Parameter> parameters = func.getParameters();
+			if (parameters != null && !parameters.isEmpty()) {
 
-				for (final Usage usage : usages) {
+				for (final Parameter parameter : parameters) {
 
-					if (usage.getLanguages().contains(language)) {
+					if (StringUtils.isEmpty(parameter.getName())) {
+						errors.add("Function " + func.getName() + " has empty parameter name.");
+					}
 
-						hasUsage = true;
+					if (Character.isUpperCase(parameter.getName().charAt(0))) {
+						errors.add("Parameter " + parameter.getName() + " of function " + func.getName() + " should not start with an uppercase letter.");
+					}
+
+					if (parameter.getDescription() != null) {
+
+						if (parameter.getDescription().endsWith(".")) {
+							errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not end with a period character.");
+						}
+
+						// check some things in the description text
+						final String d = parameter.getDescription().strip().toLowerCase();
+
+						if (d.startsWith("the ") || d.startsWith("a ") || d.startsWith("an ") || d.startsWith("optional ")) {
+							errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not start with the words 'the', 'a', 'an', or 'optional'.");
+						}
 					}
 				}
 			}
 
-			if (signatures != null) {
+			// verify that a function has a usage and a signature for all languages
+			for (final Language language : func.getLanguages()) {
 
-				for (final Signature signature : signatures) {
+				boolean hasUsage     = false;
+				boolean hasSignature = false;
 
-					if (signature.getLanguages().contains(language)) {
+				if (usages != null) {
 
-						hasSignature = true;
+					for (final Usage usage : usages) {
+
+						if (usage.getLanguages().contains(language)) {
+
+							hasUsage = true;
+						}
 					}
 				}
-			}
 
-			if (!hasUsage) {
+				if (signatures != null) {
 
-				errors.add("Function " + func.getName() + " has no usage for language " + language.name());
-			}
+					for (final Signature signature : signatures) {
 
-			if (!hasSignature) {
+						if (signature.getLanguages().contains(language)) {
 
-				errors.add("Function " + func.getName() + " has no signature for language " + language.name());
+							hasSignature = true;
+						}
+					}
+				}
+
+				if (!hasUsage) {
+
+					errors.add("Function " + func.getName() + " has no usage for language " + language.name());
+				}
+
+				if (!hasSignature) {
+
+					errors.add("Function " + func.getName() + " has no signature for language " + language.name());
+				}
 			}
 		}
 

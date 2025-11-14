@@ -249,18 +249,12 @@ public abstract class StructrRestTestBase {
 
 	@BeforeMethod
 	public void starting(Method method) {
-
-		System.out.println("######################################################################################");
-		System.out.println("# Starting " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
-		System.out.println("######################################################################################");
+		System.out.println("##### Starting " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@AfterMethod
 	public void finished(Method method) {
-
-		System.out.println("######################################################################################");
-		System.out.println("# Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
-		System.out.println("######################################################################################");
+		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	protected String getRandomTenantIdentifier() {

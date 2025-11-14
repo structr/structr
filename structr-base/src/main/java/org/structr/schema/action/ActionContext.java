@@ -20,7 +20,6 @@ package org.structr.schema.action;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
@@ -46,8 +45,6 @@ import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
 
-import java.io.IOException;
-import java.time.ZonedDateTime;
 import java.util.*;
 
 /**
@@ -383,7 +380,6 @@ public class ActionContext {
 
 						// 2. keywords which require a request
 						final HttpServletRequest request = securityContext.getRequest();
-
 						if (request != null) {
 
 							switch (key) {
@@ -424,23 +420,9 @@ public class ActionContext {
 
 						// 3. keywords which require a response
 						final HttpServletResponse response = securityContext.getResponse();
-
 						if (response != null) {
 
 							switch (key) {
-
-								case "response": {
-
-									try {
-										// return output stream of HTTP response for streaming
-										hints.reportExistingKey(key);
-										return response.getOutputStream();
-
-									} catch (IOException ioex) {
-										logger.warn("", ioex);
-									}
-									return null;
-								}
 
 								case "statusCode":
 								case "status_code":

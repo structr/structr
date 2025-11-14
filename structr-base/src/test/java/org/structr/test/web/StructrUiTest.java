@@ -47,8 +47,8 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.test.web.entity.traits.definitions.*;
 import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
 import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
-import org.testng.annotations.Optional;
 import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.io.IOException;
@@ -161,17 +161,12 @@ public abstract class StructrUiTest {
 	@BeforeMethod
 	public void starting(Method method) {
 
-		System.out.println("######################################################################################");
-		System.out.println("# Starting " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
-		System.out.println("######################################################################################");
+		System.out.println("##### Starting " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@AfterMethod
 	public void finished(Method method) {
-
-		System.out.println("######################################################################################");
-		System.out.println("# Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
-		System.out.println("######################################################################################");
+		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName() + " with tenant identifier " + randomTenantId);
 	}
 
 	@BeforeMethod
