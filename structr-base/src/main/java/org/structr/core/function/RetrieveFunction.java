@@ -18,10 +18,10 @@
  */
 package org.structr.core.function;
 
-import org.structr.autocomplete.AbstractHint;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Documentable;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -84,7 +84,7 @@ public class RetrieveFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<AbstractHint> getContextHints(final String lastToken) {
+	public List<Documentable> getContextHints(final String lastToken) {
 
 		// this might be the place where information about the execution context
 		// of a function etc. can be used, but not yet.

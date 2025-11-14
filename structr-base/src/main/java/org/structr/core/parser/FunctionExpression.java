@@ -19,7 +19,6 @@
 package org.structr.core.parser;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.autocomplete.AbstractHint;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -120,7 +119,7 @@ public class FunctionExpression extends Expression {
 		return function;
 	}
 
-	public List<AbstractHint> getContextHints() {
+	public List<Documentable> getContextHints() {
 
 		if (this.function != null) {
 

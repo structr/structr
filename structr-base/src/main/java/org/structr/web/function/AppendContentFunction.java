@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -37,11 +39,6 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "append_content";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file, content [, encoding=UTF-8 ]");
 	}
 
 	@Override
@@ -98,6 +95,21 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getShortDescription() {
+		return "Appends content to a Structr File.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function appends text or binary data to the content of the given Structr File entity.";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("file, content [, encoding=UTF-8 ]");
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${append_content(file, content[, encoding = 'UTF-8'])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}"),
@@ -106,12 +118,25 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "Appends the content to the given file. Content can either be of type String or byte[].";
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("file", "Structr File entity to append the content to"),
+			Parameter.mandatory("content", "content to append"),
+			Parameter.optional("encoding", "encoding to use, defaults to ZUTF-8")
+		);
 	}
 
 	@Override
-	public String getLongDescription() {
-		return "";
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("append_content(first(find('File', 'name', 'test.txt')), '\\nAdditional Content')", "Append the string '\\nAdditional Content' to the file with the name 'test.txt'.")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings."
+		);
 	}
 }

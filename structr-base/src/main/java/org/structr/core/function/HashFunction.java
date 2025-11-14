@@ -52,7 +52,7 @@ public class HashFunction extends CoreFunction {
 
 		} catch (NoSuchAlgorithmException e) {
 
-			logger.warn("{}: Given algorithm \"{}\" not available - the following algorithms are available: \"{}\"", getReplacement(), sources[0], String.join(", ", new TreeSet(Security.getAlgorithms("MessageDigest"))));
+			logger.warn("{}: Given algorithm \"{}\" not available - the following algorithms are available: \"{}\"", getDisplayName(), sources[0], String.join(", ", new TreeSet(Security.getAlgorithms("MessageDigest"))));
 
 		} catch (ArgumentNullException pe) {
 

@@ -54,7 +54,7 @@ public class ComplementFunction extends CoreFunction {
 
 		} else {
 
-			logger.warn("Argument 1 for complement() must be a Collection. Parameters: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
+			logger.warn("Argument 1 for complement() must be a Collection. Parameters: {}", new Object[] { getDisplayName(), getParametersAsString(sources) });
 			return "Argument 1 for complement() must be a Collection";
 
 		}

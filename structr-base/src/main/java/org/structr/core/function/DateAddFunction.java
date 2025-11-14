@@ -73,7 +73,7 @@ public class DateAddFunction extends CoreFunction {
 
 					} catch (ParseException ex) {
 
-						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getReplacement(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
+						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getDisplayName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
 						return "";
 					}
 				}
@@ -109,7 +109,7 @@ public class DateAddFunction extends CoreFunction {
 			if (sources[index] instanceof Number) {
 				return ((Number)sources[index]).intValue();
 			} else {
-				logger.warn("{}: Parameter \"{}\" must be integer! Provided: {} - using 0 as value. (Parameters: {})", getReplacement(), name, sources[index], getParametersAsString(sources));
+				logger.warn("{}: Parameter \"{}\" must be integer! Provided: {} - using 0 as value. (Parameters: {})", getDisplayName(), name, sources[index], getParametersAsString(sources));
 			}
 		}
 

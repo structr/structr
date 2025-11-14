@@ -36,6 +36,10 @@ import org.structr.schema.action.ActionContext;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * Runs the given function in the context of a given user.
+ *
+ */
 public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
 	private final ActionContext actionContext;
@@ -155,13 +159,13 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 	public List<Signature> getSignatures() {
 
 		return List.of(
-			Signature.of("user, function", Language.Javascript)
+			Signature.of("user, function", Language.JavaScript)
 		);
 	}
 
 	@Override
 	public List<Language> getLanguages() {
-		return List.of(Language.Javascript);
+		return List.of(Language.JavaScript);
 	}
 
 	@Override

@@ -24,20 +24,18 @@ import java.util.List;
 
 public class TypeNameHint extends AbstractHint {
 
+	private final String simpleTypeName;
+	private final String name;
+
 	public TypeNameHint(final String name, final String simpleTypeName) {
 
-		this.name = name;
-		this.documentation = simpleTypeName;
-	}
-
-	@Override
-	public String getName() {
-		return name;
+		this.name           = name;
+		this.simpleTypeName = simpleTypeName;
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "";
+		return name;
 	}
 
 	@Override
@@ -77,12 +75,17 @@ public class TypeNameHint extends AbstractHint {
 	}
 
 	@Override
-	public String getDocumentation() {
-		return "Schema type **" + this.documentation + "**";
+	public List<String> createMarkdownDocumentation() {
+		return List.of("Schema type **" + simpleTypeName + "**");
 	}
 
 	@Override
 	public DocumentableType getType() {
 		return DocumentableType.TypeName;
+	}
+
+	@Override
+	public String getName() {
+		return "";
 	}
 }

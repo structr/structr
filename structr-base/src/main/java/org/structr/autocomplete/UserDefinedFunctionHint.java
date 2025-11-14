@@ -27,11 +27,6 @@ public class UserDefinedFunctionHint extends MethodHint {
 	}
 
 	@Override
-	public String getReplacement() {
-		return getDisplayName();
-	}
-
-	@Override
 	public DocumentableType getType() {
 		return DocumentableType.UserDefinedFunction;
 	}

@@ -51,7 +51,7 @@ public class ResetCounterFunction extends CoreFunction {
 
 		} catch (NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getReplacement(), sources[0].toString(), caller, getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getDisplayName(), sources[0].toString(), caller, getParametersAsString(sources) });
 
 		} catch (ArgumentNullException pe) {
 

@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import org.structr.api.config.Settings;
-import org.structr.autocomplete.AbstractHint;
 import org.structr.autocomplete.TypeNameHint;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
@@ -33,6 +32,7 @@ import org.structr.core.function.search.SearchParameter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.Documentable;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -45,9 +45,9 @@ import java.util.Map.Entry;
 public abstract class AbstractQueryFunction extends CoreFunction implements QueryFunction {
 
 	@Override
-	public List<AbstractHint> getContextHints(final String lastToken) {
+	public List<Documentable> getContextHints(final String lastToken) {
 
-		final List<AbstractHint> hints = new LinkedList<>();
+		final List<Documentable> hints = new LinkedList<>();
 		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
 		for (final String type : Traits.getAllTypes(t -> t.isNodeType() && !t.isServiceClass())) {
@@ -168,7 +168,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					} else {
 
 						// probably an error case where migration to predicates was forgotten
-						throw new FrameworkException(422, getReplacement() + ": Invalid parameter '" + uuid + "'. If a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
+						throw new FrameworkException(422, getDisplayName() + ": Invalid parameter '" + uuid + "'. If a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
 					}
 				}
 			}

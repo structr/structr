@@ -128,7 +128,7 @@ ${{
 	public List<Language> getLanguages() {
 
 		return List.of(
-			Language.Javascript
+			Language.JavaScript
 		);
 	}
 

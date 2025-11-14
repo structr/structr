@@ -60,7 +60,7 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 			if (session != null) {
 				return PolyglotWrapper.unwrap(ctx, sessionWrapper.getMember(sources[0].toString()));
 			} else {
-				logger.warn("{}: No session available to get session attribute from! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+				logger.warn("{}: No session available to get session attribute from! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
 			return null;
