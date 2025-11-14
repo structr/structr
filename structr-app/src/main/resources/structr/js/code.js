@@ -1974,7 +1974,7 @@ let _Code = {
 						});
 					});
 				});
-			});
+			}, 'schema');
 		},
 		showSwaggerUI: (data) => {
 
@@ -2851,7 +2851,7 @@ let _Code = {
 			<h2>FunctionProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
 
-			<div id="function-property-container" class="data-tabs level-two flex flex-col flex-grow">
+			<div id="function-property-container" class="code-tabs level-two flex flex-col flex-grow">
 				<ul>
 					<li data-name="source">Code</li>
 					<li data-name="api">API</li>
@@ -2903,7 +2903,7 @@ let _Code = {
 					${_Schema.methods.templates.methodFlags(config)}
 				</div>
 			</div>
-			<div id="method-code-container" class="data-tabs level-two flex flex-col flex-grow">
+			<div id="method-code-container" class="code-tabs level-two flex flex-col flex-grow">
 				<ul>
 					<li data-name="source">Code</li>
 					<li data-name="api">API</li>

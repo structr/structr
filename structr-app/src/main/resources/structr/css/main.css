@@ -942,7 +942,7 @@ img.disabled {
 #tabs li:not(.active):hover,
 .data-tabs li:not(.active):hover,
 .files-tabs li:not(.active):hover,
-.code-tabs li:not(.active):hover,
+.code-tabs > ul > li:not(.active):hover,
 .favs-tabs li:not(.active):hover,
 .widgets-tabs > li:not(.active):hover,
 .tabs-menu li:not(.active):hover {
