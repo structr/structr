@@ -19,7 +19,6 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -38,7 +37,6 @@ public class HTMLRestEndpointTest extends StructrRestTestBase {
 
 			.given()
 				.accept("text/html")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)

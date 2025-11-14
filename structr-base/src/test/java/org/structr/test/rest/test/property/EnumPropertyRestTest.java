@@ -19,7 +19,6 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.response.Response;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
@@ -28,10 +27,6 @@ import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- *
- *
- */
 public class EnumPropertyRestTest extends StructrRestTestBase {
 
 	@Test
@@ -48,13 +43,6 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 
 		Response response = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 		.when()
@@ -74,12 +62,6 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		// test for three elements
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(3))
@@ -89,12 +71,6 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		// test strict search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].enumProperty", equalTo(TestEnum.Status2.name()))
@@ -112,12 +88,6 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 
 		String id = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -128,12 +98,6 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
 			.body("{ enumProperty: Status2 }")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 		.when()
@@ -142,13 +106,6 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		// test strict search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))

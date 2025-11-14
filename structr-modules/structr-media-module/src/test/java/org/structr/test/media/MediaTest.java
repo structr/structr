@@ -19,7 +19,6 @@
 package org.structr.test.media;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.graph.Tx;
@@ -33,8 +32,6 @@ import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
-/**
- */
 public class MediaTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(MediaTest.class.getName());
@@ -73,7 +70,6 @@ public class MediaTest extends StructrUiTest {
 		// use RestAssured to check file
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.header(X_USER_HEADER, ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()

@@ -19,7 +19,6 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
@@ -39,10 +38,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.testng.AssertJUnit.*;
 
-/**
- *
- *
- */
 public class FunctionPropertyTest extends StructrRestTestBase {
 
 	@Test
@@ -52,7 +47,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 		.expect()
 			.statusCode(200)
 			.body("result[0].type",                               equalTo("TestTen"))
@@ -174,7 +168,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		// search via REST
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 		.expect()
 			.statusCode(200)
 			.body("result[0].type",            equalTo("TestType"))
@@ -225,7 +218,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		// check via REST
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("result[0].type",  equalTo("TestType"))
@@ -238,7 +230,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		// fetch UUID of test property
 		final String functionPropertyId = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -252,7 +243,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		// change read function
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.body("{ readFunction: '{ return \"changed\"; }' }")
 			.expect()
 			.statusCode(200)
@@ -262,7 +252,6 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 		// check via REST
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("result[0].type",  equalTo("TestType"))

@@ -19,7 +19,6 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.test.web.StructrUiTest;
@@ -38,13 +37,6 @@ public class CORSSimpleTest extends StructrUiTest {
         RestAssured
             .given()
                 .contentType("application/json; charset=UTF-8")
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
             .expect()
 
@@ -71,13 +63,6 @@ public class CORSSimpleTest extends StructrUiTest {
             .given()
                 .contentType("application/json; charset=UTF-8")
                 .header("Origin", RestAssured.baseURI)
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
             .expect()
 
@@ -122,13 +107,6 @@ public class CORSSimpleTest extends StructrUiTest {
 
             .given()
                 .contentType("application/json; charset=UTF-8")
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
             .expect()
 
@@ -174,13 +152,6 @@ public class CORSSimpleTest extends StructrUiTest {
             .given()
                 .contentType("application/json; charset=UTF-8")
                 .header("Origin", RestAssured.baseURI)
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
             .expect()
 
@@ -227,13 +198,6 @@ public class CORSSimpleTest extends StructrUiTest {
             .given()
                 .contentType("application/json; charset=UTF-8")
                 .header("Origin", RestAssured.baseURI)
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
             .expect()
 
@@ -283,13 +247,6 @@ public class CORSSimpleTest extends StructrUiTest {
                 .header("Origin", RestAssured.baseURI)
                 .header("Access-Control-Request-Method", "GET")
                 .header("Access-Control-Request-Headers", "*")
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
             .expect()
 
@@ -337,13 +294,6 @@ public class CORSSimpleTest extends StructrUiTest {
                 .header("Origin", RestAssured.baseURI)
                 .header("Access-Control-Request-Method", "GET")
                 .header("Access-Control-Request-Headers", "*")
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
             .expect()
 

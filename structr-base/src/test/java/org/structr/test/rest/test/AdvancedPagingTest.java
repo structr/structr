@@ -19,7 +19,6 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -42,10 +41,6 @@ import java.util.Random;
 
 import static org.hamcrest.Matchers.*;
 
-/**
- *
- *
- */
 public class AdvancedPagingTest extends StructrRestTestBase {
 
 	@Test
@@ -87,7 +82,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.expect()
 					.statusCode(200)
 					.body("result",			hasSize(2))
@@ -195,7 +189,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Range", "test_ones=0-3")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 				.statusCode(200)
 				.body("result",                    hasSize(1))
@@ -216,7 +209,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Range", "test_ones=3-6")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 				.statusCode(200)
 				.body("result",                    hasSize(1))
@@ -237,7 +229,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Range", "test_ones=10-20")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 				.statusCode(200)
 				.body("result",                    hasSize(1))
@@ -323,7 +314,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.expect()
 				.statusCode(200)
 				.body("result",         hasSize(1))
@@ -337,7 +327,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.expect()
 				.statusCode(200)
 				.body("result",         hasSize(1))
@@ -444,7 +433,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)
@@ -456,7 +444,6 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 			.expect()
 				.statusCode(200)

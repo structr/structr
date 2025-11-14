@@ -19,7 +19,6 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
@@ -34,9 +33,6 @@ import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.fail;
 
-/**
- *
- */
 public class RendererTest extends StructrUiTest {
 
 	@Test
@@ -85,7 +81,6 @@ public class RendererTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",    Matchers.equalTo("Page1"))
@@ -143,7 +138,6 @@ public class RendererTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",  Matchers.equalTo("Page1"))
@@ -201,7 +195,6 @@ public class RendererTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",  Matchers.equalTo("Page1"))
@@ -259,7 +252,6 @@ public class RendererTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",  Matchers.equalTo("Page1"))
@@ -317,7 +309,6 @@ public class RendererTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",  Matchers.equalTo("Page1"))
@@ -375,7 +366,6 @@ public class RendererTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",              Matchers.equalTo("Page1"))

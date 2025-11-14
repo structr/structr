@@ -19,7 +19,6 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
@@ -537,11 +536,6 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()
@@ -606,11 +600,6 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()
@@ -641,11 +630,6 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()
@@ -693,11 +677,6 @@ public class Deployment4Test extends DeploymentTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, "user" , X_PASSWORD_HEADER, "password")
 
 			.expect()

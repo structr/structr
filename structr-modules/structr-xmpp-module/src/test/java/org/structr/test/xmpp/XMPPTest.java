@@ -19,7 +19,6 @@
 package org.structr.test.xmpp;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
@@ -30,8 +29,6 @@ import org.testng.annotations.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
-/**
- */
 public class XMPPTest extends StructrUiTest {
 
 	@Test
@@ -70,7 +67,6 @@ public class XMPPTest extends StructrUiTest {
 		// use RestAssured to check file
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.header(X_USER_HEADER, ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()

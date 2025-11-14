@@ -21,8 +21,6 @@ package org.structr.test.web.advanced;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
@@ -44,8 +42,6 @@ import java.util.Map;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-/**
- */
 public class XmlImportTest extends StructrUiTest {
 
 	@Test
@@ -142,15 +138,6 @@ public class XmlImportTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(gson.toJson(params))
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doXMLImport");
 

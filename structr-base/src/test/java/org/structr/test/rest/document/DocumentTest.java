@@ -19,7 +19,6 @@
 package org.structr.test.rest.document;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -62,8 +61,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Project1\",\"tasks\":[{\"name\":\"Task1\"}]}")
 			.expect()
 			.statusCode(422)
@@ -74,14 +71,11 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Task2\",\"project\":{\"name\":\"Project2\"}}")
 			.expect()
 			.statusCode(422)
 			.when()
 			.post("/Task");
-
 	}
 
 	@Test
@@ -96,8 +90,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Project1\",\"tasks\":[{\"name\":\"Task1\"}]}")
 			.expect()
 			.statusCode(201)
@@ -108,15 +100,11 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Task2\",\"project\":{\"name\":\"Project2\"}}")
 			.expect()
 			.statusCode(422)
 			.when()
 			.post("/Task");
-
-
 	}
 
 	@Test
@@ -131,8 +119,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Project1\",\"tasks\":[{\"name\":\"Task1\"}]}")
 			.expect()
 			.statusCode(422)
@@ -143,15 +129,11 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Task2\",\"project\":{\"name\":\"Project2\"}}")
 			.expect()
 			.statusCode(201)
 			.when()
 			.post("/Task");
-
-
 	}
 
 	@Test
@@ -166,8 +148,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Project1\",\"tasks\":[{\"name\":\"Task1\"}]}")
 			.expect()
 			.statusCode(201)
@@ -178,8 +158,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Task2\",\"project\":{\"name\":\"Project2\"}}")
 			.expect()
 			.statusCode(201)
@@ -203,8 +181,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Project1\",\"tasks\":[{\"name\":\"Task1\",\"worker\":{\"name\":\"Worker1\"},\"subtasks\":[{\"name\":\"Subtask1.1\",\"worker\":{\"name\":\"Worker1\"}},{\"name\":\"Subtask1.2\",\"worker\":{\"name\":\"Worker2\"}}]}]}")
 			.expect()
 			.statusCode(201)
@@ -215,9 +191,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                    hasSize(1))
@@ -236,8 +209,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Project2\",\"tasks\":[{\"name\":\"Task2\",\"worker\":{\"name\":\"Worker2\"},\"subtasks\":[{\"name\":\"Subtask2.1\",\"worker\":{\"name\":\"Worker2\"}},{\"name\":\"Subtask2.2\",\"worker\":{\"name\":\"Worker3\"}}]}]}")
 			.expect()
 			.statusCode(201)
@@ -248,8 +219,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                    hasSize(1))
@@ -268,8 +237,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                    hasSize(1))
@@ -489,9 +456,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(jsonBody)
 			.expect()
 			.statusCode(201)
@@ -506,8 +470,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                                        hasSize(1))
@@ -536,8 +498,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -567,8 +527,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -586,8 +544,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -605,8 +561,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -637,8 +591,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -671,8 +623,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -697,8 +647,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -723,8 +671,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",		hasSize(3))
@@ -741,8 +687,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			hasSize(5))
@@ -914,9 +858,6 @@ public class DocumentTest extends StructrRestTestBase {
 		final String projectId = getUuidFromLocation(RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(jsonBody1)
 			.expect()
 			.statusCode(201)
@@ -1068,9 +1009,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(jsonBody2)
 			.expect()
 			.statusCode(200)
@@ -1080,8 +1018,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                                        hasSize(1))
@@ -1116,8 +1052,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -1162,8 +1096,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -1184,8 +1116,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -1206,8 +1136,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			                               hasSize(1))
@@ -1252,8 +1180,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",		hasSize(3))
@@ -1273,8 +1199,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result",			hasSize(5))
@@ -1318,8 +1242,6 @@ public class DocumentTest extends StructrRestTestBase {
 		createSchemaRelationships(workerNodeId, taskNodeId,    "WORKS_ON", "*", "*", "worker",     "tasks",    Relation.ALWAYS, Relation.SOURCE_TO_TARGET);
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{\"name\":\"Project1\",\"tasks\":[{\"name\":\"Task1\",\"worker\":[{\"name\":\"Worker1\"}]}]}")
 			.expect()
 			.statusCode(201)
@@ -1328,9 +1250,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.header("Structr-Force-Merge-Of-Nested-Properties", "enabled")
 			.body("{\"name\":\"Project2\",\"tasks\":[{\"name\":\"Task1\",\"worker\":[{\"name\":\"Worker2\"}]}]}")
 			.expect()
@@ -1339,8 +1258,6 @@ public class DocumentTest extends StructrRestTestBase {
 			.post("/Project");
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 
@@ -1377,8 +1294,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// add a task
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [" + task1 + "] }")
 			.expect()
 			.statusCode(200)
@@ -1387,8 +1302,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 
@@ -1404,8 +1317,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// add a single worker using nested PUT
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker1 + "] } ] }")
 			.expect()
 			.statusCode(200)
@@ -1414,8 +1325,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 
@@ -1431,8 +1340,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// add a second worker
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker1 + ", " + worker2 + " ] } ] }")
 			.expect()
 			.statusCode(200)
@@ -1441,8 +1348,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 
@@ -1459,8 +1364,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// replace workers with worker3
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ tasks: [ { id: '" + task1 + "', workers: [ " + worker3 + " ] } ] }")
 			.expect()
 			.statusCode(200)
@@ -1469,8 +1372,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 		// check result
 		RestAssured.given().contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 
@@ -1516,8 +1417,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ task: { id: '" + taskId + "', role: 'Role1' } }")
 
 			.expect()
@@ -1531,8 +1430,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -1572,8 +1469,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ tasks: [ { id: '" + taskId + "', role: 'Role1' } ] }")
 
 			.expect()
@@ -1586,8 +1481,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -1625,8 +1518,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ members: [ { id: '" + child + "', test: 'success!!' } ] }")
 
 			.expect()
@@ -1639,8 +1530,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -1802,10 +1691,6 @@ public class DocumentTest extends StructrRestTestBase {
 			.given()
 			.contentType("application/json; charset=UTF-8")
 			.header("Structr-Return-Details-For-Created-Objects", true)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(jsonBody1)
 			.expect()
 			.statusCode(201)
@@ -1849,8 +1734,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body("{ task: " + testId + " }")
 
 			.expect()
@@ -1876,8 +1759,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body("{ tasks: [ " + testId + " ] }")
 
 			.expect()
@@ -1885,7 +1766,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 			.put("/Project/" + projectId);
-
 	}
 
 	@Test
@@ -1903,8 +1783,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body("{ task: " + testId + "}")
 
 			.expect()
@@ -1912,7 +1790,6 @@ public class DocumentTest extends StructrRestTestBase {
 
 			.when()
 			.put("/Project/" + projectId);
-
 	}
 
 	@Test
@@ -1930,8 +1807,6 @@ public class DocumentTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 			.body("{ tasks: [ " + testId + " ] }")
 
 			.expect()
@@ -2008,7 +1883,7 @@ public class DocumentTest extends StructrRestTestBase {
 			first = false;
 		}
 
-		System.out.println(buf);
+		//System.out.println(buf);
 
 		buf.append("] }");
 

@@ -18,10 +18,6 @@
  */
 package org.structr.test.web;
 
-/**
- *
- *
- */
 public class UiSyncCommandTest extends StructrUiTest {
 	/*
 
@@ -35,13 +31,6 @@ public class UiSyncCommandTest extends StructrUiTest {
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{}")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.response()
 			.contentType("application/json")
@@ -56,13 +45,6 @@ public class UiSyncCommandTest extends StructrUiTest {
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{ mode: export }")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.response()
 			.contentType("application/json")
@@ -149,13 +131,6 @@ public class UiSyncCommandTest extends StructrUiTest {
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{ mode: export, file: '" + fileName + "' }")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.response()
 			.contentType("application/json")
@@ -198,13 +173,6 @@ public class UiSyncCommandTest extends StructrUiTest {
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
 			.body("{ mode: import, file: '" + fileName + "' }")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.response()
 			.contentType("application/json")

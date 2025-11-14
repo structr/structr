@@ -19,7 +19,6 @@
 package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -35,7 +34,6 @@ public class RuntimeEventLogTest extends StructrRestTestBase {
 		RestAssured
 
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.body("{}")
 			.expect()

@@ -328,7 +328,7 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEquals("Invalid autocomplete result", "response",                                         response.get("text"));
 		assertEquals("Invalid autocomplete result", "page",                                             page.get("text"));
 		assertEquals("Invalid autocomplete result", "this",                                             thisObj.get("text"));
-		assertEquals("Invalid autocomplete result", "abbr(str, maxLength[, abbr = '…'])",               abbr.get("text"));
+		assertEquals("Invalid autocomplete result", "abbr(string, maxLength[, abbr = '…'])",            abbr.get("text"));
 		assertEquals("Invalid autocomplete result", "add(values...)",                                   add.get("text"));
 		assertEquals("Invalid autocomplete result", "add_header(name, value)",                          add_header.get("text"));
 

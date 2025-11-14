@@ -19,32 +19,23 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.core.script.ScriptTestHelper;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
-import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
-import org.structr.test.core.script.ScriptingTest;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.*;
 import static org.testng.AssertJUnit.fail;
 
-/**
- *
- *
- */
 public class RestScriptingTest extends StructrRestTestBase {
 
 	@Test
@@ -80,7 +71,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result.test1", matchesPattern(pattern))
 			.body("result.test2", matchesPattern(pattern))
@@ -94,7 +84,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result.test1", matchesPattern(pattern))
 			.body("result.test2", matchesPattern(pattern))
@@ -108,7 +97,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result.test1", matchesPattern(pattern))
 			.body("result.test2", matchesPattern(pattern))
@@ -122,7 +110,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result.test1", equalTo("object"))
 			.body("result.test2", equalTo("object"))
@@ -162,7 +149,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result", hasSize(0))
 			.body("result_count", equalTo(0))
@@ -175,7 +161,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("errorCode", equalTo(42))
 			.body("obj1.key1", equalTo("value1"))
@@ -230,7 +215,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result", equalTo("test"))
 			.statusCode(200)
@@ -277,7 +261,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result", equalTo("test"))
 			.statusCode(200)
@@ -308,7 +291,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result", hasSize(0))
 			.body("result_count", equalTo(0))
@@ -320,7 +302,6 @@ public class RestScriptingTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result", hasSize(1))
 			.body("result_count", equalTo(1))

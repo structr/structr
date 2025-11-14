@@ -18,6 +18,7 @@
  */
 package org.structr.test.common;
 
+import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,12 +57,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
 
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
-/**
- *
- */
 public class StructrTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTest.class.getName());

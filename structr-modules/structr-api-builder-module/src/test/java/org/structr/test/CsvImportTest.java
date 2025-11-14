@@ -21,7 +21,6 @@ package org.structr.test;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
@@ -117,12 +116,6 @@ public class CsvImportTest extends CsvTestBase {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(gson.toJson(params))
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
@@ -239,13 +232,6 @@ public class CsvImportTest extends CsvTestBase {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(gson.toJson(params))
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
@@ -362,13 +348,6 @@ public class CsvImportTest extends CsvTestBase {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(gson.toJson(params))
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
@@ -485,13 +464,6 @@ public class CsvImportTest extends CsvTestBase {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(gson.toJson(params))
 			.expect().statusCode(200).when().post("/File/" + newFileId + "/doCSVImport");
 
@@ -688,12 +660,6 @@ public class CsvImportTest extends CsvTestBase {
 		RestAssured.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body(CsvImportTest.class.getResourceAsStream("/test/projects.csv"))
 			.expect().statusCode(201).when().post("/structr/csv/Project");
 
@@ -767,12 +733,6 @@ public class CsvImportTest extends CsvTestBase {
 		final String actual = RestAssured.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect().statusCode(200)
 			.contentType("text/csv")
 			.when().get("/structr/csv/Project?_sort=name").asString();

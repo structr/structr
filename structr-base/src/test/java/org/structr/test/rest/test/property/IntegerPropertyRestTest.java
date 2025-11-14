@@ -19,16 +19,11 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 
-/**
- *
- *
- */
 public class IntegerPropertyRestTest extends StructrRestTestBase {
 
 	@Test
@@ -47,8 +42,6 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].integerProperty", equalTo(2345))
@@ -68,11 +61,6 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 		// test for three elements
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(4))
@@ -82,11 +70,6 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 		// test strict search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].integerProperty", equalTo(2))
@@ -96,11 +79,6 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 		// test empty value
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -119,11 +97,6 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 		// test range query
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(2))

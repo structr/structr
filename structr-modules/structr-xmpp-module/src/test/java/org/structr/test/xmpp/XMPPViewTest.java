@@ -22,8 +22,6 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
 
-/**
- */
 public class XMPPViewTest extends StructrUiTest {
 
 	@Test
