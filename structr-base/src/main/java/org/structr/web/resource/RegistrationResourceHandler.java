@@ -121,7 +121,6 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 					final Authenticator auth = securityContext.getAuthenticator();
 					user = createUser(ctx, eMailKey, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
-					if (user != null) user.setPassword(passwordString);
 				}
 
 				tx.success();
