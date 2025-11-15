@@ -814,7 +814,8 @@ let Structr = {
 
 			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
 
-			let ui = envInfo.components['structr-app'];
+			let ui = envInfo.components['structr'];
+			console.log(envInfo, ui)
 			if (ui) {
 
 				let build       = ui.build;
