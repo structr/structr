@@ -814,14 +814,13 @@ let Structr = {
 
 			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
 
-			let ui = envInfo.components['structr'];
-			console.log(envInfo, ui)
-			if (ui) {
+			let componentWithVersionInfo = envInfo.components['structr'] ?? envInfo.components['structr-app'];
+			if (componentWithVersionInfo) {
 
-				let build       = ui.build;
-				let date        = ui.date;
+				let build       = componentWithVersionInfo.build;
+				let date        = componentWithVersionInfo.date;
 				let versionInfo = `
-					Structr <span>${ui.version}</span>
+					Structr <span>${componentWithVersionInfo.version}</span>
 					${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
 				`;
 

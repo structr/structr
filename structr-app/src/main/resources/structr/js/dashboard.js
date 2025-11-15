@@ -50,22 +50,18 @@ let _Dashboard = {
 				dashboardUiConfig.envInfo = dashboardUiConfig.envInfo[0];
 			}
 
-			dashboardUiConfig.envInfo.version = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-app']).version || '';
-			dashboardUiConfig.envInfo.build   = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-app']).build   || '';
-			dashboardUiConfig.envInfo.date    = (dashboardUiConfig.envInfo.components['structr'] || dashboardUiConfig.envInfo.components['structr-app']).date    || '';
+			let componentWithVersionInfo      = dashboardUiConfig.envInfo.components['structr'] ?? dashboardUiConfig.envInfo.components['structr-app'];
+			dashboardUiConfig.envInfo.version = componentWithVersionInfo?.version ?? '';
+			dashboardUiConfig.envInfo.build   = componentWithVersionInfo?.build   ?? '';
+			dashboardUiConfig.envInfo.date    = componentWithVersionInfo?.date    ?? '';
 
-			if (dashboardUiConfig.envInfo.startDate) {
-				dashboardUiConfig.envInfo.startDate = dashboardUiConfig.envInfo.startDate.slice(0, 10);
-			}
-
-			if (dashboardUiConfig.envInfo.endDate) {
-				dashboardUiConfig.envInfo.endDate = dashboardUiConfig.envInfo.endDate.slice(0, 10);
-			}
+			dashboardUiConfig.envInfo.startDate = dashboardUiConfig.envInfo.startDate?.slice(0, 10);
+			dashboardUiConfig.envInfo.endDate   = dashboardUiConfig.envInfo.endDate?.slice(0, 10);
 
 			dashboardUiConfig.databaseDriver = Structr.getDatabaseDriverNameForDatabaseServiceName(dashboardUiConfig.envInfo.databaseService);
 
-			let meResponse       = await fetch(Structr.rootUrl + 'me/ui');
-			let meData           = await meResponse.json();
+			let meResponse = await fetch(Structr.rootUrl + 'me/ui');
+			let meData     = await meResponse.json();
 
 			if (Array.isArray(meData.result)) {
 				meData.result = meData.result[0];
