@@ -3129,7 +3129,7 @@ let _Pages = {
 
 				_Pages.unusedElementsTree.append(`
 					<button class="btn disabled flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="delete-all-unattached-nodes" disabled>
-						<span>Loading</span>${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['ml-2'])}
+						<span>Loading</span>${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['ml-2', 'fill-green'])}
 					</button>
 				`);
 

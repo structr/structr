@@ -1231,7 +1231,7 @@ let _Files = {
 			case "START":
 				new InfoMessage().uniqueClass(uniqueClass).title("Extracting file").text(`
 					<div class="flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['mr-2', 'fill-green'])}
 						<span>
 							Extracting <span>${data.file}</span>  in the background.<br>
 							You will be notified when the extraction has finished.
@@ -1805,7 +1805,7 @@ let _Files = {
 			let timeoutIt = window.setTimeout(() => {
 				container.appendChild(_Helpers.createSingleDOMElementFromHTML(`
 					<div class="flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['mr-2', 'fill-green'])}
 						<span>Running fulltext search for "${searchString}" - please stand by</span>
 					</div>`)
 				);

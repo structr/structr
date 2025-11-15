@@ -698,7 +698,7 @@ let _Crud = {
 						if (!isRetry) {
 							_Crud.objectList.list(type, url, true);
 						} else {
-							_Crud.helpers.delayedMessage.showMessageAfterDelay(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
+							_Crud.helpers.delayedMessage.showMessageAfterDelay(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['mr-2', 'fill-green']) + ' View is too large - please select different view', 1);
 						}
 
 					} else {
@@ -2510,7 +2510,7 @@ let _Crud = {
 
 				let resultsContainer = _Helpers.createSingleDOMElementFromHTML(`
 					<div id="results-for-${type}" class="searchResultGroup resourceBox">
-						<span class="flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}</span>
+						<span class="flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['mr-2', 'fill-green'])} Searching for "${searchString}" in ${type}</span>
 					</div>
 				`);
 
@@ -2961,7 +2961,7 @@ let _Crud = {
 			messageTimeout: undefined,
 			showLoadingMessageAfterDelay: (message, delay) => {
 
-				_Crud.helpers.delayedMessage.showMessageAfterDelay(`${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
+				_Crud.helpers.delayedMessage.showMessageAfterDelay(`${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['mr-2', 'fill-green'])}<span>${message} - please stand by</span>`, delay);
 			},
 			showMessageAfterDelay: (message, delay) => {
 

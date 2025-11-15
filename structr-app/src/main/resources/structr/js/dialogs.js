@@ -437,8 +437,8 @@ let _Dialogs = {
 			_Dialogs.spinner.hide();
 
 			let spinnerHTML = `
-				<div id="${_Dialogs.spinner.id}">
-					${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 36, 36)}
+				<div id="${_Dialogs.spinner.id}" class="m-auto">
+					${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 36, 36, ['fill-green'])}
 				</div>
 			`;
 
@@ -464,7 +464,7 @@ let _Dialogs = {
 			let loadingMessage = `
 				<div id="${messageId}" class="dialog text-center">
 					<div class="flex items-center justify-center">
-						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['mr-2', 'fill-green'])}<b>${title}</b>
 					</div>
 					<br>
 					${text}

@@ -163,7 +163,6 @@ let Structr = {
 	wsRoot         : _Helpers.getPrefixedRootUrl('/structr/ws'),
 	deployRoot     : _Helpers.getPrefixedRootUrl('/structr/deploy'),
 	dynamicClassPrefix: 'org.structr.dynamic.',
-	getFQCNForDynamicTypeName: name => Structr.dynamicClassPrefix + name,
 	notificationIconId: 'notifications-icon',
 	ignoreKeyUp: undefined,
 	isInMemoryDatabase: undefined,
@@ -302,7 +301,7 @@ let Structr = {
 			_Console.initConsole();
 
 			document.querySelector('#header #terminal-icon').addEventListener('click', _Console.toggleConsole);
-			document.querySelector('#header #' + Structr.notificationIconId).addEventListener('click', () => {
+			document.querySelector(`#header #${Structr.notificationIconId}`).addEventListener('click', () => {
 
 				Structr.setForceShowNotificationAreaState(true);
 				Structr.determineNotificationAreaVisibility();
@@ -1684,7 +1683,7 @@ let Structr = {
 
 					<div class="flex items-center">
 						<span>Trying to reconnect...</span>
-						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'ml-2')}
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['ml-2', 'fill-green'])}
 					</div>
 				</div>
 			</div>
@@ -1959,11 +1958,15 @@ let Structr = {
 					</div>
 				</div>
 
-				<div class="relative flex ml-2 mr-6">
-					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mr-4']), 'Toggle Console')}
-					${_Icons.getSvgIconWithID(Structr.notificationIconId, _Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
-					<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
-						<div data-notification-count class="px-2 text-xs empty:hidden"></div>
+				<div class="flex gap-4 ml-2 mr-6">
+
+					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
+
+					<div id="${Structr.notificationIconId}" class="relative">
+						${_Icons.getSvgIcon(_Icons.iconNotificationBell, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1']), 'Show notifications')}
+						<div class="absolute flex items-center rounded-full h-4 -top-1 -right-3 text-white bg-red">
+							<div data-notification-count class="px-2 text-xs empty:hidden"></div>
+						</div>
 					</div>
 				</div>
 
@@ -2656,7 +2659,7 @@ class MessageBuilder {
 			this.updateLastShownTime(message);
 		}
 
-		this.updateNotificationIcon();
+		this.updateNotificationIcon(true);
 	};
 
 	dismiss() {
@@ -2686,7 +2689,7 @@ class MessageBuilder {
 
 		_Helpers.fastRemoveElement(msgElement);
 
-		this.updateNotificationIcon();
+		this.updateNotificationIcon(false);
 	}
 
 	updateLastShownTime(messageEl) {
@@ -2698,7 +2701,7 @@ class MessageBuilder {
 		timeEl.textContent = datetimeString;
 	}
 
-	updateNotificationIcon() {
+	updateNotificationIcon(notificationAdded = false) {
 
 		let messageArea  = MessageBuilder.getMessagesContainer();
 		let messageCount = messageArea.querySelectorAll('.message').length;
@@ -2707,6 +2710,18 @@ class MessageBuilder {
 		let hasMessages = (messageCount > 0);
 
 		notificationCountElement.textContent = (hasMessages ? messageCount : '');
+
+		if (notificationAdded) {
+
+			// add short shake animation
+			let notificationIcon = document.getElementById(Structr.notificationIconId);
+			notificationIcon.addEventListener('animationend', (e) => {
+				e.target.classList.remove('shake');
+			}, {
+				once: true
+			});
+			notificationIcon.classList.add('shake');
+		}
 
 		if (!hasMessages) {
 			Structr.setForceShowNotificationAreaState(false);

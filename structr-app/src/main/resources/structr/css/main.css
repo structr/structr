@@ -285,7 +285,7 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 	fill: none;
 }
 .fill-green {
-	color: var(--icon-color-dark-green);
+	fill: var(--structr-green);
 }
 .fill-grey {
 	fill: var(--icon-stroke);
@@ -4017,6 +4017,9 @@ ul.combined-input-select-field li:hover {
 .h-1\/2 {
 	height: 50%;
 }
+.m-auto {
+    margin: auto;
+}
 .m-0 {
 	margin: 0;
 }
@@ -4776,3 +4779,28 @@ ul.combined-input-select-field li:hover {
 /**
  * END Tailwind classes
  */
+
+
+/* BEGIN special tailwind-style classes */
+/* conditionally show spinner if group has class show-spinner */
+.group-\[\.show-spinner\]\:block {
+    &:is(:where(.group):is(.show-spinner) *) {
+        display: block;
+    }
+}
+/* END special tailwind-style classes */
+
+/* BEGIN shake animation for notification bell */
+.shake {
+    animation: shake 1s ease-in-out 0s 2 alternate forwards;
+}
+
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); transform-origin: 50% 0; }
+    10% { transform: rotate(3deg); }
+    20%, 40%, 60% { transform: rotate(-6deg); }
+    30%, 50%, 70% { transform: rotate(6deg); }
+    80% { transform: rotate(-3deg); }
+    90% { transform: rotate(3deg); }
+}
+/* END shake animation for notification bell */
