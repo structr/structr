@@ -237,6 +237,8 @@ export class Frontend {
 
 	handleResult(element, json, status, options, headers = {}) {
 
+		this.notifyElementActionFinished(element);
+
 		switch (status) {
 
 			case 200:
@@ -746,11 +748,13 @@ export class Frontend {
 
 		let id = data.structrId;
 
-		// special handling for possible sort keys (can contain multiple values, separated by ,)
+		// special handling for possible sort keys (can contain multiple values, separated by ',')
 		let sortKey = this.getFirst(data.structrTarget);
 
 		// special handling for frontend-only events (pagination, sorting)
 		if (sortKey && data[sortKey]) {
+
+			this.notifyElementActionStarted(target);
 
 			// The above condition is true when the dataset of an element contains a value with the same name as the
 			// data-structr-target attribute. This is currently only true for pagination and sorting, where
@@ -769,8 +773,9 @@ export class Frontend {
 				if(!window.confirm(dialogMessage)) {
 					return; // Exit on 'Cancel' doHandleGenericEvent without fire main Event
 				}
-
 			}
+
+			this.notifyElementActionStarted(target);
 
 			this.fireEvent('start', { target: target, data: data, event: event });
 
@@ -1073,6 +1078,23 @@ export class Frontend {
 				break;
 		}
 
+	}
+
+
+	static actionRunningClassname = 'structr-action-running';
+
+	notifyElementActionStarted(element) {
+
+		element.classList.add(Frontend.actionRunningClassname);
+
+		element.dispatchEvent(new CustomEvent('structr-action-started', { bubbles: true }));
+	}
+
+	notifyElementActionFinished(element) {
+
+		element.classList.remove(Frontend.actionRunningClassname);
+
+		element.dispatchEvent(new CustomEvent('structr-action-finished', { bubbles: true }));
 	}
 }
 
