@@ -113,6 +113,7 @@ public class ScriptMethod extends AbstractMethod {
 			}
 
 			snippet.setEngineName(splitSource[0]);
+			snippet.setCodeSource(uuid);
 		}
 
 		return snippet;
