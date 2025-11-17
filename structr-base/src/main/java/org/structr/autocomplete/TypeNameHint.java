@@ -34,8 +34,13 @@ public class TypeNameHint extends AbstractHint {
 	}
 
 	@Override
-	public String getShortDescription() {
+	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Schema type **" + simpleTypeName + "**";
 	}
 
 	@Override
@@ -70,22 +75,16 @@ public class TypeNameHint extends AbstractHint {
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
+		return List.of();
 	}
 
 	@Override
 	public List<String> createMarkdownDocumentation() {
-		return List.of("Schema type **" + simpleTypeName + "**");
+		return List.of(getShortDescription());
 	}
 
 	@Override
 	public DocumentableType getType() {
 		return DocumentableType.TypeName;
-	}
-
-	@Override
-	public String getName() {
-		return "";
 	}
 }
