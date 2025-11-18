@@ -39,18 +39,18 @@ public class PredicateHint extends KeywordHint {
 	@Override
 	public String getLongDescription() {
 		return """
-			The `$.predicate` keyword allows you to access a set of query predicates for advanced `find()`.
-			
-			The following predicates are available.
-			
-			| Name | Description |
-			| --- | --- |
-			| $.predicate.and() | combine other predicates with AND |
-			| $.predicate.or() | combine other predicates with OR |
-			| $.predicate.contains() | contains query |
-			| $.predicate.page() | database-based pagination |
-			| $.predicate.sort() | database-based sorting |
-			| ... | ... |
+		The `$.predicate` keyword allows you to access a set of query predicates for advanced `find()`.
+
+		The following predicates are available.
+
+		| Name | Description |
+		| --- | --- |
+		| `$.predicate.and()` | combine other predicates with AND |
+		| `$.predicate.or()` | combine other predicates with OR |
+		| `$.predicate.contains()` | contains query |
+		| `$.predicate.page()` | database-based pagination |
+		| `$.predicate.sort()` | database-based sorting |
+		| ... | ... |
 		""";
 	}
 
