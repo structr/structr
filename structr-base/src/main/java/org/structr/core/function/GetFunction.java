@@ -31,6 +31,8 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -168,6 +170,38 @@ public class GetFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				Returns the value for the given property key from the given entity. 
+				This method will print an error message if the first parameter is null / not accessible. 
+				See `get_or_null()` for a more tolerant get method.
+				""";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.javaScript(
+						"""
+						${get(page, 'name')}"""
+				)
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The result value of the get() method can differ from the result value of property access using the dot notation (`get(this, 'name')` vs `this.name`) for certain property types (e.g. date properties), because get() converts the property value to its output representation.",
+				"That means that a Date object will be formatted into a string when fetched via `get(this, 'date')`, whereas `this.date` will return an actual date object."
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "node or object"),
+				Parameter.mandatory("propertyKey", "requested property name")
+				);
+	}
+
 }

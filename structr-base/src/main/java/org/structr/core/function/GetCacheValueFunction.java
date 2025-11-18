@@ -22,8 +22,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -70,11 +72,30 @@ public class GetCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Retrieves the cached value for the given key. Returns null if no cached value exists.";
+		return "Retrieves the cached value for the given key.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			   Returns null if there is no stored value for the given key or if the stored value is expired.""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.javaScript(
+				"""
+				${get_cache_value('externalResult')}
+				"""
+				)
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "cache key")
+		);
 	}
 }

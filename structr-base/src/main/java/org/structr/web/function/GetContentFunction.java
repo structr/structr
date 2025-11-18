@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -114,8 +115,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 	public List<Example> getExamples() {
 		return List.of(Example.javaScript(
 				"""
-				${get_content(first(find('File', 'name', 'test.txt')))}
-				"""
+				${get_content(first(find('File', 'name', 'test.txt')))}"""
 				)
 		);
 	}
@@ -125,6 +125,15 @@ public class GetContentFunction extends UiAdvancedFunction {
 		return List.of(
 				"The parameter `encoding` is available from version 2.3.9+",
 				"This function is not recommended for raw binary content!"
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("file", "source file to extract content"),
+				Parameter.optional("encoding", "encoding of source data")
 		);
 	}
 }

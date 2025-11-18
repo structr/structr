@@ -28,8 +28,10 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -146,7 +148,6 @@ public class GetOrCreateFunction extends CoreFunction {
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
-
 		}
 	}
 
@@ -165,6 +166,51 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				`get_or_create()` finds and returns a single object with the given properties 
+				(key/value pairs or a map of properties) and **creates** that object if it does not exist yet.
+				The function accepts three different parameter combinations, where the first parameter is always the 
+				name of the type to retrieve from the database. The second parameter can either 
+				be a map (e.g. a result from nested function calls) or a list of (key, value) pairs.
+				""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				${get_or_create('User', 'name', 'admin')}
+				> 7379af469cd645aebe1a3f8d52b105bd
+				${get_or_create('User', 'name', 'admin')}
+				> 7379af469cd645aebe1a3f8d52b105bd
+				${get_or_create('User', 'name', 'admin')}
+				> 7379af469cd645aebe1a3f8d52b105bd
+				""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object.")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The `get_or_create()` method will always use **exact** search, if you are interested in inexact / case-insensitive search, use `search()`.",
+				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("type", "type of node"),
+				Parameter.optional("map", "values map (only for javascript)"),
+				Parameter.optional("key1", "key for key-value-pair 1 (only for structrScript)"),
+				Parameter.optional("value1", "value for key-value-pair 1 (only for structrScript)"),
+				Parameter.optional("key2", "key for key-value-pair 2 (only for structrScript)"),
+				Parameter.optional("value2", "value for key-value-pair 2 (only for structrScript)"),
+				Parameter.optional("keyN", "key for key-value-pair N (only for structrScript)"),
+				Parameter.optional("valueN", "value for key-value-pair N (only for structrScript)")
+		);
 	}
 }

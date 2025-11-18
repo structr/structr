@@ -25,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -115,6 +117,27 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Returns the value for the given property key from the given entity, but doesn't print an error message when the given entity is not accessible. 
+		See `get()` for the equivalent method that prints an error if the first argument is null.""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.javaScript(
+						"""
+						${get_or_null(page, 'name')}"""
+				)
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "node or object"),
+				Parameter.mandatory("propertyKey", "requested property name")
+				);
 	}
 }
