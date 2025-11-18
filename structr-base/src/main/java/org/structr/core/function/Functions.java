@@ -29,6 +29,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.StructrScriptException;
+import org.structr.core.script.polyglot.function.DoAsFunction;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
+import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
+import org.structr.docs.Documentable;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -293,6 +297,23 @@ public class Functions {
 		return result;
 	}
 
+	public static void addExpressions(final List<Documentable> functions) {
+
+		functions.add(new DoInNewTransactionFunction(null, null));
+		functions.add(new DoPrivilegedFunction(null));
+		functions.add(new DoAsFunction(null));
+		functions.add(new CacheExpression(0, 0));
+		functions.add(new IfExpression(0, 0));
+		functions.add(new IsExpression(0, 0));
+		functions.add(new EachExpression(0, 0));
+		functions.add(new FilterExpression(0, 0));
+		functions.add(new MapExpression(0, 0));
+		functions.add(new ReduceExpression(0, 0));
+		functions.add(new AnyExpression(0, 0));
+		functions.add(new AllExpression(0, 0));
+		functions.add(new NoneExpression(0, 0));
+	}
+
 	// ----- private methods -----
 	private static Expression checkReservedWords(final String word, final int level, final Map<Integer, String> namespace, final int row, final int column) throws FrameworkException {
 
@@ -330,7 +351,7 @@ public class Functions {
 				return new ReduceExpression(row, column);
 
 			case "slice":
-				return new SliceExpression(row, column);
+				throw new FrameworkException(422, "The slice() function is not supported any more, please use the page() predicate which does exactly the same, but with database support.");
 
 			case "data":
 				return new ValueExpression("data", row, column);

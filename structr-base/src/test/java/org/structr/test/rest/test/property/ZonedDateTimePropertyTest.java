@@ -19,7 +19,6 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -43,8 +42,6 @@ public class ZonedDateTimePropertyTest extends StructrRestTestBase {
 
         RestAssured.given()
                 .contentType("application/json; charset=UTF-8")
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-                .filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
                 .expect()
                 .statusCode(200)
                 .body("result[0].zonedDateTime", equalTo("2013-04-05T10:43:40+02:00"))

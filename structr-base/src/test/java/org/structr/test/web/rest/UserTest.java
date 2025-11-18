@@ -19,7 +19,6 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
@@ -38,10 +37,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.testng.Assert.fail;
 import static org.testng.AssertJUnit.assertEquals;
 
-/**
- *
- *
- */
 public class UserTest extends StructrUiTest {
 
 	@Test
@@ -55,13 +50,6 @@ public class UserTest extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.body("{ 'name': 'Administrator', 'password': 'test', 'isAdmin': true }")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(401)
 			.when()
@@ -74,13 +62,6 @@ public class UserTest extends StructrUiTest {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.body("{ 'name': 'Administrator', 'password': 'test', 'isAdmin': true }")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(422)
 			.when()
@@ -93,13 +74,6 @@ public class UserTest extends StructrUiTest {
 				.header(X_USER_HEADER, "user")
 				.header(X_PASSWORD_HEADER, "password")
 				.body("{ 'name': 'Administrator', 'password': 'test', 'isAdmin': true }")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(422)
 			.when()
@@ -112,12 +86,6 @@ public class UserTest extends StructrUiTest {
 				.header(X_USER_HEADER, ADMIN_USERNAME)
 				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.body("{ 'name': 'Administrator', 'password': 'test', 'isAdmin': true }")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(201)
 			.when()
@@ -156,12 +124,6 @@ public class UserTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER, "user")
 			.header(X_PASSWORD_HEADER, "password")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.body("result.funcTest", equalTo(uuid))
 			.statusCode(200)
@@ -173,12 +135,6 @@ public class UserTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER, "user")
 			.header(X_PASSWORD_HEADER, "password")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.body("result[0].funcTest", equalTo(uuid))
 			.statusCode(200)
@@ -190,12 +146,6 @@ public class UserTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header(X_USER_HEADER, "user")
 			.header(X_PASSWORD_HEADER, "password")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.body("result.funcTest", equalTo(uuid))
 			.statusCode(200)
@@ -216,13 +166,6 @@ public class UserTest extends StructrUiTest {
 			.body("{}")
 			.header(X_USER_HEADER, "admin")
 			.header(X_PASSWORD_HEADER, "admin")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(422)
 			.body("code", equalTo(422))

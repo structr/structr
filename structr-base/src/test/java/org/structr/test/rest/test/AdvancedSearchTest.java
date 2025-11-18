@@ -19,7 +19,6 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -50,10 +49,6 @@ import static org.hamcrest.Matchers.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-/**
- *
- *
- */
 public class AdvancedSearchTest extends StructrRestTestBase {
 
 	private static final Logger logger = LoggerFactory.getLogger(AdvancedSearchTest.class.getName());
@@ -291,7 +286,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -541,8 +535,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -687,8 +679,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -755,12 +745,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -786,12 +770,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -811,12 +789,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -836,12 +808,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -860,13 +826,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -883,12 +842,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -906,12 +859,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 					.statusCode(200)
@@ -969,12 +916,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -991,12 +932,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -1014,12 +949,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 				.statusCode(200)
@@ -1037,12 +966,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 				.statusCode(200)
@@ -1102,7 +1025,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -1129,7 +1051,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 
 			.expect()
 				.statusCode(200)
@@ -1187,12 +1108,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 				.statusCode(200)
@@ -1210,12 +1125,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 				.statusCode(200)
@@ -1234,12 +1143,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 				.statusCode(200)
@@ -1258,12 +1161,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 				.expect()
 				.statusCode(200)
@@ -1324,7 +1221,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.body("result",	              hasSize(0))
@@ -1334,7 +1230,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.body("result",	              hasSize(3))
@@ -1344,7 +1239,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.body("result",	              hasSize(6))
@@ -1354,7 +1248,6 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.body("result",	              hasSize(3))

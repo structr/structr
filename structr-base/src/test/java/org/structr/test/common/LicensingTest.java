@@ -52,18 +52,12 @@ public class LicensingTest {
 
 	@BeforeMethod
 	protected void starting(final Method method) {
-
-		System.out.println("######################################################################################");
-		System.out.println("# Starting " + getClass().getName() + "#" + method.getName());
-		System.out.println("######################################################################################");
+		System.out.println("##### Starting " + getClass().getName() + "#" + method.getName());
 	}
 
 	@AfterMethod
 	protected void finished(final Method method) {
-
-		System.out.println("######################################################################################");
-		System.out.println("# Finished " + getClass().getName() + "#" + method.getName());
-		System.out.println("######################################################################################");
+		System.out.println("##### Finished " + getClass().getName() + "#" + method.getName());
 	}
 
 	@AfterMethod

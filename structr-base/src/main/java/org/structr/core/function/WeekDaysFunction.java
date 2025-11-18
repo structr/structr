@@ -71,7 +71,7 @@ public class WeekDaysFunction extends CoreFunction {
 
 			} catch (Exception ex) {
 
-				logger.warn("{}: Could not calculate week days. Parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
+				logger.warn("{}: Could not calculate week days. Parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 
 			}
 

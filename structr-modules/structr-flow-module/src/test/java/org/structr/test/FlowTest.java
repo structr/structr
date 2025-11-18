@@ -19,7 +19,6 @@
 package org.structr.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
@@ -412,7 +411,6 @@ public class FlowTest extends StructrUiTest {
 		.given()
 			.accept("text/html")
 			.headers("X-User", "admin" , "X-Password", "admin")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 		.expect()
 			.statusCode(200)

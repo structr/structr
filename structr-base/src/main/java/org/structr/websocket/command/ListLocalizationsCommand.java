@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
-import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -39,6 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -96,10 +96,18 @@ public class ListLocalizationsCommand extends AbstractCommand {
 					getWebSocket().getRequest().getParameterMap().putAll(parameterMap);
 				}
 
+				/* CHM 17.11.2025: this fixes the Localization tab but not 100%
 				// after the query string so it is overwritten (if present)
-				getWebSocket().getRequest().getParameterMap().put(RequestKeywords.Locale.toString(), new String[]{ locale });
+				final StructrWebSocket websocket = getWebSocket();
+				final HttpServletRequest request = websocket.getRequest();
+				final Map<String, String[]> map  = request.getParameterMap();
+
+				map.put(RequestKeywords.Locale.toString(), new String[]{ locale });
 
 				rCtx.setLocale(securityContext.getEffectiveLocale());
+				*/
+
+				rCtx.setLocale(Locale.forLanguageTag(locale));
 
 				if (detailsObjectId != null) {
 

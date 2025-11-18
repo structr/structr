@@ -26,7 +26,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
-import org.structr.docs.*;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -36,35 +39,6 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "add_to_group";
-	}
-
-	@Override
-	public List<Parameter> getParameters() {
-
-		return List.of(
-			Parameter.mandatory("group", "group to add to"),
-			Parameter.mandatory("principal", "user or group to add to the given group")
-		);
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return null;
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return null;
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return Language.all();
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("group, user");
 	}
 
 	@Override
@@ -107,6 +81,30 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("group", "group to add to"),
+			Parameter.mandatory("principal", "user or group to add to the given group")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return Language.all();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("group, user");
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${add_to_group(group, user)}"),
@@ -116,7 +114,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds a user to a group.";
+		return "Adds the given user as a member of the given group.";
 	}
 
 	@Override

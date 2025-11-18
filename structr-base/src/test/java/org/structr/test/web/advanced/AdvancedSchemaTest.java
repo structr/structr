@@ -19,7 +19,6 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -106,12 +105,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
@@ -137,12 +130,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
@@ -225,12 +212,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
@@ -322,12 +303,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 				.expect()
@@ -476,11 +451,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -505,12 +475,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -707,11 +671,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -736,12 +695,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -936,11 +889,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -965,12 +913,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -1105,11 +1047,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -1127,11 +1064,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -1318,12 +1250,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 					.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 					.expect()
@@ -1344,12 +1270,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -1446,7 +1366,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.given()
 			.contentType("application/json; charset=UTF-8")
 			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 
@@ -1464,7 +1383,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 			.given()
 			.contentType("application/json; charset=UTF-8")
 			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 
@@ -1484,7 +1402,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()
@@ -1509,7 +1426,6 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 			.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 
 			.expect()

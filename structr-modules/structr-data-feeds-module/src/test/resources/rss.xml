@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <atom:link href="https://structr.com/blog/rss" rel="self" type="application/rss+xml" />
+        <title>Structr Blog</title>
+        <link>https://structr.com/blog</link>
+        <description>This is the official Structr blog</description>
+        <language>en-us</language>
+        <copyright>Structr GmbH</copyright>
+        <pubDate>Fri, 10 Dec 2021 00:00:00 +0100</pubDate>
+        <image>
+            <url>https://structr.com/structr_gray_200x54.png</url>
+            <title>Structr Blog</title>
+            <link>https://structr.com/blog</link>
+        </image>
+        <item>
+            <title>Structr 4.0: New major release of the low-code/graph platform available</title>
+            <description>We are happy to finally announce the new version 4, already eagerly awaited by many customers, users and fans.
+
+                The new version is a big…</description>
+            <link>https://structr.com/blog/structr-40--new-major-release-of-the-low-code-graph-platform-available</link>
+            <category>Announcement</category><category>Structr</category><category>Low-Code</category>
+            <author>feedback@structr.com (Blog Feedback)</author>
+            <guid>https://structr.com/blog/structr-40--new-major-release-of-the-low-code-graph-platform-available</guid>
+            <pubDate>Fri, 10 Dec 2021 00:00:00 +0100</pubDate>
+        </item>    <item>
+        <title>Structr GmbH and Bitsion® Announce Cooperation Agreement</title>
+        <description>We are pleased to announce a partnership agreement between Structr GmbH and Bitsion®. By combining our individual strengths into a…</description>
+        <link>https://structr.com/blog/structr-gmbh-and-bitsion-announce-cooperation-agreement</link>
+        <category>Announcement</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/structr-gmbh-and-bitsion-announce-cooperation-agreement</guid>
+        <pubDate>Thu, 18 Mar 2021 00:00:00 +0100</pubDate>
+    </item>    <item>
+        <title>How a Combined Low-Code/Pro-Code Approach Compares to Classic Digitalization Strategies</title>
+        <description>If we look at the benefits of different strategies in digitization projects, we have to make decisions based on the requirements, the…</description>
+        <link>https://structr.com/blog/how-a-combined-low-code-pro-code-approach-compares-to-classic-digitalization-strategies</link>
+        <category></category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/how-a-combined-low-code-pro-code-approach-compares-to-classic-digitalization-strategies</guid>
+        <pubDate>Thu, 04 Feb 2021 00:00:00 +0100</pubDate>
+    </item>    <item>
+        <title>Preserving Environmental Quality with Structr</title>
+        <description>In our latest customer success story you can read how a municipality in the Netherlands uses Structr to ensure that important landscape…</description>
+        <link>https://structr.com/blog/preserving-environmental-quality-with-structr</link>
+        <category>Structr</category><category>Announcement</category><category>Customer Success Story</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/preserving-environmental-quality-with-structr</guid>
+        <pubDate>Tue, 02 Jun 2020 00:00:00 +0200</pubDate>
+    </item>    <item>
+        <title>Structr 3.5: A Big Step for Low-Code Development and Graph Technology</title>
+        <description>Frankfurt/Main, May 19, 2020 – Structr GmbH today announced the general availability of their new release Structr 3.5. Structr is a…</description>
+        <link>https://structr.com/blog/structr-3-5-a-big-step-for-low-code-development-and-graph-technology</link>
+        <category>Announcement</category><category>Structr</category><category>Low-Code</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/structr-3-5-a-big-step-for-low-code-development-and-graph-technology</guid>
+        <pubDate>Tue, 19 May 2020 00:00:00 +0200</pubDate>
+    </item>    <item>
+        <title>Structr 3.5: Ein großer Schritt für Low-Code Development und Graph-Technologie</title>
+        <description>Frankfurt/Main, 19.5.2020 – Die Structr GmbH gab heute die allgemeine Verfügbarkeit ihres neuen Releases Structr 3.5 bekannt. Structr ist…</description>
+        <link>https://structr.com/blog/structr-3-5-ein-grosser-schritt-fuer-low-code-development-und-graph-technologie</link>
+        <category>Announcement</category><category>Structr</category><category>Low-Code</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/structr-3-5-ein-grosser-schritt-fuer-low-code-development-und-graph-technologie</guid>
+        <pubDate>Tue, 19 May 2020 00:00:00 +0200</pubDate>
+    </item>    <item>
+        <title>Open Source and License Keys - A Contradiction?</title>
+        <description>We get lots of questions about Structr&apos;s open source licensing model and our license keys system. This article will answer the most…</description>
+        <link>https://structr.com/blog/open-source-and-license-keys-a-contradiction</link>
+        <category>Free Software</category><category>Open Source</category><category>Structr</category><category>License</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/open-source-and-license-keys-a-contradiction</guid>
+        <pubDate>Fri, 08 Nov 2019 00:00:00 +0100</pubDate>
+    </item>    <item>
+        <title>Structr 3.3: Mehr Sicherheit, Data Deployment, Vereinfachung komplexer Abfragen</title>
+        <description>Wir freuen uns sehr, heute eine neue Version von Structr freigeben zu können. Release 3.3 hat neben vielen kleineren Verbesserungen und…</description>
+        <link>https://structr.com/blog/structr-3-3-freigegeben</link>
+        <category>Announcement</category><category>DE</category><category>Structr</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/structr-3-3-freigegeben</guid>
+        <pubDate>Wed, 12 Jun 2019 00:00:00 +0200</pubDate>
+    </item>    <item>
+        <title>Structr 3.3: Better Security, Data Deployment, Easier Complex Queries</title>
+        <description>We are happy to release a new version of Structr today. Release 3.3 has many minor improvements and bug fixes as well as the some…</description>
+        <link>https://structr.com/blog/structr-3-3-released</link>
+        <category>Announcement</category><category>Structr</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/structr-3-3-released</guid>
+        <pubDate>Wed, 12 Jun 2019 00:00:00 +0200</pubDate>
+    </item>    <item>
+        <title>Vortrag bei der JUGF: Flow-basierte Programmierung mit Structr und Neo4j</title>
+        <description>Gestern abend durfte ich bei der Java User Group Frankfurt (JUGF) einen Vortrag über Flow-basierte Programmierung mit Structr und Neo4j…</description>
+        <link>https://structr.com/blog/vortrag-bei-der-jugf-flow-basierte-programmierung-mit-structr-und-neo4j</link>
+        <category>Frankfurt</category><category>Structr</category><category>DE</category><category>Vortrag</category>
+        <author>feedback@structr.com (Blog Feedback)</author>
+        <guid>https://structr.com/blog/vortrag-bei-der-jugf-flow-basierte-programmierung-mit-structr-und-neo4j</guid>
+        <pubDate>Thu, 28 Mar 2019 00:00:00 +0100</pubDate>
+    </item>
+    </channel>
+
+</rss>

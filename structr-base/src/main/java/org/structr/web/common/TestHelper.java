@@ -19,7 +19,6 @@
 package org.structr.web.common;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
@@ -36,8 +35,6 @@ import java.io.InputStream;
 import java.util.*;
 import java.util.Map.Entry;
 
-/**
- */
 public class TestHelper {
 
 	public static void testViews(final App app, final InputStream specificationSource, final Map<String, List<String>> additionalRequiredAttributes) {
@@ -160,12 +157,6 @@ public class TestHelper {
 						.given()
 						.header("X-User",     "admin")
 						.header("X-Password", "admin")
-						//.filter(RequestLoggingFilter.logRequestTo(System.out))
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-						.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 						.body(body)
 						.expect()
 						.statusCode(201)
@@ -183,7 +174,6 @@ public class TestHelper {
 							.given()
 							.header("X-User",     "admin")
 							.header("X-Password", "admin")
-							.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 							.expect()
 							.statusCode(200)
 							.when()

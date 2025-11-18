@@ -22,7 +22,7 @@ import java.util.List;
 
 public enum Language {
 
-	Javascript,
+	JavaScript,
 	StructrScript;
 
 	public static List<Language> all() {

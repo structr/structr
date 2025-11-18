@@ -19,7 +19,6 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -69,7 +68,6 @@ public class NestedResourcesTest extends StructrUiTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.header(X_USER_HEADER,     "user1")
 					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
@@ -148,7 +146,6 @@ public class NestedResourcesTest extends StructrUiTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.header(X_USER_HEADER,     "user1")
 					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
@@ -186,7 +183,6 @@ public class NestedResourcesTest extends StructrUiTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.header(X_USER_HEADER,     "user1")
 					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
@@ -279,7 +275,6 @@ public class NestedResourcesTest extends StructrUiTest {
 
 				.given()
 					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.header(X_USER_HEADER,     "user1")
 					.header(X_PASSWORD_HEADER, "password1")
 				.expect()
@@ -338,7 +333,6 @@ public class NestedResourcesTest extends StructrUiTest {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.header(X_USER_HEADER,     ADMIN_USERNAME)
 				.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()

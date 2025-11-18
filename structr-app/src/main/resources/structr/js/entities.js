@@ -1698,7 +1698,7 @@ let _Entities = {
 
 			let ownerSelect      = $('#' + owner_select_id, container);
 			let granteeSelect    = $('#newPrincipal', container);
-			let spinnerIcon      = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['absolute', 'right-0']));
+			let spinnerIcon      = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['absolute', 'right-0', 'fill-green']));
 			granteeSelect.parent()[0].appendChild(spinnerIcon);
 
 			Command.getByType('Principal', null, null, 'name', 'asc', requiredAttributesForPrincipals, false, (principals) => {

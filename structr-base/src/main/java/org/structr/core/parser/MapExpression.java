@@ -21,9 +21,11 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -71,8 +73,12 @@ public class MapExpression extends Expression {
 			return ERROR_MESSAGE_MAP;
 		}
 
-		final Object listSource = listExpression.evaluate(ctx, entity, hints);
-		final List target       = new LinkedList<>();
+		final List target = new LinkedList<>();
+		Object listSource = listExpression.evaluate(ctx, entity, hints);
+
+		if (listSource != null && listSource.getClass().isArray()) {
+			listSource = Arrays.asList((Object[]) listSource);
+		}
 
 		if (listSource != null && listSource instanceof Iterable) {
 
@@ -95,5 +101,62 @@ public class MapExpression extends Expression {
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
+	}
+
+	@Override
+	public String getName() {
+		return "map";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Transforms a list using a transformation expression.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function evaluates the transformationExpression for each element of the list and returns the list of transformed values. Inside the expression function, the keyword `data` refers to the current element. See also: `each()` and `filter()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("list", "list of elements to loop over"),
+			Parameter.mandatory("transformationExpression", "transformation expression that is applied to each element")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${map(find('User'), data.name)}", "Return only the names of all users")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (`Array.prototype.map()`).",
+			"The collection can also be a list of strings or numbers (see example 2)."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of(
+			Signature.structrScript("list, transformationExpression")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${map(list, transformationExpression)}. Example: ${map(user.groups, data.name)}")
+		);
 	}
 }

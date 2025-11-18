@@ -19,8 +19,6 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -239,8 +237,6 @@ public class CacheTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -266,8 +262,6 @@ public class CacheTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.when()

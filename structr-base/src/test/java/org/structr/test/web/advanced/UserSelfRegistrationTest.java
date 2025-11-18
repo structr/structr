@@ -19,7 +19,6 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import io.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
@@ -266,7 +265,6 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.body("{ eMail: '" + eMail + "', password: 'incorrect' }")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(401)
 			.body("code", equalTo(401))
@@ -278,7 +276,6 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.body("{ eMail: '" + eMail + "', password: 'correct' }")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.body("result.type",   equalTo(StructrTraits.USER))

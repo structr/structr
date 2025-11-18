@@ -22,71 +22,34 @@ import org.structr.docs.*;
 
 import java.util.List;
 
-public class KeywordHint extends AbstractHint {
-
-	public KeywordHint(final String name, final String documentation, final String replacement) {
-
-		this.name          = name;
-		this.documentation = documentation;
-		this.replacement   = replacement;
-	}
-
-	public void setReplacement(final String replacement) {
-		this.replacement = replacement;
-	}
-
-	public boolean hasComplexReplacement() {
-		return !getName().equals(getReplacement());
-	}
+public abstract class KeywordHint extends AbstractHint {
 
 	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String getShortDescription() {
-		return documentation;
-	}
-
-	@Override
-	public String getLongDescription() {
-		return "";
+	public final DocumentableType getType() {
+		return DocumentableType.Keyword;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return null;
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return null;
-	}
-
-	@Override
-	public List<String> getNotes() {
+		// keywords have no parameters
 		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
+		// keywords have no signature
 		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
+		// keywords have no usages
 		return null;
 	}
 
 	@Override
-	public DocumentableType getType() {
-		return DocumentableType.Keyword;
+	public List<Language> getLanguages() {
+		// keywords are valid for all languages
+		return Language.all();
 	}
 }

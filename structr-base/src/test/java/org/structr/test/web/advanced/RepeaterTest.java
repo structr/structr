@@ -19,7 +19,6 @@
 package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,17 +49,12 @@ import java.util.List;
 
 import static org.testng.AssertJUnit.fail;
 
-/**
- *
- */
 public class RepeaterTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(RepeaterTest.class);
 
 	@Test
 	public void testManagedSelectedAttributeInOptionElementWithNodes() {
-
-		Content content = null;
 
 		// setup 1: create schema and user
 		try (final Tx tx = app.tx()) {
@@ -130,7 +124,6 @@ public class RepeaterTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",                          Matchers.equalTo("Page1"))
@@ -175,7 +168,6 @@ public class RepeaterTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",                          Matchers.equalTo("Page1"))
@@ -263,7 +255,6 @@ public class RepeaterTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",                          Matchers.equalTo("Page1"))
@@ -299,7 +290,6 @@ public class RepeaterTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",                          Matchers.equalTo("Page1"))
@@ -346,7 +336,6 @@ public class RepeaterTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER,     ADMIN_USERNAME)
 			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 			.expect()
 			.statusCode(200)
 			.body("html.head.title",                                Matchers.equalTo("Page2"))

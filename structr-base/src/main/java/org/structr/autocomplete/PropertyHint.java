@@ -24,10 +24,13 @@ import java.util.List;
 
 public class PropertyHint extends AbstractHint {
 
-	public PropertyHint(final String name, final String documentation) {
+	private final String shortDescription;
+	private final String name;
 
-		this.name          = name;
-		this.documentation = documentation;
+	public PropertyHint(final String name, final String shortDescription) {
+
+		this.shortDescription = shortDescription;
+		this.name             = name;
 	}
 
 	@Override

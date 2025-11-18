@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -31,11 +32,6 @@ public class AddFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "add";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("values...");
 	}
 
 	@Override
@@ -64,6 +60,19 @@ public class AddFunction extends CoreFunction {
 		}
 
 		return result;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("values...");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("values", "list of values to add")
+		);
 	}
 
 	@Override

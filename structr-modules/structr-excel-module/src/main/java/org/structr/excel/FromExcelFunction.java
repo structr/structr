@@ -31,6 +31,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -115,18 +116,33 @@ public class FromExcelFunction extends Function<Object, Object> {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${from_excel(file[, sheetIndexOrName = 0 ])}. Example: ${from_excel(first(find('File', 'name', 'test.xlsx')))}"),
-			Usage.javaScript("Usage: ${{Structr.fromExcel(file[, sheetIndexOrName = 0 ])}}. Example: ${{ $.fromExcel(fileNode); }}")
+			Usage.javaScript("Usage: ${{ $.fromExcel(file[, sheetIndexOrName = 0 ]); }}. Example: ${{ $.fromExcel(fileNode); }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The columns in the first row of the excel sheet are used as headers and must be populated for columns to be read."
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Reads data from a given Excel sheet. The sheet can be passed as zero-indexed sheet number or by sheet name.";
+		return "Reads data from a given Excel sheet.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("file", "excel file to read from"),
+				Parameter.optional("sheetIndexOrName", "sheet index or name of sheet to read from (defaults to first sheet)")
+		);
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The sheet can be passed as zero-indexed sheet number or by sheet name.";
 	}
 
 	private Object readExcel(final InputStream is, final String sheetName) throws Throwable {

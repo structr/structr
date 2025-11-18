@@ -229,7 +229,7 @@
 	<symbol id="link_external" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<line x1="9.25" y1="14.523" x2="23.25" y2="0.75"/><polyline points="23.25 8.621 23.25 0.75 15.25 0.75"/><path d="M12.125,5.75H1.625a.875.875,0,0,0-.875.875v15.75a.875.875,0,0,0,.875.875h15.75a.875.875,0,0,0,.875-.875v-10.5"/>
 	</symbol>
-	<symbol id="waiting-spinner" viewBox="0 0 50 50" style="fill: var(--structr-green)">
+	<symbol id="waiting-spinner" viewBox="0 0 50 50">
 		<g transform="rotate  (0 25 25)"><rect x="22" y="0" rx="3" ry="6" width="6" height="12"><animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.9166666666666666s" repeatCount="indefinite"/></rect></g>
 		<g transform="rotate (30 25 25)"><rect x="22" y="0" rx="3" ry="6" width="6" height="12"><animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.8333333333333334s" repeatCount="indefinite"/></rect></g>
 		<g transform="rotate (60 25 25)"><rect x="22" y="0" rx="3" ry="6" width="6" height="12"><animate attributeName="opacity" values="1;0" keyTimes="0;1" dur="1s" begin="-0.75s" repeatCount="indefinite"/></rect></g>

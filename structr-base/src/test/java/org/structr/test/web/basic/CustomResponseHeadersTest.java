@@ -19,7 +19,6 @@
 package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -67,7 +66,6 @@ public class CustomResponseHeadersTest extends StructrUiTest {
 		.given()
 			.accept("text/html")
 			.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 
 		.expect()
 			.statusCode(200)

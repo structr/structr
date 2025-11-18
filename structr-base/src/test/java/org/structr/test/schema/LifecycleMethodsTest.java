@@ -20,7 +20,6 @@ package org.structr.test.schema;
 
 import io.restassured.RestAssured;
 import io.restassured.builder.MultiPartSpecBuilder;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.AssertException;
@@ -432,7 +431,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 		// send login request
 		final String sessionId = RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.body("{ name: user, password: user }")
 			.expect()
 			.statusCode(200)
@@ -443,7 +441,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 		// send logout request
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.cookie("JSESSIONID", sessionId)
 			.expect()
 			.statusCode(200)
@@ -455,7 +452,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 			.given()
 			.header("X-User", "admin")
 			.header("X-Password", "admin")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result[0].name", equalTo("nullloginlogout"))
 			.statusCode(200)
@@ -507,7 +503,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 				.mimeType("text/plain")
 				.build()
 			)
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -520,7 +515,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 			.given()
 			.header("X-User", "admin")
 			.header("X-Password", "admin")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.contentType("text/plain")
 			.body(equalTo("This is a test!"))
@@ -538,7 +532,6 @@ public class LifecycleMethodsTest extends StructrUiTest {
 			.given()
 			.header("X-User", "admin")
 			.header("X-Password", "admin")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result[0].name", equalTo("nulluploaddownload"))
 			.statusCode(200)

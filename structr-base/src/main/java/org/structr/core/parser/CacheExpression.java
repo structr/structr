@@ -23,8 +23,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.List;
 
 /**
  *
@@ -185,5 +188,78 @@ public class CacheExpression extends Expression {
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException {
 		return source;
+	}
+
+	@Override
+	public String getName() {
+		return "cache";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Stores a value in the global cache.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function can be used to store a value (which is costly to obtain or should not be updated frequently) under the given key in a global cache. The method will execute the valueExpression to obtain the value, and store it for the given time (in seconds). All subsequent calls to the `cache()` method will return the stored value (until the timeout expires) instead of evaluating the valueExpression.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("key", "cache key"),
+			Parameter.mandatory("timeout", "timeout in seconds"),
+			Parameter.mandatory("valueExpression", "expression that generates the stored value")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${cache('externalResult', 3600, GET('http://api.myservice.com/get-external-result'))}", "Fetch a value from an external API endpoint and cache the result for an hour"),
+			Example.javaScript("""
+			${{
+			    $.cache('myCacheKey', 3600, 'initialCacheValue');
+			    $.cache('myCacheKey', 3600, 'test test test');
+			    $.log($.cache('myCacheKey', 3600, 'test 2 test 2 test 2'));
+			}}
+			""", "Log `initialCacheValue` to the server log because the initialCacheValue holds for one hour"),
+			Example.javaScript("""
+			${{
+			    $.cache('externalResult', 3600, () => {
+			        return $.GET('http://api.myservice.com/get-external-result');
+			    });
+			}}
+			""", "Fetch a value from an external API endpoint and cache the result for an hour"
+			)
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The valueExpression will be used to create the initial value.",
+			"Since subsequent calls to cache() will return the previous result it can be desirable to delete the previous value in order to be able to store a new value. This can be done via the `delete_cache_value()` function.,",
+			"Usage in JavaScript is almost identical, but a complex `valueExpression` needs to be wrapped in an anonymous function so execution can be skipped if a valid cached value is present. If no anonymous function is used, the code is *always* executed and thus defeats the purpose of using `$.cache()`"
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("key, timeout, valueExpression");
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return Language.all();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${cache(key, timeout, valueExpression)}. Example: ${cache('data', 3600, GET('http://api.myservice.com/get-external-result'))}"),
+			Usage.javaScript("Usage: ${{ $.cache(key, timeout, valueExpression) }}. Example: ${{ $.cache('data', 3600, () => $.GET('http://api.myservice.com/get-external-result')); }}")
+		);
 	}
 }

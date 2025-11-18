@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -34,11 +36,6 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "ancestor_types";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type [, blacklist ]");
 	}
 
 	@Override
@@ -97,20 +94,42 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User', ['Principal'])}"),
-			Usage.javaScript("Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User', ['Principal'])}")
-		);
-	}
-
-	@Override
 	public String getShortDescription() {
-		return "Returns the names of the parent types of the given type and filters out all entries of the blacklist collection.";
+		return "Returns the list of parent types of the given type **including** the type itself.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The blacklist of type names can be extended by passing a list as the second parameter. If omitted, the function uses the following blacklist: [AccessControllable, GraphObject, NodeInterface, PropertyContainer].";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type to fetch ancestor types for"),
+			Parameter.optional("blacklist", "blacklist to remove unwanted types from result")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${ancestor_types('MyType')}", "Return all ancestor types of MyType"),
+			Example.structrScript("${ancestor_types('MyType', merge('MyOtherType))}", "Remove MyOtherType from the returned result")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type [, blacklist ]");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User', merge('Principal'))}"),
+			Usage.javaScript("Usage: ${{ $.ancestorTypes(type[, blacklist])}. Example ${{ $.ancestorTypes('User', ['Principal']) }}")
+		);
 	}
 }

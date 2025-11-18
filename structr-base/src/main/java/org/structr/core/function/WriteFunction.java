@@ -22,6 +22,8 @@ import org.apache.commons.io.IOUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -34,11 +36,6 @@ public class WriteFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "write";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("fileName, text");
 	}
 
 	@Override
@@ -92,20 +89,58 @@ public class WriteFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.write(filename, value) }}. Example: ${{ $.write('text.txt', $.this.name) }}"),
-			Usage.structrScript("Usage: ${write(filename, value)}. Example: ${write(\"text.txt\", this.name)}")
-		);
-	}
-
-	@Override
 	public String getShortDescription() {
-		return "Writes to the given file in the exchange directory.";
+		return "Writes text to a new file in the `exchange/` folder.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			This function writes the given text to the file with the given file name in the exchange/ folder. If the file already exist, an error will be thrown.
+			
+			To prevent data leaks, Structr allows very limited access to the underlying file system. The only way to read or write files on the harddisk is to use files in the exchange/ folder of the Structr runtime directory. All calls to `read()`, `write()` and `append()` will check that before reading from or writing to the disk.";
+			""";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("filename, text");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("filename", "name of the file to write to"),
+			Parameter.optional("text", "text to write")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${write('test.txt', 'hello world')}", "Write 'hello world' to a new file named 'test.txt' in the exchange/ folder."),
+			Example.javaScript("${{ $.write('test.txt', 'hello world'); }}", "Write 'hello world' to a new file named 'test.txt' in the exchange/ folder.")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `exchange/` folder itself may be a symbolic link.",
+			"The canonical path of a file has to be identical to the provided filepath in order to prevent directory traversal attacks. This means that symbolic links inside the `exchange/` folder are forbidden",
+			"Absolute paths and relative paths that traverse out of the exchange/ folder are forbidden.",
+			"Allowed 'sub/dir/file.txt'",
+			"Forbidden '../../../../etc/passwd'",
+			"Forbidden '/etc/passwd'"
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${write(filename, text)}. Example: ${write('test.txt', this.name)}"),
+			Usage.javaScript("Usage: ${{$.write(filename, text)}}. Example: ${{ $.write('test.txt', $.this.name); }}")
+		);
 	}
 }

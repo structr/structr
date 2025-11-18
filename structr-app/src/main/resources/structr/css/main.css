@@ -285,7 +285,7 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 	fill: none;
 }
 .fill-green {
-	color: var(--icon-color-dark-green);
+	fill: var(--structr-green);
 }
 .fill-grey {
 	fill: var(--icon-stroke);
@@ -942,7 +942,7 @@ img.disabled {
 #tabs li:not(.active):hover,
 .data-tabs li:not(.active):hover,
 .files-tabs li:not(.active):hover,
-.code-tabs li:not(.active):hover,
+.code-tabs > ul > li:not(.active):hover,
 .favs-tabs li:not(.active):hover,
 .widgets-tabs > li:not(.active):hover,
 .tabs-menu li:not(.active):hover {
@@ -3642,28 +3642,18 @@ ul.combined-input-select-field li:hover {
 	z-index: 12000;
 }
 
+/* disabled because the resize sashes are not automatically adjusted correctly. they remain at their default initial positions */
+/*.monaco-editor .suggest-details {*/
+/*	min-width: 600px;*/
+/*}*/
+
 .form-input.input-invalid {
 	border: 1px solid var(--input-invalid-border-color);
 	background-color: var(--input-invalid-bg-color);
 }
 
 /**
- * Active Elements
- **/
-.active-elements-container svg {
-	margin-bottom: -5px;
-}
-.active-elements-container svg > * {
-	filter: drop-shadow(0 0 .625rem rgba(0, 0, 0, .1));
-}
-
-.active-elements-container svg *:hover,
-.active-elements-container svg * text:hover {
-	stroke: #bbbbbb;
-}
-
-/**
- * Tailwind classes
+ * BEGIN Tailwind classes
  */
 .box-border {
 	box-sizing: border-box;
@@ -4027,6 +4017,9 @@ ul.combined-input-select-field li:hover {
 }
 .h-1\/2 {
 	height: 50%;
+}
+.m-auto {
+    margin: auto;
 }
 .m-0 {
 	margin: 0;
@@ -4784,45 +4777,31 @@ ul.combined-input-select-field li:hover {
 .-rotate-180 {
 	transform: rotate(-180deg);
 }
-
 /**
-	statistics tab
+ * END Tailwind classes
  */
-.http-statistics-GET {
-	fill: #61affe;
+
+
+/* BEGIN special tailwind-style classes */
+/* conditionally show spinner if group has class show-spinner */
+.group-\[\.show-spinner\]\:block {
+    &:is(:where(.group):is(.show-spinner) *) {
+        display: block;
+    }
+}
+/* END special tailwind-style classes */
+
+/* BEGIN shake animation for notification bell */
+.shake {
+    animation: shake 1s ease-in-out 0s 2 alternate forwards;
 }
 
-.http-statistics-PUT {
-	fill: #fca130;
+@keyframes shake {
+    0%, 100% { transform: rotate(0deg); transform-origin: 50% 0; }
+    10% { transform: rotate(3deg); }
+    20%, 40%, 60% { transform: rotate(-6deg); }
+    30%, 50%, 70% { transform: rotate(6deg); }
+    80% { transform: rotate(-3deg); }
+    90% { transform: rotate(3deg); }
 }
-
-.http-statistics-PATCH {
-	fill: #fca130;
-}
-
-.http-statistics-POST {
-	fill: #49cc40;
-}
-
-.http-statistics-DELETE {
-	fill: #f93e3e;
-}
-
-.http-statistics-OPTIONS {
-	fill: #999999;
-}
-
-.http-statistics-HEAD {
-	fill: #94c9fe;
-}
-
-/**
- Active Elements
- */
-svg g.diagram-element[data-type="ActionMapping"] rect {
-	fill: #ff8800;
-}
-
-svg *[data-type="ListDataSource"] {
-	fill: #2222aa;
-}
+/* END shake animation for notification bell */

@@ -19,23 +19,24 @@
 package org.structr.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.feed.traits.definitions.DataFeedTraitDefinition;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.common.FileHelper;
 import org.testng.annotations.Test;
+
+import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
-/**
- */
-public class TestFeeds extends StructrUiTest {
+public class FeedsTest extends StructrUiTest {
 
 	@Test
 	public void testFeeds() {
@@ -49,6 +50,11 @@ public class TestFeeds extends StructrUiTest {
 
 			createAdminUser();
 
+			try (final InputStream is = FeedsTest.class.getResourceAsStream("/rss.xml")) {
+				NodeInterface file = FileHelper.createFile(securityContext, is, "text/xml", StructrTraits.FILE, "rss.xml");
+				file.setVisibility(true, true);
+			}
+
 			tx.success();
 
 		} catch (Throwable t) {
@@ -59,7 +65,7 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.URL_PROPERTY),            "https://structr.com/blog/rss"),
+				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.URL_PROPERTY),             RestAssured.baseURI + "/rss.xml"),
 				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.UPDATE_INTERVAL_PROPERTY), 86400000),
 				new NodeAttribute<>(feedTraits.key(DataFeedTraitDefinition.MAX_ITEMS_PROPERTY),       3)
 			);
@@ -73,7 +79,6 @@ public class TestFeeds extends StructrUiTest {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
@@ -84,7 +89,7 @@ public class TestFeeds extends StructrUiTest {
 				.body("result[0].maxAge",         equalTo(null))
 				.body("result[0].maxItems",       equalTo(3))
 				.body("result[0].updateInterval", equalTo(86400000))
-				.body("result[0].url",            equalTo("https://structr.com/blog/rss"))
+				.body("result[0].url",            equalTo(RestAssured.baseURI + "/rss.xml"))
 				.body("result[0].items",          hasSize(3))
 				.body("result[0].items[0].type",  equalTo(StructrTraits.FEED_ITEM))
 				.body("result[0].items[1].type",  equalTo(StructrTraits.FEED_ITEM))
@@ -116,7 +121,7 @@ public class TestFeeds extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(type,
-				new NodeAttribute<>(remoteDocumentTraits.key("url"), "https://structr.com/blog")
+				new NodeAttribute<>(remoteDocumentTraits.key("url"), "https://download.structr.com/blog")
 			);
 
 			tx.success();
@@ -128,7 +133,6 @@ public class TestFeeds extends StructrUiTest {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()

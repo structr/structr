@@ -25,6 +25,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
+import org.structr.docs.Documentable;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -39,14 +40,14 @@ import java.util.List;
 public class PlaintextHintProvider extends AbstractHintProvider {
 
 	@Override
-	protected List<AbstractHint> getAllHints(final ActionContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+	protected List<Documentable> getAllHints(final ActionContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
 		// don't interpret invalid strings
 		if (editorText != null && (editorText.endsWith("''") || editorText.endsWith("\"\""))) {
 			return Collections.EMPTY_LIST;
 		}
 
-		final List<AbstractHint> hints = new LinkedList<>();
+		final List<Documentable> hints = new LinkedList<>();
 		final ActionContext ctx        = new ActionContext(securityContext);
 
 		try {
@@ -90,7 +91,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 		if (last instanceof FunctionExpression) {
 
 			final FunctionExpression fe           = (FunctionExpression)last;
-			final List<AbstractHint> contextHints = fe.getContextHints();
+			final List<Documentable> contextHints = fe.getContextHints();
 
 			if (contextHints != null) {
 
@@ -113,7 +114,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 	}
 
 	// ----- private methods -----
-	private void handleValueExpression(final ActionContext actionContext, final ValueExpression expression, final GraphObject currentNode, final List<AbstractHint> hints, final ParseResult result) {
+	private void handleValueExpression(final ActionContext actionContext, final ValueExpression expression, final GraphObject currentNode, final List<Documentable> hints, final ParseResult result) {
 
 		final String keyword = expression.getKeyword();
 

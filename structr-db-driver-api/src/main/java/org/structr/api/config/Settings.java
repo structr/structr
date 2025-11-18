@@ -419,12 +419,7 @@ public class Settings {
 	public static final Setting<String> DeploymentResourceProvider           = new StringSetting(servletsGroup,  "hidden", "deploymentservlet.resourceprovider",          "org.structr.web.common.UiResourceProvider");
 	public static final Setting<Boolean> DeploymentUserAutologin             = new BooleanSetting(servletsGroup, "hidden", "deploymentservlet.user.autologin",            false);
 	public static final Setting<Boolean> DeploymentUserAutocreate            = new BooleanSetting(servletsGroup, "hidden", "deploymentservlet.user.autocreate",           false);
-	public static final Setting<Boolean> DeploymentAllowAnonymousDeployments = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.allowanonymousdeployments", false, "Allow anonymous users to trigger a deployment process.");
-	public static final Setting<Boolean> DeploymentAllowAnonymousUploads     = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.allowanonymousuploads",     false, "Allow anonymous users to upload deployment files.");
-	public static final Setting<Integer> DeploymentMaxFileSize               = new IntegerSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.maxfilesize",               1000, "Maximum allowed file size for single file uploads. Unit is Megabytes.");
-	public static final Setting<Integer> DeploymentMaxRequestSize            = new IntegerSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.maxrequestsize",            1200, "Maximum allowed request size for single file uploads. Unit is Megabytes.");
 	public static final Setting<String> DeploymentFileGroupName              = new StringSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.filegroup.name", "", "For unix based file systems only. Adds the group ownership to the created deployment files.");
-	public static final Setting<Integer> DeploymentFileGroupId                = new IntegerSetting(servletsGroup, "hidden", "deploymentservlet.filegroup.id", 0, "The group id of the DeploymentFileGroup.");
 
 	public static final Setting<String> ProxyServletPath       = new StringSetting(servletsGroup,  "hidden", "proxyservlet.path",                  "/structr/proxy");
 	public static final Setting<String> ProxyServletClass      = new StringSetting(servletsGroup,  "hidden", "proxyservlet.class",                 "org.structr.web.servlet.ProxyServlet");

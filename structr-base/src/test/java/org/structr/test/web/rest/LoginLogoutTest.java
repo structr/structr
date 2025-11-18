@@ -19,17 +19,12 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
-/**
- *
- *
- */
 public class LoginLogoutTest extends StructrUiTest {
 
 	@Test
@@ -43,12 +38,6 @@ public class LoginLogoutTest extends StructrUiTest {
 
 		final String sessionId = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.body("{ 'name': 'User1', 'password': 'geheim'}")
 		.expect()
 			.statusCode(200)
@@ -60,12 +49,6 @@ public class LoginLogoutTest extends StructrUiTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.sessionId(sessionId)
 		.expect()
 			.statusCode(200)
@@ -74,12 +57,6 @@ public class LoginLogoutTest extends StructrUiTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.sessionId(sessionId)
 		.expect()
 			.statusCode(200)
@@ -88,12 +65,6 @@ public class LoginLogoutTest extends StructrUiTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.sessionId(sessionId)
 		.expect()
 			.statusCode(401)
@@ -110,12 +81,6 @@ public class LoginLogoutTest extends StructrUiTest {
 		// use "username" instead of "name" (basically omitting "name")
 		RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ 'username': 'does_not_matter', 'password': 'does_not_matter'}")
 				.expect()
 				.statusCode(401)
@@ -125,12 +90,6 @@ public class LoginLogoutTest extends StructrUiTest {
 		// omit "password"
 		RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ 'name': 'does_not_matter' }")
 				.expect()
 				.statusCode(401)
@@ -140,12 +99,6 @@ public class LoginLogoutTest extends StructrUiTest {
 		// send numeric password
 		RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ 'name': 'does_not_matter', 'password': 123 }")
 				.expect()
 				.statusCode(401)
@@ -155,12 +108,6 @@ public class LoginLogoutTest extends StructrUiTest {
 		// send all kind of garbage data
 		RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.body("{ 'name': ['does_not_matter'], 'password': 123, 'eMail': { 'test': 123 } }")
 				.expect()
 				.statusCode(401)

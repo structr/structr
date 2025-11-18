@@ -226,7 +226,7 @@ ${{
 
 	@Override
 	public List<Language> getLanguages() {
-		return List.of(Language.Javascript);
+		return List.of(Language.JavaScript);
 	}
 
 	@Override
@@ -255,7 +255,7 @@ Be careful to never simply put "return true;" in the first function as this will
 	public List<Signature> getSignatures() {
 
 		return List.of(
-			Signature.of("workerFunction [, errorHandlerFunction]", Language.Javascript)
+			Signature.of("workerFunction [, errorHandlerFunction]", Language.JavaScript)
 		);
 	}
 

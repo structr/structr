@@ -57,7 +57,7 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 
 				sessionWrapper.removeMember(sources[0].toString());
 			} else {
-				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
 			return "";

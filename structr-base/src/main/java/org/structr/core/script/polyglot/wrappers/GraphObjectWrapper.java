@@ -248,15 +248,15 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 									throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
 								}
 							}
-
-						} else {
-
-							// key does not exist and generic property is not desired => log warning
-							logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
 						}
 					}
 
 					node.setProperty(propKey, unwrappedValue);
+
+				} else {
+
+					// key does not exist and generic property is not desired => log warning
+					logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
 				}
 
 			} catch (FrameworkException ex) {

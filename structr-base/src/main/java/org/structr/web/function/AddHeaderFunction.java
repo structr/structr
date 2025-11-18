@@ -18,6 +18,8 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -29,11 +31,6 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "add_header";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name, value");
 	}
 
 	@Override
@@ -67,20 +64,67 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("name, value");
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}"),
-			Usage.javaScript("Usage: ${{ $.addHeader(field, value)}}. Example: ${{ $.addHeader('X-User', 'johndoe')}}")
+			Usage.structrScript("Usage: ${add_header(name, value)}. Example: ${add_header('X-User', 'johndoe')}"),
+			Usage.javaScript("Usage: ${{ $.addHeader(name, value)}}. Example: ${{ $.addHeader('X-User', 'johndoe')}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("name", "name of the header field"),
+			Parameter.mandatory("value", "value of the header field")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Adds the given header field and value to the next request.";
+		return "Temporarily adds the given (key, value) tuple to the local list of request headers.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "All headers added with this function will be sent with any subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` call in the same request (meaning the request from the client to Structr).";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Prior to 3.5.0 it was not possible to remove headers. In 3.5.0 this function was changed to remove a header if `value = null` was provided as an argument."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript(
+				"""
+				${
+				    (
+					add_header('X-User', 'tester1'),
+					add_header('X-Password', 'test'),
+					GET('http://localhost:8082/structr/rest/User')
+				    )
+				}
+				""", "Authenticate an HTTP GET request with add_header (StructrScript version)"),
+			Example.javaScript(
+				"""
+					${{
+					    $.addHeader('X-User', 'tester1');
+					    $.addHeader('X-Password', 'test');
+					    let result = $.GET('http://localhost:8082/structr/rest/User');
+					}}
+				""", "Authenticate an HTTP GET request with addHeader (JavaScript version)"
+			)
+		);
 	}
 }

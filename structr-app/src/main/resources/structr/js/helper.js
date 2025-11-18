@@ -603,7 +603,7 @@ let _Helpers = {
 
 		_Helpers.disableElement(btn);
 
-		let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 20, 20, 'ml-2'));
+		let icon = _Helpers.createSingleDOMElementFromHTML();
 		btn.innerHTML = html;
 		btn.appendChild(icon);
 	},

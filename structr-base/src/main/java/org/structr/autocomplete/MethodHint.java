@@ -28,6 +28,7 @@ public class MethodHint extends AbstractHint {
 
 	protected String openAPISummary     = "No OpenAPI summary";
 	protected String openAPIDescription = "No OpenAPI description";
+	protected final String name;
 
 	public MethodHint(final String name, final String summary, final String description) {
 
@@ -43,7 +44,7 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public String getDocumentation() {
+	public List<String> createMarkdownDocumentation() {
 
 		// this is the place where we assemble the hint text
 		final List<String> buf = new LinkedList<>();
@@ -54,16 +55,11 @@ public class MethodHint extends AbstractHint {
 		buf.add("**Description**");
 		buf.add(openAPIDescription);
 
-		return StringUtils.join(buf, "\n");
+		return buf;
 	}
 
 	@Override
 	public String getDisplayName() {
-		return getName() + "()";
-	}
-
-	@Override
-	public String getReplacement() {
 		return getName() + "()";
 	}
 

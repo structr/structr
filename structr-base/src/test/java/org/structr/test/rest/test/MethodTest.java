@@ -19,7 +19,6 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
@@ -35,10 +34,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-/**
- *
- *
- */
 public class MethodTest extends StructrRestTestBase {
 
 	@Test
@@ -253,7 +248,6 @@ public class MethodTest extends StructrRestTestBase {
 		// test call via REST, date must be converted
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.body("{ date: '2024-01-01T00:00:00+0000' }")
 			.expect()
@@ -266,7 +260,6 @@ public class MethodTest extends StructrRestTestBase {
 		// test call via Javascript, date is not sent via REST
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.body("{ date: '2024-01-01T00:00:00+0000' }")
 			.expect()
@@ -279,7 +272,6 @@ public class MethodTest extends StructrRestTestBase {
 		// test call via Javascript, date is not sent via REST
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
@@ -324,7 +316,6 @@ public class MethodTest extends StructrRestTestBase {
 		// test inherited methods
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.body("{ data: '2023-01-05T22:00:00+0000', name: 'Test', key: 3, map: { m: 'test' }, set: [1, 2, 3], list: [{ id: 25, name: 'aaa' }] }")
 			.expect()
@@ -366,7 +357,6 @@ public class MethodTest extends StructrRestTestBase {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.body("{ topic: 'topic', message: 'message' }")
 			.expect()
@@ -482,7 +472,6 @@ public class MethodTest extends StructrRestTestBase {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.body("{ key1: 'value1', key2: 2 }")
 			.expect()
@@ -494,7 +483,6 @@ public class MethodTest extends StructrRestTestBase {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 				.body("{ key1: 'value1', key2: 2 }")
 			.expect()
@@ -592,7 +580,6 @@ public class MethodTest extends StructrRestTestBase {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(200)
@@ -603,7 +590,6 @@ public class MethodTest extends StructrRestTestBase {
 
 		RestAssured
 			.given()
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
 			.expect()
 				.statusCode(422)

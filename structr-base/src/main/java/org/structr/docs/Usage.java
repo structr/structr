@@ -40,7 +40,7 @@ public class Usage {
 	}
 
 	public static Usage javaScript(final String usage) {
-		return new Usage(usage, Language.Javascript);
+		return new Usage(usage, Language.JavaScript);
 	}
 
 	public static Usage structrScript(final String usage) {
@@ -51,8 +51,8 @@ public class Usage {
 		return new Usage(usage, Language.values());
 	}
 
-	public boolean isJavascript() {
-		return languages.contains(Language.Javascript);
+	public boolean isJavaScript() {
+		return languages.contains(Language.JavaScript);
 	}
 
 	public boolean isStructrScript() {

@@ -19,7 +19,6 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
@@ -29,10 +28,6 @@ import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
 
-/**
- *
- *
- */
 public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 	@Test
@@ -97,9 +92,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0]." + type + "ArrayProperty[0]", equalTo(value1))
@@ -120,9 +112,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0]." + type + "ArrayProperty[0]", equalTo(value3))
@@ -179,9 +168,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 		// test search for empty array property
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
@@ -249,9 +235,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -263,9 +246,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -278,9 +258,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -294,9 +271,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -311,9 +285,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -329,9 +300,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -340,9 +308,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -351,9 +316,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -362,9 +324,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -400,9 +359,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -410,9 +366,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -424,9 +377,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -439,9 +389,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -454,9 +401,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -471,9 +415,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -489,9 +430,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 		// test other combinations that shouldn't return results
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -501,9 +439,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 		// test other combinations that shouldn't return results
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -513,9 +448,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 		// test other combinations that shouldn't return results
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -525,9 +457,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 		// test other combinations that shouldn't return results
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(0))
@@ -586,9 +515,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(5))
@@ -618,9 +544,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(4))
@@ -674,9 +597,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.when()
@@ -684,9 +604,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(5))
@@ -716,9 +633,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(4))
@@ -745,9 +659,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(3))
@@ -771,9 +682,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(2))
@@ -793,9 +701,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -852,9 +757,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(3))
@@ -894,9 +796,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(2))
@@ -953,9 +852,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -968,9 +864,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -1009,9 +902,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -1024,9 +914,6 @@ public class UnifiedArrayPropertyRestTest extends StructrRestTestBase {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))

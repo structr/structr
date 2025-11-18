@@ -58,7 +58,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 			if (session != null) {
 				sessionWrapper.putMember(sources[0].toString(), Value.asValue(sources[1]));
 			} else {
-				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
 			return "";

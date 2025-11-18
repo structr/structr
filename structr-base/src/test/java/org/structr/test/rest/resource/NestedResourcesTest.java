@@ -19,7 +19,6 @@
 package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
@@ -185,7 +184,6 @@ public class NestedResourcesTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 				.statusCode(200)
 			.when()

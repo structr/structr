@@ -19,8 +19,6 @@
 package org.structr.test.rest.test.property;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.RequestLoggingFilter;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.DatabaseFeature;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.Services;
@@ -30,9 +28,6 @@ import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 
-/**
- *
- */
 public class StringPropertyRestTest extends IndexingTest {
 
 	@Test
@@ -51,11 +46,6 @@ public class StringPropertyRestTest extends IndexingTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].stringProperty", equalTo("This is a test!"))
@@ -75,11 +65,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		// test for three elements
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(4))
@@ -89,11 +74,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		// test strict search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result[0].stringProperty", equalTo("test2"))
@@ -104,11 +84,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		// test loose search
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(3))
@@ -119,11 +94,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		// test range query
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(2))
@@ -134,11 +104,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		// test empty value
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 		.expect()
 			.statusCode(200)
 			.body("result_count", equalTo(1))
@@ -189,8 +154,6 @@ public class StringPropertyRestTest extends IndexingTest {
 		// cleanup
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 		.expect()
 			.statusCode(200)
 		.when()
@@ -198,8 +161,6 @@ public class StringPropertyRestTest extends IndexingTest {
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
-			.filter(RequestLoggingFilter.logRequestTo(System.out))
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.body(" { 'name': '" + length + "', 'stringProperty' : '" + largeString + "' } ")
 		.expect()
 			.statusCode(expectedStatusCode)
@@ -211,11 +172,6 @@ public class StringPropertyRestTest extends IndexingTest {
 
 			RestAssured.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 				.body("result[0].stringProperty", equalTo(largeString))

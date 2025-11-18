@@ -19,7 +19,6 @@
 package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
@@ -28,10 +27,6 @@ import java.util.Date;
 
 import static org.hamcrest.Matchers.*;
 
-/**
- *
- *
- */
 public class PropertyViewTest extends StructrUiTest {
 
 	@Test
@@ -48,11 +43,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.header(X_USER_HEADER, "superadmin")
 				.header(X_PASSWORD_HEADER, "sehrgeheim")
 				.body(" { 'name' : '" + username + "', 'password': '" + password + "' } ")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(201)
@@ -237,11 +227,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.header(X_USER_HEADER, "superadmin")
 				.header(X_PASSWORD_HEADER, "sehrgeheim")
 				.body(" { 'name' : '" + username + "', 'password': '" + password + "' } ")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(201)
@@ -286,9 +271,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
 				.body(" { 'name' : 'TestOne-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '" + expectedDate + "' } ")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(201)
@@ -305,9 +287,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.header(X_USER_HEADER, username)
 				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -334,10 +313,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.header(X_USER_HEADER, username)
 				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)
@@ -374,10 +349,6 @@ public class PropertyViewTest extends StructrUiTest {
 				.header(X_USER_HEADER, username)
 				.header(X_PASSWORD_HEADER, password)
 				.header("Accept", "application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
 			.expect()
 				.statusCode(200)

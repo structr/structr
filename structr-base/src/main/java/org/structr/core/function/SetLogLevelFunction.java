@@ -40,7 +40,7 @@ public class SetLogLevelFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str");
+		return Signature.forAllLanguages("string");
 	}
 
 	@Override
@@ -77,12 +77,16 @@ public class SetLogLevelFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the application log level to the given level, if supported. Change takes effect immediately until another call is made or the application is restarted. On system start, the configuration value is used.";
+		return "Sets the application log level to the given level, if supported.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Supported values are: %s. The log level can also be set via the configuration setting "%s". Using this function overrides the base configuration.
+
+		Change takes effect immediately until another call is made or the application is restarted. On system start, the configuration value is used.
+		""".formatted(String.join(", ", Settings.getAvailableLogLevels().keySet()), Settings.LogLevel.getKey());
 	}
 
 	public static boolean setLogLevel(final String level) {

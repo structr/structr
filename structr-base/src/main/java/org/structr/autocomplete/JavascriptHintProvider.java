@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.function.ParseResult;
+import org.structr.docs.Documentable;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
@@ -39,7 +40,7 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 	protected static final Logger logger = LoggerFactory.getLogger(JavascriptHintProvider.class);
 
 	@Override
-	protected List<AbstractHint> getAllHints(final ActionContext actionContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+	protected List<Documentable> getAllHints(final ActionContext actionContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
 		final List<String> tokens = result.getTokens();
 		final String[] lines      = editorText.split("\n");
@@ -94,7 +95,7 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 		// The resulting token list needs to be reversed since we go backwards through the text.
 		Collections.reverse(tokens);
 
-		final List<AbstractHint> hints = new LinkedList<>();
+		final List<Documentable> hints = new LinkedList<>();
 		final int tokenCount           = tokens.size();
 		int startTokenIndex            = -1;
 

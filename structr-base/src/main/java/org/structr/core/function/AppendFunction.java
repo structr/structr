@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -32,11 +34,6 @@ public class AppendFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "append";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("fileName, text");
 	}
 
 	@Override
@@ -79,20 +76,58 @@ public class AppendFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.append(filename, value)}}. Example: ${{$.append(\"test.txt\", $.this.name)}}"),
-			Usage.structrScript("Usage: ${append(filename, value)}. Example: ${append(\"test.txt\", this.name)}")
-		);
-	}
-
-	@Override
 	public String getShortDescription() {
-		return "Appends to the given file in the exchange directory.";
+		return "Appends text to a file in the `exchange/` folder.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			This function appends the given text to the file with the given file name in the exchange/ folder. If the file does not exist yet, it will be created.
+			
+			To prevent data leaks, Structr allows very limited access to the underlying file system. The only way to read or write files on the harddisk is to use files in the exchange/ folder of the Structr runtime directory. All calls to `read()`, `write()` and `append()` will check that before reading from or writing to the disk.";
+			""";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("filename, text");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("filename", "name of the file to append to"),
+			Parameter.optional("text", "text to append")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${append('test.txt', 'hello world')}", "Append the text 'hello world' to a file in the exchange/ folder."),
+			Example.javaScript("${{ $.append('test.txt', 'hello world'); }}", "Append the text 'hello world' to a file in the exchange/ folder.")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `exchange/` folder itself may be a symbolic link.",
+			"The canonical path of a file has to be identical to the provided filepath in order to prevent directory traversal attacks. This means that symbolic links inside the `exchange/` folder are forbidden",
+			"Absolute paths and relative paths that traverse out of the exchange/ folder are forbidden.",
+			"Allowed 'sub/dir/file.txt'",
+			"Forbidden '../../../../etc/passwd'",
+			"Forbidden '/etc/passwd'"
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${append(filename, text)}. Example: ${append('test.txt', this.name)}"),
+			Usage.javaScript("Usage: ${{ $.append(filename, text); }}. Example: ${{ $.append('test.txt', $.this.name); }}")
+		);
 	}
 }

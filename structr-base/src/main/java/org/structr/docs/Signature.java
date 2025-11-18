@@ -57,7 +57,7 @@ public class Signature {
 	 * @return
 	 */
 	public static Signature javaScript(final String signature) {
-		return new Signature(signature, Language.Javascript);
+		return new Signature(signature, Language.JavaScript);
 	}
 
 	/**

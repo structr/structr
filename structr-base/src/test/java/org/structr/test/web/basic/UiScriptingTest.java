@@ -19,7 +19,6 @@
 package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import org.apache.commons.lang3.StringUtils;
@@ -79,10 +78,6 @@ import java.util.stream.Collectors;
 import static org.hamcrest.Matchers.*;
 import static org.testng.AssertJUnit.*;
 
-/**
- *
- *
- */
 public class UiScriptingTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(UiScriptingTest.class.getName());
@@ -113,13 +108,6 @@ public class UiScriptingTest extends StructrUiTest {
 			RestAssured
 					.given()
 					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.expect()
 					.statusCode(200)
 					.body(equalTo("a"))
@@ -170,13 +158,6 @@ public class UiScriptingTest extends StructrUiTest {
 			RestAssured
 					.given()
 					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.expect()
 					.statusCode(200)
 					.body(equalTo("collection! abc"))
@@ -195,13 +176,6 @@ public class UiScriptingTest extends StructrUiTest {
 			RestAssured
 					.given()
 					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.expect()
 					.statusCode(200)
 					.body(equalTo("single param!a"))
@@ -242,13 +216,6 @@ public class UiScriptingTest extends StructrUiTest {
 			RestAssured
 					.given()
 					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.expect()
 					.statusCode(200)
 					.body(equalTo("abc"))
@@ -400,13 +367,6 @@ public class UiScriptingTest extends StructrUiTest {
 				.contentType("application/json; charset=UTF-8")
 				.accept("application/json; properties=id,type,name,folders,testFunction")
 				.header("Range", "folders=0-10;testFunction=0-10")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.expect()
 				.statusCode(200)
@@ -500,13 +460,6 @@ public class UiScriptingTest extends StructrUiTest {
 				.given()
 				.contentType("application/json; charset=UTF-8")
 				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is included in the someprops view BUT should not be returned because it is run by admin
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 				.expect()
 				.statusCode(200)
@@ -520,13 +473,6 @@ public class UiScriptingTest extends StructrUiTest {
 				.given()
 				.contentType("application/json; charset=UTF-8")
 				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view and should no be returned
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, "testuser" , X_PASSWORD_HEADER, "testuser")
 				.expect()
 				.statusCode(200)
@@ -565,13 +511,6 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
@@ -619,13 +558,6 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.expect()
 				.statusCode(200)
 				.body("html.head.title",      Matchers.equalTo("Test"))
@@ -680,13 +612,6 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
@@ -735,13 +660,6 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
@@ -1007,13 +925,6 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.expect()
 				.statusCode(200)
 				.body("html.body.div[0].@class" , equalTo("test"))
@@ -1132,13 +1043,6 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
@@ -1204,13 +1108,6 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.expect()
 				.statusCode(200)
 				.body("html.head.title", Matchers.equalTo("Test"))
@@ -1481,13 +1378,6 @@ public class UiScriptingTest extends StructrUiTest {
 			RestAssured
 					.given()
 					//.headers(X_USER_HEADER, ADMIN_USERNAME , X_PASSWORD_HEADER, ADMIN_PASSWORD)
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 					.expect()
 					.statusCode(200)
 					.body(equalTo("123456"))
@@ -2059,7 +1949,6 @@ public class UiScriptingTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header("x-user", "A")
 			.header("x-password", "test")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result", equalTo(""))
 			.body("result_count", equalTo(1))
@@ -2130,7 +2019,6 @@ public class UiScriptingTest extends StructrUiTest {
 			.header("x-user", "admin")
 			.header("x-password", "admin")
 			.body("{ name: 'Test' }")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.statusCode(201)
 			.when()
@@ -2141,7 +2029,6 @@ public class UiScriptingTest extends StructrUiTest {
 			.contentType("application/json; charset=UTF-8")
 			.header("x-user", "A")
 			.header("x-password", "test")
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
 			.expect()
 			.body("result", equalTo(""))
 			.body("result_count", equalTo(1))

@@ -104,10 +104,10 @@ public class CypherFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		} catch (SyntaxErrorException ex) {
 
-			throw new FrameworkException(422, "%s: SyntaxError (Cause: %s)".formatted(getReplacement(), ex.getMessage()));
+			throw new FrameworkException(422, "%s: SyntaxError (Cause: %s)".formatted(getDisplayName(), ex.getMessage()));
 		} catch (UnknownClientException ex) {
 
-			throw new FrameworkException(422, "%s: UnknownClientException (Cause: %s)".formatted(getReplacement(), ex.getMessage()));
+			throw new FrameworkException(422, "%s: UnknownClientException (Cause: %s)".formatted(getDisplayName(), ex.getMessage()));
 		}
     }
 

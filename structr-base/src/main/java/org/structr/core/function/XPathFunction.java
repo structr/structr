@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -90,18 +92,54 @@ public class XPathFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.xpath(xmlDocument, expression [, returnType ]) }}. Example: ${{ $.xpath(xml($.this.xmlSource), '/test/testValue', 'STRING') }}"),
-			Usage.structrScript("Usage: ${xpath(xmlDocument, expression [, returnType ])}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\", \"STRING\")}")
+			Usage.structrScript("Usage: ${xpath(xmlDocument, expression [, returnType ])}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\", \"STRING\")}"),
+			Usage.javaScript("Usage: ${{ $.xpath(xmlDocument, expression [, returnType ]) }}. Example: ${{ $.xpath(xml($.this.xmlSource), '/test/testValue', 'STRING') }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the value of the given XPath expression from the given XML DOM. The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING.";
+		return "Returns the value of the given XPath expression from the given XML document.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING. This method can be used in conjunction with `xml()` to extract data from an XML document.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let xmlString = `
+					<xml>
+						<projects>
+							<project name="Project 1">
+								<budget>100</budget>
+							</project>
+							<project name="Project 2">
+								<budget>500</budget>
+							</project>
+							<project name="Project 3">
+								<budget>750</budget>
+							</project>
+						</projects>
+					</xml>`;
+
+					let xmlDocument  = $.xml(xmlString);
+					let projectCount = $.xpath(xmlDocument, "count(/xml/projects/project)", "NUMBER");
+
+					const projectData = [...Array(projectCount).keys()].map(i => {
+						return {
+							name:   $.xpath(xmlDocument, `/xml/projects/project[${i+1}]/@name`, "STRING"),
+							budget: $.xpath(xmlDocument, `/xml/projects/project[${i+1}]/budget`, "NUMBER"),
+						}
+					});
+
+					return projectData;
+				}
+				""", "Read project information from XML and convert it to JSON.")
+		);
 	}
 }

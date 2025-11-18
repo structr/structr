@@ -19,7 +19,6 @@
 package org.structr.test.web.basic;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -46,9 +45,6 @@ import org.w3c.dom.DOMException;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- *
- */
 public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
 	@Parameters("testDatabaseConnection")
@@ -112,14 +108,6 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.response()
 			.contentType("text/html")
@@ -132,14 +120,6 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.response()
 			.statusCode(200)
@@ -151,14 +131,6 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 			.given()
 			.header(X_USER_HEADER, "superadmin")
 			.header(X_PASSWORD_HEADER, "sehrgeheim")
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-			.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 			.response()
 			.statusCode(200)

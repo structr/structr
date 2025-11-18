@@ -210,7 +210,6 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 							final ScriptConfig scriptConfig = ScriptConfig.builder()
 									.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-									//.keepContextOpen(true)
 									.build();
 
 							Scripting.evaluate(renderContext, node, "${" + _sharedComponentConfiguration.trim() + "}", "sharedComponentConfiguration", 0, node.getUuid(), scriptConfig);
@@ -624,7 +623,6 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final ScriptConfig scriptConfig = ScriptConfig.builder()
 							.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
-							.keepContextOpen(true)
 							.build();
 
 					final Object value = Scripting.evaluate(renderContext, node, script, "content", row, node.getUuid(), scriptConfig);

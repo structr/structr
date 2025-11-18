@@ -420,3 +420,25 @@
 .widget input.new-name {
 	width: 90%;
 }
+
+/**
+ Active Elements
+ */
+.active-elements-container svg {
+	margin-bottom: -5px;
+}
+.active-elements-container svg > * {
+	filter: drop-shadow(0 0 .625rem rgba(0, 0, 0, .1));
+}
+
+.active-elements-container svg *:hover,
+.active-elements-container svg * text:hover {
+	stroke: #bbbbbb;
+}
+svg g.diagram-element[data-type="ActionMapping"] rect {
+	fill: #ff8800;
+}
+
+svg *[data-type="ListDataSource"] {
+	fill: #2222aa;
+}

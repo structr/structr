@@ -19,7 +19,6 @@
 package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeAttribute;
@@ -60,8 +59,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(401)
 			.when()
@@ -87,8 +84,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 				.body("result", equalTo("hello world!"))
@@ -120,8 +115,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(401)
 			.when()
@@ -147,8 +140,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
 				.statusCode(200)
 				.body("result", equalTo("MyTestType.testTypeMethod01 here"))
@@ -182,8 +173,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(404)
@@ -220,8 +209,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(404)
@@ -259,8 +246,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(404)
@@ -299,8 +284,6 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 				.headers(X_USER_HEADER, ADMIN_USERNAME, X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 				.statusCode(404)

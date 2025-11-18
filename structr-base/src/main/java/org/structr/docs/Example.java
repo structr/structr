@@ -44,11 +44,11 @@ public class Example {
 	}
 
 	public static Example javaScript(final String example) {
-		return new Example(example, null, Language.Javascript);
+		return new Example(example, null, Language.JavaScript);
 	}
 
 	public static Example javaScript(final String example, final String title) {
-		return new Example(example, title, Language.Javascript);
+		return new Example(example, title, Language.JavaScript);
 	}
 
 	/**

@@ -21,6 +21,7 @@ package org.structr.autocomplete;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.function.ParseResult;
+import org.structr.docs.Documentable;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -32,7 +33,7 @@ import java.util.List;
 public class JavaHintProvider extends AbstractHintProvider {
 
 	@Override
-	protected List<AbstractHint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
+	protected List<Documentable> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
 		return new LinkedList<>();
 	}
 
