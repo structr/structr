@@ -3642,9 +3642,10 @@ ul.combined-input-select-field li:hover {
 	z-index: 12000;
 }
 
-.monaco-editor .suggest-details {
-	min-width: 600px;
-}
+/* disabled because the resize sashes are not automatically adjusted correctly. they remain at their default initial positions */
+/*.monaco-editor .suggest-details {*/
+/*	min-width: 600px;*/
+/*}*/
 
 .form-input.input-invalid {
 	border: 1px solid var(--input-invalid-border-color);
