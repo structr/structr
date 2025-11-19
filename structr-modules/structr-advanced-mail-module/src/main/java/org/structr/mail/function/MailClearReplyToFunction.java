@@ -39,7 +39,7 @@ public class MailClearReplyToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -54,13 +54,13 @@ public class MailClearReplyToFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_reply_to()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearReplyTo() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearReplyTo() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the reply to address from the current mail.";
+		return "Removes all `Reply-To:` configuration from the current mail.";
 	}
 
 	@Override

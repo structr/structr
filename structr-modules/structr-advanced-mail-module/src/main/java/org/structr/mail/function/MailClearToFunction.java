@@ -39,7 +39,7 @@ public class MailClearToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -54,13 +54,13 @@ public class MailClearToFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_to()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearTo() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearTo() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the to addresses from the current mail.";
+		return "Clears the current list of `To:` recipients.";
 	}
 
 	@Override

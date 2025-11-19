@@ -19,6 +19,8 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -39,7 +41,7 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("toAddress [, toName ]");
+		return Signature.forAllLanguages("address [, name ]");
 	}
 
 	@Override
@@ -66,18 +68,55 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_to(toAddress[, toName])}"),
-			Usage.javaScript("Usage: ${{ Structr.mailAddTo(toAddress[, toName]) }}")
+			Usage.structrScript("Usage: ${mail_add_to(address [, name])}"),
+			Usage.javaScript("Usage: ${{ $.mailAddTo(address [, name]) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Adds a FROM address and optional FROM name to the current mail.";
+		return "Adds a `To:` recipient to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address of the recipient"),
+				Parameter.optional("name", "name of the recipient")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more recipients."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+							let project = $.this;
+
+							$.mailBegin('sender@example.com', 'Project Service', 'Project Status Report: ' + project.name);
+
+							for (let member of project.members) {
+
+								$.mailAddTo(member.eMail, member.name);
+							}
+
+							let htmlContent = $.template('Project-Status-Template', 'en', project);
+							$.mailSetHtmlContent(htmlContent);
+
+							$.mailSend();
+						}}""", "Project Status Report mail where all project members are \"To:\" recipients.")
+		);
 	}
 }

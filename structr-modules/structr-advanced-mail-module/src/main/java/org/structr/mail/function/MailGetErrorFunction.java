@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -40,7 +41,7 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -55,17 +56,36 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_get_error()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailGetError() }}")
+			Usage.javaScript("Usage: ${{ $.mailGetError() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the last error message (or null if no error has occured).";
+		return "Returns the last error message (or null if no error has occurred).";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+						
+							$.mail_begin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+							$.mail_add_to('another-user@example.com');
+							$.mail_send();
+
+							if ($.mail_has_error()) {
+								// react to error here
+								$.log($.mail_get_error());
+							}
+						}}
+						""", "Log the error message when sending a mail failed")
+		);
 	}
 }

@@ -39,7 +39,7 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_mime_parts()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearMimeParts() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearMimeParts() }}")
 		);
 	}
 

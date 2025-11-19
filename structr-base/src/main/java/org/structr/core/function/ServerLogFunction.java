@@ -22,6 +22,7 @@ import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -86,6 +87,22 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.optional("lines", "number of lines to return"),
+				Parameter.optional("truncateLinesAfter", "number of characters after which each log line is truncated with \"[...]\""),
+				Parameter.optional("logFile", "log file to read from")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The `get_available_serverlogs()` function can be used for the `logFile` parameter"
+		);
 	}
 
 	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName) {

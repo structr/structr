@@ -18,6 +18,7 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -57,12 +58,31 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"By default, certificate validation is always enabled - only in rare cases would/should it be necessary to change this behaviour"
+		);
+	}
+
+	@Override
 	public String getShortDescription() {
 		return "Disables or enables strict certificate checking when performing a request in a scripting context. The setting remains for the whole request.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Disables or enables certificate validation for outgoing requests. All subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` calls in the same request (meaning the request from the client to structr) will use the setting configured here.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+						    $.validate_certificates(false);
+						    let result = $.GET('https://www.domain-with-invalid-certificate.com/resource.json');
+						}}
+						""")
+		);
 	}
 }

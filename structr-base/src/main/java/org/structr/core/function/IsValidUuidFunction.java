@@ -20,9 +20,7 @@ package org.structr.core.function;
 
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -59,16 +57,47 @@ public class IsValidUuidFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given string is a valid UUID according to the configured UUID format. Returns false otherwise and if non-string arguments are given.";
+		return "Tests if a given string is a valid UUID.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Returns true if the provided string is a valid UUID according to the configuration (see `%s`). Returns false otherwise, including when the argument is not a string.".formatted(Settings.UUIDv4AllowedFormats.getKey());
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("string", "Input string to be evaluated as a valid UUID")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+					${{
+						let uuid = $.request.nodeId;
+
+						if ($.is_valid_uuid(uuid)) {
+
+							let node = $.find('MyNodeType', uuid);
+
+							if ($.empty(node)) {
+
+								// process further
+
+							} else {
+
+								return 'Invalid parameter!';
+							}
+
+						} else {
+
+							return 'Invalid parameter!';
+						}
+					}}
+					""", "Validate user input to prevent errors")
+		);
 	}
 }

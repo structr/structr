@@ -66,12 +66,12 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the last n lines from the server log file.";
+		return "Returns a collection of available server logs files.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The collection of available server logs files is identical to the list of available server log files in the dashboard area.";
 	}
 
 	public static List<String> getListOfServerlogFileNames() {

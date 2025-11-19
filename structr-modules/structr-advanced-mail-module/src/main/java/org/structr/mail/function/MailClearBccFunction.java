@@ -39,7 +39,7 @@ public class MailClearBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -54,13 +54,13 @@ public class MailClearBccFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_bcc()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearBcc() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearBcc() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Removes all BCC addresses from the current mail.";
+		return "Clears the current list of `Bcc:` recipients.";
 	}
 
 	@Override

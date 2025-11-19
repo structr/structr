@@ -19,6 +19,8 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -39,7 +41,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("bccAddress [, bccName ]");
+		return Signature.forAllLanguages("address [, name ]");
 	}
 
 	@Override
@@ -66,18 +68,57 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_bcc(bccAddress[, bccName])}"),
-			Usage.javaScript("Usage: ${{ Structr.mailAddBcc(bccAddress[, bccName]) }}")
+			Usage.structrScript("Usage: ${mail_add_bcc(address [, name])}"),
+			Usage.javaScript("Usage: ${{ $.mailAddBcc(address [, name]) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Adds a BCC address and optional BCC name to the current mail.";
+		return "Adds a `Bcc:` recipient to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address of the recipient"),
+				Parameter.optional("name", "name of the recipient")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more recipients."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+							let newsletterNode = $.this;
+
+							$.mailBegin('sender@example.com', 'Newsletter Agent', 'Newsletter: ' + newsletterNode.name);
+
+							$.mailAddReplyTo("no-reply@example.com");
+
+							for (let recipient of newsletterNode.recipients) {
+
+								$.mailAddBcc(recipient.eMail, recipient.name);
+							}
+
+							let htmlContent = $.template('Newsletter', 'en', newsletterNode);
+							$.mailSetHtmlContent(htmlContent);
+
+							$.mailSend();
+						}}""", "Newsletter with only \"Bcc:\" recipients and no-reply address.")
+		);
 	}
 }

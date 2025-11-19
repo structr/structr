@@ -41,7 +41,7 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -81,17 +81,33 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_send()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailSend() }}")
+			Usage.javaScript("Usage: ${{ $.mailSend() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Sends the current mail.";
+		return "Sends the currently configured mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				The message-id of the created mail is being returned.
+
+				If not all pre-conditions are met or the sending of the mail fails, an empty string will be returned and an error message is logged.
+				
+				A possible error message can be retrieved via `mail_get_error()` and the presence of an error can be checked via `mail_has_error()`.
+				
+				Before attempting to send the mail, the last error (if any) is cleared automatically.
+				""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Will result in an error if no `To:`, `Cc:` or `Bcc:` addresses are configured.",
+				"Will result in an error if `mail_begin()` was not called"
+		);
 	}
 }

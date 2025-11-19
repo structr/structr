@@ -19,6 +19,8 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -39,7 +41,7 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("ccAddress [, ccName ]");
+		return Signature.forAllLanguages("address [, name ]");
 	}
 
 	@Override
@@ -66,18 +68,57 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_cc(ccAddress[, ccName])}"),
-			Usage.javaScript("Usage: ${{ Structr.mailAddCc(ccAddress[, ccName]) }}")
+			Usage.structrScript("Usage: ${mail_add_cc(address [, name])}"),
+			Usage.javaScript("Usage: ${{ $.mailAddCc(address [, name]) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Adds a CC address and optional CC name to the current mail.";
+		return "Adds a `Cc:` recipient to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address of the recipient"),
+				Parameter.optional("name", "name of the recipient")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more recipients."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+							let project = $.this;
+
+							$.mailBegin('sender@example.com', 'Project Service', 'Project Status Report: ' + project.name);
+
+							$.mailAddTo(project.manager.eMail, project.manager.name);
+
+							for (let member of project.members) {
+
+								$.mailAddCc(member.eMail, member.name);
+							}
+
+							let htmlContent = $.template('Project-Status-Template', 'en', project);
+							$.mailSetHtmlContent(htmlContent);
+
+							$.mailSend();
+						}}""", "Project Status Report mail where all project members are \"Cc:\" recipients and project manager is main \"To:\" recipient.")
+		);
 	}
 }

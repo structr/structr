@@ -39,7 +39,7 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -55,17 +55,24 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_in_reply_to()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearInReplyTo() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearInReplyTo() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Removes the In-Reply-To from the current mail.";
+		return "Removes the `In-Reply-To` header from the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Indicates that the current mail is not a reply to a message. This function automatically clears the `In-Reply-To` header of the mail.";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mail_set_in_reply_to()`)"
+		);
 	}
 }
