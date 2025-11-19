@@ -19,6 +19,8 @@
 package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -30,6 +32,15 @@ public class CallPrivilegedFunction extends CallFunction {
 	@Override
 	public String getName() {
 		return "call_privileged";
+	}
+
+	@Override
+	public SecurityContext getSecurityContext(final ActionContext ctx) {
+
+		final SecurityContext superuserSecurityContext = SecurityContext.getSuperUserInstance();
+		superuserSecurityContext.setContextStore(ctx.getContextStore());
+
+		return superuserSecurityContext;
 	}
 
 	@Override
@@ -47,7 +58,7 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Calls the given global schema method with a superuser context.";
+		return "Calls the given user-defined function **in a superuser context**.";
 	}
 
 	@Override
@@ -56,11 +67,34 @@ public class CallPrivilegedFunction extends CallFunction {
 	}
 
 	@Override
-	public SecurityContext getSecurityContext(final ActionContext ctx) {
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("functionName", "name of the user-defined function to call"),
+			Parameter.mandatory("parameterMap", "map of parameters")
+		);
+	}
 
-		final SecurityContext superuserSecurityContext = SecurityContext.getSuperUserInstance();
-		superuserSecurityContext.setContextStore(ctx.getContextStore());
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${call('updateUsers', 'param1', 'value1', 'param2', 'value2')}", "Call the user-defined function `updateUsers` with two key-value pairs as parameters"),
+			Example.javaScript("""
+			${{
+				$.call('updateUsers', {
+					param1: 'value1',
+					param2: 'value2'
+				})
+			        }}
+			""", "Call the user-defined function `updateUsers` with a map of parameters")
+		);
+	}
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Useful in situations where different types have the same or similar functionality but no common base class so the method can not be attached there",
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
 
-		return superuserSecurityContext;
+		);
 	}
 }

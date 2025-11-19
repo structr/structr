@@ -38,6 +38,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -61,11 +63,6 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "changelog";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("entity [, resolve=false [, filterKey, filterValue ]... ]");
 	}
 
 	@Override
@@ -140,18 +137,81 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}"),
-			Usage.javaScript("Usage: ${{Structr.changelog(entity[, resolve=false[, filterObject]])}}. Example: ${{Structr.changelog(Structr.get('current'), false, {verb:\"change\", timeTo: new Date()}))}}")
+			Usage.javaScript("Usage: ${{ $.changelog(entity[, resolve=false[, filterObject]]); }}. Example: ${{ $.changelog($.current, false, {verb:'change', timeTo: new Date()})); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the changelog object.";
+		return "Returns the changelog for a given entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		The `resolve` parameter controls if remote entities are resolved. Every changelog entry which has a `target` will be resolved as `targetObj` (if the remote entity still exists in the database).
+
+		**Filtering**
+		All filter options are chained using the boolean AND operator. Only changelog entries matching all of the specified filters will be returned.
+		For filter keys which can occurr more than once, the filter values are combined using the boolean OR operator (see examples 1 and 2)
+
+		| Filter Key | Applicable Changelog verbs (\\*) | Changelog Entry will be returned if | max. occurrences |
+		|---|---|---|---|
+		| timeFrom (\\*\\*) | create, delete, link, unlink, change | `timeFrom` <= `time` of the entry | 1 (\\*\\*\\*) |
+		| timeTo (\\*\\*) | create, delete, link, unlink, change | `timeTo` >= `time` of the entry | 1 (\\*\\*\\*) |
+		| verb | create, delete, link, unlink, change | `verb` of the entry matches at least one of the verbs | n (\\*\\*\\*\\*) |
+		| userId | create, delete, link, unlink, change | `userId` of the entry matches at least one of the userIds     | n (\\*\\*\\*\\*) |
+		| userName | create, delete, link, unlink, change | `userName` of the entry matches at least one of the userNames | n (\\*\\*\\*\\*) |
+		| relType | link, unlink | `rel` of the entry matches at least one of the relTypes | n (\\*\\*\\*\\*) |
+		| relDir | link, unlink | `relDir` of the entry matches the given relDir | 1 (\\*\\*\\*) |
+		| target | create, delete, link, unlink | `target` of the entry matches at least one of the targets     | n (\\*\\*\\*\\*) |
+		| key | change | `key` of the entry matches at least one of the keys | n (\\*\\*\\*\\*) |
+
+		(\\*) If a filter parameter is supplied, only changelog entries can be returned to which it is applicable. (e.g. combining `key` and `relType` can never yield a result as they are mutually exclusive)
+		(\\*\\*) timeFrom/timeTo can be specified as a Long (time in ms since epoch), as a JavaScript Date object, or as a String with the format `yyyy-MM-dd'T'HH:mm:ssZ`
+		(\\*\\*\\*) The last supplied parameter takes precedence over the others
+		(\\*\\*\\*\\*) The way we supply multiple occurrences of a keyword can differ from StructrScript to JavaScript
+		""";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of(
+			Signature.structrScript("entity [, resolve=false [, filterKey, filterValue ]... ]"),
+			Signature.structrScript("uuid [, resolve=false [, filterKey, filterValue ]... ]"),
+			Signature.javaScript("entity [, resolve=false [, filterKey, filterValue ]... ]"),
+			Signature.javaScript("uuid [, resolve=false [, filterKey, filterValue ]... ]")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("entityOrUUID", "entity to fetch changelog for"),
+			Parameter.optional("resolve", "whether remote entities are resolved and returned"),
+			Parameter.optional("filterKey", "filter key, see above table"),
+			Parameter.optional("filterValue", "filter value, see above table")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${changelog(node, false, 'verb', 'link')}", "Return all changelog entries with verb=link"),
+			Example.javaScript("${{ $.changelog(node, false, {verb: ['link', 'unlink']}); }}", "Return all changelog entries with verb=(link OR unlink)"),
+			Example.javaScript("${{ $.changelog(node, false, {verb: ['link', 'unlink'], 'relType': 'OWNS'}); }}", "Return all changelog entries with (rel=OWNS) AND (verb=(link OR unlink))"),
+			Example.javaScript("${{ $.changelog(node, false, {verb: ['link', 'unlink'], 'target': '<NODEID>'}); }}", "Return all changelog entries with (target=<NODEID>) AND (verb=(link OR unlink))")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The Changelog has to be enabled for this function to work properly. This can be done via the `application.changelog.enabled` key in configuration file structr.conf",
+			"The `prev` and `val` keys in the `change` event contain JSON encoded elements since they can be strings or arrays.",
+			"In a StructrScript environment parameters are passed as pairs of `'filterKey1', 'filterValue1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
 	}
 
 	private String getChangelogForObject (final Object obj) throws IOException {

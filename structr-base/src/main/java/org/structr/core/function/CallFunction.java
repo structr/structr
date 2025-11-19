@@ -22,6 +22,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -38,11 +40,6 @@ public class CallFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getName() {
 		return "call";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("functionName [, parameterMap ]");
 	}
 
 	@Override
@@ -97,7 +94,14 @@ public class CallFunction extends AdvancedScriptingFunction {
 		return "";
 	}
 
+	/*
+	 * Overridden in CallPrivilegedFunction to return a superuser context
+	 */
+	public SecurityContext getSecurityContext(final ActionContext ctx) {
+		return ctx.getSecurityContext();
+	}
 
+	// ----- documentation -----
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
@@ -108,7 +112,7 @@ public class CallFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Calls the given global schema method in the current users context.";
+		return "Calls the given user-defined function in the current users context.";
 	}
 
 	@Override
@@ -116,11 +120,42 @@ public class CallFunction extends AdvancedScriptingFunction {
 		return "";
 	}
 
-	/*
-	 * Overridden in CallPrivilegedFunction to return a superuser context
-	 */
-	public SecurityContext getSecurityContext(final ActionContext ctx) {
-		return ctx.getSecurityContext();
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("functionName [, parameterMap ]");
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("functionName", "name of the user-defined function to call"),
+			Parameter.mandatory("parameterMap", "map of parameters")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${call('updateUsers', 'param1', 'value1', 'param2', 'value2')}", "Call the user-defined function `updateUsers` with two key-value pairs as parameters"),
+			Example.javaScript("""
+			${{
+				$.call('updateUsers', {
+					param1: 'value1',
+					param2: 'value2'
+				})
+			        }}
+			""", "Call the user-defined function `updateUsers` with a map of parameters")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The method can only be executed if it is visible in the user context it's call()'ed in. This is analogous to calling user-defined functions via REST.",
+			"Useful in situations where different types have the same or similar functionality but no common base class so the method can not be attached there",
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+
+		);
+	}
 }
