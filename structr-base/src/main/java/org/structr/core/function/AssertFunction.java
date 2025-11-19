@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -84,7 +86,31 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function allows you to check a precondition and abort the execution flow if the condition is not satisfied, sending error code and error message back to the caller.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("condition", "condition to evaluate"),
+			Parameter.mandatory("statusCode", "statusCode to send **if the condition evaluates to `false`**"),
+			Parameter.mandatory("message", "error message to send **if the condition evaluates to `false`**")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.javaScript("$.assert($.me.name == 'admin', 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Only works as intended in schema methods - not in page rendering."
+		);
 	}
 
 	// ----- private methods -----

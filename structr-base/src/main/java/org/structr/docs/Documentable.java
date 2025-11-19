@@ -121,7 +121,7 @@ public interface Documentable {
 
 				if (StringUtils.isNotBlank(example.getTitle())) {
 
-					lines.add("##### " + index + ". " + example.getTitle());
+					lines.add("##### " + index + ". (" + example.getLanguage() + ") " + example.getTitle());
 
 				} else {
 

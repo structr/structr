@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -35,11 +37,6 @@ public class Base64DecodeFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "base64decode";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("text [, scheme, charset ]");
 	}
 
 	@Override
@@ -104,20 +101,53 @@ public class Base64DecodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-			Usage.structrScript("Usage: ${base64decode(text[, scheme[, charset]])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}"),
-			Usage.javaScript("Usage: ${{Structr.base64decode(text[, scheme[, charset]])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHA6Ly9zdHJ1Y3RyLmNvbQ==\")}}")
-		);
-	}
-
-	@Override
 	public String getShortDescription() {
-		return "Decodes the given base64-encoded value and returns a string.";
+		return "Decodes the given base64 text using the supplied scheme.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Valid values for `scheme` are `basic` (default), `url` and `mime`. The following explanation of the encoding schemes is taken directly from https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html
+		
+		**Basic**
+		Uses "The Base64 Alphabet" as specified in Table 1 of RFC 4648 and RFC 2045 for encoding and decoding operation. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
+		
+		**URL and Filename safe**
+		Uses the "URL and Filename safe Base64 Alphabet" as specified in Table 2 of RFC 4648 for encoding and decoding. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
+		
+		**MIME**
+		Uses the "The Base64 Alphabet" as specified in Table 1 of RFC 2045 for encoding and decoding operation. The encoded output must be represented in lines of no more than 76 characters each and uses a carriage return '\\r' followed immediately by a linefeed '\\n' as the line separator. No line separator is added to the end of the encoded output. All line separators or other characters not found in the base64 alphabet table are ignored in decoding operation.
+		""";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("text [, scheme, charset ]");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${base64decode(text[, scheme[, charset]])}. Example: ${base64decode(\"Q2hlY2sgb3V0IGh0dHBzOi8vc3RydWN0ci5jb20=\")}"),
+			Usage.javaScript("Usage: ${{Structr.base64decode(text[, scheme[, charset]])}}. Example: ${{Structr.base64decode(\"Q2hlY2sgb3V0IGh0dHBzOi8vc3RydWN0ci5jb20=\")}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("base64Text", "base64-encoded text to decode"),
+			Parameter.optional("scheme", "decoding scheme, `url`, `mime` or `basic`, defaults to `basic`"),
+			Parameter.optional("charset", "charset to use, defaults to UTF-8")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${base64decode(\"Q2hlY2sgb3V0IGh0dHBzOi8vc3RydWN0ci5jb20=\")}", "Decode a base64-encoded string")
+		);
 	}
 }
