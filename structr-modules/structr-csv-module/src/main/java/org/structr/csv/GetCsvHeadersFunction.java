@@ -120,10 +120,9 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-						"""
-								${get_csv_headers('COL1;COL2;COL3\\none;two;three')}"""
-				)
+		return List.of(
+				Example.structrScript("${get_csv_headers('COL1;COL2;COL3\\none;two;three')}"),
+				Example.javaScript("$.get_csv_headers('COL1;COL2;COL3\\none;two;three')")
 		);
 	}
 

@@ -62,8 +62,8 @@ public class GetOrCreateFunction extends CoreFunction {
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final App app                         = StructrApp.getInstance(securityContext);
-			final PropertyMap properties          = new PropertyMap();
+			final App app = StructrApp.getInstance(securityContext);
+			final PropertyMap properties = new PropertyMap();
 
 			// the type to query for
 			Traits type = null;
@@ -84,7 +84,7 @@ public class GetOrCreateFunction extends CoreFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				final PropertyMap convertedProperties = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]);
+				final PropertyMap convertedProperties = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map) sources[1]);
 
 				// check property keys manually (not allowed to use generic properties here)
 				for (final PropertyKey key : convertedProperties.keySet()) {
@@ -112,12 +112,12 @@ public class GetOrCreateFunction extends CoreFunction {
 						throw new IllegalArgumentException();
 					}
 
-					final String keyName  = sources[c].toString();
+					final String keyName = sources[c].toString();
 					final PropertyKey key = type.key(keyName);
 					if (key != null) {
 
 						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
-						Object value                           = sources[c + 1];
+						Object value = sources[c + 1];
 
 						if (inputConverter != null) {
 
@@ -154,8 +154,8 @@ public class GetOrCreateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.getOrCreate(type, properties)}}. Example: ${{ $.getOrCreate(\"User\", { eMail: 'tester@test.com' }); }}"),
-			Usage.structrScript("Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}")
+				Usage.javaScript("Usage: ${{ $.getOrCreate(type, properties)}}. Example: ${{ $.getOrCreate(\"User\", { eMail: 'tester@test.com' }); }}"),
+				Usage.structrScript("Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}")
 		);
 	}
 
@@ -167,25 +167,33 @@ public class GetOrCreateFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-				`get_or_create()` finds and returns a single object with the given properties 
-				(key/value pairs or a map of properties) and **creates** that object if it does not exist yet.
-				The function accepts three different parameter combinations, where the first parameter is always the 
-				name of the type to retrieve from the database. The second parameter can either 
-				be a map (e.g. a result from nested function calls) or a list of (key, value) pairs.
-				""";
+		`get_or_create()` finds and returns a single object with the given properties 
+		(key/value pairs or a map of properties) and **creates** that object if it does not exist yet.
+		The function accepts three different parameter combinations, where the first parameter is always the 
+		name of the type to retrieve from the database. The second parameter can either 
+		be a map (e.g. a result from nested function calls) or a list of (key, value) pairs.
+		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
+				Example.structrScript("""
+						${get_or_create('User', 'name', 'admin')}
+						> 7379af469cd645aebe1a3f8d52b105bd
+						${get_or_create('User', 'name', 'admin')}
+						> 7379af469cd645aebe1a3f8d52b105bd
+						${get_or_create('User', 'name', 'admin')}
+						> 7379af469cd645aebe1a3f8d52b105bd
+						""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object."),
 				Example.javaScript("""
-				${get_or_create('User', 'name', 'admin')}
-				> 7379af469cd645aebe1a3f8d52b105bd
-				${get_or_create('User', 'name', 'admin')}
-				> 7379af469cd645aebe1a3f8d52b105bd
-				${get_or_create('User', 'name', 'admin')}
-				> 7379af469cd645aebe1a3f8d52b105bd
-				""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object.")
+						$.get_or_create('User', 'name', 'admin')
+						> 7379af469cd645aebe1a3f8d52b105bd
+						$.get_or_create('User', 'name', 'admin')
+						> 7379af469cd645aebe1a3f8d52b105bd
+						$.get_or_create('User', 'name', 'admin')
+						> 7379af469cd645aebe1a3f8d52b105bd
+						""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object.")
 		);
 	}
 

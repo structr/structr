@@ -104,19 +104,17 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-
 		return """
-				Retrieves the content of the given file from the Structr filesystem. 
-				This method can be used to access the binary content of a file stored in Structr.
-				""";
+		Retrieves the content of the given file from the Structr filesystem.
+		This method can be used to access the binary content of a file stored in Structr.
+		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-				"""
-				${get_content(first(find('File', 'name', 'test.txt')))}"""
-				)
+		return List.of(
+				Example.structrScript(" ${get_content(first(find('File', 'name', 'test.txt')))}"),
+				Example.javaScript(" $.get_content($.first($.find('File', 'name', 'test.txt')))")
 		);
 	}
 

@@ -137,10 +137,9 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-						"""
-								${get_incoming_relationships(page, me)}"""
-				)
+		return List.of(
+				Example.structrScript("${get_incoming_relationships(page, me)}"),
+				Example.javaScript("$.get_incoming_relationships(page, $.me}")
 		);
 	}
 
@@ -151,6 +150,6 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 				Parameter.mandatory("from", "source node"),
 				Parameter.mandatory("to", "target node"),
 				Parameter.optional("relType", "relationship type")
-				);
+		);
 	}
 }

@@ -77,17 +77,14 @@ public class GetCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return """
-			   Returns null if there is no stored value for the given key or if the stored value is expired.""";
+		return "Returns null if there is no stored value for the given key or if the stored value is expired.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-				"""
-				${get_cache_value('externalResult')}
-				"""
-				)
+		return List.of(
+				Example.structrScript("${get_cache_value('externalResult')}"),
+				Example.javaScript("$.get_cache_value('externalResult')")
 		);
 	}
 

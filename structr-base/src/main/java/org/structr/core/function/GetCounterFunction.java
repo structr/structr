@@ -90,10 +90,9 @@ public class GetCounterFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-				"""
-						${get_counter(1)}"""
-				)
+		return List.of(
+				Example.structrScript("${get_counter(1)}"),
+				Example.javaScript("$.get_counter(1)")
 		);
 	}
 
@@ -114,6 +113,6 @@ public class GetCounterFunction extends CoreFunction {
 
 	@Override
 	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+		return List.of(Language.StructrScript, Language.JavaScript);
 	}
 }

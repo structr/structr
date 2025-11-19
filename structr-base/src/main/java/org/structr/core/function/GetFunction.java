@@ -171,18 +171,17 @@ public class GetFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-				Returns the value for the given property key from the given entity. 
-				This method will print an error message if the first parameter is null / not accessible. 
-				See `get_or_null()` for a more tolerant get method.
-				""";
+		Returns the value for the given property key from the given entity. 
+		This method will print an error message if the first parameter is null / not accessible. 
+		See `get_or_null()` for a more tolerant get method.
+		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-						"""
-						${get(page, 'name')}"""
-				)
+		return List.of(
+				Example.javaScript("${get(page, 'name')}"),
+				Example.structrScript("$.get(page, 'name')")
 		);
 	}
 

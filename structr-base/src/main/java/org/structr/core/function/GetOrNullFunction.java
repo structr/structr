@@ -57,15 +57,15 @@ public class GetOrNullFunction extends CoreFunction {
 			GraphObject dataObject = null;
 
 			if (sources[0] instanceof GraphObject) {
-				dataObject = (GraphObject)sources[0];
+				dataObject = (GraphObject) sources[0];
 			}
 
 			if (sources[0] instanceof List) {
 
-				final List list = (List)sources[0];
+				final List list = (List) sources[0];
 				if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
-					dataObject = (GraphObject)list.get(0);
+					dataObject = (GraphObject) list.get(0);
 				}
 			}
 
@@ -105,8 +105,8 @@ public class GetOrNullFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}"),
-			Usage.javaScript("Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}")
+				Usage.structrScript("Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}"),
+				Usage.javaScript("Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}")
 		);
 	}
 
@@ -124,10 +124,9 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-						"""
-						${get_or_null(page, 'name')}"""
-				)
+		return List.of(
+				Example.structrScript("${get_or_null(page, 'name')}"),
+				Example.javaScript("$.get_or_null(page, 'name')")
 		);
 	}
 
@@ -138,6 +137,6 @@ public class GetOrNullFunction extends CoreFunction {
 		return List.of(
 				Parameter.mandatory("entity", "node or object"),
 				Parameter.mandatory("propertyKey", "requested property name")
-				);
+		);
 	}
 }
