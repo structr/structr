@@ -51,7 +51,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 				final File file       = n.as(File.class);
-				final String encoding = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
+				final String encoding = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
 
 				if (sources[1] instanceof byte[]) {
 
@@ -69,7 +69,11 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 					try (final OutputStream fos = file.getOutputStream(true, true)) {
 
-						fos.write(content.getBytes(encoding));
+						if (encoding != null) {
+							fos.write(content.getBytes(encoding));
+						} else {
+							fos.write(content.getBytes());
+						}
 
 					} catch (IOException ioex) {
 						logger.warn("append_content(): Unable to append to file '{}'", file.getPath(), ioex);
@@ -106,14 +110,14 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file, content [, encoding=UTF-8 ]");
+		return Signature.forAllLanguages("file, content [, encoding ]");
 	}
 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${append_content(file, content[, encoding = 'UTF-8'])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}"),
-			Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding = 'UTF-8']) }}. Example: ${{ $.appendContent(fileNode, 'additional content') }}")
+			Usage.structrScript("Usage: ${append_content(file, content[, encoding ])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}"),
+			Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding ]) }}. Example: ${{ $.appendContent(fileNode, 'additional content') }}")
 		);
 	}
 
@@ -122,7 +126,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 		return List.of(
 			Parameter.mandatory("file", "Structr File entity to append the content to"),
 			Parameter.mandatory("content", "content to append"),
-			Parameter.optional("encoding", "encoding to use, defaults to ZUTF-8")
+			Parameter.optional("encoding", "encoding to use, e.g. 'UTF-8'")
 		);
 	}
 
@@ -136,7 +140,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings."
+			"The `encoding` parameter is used when writing the data to the file. By default the input is not encoded, but when given an encoding such as `UTF-8` the content is transformed before being written to the file."
 		);
 	}
 }
