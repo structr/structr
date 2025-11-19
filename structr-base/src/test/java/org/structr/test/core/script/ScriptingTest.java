@@ -7188,9 +7188,9 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file); }}", "test_1a"), "");
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.setContent(file, 'test'); $.getContent(file); }}", "test_1b"), "test");
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.appendContent(file, '123'); $.getContent(file); }}", "test_1c"), "test123");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_1a"), "");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.setContent(file, 'test', \"UTF-8\"); $.getContent(file, \"UTF-8\"); }}", "test_1b"), "test");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile.txt' }); $.appendContent(file, '123', \"UTF-8\"); $.getContent(file, \"UTF-8\"); }}", "test_1c"), "test123");
 
 			tx.success();
 
@@ -7216,8 +7216,8 @@ public class ScriptingTest extends StructrTest {
 
 			final ActionContext actionContext = new ActionContext(securityContext);
 
-			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file); }}", "test_3a"), "");
-			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.setContent(file, new Date()); }}", "test_3b");
+			Assert.assertEquals(Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.getContent(file, \"UTF-8\"); }}", "test_3a"), "");
+			Scripting.evaluate(actionContext, null, "${{ let file = $.getOrCreate('File', { name: 'testfile3.txt' }); $.setContent(file, new Date(), \"UTF-8\"); }}", "test_3b");
 
 			fail("Providing a Date object (anything other than String or byte[]) to setContent should throw an exception.");
 
