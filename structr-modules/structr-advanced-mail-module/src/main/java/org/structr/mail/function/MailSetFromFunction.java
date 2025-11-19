@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -39,7 +40,7 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("fromAddress [, fromName ]");
+		return Signature.forAllLanguages("address [, name ]");
 	}
 
 	@Override
@@ -66,18 +67,26 @@ public class MailSetFromFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_set_from(fromAddress[, fromName])}"),
-			Usage.javaScript("Usage: ${{ Structr.mailSetFrom(fromAddress[, fromName]) }}")
+			Usage.structrScript("Usage: ${mail_set_from(address [, name])}"),
+			Usage.javaScript("Usage: ${{ $.mailSetFrom(address [, name]) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Sets fromAddress and optional fromName of the current mail.";
+		return "Overwrites/Sets the from address (and optionally name) of the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address of the sender"),
+				Parameter.optional("name", "name of the sender")
+		);
 	}
 }

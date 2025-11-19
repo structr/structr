@@ -28,7 +28,7 @@ import java.util.List;
 
 public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 
-	public static final String IN_REPLY_TO_HEADER = "In-reply-to";
+	public static final String IN_REPLY_TO_HEADER = "In-Reply-To";
 
 	public MailSetInReplyTo(final AdvancedMailModule parent) {
 		super(parent);
@@ -69,17 +69,20 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_set_in_reply_to(messageId)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailSetInReplyTo(messageId) }}")
+			Usage.javaScript("Usage: ${{ $.mailSetInReplyTo(messageId) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Automatically sets the In-reply-to header for the outgoing mail so the recipient mail client knows to which message the mail is a reply.";
+		return "Sets the `In-Reply-To` header for the outgoing mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				Indicates that the mail is a reply to the message with the given `messageId`. This function automatically sets the `In-Reply-To` header of the mail so that the receiving mail client can handle it correctly.
+				This function is especially interesting in combination with the mail service and automatically ingested mails from configured mailboxes.
+				""";
 	}
 }

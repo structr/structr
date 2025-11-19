@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -67,17 +68,36 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_add_header(name, value)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailAddHeader(name, value) }}")
+			Usage.javaScript("Usage: ${{ $.mailAddHeader(name, value) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Sets a SMTP header in the current mail.";
+		return "Adds a custom header to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			Email headers (according to RFC 822) must contain only US-ASCII characters. A header that contains non US-ASCII characters must be encoded as per the rules of RFC 2047 (see `mail_encode_text()`).
+
+			Adding a non-compliant header will result in an error upon calling the `mail_send()` function.
+			""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more headers."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mail_add_header('X-Mailer', 'Structr')}", "US-ASCII only header"),
+				Example.structrScript("${mail_add_header('X-Mailer', mail_encode_text('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
+		);
 	}
 }

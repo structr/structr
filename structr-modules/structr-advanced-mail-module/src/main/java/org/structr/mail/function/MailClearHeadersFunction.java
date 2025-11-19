@@ -39,7 +39,7 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -54,13 +54,13 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_headers()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearHeaders() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearHeaders() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Removes all custom headers for the current mail.";
+		return "Clears any configured custom headers for the current mail.";
 	}
 
 	@Override

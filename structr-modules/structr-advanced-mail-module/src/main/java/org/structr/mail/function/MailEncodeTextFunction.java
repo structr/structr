@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -72,17 +73,27 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_encode_text(text)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailEncodeText(text) }}")
+			Usage.javaScript("Usage: ${{ $.mailEncodeText(text) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return  "Encodes RFC 822 \"text\" token into mail-safe form as per RFC 2047.";
+		return "Encodes RFC 822 \"text\" token into mail-safe form as per RFC 2047.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				The given Unicode string is examined for non US-ASCII characters. If the string contains only US-ASCII characters, it is returned as-is. If the string contains non US-ASCII characters, it is first character-encoded using the platform's default charset, then transfer-encoded using either the B or Q encoding. The resulting bytes are then returned as a Unicode string containing only ASCII characters.
+				Note that this method should be used to encode only "unstructured" RFC 822 headers.
+				""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mail_add_header('X-Mailer', mail_encode_text('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
+		);
 	}
 }

@@ -39,7 +39,7 @@ public class MailClearCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -54,13 +54,13 @@ public class MailClearCcFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_cc()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearCc() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearCc() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Removes all CC addresses from the current mail.";
+		return "Clears the current list of `Cc:` recipients.";
 	}
 
 	@Override

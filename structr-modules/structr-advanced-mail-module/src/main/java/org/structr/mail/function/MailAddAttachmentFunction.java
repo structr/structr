@@ -24,6 +24,7 @@ import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -94,12 +95,31 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Adds an attachment file and an optional file name to the current mail.";
+		return "Adds an attachment with an optional file name to the current mail.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			Adds a file as an attachment to the mail. The `name` parameter can be used to send the file with a different name than the filename in the virtual filesystem.
+			
+			If the given file is a dynamic file, it will be evaluated at the time the mail is being sent.
+			""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("file", "file node from the virtual filesystem"),
+				Parameter.optional("name", "file name of attachment (defaults to the actual file name if omitted)")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more attachments."
+		);
 	}
 
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {
