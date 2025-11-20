@@ -23,43 +23,34 @@ import org.structr.docs.Example;
 
 import java.util.List;
 
-public class CurrentHint extends KeywordHint {
+public class ChildrenHint extends KeywordHint {
 
 	@Override
 	public String getName() {
-		return "current";
+		return "children";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the object whose UUID is appended to the page URL.";
+		return "Refers to the child nodes of the current node.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "When a valid UUID is appended to the URL of a page, Structr automatically retrieves the object associated with that UUID and makes it available to all scripts, templates, and logic executed during the page rendering process under the keyword `current`.";
+		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.javaScript("""
-			<!doctype html>
-			<html>
-				<head>
-					<title>${current.name}</title>
-				</head>
-				<body>
-					<h1>${current.name}</h1>
-				</body>
-			</html>
-			""")
+			Example.structrScript("${render(children)}", "Render the HTML content of an element's children into the page")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+			"This keyword is only available in Page elements (DOM nodes)."
 		);
 	}
 }

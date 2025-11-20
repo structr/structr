@@ -39,7 +39,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -53,17 +53,24 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_get_last_outgoing_message()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailGetLastOutgoingMessage() }}")
+			Usage.javaScript("Usage: ${{ $.mailGetLastOutgoingMessage() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the last outgoing message sent by the advanced mail module in the current script.";
+		return "Returns the last outgoing message sent by the advanced mail module in the current script as a node of type `EMailMessage`.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"This method will only yield a result if `mail_save_outgoing_message()` was active when sending the mail."
+		);
 	}
 }

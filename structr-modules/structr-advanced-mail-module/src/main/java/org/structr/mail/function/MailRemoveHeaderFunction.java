@@ -64,7 +64,7 @@ public class MailRemoveHeaderFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_remove_header(name)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailRemoveHeader(name) }}")
+			Usage.javaScript("Usage: ${{ $.mailRemoveHeader(name) }}")
 		);
 	}
 

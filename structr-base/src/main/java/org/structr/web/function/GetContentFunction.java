@@ -27,12 +27,13 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
+import org.structr.util.StreamReader;
 import org.structr.web.entity.File;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class GetContentFunction extends UiAdvancedFunction {
 
@@ -43,7 +44,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file [, encoding=UTF-8 ]");
+		return Signature.forAllLanguages("file [, encoding ]");
 	}
 
 	@Override
@@ -61,11 +62,17 @@ public class GetContentFunction extends UiAdvancedFunction {
 					return "";
 				}
 
-				final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : "UTF-8";
+				final String encoding = (sources.length == 2 && sources[1] != null) ? sources[1].toString() : null;
 
 				try (final InputStream is = file.getInputStream()) {
 
-					return new Scanner(is, encoding).useDelimiter("\\A").next();
+					if (encoding != null) {
+
+						return new Scanner(is, encoding).useDelimiter("\\A").next();
+					} else {
+
+						return is.readAllBytes();
+					}
 
 				} catch (IOException e) {
 
@@ -90,8 +97,8 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_content(file[, encoding = \"UTF-8\"])}. Example: ${get_content(first(find('File', 'name', 'test.txt')))}"),
-			Usage.javaScript("Usage: ${{Structr.getContent(file[, encoding = \"UTF-8\"])}}. Example: ${{Structr.getContent(fileNode)}}")
+			Usage.structrScript("Usage: ${get_content(file[, encoding ])}. Example: ${get_content(first(find('File', 'name', 'test.txt')))}"),
+			Usage.javaScript("Usage: ${{Structr.getContent(file[, encoding ])}}. Example: ${{Structr.getContent(fileNode)}}")
 		);
 	}
 

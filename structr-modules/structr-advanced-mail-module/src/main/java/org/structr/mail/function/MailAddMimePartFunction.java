@@ -18,19 +18,15 @@
  */
 package org.structr.mail.function;
 
-import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
-import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
-import org.structr.storage.StorageProviderFactory;
-import org.structr.web.entity.File;
 
-import java.net.MalformedURLException;
 import java.util.List;
 
 public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
@@ -73,13 +69,21 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_add_mime_part(content, contentType)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailAddMimePart(content, contentType) }}")
+			Usage.javaScript("Usage: ${{ $.mailAddMimePart(content, contentType) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("content", "content of the MIME part"),
+				Parameter.mandatory("contentType", "content type of the MIME part")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Adds an attachment file and an optional file name to the current mail.";
+		return "Adds a MIME part to the current mail.";
 	}
 
 	@Override
@@ -87,26 +91,33 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 		return "";
 	}
 
-	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {
-		addAttachment(amc, fileNode, fileNode.getName());
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"see `mail_clear_mime_parts()` to remove added mime parts",
+				"can be called multiple times to add more mime parts."
+		);
 	}
 
-	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode, final String attachmentName) throws MalformedURLException {
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+						
+							$.mailBegin('sender@example.com', 'VCard Collection Service', 'Your VCards');
+							$.mailAddTo($.me.eMail);
+							$.mailSetHtmlContent('<html><body><p>This are all the vcards you collected.</p></body></html>');
 
-		final DynamicMailAttachment attachment = new DynamicMailAttachment();
-		attachment.setName(attachmentName);
-		attachment.setDisposition(EmailAttachment.ATTACHMENT);
+							for (let contact of $.me.contacts) {
 
-		if (fileNode.isTemplate()) {
+								let vcardContent = $.template('VCARD', 'en', contact);
 
-			attachment.setDataSource(new DynamicFileDataSource(fileNode));
+								$.mailAddMimePart(vcardContent, 'text/x-vcard; charset=utf-8; name="contact-' + contact.id + '.vcf"');
+							}
 
-		} else {
-
-			attachment.setDataSource(StorageProviderFactory.getStorageProvider(fileNode));
-
-		}
-
-		amc.addAttachment(attachment);
+							$.mailSend();
+						}}""", "Mail containing all vcards a user collected")
+		);
 	}
 }

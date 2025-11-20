@@ -19,6 +19,8 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -34,9 +36,10 @@ public class ValidateEmailFunction extends UiAdvancedFunction {
 		return "validate_email";
 	}
 
+
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("address");
+		return Signature.forAllLanguages("string");
 	}
 
 	@Override
@@ -60,8 +63,8 @@ public class ValidateEmailFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${validate_email(address)}"),
-			Usage.javaScript("Usage: ${{ $.validate_email(address) }}")
+			Usage.structrScript("Usage: ${validate_email(string)}"),
+			Usage.javaScript("Usage: ${{ $.validate_email(string) }}")
 		);
 	}
 
@@ -72,7 +75,42 @@ public class ValidateEmailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "The current implementation checks many, but not all, syntax rules. If it is a valid email according to the RFC, nothing is returned. Otherwise the error text is returned.";
+		return """
+			Returns the error text if validation fails. If it is a valid email according to RFC 822, nothing is returned.
+
+			RFC 822 treats a lot of strings as valid email addresses, which (in a web context) might not be desirable.
+			For more detailed information how this works, see javax.mail.internet.InternetAddress.validate().
+			""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("string", "Input string to be evaluated as a valid email address")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${validate_email('john@example.com')}", "Valid email address where the result would be empty"),
+				Example.structrScript("${validate_email('John Doe <john@example.com>')}", "Valid email address where the result would be empty"),
+				Example.structrScript("${validate_email('john@example')}", "Invalid email address where the result would be \"Missing final '@domain'\"."),
+				Example.structrScript("${validate_email('john')}", "Invalid email address where the result would be \"Missing final '@domain'\"."),
+				Example.javaScript("""
+					${{
+						let potentialEmail = $.request.email;
+
+						let isValidEmail = $.empty($.validateEmail(potentialEmail));
+
+						if (isValidEmail) {
+							return 'Given email is valid.';
+						} else {
+							return 'Please supply a valid email address.';
+						}
+					}}
+					""", "Script that checks if request parameter 'email' is a valid email address.")
+		);
 	}
 
 	public static String getEmailValidationErrorMessageOrNull(final String email) {

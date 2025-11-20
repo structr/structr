@@ -21,6 +21,8 @@ package org.structr.mail.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -97,17 +99,78 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}"),
-			Usage.javaScript("Usage: ${{ Structr.mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}")
+			Usage.javaScript("Usage: ${{ $.mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Begins a new mail configuration - previously started configurations are cleared.";
+		return "Begins a new mail configuration.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				Begins an HTML email with the basic given configuration. Previously started configurations are cleared.
+
+				The optional parameters can be omitted and selectively be set via `mail_set_from()`, `mail_set_subject()`, `mail_set_html_content()`, `mail_set_text_content()` and `mail_add_attachment()`.
+
+				Recipients are added via the `mail_add_to()`, `mail_add_cc()` and `mail_add_bcc()` functions. This is separated out to allow for emails with only CC and/or BCC addresses.
+				""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
+				"by default, emails are sent based on the SMTP configuration defined in structr.conf. This can be changed using `mail_set_manual_config()` and `mail_reset_manual_config()`"
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("fromAddress", "sender address"),
+				Parameter.optional("fromName", "sender name"),
+				Parameter.optional("subject", "subject"),
+				Parameter.optional("htmlContent", "HTML content"),
+				Parameter.optional("textContent", "text content"),
+				Parameter.optional("files", "collection of file nodes to send as attachments")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+							let projectTask  = $.this;
+							let project      = projectTask.project;
+							let assignee     = projectTask.assignee;
+							let manager      = project.manager;
+							let stakeHolders = projectTask.getStakeHolders();
+
+							$.mailBegin('sender@example.com', 'Project Service', 'Project Task Update: ' + projectTask.name);
+
+							$.mailAddTo(assignee.eMail, assignee.name);
+
+							for (let stakeHolder of stakeHolders) {
+
+								$.mailAddCc(stakeHolder.eMail, stakeHolder.name);
+							}
+
+							if (project.archiveMailbox) {
+								$.mailAddBcc(project.archiveMailbox);
+							}
+
+							let htmlContent = $.template('Project-Task-Update-HTML', 'en', projectTask);
+							$.mailSetHtmlContent(htmlContent);
+
+							let textContent = $.template('Project-Task-Update-TEXT', 'en', projectTask);
+							$.mailSetTextContent(textContent);
+
+							$.mailSend();
+						}}""", "Project task update with multiple different recipients")
+		);
 	}
 }

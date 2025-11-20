@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -72,7 +73,7 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_decode_text(text)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailDecodeText(text) }}")
+			Usage.javaScript("Usage: ${{ $.mailDecodeText(text) }}")
 		);
 	}
 
@@ -83,6 +84,17 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				Decode "unstructured" headers, that is, headers that are defined as '*text' as per RFC 822.
+				The string is decoded using the algorithm specified in RFC 2047, Section 6.1. If the charset-conversion fails for any sequence, it is returned as-is.
+				If the String is not an RFC 2047 style encoded header, it is also returned as-is.
+				""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mail_decode_text('=?utf-8?Q?h=C3=A4llo?=')}", "Decoding encoded string \"hällo\"")
+		);
 	}
 }

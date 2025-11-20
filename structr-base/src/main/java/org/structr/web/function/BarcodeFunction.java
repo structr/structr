@@ -25,6 +25,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -42,11 +44,6 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	@Override
 	public String getName() {
 		return "barcode";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type, data [, width, height, hintKey, hintValue ]");
 	}
 
 	@Override
@@ -141,6 +138,57 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
+	public String getShortDescription() {
+		return "Creates a barcode image of given type with the given data.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		The following barcode types are supported.
+
+		| Barcode Type | Result |
+		|---|---|
+		| AZTEC | Aztec 2D barcode format (beta) |
+		| CODABAR | CODABAR 1D format |
+		| CODE_39 | Code 39 1D format |
+		| CODE_93 | Code 93 1D format |
+		| CODE_128 | Code 128 1D format |
+		| DATA_MATRIX | Data Matrix 2D barcode format |
+		| EAN_8 | EAN-8 1D format |
+		| EAN_13 | EAN-13 1D format |
+		| ITF | ITF (Interleaved Two of Five) 1D format |
+		| PDF_417 | PDF417 format (beta) |
+		| QR_CODE | QR Code 2D barcode format |
+		| UPC_A | UPC-A 1D format |
+		| UPC_E | UPC-E 1D format |
+
+		Most barcode types support different hints which are explained [here](https://zxing.github.io/zxing/apidocs/index.html?com/google/zxing/EncodeHintType.html). Probably the most interesting hints are `MARGIN` and `ERROR_CORRECTION`. Following is an excerpt from the source code. More information on the error correction level can be found [here](https://zxing.github.io/zxing/apidocs/index.html?com/google/zxing/qrcode/decoder/ErrorCorrectionLevel.html)
+
+		| Hint | Description |
+		| --- | --- |
+		| MARGIN | Specifies margin, in pixels, to use when generating the barcode. The meaning can vary by format; for example it controls margin before and after the barcode horizontally for most 1D formats. (Type Integer, or String representation of the integer value).|
+		| ERROR_CORRECTION | Specifies what degree of error correction to use, for example in QR Codes. Type depends on the encoder. For example for QR codes it's type ErrorCorrectionLevel. For Aztec it is of type Integer, representing the minimal percentage of error correction words. For PDF417 it is of type  Integer, valid values being 0 to 8. In all cases, it can also be a String representation of the desired value as well. Note: an Aztec symbol should have a minimum of 25% EC words. |
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type of barcode to create"),
+			Parameter.mandatory("data", "data to encode"),
+			Parameter.optional("width", "width of the resulting image"),
+			Parameter.optional("height", "height of the resulting image"),
+			Parameter.optional("hints", "map of hints to control barcode details")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("type, data [, width, height, hintKey, hintValue ]");
+	}
+
+	@Override
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${ barcode(type, data[, width, height[, hintKey, hintValue]]) }"),
@@ -149,12 +197,20 @@ public class BarcodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "Creates a barcode of given type with the given data.";
+	public List<String> getNotes() {
+		return List.of(
+			"In StructrScript, you can provide alternating key and value entries , i.e. key1, value1, key2, value2, ..."
+		);
 	}
 
 	@Override
-	public String getLongDescription() {
-		return "";
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("""
+			File content: ${barcode('QR_CODE', 'My testcode', 200, 200, \"MARGIN\", 0, \"ERROR_CORRECTION\", \"Q\")}
+			File contentType: image/png; charset=iso-8859-1
+			""", "Example usage in a dynamic file"),
+			Example.structrScript("<img src=\"data:image/png;base64, ${base64encode(barcode('QR_CODE', 'My testcode', 200, 200, 'MARGIN', 0, 'ERROR_CORRECTION', 'Q'), 'basic', 'ISO-8859-1')}\" />", "Usage in an HTML IMG element")
+		);
 	}
 }

@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.MailHelper;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -88,11 +90,39 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends a plaintext e-mail.";
+		return "Sends a plaintext email.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"`textContent` is typically generated using the `template()` function.",
+				"Emails are sent based on the SMTP configuration defined in structr.conf.",
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mail_begin()`."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("fromAddress", "sender address"),
+				Parameter.mandatory("fromName", "sender name"),
+				Parameter.mandatory("toAddress", "recipient address"),
+				Parameter.mandatory("toName", "recipient name"),
+				Parameter.mandatory("subject", "subject"),
+				Parameter.mandatory("textContent", "text content")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${send_plaintext_mail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to Structr!')}")
+		);
 	}
 }

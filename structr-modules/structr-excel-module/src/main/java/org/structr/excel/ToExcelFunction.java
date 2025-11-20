@@ -33,6 +33,8 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -143,8 +145,25 @@ public class ToExcelFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${to_excel(find('Page'), 'ui')}"),
-			Usage.javaScript("Usage: ${{Structr.toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}}. Example: ${{Structr.to_excel(Structr.find('Page'), 'ui'))}}")
+				Usage.structrScript("Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${to_excel(find('Page'), 'ui')}"),
+				Usage.javaScript("Usage: ${{ $.toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]]); }}. Example: ${{ $.toExcel($.find('Page'), 'ui')); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("nodes", "Collection of objects (these objects can be database nodes or javascript objects)"),
+				Parameter.mandatory("propertiesOrView", "Name of a view (e.g. ui or public) or a collection of property names (e.g. `merge('id', 'name')` in StructrScript or `['id', 'name']` in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used."),
+				Parameter.optional("includeHeader", "Switch indicating if a header row should be printed (default: `true`)"),
+				Parameter.optional("localizeHeader", "Switch indicating if the column names in the header should be localized (default: `false`)"),
+				Parameter.optional("headerLocalizationDomain", "lookup domain for localization of header names"),
+				Parameter.optional("maxCellLength", "maximum length after which content cells are truncated"),
+				Parameter.optional("overflowMode",
+					"<p>Controls how content that is longer than maxCellLength is handled (affects content-rows only - the header remains untouched)</p>"
+							+ "<p>`t`: Truncates the content at maxCellLength</p>"
+							+ "<p>`o` (default): Overflows the remaining text after maxCellLength into a cell comment. (This is restricted to 32767 bytes by Excel)</p>"
+							+ "<p>Any other value is used as is as a cell comment. This is useful to display a message like \"The content of this cell has been truncated\".</p>")
 		);
 	}
 
@@ -155,7 +174,57 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Returns XLSX string representation of the given collection of objects with the configured header view/columns.";
+	}
+
+	@Override
+	public List<Example>getExamples() {
+		return List.of(
+				Example.structrScript("${set_content(create('File', 'name', 'new_document.xlsx'), to_excel(find('User'), 'public'), 'ISO-8859-1')}", "Excel file with view 'public' of user list."),
+				Example.structrScript("""
+				${
+					(
+						set_response_header('Content-Disposition', 'attachment; filename="user-export.xlsx"'),
+						to_excel(find('User'), 'public')
+					)
+				}
+				""", "Downloadable dynamic file containing the list of users in StructrScript. (See note regarding content-type)"),
+				Example.javaScript("""
+				${{
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"');
+					$.print($.toExcel($.find('User'), 'public'));
+				}}
+				""", "Downloadable dynamic file with view 'public' of user list of users in JavaScript. (See note regarding content-type)"),
+				Example.javaScript("""
+				${{
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-truncated.xlsx"');
+					$.print($.toExcel($.find('User'), 'excelView', true, false, '', 1000, 't'));
+				}}
+				""", "Downloadable dynamic file with view 'excelView' of user list where headers are included but not localized and all cells are truncated after 1000 characters. (See note regarding content-type)")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The output of this function is a complete excel file, so the complete data must be contained in the `nodes` parameter and can not be appended later on",
+			"This function is intended to be used in conjunction with the `set_content()` function or in a dynamic file",
+			"**IMPORTANT**: The dynamic file should have the charset `ISO-8859-1` specified in its `contentType` (e.g. `application/octet-stream; charset=ISO-8859-1`)",
+			"The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.",
+			"If a view is given, the (optionally localized) property names of that view are used as header row",
+			"If a collection of properties is given, these (optionally localized) property names are used as a header row",
+			"**IMPORTANT**: If you are creating Excel document from a dynamic file, make sure that there are no extraneous whitespaces after the dynamic script content. This is very hard to find and Excel will warn the user that the created file is corrupt and has to be repaired!",
+			"""
+				Limitations: Structr is creating `EXCEL2007` spreadsheets. The following limitations are taken directly from the [documentation](https://poi.apache.org/apidocs/org/apache/poi/ss/SpreadsheetVersion.html):
+					- Maximum length of text cell contents is 32767
+					- Maximum length of text cell comments is 32767
+					- The total number of available rows is 1M (2^20)
+					- The total number of available columns is 16K (2^14)
+					- The maximum number of arguments to a function is 255
+					- Number of conditional format conditions on a cell is unlimited (actually limited by available memory in Excel)
+					- Number of cell styles is 64000
+				"""
+		);
 	}
 
 	public Workbook writeExcel(final List list, final String propertyView, final List<String> properties, final boolean includeHeader, final boolean localizeHeader, final String headerLocalizationDomain, final Locale locale, final Integer maxCellLength, final String overflowMode) throws IOException {

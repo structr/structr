@@ -32,25 +32,20 @@ public class ApplicationRootPathHint extends KeywordHint {
 
 	@Override
 	public String getShortDescription() {
-		return "Fixme.";
+		return "Refers to the root path of the Structr application.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The root path of the Structr application can be configured using the `application.root.path` setting in structr.conf, in case Structr is being run behind a reverse proxy. The default value of the setting is the empty string, i.e. no additional root path.";
 	}
-
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.javaScript("""
-			""")
-		);
+		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+		return null;
 	}
 }

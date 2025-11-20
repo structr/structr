@@ -39,7 +39,7 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${ mail_reset_manual_config() }"),
-			Usage.javaScript("Usage: ${{ Structr.mailResetManualConfig() }}")
+			Usage.javaScript("Usage: ${{ $.mailResetManualConfig() }}")
 		);
 	}
 
@@ -73,6 +73,6 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function removes the configuration change made by using the `mail_set_manual_config(...)`.";
 	}
 }
