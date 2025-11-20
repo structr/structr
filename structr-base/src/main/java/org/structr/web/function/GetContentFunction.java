@@ -113,8 +113,8 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript(" ${get_content(first(find('File', 'name', 'test.txt')))}"),
-				Example.javaScript(" $.get_content($.first($.find('File', 'name', 'test.txt')))")
+				Example.structrScript("${get_content(first(find('File', 'name', 'test.txt')))}"),
+				Example.javaScript("${{ $.get_content($.first($.find('File', 'name', 'test.txt'))) }}")
 		);
 	}
 

@@ -139,7 +139,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${get_incoming_relationships(page, me)}"),
-				Example.javaScript("$.get_incoming_relationships(page, $.me}")
+				Example.javaScript("${{ $.get_incoming_relationships(page, $.me) }}")
 		);
 	}
 

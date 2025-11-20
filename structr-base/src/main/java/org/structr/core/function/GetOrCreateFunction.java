@@ -187,11 +187,11 @@ public class GetOrCreateFunction extends CoreFunction {
 						> 7379af469cd645aebe1a3f8d52b105bd
 						""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object."),
 				Example.javaScript("""
-						$.get_or_create('User', 'name', 'admin')
+						${{ $.get_or_create('User', {name: 'admin'}) }}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						$.get_or_create('User', 'name', 'admin')
+						${{ $.get_or_create('User', {name: 'admin'}) }}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						$.get_or_create('User', 'name', 'admin')
+						${{ $.get_or_create('User', {name: 'admin'}) }}
 						> 7379af469cd645aebe1a3f8d52b105bd
 						""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object.")
 		);

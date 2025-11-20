@@ -92,7 +92,7 @@ public class GetCounterFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${get_counter(1)}"),
-				Example.javaScript("$.get_counter(1)")
+				Example.javaScript("${{ $.get_counter(1) }}")
 		);
 	}
 

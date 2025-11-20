@@ -126,7 +126,7 @@ public class GetOrNullFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${get_or_null(page, 'name')}"),
-				Example.javaScript("$.get_or_null(page, 'name')")
+				Example.javaScript("${{ $.get_or_null(page, 'name') }}")
 		);
 	}
 

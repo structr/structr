@@ -84,7 +84,7 @@ public class GetCacheValueFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${get_cache_value('externalResult')}"),
-				Example.javaScript("$.get_cache_value('externalResult')")
+				Example.javaScript("${{ $.get_cache_value('externalResult') }}")
 		);
 	}
 

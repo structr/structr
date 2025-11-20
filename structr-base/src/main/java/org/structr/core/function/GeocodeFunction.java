@@ -130,16 +130,17 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-				Returns the geocoding result for the given parameters. 
-				See Geocoding Configuration for more information. 
-				This method returns a nested object with latitude / longitude that can directly be used in the `set()` method.
-				""";
+		Returns the geocoding result for the given parameters. 
+		See Geocoding Configuration for more information. 
+		This method returns a nested object with latitude / longitude that can directly be used in the `set()` method.
+		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.javaScript("${set(this, geocode(this.street, this.city, this.country))}")
+				Example.structrScript("${set(this, geocode(this.street, this.city, this.country))}"),
+				Example.javaScript("${{ $.set(this, $.geocode(this.street, this.city, this.country)) }}")
 		);
 	}
 

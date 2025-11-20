@@ -184,23 +184,16 @@ public class TranslateFunction extends UiFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-				  Supported translation providers:
-				  - google (Google Cloud Translation API, default)
-				  - deepl (DeepL REST API)""";
+		Supported translation providers:
+		  - google (Google Cloud Translation API, default)
+		  - deepl (DeepL REST API)""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript(
-				"""
-				${translate("Structr is awesome", "en", "de")}
-				"""
-		),
-		Example.javaScript(
-				"""
-				${translate("Structr is awesome", "en", "de", "deepl")}
-				"""
-				)
+		return List.of(
+				Example.structrScript("${translate('Structr is awesome', 'en', 'de')}"),
+				Example.javaScript("${{ $.translate('Structr is awesome', 'en', 'de', 'deepl') }}")
 		);
 	}
 

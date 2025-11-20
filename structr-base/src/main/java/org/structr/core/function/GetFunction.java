@@ -181,7 +181,7 @@ public class GetFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.javaScript("${get(page, 'name')}"),
-				Example.structrScript("$.get(page, 'name')")
+				Example.structrScript("${{ $.get(page, 'name') }}")
 		);
 	}
 
