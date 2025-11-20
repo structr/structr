@@ -311,30 +311,35 @@ public class AutocompleteTest extends StructrUiTest {
 
 		System.out.println(result.stream().map((o -> ((GraphObjectMap)o).toMap().get("text"))).toList());
 
-		 assertEquals("Invalid autocomplete result", "applicationRootPath",                   ((GraphObjectMap)result.get( 0)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "applicationStore",                      ((GraphObjectMap)result.get( 1)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "current",                               ((GraphObjectMap)result.get( 2)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "host",                                  ((GraphObjectMap)result.get( 3)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "ip",                                    ((GraphObjectMap)result.get( 4)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "locale",                                ((GraphObjectMap)result.get( 5)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "me",                                    ((GraphObjectMap)result.get( 6)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "methodParameters",                      ((GraphObjectMap)result.get( 7)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "now",                                   ((GraphObjectMap)result.get( 8)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "page",                                  ((GraphObjectMap)result.get( 9)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "parameterMap",                          ((GraphObjectMap)result.get(10)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "pathInfo",                              ((GraphObjectMap)result.get(11)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "predicate",                             ((GraphObjectMap)result.get(12)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "queryString",                           ((GraphObjectMap)result.get(13)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "request",                               ((GraphObjectMap)result.get(14)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "session",                               ((GraphObjectMap)result.get(15)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "tenantIdentifier",                      ((GraphObjectMap)result.get(16)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "this",                                  ((GraphObjectMap)result.get(17)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "abbr(string, maxLength[, abbr = '…'])", ((GraphObjectMap)result.get(18)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "add(values...)",                         ((GraphObjectMap)result.get(19)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "add_header(name, value)",               ((GraphObjectMap)result.get(20)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "add_labels(node, labels)",              ((GraphObjectMap)result.get(21)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "add_to_group(group, user)",             ((GraphObjectMap)result.get(22)).toMap().get("text"));
-		 assertEquals("Invalid autocomplete result", "ancestor_types(type [, blacklist ])",   ((GraphObjectMap)result.get(23)).toMap().get("text"));
+		int i=0;
+
+		 assertEquals("Invalid autocomplete result", "applicationRootPath",                   ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "applicationStore",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "baseUrl",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "children",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "current",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "data",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "host",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "ip",                                    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "locale",                                ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "me",                                    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "methodParameters",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "now",                                   ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "page",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "parameterMap",                          ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "pathInfo",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "predicate",                             ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "queryString",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "request",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "session",                               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "tenantIdentifier",                      ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "this",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "abbr(string, maxLength[, abbr = '…'])", ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "add(values...)",                        ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "add_header(name, value)",               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "add_labels(node, labels)",              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "add_to_group(group, user)",             ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "ancestor_types(type [, blacklist ])",   ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 	}
 
 	void assertFirstResult(final String key, final String value, final List<GraphObject> result) {

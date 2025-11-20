@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -40,7 +41,7 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("bounceAddress");
+		return Signature.forAllLanguages("address");
 	}
 
 	@Override
@@ -65,8 +66,8 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_set_bounce_address(bounceAddress)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailSetBounceAddress(bounceAddress) }}")
+			Usage.structrScript("Usage: ${mail_set_bounce_address(address)}"),
+			Usage.javaScript("Usage: ${{ $.mailSetBounceAddress(address) }}")
 		);
 	}
 
@@ -78,5 +79,12 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address to which undeliverable messages will be returned if undeliverable")
+		);
 	}
 }

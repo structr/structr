@@ -64,13 +64,13 @@ public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_set_text_content(textContent)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailSetTextContent(textContent) }}")
+			Usage.javaScript("Usage: ${{ $.mailSetTextContent(textContent) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the text content of the current mail.";
+		return "Sets/Overwrites the text content of the current mail.";
 	}
 
 	@Override

@@ -64,13 +64,13 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_set_subject(subject)}"),
-			Usage.javaScript("Usage: ${Structr.mailSetSubject(subject)}")
+			Usage.javaScript("Usage: ${{ $.mailSetSubject(subject) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Sets the subject of the current mail.";
+		return "Overwrites/Sets the subject of the current mail.";
 	}
 
 	@Override

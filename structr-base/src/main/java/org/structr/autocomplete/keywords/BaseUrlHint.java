@@ -23,21 +23,25 @@ import org.structr.docs.Example;
 
 import java.util.List;
 
-public class CurrentHint extends KeywordHint {
+public class BaseUrlHint extends KeywordHint {
 
 	@Override
 	public String getName() {
-		return "current";
+		return "baseUrl";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the object whose UUID is appended to the page URL.";
+		return "Refers to the base URL for this Structr application.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "When a valid UUID is appended to the URL of a page, Structr automatically retrieves the object associated with that UUID and makes it available to all scripts, templates, and logic executed during the page rendering process under the keyword `current`.";
+		return """
+		The value is assembled from the protocol, hostname and port of the server instance Structr is running on.
+	
+		It produces `http(s)://<host>(:<port>)` depending on the configuration.";
+		""";
 	}
 
 	@Override
@@ -60,6 +64,10 @@ public class CurrentHint extends KeywordHint {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+			"If `application.baseurl.override` is set in structr.conf, the value of that setting will be returned.",
+			"If HTTPS is enabled, the result string will always begin with https://",
+			"If this keyword is used in a script called without a request (e.g. a CRON job), the configuration keys `application.host` and `application.http.port` (or `application.https.port`) are returned. If a request object is available, the information will be taken from there."
+
 		);
 	}
 }

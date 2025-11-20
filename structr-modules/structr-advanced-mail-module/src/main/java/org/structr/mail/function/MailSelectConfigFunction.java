@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -47,7 +48,7 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 		try {
 
-			if (sources[0] == null) {
+			if (sources.length == 0 || sources[0] == null) {
 
 				ctx.getAdvancedMailContainer().setConfigurationPrefix(null);
 
@@ -69,17 +70,54 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_select_config(name)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailSelectConfig(name) }}")
+			Usage.javaScript("Usage: ${{ $.mailSelectConfig(name) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Selects a configuration prefix for the mail configuration (as configured in structr.conf).";
+		return "Selects a configuration prefix for the SMTP configuration.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				Allows selecting a different SMTP configuration (as configured in structr.conf) for the current outgoing mail.
+				
+				The six SMTP settings can be overridden **individually** by adding a prefixed configuration entry. If no entry is found the default (non-prefixed) value is used.
+				""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"A selected configuration can be removed by calling `mail_select_config()` without parameters or with `null` or `\"\"` as parameter.",
+				"A manual configuration (see `mail_set_manual_config()`) overrides a selected configuration which overrides the default configuration."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${mail_select_config('myDifferentConfig')}
+						
+						**Example structr.conf**
+						[...]
+						smtp.host = <server>
+						smtp.port = <port>
+						smtp.user = <user>
+						smtp.password = <password>
+						smtp.tls.enabled = true
+						smtp.tls.required = true
+						myDifferentConfig.smtp.host = <server>
+						myDifferentConfig.smtp.port = <port>
+						myDifferentConfig.smtp.user = <user>
+						myDifferentConfig.smtp.password = <password>
+						myDifferentConfig.smtp.tls.enabled = true
+						myDifferentConfig.smtp.tls.required = true
+						[...]
+						""")
+		);
 	}
 }

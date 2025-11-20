@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -33,11 +34,6 @@ public class CapitalizeFunction extends CoreFunction {
 	@Override
 	public String getName() {
 		return "capitalize";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str");
 	}
 
 	@Override
@@ -70,12 +66,27 @@ public class CapitalizeFunction extends CoreFunction {
 	}
 
 	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllLanguages("string");
+	}
+
+	@Override
 	public String getShortDescription() {
 		return "Capitalizes the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "No other characters are changed. If the first character has no explicit titlecase mapping and is not itself a titlecase char according to UnicodeData, then the uppercase mapping is returned as an equivalent titlecase mapping.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${capitalize('cat dog bird')}", "Results in \"Cat dog bird\""),
+			Example.structrScript("${capitalize('cAT DOG BIRD')}", "Results in \"CAT DOG BIRD\""),
+			Example.structrScript("${capitalize('\"cat dog bird\"')}", "Only the first character is capitalized, so quoted strings are not changed")
+		);
 	}
 }

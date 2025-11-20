@@ -39,7 +39,7 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_clear_attachments()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailClearAttachments() }}")
+			Usage.javaScript("Usage: ${{ $.mailClearAttachments() }}")
 		);
 	}
 

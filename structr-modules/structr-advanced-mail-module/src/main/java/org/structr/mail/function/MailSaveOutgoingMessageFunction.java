@@ -19,6 +19,7 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -39,7 +40,7 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("bool");
+		return Signature.forAllLanguages("doSave");
 	}
 
 	@Override
@@ -63,18 +64,36 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mailSaveoutgoingMessage(true)}"),
-			Usage.javaScript("Usage: ${{ Structr.mailSaveOutgoingMessage(true) }}")
+			Usage.structrScript("Usage: ${mail_save_outgoing_message(doSave)}"),
+			Usage.javaScript("Usage: ${{ $.mailSaveOutgoingMessage(doSave) }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "If set to true, the mail will be saved after it has been sent and can be retrieved via the getLastOutgoingMessage() function.";
+		return "Configures if the current mail should be saved or not.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				Configures the Advanced Mail Module that the next invocation of `mail_send()` should save the outgoing email as an `EMailMessage` node.
+				Configured attachments are *copied* and attached to the `EMailMessage` node. For attached dynamic files the evaluated result is saved as a static file.
+				After the `mail_send()` command is finished, the outgoing message can be accessed via `mail_get_last_outgoing_message()`.
+				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("doSave", "boolean indicating if mail should be saved or not")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"By default, mails are not saved"
+		);
 	}
 }

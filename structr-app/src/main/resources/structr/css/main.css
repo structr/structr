@@ -3647,6 +3647,28 @@ ul.combined-input-select-field li:hover {
 /*	min-width: 600px;*/
 /*}*/
 
+.monaco-editor .suggest-details-container .suggest-details table {
+    width: calc(100% - 1rem) !important;
+}
+
+.monaco-editor .suggest-details-container .suggest-details table,
+.monaco-editor .suggest-details-container .suggest-details tr,
+.monaco-editor .suggest-details-container .suggest-details td,
+.monaco-editor .suggest-details-container .suggest-details th,
+.monaco-editor .suggest-details-container .suggest-details tbody,
+.monaco-editor .suggest-details-container .suggest-details thead {
+    border: 1px solid var(--input-field-border);
+}
+
+.monaco-editor .suggest-details-container .suggest-details table thead th,
+.monaco-editor .suggest-details-container .suggest-details table tbody td {
+    padding: 0 4px;
+}
+
+.monaco-editor .suggest-details-container .suggest-details table thead th {
+    text-align: left;
+}
+
 .form-input.input-invalid {
 	border: 1px solid var(--input-invalid-border-color);
 	background-color: var(--input-invalid-bg-color);

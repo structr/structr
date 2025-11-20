@@ -60,12 +60,13 @@ public class PolyglotProxyMap implements ProxyObject {
 
 		if (key != null) {
 
-			if (value == null) {
+			final Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
+			if (unwrappedValue == null) {
 
 				map.remove(key);
 			} else {
 
-				map.put(key, PolyglotWrapper.unwrap(actionContext, value));
+				map.put(key, unwrappedValue);
 			}
 		}
 	}

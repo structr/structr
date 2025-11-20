@@ -41,7 +41,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file, content[, encoding = \"UTF-8\"]");
+		return Signature.forAllLanguages("file, content[, encoding ]");
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
 				final File file       = n.as(File.class);
-				final String encoding = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
+				final String encoding = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
 
 				if (sources[1] instanceof byte[]) {
 
@@ -72,7 +72,11 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 					try (final OutputStream fos = file.getOutputStream(true, false)) {
 
-						fos.write(content.getBytes(encoding));
+						if (encoding != null) {
+							fos.write(content.getBytes(encoding));
+						} else {
+							fos.write(content.getBytes());
+						}
 
 					} catch (IOException ioex) {
 						logger.warn("set_content(): Unable to write content to file '{}'", file.getPath(), ioex);
@@ -100,8 +104,8 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_content(file, content[, encoding = \"UTF-8\"])}. Example: ${set_content(first(find('File', 'name', 'test.txt')), 'Overwritten content')}"),
-			Usage.javaScript("Usage: ${{Structr.setContent(file, content[, encoding = \"UTF-8\"])}}. Example: ${{Structr.setContent(fileNode, 'Overwritten content')}}")
+			Usage.structrScript("Usage: ${set_content(file, content[, encoding ])}. Example: ${set_content(first(find('File', 'name', 'test.txt')), 'Overwritten content')}"),
+			Usage.javaScript("Usage: ${{Structr.setContent(file, content[, encoding ])}}. Example: ${{Structr.setContent(fileNode, 'Overwritten content')}}")
 		);
 	}
 

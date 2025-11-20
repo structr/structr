@@ -29,6 +29,8 @@ import org.structr.common.helper.DynamicMailAttachment;
 import org.structr.common.helper.MailHelper;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -127,11 +129,42 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Sends an HTML e-mail.";
+		return "Sends an HTML email.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Attachments must be provided as a list, even when only a single file is included.",
+				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
+				"Emails are sent based on the SMTP configuration defined in structr.conf.",
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mail_begin()`."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("fromAddress", "sender address"),
+				Parameter.mandatory("fromName", "sender name"),
+				Parameter.mandatory("toAddress", "recipient address"),
+				Parameter.mandatory("toName", "recipient name"),
+				Parameter.mandatory("subject", "subject"),
+				Parameter.mandatory("htmlContent", "HTML content"),
+				Parameter.mandatory("textContent", "text content"),
+				Parameter.optional("files", "collection of file nodes to send as attachments")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${send_plaintext_mail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to <b>Structr</b>!', 'Hi User, welcome to Structr!', find('File', 'name', 'welcome-to-structr.pdf')))}")
+		);
 	}
 }

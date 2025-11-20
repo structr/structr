@@ -38,13 +38,13 @@ public class LocaleHint extends KeywordHint {
 	@Override
 	public String getLongDescription() {
 		return """
-			The locale of a request is determined like this in descending priority:
-			
-			1. Request parameter `locale`
-			2. User locale
-			3. Cookie `locale`
-			4. Browser locale
-			5. Default locale which was used to start the java process (evaluated via `java.util.Locale.getDefault();`)
+		The locale of a request is determined like this in descending priority:
+
+		1. Request parameter `locale`
+		2. User locale
+		3. Cookie `locale`
+		4. Browser locale
+		5. Default locale which was used to start the java process (evaluated via `java.util.Locale.getDefault();`)
 		""";
 	}
 

@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -40,7 +41,7 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return Signature.forAllLanguages("");
 	}
 
 	@Override
@@ -55,7 +56,7 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mail_has_error()}"),
-			Usage.javaScript("Usage: ${{ Structr.mailHasError() }}")
+			Usage.javaScript("Usage: ${{ $.mailHasError() }}")
 		);
 	}
 
@@ -67,5 +68,20 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+						
+							$.mail_begin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+							$.mail_add_to('another-user@example.com');
+							$.mail_send();
+
+							$.log($.mail_has_error());
+						}}""", "Log true/false depending on message sending outcome")
+		);
 	}
 }
