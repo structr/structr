@@ -24,6 +24,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -96,11 +98,32 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the structr.conf value for the given key.";
+		return "Returns the configuration value associated with the given key from structr.conf.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function can be used to read values from the configuration file and use it to configure frontend behaviour, default values etc. The optional second parameter is the default value to be returned if the configuration key is not present.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("key", "key to read from structr.conf"),
+			Parameter.optional("defaultValue", "default value to use if the configuration key is not present")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return super.getExamples();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"For security reasons the superuser password can not be read with this function."
+		);
 	}
 }

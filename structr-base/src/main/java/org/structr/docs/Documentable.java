@@ -125,7 +125,7 @@ public interface Documentable {
 
 				} else {
 
-					lines.add("##### Example " + index);
+					lines.add("##### Example " + index + " (" + example.getLanguage() + ")");
 				}
 				lines.add("```");
 				lines.add(example.getText());

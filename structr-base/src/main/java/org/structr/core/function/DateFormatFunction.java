@@ -22,6 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.TemporalDateConverter;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -33,7 +35,7 @@ import java.util.List;
 
 public class DateFormatFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_DATE_FORMAT = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 
 	@Override
 	public String getName() {
@@ -103,18 +105,78 @@ public class DateFormatFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${date_format(value, pattern)}. Example: ${date_format(this.creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}"),
-			Usage.javaScript("Usage: ${{Structr.date_format(value, pattern)}}. Example: ${{Structr.date_format(Structr.get('this').creationDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}}")
+			Usage.structrScript(ERROR_MESSAGE_DATE_FORMAT),
+			Usage.javaScript("Usage: ${{ $.date_format(value, pattern); }}. Example: ${{ $.date_format($.this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\"); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Formats the given value as a date string with the given format string.";
+		return "Formats the given date object according to the given pattern, using the current locale (language/country settings).";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				This method uses the Java SimpleDateFormat class which provides the following pattern chars:
+
+				| Letter | Date or Time Component |
+				| --- | --- |
+				| G | Era designator |
+				| y | Year |
+				| Y | Week year |
+				| M | Month in year |
+				| w | Week in year |
+				| W | Week in month |
+				| D | Day in year |
+				| d | Day in month |
+				| F | Day of week in month |
+				| E | Day name in week |
+				| u | Day number of week (1 = Monday, ..., 7 = Sunday) |
+				| a | AM/PM marker |
+				| H | Hour in day (0-23) |
+				| k | Hour in day (1-24) |
+				| K | Hour in AM/PM (0-11) |
+				| h | Hour in AM/PM (1-12) |
+				| m | Minute in hour |
+				| s | Second in minute |
+				| S | Millisecond |
+				| z | General time zone |
+				| Z | RFC 822 time zone |
+				| X | ISO 8601 time zone |
+
+				Each character can be repeated multiple times to control the output format.
+
+				| Pattern | Description |
+				| --- | --- |
+				| d | prints one or two numbers (e.g. "1", "5" or "20") |
+				| dd | prints two numbers (e.g. "01", "05" or "20") |
+				| EEE | prints the shortened name of the weekday (e.g. "Mon") |
+				| EEEE | prints the long name of the weekday (e.g. "Monday") |
+				""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Some format options are locale-specific. See the examples or the `locale` keyword for information about locales."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("date", "date to format"),
+				Parameter.mandatory("pattern", "format pattern")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${date_format(to_date(1585504800000), 'yyyy-MM-dd')}", "2020-03-29"),
+				Example.structrScript("${date_format(to_date(1585504800000), 'EEEE')}", "Sunday"),
+				Example.structrScript("${(set_locale('de'), date_format(to_date(1585504800000), 'EEEE'))}", "Sonntag")
+		);
 	}
 }

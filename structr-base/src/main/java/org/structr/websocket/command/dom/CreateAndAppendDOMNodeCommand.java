@@ -274,7 +274,7 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 					break;
 
 				case "#content":
-					// maybe this is unneccessary..
+					// maybe this is unnecessary..
 					newNode = document.createTextNode("#text");
 					break;
 

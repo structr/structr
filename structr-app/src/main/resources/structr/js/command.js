@@ -674,7 +674,7 @@ let Command = {
 		}));
 	},
 	/**
-	 * Send a CREATE_AND_ADD_DOM_ELEMENT command to the server.
+	 * Send a CREATE_AND_APPEND_DOM_NODE command to the server.
 	 *
 	 * The server will create a new DOM node with the given tag name and
 	 * append it as child of the node with the given parent id.

@@ -63,11 +63,20 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Clears headers for the next request.";
+		return "Clears headers for the next HTTP request.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Removes all headers previously set with `add_header()` in the same request. This function is a helper for the HTTP request functions that make HTTP requests **from within the Structr Server**, triggered by a frontend control like a button etc.
+		""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This is important if multiple calls to the family of HTTP functions is made in the same request to clear the headers in between usages to prevent sending the wrong headers in subsequent requests."
+		);
 	}
 }

@@ -123,7 +123,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	public List<String> getNotes() {
 		return List.of(
 				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
-				"by default, emails are sent based on the SMTP configuration defined in structr.conf. This can be changed using `mail_set_manual_config()` and `mail_reset_manual_config()`"
+				"By default, emails are sent based on the SMTP configuration defined in structr.conf. This can be changed using `mail_set_manual_config()` and `mail_reset_manual_config()`"
 		);
 	}
 

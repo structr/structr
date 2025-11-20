@@ -59,11 +59,11 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Disables the Websocket notifications in the Structr Ui for the current transaction.";
+		return "Temporarily disables the Websocket Broadcast notifications for the Structr Backend UI.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This method can be used to temporarily disable the broadcasting of large modification operations, which greatly reduces the processing time. If you experience very slow (i.e. more than 10 seconds) object creation, modification or deletion, try to disable notifications before executing the operation. See also `enable_notifications()`.";
 	}
 }

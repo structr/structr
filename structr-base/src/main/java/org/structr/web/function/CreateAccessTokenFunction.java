@@ -21,6 +21,8 @@ package org.structr.web.function;
 import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.auth.JWTHelper;
@@ -75,17 +77,58 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${create_access_token(user [, accessTokenTimeout])}. Example: ${create_access_token(me [, 15])}"),
-			Usage.javaScript("Usage: ${{Structr.createAccessToken(user [, accessTokenTimeout])}}. Example: ${{Structr.createAccessToken(Structr.me [, 15])}")
+			Usage.javaScript("Usage: ${{ $.createAccessToken(user [, accessTokenTimeout]); }}. Example: ${{ $.createAccessToken(Structr.me [, 15]); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Creates an access token for the given user.";
+		return "Creates a JWT access token for the given user entity that can be used for request authentication and authorization.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The return value of this function is a single string with the generated access token. This token can then be used in the `Authorization` HTTP header to authenticate requests against to Structr.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("user", "user entity to create a token for"),
+			Parameter.optional("accessTokenTimeout", "access token timeout in **minutes**, defaults to 1 hour (60 minutes)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			{
+				// create an access token that is valid for 30 minutes
+				let accessToken = $.createAccessToken($.me, 30);
+				
+				// ... use the token
+			}
+			""", "Create a new access token with a validity of 30 minutes"),
+			Example.javaScript("""
+			fetch("http://localhost:8082/structr/rest/User", {
+				method: "GET",
+				headers: {
+					"authorization": "Bearer eyJhbGciOiJIUzUxMiJ9.eyJ[...]VkIn0.fbwKEQ4dELHuXXmPiNtn8XNWh6ShesdlTZsXf-CojTmxQOWUxkbHcroj7gVz02twox82ChTuyxkyHeIoiidU4g"
+				}
+			});
+			""", "Authenticate a request to the Structr backend with an existing access token")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In order to use JWT in your application, you must configure `" + Settings.JWTSecretType.getKey() + "` and the corresponding settings your structr.conf.",
+			"You can configure the timeouts for access and refresh tokens in your structr.conf by setting `" + Settings.JWTExpirationTimeout.getKey() + "` and `" + Settings.JWTRefreshTokenExpirationTimeout.getKey() + "` respectively.",
+			"The refresh token is stored in the `refreshTokens` property in the given User entity."
+		);
 	}
 }

@@ -706,6 +706,26 @@ let _Editors = {
 
 		let monacoInstance = monaco.editor.create(domElement, monacoConfig);
 
+		let { widget } = monacoInstance.getContribution('editor.contrib.suggestController');
+		if (widget) {
+
+			// private API hack to automatically open suggestion details
+			const suggestWidget  = widget.value;
+			suggestWidget._setDetailsVisible?.(true);
+
+			// private API hack to start with a wider suggestion-details element
+			const suggestDetails = suggestWidget._details;
+			if (suggestDetails) {
+
+				const desiredWidth = 700;
+				const resizable    = suggestDetails._resizable;
+
+				// yes, these use the parameters switched around
+				resizable.layout(resizable.size.height, desiredWidth);
+				suggestDetails.widget.layout(resizable.size.width, resizable.size.height);
+			}
+		}
+
 		domElement.dataset['monacoEntityId']           = entity.id;
 		domElement.dataset['monacoEntityPropertyName'] = propertyName;
 

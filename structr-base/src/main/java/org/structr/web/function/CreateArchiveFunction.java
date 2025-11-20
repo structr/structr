@@ -26,6 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -82,9 +84,9 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 				addFilesToArchive(folder.getName() + "/", folder.getFiles(), zaps);
 				addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zaps);
 
-			} else 	if (sources[1] instanceof Collection) {
+			} else 	if (sources[1] instanceof Iterable) {
 
-				final Collection<GraphObject> coll = (Collection)sources[1];
+				final Iterable<GraphObject> coll = (Iterable)sources[1];
 
 				for (GraphObject fileOrFolder : coll) {
 
@@ -105,6 +107,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 						return usage(ctx.isJavaScriptContext());
 					}
 				}
+
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -140,19 +143,75 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create_archive(archiveFileName, files [, CustomFileType])}. Example: ${create_archive('archive', find('File'))}"),
-			Usage.javaScript("Usage: ${{Structr.createArchive(archiveFileName, files [, CustomFileType])}}. Example: ${{Structr.createArchive('archive', Structr.find('File'))}}")
+			Usage.structrScript("Usage: ${create_archive(archiveFileName, files [, customFileType])}. Example: ${create_archive('archive', find('File'))}"),
+			Usage.javaScript("Usage: ${{Structr.createArchive(archiveFileName, files [, customFileType])}}. Example: ${{Structr.createArchive('archive', Structr.find('File'))}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Packs the given files and folders into zipped archive.";
+		return "Creates and returns a ZIP archive with the given files (and folders).";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function creates a ZIP archive with the given files and folder and stores it as a File with the given name in Structr's filesystem. The second parameter can be either a single file, a single folder or a list of files and folders, but all of the objects must be Structr entities. The third parameter can be used to set the node type of the resulting archive to something other than `File`, although the given type must be a subtype of `File`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("archiveFileName", "name of the resulting archive (without the .zip suffix)"),
+			Parameter.mandatory("filesOrFolders", "file, folder or list thereof to add to the archive"),
+			Parameter.optional("customFileType", "custom archive type other than `File` (must be a subtype of `File`)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${create_archive('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
+			Example.javaScript("""
+			${{
+				// find a single folder with an absolute path
+				let folders = $.find('Folder', { path: '/data/logs' }));
+				if (folders.length > 0) {
+
+					// use the first folder here
+					let archive = $.createArchive('logs', folders[0]);
+				}
+			}}
+			""", "Create an archive named `logs.zip` with the contents of exactly one Structr Folder"),
+			Example.javaScript("""
+			${{
+				// find all the folders with the name "logs"
+				let folders = $.find('Folder', { name: 'logs' }));
+				let archive = $.createArchive('logs', folders);
+			}}
+			""", "Create an archive named `logs.zip` with the contents of all Structr Folders named \\\"logs\\\""),
+			Example.javaScript("""
+			${{
+				let parentFolder = $.getOrCreate('Folder', { name: 'archives' });
+				let files        = $.methodParameters.files;
+				let name         = $.methodParameters.name;
+
+				let archive = $.createArchive(name, files);
+
+				archive.parent = parentFolder;
+			}}
+			""", "Create an archive and put it in a specific parent folder")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The resulting file will be named `archiveFileName` + `.zip` and will be put in the root folder of the structr filesystem.",
+			"The second parameter can be a single file, a collection of files, a folder, a collection of folders or a mixture.",
+			"If you use the result of a `find()` call to collect the files and folder for the archive, please note that there can be multiple folders with the same name that might end up in the archive.",
+			"You can set the destination folder of the created archive by setting the `parent` property of the returned entity."
+		);
 	}
 
 	private void addFileToZipArchive(final String path, final File file, final ArchiveOutputStream aps) throws IOException {

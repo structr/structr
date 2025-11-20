@@ -170,9 +170,9 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-			This method can be used in a script to make an HTTP POST request **from within the Structr Server**, triggered by a frontend control like a button etc.
+			This function can be used in a script to make an HTTP POST request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
-			The `POST()` method will return a response object containing the response headers, body and status code. The object has the following structure:
+			The `POST()` function will return a response object containing the response headers, body and status code. The object has the following structure:
 
 			| Field | Description | Type |
 			| --- | --- | --- |
@@ -187,7 +187,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The `POST()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
 			"`contentType` is the expected response content type. If you need to define the request content type, use `add_header('Content-Type', 'your-content-type-here')`",
 			"If the `contentType` is `application/json`, the response body is automatically parsed and the `body` key of the returned object is a map"

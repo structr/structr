@@ -99,6 +99,11 @@ public class CreateDocumentationTest extends StructrUiTest {
 			errors.add("Short description of " + func.getName() + " does not end with a period character.");
 		}
 
+		if (desc.toLowerCase().startsWith("this method")) {
+
+			errors.add("Short description of " + func.getName() + " starts with 'this method' instead of 'this function'.");
+		}
+
 		// verify that a function has at least one language
 		final List<Language> languages = func.getLanguages();
 		if (languages.isEmpty()) {

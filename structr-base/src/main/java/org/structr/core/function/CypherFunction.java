@@ -26,6 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -115,17 +117,51 @@ public class CypherFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}"),
-			Usage.javaScript("Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}")
+			Usage.javaScript("Usage: ${{ $.cypher(query); }}. Example ${{ $.cypher('MATCH (n) RETURN n'); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the result of the given Cypher query.";
+		return "Executes the given Cypher query directly on the database and returns the results as Structr entities.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Structr will automatically convert all query results into the corresponding Structr objects, i.e. Neo4j nodes will be instantiated to Structr node entities, Neo4j relationships will be instantiated to Structr relationship entities, and maps will converted into Structr maps that can be accessed using the dot notation (`map.entry.subentry`).";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("query", "query to execute"),
+			Parameter.optional("parameters", "optional map to supply parameters for the variables in the query"),
+			Parameter.optional("runInNewTransaction", "whether the Cypher query should be run in a new transaction - see notes about the implications of that flag")
+
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${cypher('MATCH (n:User) RETURN n')}", "Run a simple query"),
+			Example.javaScript("""
+			${{
+				let query = "MATCH (user:User) WHERE user.name = $userName RETURN user";
+				let users = $.cypher(query, {userName: 'admin'});
+			}}
+			""", "Run a query with variables in it")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"If the `runInNewTransaction` parameter is set to `true`, the query runs in a new transaction, **which means that you cannot access use objects created in the current context due to transaction isolation**.",
+			"The `cypher()` function always returns a collection of objects, even if `LIMIT 1` is specified!",
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
 	}
 }

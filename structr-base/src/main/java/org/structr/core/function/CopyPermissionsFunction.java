@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -73,8 +74,8 @@ public class CopyPermissionsFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${copy_permissions(source, target[, overwrite])}. Example: ${copy_permissions(this, this.child)}"),
-			Usage.javaScript("Usage: ${{ $..copyPermissions(source, target[, overwrite]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
+			Usage.structrScript("Usage: ${copy_permissions(source, target[, syncPermissions])}. Example: ${copy_permissions(this, this.child)}"),
+			Usage.javaScript("Usage: ${{ $..copyPermissions(source, target[, syncPermissions]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
 		);
 	}
 
@@ -85,6 +86,22 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "If the `syncPermissions` parameter is set to `true`, the permissions of existing security relationships are aligned between source and target nodes. If it is not set (or omitted) the function just adds the permissions to the existing permissions.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("sourceNode", "source node to copy permissions from"),
+			Parameter.mandatory("targetNode",  "target node to copy permissions to"),
+			Parameter.optional("syncPermissions", "synchronize permissions between source and target nodes")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function **only** changes target node permissions that are also present on the source node."
+		);
 	}
 }

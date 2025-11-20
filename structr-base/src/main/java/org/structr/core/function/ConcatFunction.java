@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -82,9 +84,7 @@ public class ConcatFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 
 		}
-
 	}
-
 
 	@Override
 	public List<Usage> getUsages() {
@@ -96,12 +96,33 @@ public class ConcatFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Concatenates all its parameters to a single string with the given separator.";
+		return "Concatenates the given list of objects into a single string without a separator between them.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The objects can be of any type: string, number, entity, collection. If a collection is encountered, all elements of that collection are concatenated.";
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("objects...", "one or more objects to concatenate")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${concat('test', 1, me, ' a string')}", "Results in \"test1.04c8a42581fb74ea092552539d0b594f0 a string\"")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"If nodes and relationships are among the parameters, their UUIDs will be written into the result.",
+			"`null` values are filtered and not concatenated."
+		);
+	}
 }
