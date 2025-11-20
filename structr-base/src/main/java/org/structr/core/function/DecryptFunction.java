@@ -18,9 +18,12 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -106,11 +109,29 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Decrypts the given string with a secret key from structr.conf or argument 2.";
+		return "Decrypts a base 64 encoded AES ciphertext and returns the decrypted result.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This method either uses the internal global encryption key from the '" + Settings.GlobalSecret.getKey() + "' setting in structr.conf, or the optional second parameter.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("encryptedText", "base64-encoded ciphertext to decrypt"),
+			Parameter.optional("secret", "secret key")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${print(decrypt(this.encryptedString))}", "Decrypt a string with the global encryption key from structr.conf"),
+			Example.structrScript("${print(decrypt(this.encryptedString'), 'secret key')}", "Decrypt a string with the key 'secret key'")
+		);
 	}
 }

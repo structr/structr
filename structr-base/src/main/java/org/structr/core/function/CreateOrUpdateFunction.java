@@ -27,6 +27,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.ConfigurationProvider;
@@ -163,18 +165,42 @@ public class CreateOrUpdateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.createOrUpdate(type, properties)}}. Example: ${{$.createOrUpdate(\"User\", \"email\", \"tester@test.com\")}}"),
-			Usage.structrScript("Usage: ${create_or_update(type, properties)}. Example: ${create_or_update(\"User\", \"email\", \"tester@test.com\")}")
+			Usage.javaScript("Usage: ${{$.createOrUpdate(type, properties)}}. Example: ${{$.createOrUpdate('User', 'email', 'tester@test.com')}}"),
+			Usage.structrScript("Usage: ${create_or_update(type, properties)}. Example: ${create_or_update('User', 'email', 'tester@test.com')}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Creates an object with the given properties or updates an existing object if it could be identified by a unique property.";
+		return "Creates an object with the given properties or updates an existing object if it can be identified by a unique property.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function is a shortcut for a code sequence with a query that looks up an existing object and a set() operation it if an object was found, or creates a new object with the given properties, if no object was found.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type to create or update"),
+			Parameter.mandatory("properties", "properties")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'New Name')}", "If no object with the given e-mail address exists, a new object is created, because \"eMail\" is unique. Otherwise, the existing object is updated with the new name.")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"In a StructrScript environment, parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
 	}
 }
