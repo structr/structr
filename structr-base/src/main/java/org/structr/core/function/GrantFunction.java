@@ -28,6 +28,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -123,11 +125,44 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Grants the given permissions on the given entity to a user.";
+		return "Grants the given permissions on the given node to the given principal.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This method creates or modifies the security relationship between the first two parameters. 
+		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
+		The permissions are passed in as a comma-separated list (see the examples below). 
+		The return value is the empty string. See also `revoke()` and `is_allowed()`.""";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${grant(me, node1, 'read')}
+						${grant(me, node2, 'read, write')}
+						${grant(me, node3, 'read, write, delete')}
+						${grant(me, node4, 'read, write, delete, accessControl')}
+						"""),
+				Example.javaScript("""
+						${{ $.grant($.me, node1, 'read') }}
+						${{ $.grant($.me, node2, 'read, write') }}
+						${{ $.grant($.me, node3, 'read, write, delete') }}
+						${{ $.grant($.me, node4, 'read, write, delete, accessControl') }}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("principal", "User or Group node"),
+				Parameter.mandatory("node", "node to grant permissions"),
+				Parameter.mandatory("permissions", "comma seperated permission string of `read`, `write`, `delete`, `accessControl`")
+				);
+	}
+
 }

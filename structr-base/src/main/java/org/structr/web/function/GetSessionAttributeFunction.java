@@ -25,6 +25,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -102,4 +104,21 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 	public String getLongDescription() {
 		return "";
 	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "stored key of user session")
+				);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${get_session_attribute('do_not_track')}"),
+				Example.javaScript("${{ $.get_session_attribute('do_not_track') }}")
+		);
+	}
+
 }

@@ -178,8 +178,22 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_relationship_types(page, me)}"),
-				Example.javaScript("${{ $.get_relationship_types(page, $.me }}")
+				Example.structrScript("""
+						${get_relationship_types(me, 'schema')}
+						${get_relationship_types(me, 'schema', 'incoming')}
+						${get_relationship_types(me, 'schema', 'outgoing')}
+						${get_relationship_types(me, 'existing')}
+						${get_relationship_types(me, 'existing', 'incoming')}
+						${get_relationship_types(me, 'existing', 'outgoing')}
+						"""),
+				Example.javaScript("""
+						${{ $.get_relationship_types($.me, 'schema') }}
+						${{ $.get_relationship_types($.me, 'schema', 'incoming') }}
+						${{ $.get_relationship_types($.me, 'schema', 'outgoing') }}
+						${{ $.get_relationship_types($.me, 'existing') }}
+						${{ $.get_relationship_types($.me, 'existing', 'incoming') }}
+						${{ $.get_relationship_types($.me, 'existing', 'outgoing') }}
+						""")
 		);
 	}
 
@@ -187,17 +201,9 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("from", "source node"),
-				Parameter.mandatory("to", "target node"),
-				Parameter.optional("relType", "relationship type")
-		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
-				"The result value of the get() method can differ from the result value of property access using the dot notation (`get(this, 'name')` vs `this.name`) for certain property types (e.g. date properties), because get() converts the property value to its output representation.",
-				"That means that a Date object will be formatted into a string when fetched via `get(this, 'date')`, whereas `this.date` will return an actual date object."
+				Parameter.mandatory("node", "The node for which possible relationship types should be checked"),
+				Parameter.optional("lookupType", "Either `existing` or `schema` - default: `existing`"),
+				Parameter.optional("direction", "Either `incoming`, `outgoing` or `both` - default: `both`")
 		);
 	}
 }

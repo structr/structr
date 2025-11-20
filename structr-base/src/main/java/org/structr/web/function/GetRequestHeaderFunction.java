@@ -22,6 +22,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -90,6 +92,25 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This method can be used both in [Entity Callback Functions](/article/Entity%20Callback%20Functions)  
+		and in the [Page Rendering](/article/Page%20Rendering) process to obtain the value of a given HTTP header, 
+		allowing the user to use HTTP headers from their web application clients to control features of the application.""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${get_request_header('User-Agent')}"),
+				Example.javaScript("${{ $.get_request_header('User-Agent') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("name", "name of request header field")
+				);
 	}
 }

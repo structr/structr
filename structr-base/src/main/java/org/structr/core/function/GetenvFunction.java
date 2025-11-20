@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -87,5 +89,33 @@ public class GetenvFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getenv('JAVA_HOME')}"),
+				Example.javaScript("""
+		        ${{ return $.getenv().PATH; }}
+		        ${{ return $.getenv('PATH'); }}
+		        """)
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"This function was added in v4.0"
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("variable", "name of enviroment variable")
+				);
 	}
 }
