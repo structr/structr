@@ -25,6 +25,8 @@ import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.core.traits.definitions.LocationTraitDefinition;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -127,6 +129,37 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Returns the geocoding result for the given parameters. 
+		See Geocoding Configuration for more information. 
+		This method returns a nested object with latitude / longitude that can directly be used in the `set()` method.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${set(this, geocode(this.street, this.city, this.country))}"),
+				Example.javaScript("${{ $.set(this, $.geocode(this.street, this.city, this.country)) }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"An API Key (`geocoding.apikey`) has to be configured in structr.conf.",
+				"Also this key is configurable through **Config -> Advanced Settings**."
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("street", "street of place to geocode"),
+				Parameter.mandatory("city", "city of place to geocode"),
+				Parameter.mandatory("country", "country of place to geocode")
+				);
 	}
 }

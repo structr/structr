@@ -21,9 +21,11 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -52,7 +54,9 @@ public class GetCounterFunction extends CoreFunction {
 
 		} catch (NumberFormatException nfe) {
 
+
 			logException(nfe, "{}: NumberFormatException parsing counter level \"{}\" in element \"{}\". Parameters: {}", new Object[] { getDisplayName(), sources[0].toString(), caller, getParametersAsString(sources) });
+
 
 		} catch (ArgumentNullException pe) {
 
@@ -70,7 +74,7 @@ public class GetCounterFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_counter(level)}. Example: ${get_counter(1)}")
+				Usage.structrScript("Usage: ${get_counter(level)}. Example: ${get_counter(1)}")
 		);
 	}
 
@@ -85,7 +89,30 @@ public class GetCounterFunction extends CoreFunction {
 	}
 
 	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${get_counter(1)}"),
+				Example.javaScript("${{ $.get_counter(1) }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The level has to be numeric."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("level", "value for level")
+				);
+	}
+
+	@Override
 	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+		return List.of(Language.StructrScript, Language.JavaScript);
 	}
 }

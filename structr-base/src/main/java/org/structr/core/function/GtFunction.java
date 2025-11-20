@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -58,7 +59,17 @@ public class GtFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This method tries to convert its parameter objects into numerical values, i.e. you can compare strings numerically. 
+		It is often used in conjunction with `size()` to determine if a collection is empty or not.""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript(" ${gt(1, 2)} ", "This will return `false`"),
+				Example.structrScript(" ${gt(2, 1)} ", "This will return `true`")
+		);
 	}
 
 	@Override

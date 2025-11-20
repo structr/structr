@@ -25,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -55,15 +57,15 @@ public class GetOrNullFunction extends CoreFunction {
 			GraphObject dataObject = null;
 
 			if (sources[0] instanceof GraphObject) {
-				dataObject = (GraphObject)sources[0];
+				dataObject = (GraphObject) sources[0];
 			}
 
 			if (sources[0] instanceof List) {
 
-				final List list = (List)sources[0];
+				final List list = (List) sources[0];
 				if (list.size() == 1 && list.get(0) instanceof GraphObject) {
 
-					dataObject = (GraphObject)list.get(0);
+					dataObject = (GraphObject) list.get(0);
 				}
 			}
 
@@ -103,8 +105,8 @@ public class GetOrNullFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}"),
-			Usage.javaScript("Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}")
+				Usage.structrScript("Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}"),
+				Usage.javaScript("Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}")
 		);
 	}
 
@@ -115,6 +117,26 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Returns the value for the given property key from the given entity, but doesn't print an error message when the given entity is not accessible. 
+		See `get()` for the equivalent method that prints an error if the first argument is null.""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${get_or_null(page, 'name')}"),
+				Example.javaScript("${{ $.get_or_null(page, 'name') }}")
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "node or object"),
+				Parameter.mandatory("propertyKey", "requested property name")
+		);
 	}
 }
