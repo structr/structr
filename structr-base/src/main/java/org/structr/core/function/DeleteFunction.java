@@ -26,6 +26,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -75,12 +77,27 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Deletes the given entity from the database.";
+		return "Deletes the one or more nodes or relationships from the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("objectOrList", "object(s) to delete, can also be a list")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${delete(first(find('Project')))}", "Delete the first project"),
+			Example.structrScript("${delete(find('Project'))}", "Delete all projects")
+		);
 	}
 
 	// ----- interface BatchableFunction -----

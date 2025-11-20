@@ -21,9 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -74,22 +72,36 @@ public class DoubleSumFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}")
+			Usage.structrScript("Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, 'amount'))}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the sum of the given arguments as a floating-point number.";
+		return "Returns the sum of all the values in the given collection as a floating-point value.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function will most likely be used in combination with the `extract()` or `merge()` functions.";
 	}
 
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("list", "list of values to sum")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${double_sum(extract(find('Product'), 'itemPrice'))}", "Return the sum of all `itemPrice` values of all `Product` entities")
+		);
 	}
 }

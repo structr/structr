@@ -29,6 +29,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -141,18 +143,46 @@ public class CreateRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)"),
-			Usage.javaScript("Usage: ${{Structr.create_relationship(from, to, relType)}}. Example: ${{Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')}} (Relationshiptype has to exist)")
+			Usage.structrScript("Usage: ${create_relationship(fromNode, toNode, relationshipType)}. Example: ${create_relationship(me, user, 'FOLLOWS')}"),
+			Usage.javaScript("Usage: ${{ $.createRelationship(fromNode, toNode, relationshipType)}}. Example: ${{ $.createRelationship(Structr.get('me'), user, 'FOLLOWS')}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Creates a relationship of the given type between two entities.";
+		return "Creates and returns relationship of the given type between two entities.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("fromNode", "start node of the new relationship"),
+			Parameter.mandatory("toNode", "end node of the new relationship"),
+			Parameter.mandatory("relationshipType", "relationship type to create")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the fourth parameter.",
+			"The relationshipType is the literal name of the relationship that you see between two nodes in the schema editor, e.g. \"FOLLOWS\" or \"HAS\"."
+		);
 	}
 }

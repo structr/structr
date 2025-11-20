@@ -193,35 +193,84 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(Example.javaScript("""
-${{
-    /* Iterate over all users in packets of 10 and do stuff */
-    let pageSize = 10;
-    let pageNo    = 1;
 
-    $.doInNewTransaction(() => {
-        let nodes = $.find('User', $.predicate.page(pageNo, pageSize));
+		return List.of(
+			Example.javaScript("""
+			${{
+				// Iterate over all users in packets of 10 and do stuff
+				let pageSize = 10;
+				let pageNo	= 1;
 
-        // compute-heavy stuff
-        // ...
+				$.doInNewTransaction(function() {
 
-        pageNo++;
+					// in Structr versions lower than 4.0 replace "$.predicate.page" with "$.page"
+					let nodes = $.find('User', $.predicate.page(pageNo, pageSize));
 
-		// Only run again if nodes were found in the current iteration
-        return (nodes.length > 0);
+					// do compute-heavy stuff here..
 
-    }, (exception) => {
+					pageNo++;
 
-        $.log('Error occurred in batch function. Stopping.');
-        return false;
-    });
-}}
-"""));
-	}
+					return (nodes.length > 0);
+					
+				}, function() {
+					$.log('Error occurred in batch function. Stopping.');
+					return false;
+				});
+			}}
+			""", "Regular working example"),
 
-	@Override
-	public List<String> getNotes() {
-		return null;
+			Example.javaScript("""
+			${{
+				// create a new group
+				let group = $.getOrCreate('Group', 'name', 'ExampleGroup');
+
+				$.doInNewTransaction(() => {
+					let page = $.create('Page', 'name', 'ExamplePage');
+
+					// this is where the error occurs - the Group node is not yet committed to the graph and when this context is closed a relationship between the group and the page is created - which can not work because only the page is committed to the graph
+					$.grant(group, page, 'read');
+				});
+			}}
+			""", "Example where the inner transaction tries to create a relationship to a node which has not yet been committed and thus the whole code fails"),
+
+			Example.javaScript("""
+			${{
+				// create a new group
+				let groupId;
+
+				$.doInNewTransaction(() => {
+					let group = $.getOrCreate('Group', 'name', 'ExampleGroup');
+
+					// save the group id to be able to fetch it later
+					groupId = group.id;
+
+					// after this context, the group is committed to the graph and relationships to it can later be created
+				});
+
+				$.doInNewTransaction(() => {
+					let page = $.create('Page', 'name', 'ExamplePage' });
+
+					/* fetch previously created group */
+					let group = $.find('Group', groupId);
+
+					// this works now
+					$.grant(group, page, 'read');
+				});
+			}}
+			""", "Example to fix the problems of example (2)"),
+
+			Example.javaScript("""
+			${{
+				$.doInNewTransaction(() => {
+					let myString = 'the following variable is undefined ' + M;
+				}, (ex) => {
+					// depending on the exception type different methods will be available
+					$.log(ex.getClass().getSimpleName());
+					$.log(ex.getMessage());
+				});
+			}
+			""", "Example where an error occurs and is handled (v4.0+)")
+		);
 	}
 
 	@Override
@@ -237,18 +286,16 @@ ${{
 	@Override
 	public String getLongDescription() {
 		return """
-This makes all sorts of use-cases possible, for example
-batching of a given expression, i.e. if the expression contains a long-running function (for example the deletion of all nodes of a given type).
-Useful in situations where large (or unknown) numbers of nodes are created, modified or deleted.
+		This function allows you to detach long-running functions from the current transaction context (which is bound to the request), or execute large database operations in batches. Useful in situations where large numbers of nodes are created, modified or deleted.
 
-The paging/batching must be done manually.
+		This function is only available in JavaScript and takes a worker function as its first parameter and an optional error handler function as its second parameter.
+		
+		**If the worker function returns `true`, it is run again.** If it returns anything else it is not run again.
+		
+		If an exception occurs in the worker function, the error handler function (if present) is called. If the error handler returns `true`, the worker function is called again. If the error handler function returns anything else (or an exception occurs) the worker function is not run again.
 
-The return value of the function (and of the error handler) determines if the processing continues or stops.
-Returning a truthy value lets the function run again. Returning a truthy value in the error handler
-lets the first function run again.
-
-Be careful to never simply put "return true;" in the first function as this will create an infinite loop.
-""";
+		When the `errorHandler` function is called, it receives the error / exception that was raised in the worker function. Depending on the error type, different methods are available on that object. Syntax errors will yield a `PolyglotException` (see https://www.graalvm.org/sdk/javadoc/org/graalvm/polyglot/PolyglotException.html), other error types will yield different exception object.
+		""";
 	}
 
 	@Override
@@ -263,6 +310,17 @@ Be careful to never simply put "return true;" in the first function as this will
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.doInNewTransaction(function) }}. Example: ${{ $.doInNewTransaction(() => log($.me))}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"WARNING: This function is a prime candidate for an endless loop - be careful what your return condition is!",
+			"WARNING: You have to be aware of the transaction context. Anything from the outermost transaction is not yet committed to the graph and thus can not be used to connect to in an inner transaction. The outer transaction context is only committed after the method is finished without a rollback. See example (2) for code which will result in an error and example (3) for a solution",
+
+		"See also `schedule()`."
 		);
 	}
 }
