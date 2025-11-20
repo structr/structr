@@ -25,6 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -119,11 +120,19 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Creates a copy of the file content linked to the given File entity and links it to the other File entity.";
+		return "Copies the content of sourceFile to targetFile and updates the meta-data accordingly.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("sourceFile", "source file to copy content from"),
+			Parameter.mandatory("targetFile", "target file to copy content to")
+		);
 	}
 }

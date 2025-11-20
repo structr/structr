@@ -211,9 +211,9 @@ public class HttpGetFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-			This method can be used in a script to make an HTTP GET request **from within the Structr Server**, triggered by a frontend control like a button etc.
+			This function can be used in a script to make an HTTP GET request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
-			The `GET()` method will return a response object with the following structure:
+			The `GET()` function will return a response object with the following structure:
 
 			| Field | Description | Type |
 			| --- | --- | --- |
@@ -252,7 +252,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			"v4.0+: `contentType` can be used like the `Content-Type` header - to set the **expected** response mime type and to set the `charset` with which the response will be interpreted (**unless** the server sends provides a charset, then this charset will be used).",
 			"Prior to v4.0: `contentType` is the **expected** response content type (it does not influence the charset of the response - the charset from the **sending server** will be used).",
 			"The parameters `username` and `password` are intended for HTTP Basic Auth. For header authentication use `add_header()`.",
-			"The `GET()` method will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);
 	}

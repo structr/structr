@@ -23,6 +23,8 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -97,11 +99,35 @@ public class ContainsFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given string or collection contains an element.";
+		return "Returns true if the given string or collection contains a given element.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Returns a boolean value that indicates whether the given string contains the given word or the given collection contains the given element.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("stringOrCollection", "string or collection to check"),
+			Parameter.mandatory("wordOrObject", "word or object to check")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${contains(request.inputString, 'test')}", "Check if a given string contains the word \"test\""),
+			Example.structrScript("${contains(project.members, me)}", "Check if the given collection contains a node"),
+			Example.javaScript("${{ $.contains(project.members, $.me); }}", "Check if the given collection contains a node")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"In JavaScript, this function is **not** the `contains` predicate to be used in `$.find()`, please use `$.predicate.contains()` for that."
+		);
 	}
 }

@@ -33,7 +33,7 @@ import org.structr.core.entity.Security;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,7 +86,7 @@ public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 
 		for (final RelationshipInterface rel : this.getIncomingRelationships(StructrTraits.SECURITY)) {
 
-			final Set<Permission> permissions = new HashSet();
+			final Set<Permission> permissions = new LinkedHashSet<>();
 			final Security security           = rel.as(Security.class);
 			final NodeInterface sourceNode    = rel.getSourceNode();
 			final Principal principal         = sourceNode.as(Principal.class);

@@ -26,6 +26,8 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -116,18 +118,46 @@ public class CreateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}"),
-			Usage.javaScript("Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}")
+			Usage.structrScript("Usage: ${create(type, key, value)}. Example: ${create('Feedback', 'text', this.text)}"),
+			Usage.javaScript("Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create('Feedback', {text: 'Structr is awesome.'})}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Creates a new entity with the given key/value pairs in the database.";
+		return "Creates a new node with the given type and key-value pairs in the database.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type of node to create"),
+			Parameter.optional("additionalValues", "key-value pairs or a map thereof")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${create('User', 'name', 'tester', 'passwword', 'changeMeNow!')}"),
+			Example.javaScript("""
+			${{
+				let user = $.create('User', { name: 'tester', password: 'changeMeNow!' });
+			}}
+			""", "Create a new User with the given name and password")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"In a StructrScript environment, parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function takes a map as the second parameter."
+		);
 	}
 }
