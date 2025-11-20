@@ -241,7 +241,7 @@
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.40.2</version>
+                        <version>${docker.maven.plugin.version}</version>
                         <configuration>
                             <skip>${skipUITests}</skip>
                             <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
@@ -571,7 +571,7 @@
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.40.2</version>
+                        <version>${docker.maven.plugin.version}</version>
                         <configuration>
                             <skip>${skipDocker}</skip>
                             <images>

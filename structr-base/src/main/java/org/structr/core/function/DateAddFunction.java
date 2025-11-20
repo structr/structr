@@ -22,6 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.TemporalDateConverter;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -120,7 +122,7 @@ public class DateAddFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${date_add(this.createdDate, 1, -1, 0, 0, 0, 0)}"),
-			Usage.javaScript("Usage: ${{Structr.date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}}. Example: ${{Structr.date_add(Structr.this.createdDate, 1, -1, 0, 0, 0, 0)}}")
+			Usage.javaScript("Usage: ${{ $.date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]]); }}. Example: ${{ $.date_add($.this.createdDate, 1, -1, 0, 0, 0, 0); }}")
 		);
 	}
 
@@ -131,6 +133,36 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The result is returned as new date object, leaving the original date untouched.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("date", "date to manipulate"),
+				Parameter.mandatory("years", "number of years to add"),
+				Parameter.optional("months", "number of months to add"),
+				Parameter.optional("days", "number of days to add"),
+				Parameter.optional("hours", "number of hours to add"),
+				Parameter.optional("minutes", "number of minutes to add"),
+				Parameter.optional("seconds", "number of seconds to add")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The `date` parameter accepts actual date objects, numbers (interpreted as ms after 1970) and strings (formatted as `yyyy-MM-dd'T'HH:mm:ssZ`)",
+				"All other parameters must be provided as numbers"
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${date_add(now, 1)}", "Adds one year to the current date"),
+				Example.structrScript("${date_add(now, 0, 0, 7)}", "Adds one week to the current date"),
+				Example.structrScript("${date_add(now, 0, 0, -7)}", "Subtracts one week from the current date")
+		);
 	}
 }
