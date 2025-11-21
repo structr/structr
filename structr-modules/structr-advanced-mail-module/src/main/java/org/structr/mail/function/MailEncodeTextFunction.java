@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -88,6 +89,13 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 				The given Unicode string is examined for non US-ASCII characters. If the string contains only US-ASCII characters, it is returned as-is. If the string contains non US-ASCII characters, it is first character-encoded using the platform's default charset, then transfer-encoded using either the B or Q encoding. The resulting bytes are then returned as a Unicode string containing only ASCII characters.
 				Note that this method should be used to encode only "unstructured" RFC 822 headers.
 				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("text", "text to encode")
+		);
 	}
 
 	@Override

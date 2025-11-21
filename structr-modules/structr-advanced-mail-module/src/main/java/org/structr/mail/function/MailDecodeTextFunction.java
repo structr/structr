@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -89,6 +90,13 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 				The string is decoded using the algorithm specified in RFC 2047, Section 6.1. If the charset-conversion fails for any sequence, it is returned as-is.
 				If the String is not an RFC 2047 style encoded header, it is also returned as-is.
 				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("text", "text to decode")
+		);
 	}
 
 	@Override

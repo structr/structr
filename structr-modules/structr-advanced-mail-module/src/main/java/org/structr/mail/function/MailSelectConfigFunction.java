@@ -20,6 +20,7 @@ package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -86,6 +87,13 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 				
 				The six SMTP settings can be overridden **individually** by adding a prefixed configuration entry. If no entry is found the default (non-prefixed) value is used.
 				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("name", "name prefix to use for lookup in configuration")
+		);
 	}
 
 	@Override
