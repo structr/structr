@@ -577,7 +577,7 @@
                             <images>
                                 <image>
                                     <name>structr/structr:${project.version}</name>
-                                    <registry>https://index.docker.io/v1/</registry>
+
                                     <build>
                                         <contextDir>${project.basedir}</contextDir>
                                         <args>

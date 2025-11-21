@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -58,11 +59,20 @@ public class GteFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This method tries to convert its parameter objects into numerical values, i.e. you can compare strings numerically.";
 	}
 
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript(" ${gte(1, 2)} ", "This will return `false`"),
+				Example.structrScript(" ${gte(2, 1)} ", "This will return `true`"),
+				Example.structrScript(" ${gte(2, 2)} ", "This will return `true`")
+		);
 	}
 }

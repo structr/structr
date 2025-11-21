@@ -21,6 +21,8 @@ package org.structr.csv;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -49,16 +51,19 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 			try {
 
-				final String source    = sources[0].toString();
-				String delimiter       = ";";
-				String quoteChar       = "\"";
+				final String source = sources[0].toString();
+				String delimiter = ";";
+				String quoteChar = "\"";
 				String recordSeparator = "\n";
 
 				switch (sources.length) {
 
-					case 4: recordSeparator = (String)sources[3];
-					case 3: quoteChar = (String)sources[2];
-					case 2: delimiter = (String)sources[1];
+					case 4:
+						recordSeparator = (String) sources[3];
+					case 3:
+						quoteChar = (String) sources[2];
+					case 2:
+						delimiter = (String) sources[1];
 						break;
 				}
 
@@ -82,7 +87,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[] { getName(), t.getMessage(), getParametersAsString(sources) });
+				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[]{getName(), t.getMessage(), getParametersAsString(sources)});
 			}
 
 			return "";
@@ -97,8 +102,8 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_csv_headers(source[, delimiterChar [, quoteChar[, recordSeparator]]])}. Example: ${get_csv_headers('COL1;COL2;COL3\none;two;three')}"),
-			Usage.javaScript("Usage: ${{Structr.getCsvHeaders(source[, delimiterChar[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}")
+				Usage.structrScript("Usage: ${get_csv_headers(source[, delimiterChar [, quoteChar[, recordSeparator]]])}. Example: ${get_csv_headers('COL1;COL2;COL3\none;two;three')}"),
+				Usage.javaScript("Usage: ${{Structr.getCsvHeaders(source[, delimiterChar[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}")
 		);
 	}
 
@@ -110,5 +115,34 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${get_csv_headers('COL1;COL2;COL3\\none;two;three')}"),
+				Example.javaScript("${{ $.get_csv_headers('COL1;COL2;COL3\\none;two;three') }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"An API Key has to be configured in structr.conf.",
+				"See the documentation on the Translation module for more info."
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("source", "CSV string"),
+				Parameter.optional("delimiter", "CSV field delimiter, default: ';'"),
+				Parameter.optional("quoteChar", "CSV field quotechar, default: '\"'"),
+				Parameter.optional("recordSeparator", "CSV record separator, default: '\\n'")
+		);
 	}
 }

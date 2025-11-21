@@ -26,6 +26,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.SchemaHelper;
@@ -171,5 +173,37 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${get_relationship_types(me, 'schema')}
+						${get_relationship_types(me, 'schema', 'incoming')}
+						${get_relationship_types(me, 'schema', 'outgoing')}
+						${get_relationship_types(me, 'existing')}
+						${get_relationship_types(me, 'existing', 'incoming')}
+						${get_relationship_types(me, 'existing', 'outgoing')}
+						"""),
+				Example.javaScript("""
+						${{ $.get_relationship_types($.me, 'schema') }}
+						${{ $.get_relationship_types($.me, 'schema', 'incoming') }}
+						${{ $.get_relationship_types($.me, 'schema', 'outgoing') }}
+						${{ $.get_relationship_types($.me, 'existing') }}
+						${{ $.get_relationship_types($.me, 'existing', 'incoming') }}
+						${{ $.get_relationship_types($.me, 'existing', 'outgoing') }}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("node", "The node for which possible relationship types should be checked"),
+				Parameter.optional("lookupType", "Either `existing` or `schema` - default: `existing`"),
+				Parameter.optional("direction", "Either `incoming`, `outgoing` or `both` - default: `both`")
+		);
 	}
 }
