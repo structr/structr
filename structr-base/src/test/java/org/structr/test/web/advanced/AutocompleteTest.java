@@ -78,7 +78,7 @@ public class AutocompleteTest extends StructrUiTest {
 		final ActionContext actionContext = new ActionContext(securityContext);
 
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${", "", 0, 0));
-		assertFirstResult("text", "localize(key [, domain ])", AbstractHintProvider.getHints(actionContext, false, null, "${locali", "", 0, 0));
+		assertFirstResult("text", "localize(keyOrKeys [, domain ])", AbstractHintProvider.getHints(actionContext, false, null, "${locali", "", 0, 0));
 
 		// patterns that should produce the full list of autocomplete results
 		assertFullResult(AbstractHintProvider.getHints(actionContext, false, null, "${\n\t", "", 0, 0));

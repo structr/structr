@@ -167,14 +167,12 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 			if (p == null) {
 
 				// no principal => delete
-				SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a principal.", grant.getUuid());
 				StructrApp.getInstance().delete(node);
 			}
 
 			// silently delete this node if all settings are set to false
 			if (!isCreation && !grant.allowRead() && !grant.allowWrite() && !grant.allowDelete() && !grant.allowAccessControl()) {
 
-				SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it doesn't allow anything.", grant.getUuid());
 				StructrApp.getInstance().delete(node);
 			}
 
@@ -185,7 +183,6 @@ public final class SchemaGrantTraitDefinition extends AbstractNodeTraitDefinitio
 				final String fqcn = grant.getStaticSchemaNodeName();
 				if (fqcn == null) {
 
-					SchemaGrantTraitDefinition.logger.warn("Deleting SchemaGrant {} because it is not linked to a schema node.", node.getUuid());
 					StructrApp.getInstance().delete(node);
 				}
 			}

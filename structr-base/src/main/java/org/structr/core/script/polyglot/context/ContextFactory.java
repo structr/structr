@@ -54,7 +54,6 @@ public abstract class ContextFactory {
 			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 			.allowHostAccess(AccessProvider.getHostAccessConfig())
 			.allowIO(AccessProvider.getIOAccessConfig())
-			.allowHostAccess(AccessProvider.getHostAccessConfig())
 			.allowExperimentalOptions(true)
 			.option("python.CoreHome", "/.python/core")
 			.option("python.PythonHome", "/.python/.venv")
@@ -71,7 +70,6 @@ public abstract class ContextFactory {
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				.allowIO(AccessProvider.getIOAccessConfig())
-				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s));
 
 	public static String getDebuggerPath() {

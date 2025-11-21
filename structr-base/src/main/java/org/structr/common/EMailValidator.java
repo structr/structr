@@ -18,6 +18,7 @@
  */
 package org.structr.common;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
@@ -26,12 +27,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.Validator;
-import org.structr.web.function.IsValidEmailFunction;
-import org.structr.web.function.ValidateEmailFunction;
 
-/**
- */
 public class EMailValidator implements Validator<GraphObject> {
+
+	public static String EMAIL_VALIDATION_ERROR_TOKEN = "must_match_configured_regex";
 
 	@Override
 	public boolean isValid(final GraphObject node, final ErrorBuffer errorBuffer) {
@@ -45,12 +44,11 @@ public class EMailValidator implements Validator<GraphObject> {
 		final String _eMail = node.getProperty(eMail);
 		if (_eMail != null) {
 
-			final String emailValidationErrorMessage = ValidateEmailFunction.getEmailValidationErrorMessageOrNull(_eMail);
-			if (emailValidationErrorMessage != null) {
+			if (!Settings.isValidEmail(_eMail)) {
 
 				valid = false;
 
-				errorBuffer.add(new SemanticErrorToken(traits.getName(), PrincipalTraitDefinition.EMAIL_PROPERTY, emailValidationErrorMessage).withDetail(_eMail));
+				errorBuffer.add(new SemanticErrorToken(traits.getName(), PrincipalTraitDefinition.EMAIL_PROPERTY, EMAIL_VALIDATION_ERROR_TOKEN).withDetail(_eMail));
 			}
 		}
 

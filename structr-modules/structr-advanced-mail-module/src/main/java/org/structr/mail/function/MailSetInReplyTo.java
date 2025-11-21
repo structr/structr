@@ -19,6 +19,8 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
@@ -84,5 +86,19 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 				Indicates that the mail is a reply to the message with the given `messageId`. This function automatically sets the `In-Reply-To` header of the mail so that the receiving mail client can handle it correctly.
 				This function is especially interesting in combination with the mail service and automatically ingested mails from configured mailboxes.
 				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("messageId", "message id of the mail to respond to")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mail_set_in_reply_to('<1910177794.5.1555059600315.JavaMail.username@machine.local>')}")
+		);
 	}
 }

@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
@@ -98,6 +97,8 @@ public class Settings {
   		<br><strong>INFO</strong>: Requires a restart to take effect.
 	""");
 	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines if UUIDs are created with or without dashes. This setting is only used if <strong>" + Settings.UUIDv4AllowedFormats.getKey() + "</strong> is set to <strong>" + POSSIBLE_UUID_V4_FORMATS.both.toString() + "</strong>.<br><br><strong>WARNING</strong>: Requires a restart to take effect.");
+	public static final Setting<String> EmailValidationRegex        = new StringSetting(generalGroup,          "Application", "application.email.validation.regex", "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$", "Regular expression used to validate email addresses for User.eMail and is_valid_email() function.");
+	private static Pattern emailValidationPattern = Pattern.compile(Settings.EmailValidationRegex.getValue());
 
 	// scripting related settings
 	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false,"Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
@@ -1150,5 +1151,13 @@ public class Settings {
 		}
 
 		return false;
+	}
+
+	public static boolean isValidEmail(final String email) {
+		return Settings.emailValidationPattern.matcher(email).matches();
+	}
+
+	public static void updateEmailValidationPattern() {
+		emailValidationPattern = Pattern.compile(Settings.EmailValidationRegex.getValue());
 	}
 }

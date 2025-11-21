@@ -75,7 +75,7 @@ public class ConsoleTest extends StructrUiTest {
 
 			// create a user
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add tester tester@test.de"));
-			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add admin admin@localhost isAdmin"));
+			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add admin admin@structr.local isAdmin"));
 			assertEquals("Invalid console execution result", "User created.\r\n", console.runForTest("user add root isAdmin"));
 
 			final Traits userTraits = Traits.of(StructrTraits.USER);
@@ -123,7 +123,7 @@ public class ConsoleTest extends StructrUiTest {
 
 				assertNotNull("Invalid console execution result",                           admin);
 				assertEquals("Invalid console execution result", "admin",           admin.getName());
-				assertEquals("Invalid console execution result", "admin@localhost", admin.getEMail());
+				assertEquals("Invalid console execution result", "admin@structr.local", admin.getEMail());
 				assertEquals("Invalid console execution result", Boolean.TRUE,              (Boolean)admin.isAdmin());
 
 				final NodeInterface folder = app.create(StructrTraits.FOLDER, "folder");

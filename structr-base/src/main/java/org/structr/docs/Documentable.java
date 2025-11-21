@@ -48,7 +48,7 @@ public interface Documentable {
 		final String longDescription     = getLongDescription();
 		final String name                = getName();
 
-		lines.add("## " + name + "()");
+		lines.add("## " + getDisplayName());
 		lines.add(getShortDescription());
 
 		if (isJavaScriptOnly()) {

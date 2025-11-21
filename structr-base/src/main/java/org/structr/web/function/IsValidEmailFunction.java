@@ -18,13 +18,14 @@
  */
 package org.structr.web.function;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import java.util.List;
 
 public class IsValidEmailFunction extends UiAdvancedFunction {
@@ -48,7 +49,7 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 
 			final String email = sources[0].toString();
 
-			return isValidEmail(email);
+			return Settings.isValidEmail(email);
 
 		} catch (IllegalArgumentException e) {
 
@@ -67,27 +68,41 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Checks if the given address conforms to the syntax rules of RFC 822. The current implementation checks many, but not all, syntax rules. Only email addresses without personal name are accepted and leading/trailing fails validation.";
+		return "Checks if the given address is a valid email address.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The validation uses the email validation regular expression configured in `%s`".formatted(Settings.EmailValidationRegex.getKey());
 	}
 
-	public static boolean isValidEmail(final String email) {
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address to validate")
+		);
+	}
 
-		try {
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${validate_email('john@example.com')}", "Valid email"),
+				Example.structrScript("${validate_email('John Doe <john@example.com>')}", "Invalid email"),
+				Example.structrScript("${validate_email('john@example')}", "Invalid email"),
+				Example.javaScript("""
+					${{
+						let potentialEmail = $.request.email;
 
-			final InternetAddress address = new InternetAddress(email);
-			address.validate();
+						if ($.isValidEmail(potentialEmail)) {
 
-			// only accept if parsed address is equal to supplied address (even leading or trailing whitespace lets this validation fail)
-			return (address.getAddress().equals(email));
+							return 'Given email is valid.';
 
-		} catch (AddressException ex) {
+						} else {
 
-			return false;
-		}
+							return 'Please supply a valid email address.';
+						}
+					}}
+					""", "Script that checks if request parameter 'email' is a valid email address.")
+		);
 	}
 }

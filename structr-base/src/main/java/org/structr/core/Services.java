@@ -383,6 +383,10 @@ public class Services implements StructrServices, BroadcastReceiver {
 				setting.setValue(cleanedNewValue);
 			}
 		});
+
+		Settings.EmailValidationRegex.setChangeHandler((setting, oldValue, newValue) -> {
+			Settings.updateEmailValidationPattern();
+		});
 	}
 
 	private void startServices() {
