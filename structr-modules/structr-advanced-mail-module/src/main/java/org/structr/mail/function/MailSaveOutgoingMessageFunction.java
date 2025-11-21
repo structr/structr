@@ -40,7 +40,7 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("doSave");
+		return Signature.forAllScriptingLanguages("doSave");
 	}
 
 	@Override

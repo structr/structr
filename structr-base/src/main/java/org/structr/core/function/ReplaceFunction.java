@@ -39,7 +39,7 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("template, entity");
+		return Signature.forAllScriptingLanguages("template, entity");
 	}
 
 	@Override

@@ -121,7 +121,7 @@ public class Base64EncodeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("text [, scheme, charset ]");
+		return Signature.forAllScriptingLanguages("text [, scheme, charset ]");
 	}
 
 	@Override

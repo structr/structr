@@ -37,7 +37,7 @@ public class PrintFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("objects...");
+		return Signature.forAllScriptingLanguages("objects...");
 	}
 
 	@Override

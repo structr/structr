@@ -36,7 +36,7 @@ public class IncCounterFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("level [, resetLowerLevels=false ]");
+		return Signature.forAllScriptingLanguages("level [, resetLowerLevels=false ]");
 	}
 
 	@Override

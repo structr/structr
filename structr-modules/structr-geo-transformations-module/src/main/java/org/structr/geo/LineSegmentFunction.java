@@ -46,7 +46,7 @@ public class LineSegmentFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("point, azimuth, length");
+		return Signature.forAllScriptingLanguages("point, azimuth, length");
 	}
 
 	@Override

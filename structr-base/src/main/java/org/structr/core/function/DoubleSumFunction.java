@@ -35,7 +35,7 @@ public class DoubleSumFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list");
+		return Signature.forAllScriptingLanguages("list");
 	}
 
 	@Override

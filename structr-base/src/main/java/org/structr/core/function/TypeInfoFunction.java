@@ -35,7 +35,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type [, view]");
+		return Signature.forAllScriptingLanguages("type [, view]");
 	}
 
 	@Override

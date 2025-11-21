@@ -37,7 +37,7 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("string");
+		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override

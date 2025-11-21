@@ -49,7 +49,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file [, name ]");
+		return Signature.forAllScriptingLanguages("file [, name ]");
 	}
 
 	@Override

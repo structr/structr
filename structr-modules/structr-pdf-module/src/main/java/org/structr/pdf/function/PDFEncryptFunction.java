@@ -50,7 +50,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file, password");
+		return Signature.forAllScriptingLanguages("file, password");
 	}
 
 	@Override

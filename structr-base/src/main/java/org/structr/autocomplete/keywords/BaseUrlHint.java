@@ -46,19 +46,7 @@ public class BaseUrlHint extends KeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.javaScript("""
-			<!doctype html>
-			<html>
-				<head>
-					<title>${current.name}</title>
-				</head>
-				<body>
-					<h1>${current.name}</h1>
-				</body>
-			</html>
-			""")
-		);
+		return null;
 	}
 
 	@Override

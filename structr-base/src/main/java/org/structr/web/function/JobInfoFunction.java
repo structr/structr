@@ -35,7 +35,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("jobId");
+		return Signature.forAllScriptingLanguages("jobId");
 	}
 
 	@Override

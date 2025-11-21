@@ -45,7 +45,7 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("entity, parameterMap");
+		return Signature.forAllScriptingLanguages("entity, parameterMap");
 	}
 
 	@Override

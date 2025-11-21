@@ -50,6 +50,6 @@ public abstract class KeywordHint extends AbstractHint {
 	@Override
 	public List<Language> getLanguages() {
 		// keywords are valid for all languages
-		return Language.all();
+		return Language.scriptingLanguages();
 	}
 }

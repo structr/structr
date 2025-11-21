@@ -86,7 +86,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	@Override
 	public List<Language> getLanguages() {
 		// override this method to modify default behaviour
-		return Language.all();
+		return Language.scriptingLanguages();
 	}
 
 	@Override

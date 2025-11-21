@@ -49,7 +49,7 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("objectOrList");
+		return Signature.forAllScriptingLanguages("objectOrList");
 	}
 
 	@Override

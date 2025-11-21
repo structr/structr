@@ -38,7 +38,7 @@ public class ComplementFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("sourceList, objects...");
+		return Signature.forAllScriptingLanguages("sourceList, objects...");
 	}
 
 	@Override

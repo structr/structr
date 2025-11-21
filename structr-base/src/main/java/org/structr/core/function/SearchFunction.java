@@ -39,7 +39,7 @@ public class SearchFunction extends AbstractQueryFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type, options...");
+		return Signature.forAllScriptingLanguages("type, options...");
 	}
 
 	@Override

@@ -42,7 +42,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("obj [, view, depth = 3, serializeNulls = true ]");
+		return Signature.forAllScriptingLanguages("obj [, view, depth = 3, serializeNulls = true ]");
 	}
 
 	@Override

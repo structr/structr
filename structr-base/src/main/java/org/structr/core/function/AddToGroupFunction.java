@@ -96,12 +96,12 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Language> getLanguages() {
-		return Language.all();
+		return Language.scriptingLanguages();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("group, user");
+		return Signature.forAllScriptingLanguages("group, user");
 	}
 
 	@Override

@@ -97,7 +97,7 @@ public class HttpPutFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, body [, contentType, charset ]");
+		return Signature.forAllScriptingLanguages("url, body [, contentType, charset ]");
 	}
 
 	@Override

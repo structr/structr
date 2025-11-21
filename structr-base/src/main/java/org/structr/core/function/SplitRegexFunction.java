@@ -37,7 +37,7 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str [, regex ]");
+		return Signature.forAllScriptingLanguages("str [, regex ]");
 	}
 
 	@Override

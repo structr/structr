@@ -38,7 +38,7 @@ public class GetCounterFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("level");
+		return Signature.forAllScriptingLanguages("level");
 	}
 
 	@Override

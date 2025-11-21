@@ -36,7 +36,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("html");
+		return Signature.forAllScriptingLanguages("html");
 	}
 
 	@Override

@@ -44,7 +44,7 @@ public class DateFormatFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value, pattern");
+		return Signature.forAllScriptingLanguages("value, pattern");
 	}
 
 	@Override

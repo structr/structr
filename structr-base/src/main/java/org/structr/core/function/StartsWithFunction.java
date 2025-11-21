@@ -37,7 +37,7 @@ public class StartsWithFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str, prefix");
+		return Signature.forAllScriptingLanguages("str, prefix");
 	}
 
 	@Override

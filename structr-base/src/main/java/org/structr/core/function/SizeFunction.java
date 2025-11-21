@@ -38,7 +38,7 @@ public class SizeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("collection");
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override

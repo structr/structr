@@ -35,7 +35,7 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("locales...");
+		return Signature.forAllScriptingLanguages("locales...");
 	}
 
 	@Override

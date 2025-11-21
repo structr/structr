@@ -52,7 +52,7 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name");
+		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override

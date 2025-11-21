@@ -117,7 +117,7 @@ public class HMACFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value, secret [, hashAlgorithm ]");
+		return Signature.forAllScriptingLanguages("value, secret [, hashAlgorithm ]");
 	}
 
 	@Override

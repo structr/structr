@@ -45,7 +45,7 @@ public class LatLonToUTMFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("latitude, longitude");
+		return Signature.forAllScriptingLanguages("latitude, longitude");
 	}
 
 	@Override

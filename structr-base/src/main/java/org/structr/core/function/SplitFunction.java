@@ -38,7 +38,7 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str [, separator ]");
+		return Signature.forAllScriptingLanguages("str [, separator ]");
 	}
 
 	@Override

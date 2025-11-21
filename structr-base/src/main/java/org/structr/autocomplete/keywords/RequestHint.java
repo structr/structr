@@ -43,7 +43,7 @@ public class RequestHint extends KeywordHint {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.javaScript("""
+			Example.html("""
 			<!DOCTYPE html>
 			<html>
 				<head>

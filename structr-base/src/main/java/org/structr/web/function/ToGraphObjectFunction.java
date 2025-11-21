@@ -36,7 +36,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("obj");
+		return Signature.forAllScriptingLanguages("obj");
 	}
 
 	@Override

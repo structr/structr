@@ -40,7 +40,7 @@ public class SetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]");
+		return Signature.forAllScriptingLanguages("name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]");
 	}
 
 	@Override

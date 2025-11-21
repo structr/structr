@@ -45,7 +45,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("group, user [, checkHierarchy = false ]");
+		return Signature.forAllScriptingLanguages("group, user [, checkHierarchy = false ]");
 	}
 
 	@Override

@@ -34,7 +34,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("source");
+		return Signature.forAllScriptingLanguages("source");
 	}
 
 	@Override

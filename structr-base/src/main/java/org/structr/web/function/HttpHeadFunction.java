@@ -74,7 +74,7 @@ public class HttpHeadFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url [, username, password]]");
+		return Signature.forAllScriptingLanguages("url [, username, password]]");
 	}
 
 	@Override

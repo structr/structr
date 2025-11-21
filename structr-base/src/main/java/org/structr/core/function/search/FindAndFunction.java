@@ -78,7 +78,7 @@ public class FindAndFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("predicates");
+		return Signature.forAllScriptingLanguages("predicates");
 	}
 
 	// ----- private methods -----

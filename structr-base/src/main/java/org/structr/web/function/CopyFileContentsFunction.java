@@ -48,7 +48,7 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("sourceFile, destinationFile");
+		return Signature.forAllScriptingLanguages("sourceFile, destinationFile");
 	}
 
 	@Override

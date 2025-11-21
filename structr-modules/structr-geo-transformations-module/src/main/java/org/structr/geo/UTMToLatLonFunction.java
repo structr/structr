@@ -52,7 +52,7 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("utmString");
+		return Signature.forAllScriptingLanguages("utmString");
 	}
 
 	@Override

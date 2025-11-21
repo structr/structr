@@ -73,7 +73,7 @@ public class FindLteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value");
+		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override

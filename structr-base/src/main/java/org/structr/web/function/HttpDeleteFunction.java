@@ -92,7 +92,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url [, contentType]");
+		return Signature.forAllScriptingLanguages("url [, contentType]");
 	}
 
 	@Override

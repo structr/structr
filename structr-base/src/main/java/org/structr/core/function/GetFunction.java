@@ -49,7 +49,7 @@ public class GetFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("entity, propertyName");
+		return Signature.forAllScriptingLanguages("entity, propertyName");
 	}
 
 	@Override

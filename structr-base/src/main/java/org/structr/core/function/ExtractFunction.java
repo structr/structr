@@ -41,7 +41,7 @@ public class ExtractFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list, propertyName");
+		return Signature.forAllScriptingLanguages("list, propertyName");
 	}
 
 	@Override

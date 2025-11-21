@@ -37,7 +37,7 @@ public class GetCacheValueFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("key");
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override

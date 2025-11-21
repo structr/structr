@@ -51,7 +51,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file");
+		return Signature.forAllScriptingLanguages("file");
 	}
 
 	@Override

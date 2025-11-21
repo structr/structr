@@ -37,7 +37,7 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("condition, statusCode, message");
+		return Signature.forAllScriptingLanguages("condition, statusCode, message");
 	}
 
 	@Override

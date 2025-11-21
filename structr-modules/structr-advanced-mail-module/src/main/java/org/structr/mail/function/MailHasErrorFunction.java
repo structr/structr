@@ -41,7 +41,7 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("");
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override

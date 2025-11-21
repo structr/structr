@@ -61,7 +61,7 @@ public class ReadShapefileFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("filename");
+		return Signature.forAllScriptingLanguages("filename");
 	}
 
 	@Override

@@ -38,7 +38,7 @@ public class OneFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("number, oneValue, otherValue");
+		return Signature.forAllScriptingLanguages("number, oneValue, otherValue");
 	}
 
 	@Override

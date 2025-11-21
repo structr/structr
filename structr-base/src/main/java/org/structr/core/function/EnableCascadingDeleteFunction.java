@@ -38,7 +38,7 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 		// empty signature, no parameters
-		return Signature.forAllLanguages("");
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override

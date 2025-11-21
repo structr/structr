@@ -50,7 +50,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("fileName, files [, customFileTypeName ]");
+		return Signature.forAllScriptingLanguages("fileName, files [, customFileTypeName ]");
 	}
 
 	@Override

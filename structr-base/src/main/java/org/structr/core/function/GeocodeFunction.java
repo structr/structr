@@ -42,7 +42,7 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("street, city, country");
+		return Signature.forAllScriptingLanguages("street, city, country");
 	}
 
 	@Override

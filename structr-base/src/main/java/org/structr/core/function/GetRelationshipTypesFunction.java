@@ -45,7 +45,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("node, lookupType [, direction ]");
+		return Signature.forAllScriptingLanguages("node, lookupType [, direction ]");
 	}
 
 	@Override

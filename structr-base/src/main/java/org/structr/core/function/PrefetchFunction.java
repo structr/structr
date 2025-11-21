@@ -47,7 +47,7 @@ public class PrefetchFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("query, listOfKeys");
+		return Signature.forAllScriptingLanguages("query, listOfKeys");
 	}
 
 	@Override

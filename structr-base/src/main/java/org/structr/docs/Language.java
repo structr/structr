@@ -23,7 +23,15 @@ import java.util.List;
 public enum Language {
 
 	JavaScript,
-	StructrScript;
+	StructrScript,
+	Html;
+
+	public static List<Language> scriptingLanguages() {
+		return List.of(
+			JavaScript,
+			StructrScript
+		);
+	}
 
 	public static List<Language> all() {
 		return List.of(values());

@@ -36,7 +36,7 @@ public class NotFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("bool");
+		return Signature.forAllScriptingLanguages("bool");
 	}
 
 	@Override

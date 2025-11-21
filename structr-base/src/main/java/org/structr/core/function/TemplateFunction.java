@@ -44,7 +44,7 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name, locale, entity");
+		return Signature.forAllScriptingLanguages("name, locale, entity");
 	}
 
 	@Override

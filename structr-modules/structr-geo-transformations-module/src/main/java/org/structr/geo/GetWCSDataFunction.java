@@ -45,7 +45,7 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("baseUrl, coverageId, bBox, min, max");
+		return Signature.forAllScriptingLanguages("baseUrl, coverageId, bBox, min, max");
 	}
 
 	@Override

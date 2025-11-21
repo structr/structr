@@ -83,7 +83,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("gpxString");
+		return Signature.forAllScriptingLanguages("gpxString");
 	}
 
 	@Override

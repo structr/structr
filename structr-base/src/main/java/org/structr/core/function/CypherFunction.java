@@ -45,7 +45,7 @@ public class CypherFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("query [, parameterMap, runInNewTransaction]");
+		return Signature.forAllScriptingLanguages("query [, parameterMap, runInNewTransaction]");
 	}
 
 	@Override

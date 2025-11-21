@@ -36,7 +36,7 @@ public class GetenvFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("[variable]");
+		return Signature.forAllScriptingLanguages("[variable]");
 	}
 
 	@Override

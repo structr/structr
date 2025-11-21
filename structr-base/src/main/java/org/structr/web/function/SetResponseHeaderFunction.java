@@ -37,7 +37,7 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name, value [, override = false ]");
+		return Signature.forAllScriptingLanguages("name, value [, override = false ]");
 	}
 
 	@Override

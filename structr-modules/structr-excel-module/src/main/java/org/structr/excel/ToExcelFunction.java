@@ -54,7 +54,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]");
+		return Signature.forAllScriptingLanguages("nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]");
 	}
 
 	@Override

@@ -51,18 +51,19 @@ public class Example {
 		return new Example(example, title, Language.JavaScript);
 	}
 
-	/**
-	 * Creates a new StructrScript example with the given text and title.
-	 *
-	 * @param text
-	 * @param title
-	 * @return
-	 */
 	public static Example structrScript(final String text, final String title) {
 		return new Example(text, title, Language.StructrScript);
 	}
 
 	public static Example structrScript(final String text) {
 		return new Example(text, null, Language.StructrScript);
+	}
+
+	public static Example html(final String text, final String title) {
+		return new Example(text, title, Language.Html);
+	}
+
+	public static Example html(final String text) {
+		return new Example(text, null, Language.Html);
 	}
 }

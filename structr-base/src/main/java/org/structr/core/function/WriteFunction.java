@@ -104,7 +104,7 @@ public class WriteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("filename, text");
+		return Signature.forAllScriptingLanguages("filename, text");
 	}
 
 	@Override

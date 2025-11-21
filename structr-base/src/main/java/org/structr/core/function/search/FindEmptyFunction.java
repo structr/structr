@@ -75,6 +75,6 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("key");
+		return Signature.forAllScriptingLanguages("key");
 	}
 }

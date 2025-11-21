@@ -40,7 +40,7 @@ public class FormUrlEncodeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("object");
+		return Signature.forAllScriptingLanguages("object");
 	}
 
 	@Override

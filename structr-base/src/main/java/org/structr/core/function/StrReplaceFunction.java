@@ -37,7 +37,7 @@ public class StrReplaceFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str, substring, replacement");
+		return Signature.forAllScriptingLanguages("str, substring, replacement");
 	}
 
 	@Override

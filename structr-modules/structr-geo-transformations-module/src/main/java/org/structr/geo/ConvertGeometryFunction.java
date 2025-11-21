@@ -45,7 +45,7 @@ public class ConvertGeometryFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("sourceCRS, destCRS, geometry");
+		return Signature.forAllScriptingLanguages("sourceCRS, destCRS, geometry");
 	}
 
 	@Override

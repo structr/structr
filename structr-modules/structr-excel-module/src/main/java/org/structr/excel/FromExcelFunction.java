@@ -53,7 +53,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file [, sheetIndexOrName = 0 ]");
+		return Signature.forAllScriptingLanguages("file [, sheetIndexOrName = 0 ]");
 	}
 
 	@Override

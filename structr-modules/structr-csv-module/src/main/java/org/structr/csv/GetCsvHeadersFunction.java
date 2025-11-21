@@ -37,7 +37,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' ]]]");
+		return Signature.forAllScriptingLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' ]]]");
 	}
 
 	@Override

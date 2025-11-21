@@ -85,6 +85,6 @@ public class FindNotFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("predicate");
+		return Signature.forAllScriptingLanguages("predicate");
 	}
 }

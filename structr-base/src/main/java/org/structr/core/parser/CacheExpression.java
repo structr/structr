@@ -247,12 +247,12 @@ public class CacheExpression extends Expression {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("key, timeout, valueExpression");
+		return Signature.forAllScriptingLanguages("key, timeout, valueExpression");
 	}
 
 	@Override
 	public List<Language> getLanguages() {
-		return Language.all();
+		return Language.scriptingLanguages();
 	}
 
 	@Override

@@ -40,7 +40,7 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("parent, child");
+		return Signature.forAllScriptingLanguages("parent, child");
 	}
 
 	@Override

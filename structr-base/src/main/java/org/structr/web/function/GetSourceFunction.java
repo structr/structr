@@ -41,7 +41,7 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("element, editMode");
+		return Signature.forAllScriptingLanguages("element, editMode");
 	}
 
 	@Override

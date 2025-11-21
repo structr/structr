@@ -35,7 +35,7 @@ public class ToDateFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("number");
+		return Signature.forAllScriptingLanguages("number");
 	}
 
 	@Override

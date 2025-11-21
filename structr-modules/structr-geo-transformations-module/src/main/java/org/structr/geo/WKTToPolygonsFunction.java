@@ -47,7 +47,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("wktString");
+		return Signature.forAllScriptingLanguages("wktString");
 	}
 
 	@Override

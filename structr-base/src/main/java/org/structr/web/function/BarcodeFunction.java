@@ -185,7 +185,7 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type, data [, width, height, hintKey, hintValue ]");
+		return Signature.forAllScriptingLanguages("type, data [, width, height, hintKey, hintValue ]");
 	}
 
 	@Override

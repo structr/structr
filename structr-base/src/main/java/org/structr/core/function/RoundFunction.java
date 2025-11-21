@@ -37,7 +37,7 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value [, decimalPlaces ]");
+		return Signature.forAllScriptingLanguages("value [, decimalPlaces ]");
 	}
 
 	@Override

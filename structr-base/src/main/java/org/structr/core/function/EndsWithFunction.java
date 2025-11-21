@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -34,7 +35,7 @@ public class EndsWithFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str, suffix");
+		return Signature.forAllScriptingLanguages("str, suffix");
 	}
 
 	@Override
@@ -72,5 +73,13 @@ public class EndsWithFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("string", "string to check"),
+			Parameter.mandatory("suffix", "suffix to check")
+		);
 	}
 }

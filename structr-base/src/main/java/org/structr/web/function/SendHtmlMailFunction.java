@@ -51,7 +51,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]");
+		return Signature.forAllScriptingLanguages("fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]");
 	}
 
 	@Override

@@ -122,7 +122,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type [, blacklist ]");
+		return Signature.forAllScriptingLanguages("type [, blacklist ]");
 	}
 
 	@Override

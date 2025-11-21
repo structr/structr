@@ -37,7 +37,7 @@ public class NthFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list, index");
+		return Signature.forAllScriptingLanguages("list, index");
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("address");
+		return Signature.forAllScriptingLanguages("address");
 	}
 
 	@Override

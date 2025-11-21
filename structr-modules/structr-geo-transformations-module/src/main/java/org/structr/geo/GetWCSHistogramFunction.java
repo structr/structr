@@ -53,7 +53,7 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("baseUrl, coverageId, bBox [, bins, lowValue ]");
+		return Signature.forAllScriptingLanguages("baseUrl, coverageId, bBox [, bins, lowValue ]");
 	}
 
 	@Override

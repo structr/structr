@@ -37,7 +37,7 @@ public class LengthFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str");
+		return Signature.forAllScriptingLanguages("str");
 	}
 
 	@Override

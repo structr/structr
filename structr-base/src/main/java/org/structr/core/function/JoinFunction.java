@@ -38,7 +38,7 @@ public class JoinFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list, separator");
+		return Signature.forAllScriptingLanguages("list, separator");
 	}
 
 	@Override

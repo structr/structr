@@ -38,7 +38,7 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type [, parameterMap ]");
+		return Signature.forAllScriptingLanguages("type [, parameterMap ]");
 	}
 
 	@Override

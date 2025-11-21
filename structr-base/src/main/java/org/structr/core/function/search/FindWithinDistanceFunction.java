@@ -85,7 +85,7 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("latitude, longitude, distance");
+		return Signature.forAllScriptingLanguages("latitude, longitude, distance");
 	}
 
 	@Override

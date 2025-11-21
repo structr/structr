@@ -39,7 +39,7 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("subject");
+		return Signature.forAllScriptingLanguages("subject");
 	}
 
 	@Override

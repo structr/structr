@@ -51,7 +51,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("command [, key, value [, ... ]]");
+		return Signature.forAllScriptingLanguages("command [, key, value [, ... ]]");
 	}
 
 	@Override

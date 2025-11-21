@@ -37,7 +37,7 @@ public class KeysFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("entity [, viewName ]");
+		return Signature.forAllScriptingLanguages("entity [, viewName ]");
 	}
 
 	@Override

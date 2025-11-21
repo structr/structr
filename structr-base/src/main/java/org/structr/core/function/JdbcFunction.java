@@ -40,7 +40,7 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("jdbcUrl, sqlQuery[, username, password]");
+		return Signature.forAllScriptingLanguages("jdbcUrl, sqlQuery[, username, password]");
 	}
 
 	@Override

@@ -40,7 +40,7 @@ public class SleepFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("milliseconds");
+		return Signature.forAllScriptingLanguages("milliseconds");
 	}
 
 	@Override

@@ -42,7 +42,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("element, css");
+		return Signature.forAllScriptingLanguages("element, css");
 	}
 
 	@Override

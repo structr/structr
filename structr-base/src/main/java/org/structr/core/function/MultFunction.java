@@ -35,7 +35,7 @@ public class MultFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value1, value2");
+		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
 	@Override

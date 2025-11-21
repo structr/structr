@@ -42,7 +42,7 @@ public class CreateAccessAndRefreshTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("user, accessTokenTimeout, refreshTokenTimeout");
+		return Signature.forAllScriptingLanguages("user, accessTokenTimeout, refreshTokenTimeout");
 	}
 
 	@Override

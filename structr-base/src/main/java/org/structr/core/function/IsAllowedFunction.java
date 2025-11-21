@@ -44,7 +44,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("user, node, permissions");
+		return Signature.forAllScriptingLanguages("user, node, permissions");
 	}
 
 	@Override

@@ -79,7 +79,7 @@ public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("string, maxLength[, abbr = '…']");
+		return Signature.forAllScriptingLanguages("string, maxLength[, abbr = '…']");
 	}
 
 	@Override

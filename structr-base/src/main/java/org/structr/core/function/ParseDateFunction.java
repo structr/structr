@@ -39,7 +39,7 @@ public class ParseDateFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str, pattern");
+		return Signature.forAllScriptingLanguages("str, pattern");
 	}
 
 	@Override

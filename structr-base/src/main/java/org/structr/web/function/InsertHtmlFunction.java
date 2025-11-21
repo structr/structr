@@ -39,7 +39,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("parent, html");
+		return Signature.forAllScriptingLanguages("parent, html");
 	}
 
 	@Override

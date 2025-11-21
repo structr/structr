@@ -46,7 +46,7 @@ public class CoordsFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("geometry");
+		return Signature.forAllScriptingLanguages("geometry");
 	}
 
 	@Override

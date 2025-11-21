@@ -35,7 +35,7 @@ public class CoalesceObjectsFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("obj1, obj2, obj3, ...");
+		return Signature.forAllScriptingLanguages("obj1, obj2, obj3, ...");
 	}
 
 	@Override

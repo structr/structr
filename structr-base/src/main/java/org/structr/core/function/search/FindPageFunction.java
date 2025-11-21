@@ -88,6 +88,6 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("page, pageSize");
+		return Signature.forAllScriptingLanguages("page, pageSize");
 	}
 }

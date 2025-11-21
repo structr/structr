@@ -54,7 +54,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("scriptConfigKey [, parameterCollection [, logBehaviour ] ]");
+		return Signature.forAllScriptingLanguages("scriptConfigKey [, parameterCollection [, logBehaviour ] ]");
 	}
 
 	public String getSignature() {

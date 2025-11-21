@@ -44,7 +44,7 @@ public class CreateFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type [, parameterMap ]");
+		return Signature.forAllScriptingLanguages("type [, parameterMap ]");
 	}
 
 	@Override

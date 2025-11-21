@@ -39,7 +39,7 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value [, key]");
+		return Signature.forAllScriptingLanguages("value [, key]");
 	}
 
 	@Override

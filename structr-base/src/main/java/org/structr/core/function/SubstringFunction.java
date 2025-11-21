@@ -36,7 +36,7 @@ public class SubstringFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str, start [, length ]");
+		return Signature.forAllScriptingLanguages("str, start [, length ]");
 	}
 
 	@Override

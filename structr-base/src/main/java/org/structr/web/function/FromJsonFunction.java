@@ -41,7 +41,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("source");
+		return Signature.forAllScriptingLanguages("source");
 	}
 
 	@Override

@@ -40,7 +40,7 @@ public class StackDumpFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("");
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override

@@ -41,7 +41,7 @@ public class NumberFormatFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value, locale, format");
+		return Signature.forAllScriptingLanguages("value, locale, format");
 	}
 
 	@Override

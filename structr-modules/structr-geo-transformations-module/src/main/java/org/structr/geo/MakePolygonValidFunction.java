@@ -43,7 +43,7 @@ public class MakePolygonValidFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("polygon");
+		return Signature.forAllScriptingLanguages("polygon");
 	}
 
 	@Override

@@ -44,7 +44,7 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file, [, parentFolder ]");
+		return Signature.forAllScriptingLanguages("file, [, parentFolder ]");
 	}
 
 	@Override

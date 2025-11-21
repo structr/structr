@@ -44,7 +44,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("action, message [, subject [, object ]]");
+		return Signature.forAllScriptingLanguages("action, message [, subject [, object ]]");
 	}
 
 	@Override

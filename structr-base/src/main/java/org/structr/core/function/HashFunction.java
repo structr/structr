@@ -88,7 +88,7 @@ public class HashFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("algorithm, value");
+		return Signature.forAllScriptingLanguages("algorithm, value");
 	}
 
 	@Override

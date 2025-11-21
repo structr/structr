@@ -37,7 +37,7 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("propertyName, errorToken [, errorMessage]");
+		return Signature.forAllScriptingLanguages("propertyName, errorToken [, errorMessage]");
 	}
 
 	@Override

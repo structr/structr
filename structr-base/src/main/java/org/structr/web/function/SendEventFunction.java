@@ -46,7 +46,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("eventType, message, recipient(s)");
+		return Signature.forAllScriptingLanguages("eventType, message, recipient(s)");
 	}
 
 	@Override

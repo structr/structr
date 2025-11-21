@@ -38,7 +38,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("number [, locale ]");
+		return Signature.forAllScriptingLanguages("number [, locale ]");
 	}
 
 	@Override

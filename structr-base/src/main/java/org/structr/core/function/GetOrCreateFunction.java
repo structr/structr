@@ -46,7 +46,7 @@ public class GetOrCreateFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type, propertyMap");
+		return Signature.forAllScriptingLanguages("type, propertyMap");
 	}
 
 	@Override

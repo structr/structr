@@ -40,7 +40,7 @@ public class MailAddHeaderFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name, value");
+		return Signature.forAllScriptingLanguages("name, value");
 	}
 
 	@Override

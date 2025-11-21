@@ -42,7 +42,7 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("text");
+		return Signature.forAllScriptingLanguages("text");
 	}
 
 	@Override

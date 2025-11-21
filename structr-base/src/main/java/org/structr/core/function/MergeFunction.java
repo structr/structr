@@ -36,7 +36,7 @@ public class MergeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list1, list2, list3...");
+		return Signature.forAllScriptingLanguages("list1, list2, list3...");
 	}
 
 	@Override

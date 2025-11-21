@@ -87,7 +87,7 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("key, value");
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override

@@ -47,10 +47,6 @@ public class Usage {
 		return new Usage(usage, Language.StructrScript);
 	}
 
-	public static Usage forAllLanguages(final String usage) {
-		return new Usage(usage, Language.values());
-	}
-
 	public boolean isJavaScript() {
 		return languages.contains(Language.JavaScript);
 	}

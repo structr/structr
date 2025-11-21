@@ -43,7 +43,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, database, collection");
+		return Signature.forAllScriptingLanguages("url, database, collection");
 	}
 
 	@Override

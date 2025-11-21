@@ -38,7 +38,7 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("code");
+		return Signature.forAllScriptingLanguages("code");
 	}
 
 	@Override

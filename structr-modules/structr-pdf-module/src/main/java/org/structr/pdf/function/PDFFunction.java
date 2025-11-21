@@ -49,7 +49,7 @@ public class PDFFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("pageName [, wkthtmlParams, baseUrl, runWithX, xSettings ]");
+		return Signature.forAllScriptingLanguages("pageName [, wkthtmlParams, baseUrl, runWithX, xSettings ]");
 	}
 
 	@Override

@@ -47,7 +47,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("from, to, relType [, parameterMap ]");
+		return Signature.forAllScriptingLanguages("from, to, relType [, parameterMap ]");
 	}
 
 	@Override

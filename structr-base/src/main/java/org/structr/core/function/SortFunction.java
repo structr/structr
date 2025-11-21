@@ -41,7 +41,7 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list [, propertyName [, descending=false] ]");
+		return Signature.forAllScriptingLanguages("list [, propertyName [, descending=false] ]");
 	}
 
 	@Override

@@ -43,7 +43,7 @@ public class ConcatFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("values...");
+		return Signature.forAllScriptingLanguages("values...");
 	}
 
 	@Override

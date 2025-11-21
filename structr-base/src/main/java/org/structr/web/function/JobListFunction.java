@@ -35,7 +35,7 @@ public class JobListFunction extends UiAdvancedFunction {
 	@Override
 	public List<Signature> getSignatures() {
 		// empty signature, no parameters
-		return Signature.forAllLanguages("");
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override

@@ -37,7 +37,7 @@ public class IsCollectionFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value");
+		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override

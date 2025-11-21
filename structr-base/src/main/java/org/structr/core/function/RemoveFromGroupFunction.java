@@ -41,7 +41,7 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("group, user");
+		return Signature.forAllScriptingLanguages("group, user");
 	}
 
 	@Override

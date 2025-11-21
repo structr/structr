@@ -41,7 +41,7 @@ public class WeekDaysFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("from, to");
+		return Signature.forAllScriptingLanguages("from, to");
 	}
 
 	@Override

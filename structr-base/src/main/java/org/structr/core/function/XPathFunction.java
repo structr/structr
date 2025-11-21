@@ -21,7 +21,6 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -41,7 +40,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("document, xpath [, returnType ]");
+		return Signature.forAllScriptingLanguages("document, xpath [, returnType ]");
 	}
 
 	@Override

@@ -87,7 +87,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]]");
+		return Signature.forAllScriptingLanguages("eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]]");
 	}
 
 	@Override

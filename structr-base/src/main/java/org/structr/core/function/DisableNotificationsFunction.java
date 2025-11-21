@@ -38,7 +38,7 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 		// empty signature, no parameters
-		return Signature.forAllLanguages("");
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Temporarily disables the Websocket Broadcast notifications for the Structr Backend UI.";
+		return "Disables the Websocket broadcast notifications in the Structr Backend UI for the current transaction.";
 	}
 
 	@Override

@@ -40,7 +40,7 @@ public class MailSelectConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name");
+		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override

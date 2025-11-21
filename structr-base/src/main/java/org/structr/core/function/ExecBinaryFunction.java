@@ -47,7 +47,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]");
+		return Signature.forAllScriptingLanguages("outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]");
 	}
 
 	@Override

@@ -35,7 +35,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("client, topic");
+		return Signature.forAllScriptingLanguages("client, topic");
 	}
 
 	@Override

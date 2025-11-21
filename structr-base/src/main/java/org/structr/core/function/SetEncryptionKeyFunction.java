@@ -34,7 +34,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("secretKey");
+		return Signature.forAllScriptingLanguages("secretKey");
 	}
 
 	@Override

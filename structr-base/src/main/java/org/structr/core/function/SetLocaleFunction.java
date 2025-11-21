@@ -38,7 +38,7 @@ public class SetLocaleFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("locale");
+		return Signature.forAllScriptingLanguages("locale");
 	}
 
 	@Override

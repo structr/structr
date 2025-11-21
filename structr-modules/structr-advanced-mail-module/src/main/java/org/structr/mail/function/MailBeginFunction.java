@@ -45,7 +45,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("fromAddress [, fromName[, subject[, htmlContent[, textContent[, files]]]]]");
+		return Signature.forAllScriptingLanguages("fromAddress [, fromName[, subject[, htmlContent[, textContent[, files]]]]]");
 	}
 
 	@Override

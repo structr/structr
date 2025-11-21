@@ -164,7 +164,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	// ----- documentation -----
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, partsMap [, responseContentType]");
+		return Signature.forAllScriptingLanguages("url, partsMap [, responseContentType]");
 	}
 
 	@Override

@@ -41,7 +41,7 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("messageId");
+		return Signature.forAllScriptingLanguages("messageId");
 	}
 
 	@Override

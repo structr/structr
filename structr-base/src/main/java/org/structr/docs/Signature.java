@@ -71,16 +71,16 @@ public class Signature {
 
 	/**
 	 * Returns a list of Signatures with the same signature string
-	 * for all existing languages.
+	 * for all existing scripting languages.
 	 *
 	 * @param signature the signature string
 	 *
-	 * @return a list of Signatures for all languages
+	 * @return a list of Signatures for all scripting languages
 	 */
-	public static List<Signature> forAllLanguages(final String signature) {
+	public static List<Signature> forAllScriptingLanguages(final String signature) {
 
 		return List.of(
-			Signature.of(signature, Language.values())
+			Signature.of(signature, Language.JavaScript, Language.StructrScript)
 		);
 	}
 }

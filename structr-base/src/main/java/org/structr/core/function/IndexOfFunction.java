@@ -37,7 +37,7 @@ public class IndexOfFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("str, word");
+		return Signature.forAllScriptingLanguages("str, word");
 	}
 
 	@Override

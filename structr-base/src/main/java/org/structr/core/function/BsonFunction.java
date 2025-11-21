@@ -39,7 +39,7 @@ public class BsonFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("data");
+		return Signature.forAllScriptingLanguages("data");
 	}
 
 	@Override

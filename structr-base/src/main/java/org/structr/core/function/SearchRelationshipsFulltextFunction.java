@@ -39,7 +39,7 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("indexName, searchString");
+		return Signature.forAllScriptingLanguages("indexName, searchString");
 	}
 
 	@Override

@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -40,7 +42,7 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("value");
+		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override
@@ -89,11 +91,36 @@ public class EmptyFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given value is null or empty.";
+		return "Returns a boolean value that indicates whether the given object is null or empty.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This function works for all sorts of objects: strings, collections, variables, etc., with different semantics depending on the input object.
+		
+		| Input Type | Behaviour |
+		| --- | --- |
+		| string | Returns `true` if the string is non-null and not empty. A string with length > 0 is non-empty, even if it contains only whitespace. |
+		| collection | Returns `true` if the collection is non-null and contains at least one object (even if the object itself might be null). |
+		| variable | Returns `true` if the variable is neither null nor undefined nor the empty string. |
+		
+		This function is the go-to replacement for more complex checks in both JavaScript and StructrScript for null references, undefined variables, empty strings etc., since you can simply use `!$.empty(..)` on all objects.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return super.getParameters();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${empty('')}", "Returns `true`"),
+			Example.structrScript("${empty('test')}", "Returns `false`"),
+			Example.structrScript("${empty(find('Project'))}", "Returns `false` if there are Project entites in the database"),
+			Example.structrScript("${empty(find('NonExistentType'))}", "WARNING: the call in this example returns `false`  because the error message returned by the `find()` call is non-empty.")
+		);
 	}
 }

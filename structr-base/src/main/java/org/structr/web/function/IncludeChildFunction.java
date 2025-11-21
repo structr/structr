@@ -48,7 +48,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name [, collection, dataKey]");
+		return Signature.forAllScriptingLanguages("name [, collection, dataKey]");
 	}
 
 	@Override

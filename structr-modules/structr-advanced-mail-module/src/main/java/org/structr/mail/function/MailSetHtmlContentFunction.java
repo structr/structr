@@ -39,7 +39,7 @@ public class MailSetHtmlContentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("html");
+		return Signature.forAllScriptingLanguages("html");
 	}
 
 	@Override

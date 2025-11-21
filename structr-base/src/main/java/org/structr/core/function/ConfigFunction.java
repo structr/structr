@@ -41,7 +41,7 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("configKey [, defaultValue ]");
+		return Signature.forAllScriptingLanguages("configKey [, defaultValue ]");
 	}
 
 	@Override

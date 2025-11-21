@@ -38,7 +38,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("entity, parameterMap");
+		return Signature.forAllScriptingLanguages("entity, parameterMap");
 	}
 
 	@Override

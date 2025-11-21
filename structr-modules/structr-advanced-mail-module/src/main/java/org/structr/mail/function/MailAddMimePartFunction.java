@@ -42,7 +42,7 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("content, contentType");
+		return Signature.forAllScriptingLanguages("content, contentType");
 	}
 
 	@Override

@@ -45,7 +45,7 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("functionName [, parameterMap ]");
+		return Signature.forAllScriptingLanguages("functionName [, parameterMap ]");
 	}
 
 	@Override

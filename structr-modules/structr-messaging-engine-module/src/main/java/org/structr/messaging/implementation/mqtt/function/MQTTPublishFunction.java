@@ -39,7 +39,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("client, topic, message");
+		return Signature.forAllScriptingLanguages("client, topic, message");
 	}
 
 	@Override

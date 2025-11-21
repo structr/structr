@@ -38,7 +38,7 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("field");
+		return Signature.forAllScriptingLanguages("field");
 	}
 
 	@Override

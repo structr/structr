@@ -48,7 +48,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("archiveFileName, files [, password [, encryptionMethod ] ]");
+		return Signature.forAllScriptingLanguages("archiveFileName, files [, password [, encryptionMethod ] ]");
 	}
 
 	@Override

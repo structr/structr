@@ -36,7 +36,7 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("source, target [, overwrite ]");
+		return Signature.forAllScriptingLanguages("source, target [, overwrite ]");
 	}
 
 	@Override

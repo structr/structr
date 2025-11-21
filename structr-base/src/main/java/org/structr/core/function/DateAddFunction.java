@@ -43,7 +43,7 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("date, years[, months[, days[, hours[, minutes[, seconds]]]]]");
+		return Signature.forAllScriptingLanguages("date, years[, months[, days[, hours[, minutes[, seconds]]]]]");
 	}
 
 	@Override

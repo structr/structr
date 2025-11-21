@@ -43,11 +43,12 @@ public class PageHint extends KeywordHint {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("""
+			Example.html("""
 			<!DOCTYPE html>
 			<html>
 				<head>
 					<title>${page.name}</title>
+				</head>
 			</html>
 			""", "Set that HTML page title to the name of the page that renders it")
 		);

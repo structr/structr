@@ -39,7 +39,7 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name");
+		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("entity, source");
+		return Signature.forAllScriptingLanguages("entity, source");
 	}
 
 	@Override

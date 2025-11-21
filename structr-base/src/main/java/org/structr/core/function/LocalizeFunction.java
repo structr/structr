@@ -51,7 +51,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("key [, domain ]");
+		return Signature.forAllScriptingLanguages("key [, domain ]");
 	}
 
 	@Override

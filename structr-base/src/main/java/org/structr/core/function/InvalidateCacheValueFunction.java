@@ -37,7 +37,7 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("cacheKey");
+		return Signature.forAllScriptingLanguages("cacheKey");
 	}
 
 	@Override

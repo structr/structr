@@ -40,7 +40,7 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("indexName, searchString");
+		return Signature.forAllScriptingLanguages("indexName, searchString");
 	}
 
 	@Override

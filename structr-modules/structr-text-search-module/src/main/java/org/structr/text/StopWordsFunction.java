@@ -39,7 +39,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("language");
+		return Signature.forAllScriptingLanguages("language");
 	}
 
 	@Override

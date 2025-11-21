@@ -43,8 +43,8 @@ public class CurrentHint extends KeywordHint {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.javaScript("""
-			<!doctype html>
+			Example.html("""
+			<!DOCTYPE html>
 			<html>
 				<head>
 					<title>${current.name}</title>
@@ -53,7 +53,7 @@ public class CurrentHint extends KeywordHint {
 					<h1>${current.name}</h1>
 				</body>
 			</html>
-			""")
+			""", "Print the name of the current object in page title and heading")
 		);
 	}
 

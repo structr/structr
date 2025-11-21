@@ -35,7 +35,7 @@ public class UserChangelogFunction extends ChangelogFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("user [, resolve=false [, filterKey, filterValue ]... ]");
+		return Signature.forAllScriptingLanguages("user [, resolve=false [, filterKey, filterValue ]... ]");
 	}
 
 	@Override

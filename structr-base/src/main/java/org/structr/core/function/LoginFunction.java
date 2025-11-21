@@ -41,7 +41,7 @@ public class LoginFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("user, password");
+		return Signature.forAllScriptingLanguages("user, password");
 	}
 
 	@Override

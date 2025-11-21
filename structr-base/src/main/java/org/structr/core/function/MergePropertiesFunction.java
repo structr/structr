@@ -41,7 +41,7 @@ public class MergePropertiesFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("source, target, keys");
+		return Signature.forAllScriptingLanguages("source, target, keys");
 	}
 
 	@Override

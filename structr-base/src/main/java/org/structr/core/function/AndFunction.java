@@ -33,7 +33,7 @@ public class AndFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("bool1, bool2, ...");
+		return Signature.forAllScriptingLanguages("bool1, bool2, ...");
 	}
 
 	@Override

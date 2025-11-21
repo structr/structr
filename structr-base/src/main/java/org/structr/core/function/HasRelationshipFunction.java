@@ -38,7 +38,7 @@ public class HasRelationshipFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("source, target [, relType ]");
+		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
 	@Override

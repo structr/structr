@@ -40,7 +40,7 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list");
+		return Signature.forAllScriptingLanguages("list");
 	}
 
 	@Override

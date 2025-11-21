@@ -37,7 +37,7 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("node");
+		return Signature.forAllScriptingLanguages("node");
 	}
 
 	@Override

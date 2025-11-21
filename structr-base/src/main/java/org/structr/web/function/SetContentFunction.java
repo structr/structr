@@ -41,7 +41,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file, content[, encoding ]");
+		return Signature.forAllScriptingLanguages("file, content[, encoding ]");
 	}
 
 	@Override

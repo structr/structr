@@ -37,7 +37,7 @@ public class TimerFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name, action");
+		return Signature.forAllScriptingLanguages("name, action");
 	}
 
 	@Override

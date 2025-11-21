@@ -67,7 +67,7 @@ public class CapitalizeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("string");
+		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override

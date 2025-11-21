@@ -59,7 +59,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("name [, collection, dataKey]");
+		return Signature.forAllScriptingLanguages("name [, collection, dataKey]");
 	}
 
 	@Override

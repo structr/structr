@@ -44,7 +44,7 @@ public class GeoDistanceFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("point1, point2");
+		return Signature.forAllScriptingLanguages("point1, point2");
 	}
 
 	@Override

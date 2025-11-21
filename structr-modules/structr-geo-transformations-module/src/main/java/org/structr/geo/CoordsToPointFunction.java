@@ -44,7 +44,7 @@ public class CoordsToPointFunction extends GeoFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("coordObject");
+		return Signature.forAllScriptingLanguages("coordObject");
 	}
 
 	@Override

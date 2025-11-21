@@ -35,7 +35,7 @@ public class UnwindFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("list1, list2, ...");
+		return Signature.forAllScriptingLanguages("list1, list2, ...");
 	}
 
 	@Override

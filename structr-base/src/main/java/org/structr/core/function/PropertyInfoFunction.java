@@ -40,7 +40,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("type, propertyName");
+		return Signature.forAllScriptingLanguages("type, propertyName");
 	}
 
 	@Override

@@ -39,7 +39,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("script [, title ]");
+		return Signature.forAllScriptingLanguages("script [, title ]");
 	}
 
 	@Override

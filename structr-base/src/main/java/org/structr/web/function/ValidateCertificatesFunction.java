@@ -34,7 +34,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("boolean");
+		return Signature.forAllScriptingLanguages("boolean");
 	}
 
 	@Override

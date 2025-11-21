@@ -64,7 +64,7 @@ public class AddFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("values...");
+		return Signature.forAllScriptingLanguages("values...");
 	}
 
 	@Override

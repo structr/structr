@@ -51,7 +51,7 @@ public class RemoteCypherFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, username, password, query [, parameterMap ]");
+		return Signature.forAllScriptingLanguages("url, username, password, query [, parameterMap ]");
 	}
 
 	@Override

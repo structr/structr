@@ -41,7 +41,7 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("parent, child, html");
+		return Signature.forAllScriptingLanguages("parent, child, html");
 	}
 
 	@Override

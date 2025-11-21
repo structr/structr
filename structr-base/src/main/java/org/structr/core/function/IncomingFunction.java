@@ -40,7 +40,7 @@ public class IncomingFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("entity [, relType ]");
+		return Signature.forAllScriptingLanguages("entity [, relType ]");
 	}
 
 	@Override

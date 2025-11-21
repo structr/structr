@@ -54,7 +54,7 @@ public class TranslateFunction extends UiFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("text, sourceLanguage, targetLanguage, translationProvider");
+		return Signature.forAllScriptingLanguages("text, sourceLanguage, targetLanguage, translationProvider");
 	}
 
 	@Override

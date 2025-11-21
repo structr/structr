@@ -38,7 +38,7 @@ public class RandomFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("length");
+		return Signature.forAllScriptingLanguages("length");
 	}
 
 	@Override

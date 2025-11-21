@@ -45,7 +45,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("xmlString");
+		return Signature.forAllScriptingLanguages("xmlString");
 	}
 
 	@Override

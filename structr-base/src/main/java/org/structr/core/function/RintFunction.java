@@ -39,7 +39,7 @@ public class RintFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("bound");
+		return Signature.forAllScriptingLanguages("bound");
 	}
 
 	@Override

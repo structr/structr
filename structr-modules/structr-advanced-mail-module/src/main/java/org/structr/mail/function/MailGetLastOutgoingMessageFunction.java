@@ -39,7 +39,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("");
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override

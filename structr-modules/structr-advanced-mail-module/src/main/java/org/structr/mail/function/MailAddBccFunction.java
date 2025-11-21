@@ -41,7 +41,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("address [, name ]");
+		return Signature.forAllScriptingLanguages("address [, name ]");
 	}
 
 	@Override

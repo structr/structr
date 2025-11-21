@@ -27,13 +27,11 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.util.StreamReader;
 import org.structr.web.entity.File;
 
 import java.io.*;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 public class GetContentFunction extends UiAdvancedFunction {
 
@@ -44,7 +42,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("file [, encoding ]");
+		return Signature.forAllScriptingLanguages("file [, encoding ]");
 	}
 
 	@Override

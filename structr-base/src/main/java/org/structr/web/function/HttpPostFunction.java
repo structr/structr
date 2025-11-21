@@ -137,7 +137,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("url, body [, contentType, charset, username, password, configMap ]");
+		return Signature.forAllScriptingLanguages("url, body [, contentType, charset, username, password, configMap ]");
 	}
 
 	@Override

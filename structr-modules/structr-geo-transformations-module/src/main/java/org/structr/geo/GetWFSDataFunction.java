@@ -44,7 +44,7 @@ public class GetWFSDataFunction extends AbstractGeoserverFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("baseUrl, version, typeName, [, params ]");
+		return Signature.forAllScriptingLanguages("baseUrl, version, typeName, [, params ]");
 	}
 
 	@Override

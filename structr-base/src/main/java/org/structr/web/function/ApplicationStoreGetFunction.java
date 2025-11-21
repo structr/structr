@@ -39,7 +39,7 @@ public class ApplicationStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllLanguages("key");
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override
