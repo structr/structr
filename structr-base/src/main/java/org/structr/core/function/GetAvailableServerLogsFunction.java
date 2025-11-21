@@ -87,17 +87,17 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 			if (envLogFile != null) {
 
 				logFile = new File(envLogFile);
+
 				if (logFile.exists()) {
+					String parentDir = logFile.getParent() + File.separator;
 
-					if (envLogFile.equals("/var/log/structr.log")) {
-
-						return getLogFilesInVarLog();
-
-					} else {
-
-						return List.of(envLogFile);
+					List<String> logsInDir = getLogFilesInDirectory(parentDir, logFile.getName());
+					if (logsInDir.size() > 1) {
+						return logsInDir;
 					}
 				}
+				
+				return List.of(envLogFile);
 			}
 
 			// second priority: default log file for local installations (logs/server.log)
@@ -112,7 +112,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 			logFile = new File("/var/log/structr.log");
 			if (logFile.exists()) {
 
-				return getLogFilesInVarLog();
+				return getLogFilesInDirectory("/var/log/", logFile.getName());
 			}
 
 			logger.warn("Could not locate logfile(s)");
@@ -125,20 +125,20 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 		return null;
 	}
 
-	private static List<String> getLogFilesInVarLog() {
+	private static List<String> getLogFilesInDirectory(String logDirectory, String logFileName) {
 
-		// return all (non-gzipped) files starting with "structr.log" in /var/log
+		// return all (non-gzipped) files starting with "structr.log" in logDirectory
 		final List<String> logFiles = new ArrayList<>();
 
 		try {
 
-			Files.walkFileTree(Paths.get("/var/log/"), EnumSet.noneOf(FileVisitOption.class), 1, new SimpleFileVisitor<>() {
+			Files.walkFileTree(Paths.get(logDirectory), EnumSet.noneOf(FileVisitOption.class), 1, new SimpleFileVisitor<>() {
 
 				private boolean isFileOfInterest(final Path file) {
 
 					final String name = file.getFileName().toString();
 
-					return (name.startsWith("structr.log") && !name.endsWith(".gz"));
+					return (name.startsWith(logFileName) && !name.endsWith(".gz"));
 				}
 
 				@Override
@@ -164,7 +164,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 		} catch (IOException e) {
 
-			logger.warn("Unable to enumerate files in /var/log/");
+			logger.warn("Unable to enumerate files in {}",  logDirectory);
 		}
 
 		Collections.sort(logFiles);
