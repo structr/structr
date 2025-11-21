@@ -23,9 +23,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -183,7 +185,7 @@ public class MigrationService {
 			migrateFolderMountTarget();
 			migrateEventActionMapping();
 			updateSharedComponentFlag();
-			warnAboutRestQueryRepeaters();
+			migrateRestQueryRepeaters();
 			warnAboutWrongNotionProperties();
 		}
 	}
@@ -995,7 +997,36 @@ public class MigrationService {
 		}
 	}
 
-	private static void warnAboutRestQueryRepeaters() {
+	private static void migrateRestQueryRepeaters() {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final List<GraphObject> objects = Iterables.toList(app.query("MATCH (n:DOMNode) WHERE n.restQuery IS NOT null RETURN n", Map.of()));
+
+			for (final GraphObject object : objects) {
+
+				final PropertyContainer propertyContainer = object.getPropertyContainer();
+				final String restQuery                    = (String) propertyContainer.getProperty("restQuery");
+				final String functionQuery                = (String) propertyContainer.getProperty("functionQuery");
+
+				if (StringUtils.isEmpty(functionQuery) && StringUtils.isNotEmpty(restQuery)) {
+
+					logger.info("MIGRATING rest QUERY in {} {} to functionQuery.", object.getType(), object.getUuid());
+					propertyContainer.setProperty("functionQuery", "{\n\t/* Migrated REST query, please fix! */\n\t/* " + restQuery + " */\n\n\t$.log('Repeater in ', $.this.type, ' with UUID ', $.this.id, ' needs manual migration of restQuery to functionQuery!');\n}");
+
+				} else {
+
+					logger.info("NOT migrating rest QUERY in {} {} because functionQuery is non-empty!", object.getType(), object.getUuid());
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("Unable to migrate REST query repeaters: {}", fex.getMessage());
+		}
 
 		/*
 		final PropertyKey<String> key = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY);
