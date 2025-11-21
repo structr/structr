@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -43,13 +44,11 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Class entityType = GraphObject.class;
-		String type      = StructrTraits.GRAPH_OBJECT;
+		String type = StructrTraits.GRAPH_OBJECT;
 
-		if (caller != null && caller instanceof GraphObject) {
+		if (caller != null && caller instanceof GraphObject o) {
 
-			entityType = caller.getClass();
-			type = ((GraphObject) caller).getType();
+			type = o.getType();
 		}
 
 		try {
@@ -90,19 +89,34 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${$.error(property, token[, detail])}. Example: ${$.error(\"name\", \"already_taken\"[, \"Another node with that name already exists\"])}"),
-			Usage.structrScript("Usage: ${error(property, token[, detail])}. Example: ${error(\"name\", \"already_taken\"[, \"Another node with that name already exists\"])}")
+			Usage.javaScript("Usage: ${$.error(cause, token[, detail])}. Example: ${$.error('name', 'already_taken'[, 'Another node with that name already exists'])}"),
+			Usage.structrScript("Usage: ${error(cause, token[, detail])}. Example: ${error('name', 'already_taken'[, 'Another node with that name already exists'])}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Signals an error to the caller.";
+		return "Signals a validation error to the caller.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This function can be used to signal an error condition while executing a script. It is mainly used in entity callback functions like `onCreate()` or `onSave()` to allow the user to implement custom validation logic.
+
+		If an error is raised the current transaction will be rolled back and no changes will be written to the database.
+
+		If the calling context was an HTTP request, the HTTP status code 422 Unprocessable Entity will be sent to the client.
+		""";
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("cause", "cause of the error, e.g. a property name or other error message"),
+			Parameter.mandatory("errorToken", "arbitrary string that represents the error, will end up in the `token` field of the response"),
+			Parameter.optional("detail", "more detailed description of the error for humans to read")
+		);
+	}
 }

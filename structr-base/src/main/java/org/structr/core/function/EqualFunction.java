@@ -82,12 +82,22 @@ public class EqualFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given arguments are equal.";
+		return "Returns a boolean value that indicates whether the values are equal.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This function is very lenient; you can use it to compare dates and strings, strings and numbers, etc., based on the actual values of the converted objects.
+
+		If the two values are of different types, Structr tries to determine the desired comparison type and convert the values before comparing.
+		""";
 	}
 
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function can also be called using just `eq()` as an alias."
+		);
+	}
 }

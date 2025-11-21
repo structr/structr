@@ -64,6 +64,21 @@ public interface Documentable {
 			lines.add("");
 		}
 
+		if (parameters != null) {
+
+			lines.add("### Parameters");
+
+			lines.add("");
+			lines.add("|Name|Description|Optional|");
+			lines.add("|---|---|---|");
+
+			for (final Parameter parameter : parameters) {
+				lines.add("|" + parameter.getName() + "|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
+			}
+
+			lines.add("");
+		}
+
 		// longDescription can be empty
 		if (StringUtils.isNotEmpty(longDescription)) {
 
@@ -93,21 +108,6 @@ public interface Documentable {
 			}
 
 			lines.add("```");
-			lines.add("");
-		}
-
-		if (parameters != null) {
-
-			lines.add("### Parameters");
-
-			lines.add("");
-			lines.add("|Name|Description|Optional|");
-			lines.add("|---|---|---|");
-
-			for (final Parameter parameter : parameters) {
-				lines.add("|" + parameter.getName() + "|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
-			}
-
 			lines.add("");
 		}
 

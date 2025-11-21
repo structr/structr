@@ -158,7 +158,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 		return List.of(
 			Example.html("""
 			<select>
-				<option data-structr-meta-data-key="activityType" data-structr-meta-function-query="enum_info('Activity', 'activityType')">${}</option>
+				<option data-structr-meta-data-key="activityType" data-structr-meta-function-query="enum_info('Activity', 'activityType')">${activityType.value}</option>
 			</select>
 			""", "Configure an HTML select element with the enum options of a property")
 		);
