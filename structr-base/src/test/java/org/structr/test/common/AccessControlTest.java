@@ -26,10 +26,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.api.util.Iterables;
-import org.structr.common.AccessControllable;
-import org.structr.common.AccessMode;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -49,7 +46,6 @@ import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.User;
-import org.structr.web.function.ValidateEmailFunction;
 import org.testng.annotations.Test;
 
 import java.util.List;
@@ -1206,9 +1202,8 @@ public class AccessControlTest extends StructrTest {
 			assertEquals("Invalid error code", 422, ex.getStatus());
 			assertEquals("Invalid error code", StructrTraits.USER, token.getType());
 			assertEquals("Invalid error code", PrincipalTraitDefinition.EMAIL_PROPERTY, token.getProperty());
-			assertEquals("Invalid error code", ValidateEmailFunction.getEmailValidationErrorMessageOrNull(invalidEmailAddress), token.getToken());
+			assertEquals("Invalid error code", EMailValidator.EMAIL_VALIDATION_ERROR_TOKEN, token.getToken());
 			assertEquals("Invalid error code", invalidEmailAddress, token.getDetail());
-
 		}
 
 		// Switch user context to user1

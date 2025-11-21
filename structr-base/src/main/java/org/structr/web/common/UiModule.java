@@ -498,7 +498,6 @@ public class UiModule implements StructrModule {
 
 		Functions.put(licenseManager, new SystemInfoFunction());
 
-		Functions.put(licenseManager, new ValidateEmailFunction());
 		Functions.put(licenseManager, new IsValidEmailFunction());
 	}
 
