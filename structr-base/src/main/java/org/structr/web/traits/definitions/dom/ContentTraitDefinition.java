@@ -373,8 +373,8 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
 					DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY,
 					DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
-					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY,
-					DOMNodeTraitDefinition.REST_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
+					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY,
+					DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
 			),
 			PropertyView.Ui,
 			newSet(
@@ -383,8 +383,8 @@ public class ContentTraitDefinition extends AbstractNodeTraitDefinition {
 					DOMNodeTraitDefinition.SHARED_COMPONENT_ID_PROPERTY, DOMNodeTraitDefinition.SYNCED_NODES_IDS_PROPERTY,
 					DOMNodeTraitDefinition.SHARED_COMPONENT_CONFIGURATION_PROPERTY, DOMNodeTraitDefinition.SHOW_FOR_LOCALES_PROPERTY,
 					DOMNodeTraitDefinition.HIDE_FOR_LOCALES_PROPERTY, DOMNodeTraitDefinition.SHOW_CONDITIONS_PROPERTY,
-					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY, DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY,
-					DOMNodeTraitDefinition.REST_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
+					DOMNodeTraitDefinition.HIDE_CONDITIONS_PROPERTY, DOMNodeTraitDefinition.DATA_KEY_PROPERTY,
+					DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY, DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY
 			)
 		);
 	}

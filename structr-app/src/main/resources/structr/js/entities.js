@@ -101,7 +101,6 @@ let _Entities = {
 
 		let queryTypes = [
 			{ title: 'Flow', propertyName: 'flow' },
-			{ title: 'REST Query',     propertyName: 'restQuery' },
 			{ title: 'Cypher Query',   propertyName: 'cypherQuery' },
 			{ title: 'Function Query', propertyName: 'functionQuery' }
 		];

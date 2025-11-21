@@ -322,7 +322,6 @@ public abstract class DeploymentTestBase extends StructrUiTest {
 
 		// DOMElement
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY)));
-		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.CYPHER_QUERY_PROPERTY)));
 		buf.append(valueOrEmpty(node, Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY)));
 

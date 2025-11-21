@@ -32,8 +32,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.web.common.RenderContext;
-import org.structr.web.datasource.RestDataSource;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -125,35 +123,11 @@ public class SearchCommand extends AbstractCommand {
 					return;
 
 				}
-
 			}
 
 			if (restQuery != null) {
-
-				final RestDataSource restDataSource = new RestDataSource();
-				try {
-					securityContext.setRequest(getWebSocket().getRequest());
-
-					if (restQuery.startsWith("/")) {
-
-						webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), restQuery));
-
-					} else {
-
-						webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), "/" + restQuery));
-					}
-
-					getWebSocket().send(webSocketData, true);
-
-					return;
-
-				} catch (FrameworkException ex) {
-					logger.error("", ex);
-					return;
-				}
-
+				throw new UnsupportedOperationException("Using restQuery in the SEARCH command is deprecated.");
 			}
-
 		}
 
 		final String sortOrder         = webSocketData.getSortOrder();
@@ -185,9 +159,7 @@ public class SearchCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-
 		return "SEARCH";
-
 	}
 
 	// ----- private methods -----

@@ -168,7 +168,7 @@ let StructrWS = {
 
 		}, 100);
 	},
-	onmessage: (workerMessage) => {
+	onmessage: async (workerMessage) => {
 
 		let data         = JSON.parse(workerMessage.message);
 		let type         = data.data.type;
@@ -181,9 +181,9 @@ let StructrWS = {
 		if (command === 'LOGIN' || code === 100) {
 
 			if (command === 'LOGIN' || !StructrWS.userId) {
-				Command.rest("/me", (result) => {
-					StructrWS.userId = result[0].id;
-				});
+                let response = await fetch('/structr/rest/me');
+                let result   = await response.json();
+				StructrWS.userId = result.result.id;
 			}
 
 			StructrWS.me      = data.data;

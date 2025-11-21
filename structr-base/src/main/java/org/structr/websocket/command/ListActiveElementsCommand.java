@@ -505,6 +505,15 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 			addEdge(edges, id, node.getUuid(), Map.of());
 		}
+
+		if (node.getCypherQuery() != null) {
+
+			final String id = "repeater_" + Functions.cleanString(node.getCypherQuery());
+
+			addIfNotPresent(nodes, createNodeFromMap(index, id, "CypherQuery", "ListDataSource"));
+
+			addEdge(edges, id, node.getUuid(), Map.of());
+		}
 	}
 
 	private void addAndLinkSharedComponentIfPresent(final Map<String, Object> nodeData, final Map<String, Map<String, Object>> index, final List<Map<String, Object>> nodes, final List<Map<String, Object>> edges, final DOMNode node) {

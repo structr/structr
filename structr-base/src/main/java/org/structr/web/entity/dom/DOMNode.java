@@ -146,7 +146,6 @@ public interface DOMNode extends NodeInterface, LinkedTreeNode {
 	void renderContent(final RenderContext renderContext, final int depth) throws FrameworkException;
 
 	String getCypherQuery();
-	String getRestQuery();
 	String getFunctionQuery();
 
 	String getPagePath();

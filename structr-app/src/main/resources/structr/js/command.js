@@ -316,19 +316,6 @@ let Command = {
 		return StructrWS.sendObj(obj, callback);
 	},
 	/**
-	 * Send a REST query by SEARCH command to the server.
-	 *
-	 */
-	rest: function(searchString, callback) {
-		let obj = {
-			command: 'SEARCH',
-			data: {
-				restQuery: searchString
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
 	 * Send a Cypher query by SEARCH command to the server.
 	 *
 	 */

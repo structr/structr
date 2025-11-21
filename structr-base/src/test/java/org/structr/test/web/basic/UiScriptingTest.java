@@ -75,7 +75,8 @@ import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
 import static org.testng.AssertJUnit.*;
 
 public class UiScriptingTest extends StructrUiTest {
@@ -275,7 +276,7 @@ public class UiScriptingTest extends StructrUiTest {
 			div.appendChild(p);
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY), "/Div");
+			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Div')");
 			changedProperties.put(Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "div");
 			p.setProperties(p.getSecurityContext(), changedProperties);
 
@@ -589,7 +590,7 @@ public class UiScriptingTest extends StructrUiTest {
 			final NodeInterface group = app.create(StructrTraits.GROUP, "TestGroup");
 
 			// setup scripting repeater
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY), "/Group/${current.id}");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "find('Group', current.id)");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "test");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "${test.id}");
 
@@ -637,7 +638,7 @@ public class UiScriptingTest extends StructrUiTest {
 			div.getUuid();
 
 			// setup scripting repeater to repeat over (non-existing) children of second div
-			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY), "/Div/" + div2.getUuid()+ "/children");
+			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY), "first(find('Div', '" + div2.getUuid() + "')).children");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(DOMNodeTraitDefinition.DATA_KEY_PROPERTY), "test");
 			content.setProperty(Traits.of(StructrTraits.CONTENT).key(ContentTraitDefinition.CONTENT_PROPERTY), "foo${test}");
 

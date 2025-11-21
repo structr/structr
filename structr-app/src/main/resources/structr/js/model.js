@@ -919,7 +919,7 @@ StructrElement.prototype.exists = function() {
 };
 
 StructrElement.prototype.isActiveNode = function() {
-	return this.hideConditions || this.showConditions || this.dataKey || this.restQuery || this.cypherQuery || this.functionQuery
+	return this.hideConditions || this.showConditions || this.dataKey || this.cypherQuery || this.functionQuery
 		//String attributes
 		|| this["data-structr-id"]
 		|| this["eventMapping"]
@@ -940,9 +940,6 @@ StructrElement.prototype.getActiveNodeInfo = function() {
 	}
 	if (this.dataKey) {
 		list.push('Has data key in repeater configuration');
-	}
-	if (this.restQuery) {
-		list.push('Has REST query in repeater configuration');
 	}
 	if (this.cypherQuery) {
 		list.push('Has cypher query in repeater configuration');
@@ -1056,9 +1053,6 @@ StructrContent.prototype.getActiveNodeInfo = function() {
 	}
 	if (this.dataKey) {
 		list.push('Has data key in repeater configuration');
-	}
-	if (this.restQuery) {
-		list.push('Has REST query in repeater configuration');
 	}
 	if (this.cypherQuery) {
 		list.push('Has cypher query in repeater configuration');

@@ -624,18 +624,18 @@ let _Files = {
 			}
 		}
 	},
-	loadAndSetWorkingDir: (callback) => {
+	loadAndSetWorkingDir: async (callback) => {
 
-		Command.rest("/me/ui", (result) => {
-			let me = result[0];
-			if (me.workingDirectory) {
-				_Files.currentWorkingDir = me.workingDirectory;
-			} else {
-				_Files.currentWorkingDir = null;
-			}
+        let response = await fetch(`${Structr.rootUrl}me`);
+        let result    = await response.json();
+        let me        = result.result;
+		if (me.workingDirectory) {
+			_Files.currentWorkingDir = me.workingDirectory;
+		} else {
+			_Files.currentWorkingDir = null;
+		}
 
-			callback();
-		});
+		callback();
 	},
 	load: (id, callback) => {
 

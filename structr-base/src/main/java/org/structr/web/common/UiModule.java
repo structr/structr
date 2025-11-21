@@ -28,7 +28,6 @@ import org.structr.module.StructrModule;
 import org.structr.web.datasource.CypherGraphDataSource;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.datasource.IdRequestParameterGraphDataSource;
-import org.structr.web.datasource.RestDataSource;
 import org.structr.web.function.*;
 import org.structr.web.traits.definitions.*;
 import org.structr.web.traits.definitions.dom.*;
@@ -51,7 +50,6 @@ public class UiModule implements StructrModule {
 	public void onLoad() {
 
 		DataSources.put("ui", "idRequestParameterDataSource", new IdRequestParameterGraphDataSource("nodeId"));
-		DataSources.put("ui", "restDataSource",               new RestDataSource());
 		DataSources.put("ui", "cypherDataSource",             new CypherGraphDataSource());
 		DataSources.put("ui", "functionDataSource",           new FunctionDataSource(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
 

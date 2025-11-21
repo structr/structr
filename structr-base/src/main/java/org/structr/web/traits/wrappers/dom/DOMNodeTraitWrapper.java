@@ -993,11 +993,6 @@ public class DOMNodeTraitWrapper extends AbstractNodeTraitWrapper implements DOM
 	}
 
 	@Override
-	public final String getRestQuery() {
-		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY));
-	}
-
-	@Override
 	public final String getFunctionQuery() {
 		return wrappedObject.getProperty(traits.key(DOMNodeTraitDefinition.FUNCTION_QUERY_PROPERTY));
 	}

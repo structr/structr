@@ -997,6 +997,7 @@ public class MigrationService {
 
 	private static void warnAboutRestQueryRepeaters() {
 
+		/*
 		final PropertyKey<String> key = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY);
 		final App app                 = StructrApp.getInstance();
 
@@ -1018,6 +1019,8 @@ public class MigrationService {
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to check migration status for REST query repeaters: {}", fex.getMessage());
 		}
+
+		 */
 	}
 
 	private static void migrateFolderMountTarget() {

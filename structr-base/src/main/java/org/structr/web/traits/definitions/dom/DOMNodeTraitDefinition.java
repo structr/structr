@@ -80,7 +80,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String SYNCED_NODES_IDS_PROPERTY               = "syncedNodesIds";
 	public static final String DATA_KEY_PROPERTY                       = "dataKey";
 	public static final String CYPHER_QUERY_PROPERTY                   = "cypherQuery";
-	public static final String REST_QUERY_PROPERTY                     = "restQuery";
 	public static final String FUNCTION_QUERY_PROPERTY                 = "functionQuery";
 	public static final String SHOW_FOR_LOCALES_PROPERTY               = "showForLocales";
 	public static final String HIDE_FOR_LOCALES_PROPERTY               = "hideForLocales";
@@ -96,8 +95,8 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String FLOW_PROPERTY                           = "flow";
 
 	private static final String[] rawProps = new String[] {
-			DATA_KEY_PROPERTY, REST_QUERY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, Option.SELECTEDVALUES_PROPERTY, FLOW_PROPERTY,
-			SHOW_FOR_LOCALES_PROPERTY, HIDE_FOR_LOCALES_PROPERTY, SHOW_CONDITIONS_PROPERTY, HIDE_CONDITIONS_PROPERTY
+		DATA_KEY_PROPERTY, CYPHER_QUERY_PROPERTY, FUNCTION_QUERY_PROPERTY, Option.SELECTEDVALUES_PROPERTY, FLOW_PROPERTY,
+		SHOW_FOR_LOCALES_PROPERTY, HIDE_FOR_LOCALES_PROPERTY, SHOW_CONDITIONS_PROPERTY, HIDE_CONDITIONS_PROPERTY
 	};
 
 	private static final Set<String> DataAttributeOutputBlacklist = Set.of(DOMElementTraitDefinition.DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY);
@@ -708,7 +707,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> syncedNodesIdsProperty                              = new CollectionIdProperty(SYNCED_NODES_IDS_PROPERTY, StructrTraits.DOM_NODE, SYNCED_NODES_PROPERTY, StructrTraits.DOM_NODE);
 		final Property<String> dataKeyProperty                                     = new StringProperty(DATA_KEY_PROPERTY).indexed().category(DOMNode.QUERY_CATEGORY);
 		final Property<String> cypherQueryProperty                                 = new StringProperty(CYPHER_QUERY_PROPERTY).category(DOMNode.QUERY_CATEGORY);
-		final Property<String> restQueryProperty                                   = new StringProperty(REST_QUERY_PROPERTY).category(DOMNode.QUERY_CATEGORY);
 		final Property<String> functionQueryProperty                               = new StringProperty(FUNCTION_QUERY_PROPERTY).category(DOMNode.QUERY_CATEGORY);
 		final Property<String> showForLocalesProperty                              = new StringProperty(SHOW_FOR_LOCALES_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY);
 		final Property<String> hideForLocalesProperty                              = new StringProperty(HIDE_FOR_LOCALES_PROPERTY).indexed().category(GraphObject.VISIBILITY_CATEGORY);
@@ -740,7 +738,6 @@ public class DOMNodeTraitDefinition extends AbstractNodeTraitDefinition {
 			syncedNodesIdsProperty,
 			dataKeyProperty,
 			cypherQueryProperty,
-			restQueryProperty,
 			functionQueryProperty,
 			showForLocalesProperty,
 			hideForLocalesProperty,

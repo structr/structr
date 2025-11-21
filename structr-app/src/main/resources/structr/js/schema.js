@@ -3752,11 +3752,11 @@ let _Schema = {
 				_Schema.methods.appendMethods(dialogText.querySelector('#tabView-methods'), null, methods);
 			});
 		},
-		fetchUserDefinedMethods: (callback) => {
-
-			Command.rest(`SchemaMethod/schema?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
-				callback(methods);
-			});
+		fetchUserDefinedMethods: async (callback) => {
+            let response = await fetch(`${Structr.rootUrl}SchemaMethod/schema?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`);
+            let result    = await response.json();
+            let methods   = result.result;
+			callback(methods);
 		},
 		rowChanged: (gridRow, hasChanges) => {
 
