@@ -23,6 +23,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -47,7 +49,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]");
+		return Signature.forAllScriptingLanguages("outputStream, scriptConfigKey [, parameters [, logBehaviour ] ]");
 	}
 
 	@Override
@@ -153,14 +155,66 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{Structr.exec_binary(outputStream, scriptConfigKey [, parameterCollection [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+			Usage.structrScript("Usage: ${exec_binary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{ $.exec_binary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Scripts are executed using `/bin/sh` - thus this function is only supported in environments where this exists.",
+				"All script files are looked up inside the `scripts` folder in the main folder of the installation (not in the files area).",
+				"Symlinks are not allowed, director traversal is not allowed.",
+				"The key of the script must be all-lowercase.",
+				"The script must be executable (`chmod +x`)",
+				"The first parameter is usually the builtin keyword `response` and this function is usually used in a page context.",
+				"A page using this should have the correct content-type and have the `pageCreatesRawData` flag enabled",
+				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
+				"All parameters are automatically put in double-quotes",
+				"All parameters can be passed as a string or as an object containing a `value` field and a `mask` flag.",
+				"Double-quotes in parameter values are automatically escaped as `\\\"`"
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("outputStream", "output stream to write the output to"),
+				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename."),
+				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag."),
+				Parameter.optional("logBehaviour", (
+								"Specifies the function's call-logging behavior:"
+										+ "<p>`0`: skip logging the command line<br>"
+										+ "`1`: log only the script's full path<br>"
+										+ "`2`: log the script path and all parameters, applying masking as configured</p>"
+										+ "The default for this can be set via `%s`.").formatted(Settings.LogScriptProcessCommandLine.getKey()
+						)
+				)
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the raw output directly into the output stream. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'mask' flag.";
+		return "Executes a script returning the returning the raw output directly into the output stream.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+			This method is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output buffer **without modifying the binary data**.
+			
+			This is important to allow streaming of binary data from a script to the client.
+			
+			If a page is used to serve binary data, it must have the correct content-type and have the `pageCreatesRawData` flag enabled.
+			""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${exec_binary(response, 'my.create.pdf')}", "Streaming binary content of the `my.create.pdf` script to the client.")
+		);
 	}
 
 	private static class ScriptingProcess extends AbstractBinaryProcess<String> {

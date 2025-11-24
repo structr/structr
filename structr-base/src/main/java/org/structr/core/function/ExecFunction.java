@@ -24,6 +24,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -54,7 +56,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("scriptConfigKey [, parameterCollection [, logBehaviour ] ]");
+		return Signature.forAllScriptingLanguages("scriptConfigKey [, parameters [, logBehaviour ] ]");
 	}
 
 	public String getSignature() {
@@ -164,19 +166,70 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameterCollection [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey  [, parameterCollection [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+			Usage.structrScript("Usage: ${exec(scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec('my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{ $.exec(scriptConfigKey  [, parameters [, logBehaviour ] ]); }}. Example: ${{ $.exec('my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Scripts are executed using `/bin/sh` - thus this function is only supported in environments where this exists.",
+				"All script files are looked up inside the `scripts` folder in the main folder of the installation (not in the files area).",
+				"Symlinks are not allowed, director traversal is not allowed.",
+				"The key of the script must be all-lowercase.",
+				"The script must be executable (`chmod +x`)",
+				"This method does not preserve binary content, it can *not* be used to stream binary data through Structr. Use `exec_binary()` for that.",
+				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
+				"All parameter values are automatically put in double-quotes",
+				"All parameters can be passed as a string or as an object containing a `value` field and a `mask` flag.",
+				"Double-quotes in parameter values are automatically escaped as `\\\"`"
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename."),
+				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag."),
+				Parameter.optional("logBehaviour", (
+						"Specifies the function's call-logging behavior:"
+								+ "<p>`0`: skip logging the command line<br>"
+								+ "`1`: log only the script's full path<br>"
+								+ "`2`: log the script path and all parameters, applying masking as configured</p>"
+								+ "The default for this can be set via `%s`.").formatted(Settings.LogScriptProcessCommandLine.getKey()
+						)
+				)
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Executes a script configured in structr.conf with the given configuration key, a collection of parameters and the desired logging behaviour, returning the standard output of the script. The logging behaviour for the command line has three possible values: [0] do not log command line [1] log only full path to script [2] log path to script and each parameter either unmasked or masked. In JavaScript the function is most flexible - each parameter can be given as a simple string or as a configuration map with a 'value' and a 'mask' flag.";
+		return "Executes a script returning the standard output of the script.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			In order to prevent execution of arbitrary code, the script must be registered in structr.conf file using the following syntax.
+			`key.for.my.script = my-script.sh`
+			
+			Upon successful execution, the complete output of the script (not the return value) is returned.
+			
+			`logBehaviour` controls how and if the command line is logged upon execution. If no value is given, the global setting `%s` will be used.
+			""".formatted(Settings.LogScriptProcessCommandLine.getKey());
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${exec('key.for.my.script', merge('param1', 'param2'), 0)}", "Execute a script with 2 parameters and no log output, using merge() to create the parameter list"),
+				Example.javaScript("""
+						${{
+							$.exec('key.for.my.script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2);
+						}}
+						""", "Execute a script with 2 parameters, where one is being masked in the log output")
+		);
 	}
 
 	protected String getSanityCheckedPathForScriptSetting(final String scriptKey) throws IOException {
