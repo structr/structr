@@ -160,10 +160,10 @@ public class ToExcelFunction extends Function<Object, Object> {
 				Parameter.optional("headerLocalizationDomain", "lookup domain for localization of header names"),
 				Parameter.optional("maxCellLength", "maximum length after which content cells are truncated"),
 				Parameter.optional("overflowMode",
-					"<p>Controls how content that is longer than maxCellLength is handled (affects content-rows only - the header remains untouched)</p>"
-							+ "<p>`t`: Truncates the content at maxCellLength</p>"
-							+ "<p>`o` (default): Overflows the remaining text after maxCellLength into a cell comment. (This is restricted to 32767 bytes by Excel)</p>"
-							+ "<p>Any other value is used as is as a cell comment. This is useful to display a message like \"The content of this cell has been truncated\".</p>")
+						"Controls how content that is longer than maxCellLength is handled (affects content-rows only - the header remains untouched)"
+								+ "<p>`t`: Truncates the content at maxCellLength<br>"
+								+ "`o` (default): Overflows the remaining text after maxCellLength into a cell comment. (This is restricted to 32767 bytes by Excel)</p>"
+								+ "Any other value is used as is as a cell comment. This is useful to display a message like \"The content of this cell has been truncated\".")
 		);
 	}
 
