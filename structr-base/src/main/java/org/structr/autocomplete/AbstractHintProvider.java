@@ -414,9 +414,9 @@ public abstract class AbstractHintProvider {
 							hints.addAll(contextHints);
 
 							Collections.sort(hints, comparator);
-						}
 
-						return true;
+							return true;
+						}
 
 					} else if (requireValidPredecessor) {
 
