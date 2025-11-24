@@ -1015,6 +1015,7 @@ public class MigrationService {
 
 					logger.info("MIGRATING rest QUERY in {} {} to functionQuery.", object.getType(), object.getUuid());
 					propertyContainer.setProperty("functionQuery", "{\n\t/* Migrated REST query, please fix! */\n\t/* " + restQuery + " */\n\n\t$.log('Repeater in ', $.this.type, ' with UUID ', $.this.id, ' needs manual migration of restQuery to functionQuery!');\n}");
+					propertyContainer.removeProperty("restQuery");
 
 				} else {
 
@@ -1027,31 +1028,6 @@ public class MigrationService {
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to migrate REST query repeaters: {}", fex.getMessage());
 		}
-
-		/*
-		final PropertyKey<String> key = Traits.of(StructrTraits.DOM_ELEMENT).key(DOMNodeTraitDefinition.REST_QUERY_PROPERTY);
-		final App app                 = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final NodeInterface elem : StructrApp.getInstance().nodeQuery(StructrTraits.DOM_ELEMENT).and().not().key(key, null).getResultStream()) {
-
-				final String str     = elem.getProperty(key);
-				final String cleaned = str.replaceAll("[\\W0-9]+", "");
-
-				if (Character.isLowerCase(cleaned.charAt(0))) {
-
-					logger.info("REST repeater query in {} element with UUID {} might need migration: {}. This cannot be done automatically, please check and change.", elem.getType(), elem.getUuid(), elem.getProperty(key));
-				}
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-			logger.warn("Unable to check migration status for REST query repeaters: {}", fex.getMessage());
-		}
-
-		 */
 	}
 
 	private static void migrateFolderMountTarget() {

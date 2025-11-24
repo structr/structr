@@ -3588,9 +3588,10 @@ let _Pages = {
 								}
 							});
 							e.addEventListener('click', m => {
-								console.log(id);
-								//_Pages.openAndSelectTreeObjectById(e.dataset.nodeId);
-								_Pages.expandTreeNode(id);
+                                // valid UUIDs have 32 or 36 characters (maybe do more checks here?)
+                                if (id.length === 32 || id.length === 36) {
+                                    _Pages.expandTreeNode(id);
+                                }
 							});
 
 						}

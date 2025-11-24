@@ -33,12 +33,15 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -513,6 +516,23 @@ public class ListActiveElementsCommand extends AbstractCommand {
 			addIfNotPresent(nodes, createNodeFromMap(index, id, "CypherQuery", "ListDataSource"));
 
 			addEdge(edges, id, node.getUuid(), Map.of());
+		}
+
+		final Traits traits  = node.getTraits();
+		if (traits.hasKey(DOMNodeTraitDefinition.FLOW_PROPERTY)) {
+
+			final PropertyKey<NodeInterface> flowKey = traits.key(DOMNodeTraitDefinition.FLOW_PROPERTY);
+			final NodeInterface flow                 = node.getProperty(flowKey);
+
+			if (flow != null) {
+
+				final String id = "flow_" + flow.getName();
+
+				addIfNotPresent(nodes, createNodeFromMap(index, id, "FlowQuery", "ListDataSource"));
+
+				addEdge(edges, id, node.getUuid(), Map.of());
+
+			}
 		}
 	}
 
