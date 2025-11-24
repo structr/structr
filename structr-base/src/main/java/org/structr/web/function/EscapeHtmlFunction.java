@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -65,7 +67,7 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${escape_html(string)}. Example: ${escape_html('test & test')}"),
-			Usage.javaScript("Usage: ${{Structr.escapeHtml(string)}}. Example: ${{Structr.escapeHtml('test & test')}}")
+			Usage.javaScript("Usage: ${{ $.escapeHtml(string); }}. Example: ${{ $.escapeHtml('test & test'); }}")
 		);
 	}
 
@@ -76,6 +78,27 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Supports all known HTML 4.0 entities, including accents and special characters.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("text", "text to escape")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Note that the commonly used apostrophe escape character (') is not a legal entity and so is not supported."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${escape_html('Test & Test\"')} => Test &amp; Test&quot;")
+		);
 	}
 }

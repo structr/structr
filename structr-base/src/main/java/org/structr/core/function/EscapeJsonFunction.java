@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -64,8 +66,8 @@ public class EscapeJsonFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}"),
-			Usage.javaScript("Usage: ${{ Structr.escape_json(string) }}. Example: ${{ Structr.escape_json(this.name); }}")
+			Usage.structrScript("Usage: ${escape_json(text)}. Example: ${escape_json(this.name)}"),
+			Usage.javaScript("Usage: ${{ $.escapeJson(text) }}. Example: ${{ $.escapeJson(this.name); }}")
 		);
 	}
 
@@ -77,5 +79,30 @@ public class EscapeJsonFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("text", "text to escape")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${escape_json('This is a \"test\"')} => This is a \\\"test\\\"")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Escapes the characters in a string using Json String rules.",
+			"Escapes any values it finds into their Json String form.",
+			"Deals correctly with quotes and control-chars (tab, backslash, cr, ff, etc.)"
+		);
 	}
 }

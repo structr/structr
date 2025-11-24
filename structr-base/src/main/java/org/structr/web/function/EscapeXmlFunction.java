@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -64,8 +66,8 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${escape_xml(string)}. Example: ${escape_xml('test & test')}"),
-			Usage.javaScript("Usage: ${{Structr.escapeXml(string)}}. Example: ${{Structr.escapeXml('test & test')}}")
+			Usage.structrScript("Usage: ${escape_xml(text)}. Example: ${escape_xml('test & test')}"),
+			Usage.javaScript("Usage: ${{ $.escapeXml(text)}}. Example: ${{ $.escapeXml('test & test')}}")
 		);
 	}
 
@@ -77,5 +79,31 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("text", "text to escape")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${escape_xml('This is a \"test\" & another \"test\"')} => This is a &quot;test&quot; &amp; another &quot;test&quot;")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"Supports only the five basic XML entities (gt, lt, quot, amp, apos).",
+			"Does not support DTDs or external entities.",
+			"Unicode characters greater than 0x7f are currently escaped to their numerical \\u equivalent. This may change in future releases."
+		);
 	}
 }

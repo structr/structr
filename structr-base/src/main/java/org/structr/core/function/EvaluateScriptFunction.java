@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -60,7 +62,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${evaluate_script(entity, script)}"),
-			Usage.javaScript("Usage: ${$.evaluate_script(entity, script)}")
+			Usage.javaScript("Usage: ${{ $.evaluateScript(entity, script); }}")
 		);
 	}
 
@@ -71,6 +73,32 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "You can use this function to evaluate a dynamic script in the context of a Structr application. Please note that there are many different way to exploit this function to gain privileged access to your application and the underlying server. It is almost never a good idea to use this function.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("entity", "`this` entity in the script"),
+			Parameter.mandatory("script", "script source")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${evaluate_script(me, 'print(this.name)')}", "Print the name of the current user")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"This function poses a **very severe** security risk if you are using it with user-provided content!",
+			"The function runs in an auto-script context, i.e. you don't need to put ${ ... } around the script.",
+			"If you want to run a JavaScript snippet, put curly braces around the script: { ... }."
+		);
 	}
 }

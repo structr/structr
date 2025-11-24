@@ -22,6 +22,8 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -125,19 +127,43 @@ public class ExtractFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: $.extract(list, propertyName). Example: $.extract($.this.children, 'amount')"),
-			Usage.structrScript("Usage: extract(list, propertyName). Example: extract(this.children, \"amount\")")
+			Usage.javaScript("Usage: ${{ $.extract(list, propertyName); }}. Example: ${{ $.extract($.this.children, 'amount'); }}"),
+			Usage.structrScript("Usage: ${extract(list, propertyName)}. Example: ${extract(this.children, 'amount')}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a collection of all the elements with a given name from a collection.";
+		return "Extracts property values from all elements of a collection and returns them as a collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This method iterates over the given collection and extracts the value for the given property key of each element. The return value of this method is a collection of extracted property values. It is often used in combination with `find()` and `join()` to create comma-separated lists of entity values.";
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "source collection"),
+			Parameter.mandatory("propertyName", "name of property value to extract")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${extract(find('User'), 'name')} => [admin, user1, user2, user3]")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"This function is the StructrScript equivalent of JavaScript's `map()` function with a lambda expression of `l -> l.propertyName`."
+		);
+	}
 }

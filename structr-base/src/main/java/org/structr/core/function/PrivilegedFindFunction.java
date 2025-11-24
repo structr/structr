@@ -25,6 +25,8 @@ import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -124,11 +126,36 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
+		return "Executes a `find()` operation with elevated privileges.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "You can use this function to query data from an anonymous context or when a users privileges need to be escalated. See documentation of `find()` for more details.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("type", "type to return (includes inherited types"),
+			Parameter.optional("predicates", "list of predicates"),
+			Parameter.optional("uuid", "uuid, makes the function return **a single object**")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return super.getExamples();
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"It is recommended to use `find()` instead of `find_privileged()` whenever possible, as improper use of `find_privileged()` can result in the exposure of sensitive data.",
+			"In a StructrScript environment parameters are passed as pairs of 'key1', 'value1'.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
 	}
 }

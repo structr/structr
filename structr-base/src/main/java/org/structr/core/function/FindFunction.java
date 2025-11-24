@@ -322,4 +322,15 @@ public class FindFunction extends AbstractQueryFunction {
 			""", "Return all users with the `isAdmin` flag set to true and named \"joe\" or \"jeff\".")
 		);
 	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In a StructrScript environment parameters are passed as pairs of 'key1', 'value1'.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.",
+			"The `find()` method will always use **exact** search, if you are interested in inexact / case-insensitive search, use `search()`.",
+			"Calling `find()` with only a single parameter will return all the nodes of the given type (which might be problematic if there are so many of them in the database so that they do not fit in the available memory)."
+		);
+	}
 }
