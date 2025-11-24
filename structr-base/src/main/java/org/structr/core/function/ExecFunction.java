@@ -205,7 +205,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Executes a script returning the standard output of the script";
+		return "Executes a script returning the standard output of the script.";
 	}
 
 	@Override
