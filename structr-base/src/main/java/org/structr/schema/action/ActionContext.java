@@ -45,6 +45,7 @@ import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -423,6 +424,19 @@ public class ActionContext {
 						if (response != null) {
 
 							switch (key) {
+
+								case "response": {
+
+									try {
+										// return output stream of HTTP response for streaming
+										hints.reportExistingKey(key);
+										return response.getOutputStream();
+
+									} catch (IOException ioex) {
+										logger.warn("", ioex);
+									}
+									return null;
+								}
 
 								case "statusCode":
 								case "status_code":
