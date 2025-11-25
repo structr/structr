@@ -62,9 +62,9 @@ let _Config = {
 
 					for (let invalidField of invalidFields) {
 
-						invalidField.closest('.form-group').classList.add('invalid');
-						invalidField.closest('.config-group').classList.add('invalid');
-						invalidField.closest('.tab-content').classList.add('invalid');
+						invalidField.closest('.form-group')?.classList.add('invalid');
+						invalidField.closest('.config-group')?.classList.add('invalid');
+						invalidField.closest('.tab-content')?.classList.add('invalid');
 					}
 
 					let anyVisible    = invalidFields.some(f => f.offsetParent);
