@@ -53,7 +53,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public synchronized void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
+	public void doStore(final String id, final SessionData data, final long lastSaveTime) throws Exception {
 
 		assertInitialized();
 
@@ -100,7 +100,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public synchronized boolean exists(final String id) throws Exception {
+	public boolean exists(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			return true;
@@ -129,7 +129,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public synchronized SessionData load(final String id) throws Exception {
+	public SessionData load(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			return anonymousSessionCache.get(id);
@@ -170,7 +170,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public synchronized boolean delete(final String id) throws Exception {
+	public boolean delete(final String id) throws Exception {
 
 		if (anonymousSessionCache.containsKey(id)) {
 			anonymousSessionCache.remove(id);
@@ -210,7 +210,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public synchronized Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
+	public Set<String> doCheckExpired(final Set<String> candidates, final long sessionTimeout) {
 
 		final Date timeoutDate = new Date(System.currentTimeMillis() - sessionTimeout);
 
@@ -248,7 +248,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public synchronized Set<String> doGetExpired(final long sessionTimeout) {
+	public Set<String> doGetExpired(final long sessionTimeout) {
 		final Date timeoutDate    = new Date(System.currentTimeMillis() - sessionTimeout);
 
 		assertInitialized();
@@ -287,7 +287,7 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 	}
 
 	@Override
-	public synchronized void doCleanOrphans(long timeout) {
+	public void doCleanOrphans(long timeout) {
 
 		for (final String id : doGetExpired(timeout)) {
 
