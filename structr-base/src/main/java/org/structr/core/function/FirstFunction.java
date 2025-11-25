@@ -22,6 +22,8 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -80,7 +82,7 @@ public class FirstFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.first(collection)}}. Example: ${{$.first($.this.children)}}"),
+			Usage.javaScript("Usage: ${{ $.first(collection); }}. Example: ${{ $.first($.this.children); }}"),
 			Usage.structrScript("Usage: ${first(collection)}. Example: ${first(this.children)}")
 		);
 	}
@@ -92,6 +94,27 @@ public class FirstFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function is often used in conjunction with `find()` to return the first result of a query.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "collection to return first element of")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${first(find('User'))}", "Return the first of the existing users")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
 	}
 }

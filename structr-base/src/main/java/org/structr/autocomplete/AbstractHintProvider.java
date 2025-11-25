@@ -464,6 +464,7 @@ public abstract class AbstractHintProvider {
 		hints.add(0, new MeHint());
 		hints.add(0, new LocaleHint());
 		hints.add(0, new IPHint());
+		hints.add(0, new IdHint());
 		hints.add(0, new HostHint());
 		hints.add(0, new DataHint());
 		hints.add(0, new CurrentHint());

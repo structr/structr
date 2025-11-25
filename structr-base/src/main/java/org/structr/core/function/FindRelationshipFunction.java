@@ -28,6 +28,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -153,18 +155,43 @@ public class FindRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{findRelationship(type, key, value)}}. Example: ${{findRelationship(\"PersonRELATED_TOPerson\")}}"),
-			Usage.structrScript("Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship(\"PersonRELATED_TOPerson\")}")
+			Usage.javaScript("Usage: ${{ $.findRelationship(type, key, value); }}. Example: ${{ $.findRelationship('PersonRELATED_TOPerson'); }}"),
+			Usage.structrScript("Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship('PersonRELATED_TOPerson')}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs.";
+		return "Returns a collection of relationship entities of the given type from the database, takes optional key/value pairs.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("type", "type to return (includes inherited types"),
+			Parameter.optional("predicates", "list of predicates"),
+			Parameter.optional("uuid", "uuid, makes the function return **a single object**")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return super.getExamples();
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"The relationship type for custom schema relationships is auto-generated as `<source type name><relationship type><target type name>`",
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
 	}
 }

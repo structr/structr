@@ -31,7 +31,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Scanner;
 
@@ -110,24 +111,29 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Retrieves the content of the given file from the Structr filesystem.
-		This method can be used to access the binary content of a file stored in Structr.
+		Retrieves the content of the given file from the Structr filesystem. This method can be used to access the binary content of a file stored in Structr.
+		
+		The `encoding` parameter controls the type of the returned data. Without an encoding, the raw data is returned as an array of bytes.
+		
+		To get the content as a string, you must provide an encoding, e.g. 'UTF-8'.
 		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_content(first(find('File', 'name', 'test.txt')))}"),
-				Example.javaScript("${{ $.get_content($.first($.find('File', 'name', 'test.txt'))) }}")
+			Example.structrScript("${get_content(first(find('File', 'name', 'test.txt')))}"),
+			Example.javaScript("${{ let bytes = $.getContent($.first($.find('File', 'name', 'test.txt'))) }}"),
+			Example.javaScript("${{ let content = $.getContent($.first($.find('File', 'name', 'test.txt')), 'UTF-8') }}")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"The parameter `encoding` is available from version 2.3.9+",
-				"This function is not recommended for raw binary content!"
+			"The parameter `encoding` is available from version 2.3.9+",
+			"If you want to access the raw binary content of the file, omit the `encoding` argument.",
+			"If you don't provide the `encoding` argument, this function returns a byte array."
 		);
 	}
 
@@ -135,8 +141,8 @@ public class GetContentFunction extends UiAdvancedFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("file", "source file to extract content"),
-				Parameter.optional("encoding", "encoding of source data")
+			Parameter.mandatory("file", "source file to extract content"),
+			Parameter.optional("encoding", "encoding of source data, see notes and description")
 		);
 	}
 }

@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -70,12 +71,20 @@ public class FloorFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the largest integer that is less than or equal to the argument.";
+		return "Returns the given value, rounded **down** to the nearest integer.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value", "value to round down")
+		);
 	}
 
 	@Override

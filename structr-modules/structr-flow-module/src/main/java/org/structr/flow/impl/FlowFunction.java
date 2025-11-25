@@ -25,6 +25,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.flow.api.FlowResult;
@@ -139,11 +141,44 @@ public class FlowFunction extends Function<Object, Object> {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the evaluation result of the Flow with the given name.";
+		return "Executes a given Flow and returns the evaluation result.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("name", "effective name of the Flow"),
+			Parameter.optional("parameterMap", "parameters")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			${{
+				let result = $.flow('package1.flow1', {
+				    parameter1 : 42,
+				    parameter2 : 3.14
+				});
+			}}
+			""", "Execute the Flow \"package1.flow1\"")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"The effective name is the combined name of the Flow plus all its parent packages.",
+			"In a StructrScript environment, parameters can be passed as pairs of 'key1', 'value1'."
+		);
 	}
 }

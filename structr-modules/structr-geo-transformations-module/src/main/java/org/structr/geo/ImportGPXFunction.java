@@ -24,6 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.XmlFunction;
 import org.structr.core.property.*;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -169,19 +171,88 @@ public class ImportGPXFunction extends GeoFunction {
 	}
 
 	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-		);
-	}
-
-	@Override
 	public String getShortDescription() {
-		return "Imports a GPX file and creates a list of objects of a given type from it.";
+		return "Parses a given GPX string and returns its contents as an object with.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		The object returned by this function has the following format. Please note that there can be additional keys in the object such as "tracks" and "segments".
+		
+		```
+		{
+			"waypoints": [
+				{
+					"latitude": 42.438878,
+					"longitude": -71.119277,
+					"name": "5066"
+				},
+				...
+			],
+			"routes": [
+				{
+					"name": "BELLEVUE",
+					"description": "Bike Loop Bellevue",
+					"points": [
+						{
+							"latitude": 42.43095,
+							"longitude": -71.107628,
+							"altitude": 23.4696,
+							"time": "2001-06-02T00:18:15Z",
+							"name": "BELLEVUE",
+							"comment": "BELLEVUE",
+							"description": "Bellevue Parking Lot",
+							"symbol": "Parking Area",
+							"type": "Parking"
+						},
+						...
+					]
+				}
+			]
+		}
+		```
+		""";
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+
+		return List.of(
+			Usage.structrScript("${import_gpx(get_content(first(find('File', 'name', 'track.gpx')), 'utf-8')}"),
+			Usage.structrScript("${import_gpx('<?xml version=\"1.0\"?><gpx version=\"1.0\"><wpt lat=\"42.438878\" lon=\"-71.119277\"><name>5066</name></wpt></gpx>')}"),
+			Usage.javaScript("${{ $.importGpx($.getContent($.find('File', { name: 'track.gpx' })[0], 'utf-8'); }}"),
+			Usage.javaScript("${{ $.importGpx('<?xml version=\"1.0\"?><gpx version=\"1.0\"><wpt lat=\"42.438878\" lon=\"-71.119277\"><name>5066</name></wpt></gpx>'); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("source", "GPX source to parse")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			${{
+				let file      = $.find('File', { name: 'track1.gpx' })[0];
+				let gpxString = $.getContent(file, 'utf-8');
+				let gpxData   = $.importGpx(gpxString);
+
+				$.print(Object.keys(gpxData));
+			}}
+			""", "Parse a GPX track from a file in the Structr filesystem")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return super.getNotes();
 	}
 
 	// ----- private methods -----

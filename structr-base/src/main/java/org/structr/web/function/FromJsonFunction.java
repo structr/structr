@@ -24,6 +24,8 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -150,7 +152,30 @@ public class FromJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function is the inverse of the `toJson()` function.";
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("src", "JSON source to parse")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${from_json('{name: Test, value: 123}')}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In a JavaScript scripting context the `JSON.parse()` function is available."
+		);
+	}
 }

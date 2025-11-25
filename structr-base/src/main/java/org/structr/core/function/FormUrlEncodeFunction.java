@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -78,7 +80,7 @@ public class FormUrlEncodeFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{formurlencode(object)}}. Example: ${{formurlencode(data)}}"),
+			Usage.javaScript("Usage: ${{ $.formurlencode(object); }}. Example: ${{ $.formurlencode(data); }}"),
 			Usage.structrScript("Usage: ${formurlencode(object)}. Example: ${formurlencode(data)}")
 		);
 	}
@@ -90,7 +92,31 @@ public class FormUrlEncodeFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function encodes the given object for use in an URL, replacing invalid characters with their valid URL equivalent and joining the key/value pairs with an ampersand.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("object", "object to encode")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("$.formurlencode({name:'admin', p1: 12, apiKey: 'abc123', text:'Text with umläut'}) => name=admin&p1=12&apiKey=abc123&text=Text+with+uml%C3%A4ut")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"This function is best used in a JavaScript context."
+		);
 	}
 
 	// ----- private methods -----

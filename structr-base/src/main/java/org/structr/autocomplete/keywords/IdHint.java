@@ -23,37 +23,28 @@ import org.structr.docs.Example;
 
 import java.util.List;
 
-public class CurrentHint extends KeywordHint {
+public class IdHint extends KeywordHint {
 
 	@Override
 	public String getName() {
-		return "current";
+		return "id";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the object returned by URI Object Resolution, if available.";
+		return "Refers to the id of the object returned by URI Object Resolution, if available.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "When a valid UUID is present in the URL of a page, Structr automatically retrieves the object associated with that UUID and makes it available to all scripts, templates, and logic executed during the page rendering process under the keyword `current`.";
+		return "When a valid UUID is present in the URL of a page, Structr automatically retrieves the object associated with that UUID and makes its UUID available to all scripts, templates, and logic executed during the page rendering process under the keyword `id`.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.html("""
-			<!DOCTYPE html>
-			<html>
-				<head>
-					<title>${current.name}</title>
-				</head>
-				<body>
-					<h1>${current.name}</h1>
-				</body>
-			</html>
-			""", "Print the name of the current object in page title and heading")
+			Example.javaScript("""
+			""")
 		);
 	}
 
