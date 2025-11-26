@@ -146,8 +146,8 @@ let _Dragndrop = {
 
 		if (tagsWithAutoContent.includes(tag)) {
 			if (tag === 'a') {
-				nodeData._html_href = '${link.name}';
-				nodeData.childContent = '${parent.link.name}';
+				nodeData._html_href = '${link.path}';
+				nodeData.childContent = '${parent.linkable.name}';
 			} else if (tag === 'title') {
 				nodeData.childContent = '${capitalize(page.name)}';
 			} else {
