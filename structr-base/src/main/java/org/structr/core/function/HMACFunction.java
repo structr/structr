@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -113,6 +115,32 @@ public class HMACFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${hmac(JSON.stringify({key1: \"test\"}), \"aVeryGoodSecret\")}"),
+				Example.javaScript("${{ $.hmac(JSON.stringify({key1: \"test\"}), \"aVeryGoodSecret\") }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Default value for parameter hashAlgorithm is SHA256."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("value", "Payload that will be converted to hash string"),
+				Parameter.mandatory("secret", "Secret value"),
+				Parameter.optional("hashAlgorithm", "Hash algorithm that will be used to convert the payload")
+
+		);
 	}
 
 	@Override

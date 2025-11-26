@@ -22,6 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -75,6 +77,45 @@ public class HasCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+
+		return """
+		Checks if a cached value exists for the given key. Returns false if there is no stored value for the given key or if the stored value is expired.
+		This function is especially useful if the result of a JavaScript function should be cached (see Example 2).
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${has_cache_value('externalResult')}"),
+				Example.javaScript("""
+						${{   \s
+							let myComplexFunction = function() {
+								// computation... for brevity just return a date string
+								return new Date().toString();
+							};
+							let cacheKey = 'myKey';
+							if ($.hasCacheValue(cacheKey)) {
+								// retrieve cached value
+								let cacheValue = $.getCacheValue(cacheKey);
+								// ...
+								// ...
+							} else {
+								// cache the result of a complex function
+								let cacheResult = $.cache(cacheKey, 30, myComplexFunction());
+								// ...
+								// ...
+							}   \s
+						}}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "cache key")
+		);
 	}
 }

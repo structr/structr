@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -126,6 +128,24 @@ public class HasRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Returns a boolean value indicating whether **at least one** relationship exists between the given entities, with an optional qualifying relationship type. See also `incoming()` and `outgoing()`.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${has_relationship(me, page, 'OWNS')}"),
+				Example.javaScript("${{ $.has_relationship(me, page, 'OWNS') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity1", "entity that has a relationship"),
+				Parameter.mandatory("entity2", "entity that has a relationship"),
+				Parameter.optional("relType", "type of relationship")
+		);
 	}
 }

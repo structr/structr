@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -83,7 +85,35 @@ public class HashFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Returns the hash (as a hexadecimal string) of a given string, using the given algorithm (if available via the underlying JVM).
+		Currently, the SUN provider makes the following hashes/digests available: MD2, MD5, SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256, SHA3-224, SHA3-256, SHA3-384, SHA3-512
+		If an algorithm does not exist, an error message with all available algorithms will be logged and a null value will be returned.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${hash('SHA-512', 'Hello World!')}"),
+				Example.javaScript("${{ $.hash('SHA-512', 'Hello World!') }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Available in v5.0"
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("algorithm", "Hash algorithm that will be used to convert the string"),
+				Parameter.mandatory("value", "String that will be converted to hash string")
+				);
 	}
 
 	@Override
