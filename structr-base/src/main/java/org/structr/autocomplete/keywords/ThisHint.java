@@ -32,7 +32,7 @@ public class ThisHint extends KeywordHint {
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the object instance of the currently executing method.";
+		return "Refers to the enclosing object instance of the currently executing method or script.";
 	}
 
 	@Override

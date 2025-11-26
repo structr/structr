@@ -27,6 +27,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -123,11 +124,34 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Includes the content of the child node with the given name (optionally as a repeater element).";
+		return "Loads a template's child element with the given name and renders its HTML representation into the output buffer.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
+		
+		See also `include()` and `render()`.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${include_child('Child1')}", "Render the contents of the child node named \"Child1\" into the output buffer"),
+			Example.structrScript("${include_child('Item Template', find('Item'), 'item')}", "Render the contents of the child node named \"Item Template\" once for every Item node in the database")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"Works only during page rendering in Template nodes.",
+			"Child nodes must be direct children of the template node.",
+			"Underneath the template node, child node names MUST be unique in order for `include_child()` to work."
+		);
 	}
 }

@@ -21,9 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -79,7 +77,7 @@ public class IntSumFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}")
+			Usage.structrScript("Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, 'number'))}")
 		);
 	}
 
@@ -90,7 +88,23 @@ public class IntSumFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function will most likely be used in combination with the `extract()` or `merge()` functions.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "collection of values to sum")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${int_sum(merge(1, 2, 3, 4))}", "Return the sum of a list of values")
+		);
 	}
 
 	@Override

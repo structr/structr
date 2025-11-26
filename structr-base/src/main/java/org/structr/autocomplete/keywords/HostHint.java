@@ -42,15 +42,13 @@ public class HostHint extends KeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-			Example.javaScript("""
-			""")
-		);
+		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+			"Only available in a context where Structr is responding to an HTTP request from the outside."
 		);
 	}
 }

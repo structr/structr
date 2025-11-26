@@ -328,6 +328,7 @@ public class AutocompleteTest extends StructrUiTest {
 		 assertEquals("Invalid autocomplete result", "now",                                   ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		 assertEquals("Invalid autocomplete result", "page",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		 assertEquals("Invalid autocomplete result", "parameterMap",                          ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		 assertEquals("Invalid autocomplete result", "parent",                                ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		 assertEquals("Invalid autocomplete result", "pathInfo",                              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		 assertEquals("Invalid autocomplete result", "predicate",                             ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		 assertEquals("Invalid autocomplete result", "queryString",                           ((GraphObjectMap)result.get(i++)).toMap().get("text"));

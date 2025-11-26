@@ -21,9 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -90,12 +88,29 @@ public class IntFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Converts the given string to an integer.";
+		return "Tries to convert the given object into an integer value.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("input", "input value to convert to an integer, can be string or floating-point number etc.")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${int(5.8)}", "Convert a floating-point value into an integer"),
+			Example.structrScript("${int('35.8')}", "Convert a string into an integer")
+		);
 	}
 
 	@Override

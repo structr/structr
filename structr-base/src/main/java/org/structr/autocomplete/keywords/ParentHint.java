@@ -23,51 +23,41 @@ import org.structr.docs.Example;
 
 import java.util.List;
 
-public class SessionHint extends KeywordHint {
+public class ParentHint extends KeywordHint {
 
 	@Override
 	public String getName() {
-		return "session";
+		return "parent";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the current HTTP session.";
+		return "Refers to the parent element of the current in a page rendering context.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return """
-			The `session` keyword allows you to access the HTTP session, store data in it and query session metadata like the session ID, the creation time etc.
-			
-			The following keys are read-only and return session metadata, all other keys can be used to store arbitrary data in the session.
-			
-			| Name | Description | Type |
-			| ---| --- | --- |
-			| id | session ID | string |
-			| creationTime | creation timestamp (in milliseconds since epoch) | long |
-			| isNew | if the session was just created | boolean |
-			| lastAccessedTime | last access timestamp (milliseconds since epoch) | long |
-			""";
+		return "The `parent` keyword allows you to access the parent of the HTML element that is currently rendering.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${log(session.id)}", "Log the session ID of the current request"),
-			Example.javaScript("""
-			${{
-				$.session.myData = 'test';
-				$.session.cart = [ { name: 'item1', amount: 3 } ];
-			}}
-			""", "Store some arbitrary data in the current session")
+			Example.html("""
+			<!DOCTYPE html>
+			<html>
+				<body>
+					<h1>Heading</h1>
+					<p>Paragraph below ${parent.id}</p>
+				</body>
+			</html>
+			""", "Outputs a paragraph with the UUID of the H1 element above")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
 		);
 	}
 }

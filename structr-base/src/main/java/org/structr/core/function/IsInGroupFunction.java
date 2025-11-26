@@ -28,6 +28,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -114,17 +116,27 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${is_in_group(group, principal [, checkHierarchy = false ])}"),
-			Usage.javaScript("Usage: ${{Structr.isInGroup(group, principal [, checkHierarchy = false ]);}}")
+			Usage.javaScript("Usage: ${{ $.isInGroup(group, principal [, checkHierarchy = false ]);}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if a user is in the given group. If the optional parameter checkHierarchy is set to false, only a direct group membership is checked. Otherwise the group hierarchy is checked.";
+		return "Returns true if the given user is in the given group.");
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "If the optional parameter `checkHierarchy` is set to `false`, only a direct group membership is checked. Otherwise, the full group hierarchy will be checked.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("group", "group to check membership"),
+			Parameter.mandatory("principal", "principal whose membership will be checked"),
+			Parameter.optional("checkHierarchy", "set to `false` to only check direct membership")
+		);
 	}
 }
