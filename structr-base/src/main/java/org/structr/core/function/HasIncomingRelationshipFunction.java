@@ -135,7 +135,7 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${has_incoming_relationship(me, page, 'OWNS')}"),
-				Example.javaScript("${{ $.has_incoming_relationship(me, page, 'OWNS') }}")
+				Example.javaScript("${{ $.has_incoming_relationship($.me, $.page, 'OWNS') }}")
 		);
 	}
 

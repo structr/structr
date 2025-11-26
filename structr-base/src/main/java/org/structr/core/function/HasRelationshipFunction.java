@@ -135,7 +135,7 @@ public class HasRelationshipFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${has_relationship(me, page, 'OWNS')}"),
-				Example.javaScript("${{ $.has_relationship(me, page, 'OWNS') }}")
+				Example.javaScript("${{ $.has_relationship($.me, $.page, 'OWNS') }}")
 		);
 	}
 

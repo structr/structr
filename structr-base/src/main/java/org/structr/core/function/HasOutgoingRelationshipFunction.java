@@ -135,7 +135,7 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${has_outgoing_relationship(me, page, 'OWNS')}"),
-				Example.javaScript("${{ $.has_outgoing_relationship(me, page, 'OWNS') }}")
+				Example.javaScript("${{ $.has_outgoing_relationship($.me, $.page, 'OWNS') }}")
 		);
 	}
 
