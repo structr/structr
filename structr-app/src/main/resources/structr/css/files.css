@@ -91,15 +91,6 @@
 	max-height: 220px;
 }
 
-#folder-contents table th {
-	text-align: left;
-	padding-left: 1rem;
-}
-
-#folder-contents table th[name] {
-	padding-left: 2rem;
-}
-
 #folder-contents .thumbnail {
 	color: var(--gray-aaa);
 }
@@ -120,7 +111,7 @@
 #folder-contents tr[id] .node-action-icon,
 #folder-contents .tile .node-action-icon {
 	display: inline-block;
-	opacity: 0%;
+	opacity: 0;
 }
 
 #folder-contents tr[id]:hover .node-action-icon,
@@ -137,24 +128,22 @@
 	z-index: 1;
 }
 
-#folder-contents table {
-	table-layout: fixed;
-}
-
-#folder-contents table th.icon      { width: 24px; }
-#folder-contents table th[name]     { width: 30%; }
-#folder-contents table th[uuid]     { width: 5%; }
-#folder-contents table th[created]  { width: 15%; }
-#folder-contents table th[modified] { width: 15%; }
-#folder-contents table th[size]     { width: 5%; }
-#folder-contents table th[type]     { width: 10%; }
-#folder-contents table th[owner]    { width: calc(20% - 24px); }
-
 /*
  * Files table
  */
 
+#files-table th.icon      { width: 24px; }
+#files-table th[name]     { width: calc(100% - (24px + 3rem + 5% + 14rem + 14rem + 5% + 10% + 10%)); }
+#files-table th[export]   { width: 3rem; }
+#files-table th[uuid]     { width: 5%; }
+#files-table th[created]  { width: 14rem; }
+#files-table th[modified] { width: 14rem; }
+#files-table th[size]     { width: 5%; }
+#files-table th[type]     { width: 10%; }
+#files-table th[owner]    { width: 10% }
+
 #files-table {
+    table-layout: fixed;
 	margin-bottom: 1rem;
 }
 
@@ -167,9 +156,18 @@
 }
 
 #files-table th {
-	padding: 0 0 1rem .5rem;
-	text-align: left;
+    padding-bottom: 1rem;
 }
+
+#files-table th,
+#files-table td {
+    padding-right: 2rem;
+}
+#files-table th:first-of-type,
+#files-table td:first-of-type {
+    padding-left: 1rem;
+}
+
 
 #files-table tbody tr td .editable {
 	min-width: 100px;
@@ -186,17 +184,10 @@
 
 #files-table tbody tr td .node {
 	min-width: 6rem;
-	padding-right: .5rem;
 }
 
 #files-table td.file-icon {
 	cursor: pointer;
-}
-
-#files-table td {
-	text-align: left;
-	padding-left: 1rem;
-	height: 2rem;
 }
 
 #files-table td a {
