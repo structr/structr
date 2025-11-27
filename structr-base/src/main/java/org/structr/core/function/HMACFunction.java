@@ -114,13 +114,13 @@ public class HMACFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${hmac(JSON.stringify({key1: 'test'}), 'aVeryGoodSecret')}"),
+				Example.structrScript("${hmac(to_json(me)), 'aVeryGoodSecret')}"),
 				Example.javaScript("${{ $.hmac(JSON.stringify({key1: 'test'}), 'aVeryGoodSecret') }}")
 		);
 	}
