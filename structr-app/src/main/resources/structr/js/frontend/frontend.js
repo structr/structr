@@ -318,6 +318,9 @@ export class Frontend {
 			statusHTML += '</div>';
 		}
 
+		// fix positioning of inline element if it is inside an overflow container which is scrolled
+		statusHTML = '<div style="position:relative;">' + statusHTML + '</div>';
+
 		// none, system-alert, inline-text-message, custom-dialog, custom-dialog-linked
 		switch (mode) {
 

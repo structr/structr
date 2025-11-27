@@ -541,19 +541,19 @@ let _Dashboard = {
 					_Dashboard.tabs.deployment.actions.exportDataAsZip(e.target);
 				});
 
-				// FIXME: This can only load actual custom nodes, for ALL node types we would need to use _schema
-				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType,isServiceClass', (nodes) => {
+				Command.getSchemaInfo(null, types => {
 
-					nodes = nodes.filter(n => !n.isServiceClass);
+					types = types.filter(t => !t.isServiceClass);
+					_Helpers.sort(types);
 
 					let builtinTypes = [];
 					let customTypes  = [];
 
-					for (let n of nodes) {
-						if (n.isBuiltinType) {
-							builtinTypes.push(n);
+					for (let t of types) {
+						if (t.isBuiltin) {
+							builtinTypes.push(t);
 						} else {
-							customTypes.push(n);
+							customTypes.push(t);
 						}
 					}
 

@@ -4308,8 +4308,9 @@ let _Schema = {
 		});
 
 		let nodeTypeSelector = $('#node-type-selector');
-		Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isServiceClass', (nodes) => {
-			nodeTypeSelector.append(nodes.filter(n => !n.isServiceClass).map(node => `<option>${node.name}</option>`).join(''));
+		Command.getSchemaInfo(null, types => {
+			_Helpers.sort(types);
+		 	nodeTypeSelector.append(types.filter(t => !t.isServiceClass && !t.isRel).map(type => `<option>${type.name}</option>`).join(''));
 		});
 
 		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, (type) => {
@@ -4325,8 +4326,9 @@ let _Schema = {
 		});
 
 		let relTypeSelector = $('#rel-type-selector');
-		Command.list('SchemaRelationshipNode', true, 1000, 1, 'relationshipType', 'asc', 'id,relationshipType', (rels) => {
-			relTypeSelector.append(rels.map(rel => `<option>${rel.relationshipType}</option>`).join(''));
+		Command.getSchemaInfo(null, types => {
+			_Helpers.sort(types);
+			relTypeSelector.append(types.filter(t => !t.isServiceClass && t.isRel).map(rel => `<option>${rel.name}</option>`).join(''));
 		});
 
 		registerSchemaToolButtonAction($('#reindex-rels'), 'rebuildIndex', relTypeSelector, (type) => {
