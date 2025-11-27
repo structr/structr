@@ -23,39 +23,46 @@ import org.structr.docs.Example;
 
 import java.util.List;
 
-public class LocaleHint extends KeywordHint {
+public class LinkHint extends KeywordHint {
 
 	@Override
 	public String getName() {
-		return "locale";
+		return "link";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the current locale.";
+		return "Refers to the linked filesystem element of an HTML element in a Page.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		The locale of a request is determined like this in descending priority:
+		Only works in `a`, `link`, `script` or `img` tags/nodes. See Filesystem and Pages Tree View for more info.
 
-		1. Request parameter `locale`
-		2. User locale
-		3. Cookie `locale`
-		4. Browser locale
-		5. Default locale which was used to start the java process (evaluated via `java.util.Locale.getDefault();`)
+		The `link` keyword can only be accessed if a node of the above types is actually linked to a filesystem element. It can be linked via the link icon which is displayed when hovering over a node.
 		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.javaScript("""
-			${{
-				$.log('Current locale is: ' + $.locale);
-			}}
-			""", "Print the current locale of a request to the log file")
+			Example.html("""
+			<!doctype html>
+			<html>
+				<body>
+					<a href="${link.path}">Download ${link.name}</a>
+				</body>
+			</html>
+			""", "Provide a download link for a linked file"),
+			Example.html("""
+			<!doctype html>
+			<html>
+				<body>
+					<img src="/${link.id}" />
+				</body>
+			</html>
+			""", "Display a linked image")
 		);
 	}
 

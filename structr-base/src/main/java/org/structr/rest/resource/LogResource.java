@@ -811,8 +811,8 @@ public class LogResource extends ExactMatchEndpoint {
 			private final List<Map<String, Object>> entries              = new LinkedList<>();
 			private final Map<String, LinkedList<LogEvent>> correlations = new ConcurrentHashMap<>();
 			private final Map<String, Integer> actions                   = new HashMap<>();
-			private long beginTimestamp                                  = Long.MAX_VALUE;
-			private long endTimestamp                                    = 0L;
+			private long beginTimestamp                                  = 0;
+			private long endTimestamp                                    = Long.MAX_VALUE;
 			private String logAction                                     = null;
 			private String aggregate                                     = null;
 			private String histogram                                     = null;
@@ -871,7 +871,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 			public void addCorrelationEntry(final String key, final LogEvent event) {
 
-				logger.debug("No. of correllation entry lists: {}, adding action: {} {}", new Object[]{correlations.keySet().size(), key, event.getMessage()});
+				logger.debug("No. of correlation entry lists: {}, adding action: {} {}", correlations.keySet().size(), key, event.getMessage());
 
 				LinkedList<LogEvent> existingEventList = correlations.get(key);
 

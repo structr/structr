@@ -28,7 +28,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
-import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
@@ -122,7 +121,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the given user is in the given group.");
+		return "Returns true if the given user is in the given group.";
 	}
 
 	@Override

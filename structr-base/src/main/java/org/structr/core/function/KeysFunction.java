@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -67,6 +68,7 @@ public class KeysFunction extends CoreFunction {
 			} else if (sources.length == 1 && sources[0] != null && sources[0] instanceof Map) {
 
 				return new LinkedList<>(((Map)sources[0]).keySet());
+
 			} else {
 
 				return null;
@@ -91,12 +93,24 @@ public class KeysFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the property keys of the given entity.";
+		return "Returns the property keys of the given input object as a list.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		If the input object is a Structr entity, the resulting list depends on the second argument. If a view is passed as the second argument, only the attribute names that are in the view **and** for which a value is set are returned.
+		
+		If the input object is a map, all keys are returned that exist in the given object, even if they have no value (`null` or `undefined`).
+		""";
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("object", "input object whose keys will be listed"),
+			Parameter.optional("viewName", "if present, only property keys that are in the given view are returned")
+		);
+	}
 }

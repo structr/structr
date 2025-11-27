@@ -19,9 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -48,7 +46,7 @@ public class LtFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${lt(value1, value2)}. Example: ${if(lt(size(this.children), 2), \"Less than two\", \"Equal to or more than two\")}")
+			Usage.structrScript("Usage: ${lt(value1, value2)}. Example: ${if(lt(size(this.children), 2), 'Less than two', 'Equal to or more than two')}")
 		);
 	}
 
@@ -59,7 +57,24 @@ public class LtFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function tries to convert its parameter objects into numerical values, i.e. you can compare strings numerically.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value"),
+			Parameter.mandatory("value2", "second value")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript(" ${lt(1, 2)} ", "This will return `true`"),
+			Example.structrScript(" ${lt(2, 1)} ", "This will return `false`")
+		);
 	}
 
 	@Override

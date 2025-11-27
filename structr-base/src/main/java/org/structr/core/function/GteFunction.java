@@ -19,10 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Example;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -48,13 +45,13 @@ public class GteFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), \"Equal to or more than two\", \"Less than two\")}")
+			Usage.structrScript("Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), 'Equal to or more than two', 'Less than two')}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the first argument is greater or equal to the second argument.";
+		return "Returns true if the first argument is greater than or equal to the second argument.";
 	}
 
 	@Override
@@ -63,16 +60,25 @@ public class GteFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value"),
+			Parameter.mandatory("value2", "second value")
+		);
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript(" ${gte(1, 2)} ", "This will return `false`"),
-				Example.structrScript(" ${gte(2, 1)} ", "This will return `true`"),
-				Example.structrScript(" ${gte(2, 2)} ", "This will return `true`")
+			Example.structrScript(" ${gte(1, 2)} ", "This will return `false`"),
+			Example.structrScript(" ${gte(2, 1)} ", "This will return `true`"),
+			Example.structrScript(" ${gte(2, 2)} ", "This will return `true`")
 		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

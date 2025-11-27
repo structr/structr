@@ -22,6 +22,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
 import org.structr.rest.entity.LogEvent;
+import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 
 import java.util.Date;
 
@@ -39,7 +40,7 @@ public class LogEventTraitWrapper extends AbstractNodeTraitWrapper implements Lo
 	@Override
 	public long getTimestamp() {
 
-		final Date date = wrappedObject.getProperty(traits.key("timestampProperty"));
+		final Date date = wrappedObject.getProperty(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY));
 		if (date != null) {
 
 			return date.getTime();
@@ -50,21 +51,21 @@ public class LogEventTraitWrapper extends AbstractNodeTraitWrapper implements Lo
 
 	@Override
 	public String getAction() {
-		return wrappedObject.getProperty(traits.key("actionProperty"));
+		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.ACTION_PROPERTY));
 	}
 
 	@Override
 	public String getMessage() {
-		return wrappedObject.getProperty(traits.key("messageProperty"));
+		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.MESSAGE_PROPERTY));
 	}
 
 	@Override
 	public String getSubjectId() {
-		return wrappedObject.getProperty(traits.key("subjectProperty"));
+		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY));
 	}
 
 	@Override
 	public String getObjectId() {
-		return wrappedObject.getProperty(traits.key("objectProperty"));
+		return wrappedObject.getProperty(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY));
 	}
 }

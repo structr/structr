@@ -25,6 +25,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.rest.traits.definitions.LogEventTraitDefinition;
@@ -122,6 +124,42 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This function creates an entity of type `LogEvent` with the current timestamp and the given values. All four parameters (`action`, `message`, `subject` and `object`) can be arbitrary strings.
+
+		In JavaScript, the function can be called with a single map as parameter.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("action", "action to log (the verb)"),
+			Parameter.mandatory("message", "message to log"),
+			Parameter.optional("subject", "subject of the event (who did it?)"),
+			Parameter.optional("object", "object of the event (on which object was the action done?)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${log_event('VIEW', me.id)}", "Log a simple \"VIEW\" event"),
+			Example.javaScript("""
+			${{
+			    $.logEvent({
+				action: "VIEW",
+				message: Structr.me.id
+			    });
+			}}
+			""", "Log a simple \"VIEW\" event")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return super.getNotes();
 	}
 }
