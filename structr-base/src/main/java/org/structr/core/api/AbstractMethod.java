@@ -104,11 +104,13 @@ public abstract class AbstractMethod {
 						final Value previousMethodParameters = binding.getMethodParameters();
 						final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
 						Locale effectiveLocale = actionContext.getLocale();
+
+						ActionContext inner = null;
 						try {
 
 							final Arguments args      = NamedArguments.fromValues(actionContext, arguments);
 							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
-							final ActionContext inner = new ActionContext(securityContext, converted.toMap());
+							inner = new ActionContext(securityContext, converted.toMap());
 							inner.setLocale(effectiveLocale);
 
 							inner.setScriptingContexts(actionContext.getScriptingContexts());
@@ -141,13 +143,6 @@ public abstract class AbstractMethod {
 
 							effectiveLocale = inner.getLocale();
 
-							// pass on error tokens
-							if (inner.hasError()) {
-								for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
-									actionContext.getErrorBuffer().add(token);
-								}
-							}
-
 							return result;
 
 						} catch (IllegalArgumentTypeException iaex) {
@@ -157,6 +152,13 @@ public abstract class AbstractMethod {
 							throwIllegalArgumentExceptionForMapBasedArguments();
 
 						} finally {
+
+							// pass on error tokens
+							if (inner != null && inner.hasError()) {
+								for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
+									actionContext.getErrorBuffer().add(token);
+								}
+							}
 
 							// restore state before this method call
 							binding.setEntity(previousEntity);
