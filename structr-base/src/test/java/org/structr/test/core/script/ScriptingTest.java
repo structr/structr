@@ -7616,6 +7616,44 @@ public class ScriptingTest extends StructrTest {
 		}
 	}
 
+	@Test
+	public void testApplicationStoreElementRemoval() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonType type     = schema.addType("Test");
+
+			type.addMethod("writeToStore", "{ $.applicationStore['test'] = 123; return $.applicationStore['test'];}");
+			type.addMethod("clearStoreEntry", "{ $.applicationStore['test'] = null; return $.applicationStore['test'];}");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException t) {
+
+			t.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final String type        = "Test";
+			final NodeInterface test = app.create(type, "test1");
+
+			assertEquals("123", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.writeToStore()}"));
+			assertEquals("", Scripting.replaceVariables(new ActionContext(securityContext), test, "${this.clearStoreEntry()}"));
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
 	// ----- private methods ----
 	private void createTestType(final JsonSchema schema, final String name, final String createSource, final String saveSource) {
 

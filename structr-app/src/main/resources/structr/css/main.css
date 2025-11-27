@@ -328,6 +328,10 @@ input[type="checkbox"] {
 	margin-right: .5rem;
 }
 
+input[type="checkbox"].mr-0 {
+    margin-right: 0;
+}
+
 .fit-to-height {
 	overflow: auto;
 }

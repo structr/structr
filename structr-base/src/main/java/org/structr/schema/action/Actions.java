@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -134,16 +135,23 @@ public class Actions {
 		final ActionContext context = new ActionContext(securityContext, parameters);
 		context.setCurrentMethod(scriptConfig.getCurrentMethod());
 
-		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource, scriptConfig);
+		try {
 
-		store.setTemporaryParameters(previousParams);
+			final Object result = Scripting.evaluate(context, entity, source, methodName, codeSource, scriptConfig);
 
-		// check for errors raised by scripting
-		if (context.hasError()) {
-			throw new FrameworkException(422, "Server-side scripting error", context.getErrorBuffer());
+			// check for errors raised by scripting
+			if (context.hasError()) {
+				throw new FrameworkException(422, "Server-side scripting error", context.getErrorBuffer());
+			}
+
+			return result;
+		} catch (AssertException e) {
+
+			throw new FrameworkException(e.getStatus(), e.getMessage(), context.getErrorBuffer());
+		} finally {
+
+			store.setTemporaryParameters(previousParams);
 		}
-
-		return result;
 	}
 
 	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
