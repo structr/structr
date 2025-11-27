@@ -31,7 +31,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -151,5 +153,61 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "setNodeProperties";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Sets a given set of property values on all nodes of a certain type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command takes all arguments other than `type` and `newType` for input properties and sets the given values on all nodes of the given type.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type of nodes to set properties on"),
+			Parameter.optional("newType", "can be used to update the `type` property of nodes (because type is already taken)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Warning: if this command is used to change the `type` property of nodes, the \"Create Labels\" command has to be called afterwards to update the labels of the changed nodes - otherwise they will not be accessible."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

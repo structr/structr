@@ -34,7 +34,6 @@
 		<module>structr-messaging-engine-module</module>
 		<module>structr-odf-module</module>
 		<module>structr-pdf-module</module>
-		<module>structr-security-module</module>
 		<module>structr-text-search-module</module>
 		<module>structr-translation-module</module>
 		<module>structr-xmpp-module</module>

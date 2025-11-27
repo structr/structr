@@ -31,6 +31,7 @@ import org.structr.api.service.ServiceResult;
 import org.structr.common.error.*;
 import org.structr.core.Services;
 import org.structr.core.function.Functions;
+import org.structr.docs.*;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -400,5 +401,56 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		}
 
 		return errorBuffer;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return "";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

@@ -26,8 +26,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
+import org.structr.docs.*;
 import org.structr.schema.action.Actions;
 
+import java.util.List;
 import java.util.Map;
 
 public class FlushCachesCommand extends NodeServiceCommand implements MaintenanceCommand {
@@ -74,5 +76,55 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "flushCashes";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Clears all internal caches.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command can be used to reduce the amount of memory consumed by Structr, or to fix possible cache invalidation errors.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }
