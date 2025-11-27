@@ -101,13 +101,6 @@ public class HashFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<String> getNotes() {
-		return List.of(
-				"Available in v5.0"
-		);
-	}
-
-	@Override
 	public List<Parameter> getParameters() {
 
 		return List.of(

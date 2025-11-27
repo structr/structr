@@ -89,7 +89,7 @@ public class HasCacheValueFunction extends CoreFunction {
 		return List.of(
 				Example.structrScript("${has_cache_value('externalResult')}"),
 				Example.javaScript("""
-						${{   \s
+						${{
 							let myComplexFunction = function() {
 								// computation... for brevity just return a date string
 								return new Date().toString();
@@ -105,7 +105,7 @@ public class HasCacheValueFunction extends CoreFunction {
 								let cacheResult = $.cache(cacheKey, 30, myComplexFunction());
 								// ...
 								// ...
-							}   \s
+							}
 						}}
 						""")
 		);
