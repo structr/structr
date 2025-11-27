@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -127,7 +129,7 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.jdbc(url, query[, username, password ])}. Example: ${{$.jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd');}}"),
+			Usage.javaScript("Usage: ${{ $.jdbc(url, query[, username, password ]); }}. Example: ${{ $.jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd'); }}"),
 			Usage.structrScript("Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd')}")
 		);
 	}
@@ -139,7 +141,61 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Make sure the driver specific to your SQL server is available in a JAR file in Structr's lib directory (`/usr/lib/structr/lib` in Debian installations).
+		
+		Other JAR sources are available for Oracle (https://www.oracle.com/technetwork/database/application-development/jdbc/downloads/index.html) or MSSQL (https://docs.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server).
+		
+		For other SQL Servers, please consult the documentation of that server.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "JDBC url to connect to the server"),
+			Parameter.mandatory("query", "query to execute"),
+			Parameter.optional("username", "username to use to connect"),
+			Parameter.optional("password", "password to used to connect")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			{
+			    let rows = $.jdbc('jdbc:oracle:thin:test/test@localhost:1521:orcl', 'SELECT * FROM test.emails');
+
+			    rows.forEach(function(row) {
+
+				$.log('Fetched row from Oracle database: ', row);
+
+				let fromPerson = $.getOrCreate('Person', 'name', row.from_address);
+				let toPerson   = $.getOrCreate('Person', 'name', row.to_address);
+
+				let message = $.getOrCreate('EMailMessage',
+				    'content',   row.email_body,
+				    'sender',    fromPerson,
+				    'recipient', toPerson,
+				    'sentDate',  $.parseDate(row.email_date, 'yyyy-MM-dd')
+				);
+
+				$.log('Found existing or created new EMailMessage node: ', message);
+			    });
+			}
+			""", "Fetch data from an Oracle database")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"Username and password can also be included in the JDBC connection string."
+		);
 	}
 
 	private Connection getConnection(final String url, final String username, final String password) throws SQLException {

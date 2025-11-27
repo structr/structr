@@ -50,7 +50,8 @@ public class QueryStringHint extends KeywordHint {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"This keyword is defined in StructrScript only."
+			"This keyword is defined in StructrScript only.",
+			"Only available in a context where Structr is responding to an HTTP request from the outside."
 		);
 	}
 

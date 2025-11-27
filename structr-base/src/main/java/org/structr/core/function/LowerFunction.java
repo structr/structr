@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -38,7 +39,7 @@ public class LowerFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("str");
+		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override
@@ -71,12 +72,20 @@ public class LowerFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the lowercase value of its parameter.";
+		return "Returns the lowercase version of the given string.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("string", "string to lowercase")
+		);
 	}
 
 	@Override

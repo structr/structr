@@ -25,6 +25,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -93,17 +94,26 @@ public class IncomingFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${incoming(entity [, relType])}. Example: ${incoming(this, 'PARENT_OF')}"),
-			Usage.javaScript("Usage: ${{Structr.incoming(entity [, relType])}}. Example: ${{Structr.incoming(Structr.this, 'PARENT_OF')}}")
+			Usage.javaScript("Usage: ${{ $.incoming(entity [, relType]); }}. Example: ${{ $.incoming(Structr.this, 'PARENT_OF'); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the incoming relationships of the given entity.";
+		return "Returns all incoming relationships of a node, with an optional qualifying relationship type.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "You can use this function in the Function Query section of a Repeater Element to access the relationships of a node. See also `outgoing()` and `has_relationship()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("entity", "entity to fetch relationships for"),
+			Parameter.optional("relType", "relationship type")
+		);
 	}
 }

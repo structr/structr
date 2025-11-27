@@ -23,51 +23,51 @@ import org.structr.docs.Example;
 
 import java.util.List;
 
-public class SessionHint extends KeywordHint {
+public class LinkHint extends KeywordHint {
 
 	@Override
 	public String getName() {
-		return "session";
+		return "link";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the current HTTP session.";
+		return "Refers to the linked filesystem element of an HTML element in a Page.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-			The `session` keyword allows you to access the HTTP session, store data in it and query session metadata like the session ID, the creation time etc.
-			
-			The following keys are read-only and return session metadata, all other keys can be used to store arbitrary data in the session.
-			
-			| Name | Description | Type |
-			| ---| --- | --- |
-			| id | session ID | string |
-			| creationTime | creation timestamp (in milliseconds since epoch) | long |
-			| isNew | if the session was just created | boolean |
-			| lastAccessedTime | last access timestamp (milliseconds since epoch) | long |
-			""";
+		Only works in `a`, `link`, `script` or `img` tags/nodes. See Filesystem and Pages Tree View for more info.
+
+		The `link` keyword can only be accessed if a node of the above types is actually linked to a filesystem element. It can be linked via the link icon which is displayed when hovering over a node.
+		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${log(session.id)}", "Log the session ID of the current request"),
-			Example.javaScript("""
-			${{
-				$.session.myData = 'test';
-				$.session.cart = [ { name: 'item1', amount: 3 } ];
-			}}
-			""", "Store some arbitrary data in the current session")
+			Example.html("""
+			<!doctype html>
+			<html>
+				<body>
+					<a href="${link.path}">Download ${link.name}</a>
+				</body>
+			</html>
+			""", "Provide a download link for a linked file"),
+			Example.html("""
+			<!doctype html>
+			<html>
+				<body>
+					<img src="/${link.id}" />
+				</body>
+			</html>
+			""", "Display a linked image")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
-		);
+		return null;
 	}
 }

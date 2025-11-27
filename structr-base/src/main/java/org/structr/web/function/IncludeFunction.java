@@ -31,6 +31,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -148,19 +150,50 @@ public class IncludeFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${include(name)}. Example: ${include(\"Main Template\")}"),
-			Usage.javaScript("Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}")
+			Usage.structrScript("Usage: ${include(name [, collection, dataKey])}. Example: ${include('Main Template')}"),
+			Usage.javaScript("Usage: ${{ $.include(name); }}. Example: ${{ $.include('Main Template'); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Includes the content of the node with the given name (optionally as a repeater element).";
+		return "Loads the element with the given name and renders its HTML representation into the output buffer.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
+		
+		Possible nodes **MUST**:
+		1. have a unique name
+		2. NOT be in the trash
+
+		Possible nodes **CAN**:
+		1. be somewhere in the pages tree
+		2. be in the Shared Components
+
+		See also `include_child()` and `render()`.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("name", "name of the node (and subtree) to include"),
+			Parameter.optional("collection", "collection to repeat over"),
+			Parameter.optional("dataKey", "dataKey to use in Repeater")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${include('Main Menu')}", "Render the contents of the Shared Component \"Main Menu\" into the output buffer"),
+			Example.structrScript("${include('Item Template', find('Item'), 'item')}", "Render the contents of the Shared Component \"Item Template\" once for every Item node in the database")
+		);
 	}
 
 	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node, final boolean useBuffer) throws FrameworkException {

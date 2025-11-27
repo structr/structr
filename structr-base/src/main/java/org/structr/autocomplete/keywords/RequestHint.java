@@ -59,6 +59,8 @@ public class RequestHint extends KeywordHint {
 
 	@Override
 	public List<String> getNotes() {
-		return List.of();
+		return List.of(
+			"Only available in a context where Structr is responding to an HTTP request from the outside."
+		);
 	}
 }

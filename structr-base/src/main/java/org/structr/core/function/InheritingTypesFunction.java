@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -105,11 +107,28 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the names of the child types of the given type and filters out all entries of the blacklist collection.";
+		return "Returns the list of subtypes of the given type **including** the type itself.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "You can remove unwanted types from the resulting list by providing a list of unwanted type names as a second parameter.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("type", "type name to fetch subtypes for"),
+			Parameter.optional("blacklist", "list of unwanted type names that are removed from the result")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${inheriting_types('MyType', merge('UndesiredSubtype'))}", "Returns a list of subtypes of type \"MyType\"")
+		);
 	}
 }

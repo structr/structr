@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -37,7 +38,7 @@ public class LengthFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("str");
+		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override
@@ -75,11 +76,27 @@ public class LengthFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function **only** works for strings, do not use it on collections. See `size()` for that.";
 	}
 
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("string", "input string to measure")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"**Do not** use this function on collections, it will return a result, but not the result you expect, because the collection will be converted to a string and the length of that string will be returned."
+		);
 	}
 }
