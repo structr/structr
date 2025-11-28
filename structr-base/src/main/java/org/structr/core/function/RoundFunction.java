@@ -23,6 +23,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -103,7 +105,7 @@ public class RoundFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${round(value1 [, decimalPlaces])}. Example: ${round(2.345678, 2)}")
+			Usage.structrScript("Usage: ${round(value1 [, decimalPlaces])}.")
 		);
 	}
 
@@ -114,11 +116,30 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments. 
+		If the optional parameter `decimalPlaces` is given, this method rounds to the given number of decimal places.""";
 	}
 
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript(" ${round(2.345678, 2)} "),
+				Example.javaScript("${{ $.round(2.345678, 2) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("value", "value to round"),
+				Parameter.optional("decimalPlaces", "target decimal places")
+				);
 	}
 }

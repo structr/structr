@@ -24,6 +24,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
@@ -96,8 +98,8 @@ public class SendEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${sendEvent(eventType, message, recipient(s))}. Example: ${sendEvent(\"message\", \"Welcome!\", find('User', 'name', 'Bob'))}"),
-			Usage.javaScript("Usage: ${{ $.sendEvent(eventType, message, recipient(s))}}. Example: ${{ $.sendEvent(\"message\", \"Welcome!\", $.find('User', 'name', 'Bob'))}}")
+			Usage.structrScript("Usage: ${sendEvent(eventType, message, recipient(s))}."),
+			Usage.javaScript("Usage: ${{ $.sendEvent(eventType, message, recipient(s))}}.")
 		);
 	}
 
@@ -109,5 +111,33 @@ public class SendEventFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${sendEvent('message', 'Welcome!', find('User', 'name', 'Bob'))}"),
+				Example.javaScript("${{ $.sendEvent('message', 'Welcome!', $.find('User', 'name', 'Bob')) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("eventType", "event type name"),
+				Parameter.mandatory("message", "message content"),
+				Parameter.mandatory("recipients", "single user, list of users, list of group and users")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Recipients can either be a single user, a single group or a mixed list of both."
+		);
 	}
 }

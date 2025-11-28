@@ -23,6 +23,9 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -72,8 +75,8 @@ public class SplitRegexFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.splitRegex(str[, regex]) }}. Example: ${{ $.splitRegex('foo:bar;baz', ':|;') }}"),
-			Usage.structrScript("Usage: ${splitRegex(str[, regex])}. Example: ${splitRegex('foo:bar;baz', ':|;')}")
+			Usage.javaScript("Usage: ${{ $.splitRegex(str[, regex]) }}."),
+			Usage.structrScript("Usage: ${splitRegex(str[, regex])}.")
 		);
 	}
 
@@ -84,6 +87,32 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Uses the given separator to split the given string into a collection of strings. This is the opposite of `join()`.
+		The default separator is a regular expression which splits the string at any of the following characters: `,;(whitespace)`
+		The optional second parameter is used as regex. To use a literal string as separator, see `split()`.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${splitRegex('one,two,three,four')}"),
+				Example.structrScript("${splitRegex('one;two;three;four')}"),
+				Example.structrScript("${splitRegex('one two three four')}"),
+				Example.structrScript("${splitRegex('one::two::three::four', ':+')}"),
+				Example.structrScript("${splitRegex('one.two.three.four', '\\\\.')}"),
+				Example.structrScript("${splitRegex('one:two&three%four', ':|&|%')}"),
+				Example.javaScript("${{ $.splitRegex('one:two&three%four', ':|&|%') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "string to split"),
+				Parameter.optional("separator", "separator regex")
+		);
 	}
 }

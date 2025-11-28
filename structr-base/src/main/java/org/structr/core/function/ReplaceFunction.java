@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -90,7 +92,7 @@ public class ReplaceFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.replace(template, source)}}. Example: ${{$.replace(\"${this.id}\", this)}}"),
+			Usage.javaScript("Usage: ${{$.replace(template, source)}}."),
 			Usage.structrScript("Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}")
 		);
 	}
@@ -102,6 +104,34 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This method can be used to evaluate template expressions in database objects, for example to create customized e-mails etc.";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${replace('Welcome, ${this.name}!', me)}"),
+				Example.javaScript("""
+						${{ $.replace('Welcome, ${this.name}!', $.me) }}
+						> Welcome, admin!
+						""")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Allowing user input to be evaluated in a template expression poses a security risk. You have no control over what the user can do!"
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("template", "template for replacement"),
+				Parameter.optional("entity", "target object")
+				);
+	}
+
 }

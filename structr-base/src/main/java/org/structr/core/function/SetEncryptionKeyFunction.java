@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -66,7 +68,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${setEncryptionKey(secret)}"),
-			Usage.javaScript("Usage: ${{Structr.setEncryptionKey(secret)}}")
+			Usage.javaScript("Usage: ${{$.setEncryptionKey(secret)}}")
 		);
 	}
 
@@ -78,5 +80,31 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setEncryptionKey('MyNewSecret')}"),
+				Example.javaScript("${{ $.setEncryptionKey('MyNewSecret') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("secret", "new secret key")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Please note that this method overwrites the encryption key that is stored in structr.conf.",
+				"The overwritten key can be restored by using `null` as a parameter to this method, as shown in the example below."
+		);
 	}
 }

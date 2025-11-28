@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -63,8 +65,8 @@ public class RequestStoreHasFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${requestStoreHas(key)}. Example: ${requestStoreHas('doNoTrack')}"),
-			Usage.javaScript("Usage: ${{ $.requestStoreHas(key); }}. Example: ${{ $.requestStoreHas('doNotTrack'); }}")
+			Usage.structrScript("Usage: ${requestStoreHas(key)}."),
+			Usage.javaScript("Usage: ${{ $.requestStoreHas(key); }}.")
 		);
 	}
 
@@ -76,5 +78,22 @@ public class RequestStoreHasFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${requestStoreHas('do_no_track')}"),
+				Example.javaScript(" ${{ $.requestStoreHas('do_not_track'); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "key to check")
+				);
 	}
 }

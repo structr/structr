@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
@@ -87,8 +89,8 @@ public class StartsWithFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}. Example: ${{ $.startsWith(locale, \"de\") }}"),
-			Usage.structrScript("Usage: ${startsWith(string, prefix)}. Example: ${startsWith(locale, \"de\")}")
+			Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}."),
+			Usage.structrScript("Usage: ${startsWith(string, prefix)}.")
 		);
 	}
 
@@ -101,4 +103,30 @@ public class StartsWithFunction extends CoreFunction {
 	public String getLongDescription() {
 		return "";
 	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${startsWith('Hello World!', 'Hello')}
+						> true
+						${startsWith('Hello World!', 'Hola')}
+						> false
+						"""),
+
+				Example.javaScript("${{ $.startsWith('Hello World!', 'Hello') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "string to check"),
+				Parameter.mandatory("prefix", "given start prefix")
+				);
+	}
+
 }

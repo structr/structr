@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -70,8 +72,8 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${requestStorePut(key,value)}. Example: ${requestStorePut('doNoTrack', true)}"),
-			Usage.javaScript("Usage: ${{ $.requestStorePut(key,value); }}. Example: ${{ $.requestStorePut('doNotTrack', true); }}")
+			Usage.structrScript("Usage: ${requestStorePut(key,value)}."),
+			Usage.javaScript("Usage: ${{ $.requestStorePut(key,value); }}.")
 		);
 	}
 
@@ -83,5 +85,22 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${requestStorePut('do_no_track', true)}"),
+				Example.javaScript("${{ $.requestStorePut('do_not_track', true); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "given key"),
+				Parameter.optional("value", "value for given key")
+				);
 	}
 }

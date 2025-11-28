@@ -28,6 +28,8 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeService;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -70,7 +72,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info."),
+			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. "),
 			Usage.structrScript("Usage: ${systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.")
 		);
 	}
@@ -82,7 +84,35 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		When called without parameters all info will be returned, otherwise specify a key to request specific info.
+		| Key | Value |
+		| --- | --- |
+		| now | Current time in ms |
+		| uptime | Time in ms since the application started |
+		| runtime | Version string of the java runtime |
+		| counts | number of nodes and relationships in the database (if connected) |
+		| caches | Size and max size of the node/relationship/localizations caches |
+		| memory | Memory information gathered from the runtime and from management beans (in bytes) |
+		""";
+	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${ systemInfo()}"),
+				Example.javaScript("${{ $.systemInfo() }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("key", "info key")
+				);
 	}
 
 	@Override

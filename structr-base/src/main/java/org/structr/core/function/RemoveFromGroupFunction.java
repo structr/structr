@@ -26,6 +26,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -87,7 +89,7 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${removeFromGroup(group, principal)}"),
-			Usage.javaScript("Usage: ${{Structr.removeFromGroup(group, principal);}}")
+			Usage.javaScript("Usage: ${{$.removeFromGroup(group, principal);}}")
 		);
 	}
 
@@ -99,5 +101,22 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${removeFromGroup(first(find('Group', 'name', 'Admins')), me)}"),
+				Example.javaScript("${{ $.removeFromGroup($.first($.find('Group', 'name', 'Admins')), $.me)} }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("group", "target group"),
+				Parameter.optional("principal", "principal to remove from group")
+				);
 	}
 }

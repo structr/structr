@@ -23,6 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -77,8 +79,8 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${setResponseHeader(field, value [, override = false ])}. Example: ${setResponseHeader('X-User', 'johndoe', true)}"),
-			Usage.javaScript("Usage: ${{Structr.setResponseHeader(field, value [, override = false ])}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe', true)}}")
+			Usage.structrScript("Usage: ${setResponseHeader(field, value [, override = false ])}."),
+			Usage.javaScript("Usage: ${{$.setResponseHeader(field, value [, override = false ])}}.")
 		);
 	}
 
@@ -89,7 +91,36 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Sets the value of the HTTP response header with the given name to the given value. 
+		This method can be used to set and/or override HTTP response headers in the Structr server implementation to 
+		control certain aspects of browser / client behaviour.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setResponseHeader('Content-Type', 'text/csv')}"),
+				Example.javaScript("${{ $.setResponseHeader('Content-Type', 'text/csv') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("name", "HTTP header name"),
+				Parameter.mandatory("value", "HTTP header value"),
+				Parameter.optional("override", "override previous header")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The following example will cause the browser to display a 'Save as...' dialog when visiting the page, because the response content type is set to `text/csv`."
+		);
 	}
 
 }
