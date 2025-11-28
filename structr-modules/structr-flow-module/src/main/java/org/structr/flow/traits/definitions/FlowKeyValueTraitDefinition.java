@@ -23,10 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.traits.NodeTraitFactory;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.TraitsInstance;
@@ -49,7 +46,7 @@ import java.util.TreeMap;
 public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String KEY_PROPERTY         = "key";
-	public static final String DATA_TARGET_PROPERTY = "dataTarget";
+	public static final String OBJECT_DATA_TARGET_PROPERTY = "objectDataTargets";
 
 	private static final Logger logger = LoggerFactory.getLogger(FlowKeyValueTraitDefinition.class);
 
@@ -125,12 +122,12 @@ public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<String> key                         = new StringProperty(KEY_PROPERTY);
-		final Property<Iterable<NodeInterface>> dataTarget = new EndNodes(traitsInstance, DATA_TARGET_PROPERTY, StructrTraits.FLOW_DATA_INPUT);
+		final Property<String> key                          = new StringProperty(KEY_PROPERTY);
+		final Property<Iterable<NodeInterface>> dataTargets = new EndNodes(traitsInstance, OBJECT_DATA_TARGET_PROPERTY, StructrTraits.FLOW_KEY_VALUE_OBJECT_INPUT);
 
 		return newSet(
 			key,
-			dataTarget
+			dataTargets
 		);
 	}
 
@@ -140,12 +137,12 @@ public class FlowKeyValueTraitDefinition extends AbstractNodeTraitDefinition {
 		return Map.of(
 			PropertyView.Public,
 			newSet(
-				KEY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY
+				KEY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, OBJECT_DATA_TARGET_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				KEY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, DATA_TARGET_PROPERTY
+				KEY_PROPERTY, FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY, OBJECT_DATA_TARGET_PROPERTY
 			)
 		);
 	}

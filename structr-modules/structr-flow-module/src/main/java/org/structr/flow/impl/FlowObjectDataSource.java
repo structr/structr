@@ -19,8 +19,10 @@
 package org.structr.flow.impl;
 
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
+import org.structr.flow.traits.definitions.FlowKeyValueTraitDefinition;
 import org.structr.flow.traits.definitions.FlowObjectDataSourceTraitDefinition;
 
 public class FlowObjectDataSource extends FlowDataSource {
@@ -34,5 +36,10 @@ public class FlowObjectDataSource extends FlowDataSource {
 		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowObjectDataSourceTraitDefinition.KEY_VALUE_SOURCES_PROPERTY));
 
 		return Iterables.map(n -> n.as(FlowKeyValue.class), nodes);
+	}
+
+	public void setKeyValueSources(final Iterable<FlowKeyValue> keyValueSources) throws FrameworkException {
+
+		wrappedObject.setProperty(traits.key(FlowObjectDataSourceTraitDefinition.KEY_VALUE_SOURCES_PROPERTY), keyValueSources);
 	}
 }

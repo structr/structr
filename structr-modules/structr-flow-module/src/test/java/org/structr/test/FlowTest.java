@@ -428,6 +428,50 @@ public class FlowTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testFlowObjectDataSource() {
+
+		try (final Tx tx = app.tx()) {
+
+			FlowContainer container = app.create(StructrTraits.FLOW_CONTAINER, "testFlowForEach").as(FlowContainer.class);
+
+			FlowReturn flowReturn = app.create(StructrTraits.FLOW_RETURN).as(FlowReturn.class);
+			flowReturn.setFlowContainer(container);
+			container.setStartNode(flowReturn);
+
+			FlowObjectDataSource flowObjectDataSource = app.create(StructrTraits.FLOW_OBJECT_DATA_SOURCE).as(FlowObjectDataSource.class);
+			flowObjectDataSource.setFlowContainer(container);
+			flowReturn.setDataSource(flowObjectDataSource);
+
+			FlowKeyValue flowKeyValue = app.create(StructrTraits.FLOW_KEY_VALUE).as(FlowKeyValue.class);
+			flowKeyValue.setKey("test");
+			flowKeyValue.setFlowContainer(container);
+			flowKeyValue.setObjectDataTargets(List.of(flowObjectDataSource));
+
+			FlowDataSource ds = app.create(StructrTraits.FLOW_DATA_SOURCE).as(FlowDataSource.class);
+			ds.setQuery("'success'");
+			ds.setFlowContainer(container);
+			flowKeyValue.setDataSource(ds);
+
+			final Iterable<Object> resultIterable = container.evaluate(securityContext, new HashMap<>());
+
+			final Object result = resultIterable.iterator().next();
+
+			assertNotNull("Result should not be empty.", result);
+			assertTrue("Result should be a map object.", result instanceof Map);
+			assertEquals("Result should have 'success' as it's value for key 'test'.", "success", ((Map)result).get("test"));
+
+			tx.success();
+
+		} catch (Throwable ex) {
+
+			ex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+	}
+
+	@Test
 	public void testFlowStartNode() {
 
 		try (final Tx tx = app.tx()) {
