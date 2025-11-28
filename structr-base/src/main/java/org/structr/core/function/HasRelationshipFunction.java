@@ -116,8 +116,8 @@ public class HasRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_relationship(entity1, entity2 [, relType])}. Example: ${has_relationship(me, user, 'FOLLOWS')} (ignores direction of the relationship)"),
-			Usage.javaScript("Usage: ${{Structr.has_relationship(entity1, entity2 [, relType])}}. Example: ${{Structr.has_relationship(Structr.get('me'), user, 'FOLLOWS')}} (ignores direction of the relationship)")
+			Usage.structrScript("Usage: ${has_relationship(entity1, entity2 [, relType])}."),
+			Usage.javaScript("Usage: ${{Structr.has_relationship(entity1, entity2 [, relType])}}.")
 		);
 	}
 

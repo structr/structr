@@ -116,8 +116,8 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}"),
-			Usage.javaScript("Usage: ${{Structr.has_incoming_relationship(from, to [, relType])}}. Example: ${{Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}}")
+			Usage.structrScript("Usage: ${has_incoming_relationship(from, to [, relType])}."),
+			Usage.javaScript("Usage: ${{Structr.has_incoming_relationship(from, to [, relType])}}.")
 		);
 	}
 

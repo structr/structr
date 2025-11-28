@@ -65,8 +65,8 @@ public class HasCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_cache_value(cacheKey)}. Example: ${has_cache_value('mykey')}"),
-			Usage.javaScript("Usage: ${{ Structr.has_cache_value(cacheKey); }}. Example: ${{ Structr.has_cache_value('mykey'); }}")
+			Usage.structrScript("Usage: ${has_cache_value(cacheKey)}."),
+			Usage.javaScript("Usage: ${{ Structr.has_cache_value(cacheKey); }}.")
 		);
 	}
 

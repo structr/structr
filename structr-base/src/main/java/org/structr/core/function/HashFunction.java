@@ -73,8 +73,8 @@ public class HashFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${hash(algorithm, value)}. Example: ${hash(\"SHA-256\", \"test\")}"),
-			Usage.javaScript("Usage: ${{ $.hash(algorithm, value); }}. Example: ${{ $.hash(\"SHA-256\", \"test\")}}")
+			Usage.structrScript("Usage: ${hash(algorithm, value)}."),
+			Usage.javaScript("Usage: ${{ $.hash(algorithm, value); }}.")
 		);
 	}
 

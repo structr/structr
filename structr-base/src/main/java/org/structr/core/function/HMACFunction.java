@@ -102,8 +102,8 @@ public class HMACFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${hmac(value, secret [, hashAlgorithm ])}. Example: ${hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}"),
-			Usage.javaScript("Usage: ${{Structr.hmac(value, secret [, hashAlgorithm ])}}. Example: ${{Structr.hmac(\"testpayload\", \"hashSecret\", \"SHA256\")}}")
+			Usage.structrScript("Usage: ${hmac(value, secret [, hashAlgorithm ])}."),
+			Usage.javaScript("Usage: ${{Structr.hmac(value, secret [, hashAlgorithm ])}}.")
 		);
 	}
 

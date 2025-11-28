@@ -59,6 +59,6 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Allows checking if an error has been raised in the scripting context.";
 	}
 }
