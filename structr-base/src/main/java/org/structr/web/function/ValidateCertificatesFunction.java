@@ -29,7 +29,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "validate_certificates";
+		return "validateCertificates";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ validate_certificates(boolean) }. Example: ${ validate_certificates(false) }"),
+			Usage.structrScript("Usage: ${ validateCertificates(boolean) }. Example: ${ validateCertificates(false) }"),
 			Usage.javaScript("Usage: ${{ $.validateCertificates(boolean) }}. Example: ${{ $.validateCertificates(false) }}")
 		);
 	}
@@ -79,7 +79,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 		return List.of(
 				Example.javaScript("""
 						${{
-						    $.validate_certificates(false);
+						    $.validateCertificates(false);
 						    let result = $.GET('https://www.domain-with-invalid-certificate.com/resource.json');
 						}}
 						""")

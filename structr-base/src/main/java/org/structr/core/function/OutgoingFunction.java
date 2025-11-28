@@ -105,7 +105,7 @@ public class OutgoingFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "You can use this function in the Function Query section of a Repeater Element to access the relationships of a node. See also `outgoing()` and `has_relationship()`.";
+		return "You can use this function in the Function Query section of a Repeater Element to access the relationships of a node. See also `outgoing()` and `hasRelationship()`.";
 	}
 
 	@Override

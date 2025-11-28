@@ -173,14 +173,14 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 				$.log('Fetched row from Oracle database: ', row);
 
-				let fromPerson = $.getOrCreate('Person', 'name', row.from_address);
-				let toPerson   = $.getOrCreate('Person', 'name', row.to_address);
+				let fromPerson = $.getOrCreate('Person', 'name', row.fromAddress);
+				let toPerson   = $.getOrCreate('Person', 'name', row.toAddress);
 
 				let message = $.getOrCreate('EMailMessage',
-				    'content',   row.email_body,
+				    'content',   row.emailBody,
 				    'sender',    fromPerson,
 				    'recipient', toPerson,
-				    'sentDate',  $.parseDate(row.email_date, 'yyyy-MM-dd')
+				    'sentDate',  $.parseDate(row.emailDate, 'yyyy-MM-dd')
 				);
 
 				$.log('Found existing or created new EMailMessage node: ', message);

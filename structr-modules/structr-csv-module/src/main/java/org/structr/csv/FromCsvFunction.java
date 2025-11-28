@@ -39,7 +39,7 @@ public class FromCsvFunction extends CsvFunction {
 
 	@Override
 	public String getName() {
-		return "from_csv";
+		return "fromCsv";
 	}
 
 	@Override
@@ -114,8 +114,8 @@ public class FromCsvFunction extends CsvFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${from_csv(source[, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}"),
-			Usage.javaScript("Usage: ${{Structr.fromCsv(source [, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}")
+			Usage.structrScript("Usage: ${fromCsv(source[, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}. Example: ${fromCsv('COL1;COL2;COL3\none;two;three')}"),
+			Usage.javaScript("Usage: ${{Structr.fromCsv(source [, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}}. Example: ${{Structr.fromCsv('COL1;COL2;COL3\none;two;three')}}")
 		);
 	}
 

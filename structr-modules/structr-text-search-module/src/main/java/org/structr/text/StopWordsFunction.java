@@ -34,7 +34,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "stop_words";
+		return "stopWords";
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class StopWordsFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${stop_words(language)}. Example: ${stop_words(\"de\")}"),
+			Usage.structrScript("Usage: ${stopWords(language)}. Example: ${stopWords(\"de\")}"),
 			Usage.javaScript("Usage: ${{Structr.stopWords(language)}}. Example: ${{Structr.stopWords(\"de\")}}")
 		);
 	}

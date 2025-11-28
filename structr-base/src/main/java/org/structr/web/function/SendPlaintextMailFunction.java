@@ -35,7 +35,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "send_plaintext_mail";
+		return "sendPlaintextMail";
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content) }}."),
-			Usage.structrScript("Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.")
+			Usage.structrScript("Usage: ${sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content)}.")
 		);
 	}
 
@@ -103,7 +103,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 		return List.of(
 				"`textContent` is typically generated using the `template()` function.",
 				"Emails are sent based on the SMTP configuration defined in structr.conf.",
-				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mail_begin()`."
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mailBegin()`."
 		);
 	}
 
@@ -122,7 +122,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${send_plaintext_mail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to Structr!')}")
+				Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to Structr!')}")
 		);
 	}
 }

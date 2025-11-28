@@ -32,7 +32,7 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "split_regex";
+		return "splitRegex";
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class SplitRegexFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.splitRegex(str[, regex]) }}. Example: ${{ $.splitRegex('foo:bar;baz', ':|;') }}"),
-			Usage.structrScript("Usage: ${split_regex(str[, regex])}. Example: ${split_regex('foo:bar;baz', ':|;')}")
+			Usage.structrScript("Usage: ${splitRegex(str[, regex])}. Example: ${splitRegex('foo:bar;baz', ':|;')}")
 		);
 	}
 

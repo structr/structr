@@ -30,7 +30,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "from_xml";
+		return "fromXml";
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${from_xml(source)}. Example: ${from_xml('<entry>0</entry>')}"),
+			Usage.structrScript("Usage: ${fromXml(source)}. Example: ${fromXml('<entry>0</entry>')}"),
 			Usage.javaScript("Usage: ${{Structr.fromXml(src)}}. Example: ${{Structr.fromXml('<entry>0</entry>')}}")
 		);
 	}
@@ -82,7 +82,7 @@ public class FromXmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This function parses the given XML and returns a JSON representation of the XML which can be further processed using `from_json()` or `JSON.parse()`.";
+		return "This function parses the given XML and returns a JSON representation of the XML which can be further processed using `fromJson()` or `JSON.parse()`.";
 	}
 
 	@Override

@@ -46,7 +46,7 @@ public class RemoteCypherFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "remote_cypher";
+		return "remoteCypher";
 	}
 
 	@Override
@@ -104,7 +104,7 @@ public class RemoteCypherFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${remote_cypher(url, username, password, query)}. Example ${remote_cypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}"),
+			Usage.structrScript("Usage: ${remoteCypher(url, username, password, query)}. Example ${remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}"),
 			Usage.javaScript("Usage: ${{Structr.remoteCypher(url, username, password query)}}. Example ${{Structr.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}}")
 		);
 	}

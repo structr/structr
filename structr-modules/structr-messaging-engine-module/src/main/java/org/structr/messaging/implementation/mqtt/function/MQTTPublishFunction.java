@@ -34,7 +34,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mqtt_publish";
+		return "mqttPublish";
 	}
 
 	@Override
@@ -71,8 +71,8 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mqtt_publish(client, topic, message)}. Example ${mqtt_publish(client, 'myTopic', 'myMessage')}"),
-			Usage.javaScript("Usage: ${{Structr.mqttPublish(client, topic, message)}}. Example ${{Structr.mqtt_publish(client, topic, message)}}")
+			Usage.structrScript("Usage: ${mqttPublish(client, topic, message)}. Example ${mqttPublish(client, 'myTopic', 'myMessage')}"),
+			Usage.javaScript("Usage: ${{Structr.mqttPublish(client, topic, message)}}. Example ${{Structr.mqttPublish(client, topic, message)}}")
 		);
 	}
 

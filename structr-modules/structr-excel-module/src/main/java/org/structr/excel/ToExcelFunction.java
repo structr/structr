@@ -49,7 +49,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "to_excel";
+		return "toExcel";
 	}
 
 	@Override
@@ -101,7 +101,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 						if (properties.size() == 0) {
 
-							logger.info("to_excel(): Unable to create Excel if list of properties is empty - returning empty Excel");
+							logger.info("toExcel(): Unable to create Excel if list of properties is empty - returning empty Excel");
 							return "";
 						}
 
@@ -116,7 +116,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
 			if (nodes.size() == 0 && propertyView != null) {
 
-				logger.info("to_excel(): Unable to create Excel if no nodes are given - returning empty Excel");
+				logger.info("toExcel(): Unable to create Excel if no nodes are given - returning empty Excel");
 				return "";
 			}
 
@@ -131,7 +131,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			} catch (Throwable t) {
 
-				logger.warn("to_excel(): Exception occurred", t);
+				logger.warn("toExcel(): Exception occurred", t);
 				return "";
 			}
 
@@ -145,7 +145,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${to_excel(find('Page'), 'ui')}"),
+				Usage.structrScript("Usage: ${toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${toExcel(find('Page'), 'ui')}"),
 				Usage.javaScript("Usage: ${{ $.toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]]); }}. Example: ${{ $.toExcel($.find('Page'), 'ui')); }}")
 		);
 	}
@@ -180,12 +180,12 @@ public class ToExcelFunction extends Function<Object, Object> {
 	@Override
 	public List<Example>getExamples() {
 		return List.of(
-				Example.structrScript("${set_content(create('File', 'name', 'new_document.xlsx'), to_excel(find('User'), 'public'), 'ISO-8859-1')}", "Excel file with view 'public' of user list."),
+				Example.structrScript("${setContent(create('File', 'name', 'newDocument.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}", "Excel file with view 'public' of user list."),
 				Example.structrScript("""
 				${
 					(
-						set_response_header('Content-Disposition', 'attachment; filename="user-export.xlsx"'),
-						to_excel(find('User'), 'public')
+						setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"'),
+						toExcel(find('User'), 'public')
 					)
 				}
 				""", "Downloadable dynamic file containing the list of users in StructrScript. (See note regarding content-type)"),
@@ -208,7 +208,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 	public List<String> getNotes() {
 		return List.of(
 			"The output of this function is a complete excel file, so the complete data must be contained in the `nodes` parameter and can not be appended later on",
-			"This function is intended to be used in conjunction with the `set_content()` function or in a dynamic file",
+			"This function is intended to be used in conjunction with the `setContent()` function or in a dynamic file",
 			"**IMPORTANT**: The dynamic file should have the charset `ISO-8859-1` specified in its `contentType` (e.g. `application/octet-stream; charset=ISO-8859-1`)",
 			"The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.",
 			"If a view is given, the (optionally localized) property names of that view are used as header row",
@@ -260,7 +260,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 							try {
 								value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 							} catch (FrameworkException fex) {
-								logger.warn("to_excel(): Exception", fex);
+								logger.warn("toExcel(): Exception", fex);
 							}
 						}
 
@@ -283,7 +283,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 						try {
 							value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 						} catch (FrameworkException fex) {
-							logger.warn("to_excel(): Exception", fex);
+							logger.warn("toExcel(): Exception", fex);
 						}
 					}
 

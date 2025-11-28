@@ -30,7 +30,7 @@ public class DoubleSumFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "double_sum";
+		return "doubleSum";
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class DoubleSumFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, 'amount'))}")
+			Usage.structrScript("Usage: ${doubleSum(list)}. Example: ${doubleSum(extract(this.children, 'amount'))}")
 		);
 	}
 
@@ -101,7 +101,7 @@ public class DoubleSumFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${double_sum(extract(find('Product'), 'itemPrice'))}", "Return the sum of all `itemPrice` values of all `Product` entities")
+			Example.structrScript("${doubleSum(extract(find('Product'), 'itemPrice'))}", "Return the sum of all `itemPrice` values of all `Product` entities")
 		);
 	}
 }

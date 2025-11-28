@@ -109,7 +109,7 @@ public class LogFunction extends CoreFunction {
 
 		return List.of(
 			"Single nodes are printed as `NodeType(name, uuid)`, unless they are in a collection that is being logged.",
-			"If you want a JSON representation in the log file, you can use `to_json(node, view)`",
+			"If you want a JSON representation in the log file, you can use `toJson(node, view)`",
 			"If you use `JSON.stringify()`, the default view `public` will be used"
 		);
 	}

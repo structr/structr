@@ -31,7 +31,7 @@ public class CallPrivilegedFunction extends CallFunction {
 
 	@Override
 	public String getName() {
-		return "call_privileged";
+		return "callPrivileged";
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class CallPrivilegedFunction extends CallFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${call_privileged(key [, key, value]}. Example ${call_privileged('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
+			Usage.structrScript("Usage: ${callPrivileged(key [, key, value]}. Example ${callPrivileged('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
 			Usage.javaScript("Usage: ${{ $.callPrivileged(key [, parameterMap]}}. Example ${{ $.callPrivileged('myEvent', {key1: 'value1', key2: 'value2'})}}")
 		);
 	}

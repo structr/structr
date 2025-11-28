@@ -31,7 +31,7 @@ public class CopyPermissionsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "copy_permissions";
+		return "copyPermissions";
 	}
 
 	@Override
@@ -74,7 +74,7 @@ public class CopyPermissionsFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${copy_permissions(source, target[, syncPermissions])}. Example: ${copy_permissions(this, this.child)}"),
+			Usage.structrScript("Usage: ${copyPermissions(source, target[, syncPermissions])}. Example: ${copyPermissions(this, this.child)}"),
 			Usage.javaScript("Usage: ${{ $..copyPermissions(source, target[, syncPermissions]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
 		);
 	}

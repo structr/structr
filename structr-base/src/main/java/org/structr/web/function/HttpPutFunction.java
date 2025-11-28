@@ -145,10 +145,10 @@ public class HttpPutFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The `PUT()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"The `PUT()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
-			"`contentType` is the expected response content type. If you need to define the request content type, use `add_header('Content-Type', 'your-content-type-here')`",
-			"If the MIME type of the response is `application/json`, the `body` field will contain the mapped response as a Structr object that can be accessed using the dot notation (e.g. `result.body.result_count`). Otherwise, the body field will contain the response as a string.  (see the related articles for more information)"
+			"`contentType` is the expected response content type. If you need to define the request content type, use `addHeader('Content-Type', 'your-content-type-here')`",
+			"If the MIME type of the response is `application/json`, the `body` field will contain the mapped response as a Structr object that can be accessed using the dot notation (e.g. `result.body.resultCount`). Otherwise, the body field will contain the response as a string.  (see the related articles for more information)"
 
 		);
 	}

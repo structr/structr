@@ -30,7 +30,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "set_details_object";
+		return "setDetailsObject";
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_details_object(obj)}. Example: ${set_details_object(this)}"),
+			Usage.structrScript("Usage: ${setDetailsObject(obj)}. Example: ${setDetailsObject(this)}"),
 			Usage.javaScript("Usage: ${{Structr.setDetailsObject(obj)}}. Example: ${{Structr.setDetailsObject(Structr.this)}}")
 		);
 	}

@@ -34,7 +34,7 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_mime_parts";
+		return "mailClearMimeParts";
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_mime_parts()}"),
+			Usage.structrScript("Usage: ${mailClearMime_parts()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearMimeParts() }}")
 		);
 	}

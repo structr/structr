@@ -33,7 +33,7 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_response_code";
+		return "setResponseCode";
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_response_code(int)}. Example: ${set_response_header(302)}"),
+			Usage.structrScript("Usage: ${setResponseCode(int)}. Example: ${setResponseHeader(302)}"),
 			Usage.javaScript("Usage: ${{Structr.setResponseCode(int)}}. Example: ${{Structr.setResponseHeader(302)}}")
 		);
 	}

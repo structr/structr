@@ -30,7 +30,7 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "find.ends_with";
+		return "find.endsWith";
 	}
 
 	@Override

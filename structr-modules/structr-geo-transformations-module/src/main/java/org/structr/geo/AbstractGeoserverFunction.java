@@ -19,6 +19,13 @@
 package org.structr.geo;
 
 import org.apache.commons.io.IOUtils;
+import org.geotools.api.coverage.Coverage;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.GeometryAttribute;
+import org.geotools.api.feature.Property;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
@@ -38,13 +45,6 @@ import org.json.JSONObject;
 import org.json.XML;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
-import org.geotools.api.coverage.Coverage;
-import org.geotools.api.feature.Feature;
-import org.geotools.api.feature.GeometryAttribute;
-import org.geotools.api.feature.Property;
-import org.geotools.api.feature.simple.SimpleFeature;
-import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
-import org.geotools.api.referencing.operation.MathTransform;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.common.HttpHelper;
 
@@ -154,7 +154,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 			while (it.hasNext()) {
 
 				final SimpleFeature f = it.next();
-				final Object obj      = f.getAttribute("the_geom");
+				final Object obj      = f.getAttribute("theGeom");
 
 				if (obj instanceof Geometry) {
 

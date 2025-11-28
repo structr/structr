@@ -36,7 +36,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_content";
+		return "setContent";
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 						fos.write((byte[]) sources[1]);
 
 					} catch (IOException ioex) {
-						logger.warn("set_content(): Unable to write binary data to file '{}'", file.getPath(), ioex);
+						logger.warn("setContent(): Unable to write binary data to file '{}'", file.getPath(), ioex);
 					}
 
 				} else if (sources[1] instanceof String) {
@@ -79,7 +79,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 						}
 
 					} catch (IOException ioex) {
-						logger.warn("set_content(): Unable to write content to file '{}'", file.getPath(), ioex);
+						logger.warn("setContent(): Unable to write content to file '{}'", file.getPath(), ioex);
 					}
 
 				} else {
@@ -104,7 +104,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_content(file, content[, encoding ])}. Example: ${set_content(first(find('File', 'name', 'test.txt')), 'Overwritten content')}"),
+			Usage.structrScript("Usage: ${setContent(file, content[, encoding ])}. Example: ${setContent(first(find('File', 'name', 'test.txt')), 'Overwritten content')}"),
 			Usage.javaScript("Usage: ${{Structr.setContent(file, content[, encoding ])}}. Example: ${{Structr.setContent(fileNode, 'Overwritten content')}}")
 		);
 	}

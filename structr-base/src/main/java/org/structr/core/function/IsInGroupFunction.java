@@ -41,7 +41,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "is_in_group";
+		return "isInGroup";
 	}
 
 	@Override
@@ -114,7 +114,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_in_group(group, principal [, checkHierarchy = false ])}"),
+			Usage.structrScript("Usage: ${isInGroup(group, principal [, checkHierarchy = false ])}"),
 			Usage.javaScript("Usage: ${{ $.isInGroup(group, principal [, checkHierarchy = false ]);}}")
 		);
 	}

@@ -34,7 +34,7 @@ public class MergePropertiesFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "merge_properties";
+		return "mergeProperties";
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class MergePropertiesFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${merge_properties(source, target , mergeKeys...)}. Example: ${merge_properties(this, parent, \"eMail\")}")
+			Usage.structrScript("Usage: ${mergeProperties(source, target , mergeKeys...)}. Example: ${mergeProperties(this, parent, \"eMail\")}")
 		);
 	}
 

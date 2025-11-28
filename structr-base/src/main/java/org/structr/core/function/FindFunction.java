@@ -143,9 +143,9 @@ public class FindFunction extends AbstractQueryFunction {
 		| `range(start, end [, withStart = true [, withEnd = true ]] )` | Returns only those nodes where the given propertyKey is in the range between start and end |
 		| `range(null, end)`    | Unbounded `range()` to emulate "lower than or equal" |
 		| `range(start, null)`  | Unbounded `range()` to emulate "greater than or equal" |
-		| `starts_with(key, prefix)` | Returns only those nodes whose value for the given key starts with the given prefix |
-		| `ends_with(key, suffix)` | Returns only those nodes whose value for the given key ends with the given suffix |
-		| `within_distance(latitude, longitude, distance)`  | Returns only those nodes that are within `distance` meters around the given coordinates. The type that is being searched for needs to extend the built-in type `Location` |
+		| `startsWith(key, prefix)` | Returns only those nodes whose value for the given key starts with the given prefix |
+		| `endsWith(key, suffix)` | Returns only those nodes whose value for the given key ends with the given suffix |
+		| `withinDistance(latitude, longitude, distance)`  | Returns only those nodes that are within `distance` meters around the given coordinates. The type that is being searched for needs to extend the built-in type `Location` |
 		
 		**Options**
 		
@@ -201,7 +201,7 @@ public class FindFunction extends AbstractQueryFunction {
 			Example.structrScript("${find('User', 'age', range(0, 18, false, false))}", "Return all user entities whose age property is between 0 and 18 (exclusive!)"),
 			Example.structrScript("${find('User', equals('name', 'Tester'), equals('age', range(0, 18)))}", "Return all user entities whose name is 'Tester' and whose age is between 0 and 18 (inclusive). Showcases the implicit and explicit logical AND conjunction of root clauses"),
 			Example.structrScript("${find('User', and(equals('name', 'Tester'), equals('age', range(0, 18))))}", "Return all user entities whose name is 'Tester' and whose age is between 0 and 18 (inclusive). Showcases the implicit and explicit logical AND conjunction of root clauses"),
-			Example.structrScript("${find('BakeryLocation', and(within_distance(48.858211, 2.294507, 1000)))}", "Return all bakeries (type BakeryLocation extends Location) within 1000 meters around the Eiffel Tower"),
+			Example.structrScript("${find('BakeryLocation', and(withinDistance(48.858211, 2.294507, 1000)))}", "Return all bakeries (type BakeryLocation extends Location) within 1000 meters around the Eiffel Tower"),
 
 			Example.javaScript("""
 			${{

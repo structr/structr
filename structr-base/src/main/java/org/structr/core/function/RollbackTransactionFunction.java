@@ -42,7 +42,7 @@ public class RollbackTransactionFunction extends CoreFunction {
 
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.rollbackTransaction(); }}"),
-			Usage.structrScript("Usage: ${rollback_transaction()}")
+			Usage.structrScript("Usage: ${rollbackTransaction()}")
 		);
         }
 
@@ -64,6 +64,6 @@ public class RollbackTransactionFunction extends CoreFunction {
 
         @Override
         public String getName() {
-                return "rollback_transaction";
+                return "rollbackTransaction";
         }
 }

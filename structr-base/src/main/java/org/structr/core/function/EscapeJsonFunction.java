@@ -34,7 +34,7 @@ public class EscapeJsonFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "escape_json";
+		return "escapeJson";
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class EscapeJsonFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${escape_json(text)}. Example: ${escape_json(this.name)}"),
+			Usage.structrScript("Usage: ${escapeJson(text)}. Example: ${escapeJson(this.name)}"),
 			Usage.javaScript("Usage: ${{ $.escapeJson(text) }}. Example: ${{ $.escapeJson(this.name); }}")
 		);
 	}
@@ -93,7 +93,7 @@ public class EscapeJsonFunction extends CoreFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${escape_json('This is a \"test\"')} => This is a \\\"test\\\"")
+			Example.structrScript("${escapeJson('This is a \"test\"')} => This is a \\\"test\\\"")
 		);
 	}
 

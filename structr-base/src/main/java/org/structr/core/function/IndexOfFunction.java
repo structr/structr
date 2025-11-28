@@ -33,7 +33,7 @@ public class IndexOfFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "index_of";
+		return "indexOf";
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class IndexOfFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}")
+			Usage.structrScript("Usage: ${indexOf(string, word)}. Example: ${indexOf(this.name, \"the\")}")
 		);
 	}
 

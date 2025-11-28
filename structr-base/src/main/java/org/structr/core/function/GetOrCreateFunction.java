@@ -39,11 +39,11 @@ import java.util.Map;
 
 public class GetOrCreateFunction extends CoreFunction {
 
-	private static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in get_or_create(): no type specified.";
+	private static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in getOrCreate(): no type specified.";
 
 	@Override
 	public String getName() {
-		return "get_or_create";
+		return "getOrCreate";
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class GetOrCreateFunction extends CoreFunction {
 			// exit gracefully instead of crashing..
 			if (type == null) {
 
-				logger.warn("Error in get_or_create(): no type specified. Parameters: {}", getParametersAsString(sources));
+				logger.warn("Error in getOrCreate(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_NO_TYPE_SPECIFIED;
 			}
 
@@ -99,14 +99,14 @@ public class GetOrCreateFunction extends CoreFunction {
 
 			} else {
 
-				final int parameter_count = sources.length;
+				final int parameterCount = sources.length;
 
-				if (parameter_count % 2 == 0) {
+				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
-				for (int c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameterCount; c += 2) {
 
 					if (sources[c] == null) {
 						throw new IllegalArgumentException();
@@ -155,7 +155,7 @@ public class GetOrCreateFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 				Usage.javaScript("Usage: ${{ $.getOrCreate(type, properties)}}. Example: ${{ $.getOrCreate(\"User\", { eMail: 'tester@test.com' }); }}"),
-				Usage.structrScript("Usage: ${get_or_create(type, properties)}. Example: ${get_or_create(\"User\", \"email\", \"tester@test.com\"}")
+				Usage.structrScript("Usage: ${getOrCreate(type, properties)}. Example: ${getOrCreate(\"User\", \"email\", \"tester@test.com\"}")
 		);
 	}
 
@@ -167,7 +167,7 @@ public class GetOrCreateFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		`get_or_create()` finds and returns a single object with the given properties 
+		`getOrCreate()` finds and returns a single object with the given properties 
 		(key/value pairs or a map of properties) and **creates** that object if it does not exist yet.
 		The function accepts three different parameter combinations, where the first parameter is always the 
 		name of the type to retrieve from the database. The second parameter can either 
@@ -179,28 +179,28 @@ public class GetOrCreateFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("""
-						${get_or_create('User', 'name', 'admin')}
+						${getOrCreate('User', 'name', 'admin')}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						${get_or_create('User', 'name', 'admin')}
+						${getOrCreate('User', 'name', 'admin')}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						${get_or_create('User', 'name', 'admin')}
+						${getOrCreate('User', 'name', 'admin')}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object."),
+						""", "The example shows that repeated calls to `getOrCreate()` with the same parameters will always return the same object."),
 				Example.javaScript("""
-						${{ $.get_or_create('User', {name: 'admin'}) }}
+						${{ $.getOrCreate('User', {name: 'admin'}) }}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						${{ $.get_or_create('User', {name: 'admin'}) }}
+						${{ $.getOrCreate('User', {name: 'admin'}) }}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						${{ $.get_or_create('User', {name: 'admin'}) }}
+						${{ $.getOrCreate('User', {name: 'admin'}) }}
 						> 7379af469cd645aebe1a3f8d52b105bd
-						""", "The example shows that repeated calls to `get_or_create()` with the same parameters will always return the same object.")
+						""", "The example shows that repeated calls to `getOrCreate()` with the same parameters will always return the same object.")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"The `get_or_create()` method will always use **exact** search, if you are interested in inexact / case-insensitive search, use `search()`.",
+				"The `getOrCreate()` method will always use **exact** search, if you are interested in inexact / case-insensitive search, use `search()`.",
 				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
 				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
 		);

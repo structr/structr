@@ -34,7 +34,7 @@ public class GetErrorsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "get_errors";
+		return "getErrors";
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class GetErrorsFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{$.getErrors()}}. Example: ${{$.getErrors()}}"),
-			Usage.structrScript("Usage: ${get_errors()}. Example: ${get_errors()}")
+			Usage.structrScript("Usage: ${getErrors()}. Example: ${getErrors()}")
 		);
 	}
 }

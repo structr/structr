@@ -32,7 +32,7 @@ public class StartsWithFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "starts_with";
+		return "startsWith";
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class StartsWithFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}. Example: ${{ $.startsWith(locale, \"de\") }}"),
-			Usage.structrScript("Usage: ${starts_with(string, prefix)}. Example: ${starts_with(locale, \"de\")}")
+			Usage.structrScript("Usage: ${startsWith(string, prefix)}. Example: ${startsWith(locale, \"de\")}")
 		);
 	}
 

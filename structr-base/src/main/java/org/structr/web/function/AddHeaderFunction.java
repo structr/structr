@@ -30,7 +30,7 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "add_header";
+		return "addHeader";
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${add_header(name, value)}. Example: ${add_header('X-User', 'johndoe')}"),
+			Usage.structrScript("Usage: ${addHeader(name, value)}. Example: ${addHeader('X-User', 'johndoe')}"),
 			Usage.javaScript("Usage: ${{ $.addHeader(name, value)}}. Example: ${{ $.addHeader('X-User', 'johndoe')}}")
 		);
 	}
@@ -110,12 +110,12 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 				"""
 				${
 				    (
-					add_header('X-User', 'tester1'),
-					add_header('X-Password', 'test'),
+					addHeader('X-User', 'tester1'),
+					addHeader('X-Password', 'test'),
 					GET('http://localhost:8082/structr/rest/User')
 				    )
 				}
-				""", "Authenticate an HTTP GET request with add_header (StructrScript version)"),
+				""", "Authenticate an HTTP GET request with addHeader (StructrScript version)"),
 			Example.javaScript(
 				"""
 					${{

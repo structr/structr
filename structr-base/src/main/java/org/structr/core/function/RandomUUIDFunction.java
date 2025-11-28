@@ -31,7 +31,7 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "random_uuid";
+		return "randomUuid";
 	}
 
 	@Override
@@ -48,7 +48,7 @@ public class RandomUUIDFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${random_uuid()}."),
+			Usage.structrScript("Usage: ${randomUuid()}."),
 			Usage.javaScript("Usage: ${{ $.randomUuid() }}.")
 		);
 	}

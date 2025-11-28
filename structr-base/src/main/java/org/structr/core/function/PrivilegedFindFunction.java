@@ -35,11 +35,11 @@ import java.util.List;
 
 public class PrivilegedFindFunction extends AbstractQueryFunction {
 
-	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED = "Error in find_privileged(): no type specified.";
-	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND = "Error in find_privileged(): type not found: ";
+	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED = "Error in findPrivileged(): no type specified.";
+	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND = "Error in findPrivileged(): type not found: ";
 	@Override
 	public String getName() {
-		return "find_privileged";
+		return "findPrivileged";
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
 
-					throw new FrameworkException(422, "Type GraphObject not supported in find_privileged(), please use type NodeInterface to search for nodes of all types.");
+					throw new FrameworkException(422, "Type GraphObject not supported in findPrivileged(), please use type NodeInterface to search for nodes of all types.");
 				}
 
 				type = Traits.of(typeString);
@@ -87,7 +87,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 				} else {
 
-					logger.warn("Error in find_privileged(): type '{}' not found.", typeString);
+					logger.warn("Error in findPrivileged(): type '{}' not found.", typeString);
 					return ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND + typeString;
 
 				}
@@ -95,7 +95,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.warn("Error in find_privileged(): no type specified. Parameters: {}", getParametersAsString(sources));
+				logger.warn("Error in findPrivileged(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED;
 			}
 
@@ -120,7 +120,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{$.findPrivileged(type, map)}. Example: ${{$.findPrivileged(\"User\", { eMail: 'tester@test.com' }); }}"),
-			Usage.structrScript("Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}")
+			Usage.structrScript("Usage: ${findPrivileged(type, key, value)}. Example: ${findPrivileged(\"User\", \"email\", \"tester@test.com\"}")
 		);
 	}
 
@@ -153,7 +153,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"It is recommended to use `find()` instead of `find_privileged()` whenever possible, as improper use of `find_privileged()` can result in the exposure of sensitive data.",
+			"It is recommended to use `find()` instead of `findPrivileged()` whenever possible, as improper use of `findPrivileged()` can result in the exposure of sensitive data.",
 			"In a StructrScript environment parameters are passed as pairs of 'key1', 'value1'.",
 			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
 		);

@@ -35,7 +35,7 @@ public class ClearErrorsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "clear_errors";
+		return "clearErrors";
 	}
 
 	@Override
@@ -57,7 +57,7 @@ public class ClearErrorsFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{$.clearErrors()}}. Example: ${{$.clearErrors()}}"),
-			Usage.structrScript("Usage: ${clear_errors()}. Example: ${clear_errors()}")
+			Usage.structrScript("Usage: ${clearErrors()}. Example: ${clearErrors()}")
 		);
 	}
 

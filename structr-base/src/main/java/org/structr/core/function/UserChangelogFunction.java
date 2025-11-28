@@ -30,7 +30,7 @@ public class UserChangelogFunction extends ChangelogFunction {
 
 	@Override
 	public String getName() {
-		return "user_changelog";
+		return "userChangelog";
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class UserChangelogFunction extends ChangelogFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${user_changelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: ${user_changelog(current, false, 'verb', 'change', 'timeTo', now)}"),
+			Usage.structrScript("Usage: ${userChangelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: ${userChangelog(current, false, 'verb', 'change', 'timeTo', now)}"),
 			Usage.javaScript("Usage: ${{Structr.userChangelog(user[, resolve=false[, filterObject]])}}. Example: ${{Structr.userChangelog(Structr.get('me'), false, {verb:\"change\", timeTo: new Date()}))}}")
 		);
 	}

@@ -32,7 +32,7 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_response_header";
+		return "setResponseHeader";
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_response_header(field, value [, override = false ])}. Example: ${set_response_header('X-User', 'johndoe', true)}"),
+			Usage.structrScript("Usage: ${setResponseHeader(field, value [, override = false ])}. Example: ${setResponseHeader('X-User', 'johndoe', true)}"),
 			Usage.javaScript("Usage: ${{Structr.setResponseHeader(field, value [, override = false ])}}. Example: ${{Structr.setResponseHeader('X-User', 'johndoe', true)}}")
 		);
 	}

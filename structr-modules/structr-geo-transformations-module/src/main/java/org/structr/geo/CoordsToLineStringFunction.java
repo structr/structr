@@ -41,7 +41,7 @@ public class CoordsToLineStringFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "coords_to_line_string";
+		return "coordsToLineString";
 	}
 
 	@Override

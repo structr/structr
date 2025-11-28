@@ -39,12 +39,12 @@ import java.util.Map;
 
 public class CreateOrUpdateFunction extends CoreFunction {
 
-	private static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in create_or_update(): no type specified.";
-	private static final String ERROR_MESSAGE_TYPE_NOT_FOUND    = "Error in create_or_update(): type not found: ";
+	private static final String ERROR_MESSAGE_NO_TYPE_SPECIFIED = "Error in createOrUpdate(): no type specified.";
+	private static final String ERROR_MESSAGE_TYPE_NOT_FOUND    = "Error in createOrUpdate(): type not found: ";
 
 	@Override
 	public String getName() {
-		return "create_or_update";
+		return "createOrUpdate";
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 				if (type == null) {
 
-					logger.warn("Error in create_or_update(): type \"{}\" not found.", typeString);
+					logger.warn("Error in createOrUpdate(): type \"{}\" not found.", typeString);
 					return ERROR_MESSAGE_TYPE_NOT_FOUND + typeString;
 				}
 			}
@@ -85,7 +85,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 			// exit gracefully instead of crashing..
 			if (type == null) {
 
-				logger.warn("Error in create_or_update(): no type specified. Parameters: {}", getParametersAsString(sources));
+				logger.warn("Error in createOrUpdate(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_NO_TYPE_SPECIFIED;
 			}
 
@@ -96,14 +96,14 @@ public class CreateOrUpdateFunction extends CoreFunction {
 
 			} else {
 
-				final int parameter_count = sources.length;
+				final int parameterCount = sources.length;
 
-				if (parameter_count % 2 == 0) {
+				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
-				for (int c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameterCount; c += 2) {
 
 					if (sources[c] == null) {
 						throw new IllegalArgumentException();
@@ -166,7 +166,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{$.createOrUpdate(type, properties)}}. Example: ${{$.createOrUpdate('User', 'email', 'tester@test.com')}}"),
-			Usage.structrScript("Usage: ${create_or_update(type, properties)}. Example: ${create_or_update('User', 'email', 'tester@test.com')}")
+			Usage.structrScript("Usage: ${createOrUpdate(type, properties)}. Example: ${createOrUpdate('User', 'email', 'tester@test.com')}")
 		);
 	}
 
@@ -192,7 +192,7 @@ public class CreateOrUpdateFunction extends CoreFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'New Name')}", "If no object with the given e-mail address exists, a new object is created, because \"eMail\" is unique. Otherwise, the existing object is updated with the new name.")
+			Example.structrScript("${createOrUpdate('User', 'eMail', 'tester@test.com', 'name', 'New Name')}", "If no object with the given e-mail address exists, a new object is created, because \"eMail\" is unique. Otherwise, the existing object is updated with the new name.")
 		);
 	}
 

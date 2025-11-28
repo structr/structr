@@ -33,7 +33,7 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "has_outgoing_relationship";
+		return "hasOutgoingRelationship";
 	}
 
 	@Override
@@ -114,8 +114,8 @@ public class HasOutgoingRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_outgoing_relationship(from, to [, relType])}. Example: ${has_outgoing_relationship(me, user, 'FOLLOWS')}"),
-			Usage.javaScript("Usage: ${{Structr.has_outgoing_relationship(from, to [, relType])}}. Example: ${{Structr.has_outgoing_relationship(Structr.get('me'), user, 'FOLLOWS')}}")
+			Usage.structrScript("Usage: ${hasOutgoingRelationship(from, to [, relType])}. Example: ${hasOutgoingRelationship(me, user, 'FOLLOWS')}"),
+			Usage.javaScript("Usage: ${{Structr.hasOutgoingRelationship(from, to [, relType])}}. Example: ${{Structr.hasOutgoingRelationship(Structr.get('me'), user, 'FOLLOWS')}}")
 		);
 	}
 

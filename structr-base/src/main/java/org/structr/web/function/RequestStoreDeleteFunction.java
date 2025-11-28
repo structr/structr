@@ -31,7 +31,7 @@ public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "request_store_delete";
+		return "requestStoreDelete";
 	}
 
 	@Override
@@ -65,8 +65,8 @@ public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${request_store_delete(key)}. Example: ${request_store_delete('do_no_track')}"),
-			Usage.javaScript("Usage: ${{ $.requestStoreDelete(key); }}. Example: ${{ $.requestStoreDelete('do_not_track'); }}")
+			Usage.structrScript("Usage: ${requestStoreDelete(key)}. Example: ${requestStoreDelete('doNoTrack')}"),
+			Usage.javaScript("Usage: ${{ $.requestStoreDelete(key); }}. Example: ${{ $.requestStoreDelete('doNotTrack'); }}")
 		);
 	}
 

@@ -41,7 +41,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "get_available_serverlogs";
+		return "getAvailableServerlogs";
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_available_serverlogs()}. Example: ${get_available_serverlogs()}"),
+			Usage.structrScript("Usage: ${getAvailableServerlogs()}. Example: ${getAvailableServerlogs()}"),
 			Usage.javaScript("Usage: ${{ $.getAvailableServerlogs(); }}. Example: ${{ $.getAvailableServerlogs(); }}")
 		);
 	}

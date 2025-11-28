@@ -44,11 +44,11 @@ import java.util.Map;
 public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWCSHistogramFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: get_wcs_histogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])";
+	public static final String ERROR_MESSAGE = "usage: getWcsHistogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])";
 
 	@Override
 	public String getName() {
-		return "get_wcs_histogram";
+		return "getWcsHistogram";
 	}
 
 	@Override

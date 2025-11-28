@@ -51,7 +51,7 @@ public class ClearErrorFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "clear_error";
+		return "clearError";
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class ClearErrorFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{$.clearError(errorToken)}}. Example: ${{$.clearError(errorToken)}}"),
-			Usage.structrScript("Usage: ${clear_error(errorToken)}. Example: ${clear_error(errorToken)}")
+			Usage.structrScript("Usage: ${clearError(errorToken)}. Example: ${clearError(errorToken)}")
 		);
 	}
 

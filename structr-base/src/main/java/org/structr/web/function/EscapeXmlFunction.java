@@ -34,7 +34,7 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "escape_xml";
+		return "escapeXml";
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${escape_xml(text)}. Example: ${escape_xml('test & test')}"),
+			Usage.structrScript("Usage: ${escapeXml(text)}. Example: ${escapeXml('test & test')}"),
 			Usage.javaScript("Usage: ${{ $.escapeXml(text)}}. Example: ${{ $.escapeXml('test & test')}}")
 		);
 	}
@@ -93,7 +93,7 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${escape_xml('This is a \"test\" & another \"test\"')} => This is a &quot;test&quot; &amp; another &quot;test&quot;")
+			Example.structrScript("${escapeXml('This is a \"test\" & another \"test\"')} => This is a &quot;test&quot; &amp; another &quot;test&quot;")
 		);
 	}
 

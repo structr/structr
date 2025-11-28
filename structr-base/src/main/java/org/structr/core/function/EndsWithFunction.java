@@ -30,7 +30,7 @@ public class EndsWithFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "ends_with";
+		return "endsWith";
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class EndsWithFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${$.endsWith(string, suffix)}. Example: ${$.endsWith(locale, \"de\")}"),
-			Usage.structrScript("Usage: ${ends_with(string, suffix)}. Example: ${ends_with(locale, \"de\")}")
+			Usage.structrScript("Usage: ${endsWith(string, suffix)}. Example: ${endsWith(locale, \"de\")}")
 		);
 	}
 

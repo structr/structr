@@ -35,7 +35,7 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "remove_session_attribute";
+		return "removeSessionAttribute";
 	}
 
 	@Override
@@ -77,8 +77,8 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${remove_session_attribute(key)}. Example: ${remove_session_attribute('do_no_track')}"),
-			Usage.javaScript("Usage: ${{Structr.removeSessionAttribute(key)}}. Example: ${{Structr.removeSessionAttribute('do_not_track')}}")
+			Usage.structrScript("Usage: ${removeSessionAttribute(key)}. Example: ${removeSessionAttribute('doNoTrack')}"),
+			Usage.javaScript("Usage: ${{Structr.removeSessionAttribute(key)}}. Example: ${{Structr.removeSessionAttribute('doNotTrack')}}")
 		);
 	}
 

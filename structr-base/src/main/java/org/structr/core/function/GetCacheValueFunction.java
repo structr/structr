@@ -34,7 +34,7 @@ public class GetCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "get_cache_value";
+		return "getCacheValue";
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class GetCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
-			logger.warn("get_cache_value() is deprecated and will be removed in a future version.");
+			logger.warn("getCacheValue() is deprecated and will be removed in a future version.");
 			return CacheExpression.getCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
@@ -65,7 +65,7 @@ public class GetCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_cache_value(cacheKey)}. Example: ${get_cache_value('mykey')}"),
+			Usage.structrScript("Usage: ${getCacheValue(cacheKey)}. Example: ${getCacheValue('mykey')}"),
 			Usage.javaScript("Usage: ${{ $.getCacheValue(cacheKey); }}. Example: ${{ $.getCacheValue('mykey'); }}")
 		);
 	}
@@ -83,8 +83,8 @@ public class GetCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_cache_value('externalResult')}"),
-				Example.javaScript("${{ $.get_cache_value('externalResult') }}")
+				Example.structrScript("${getCacheValue('externalResult')}"),
+				Example.javaScript("${{ $.getCacheValue('externalResult') }}")
 		);
 	}
 

@@ -42,7 +42,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "get_relationship_types";
+		return "getRelationshipTypes";
 	}
 
 	@Override
@@ -160,7 +160,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_relationship_types(node, lookupType [, direction])}. Example: ${get_relationship_types(me, 'existing', 'both')}"),
+			Usage.structrScript("Usage: ${getRelationshipTypes(node, lookupType [, direction])}. Example: ${getRelationshipTypes(me, 'existing', 'both')}"),
 			Usage.javaScript("Usage: ${{$.getRelationshipTypes(node, lookupType [, direction ])}}. Example: ${{$.getRelationshipTypes(me, 'existing', 'both')}}")
 		);
 	}
@@ -179,20 +179,20 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("""
-						${get_relationship_types(me, 'schema')}
-						${get_relationship_types(me, 'schema', 'incoming')}
-						${get_relationship_types(me, 'schema', 'outgoing')}
-						${get_relationship_types(me, 'existing')}
-						${get_relationship_types(me, 'existing', 'incoming')}
-						${get_relationship_types(me, 'existing', 'outgoing')}
+						${getRelationshipTypes(me, 'schema')}
+						${getRelationshipTypes(me, 'schema', 'incoming')}
+						${getRelationshipTypes(me, 'schema', 'outgoing')}
+						${getRelationshipTypes(me, 'existing')}
+						${getRelationshipTypes(me, 'existing', 'incoming')}
+						${getRelationshipTypes(me, 'existing', 'outgoing')}
 						"""),
 				Example.javaScript("""
-						${{ $.get_relationship_types($.me, 'schema') }}
-						${{ $.get_relationship_types($.me, 'schema', 'incoming') }}
-						${{ $.get_relationship_types($.me, 'schema', 'outgoing') }}
-						${{ $.get_relationship_types($.me, 'existing') }}
-						${{ $.get_relationship_types($.me, 'existing', 'incoming') }}
-						${{ $.get_relationship_types($.me, 'existing', 'outgoing') }}
+						${{ $.getRelationshipTypes($.me, 'schema') }}
+						${{ $.getRelationshipTypes($.me, 'schema', 'incoming') }}
+						${{ $.getRelationshipTypes($.me, 'schema', 'outgoing') }}
+						${{ $.getRelationshipTypes($.me, 'existing') }}
+						${{ $.getRelationshipTypes($.me, 'existing', 'incoming') }}
+						${{ $.getRelationshipTypes($.me, 'existing', 'outgoing') }}
 						""")
 		);
 	}

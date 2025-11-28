@@ -31,7 +31,7 @@ public class RequestStoreHasFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "request_store_has";
+		return "requestStoreHas";
 	}
 
 	@Override
@@ -63,8 +63,8 @@ public class RequestStoreHasFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${request_store_has(key)}. Example: ${request_store_has('do_no_track')}"),
-			Usage.javaScript("Usage: ${{ $.requestStoreHas(key); }}. Example: ${{ $.requestStoreHas('do_not_track'); }}")
+			Usage.structrScript("Usage: ${requestStoreHas(key)}. Example: ${requestStoreHas('doNoTrack')}"),
+			Usage.javaScript("Usage: ${{ $.requestStoreHas(key); }}. Example: ${{ $.requestStoreHas('doNotTrack'); }}")
 		);
 	}
 

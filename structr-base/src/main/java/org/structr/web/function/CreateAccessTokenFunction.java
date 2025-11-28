@@ -37,7 +37,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "create_access_token";
+		return "createAccessToken";
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 
 			Map<String, String> tokens = JWTHelper.createTokensForUser(user, accessTokenExpirationDate.getTime(), null);
 
-			return tokens.get("access_token");
+			return tokens.get("accessToken");
 
 		} catch (ArgumentCountException pe) {
 
@@ -76,7 +76,7 @@ public class CreateAccessTokenFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create_access_token(user [, accessTokenTimeout])}. Example: ${create_access_token(me [, 15])}"),
+			Usage.structrScript("Usage: ${createAccessToken(user [, accessTokenTimeout])}. Example: ${createAccessToken(me [, 15])}"),
 			Usage.javaScript("Usage: ${{ $.createAccessToken(user [, accessTokenTimeout]); }}. Example: ${{ $.createAccessToken(Structr.me [, 15]); }}")
 		);
 	}

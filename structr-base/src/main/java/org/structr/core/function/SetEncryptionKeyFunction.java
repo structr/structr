@@ -29,7 +29,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "set_encryption_key";
+		return "setEncryptionKey";
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_encryption_key(secret)}"),
+			Usage.structrScript("Usage: ${setEncryptionKey(secret)}"),
 			Usage.javaScript("Usage: ${{Structr.setEncryptionKey(secret)}}")
 		);
 	}

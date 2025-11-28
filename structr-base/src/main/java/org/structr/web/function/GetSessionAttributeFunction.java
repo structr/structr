@@ -41,7 +41,7 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "get_session_attribute";
+		return "getSessionAttribute";
 	}
 
 	@Override
@@ -90,8 +90,8 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_session_attribute(key)}. Example: ${get_session_attribute('do_no_track')}"),
-			Usage.javaScript("Usage: ${{ $.getSessionAttribute(key)}}. Example: ${{ $.getSessionAttribute('do_not_track')}}")
+			Usage.structrScript("Usage: ${getSessionAttribute(key)}. Example: ${getSessionAttribute('doNoTrack')}"),
+			Usage.javaScript("Usage: ${{ $.getSessionAttribute(key)}}. Example: ${{ $.getSessionAttribute('doNotTrack')}}")
 		);
 	}
 
@@ -116,8 +116,8 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_session_attribute('do_not_track')}"),
-				Example.javaScript("${{ $.get_session_attribute('do_not_track') }}")
+				Example.structrScript("${getSessionAttribute('doNotTrack')}"),
+				Example.javaScript("${{ $.getSessionAttribute('doNotTrack') }}")
 		);
 	}
 

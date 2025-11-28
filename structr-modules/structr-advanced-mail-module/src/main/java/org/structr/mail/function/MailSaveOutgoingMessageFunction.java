@@ -35,7 +35,7 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 
 	@Override
 	public String getName() {
-		return "mail_save_outgoing_message";
+		return "mailSaveOutgoingMessage";
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_save_outgoing_message(doSave)}"),
+			Usage.structrScript("Usage: ${mailSave_outgoing_message(doSave)}"),
 			Usage.javaScript("Usage: ${{ $.mailSaveOutgoingMessage(doSave) }}")
 		);
 	}

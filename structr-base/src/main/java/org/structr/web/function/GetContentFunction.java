@@ -40,7 +40,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "get_content";
+		return "getContent";
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_content(file[, encoding ])}. Example: ${get_content(first(find('File', 'name', 'test.txt')))}"),
+			Usage.structrScript("Usage: ${getContent(file[, encoding ])}. Example: ${getContent(first(find('File', 'name', 'test.txt')))}"),
 			Usage.javaScript("Usage: ${{Structr.getContent(file[, encoding ])}}. Example: ${{Structr.getContent(fileNode)}}")
 		);
 	}
@@ -122,7 +122,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${get_content(first(find('File', 'name', 'test.txt')))}"),
+			Example.structrScript("${getContent(first(find('File', 'name', 'test.txt')))}"),
 			Example.javaScript("${{ let bytes = $.getContent($.first($.find('File', 'name', 'test.txt'))) }}"),
 			Example.javaScript("${{ let content = $.getContent($.first($.find('File', 'name', 'test.txt')), 'UTF-8') }}")
 		);

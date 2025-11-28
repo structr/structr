@@ -38,7 +38,7 @@ import java.util.List;
 
 public class UTMToLatLonFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE            = "Usage: ${utm_to_lat_lon(utmString)}. Example: ${utm_to_lat_lon('32U 395473 5686479')}";
+	private static final String ERROR_MESSAGE            = "Usage: ${utmToLatLon(utmString)}. Example: ${utmToLatLon('32U 395473 5686479')}";
 	private static final Logger logger                   = LoggerFactory.getLogger(UTMToLatLonFunction.class.getName());
 	private static final String UTMHemisphere            = "SSSSSSSSSSNNNNNNNNNNN";
 	private static final String UTMzdlChars              = "CDEFGHJKLMNPQRSTUVWXX";
@@ -47,7 +47,7 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "utm_to_lat_lon";
+		return "utmToLatLon";
 	}
 
 	@Override

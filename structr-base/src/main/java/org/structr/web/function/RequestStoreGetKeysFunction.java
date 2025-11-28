@@ -29,7 +29,7 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "request_store_get_keys";
+		return "requestStoreGetKeys";
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class RequestStoreGetKeysFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${request_store_get_keys()}. Example: ${request_store_get_keys()}"),
+			Usage.structrScript("Usage: ${requestStoreGetKeys()}. Example: ${requestStoreGetKeys()}"),
 			Usage.javaScript("Usage: ${{ $.requestStoreGetKeys(); }}. Example: ${{ $.requestStoreGetKeys(); }}")
 		);
 	}

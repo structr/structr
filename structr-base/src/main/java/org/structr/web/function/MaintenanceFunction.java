@@ -75,14 +75,14 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 				} else {
 
-					final int parameter_count = sources.length;
+					final int parameterCount = sources.length;
 
-					if (parameter_count % 2 == 0) {
+					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 					}
 
-					for (int c = 1; c < parameter_count; c += 2) {
+					for (int c = 1; c < parameterCount; c += 2) {
 
 						params.put(sources[c].toString(), sources[c + 1]);
 					}

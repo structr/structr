@@ -105,7 +105,7 @@ public class ContentExtractionTest extends StructrUiTest {
 
 		try {
 
-			final Function<Object, Object> function = Functions.get("stop_words");
+			final Function<Object, Object> function = Functions.get("stopWords");
 
 			assertNotNull("StopWords function does not exist", function);
 

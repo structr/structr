@@ -31,7 +31,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "strip_html";
+		return "stripHtml";
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${strip_html(html)}. Example: ${strip_html('<p>foo</p>')}"),
+			Usage.structrScript("Usage: ${stripHtml(html)}. Example: ${stripHtml('<p>foo</p>')}"),
 			Usage.javaScript("Usage: ${{Structr.stripHtml(html)}}. Example: ${{Structr.stripHtml('<p>foo</p>')}}")
 		);
 	}

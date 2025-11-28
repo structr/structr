@@ -33,7 +33,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "set_privileged";
+		return "setPrivileged";
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_privileged(entity, propertyKey, value)}. Example: ${set_privileged(this, \"email\", lower(this.email))}"),
+			Usage.structrScript("Usage: ${setPrivileged(entity, propertyKey, value)}. Example: ${setPrivileged(this, \"email\", lower(this.email))}"),
 			Usage.javaScript("Usage: ${{Structr.setPrvileged(entity, propertyKey, value)}}. Example: ${{Structr.setPrivileged(Structr.this, \"email\", lower(Structr.this.email))}}")
 		);
 	}
