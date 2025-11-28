@@ -48,7 +48,7 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${has_error()}"),
-			Usage.javaScript("Usage: ${{ Structr.has_error() }}")
+			Usage.javaScript("Usage: ${{ $.has_error() }}")
 		);
 	}
 
