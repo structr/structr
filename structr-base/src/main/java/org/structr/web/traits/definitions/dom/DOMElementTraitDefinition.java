@@ -45,6 +45,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
+import org.structr.core.script.polyglot.config.ScriptConfigBuilder;
 import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -926,7 +928,6 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							return handleResetPasswordAction(renderContext, domElementNode, parameters, eventContext);
 
 						case "flow":
-							//final String flow = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRFLOW);
 							final String flow = getActionMapping(entity.as(DOMElement.class)).getFlow();
 							return handleFlowAction(renderContext, domElementNode, parameters, eventContext, flow);
 
@@ -1588,8 +1589,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		if (flowName != null) {
 
-			return Scripting.evaluate(renderContext,  entity, "${flow('" + flowName.trim() + "')}", "flow query");
-
+			return Actions.execute(renderContext.getSecurityContext(), entity, "${{$.flow('" + flowName.trim() + "', $.methodParameters)}}", parameters, "flow:" + flowName.trim(), flowName.trim());
 		} else {
 
 			throw new FrameworkException(422, "Cannot execute Flow because no or empty name was provided.");
