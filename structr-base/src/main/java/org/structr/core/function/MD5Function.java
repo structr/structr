@@ -22,6 +22,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -64,18 +65,26 @@ public class MD5Function extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.md5(string)}}. Example: ${{$.md5(this.email)}}"),
+			Usage.javaScript("Usage: ${{ $.md5(string); }}. Example: ${{ $.md5(this.email); }}"),
 			Usage.structrScript("Usage: ${md5(string)}. Example: ${md5(this.email)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the MD5 hash of its parameter.";
+		return "Returns the MD5 hash of a given object.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function converts its argument into a string, creates the 32-character alphanumeric MD5 hash of that string and returns the resulting hash string.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("input", "input object to hash")
+		);
 	}
 }

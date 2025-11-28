@@ -57,7 +57,7 @@ public class GtFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This function tries to convert its parameter objects into numerical values, i.e. you can compare strings numerically. It is often used in conjunction with `size()` to determine if a collection is empty or not.
+		This function tries to convert its arguments into numerical values, i.e. you can compare strings numerically. It is often used in conjunction with `size()` to determine if a collection is empty or not.
 		""";
 	}
 

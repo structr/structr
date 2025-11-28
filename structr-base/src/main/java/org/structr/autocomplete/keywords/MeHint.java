@@ -37,12 +37,20 @@ public class MeHint extends KeywordHint {
 
 	@Override
 	public String getLongDescription() {
-		return "The `me` keyword allows you to access the user in the current request. Note that it can be undefined in anonymous requests.";
+		return "The `me` keyword allows you to access the user in the current request. It is often used to show/hide individual parts of a page depending on the permissions / status of a user etc.";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
+			Example.html("""
+			<!doctype html>
+			<html>
+				<body>
+					<h1>Welcome ${me.name}!</h1>
+				</body>
+			</html>
+			"""),
 			Example.structrScript("${me.isAdmin}", "Check the `isAdmin` flag of the current user")
 		);
 	}
@@ -50,6 +58,7 @@ public class MeHint extends KeywordHint {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+			"The `me` keyword can be undefined in anonymous requests."
 		);
 	}
 }

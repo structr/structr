@@ -100,6 +100,13 @@ public class DivFunction extends CoreFunction {
 	}
 
 	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments."
+		);
+	}
+
+	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
 	}
