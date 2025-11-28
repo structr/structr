@@ -372,7 +372,6 @@
 .search-result {
     overflow: hidden;
     display: block;
-    cursor: default;
     padding: 1rem;
     margin: 0;
     background-color: white;
