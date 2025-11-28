@@ -82,7 +82,13 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Returns a search predicate to specify value ranges, greater and less-than searches in [find()](53)  and [search()](109) functions. 
+		The first two parameters represent the first and the last element of the desired query range. Both start and end of the range can be 
+		set to `null` to allow the use of `range()` for `<`, `<=`. `>` and `>=` queries.
+		There are two optional boolean parameters, `includeStart` and `includeEnd` that control whether the search range 
+		should **include** or **exclude** the endpoints of the interval.
+		""";
 	}
 
 	@Override
@@ -94,4 +100,5 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	public boolean isHidden() {
 		return true;
 	}
+
 }
