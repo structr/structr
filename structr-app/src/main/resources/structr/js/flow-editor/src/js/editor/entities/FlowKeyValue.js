@@ -16,7 +16,7 @@ export class FlowKeyValue extends FlowNode {
             builder(node) {
                 let socket = FlowSockets.getInst();
                 let dataSource = new D3NE.Input('DataSource', socket.getSocket('dataSource'));
-                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('objectDataTarget'));
+                let dataTarget = new D3NE.Output('DataTarget', socket.getSocket('objectDataTargets'));
 
                 let key = new D3NE.Control('<input type="text" value="" class="control-text">', (element, control) =>{
 
