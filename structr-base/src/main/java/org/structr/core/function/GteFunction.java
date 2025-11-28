@@ -56,7 +56,7 @@ public class GteFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method tries to convert its parameter objects into numerical values, i.e. you can compare strings numerically.";
+		return "This method tries to convert its arguments into numerical values, i.e. you can compare strings numerically.";
 	}
 
 	@Override

@@ -284,7 +284,7 @@ let _Entities = {
 			});
 		};
 
-		flowSelector.insertAdjacentHTML('beforeend', '<option>--- Select Flow ---</option>');
+		flowSelector.insertAdjacentHTML('beforeend', '<option value="">--- Select Flow ---</option>');
 
 		Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, (flows) => {
 

@@ -25,7 +25,9 @@ public enum DocumentableType {
 	Method("Method"),
 	Property("Property"),
 	TypeName("Type name"),
-	UserDefinedFunction("User-defined function");
+	UserDefinedFunction("User-defined function"),
+	MaintenanceCommand("Maintenance command"),
+	Hidden(null);
 
 	private final String displayName;
 

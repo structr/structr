@@ -57,6 +57,7 @@ public class PageHint extends KeywordHint {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+			"This keyword is only available in a Page rendering context."
 		);
 	}
 }

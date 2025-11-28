@@ -27,12 +27,13 @@ import org.structr.api.service.Command;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
-import org.structr.rest.resource.MaintenanceResource;
+import org.structr.docs.*;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,11 +45,6 @@ import java.util.Map;
 public class UpdateLicenseKeyCommand extends Command implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(UpdateLicenseKeyCommand.class.getName());
-
-	static {
-
-		MaintenanceResource.registerMaintenanceCommand("updatelicensekey", UpdateLicenseKeyCommand.class);
-	}
 
 	@Override
 	public Class getServiceClass() {
@@ -107,5 +103,56 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 				fileWriter.write(newLicenseKey);
 			}
 		}
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return "";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

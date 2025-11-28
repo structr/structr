@@ -22,6 +22,8 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -37,7 +39,7 @@ public class NthFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("list, index");
+		return Signature.forAllScriptingLanguages("collection, index");
 	}
 
 	@Override
@@ -93,8 +95,8 @@ public class NthFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.nth(list, index)}}. Example: ${{$.nth($.this.children, 2)}}"),
-			Usage.structrScript("Usage: ${nth(list, index)}. Example: ${nth(this.children, 2)}")
+			Usage.javaScript("Usage: ${{$.nth(collection, index)}}. Example: ${{$.nth($.this.children, 2)}}"),
+			Usage.structrScript("Usage: ${nth(collection, index)}. Example: ${nth(this.children, 2)}")
 		);
 	}
 
@@ -104,7 +106,23 @@ public class NthFunction extends CoreFunction {
 	}
 
 	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "collection to return element of"),
+			Parameter.mandatory("index", "index of the object to return (0-based)")
+		);
+	}
+	@Override
 	public String getLongDescription() {
-		return "";
+		return "`first()` and `last()`.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${nth(find('User'), 1)}", "Return the second of the existing users")
+		);
 	}
 }

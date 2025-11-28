@@ -16,47 +16,75 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.autocomplete;
 
-import org.structr.common.error.FrameworkException;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
-import org.structr.schema.action.ActionContext;
+import org.structr.docs.*;
 
 import java.util.List;
 
-public class GetErrorsFunction extends CoreFunction {
+public class WrappingHint extends AbstractHint {
+
+	private final Documentable documentable;
+	private final String name;
+
+	public WrappingHint(final Documentable documentable, final String name) {
+
+		this.documentable = documentable;
+		this.name         = name;
+	}
 
 	@Override
-	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
-		return ctx.getErrorBuffer().getErrorTokens();
+	public DocumentableType getType() {
+		return documentable.getType();
 	}
 
 	@Override
 	public String getName() {
-		return "get_errors";
+		return name;
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns all error tokens present in the current context.";
+		return documentable.getShortDescription();
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return documentable.getLongDescription();
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return documentable.getParameters();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return documentable.getExamples();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return documentable.getNotes();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("");
+		return documentable.getSignatures();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return documentable.getLanguages();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{$.getErrors()}}. Example: ${{$.getErrors()}}"),
-			Usage.structrScript("Usage: ${get_errors()}. Example: ${get_errors()}")
-		);
+		return documentable.getUsages();
+	}
+
+	@Override
+	public boolean isHidden() {
+		return documentable.isHidden();
 	}
 }

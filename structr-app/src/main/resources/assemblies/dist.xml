@@ -66,10 +66,6 @@
 			<outputDirectory>bin</outputDirectory>
 		</file>
 		<file>
-			<source>${assemblies.resources.path}/bin/start.cmd</source>
-			<outputDirectory>bin</outputDirectory>
-		</file>
-		<file>
 			<source>${assemblies.resources.path}/bin/stop</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>

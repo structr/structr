@@ -72,12 +72,12 @@ public class CeilFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the given value, rounded **up** to the nearest integer.";
+		return "Returns the given value, rounded up to the nearest integer.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
+		return "This method tries to convert its arguments into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override

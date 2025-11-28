@@ -36,14 +36,13 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
-import org.structr.rest.resource.MaintenanceResource;
+import org.structr.docs.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.maintenance.deploy.DeletingFileImportVisitor;
 import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 
 import java.io.*;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -93,11 +92,6 @@ public class DeployDataCommand extends DeployCommand {
 
 	// is being handled via export of "grantees" and "owner" attributes
 	private final static Set<String> blacklistedRelationshipTypes = Set.of(StructrTraits.PRINCIPAL_OWNS_NODE, StructrTraits.SECURITY);
-
-	static {
-
-		MaintenanceResource.registerMaintenanceCommand("deployData", DeployDataCommand.class);
-	}
 
 	@Override
 	public void doExport(final Map<String, Object> parameters) throws FrameworkException {
@@ -1286,5 +1280,62 @@ public class DeployDataCommand extends DeployCommand {
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return true;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "deployData";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Creates a Data Deployment Export or Import of the application data.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command reads or writes a text-based export of the application data (not the application itself) that can be stored in a version control system.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("mode", "deployment mode, `import` or `export`"),
+			Parameter.optional("source", "source folder for `import` mode"),
+			Parameter.optional("target", "target folder for `export` mode"),
+			Parameter.optional("types", "comma-separated list of data types to export")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

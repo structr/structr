@@ -95,6 +95,25 @@ public class NumberFormatFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This method uses the Java NumberFormat class which supports the ISO two-letter language codes, e.g. "en", "de" etc.
+		
+		The following four pattern chars are supported:
+
+		| Letter | Description |
+		| --- | --- |
+		| 0 | Any number, or "0" |
+		| # | Any number, or nothing |
+		| . | The decimal separator |
+		| , | The thousands-separator |
+		""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In general, if you want a formatted number to be visible all the time, use \"0\" in the pattern, otherwise use \"#\"."
+		);
 	}
 }

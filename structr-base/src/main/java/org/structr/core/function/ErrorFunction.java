@@ -96,17 +96,19 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Signals a validation error to the caller.";
+		return "Stores error tokens in the current context causing the transaction to fail at the end of the request.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		This function can be used to signal an error condition while executing a script. It is mainly used in entity callback functions like `onCreate()` or `onSave()` to allow the user to implement custom validation logic.
+		This function allows you to store error tokens in the current context without aborting the execution flow. Errors that have accumulated in the error buffer can be fetched with `getErrors()` and cleared with either `clearError()` or `clearErrors()`.
 
-		If an error is raised the current transaction will be rolled back and no changes will be written to the database.
+		If there are still error tokens in the error buffer at the end of the transaction, the transaction is rolled back. If the calling context was an HTTP request, the HTTP status code 422 Unprocessable Entity will be sent to the client together with the error tokens.
 
-		If the calling context was an HTTP request, the HTTP status code 422 Unprocessable Entity will be sent to the client.
+		This function is mainly used in entity callback functions like `onCreate()` or `onSave()` to allow the user to implement custom validation logic.
+
+		If you want to abort the execution flow immediately, use `assert()`.
 		""";
 	}
 
@@ -117,6 +119,14 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 			Parameter.mandatory("cause", "cause of the error, e.g. a property name or other error message"),
 			Parameter.mandatory("errorToken", "arbitrary string that represents the error, will end up in the `token` field of the response"),
 			Parameter.optional("detail", "more detailed description of the error for humans to read")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See also `getErrors()`, `clearError()`, `clearErrors()` and `assert()`."
 		);
 	}
 }

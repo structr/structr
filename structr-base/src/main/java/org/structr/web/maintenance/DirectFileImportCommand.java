@@ -35,7 +35,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
-import org.structr.rest.resource.MaintenanceResource;
+import org.structr.docs.*;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -59,11 +59,6 @@ import java.util.Map;
 public class DirectFileImportCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(DirectFileImportCommand.class.getName());
-
-	static {
-
-		MaintenanceResource.registerMaintenanceCommand("directFileImport", DirectFileImportCommand.class);
-	}
 
 	private enum Mode     { COPY, MOVE }
 	private enum Existing { SKIP, OVERWRITE, RENAME }
@@ -386,4 +381,61 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 	}
 
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "directFileImport";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Imports files from a local directory into the Structr filesystem.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The files can either be copied or moved (i.e. deleted after copying into Structr), depending on the mode parameter. The existing parameter determines how Structr handles existing files in the Structr Filesystem. The index parameter allows you to enable or disable indexing for the imported files.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("source", "source directory to import files from"),
+			Parameter.mandatory("mode", "import mode (`copy` or `move`)"),
+			Parameter.optional("existing", "how to handle existing files in the destination (`skip`, `overwrite` or `rename`, default is `skip`)"),
+			Parameter.optional("index", "whether to index the copied files (`true` or `false`, default is `true`)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"When using Docker, you first have to copy the files to the Docker container, or use a files volume."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
+	}
 }

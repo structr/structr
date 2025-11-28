@@ -30,6 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.docs.*;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
@@ -40,6 +41,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.*;
+import java.security.Signature;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateFactory;
 import java.text.SimpleDateFormat;
@@ -1059,8 +1061,58 @@ public class StructrLicenseManager implements LicenseManager {
 
 			return result;
 		}
-	}
 
+		// ----- interface Documentable -----
+		@Override
+		public DocumentableType getType() {
+			return DocumentableType.Hidden;
+		}
+
+		@Override
+		public String getName() {
+			return "";
+		}
+
+		@Override
+		public String getShortDescription() {
+			return "";
+		}
+
+		@Override
+		public String getLongDescription() {
+			return "";
+		}
+
+		@Override
+		public List<Parameter> getParameters() {
+			return List.of();
+		}
+
+		@Override
+		public List<Example> getExamples() {
+			return List.of();
+		}
+
+		@Override
+		public List<String> getNotes() {
+			return List.of();
+		}
+
+		@Override
+		public List<org.structr.docs.Signature> getSignatures() {
+			return List.of();
+		}
+
+		@Override
+		public List<Language> getLanguages() {
+			return List.of();
+		}
+
+		@Override
+		public List<Usage> getUsages() {
+			return List.of();
+		}
+	}
 
 	public static class UpdateLicenseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -1078,6 +1130,57 @@ public class StructrLicenseManager implements LicenseManager {
 		@Override
 		public boolean requiresFlushingOfCaches() {
 			return false;
+		}
+
+		// ----- interface Documentable -----
+		@Override
+		public DocumentableType getType() {
+			return DocumentableType.Hidden;
+		}
+
+		@Override
+		public String getName() {
+			return "";
+		}
+
+		@Override
+		public String getShortDescription() {
+			return "";
+		}
+
+		@Override
+		public String getLongDescription() {
+			return "";
+		}
+
+		@Override
+		public List<Parameter> getParameters() {
+			return List.of();
+		}
+
+		@Override
+		public List<Example> getExamples() {
+			return List.of();
+		}
+
+		@Override
+		public List<String> getNotes() {
+			return List.of();
+		}
+
+		@Override
+		public List<org.structr.docs.Signature> getSignatures() {
+			return List.of();
+		}
+
+		@Override
+		public List<Language> getLanguages() {
+			return List.of();
+		}
+
+		@Override
+		public List<Usage> getUsages() {
+			return List.of();
 		}
 	}
 }

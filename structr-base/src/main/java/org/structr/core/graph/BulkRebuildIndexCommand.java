@@ -25,8 +25,10 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.docs.*;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -200,5 +202,60 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		info("Rebuilding fulltext index done.");
 
 		return count;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "rebuildIndex";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Rebuilds the internal indexes, either for nodes, or for relationships, or for both.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Rebuilding the index means that all objects are first removed from the index and then added to the index again with all properties that have the `indexed` flag set.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.optional("type", "limit the execution to the given node type"),
+			Parameter.optional("relType", "limit the execution to the given relationship"),
+			Parameter.optional("mode", "`nodesOnly` or `relsOnly` to rebuild the index only for nodes or relationships")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

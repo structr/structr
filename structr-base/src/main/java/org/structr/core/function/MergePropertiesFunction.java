@@ -23,9 +23,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
@@ -102,12 +100,30 @@ public class MergePropertiesFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Copies property values from source entity to target entity, using the given list of keys.";
+		return "Copies the values for the given list of property keys from the source entity to the target entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("source", "source node to copy properties from"),
+			Parameter.mandatory("target", "target node to copy properties to"),
+			Parameter.mandatory("key1", "first key to copy"),
+			Parameter.optional("key2", "second key to copy"),
+			Parameter.optional("key3", "third key to copy"),
+			Parameter.optional("additionalKeys...", "more keys")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return super.getExamples();
 	}
 
 	@Override

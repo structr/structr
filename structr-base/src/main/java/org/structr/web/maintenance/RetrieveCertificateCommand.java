@@ -4,19 +4,19 @@
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.security.service;
+package org.structr.web.maintenance;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -46,7 +46,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
-import org.structr.rest.resource.MaintenanceResource;
+import org.structr.docs.*;
 import org.structr.rest.service.HttpService;
 import org.structr.schema.action.Actions;
 import org.structr.web.common.FileHelper;
@@ -93,11 +93,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private final static String STAGING_SERVER_KEY    = "staging";
 
 	private final static Integer MAX_RETRIES = 3;
-
-	static {
-
-		MaintenanceResource.registerMaintenanceCommand("letsencrypt", RetrieveCertificateCommand.class);
-	}
 
 	private HttpServer server;
 	private String     serverUrl;
@@ -922,5 +917,63 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		result.put("errors", errorMessages);
 
 		return result;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "letsencrypt";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Triggers creation or update of an SSL certificate using Let’s Encrypt.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("server", "`staging` or `production`, `staging` mode is meant for testing and will generate invalid dummy certificates only, while `production` creates real, valid certificates but is throttled."),
+			Parameter.optional("challenge", "overwrite the default challenge method as set in structr.conf. This is convenient to test an alternative challenge type without the need to restart the Structr instance."),
+			Parameter.optional("wait", "let the client wait for the given number of seconds in order to have enough time to prepare the DNS TXT record in case of the dns challenge type, or the HTTP response in case of the http challenge."),
+			Parameter.optional("reload", "`true` or `false`, reload the HTTPS certificate after updating it. Allows using the new certificate without restarting, defaults to `false`.")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Please note that the configuration setting `letsencrypt.domains` must contain the full domain name of the server you want to create the certificate for."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

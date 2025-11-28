@@ -52,7 +52,7 @@ public class MethodParametersHint extends KeywordHint {
 		);
 	}
 
-	@Override
+		@Override
 	public List<String> getNotes() {
 		return List.of(
 		);

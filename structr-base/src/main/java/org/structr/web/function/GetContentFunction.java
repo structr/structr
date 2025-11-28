@@ -113,7 +113,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 		return """
 		Retrieves the content of the given file from the Structr filesystem. This method can be used to access the binary content of a file stored in Structr.
 		
-		The `encoding` parameter controls the type of the returned data. Without an encoding, the raw data is returned as an array of bytes.
+		The `encoding` argument controls the type of the returned data. Without an encoding, the raw data is returned as an array of bytes.
 		
 		To get the content as a string, you must provide an encoding, e.g. 'UTF-8'.
 		""";

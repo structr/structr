@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -76,12 +77,21 @@ public class MaxFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the larger value of the given arguments.";
+		return "Returns the greater of the given values.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This method tries to convert its arguments into numerical values, i.e. you can use strings as arguments. See also `min()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value to compare"),
+			Parameter.mandatory("value2", "second value to compare")
+		);
 	}
 
 	@Override

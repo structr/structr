@@ -71,27 +71,6 @@ elif [ -n "${NEW_GROUP_ID}" ] && [ -n "${NEW_GROUP_NAME}" ]; then
   usermod -a -G ${NEW_GROUP_NAME} ${USER}
 fi
 
-# check and create memory config file before startup
-if ! [ -f "${_STRUCTR_HOME}/bin/memory.conf" ]; then
-  touch "${_STRUCTR_HOME}/bin/memory.conf"
-  if [ -n "$STRUCTR_MAX_HEAP" ] &&  [ -z "$STRUCTR_MIN_HEAP" ]; then
-    echo "        STRUCTR_MAX_HEAP set but STRUCTR_MIN_HEAP not found in docker environment"
-    exit 1;
-  elif [ -n "$STRUCTR_MIN_HEAP" ] && [ -z "$STRUCTR_MAX_HEAP" ]; then
-    echo "        STRUCTR_MIN_HEAP set but STRUCTR_MIN_HEAP not found in docker environment"
-    exit 1;
-  elif ! [ -n "$STRUCTR_MIN_HEAP" ] && [ -z "$STRUCTR_MAX_HEAP" ]; then
-      echo "        Creating memory configuration file with default configuration of -Xms1g -Xmx4g"
-      echo "-Xms1g -Xmx4g" > "${_STRUCTR_HOME}/bin/memory.conf"
-  else
-    echo "        Creating memory configuration file with -Xms${STRUCTR_MIN_HEAP} -Xmx${STRUCTR_MAX_HEAP}"
-    echo "-Xms${STRUCTR_MIN_HEAP} -Xmx${STRUCTR_MAX_HEAP}" > "${_STRUCTR_HOME}/bin/memory.conf"
-  fi
-fi
-
-unset STRUCTR_MIN_HEAP
-unset STRUCTR_MAX_HEAP
-
 # application settings
 touch "${_STRUCTR_HOME}/structr.conf"
 addEmptyLineToConfig "${_STRUCTR_HOME}"
@@ -108,36 +87,40 @@ for i in $( set | grep ^STRUCTR_ | awk -F'=' '{print $1}'); do
     fi
 done
 
+# Check if heap settings are configured in structr.conf
+CONF_MAX_HEAP=$(grep -E "^\s*application\.heap\.max_size\s*=" "${_STRUCTR_HOME}/structr.conf" | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+CONF_MIN_HEAP=$(grep -E "^\s*application\.heap\.min_size\s*=" "${_STRUCTR_HOME}/structr.conf" | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+
+# Configure heap settings if not already present in structr.conf
+if [ -z "$CONF_MAX_HEAP" ] && [ -z "$CONF_MIN_HEAP" ]; then
+  if ! [ -f "${_STRUCTR_HOME}/bin/memory.conf" ]; then
+    # Check if deprecated environment variables are used
+    if [ -n "$STRUCTR_MIN_HEAP" ] || [ -n "$STRUCTR_MAX_HEAP" ]; then
+      echo
+      echo "        Deprecation warning: STRUCTR_MIN_HEAP and STRUCTR_MAX_HEAP environment variables are deprecated."
+      echo "        Please use application.heap.min_size and application.heap.max_size in structr.conf instead."
+      echo "        You can set these also via environment variables STRUCTR_application_heap_min__size and STRUCTR_application_heap_max__size"
+      echo
+    fi
+
+    # Set heap values (use provided values or defaults)
+    HEAP_MIN="${STRUCTR_MIN_HEAP:-1g}"
+    HEAP_MAX="${STRUCTR_MAX_HEAP:-4g}"
+
+    echo "        Setting memory configuration in structr.conf with min_size=${HEAP_MIN} max_size=${HEAP_MAX}"
+    addEnvironmentEntryToConfig "application.heap.min_size" "${HEAP_MIN}" "${_STRUCTR_HOME}"
+    addEnvironmentEntryToConfig "application.heap.max_size" "${HEAP_MAX}" "${_STRUCTR_HOME}"
+
+    unset STRUCTR_MIN_HEAP
+    unset STRUCTR_MAX_HEAP
+    unset HEAP_MIN
+    unset HEAP_MAX
+  fi
+fi
 # Run startup config script
 . bin/config
 
 LOGS_DIR="logs"
-
-if [ -e $PID_FILE ]; then
-
-	$(ps aux | grep "org.structr.Server" | grep -v grep)
-
-	result=$?
-
-	if [ $result -eq 1 ]; then
-		echo
-		echo "        Found $PID_FILE, but server is not running."
-		echo "        Removing $PID_FILE and proceeding with startup."
-		echo
-
-		rm "$PID_FILE"
-	else
-		echo
-		echo "        ERROR: server already running."
-		echo
-		echo "        Please stop any running instances before starting a"
-		echo "        new one. (Remove $PID_FILE if this message appears"
-		echo "        even if no server is running.)"
-		echo
-
-		exit 0
-	fi
-fi
 
 if [ ! -d $LOGS_DIR ]; then
 		echo "        Creating logs directory..."

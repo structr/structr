@@ -32,19 +32,23 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
+import org.structr.docs.Documentable;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.*;
+import org.structr.rest.maintenance.DeleteSpatialIndexCommand;
+import org.structr.rest.maintenance.UpdateLicenseKeyCommand;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.importer.SchemaAnalyzer;
-import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
+import org.structr.web.maintenance.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
@@ -64,24 +68,30 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 	static {
 
-		maintenanceCommandMap.put("rebuildIndex",               BulkRebuildIndexCommand.class);
-		maintenanceCommandMap.put("rebuildIndexForType",        BulkRebuildIndexCommand.class);
-		maintenanceCommandMap.put("createLabels",               BulkCreateLabelsCommand.class);
-		maintenanceCommandMap.put("clearDatabase",              ClearDatabase.class);
-		maintenanceCommandMap.put("fixNodeProperties",          BulkFixNodePropertiesCommand.class);
-		maintenanceCommandMap.put("setNodeProperties",          BulkSetNodePropertiesCommand.class);
-		maintenanceCommandMap.put("changeNodePropertyKey",      BulkChangeNodePropertyKeyCommand.class);
-		maintenanceCommandMap.put("setRelationshipProperties",  BulkSetRelationshipPropertiesCommand.class);
-		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
-		maintenanceCommandMap.put("createLicense",              StructrLicenseManager.CreateLicenseCommand.class);
-		maintenanceCommandMap.put("updateLicense",              StructrLicenseManager.UpdateLicenseCommand.class);
-		maintenanceCommandMap.put("setUuid",                    BulkSetUuidCommand.class);
-		maintenanceCommandMap.put("sync",                       SyncCommand.class);
-		maintenanceCommandMap.put("flushCaches",                FlushCachesCommand.class);
 		maintenanceCommandMap.put("analyzeSchema",              SchemaAnalyzer.class);
-		maintenanceCommandMap.put("migrateChangelog",           BulkMigrateChangelogCommand.class);
+		maintenanceCommandMap.put("changeNodePropertyKey",      BulkChangeNodePropertyKeyCommand.class);
+		maintenanceCommandMap.put("clearDatabase",              ClearDatabase.class);
+		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
+		maintenanceCommandMap.put("createLabels",               BulkCreateLabelsCommand.class);
+		maintenanceCommandMap.put("createLicense",              StructrLicenseManager.CreateLicenseCommand.class);
+		maintenanceCommandMap.put("deleteSpatialIndex",         DeleteSpatialIndexCommand.class);
+		maintenanceCommandMap.put("deployData",                 DeployDataCommand.class);
+		maintenanceCommandMap.put("deploy",                     DeployCommand.class);
+		maintenanceCommandMap.put("directFileImport",           DirectFileImportCommand.class);
+		maintenanceCommandMap.put("fixNodeProperties",          BulkFixNodePropertiesCommand.class);
+		maintenanceCommandMap.put("flushCaches",                FlushCachesCommand.class);
+		maintenanceCommandMap.put("letsencrypt",                RetrieveCertificateCommand.class);
+		maintenanceCommandMap.put("maintenanceMode",            MaintenanceModeCommand.class);
 		maintenanceCommandMap.put("manageDatabases",            ManageDatabasesCommand.class);
 		maintenanceCommandMap.put("manageThreads",              ManageThreadsCommand.class);
+		maintenanceCommandMap.put("migrateChangelog",           BulkMigrateChangelogCommand.class);
+		maintenanceCommandMap.put("rebuildIndex",               BulkRebuildIndexCommand.class);
+		maintenanceCommandMap.put("setNodeProperties",          BulkSetNodePropertiesCommand.class);
+		maintenanceCommandMap.put("setRelationshipProperties",  BulkSetRelationshipPropertiesCommand.class);
+		maintenanceCommandMap.put("setUuid",                    BulkSetUuidCommand.class);
+		maintenanceCommandMap.put("sync",                       SyncCommand.class);
+		maintenanceCommandMap.put("updateLicense",              StructrLicenseManager.UpdateLicenseCommand.class);
+		maintenanceCommandMap.put("updatelicensekey",           UpdateLicenseKeyCommand.class);
 	}
 
 	public MaintenanceResource() {
@@ -90,6 +100,24 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 			RESTParameter.forStaticString("maintenance", true),
 			RESTParameter.forPattern("name", "[a-zA-Z_]+", true)
 		);
+	}
+
+	public static List<Documentable> getMaintenanceCommands() {
+
+		final List<Documentable> maintenanceCommands = new LinkedList<>();
+		final SecurityContext securityContext        = SecurityContext.getSuperUserInstance();
+		final Services services                      = Services.getInstance();
+
+		for (final Class commandType : maintenanceCommandMap.values()) {
+
+			final Command command = services.command(securityContext, commandType);
+			if (command instanceof Documentable documentable) {
+
+				maintenanceCommands.add(documentable);
+			}
+		}
+
+		return maintenanceCommands;
 	}
 
 	@Override
@@ -122,15 +150,6 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		}
 
 		maintenanceCommandMap.put(key, task);
-	}
-
-	public static void registerMaintenanceCommand(final String key, final Class<? extends Command> command) {
-
-		if(maintenanceCommandMap.containsKey(key)) {
-			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");
-		}
-
-		maintenanceCommandMap.put(key, command);
 	}
 
 	public static Class getMaintenanceCommandClass(final String key) {

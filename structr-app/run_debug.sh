@@ -11,23 +11,44 @@ BASE_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 LOGS_DIR=$BASE_DIR/logs
 
 if [ ! -d "$LOGS_DIR" ]; then
-        mkdir $LOGS_DIR
+				mkdir $LOGS_DIR
 fi
 
-if [ -z "$MEMORY_OPTS" ]; then
+if [ -f "structr.conf" ]; then
+
+  # Read java heap config
+	MAX_HEAP=$(grep -E "^\s*application\.heap\.max_size\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+	MIN_HEAP=$(grep -E "^\s*application\.heap\.min_size\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+
+	# Read timezone
+	CONF_TIMEZONE=$(grep -E "^\s*application\.timezone\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+
+	if [ -n "$MAX_HEAP" ] || [ -n "$MIN_HEAP" ]; then
+		MEMORY_OPTS=""
+		[ -n "$MIN_HEAP" ] && MEMORY_OPTS="-Xms${MIN_HEAP}"
+		[ -n "$MAX_HEAP" ] && MEMORY_OPTS="${MEMORY_OPTS} -Xmx${MAX_HEAP}"
+		MEMORY_OPTS=$(echo "$MEMORY_OPTS" | xargs)  # trim whitespace
+		echo "Using structr.conf memory settings: $MEMORY_OPTS"
+	fi
+elif [ -z "$MEMORY_OPTS" ]; then
 	MEMORY_OPTS="-Xms2g -Xmx8g"
 fi
 
+
 if [ -n "$STRUCTR_TIMEZONE" ]; then
-  export PROCESS_TZ=$STRUCTR_TIMEZONE
-  echo "Using user-provided timezone '$STRUCTR_TIMEZONE'"
+	export PROCESS_TZ=$STRUCTR_TIMEZONE
+	echo "Using user-provided timezone '$STRUCTR_TIMEZONE'"
+elif [ -n "$CONF_TIMEZONE" ]; then
+	export PROCESS_TZ=$CONF_TIMEZONE
+	echo "Using structr.conf timezone '$CONF_TIMEZONE'"
 elif [ -z "$TZ" ]; then
-  export PROCESS_TZ="UTC"
-  echo "Using default timezone '$PROCESS_TZ'"
+	export PROCESS_TZ="UTC"
+	echo "Using default timezone '$PROCESS_TZ'"
 else
-  export PROCESS_TZ=$TZ
-  echo "Using system TZ env timezone '$TZ'"
+	export PROCESS_TZ=$TZ
+	echo "Using system TZ env timezone '$TZ'"
 fi
+
 echo "Current directory: $(pwd)"
 # start Structr
 

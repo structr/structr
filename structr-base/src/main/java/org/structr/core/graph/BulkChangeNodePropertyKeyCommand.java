@@ -25,7 +25,9 @@ import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -123,5 +125,60 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "changeNodePropertyKey";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Migrates property values from one property key to another.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command can for example be used to move all name values to a description property.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("oldKey", "source key"),
+			Parameter.mandatory("newKey", "target key")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

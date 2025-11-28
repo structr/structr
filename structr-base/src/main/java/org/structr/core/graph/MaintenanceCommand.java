@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Documentable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,7 +34,7 @@ import java.util.Map;
  *
  *
  */
-public interface MaintenanceCommand {
+public interface MaintenanceCommand extends Documentable {
 
 	String COMMAND_TYPE_KEY         = "type";
 	String COMMAND_SUBTYPE_KEY      = "subtype";
