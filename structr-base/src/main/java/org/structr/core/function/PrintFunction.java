@@ -19,6 +19,8 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -58,8 +60,8 @@ public class PrintFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${print(objects...)}. Example: ${print(this.name, \"test\")}"),
-			Usage.javaScript("Usage: ${{Structr.print(objects...)}}. Example: ${{Structr.print(Structr.get('this').name, \"test\")}}")
+				Usage.structrScript("Usage: ${print(objects...)}. Example: ${print(this.name, 'test')}"),
+				Usage.javaScript("Usage: ${{ $.print(objects...)}}. Example: ${{ $.print($.get('this').name, 'test') }}")
 		);
 	}
 
@@ -70,6 +72,22 @@ public class PrintFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Prints the string representation of all of the given objects into the page rendering buffer. This method is often used in conjunction with `each()` to create rendering output for a collection of entities etc. in scripting context.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${print('Hello, world!')}"),
+				Example.javaScript("${{ $.print('Hello, world!') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("objects", "Objects that will be printed into the page rendering buffer")
+		);
 	}
 }

@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -89,8 +91,8 @@ public class ParseDateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${parse_date(value, pattern)}. Example: ${parse_date(\"2014-01-01\", \"yyyy-MM-dd\")}"),
-			Usage.javaScript("Usage: ${{Structr.parseDate(value, pattern)}}. Example: ${{Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\")}}")
+				Usage.structrScript("Usage: ${parse_date(value, pattern)}. Example: ${parse_date('2014-01-01', 'yyyy-MM-dd')}"),
+				Usage.javaScript("Usage: ${{ $.parseDate(value, pattern) }}. Example: ${{ $.parseDate('2014-01-01', 'yyyy-MM-dd') }}")
 		);
 	}
 
@@ -101,6 +103,23 @@ public class ParseDateFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Parses the given string according to the given pattern and returns a date object. This method is the inverse of <a href='#date_format'>date_format()</a>.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${parse_date('2015-12-12', 'yyyy-MM-dd')}"),
+				Example.javaScript("${{ $.parse_date('2015-12-12', 'yyyy-MM-dd') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "date string"),
+				Parameter.mandatory("pattern", "date pattern")
+		);
 	}
 }
