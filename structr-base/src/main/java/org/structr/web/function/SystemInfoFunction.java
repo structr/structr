@@ -28,6 +28,7 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeService;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -65,30 +66,6 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 		}
 
 		return systemInfo;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-		return List.of(
-			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info."),
-			Usage.structrScript("Usage: ${system_info([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.")
-		);
-	}
-
-	@Override
-	public String getShortDescription() {
-		return "Returns information about the system.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return "";
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		// empty signature, no parameters
-		return Signature.forAllScriptingLanguages("");
 	}
 
 	public static Map getSystemInfo () {
@@ -159,4 +136,49 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 
 		return info;
 	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info."),
+			Usage.structrScript("Usage: ${system_info([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Returns information about the system.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Returns a number of system parameters.
+		
+		| Key | Value |
+		| --- | --- |
+		| now | Current time in ms |
+		| uptime | Time in ms since the application started |
+		| runtime | Version string of the java runtime |
+		| counts | number of nodes and relationships in the database (if connected) |
+		| caches | Size and max size of the node/relationship/localizations caches |
+		| memory | Memory information gathered from the runtime and from management beans (in bytes) |
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript(" ${ system_info() }"),
+				Example.javaScript("${{ $.system_info() }}")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
+	}
+
+
 }

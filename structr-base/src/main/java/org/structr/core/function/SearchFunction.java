@@ -26,6 +26,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -113,8 +115,8 @@ public class SearchFunction extends AbstractQueryFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}"),
-			Usage.javaScript("Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}")
+			Usage.structrScript("Usage: ${search(type, key, value)}."),
+			Usage.javaScript("Usage: ${{Structr.search(type, key, value)}}.")
 		);
 	}
 
@@ -125,6 +127,38 @@ public class SearchFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		The `search()` method is very similar to `find()`, except that it is case-insensitive / inexact. It returns a collection of entities, 
+		which can be empty if none of the existing nodes or relationships matches the given search parameters.
+		`search()` accepts several different parameter combinations, whereas the first parameter is always the name of 
+		the type to retrieve from the database. The second parameter can either be a map (e.g. a result from nested function calls)
+		or a list of (key, value) pairs. Calling `search()` with only a single parameter will return all the nodes of the  
+		given type (which might be dangerous if there are many of them in the database).
+		
+		For more examples see `find()`.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+				// For this example, we assume that there are three users in the database: [admin, tester1, tester2]
+				${search('User')}
+				> [7379af469cd645aebe1a3f8d52b105bd, a05c044697d648aefe3ae4589af305bd, 505d0d469cd645aebe1a3f8d52b105bd]
+				${search('User', 'name', 'test')}
+				> [a05c044697d648aefe3ae4589af305bd, 505d0d469cd645aebe1a3f8d52b105bd]
+				"""),
+				Example.javaScript("${{ $.search('User', 'name', 'abc')} }")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("type", "type to return (includes inherited types"),
+				Parameter.optional("predicates", "list of predicates"),
+				Parameter.optional("uuid", "uuid, makes the function return **a single object**")
+		);
 	}
 }

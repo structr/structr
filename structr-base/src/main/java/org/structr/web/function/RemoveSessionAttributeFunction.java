@@ -24,8 +24,10 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -77,8 +79,8 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${remove_session_attribute(key)}. Example: ${remove_session_attribute('do_no_track')}"),
-			Usage.javaScript("Usage: ${{Structr.removeSessionAttribute(key)}}. Example: ${{Structr.removeSessionAttribute('do_not_track')}}")
+			Usage.structrScript("Usage: ${remove_session_attribute(key)}. Example: "),
+			Usage.javaScript("Usage: ${{Structr.removeSessionAttribute(key)}}. Example: $")
 		);
 	}
 
@@ -90,5 +92,22 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+				Example.structrScript("${remove_session_attribute('do_no_track')}"),
+				Example.javaScript("${{ $.removeSessionAttribute('do_not_track') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "key to remove from session")
+				);
 	}
 }

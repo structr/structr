@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -68,18 +70,36 @@ public class StrReplaceFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}. Example: ${{ $.strReplace('Hello Wrlod!', 'Wrlod', 'World') }}"),
-			Usage.structrScript("Usage: ${str_replace(subject, search, replacement)}. Example: ${str_replace('Hello Wrlod!', 'Wrlod', 'World')}")
+			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}."),
+			Usage.structrScript("Usage: ${str_replace(subject, search, replacement)}.")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Replaces each substring of the subject that matches the given regular expression with the given replacement.";
+		return "Replaces **each** substring of the subject that matches the given regular expression with the given replacement.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${str_replace('Hello Wrlod!', 'Wrlod', 'World')}"),
+				Example.javaScript("${{ $.str_replace('Hello Wrlod!', 'Wrlod', 'World') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("subject", "subject string"),
+				Parameter.mandatory("search", "search string"),
+				Parameter.mandatory("replacement", "replacement string")
+				);
 	}
 }

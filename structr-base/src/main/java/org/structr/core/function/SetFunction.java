@@ -31,6 +31,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -141,8 +143,8 @@ public class SetFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}. Example: ${set(this, 'email', lower(this.email))}"),
-			Usage.javaScript("Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}. Example: ${{ $.set(this, { 'email': $.lower($.this.email) } ) }}")
+			Usage.structrScript("Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}."),
+			Usage.javaScript("Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}.")
 		);
 	}
 
@@ -153,6 +155,49 @@ public class SetFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Sets the passed values for the given property keys on the specified entity, using the security context of the current user.
+		`set()` accepts several different parameter combinations, where the first parameter is always a graph object. 
+		The second parameter can either be a list of (key, value) pairs, a JSON-coded string (to accept return values of the 
+		`geocode()` function) or a map (e.g. a result from nested function calls or a simple map built in serverside JavaScript).
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${set(user, 'name', 'new-user-name', 'eMail', 'new@email.com')}"),
+				Example.structrScript("${set(page, 'name', 'my-page-name')}"),
+				Example.javaScript("""
+						${{
+						    let me = $.me;
+						    $.set(me, {name: 'my-new-name', eMail: 'new@email.com'});
+						}}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "node to be updated"),
+				Parameter.mandatory("map", "parameterMap (only JavaScript)"),
+				Parameter.mandatory("key1", "key1 (only StructrScript)"),
+				Parameter.mandatory("value1", "value for key1 (only StructrScript)"),
+				Parameter.mandatory("key2", "key2 (only JavaScript)"),
+				Parameter.mandatory("value2", "value for key1 (only StructrScript)"),
+				Parameter.mandatory("keyN", "keyN (only JavaScript)"),
+				Parameter.mandatory("valueN", "value for keyN (only StructrScript)")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.",
+				"When using the `set()` method on an entity that is not writable by the current user, a 403 Forbidden HTTP error will be thrown. In this case, use `set_privileged()` which will execute the `set()` operation with elevated privileges."
+		);
 	}
 }

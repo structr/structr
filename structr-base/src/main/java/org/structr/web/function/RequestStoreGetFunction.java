@@ -21,6 +21,8 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -63,8 +65,8 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${request_store_get(key)}. Example: ${request_store_get('do_no_track')}"),
-			Usage.javaScript("Usage: ${{ $.requestStoreGet(key); }}. Example: ${{ $.requestStoreGet('do_not_track'); }}")
+			Usage.structrScript("Usage: ${request_store_get(key)}."),
+			Usage.javaScript("Usage: ${{ $.requestStoreGet(key); }}.")
 		);
 	}
 
@@ -77,4 +79,21 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	public String getLongDescription() {
 		return "";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${request_store_get('do_no_track')}"),
+				Example.javaScript("${{ $.requestStoreGet('do_not_track'); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "stored key")
+				);
+	}
+
 }

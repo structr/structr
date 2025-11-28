@@ -24,6 +24,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -74,8 +76,8 @@ public class SplitFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.split(str[, separator]) }}. Example: ${{ $.split($.this.commaSeparatedItems) }}"),
-			Usage.structrScript("Usage: ${split(str[, separator])}. Example: ${split(this.commaSeparatedItems)}")
+			Usage.javaScript("Usage: ${{ $.split(str[, separator]) }}."),
+			Usage.structrScript("Usage: ${split(str[, separator])}.")
 		);
 	}
 
@@ -86,6 +88,40 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Uses the given separator to split the given string into a collection of strings. This is the opposite of `join()`.	
+		The default separator is a regular expression which splits the string at ANY of the following characters: `,;(whitespace)`
+		The optional second parameter is used as literal separator, it is NOT used as a regex. To use a regular expression to split 
+		a string, see `split_regex()`.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${split('one,two,three,four')}"),
+				Example.structrScript("${split('one;two;three;four')}"),
+				Example.structrScript("${split('one two three four')}"),
+				Example.structrScript("${split('one::two::three::four', ':')}"),
+				Example.structrScript("${split('one.two.three.four', '.')}"),
+				Example.structrScript("${split('one,two;three four')}"),
+				Example.javaScript("${{ $.split('one-two-three-four', '-') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "string to split"),
+				Parameter.optional("separator", "separator string")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Adjacent separators are treated as one separator"
+		);
 	}
 }

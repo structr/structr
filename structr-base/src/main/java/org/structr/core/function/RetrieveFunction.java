@@ -24,6 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Documentable;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -68,8 +70,8 @@ public class RetrieveFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}"),
-			Usage.javaScript("Usage: ${{Structr.retrieve(key)}}. Example: ${{Structr.retrieve('tmpUser')}}")
+			Usage.structrScript("Usage: ${retrieve(key)}."),
+			Usage.javaScript("Usage: ${{Structr.retrieve(key)}}.")
 		);
 	}
 
@@ -80,7 +82,28 @@ public class RetrieveFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Retrieves the value previously stored under the given key in the current request context. 
+		This method can be used to obtain the results of a previous computation step etc. and is often used to provide 
+		some sort of "variables" in the scripting context. See `store()` for the inverse operation.
+		Additionally, the `retrieve()` function is used to retrieve the parameters supplied to the execution of a custom method.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript(" ${retrieve('tmpUser')}"),
+				Example.javaScript("${{ $.retrieve('tmpUser') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("url", "key to retrieve")
+				);
 	}
 
 	@Override

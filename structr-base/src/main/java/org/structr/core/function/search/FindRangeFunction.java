@@ -20,6 +20,8 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -99,6 +101,46 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	@Override
 	public boolean isHidden() {
 		return true;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${find('Project', 'taskCount', range(0, 10))}"),
+				Example.structrScript("${find('Project', 'taskCount', range(0, 10, true, false))}"),
+				Example.structrScript("${find('Project', 'taskCount', range(0, 10, false, false))}"),
+				Example.javaScript("""
+						${{ $.find('Project').forEach(p => $.print(p.index + ", ")) }}
+						> 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+						"""),
+				Example.javaScript("""
+						${{ $.find('Project', { index: $.predicate.range(2, 5) }).forEach(p => $.print(p.index + ", ")); }}
+						> 2, 3, 4, 5,
+						"""),
+				Example.javaScript("""
+						${{ $.find('Project', { index: $.predicate.range(2, 5, false, false) }).forEach(p => $.print(p.index + ", ")); }}
+						> 3, 4,
+						"""),
+				Example.javaScript("""
+						${{ $.find('Article', 'createdDate', $.predicate.range(
+									$.parseDate('01.12.2024 00:00', 'dd.MM.yyyy hh:mm'), 
+									$.parseDate('03.12.2024 23:59', 'dd.MM.yyyy hh:mm')
+							)
+						); }}
+						""", "Range on datetime attribute")
+
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("start", "start of range interval"),
+				Parameter.mandatory("end", "end of range interval"),
+				Parameter.optional("includeStart", "true to include startpoint of given interval - default: false"),
+				Parameter.optional("includeEnd", "true to include endpoint of given interval - default: false")
+				);
 	}
 
 }

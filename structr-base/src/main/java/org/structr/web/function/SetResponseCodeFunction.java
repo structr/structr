@@ -24,6 +24,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -79,8 +81,8 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_response_code(int)}. Example: ${set_response_header(302)}"),
-			Usage.javaScript("Usage: ${{Structr.setResponseCode(int)}}. Example: ${{Structr.setResponseHeader(302)}}")
+			Usage.structrScript("Usage: ${set_response_code(int)}."),
+			Usage.javaScript("Usage: ${{Structr.setResponseCode(int)}}.")
 		);
 	}
 
@@ -91,6 +93,22 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Very useful in conjunction with `set_response_header()` for redirects.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${set_response_code(302)}"),
+				Example.javaScript("${{ $.set_response_code(302) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("code", "HTTP response code")
+				);
 	}
 }

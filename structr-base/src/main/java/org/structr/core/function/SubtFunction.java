@@ -24,6 +24,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -80,7 +82,7 @@ public class SubtFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${subt(value1, value2)}. Example: ${subt(5, 2)}")
+			Usage.structrScript("Usage: ${subt(value1, value2)}.")
 		);
 	}
 
@@ -91,11 +93,30 @@ public class SubtFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${subt(5, 2)}"),
+				Example.structrScript("${subt('5', '2')}"),
+				Example.javaScript("${{ $.subt(5, 2)  }}"),
+				Example.javaScript("${{ $.subt('5', '2')  }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("val1", "minuend"),
+				Parameter.mandatory("val2", "subtrahend")
+				);
 	}
 }
