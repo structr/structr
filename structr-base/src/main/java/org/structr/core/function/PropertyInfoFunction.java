@@ -91,8 +91,8 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}"),
-				Usage.javaScript("Usage: ${{ $.propertyInfo(type, name) }}. Example ${{ $.propertyInfo('User', 'name') }}")
+				Usage.structrScript("Usage: ${property_info(type, name)}."),
+				Usage.javaScript("Usage: ${{ $.propertyInfo(type, name) }}.")
 		);
 	}
 

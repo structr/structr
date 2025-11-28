@@ -83,8 +83,8 @@ public class QuotFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${quot(value1, value2)}. Example: ${quot(5, 2)}"),
-				Usage.javaScript("Usage: ${{ $.quot(value1, value2) }}. Example ${{ $.quot(5, 2) }}")
+				Usage.structrScript("Usage: ${quot(value1, value2)}."),
+				Usage.javaScript("Usage: ${{ $.quot(value1, value2) }}.")
 
 		);
 	}

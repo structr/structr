@@ -60,8 +60,8 @@ public class PrintFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${print(objects...)}. Example: ${print(this.name, 'test')}"),
-				Usage.javaScript("Usage: ${{ $.print(objects...)}}. Example: ${{ $.print($.get('this').name, 'test') }}")
+				Usage.structrScript("Usage: ${print(objects...)}."),
+				Usage.javaScript("Usage: ${{ $.print(objects...)}}.")
 		);
 	}
 
@@ -79,8 +79,10 @@ public class PrintFunction extends CoreFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${print('Hello, world!')}"),
-				Example.javaScript("${{ $.print('Hello, world!') }}")
-		);
+				Example.structrScript("${print(this.name, 'test')}"),
+				Example.javaScript("${{ $.print('Hello, world!') }}"),
+				Example.javaScript("${{ $.print($.get('this').name, 'test') }}")
+				);
 	}
 
 	@Override

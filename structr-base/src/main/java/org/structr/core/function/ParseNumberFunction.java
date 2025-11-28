@@ -93,8 +93,8 @@ public class ParseNumberFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${parse_number(value, locale)}. Example: ${parse_number('12345.6789', 'en')}"),
-				Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}. Example: ${{ $.parseNumber('12345.6789', 'en') }}")
+				Usage.structrScript("Usage: ${parse_number(value, locale)}."),
+				Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}.")
 		);
 	}
 
