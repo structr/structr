@@ -90,6 +90,10 @@ public class Settings {
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
 
+    public static final Setting<String> JavaHeapMin                 = new StringSetting(generalGroup, "Application", "application.heap.min_size", "1g", "Minimum Java heap size (-Xms). Examples: 512m, 1g, 2g. Note: Changes require a restart of Structr.");
+    public static final Setting<String> JavaHeapMax                 = new StringSetting(generalGroup, "Application", "application.heap.max_size", "4g", "Maximum Java heap size (-Xmx). Examples: 2g, 4g, 8g. Note: Changes require a restart of Structr.");
+    public static final Setting<String> ApplicationTimezone         = new StringSetting(generalGroup, "Application", "application.timezone", "", "Application timezone (e.g. UTC, Europe/Berlin). If not set, falls back to system timezone or UTC. Note: Changes require a restart of Structr.");
+
 	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Settings.getAllowedUUIDv4FormatOptions(), """
   		Configures which UUIDv4 types are allowed: With dashes, without dashes or both.<br>
   		<br><strong>WARNING</strong>: Allowing both UUIDv4 formats to be accepted is not supported and strongly recommended against! It should only be used for temporary migration scenarios!<br>
