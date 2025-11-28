@@ -1436,6 +1436,11 @@ let _Pages = {
 		let dataTypeSelect                   = container.querySelector('#data-type-select');
 		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
 		let dataTypeInput                    = container.querySelector('#data-type-input');
+
+		let flowSelect                       = container.querySelector('#flow-select');
+		let flowSelectUl                     = flowSelect.parentNode.querySelector('ul');
+		let flowInput                        = container.querySelector('#flow-input');
+
 		let methodNameInput                  = container.querySelector('#method-name-input');
 
 		let idExpressionInput                = container.querySelector('#id-expression-input');
@@ -1475,11 +1480,16 @@ let _Pages = {
 			dataTypeSelectUl.insertAdjacentHTML('beforeend', schemaNodes.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
 		}, false, null, 'id,name,isBuiltinType');
 
+		Command.query('FlowContainer', 2000, 1, 'name', 'asc', null, (flows) => {
+			flowSelect.insertAdjacentHTML('beforeend', flows.map(flow => `<option>${flow.name}</option>`).join(''));
+			flowSelectUl.insertAdjacentHTML('beforeend', flows.map(flow => `<li data-value="${flow.name}">${flow.name}</li>`).join(''));
+		}, false, null, 'id,name');
+
 		if (entity.triggeredActions && entity.triggeredActions.length) {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,flow,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,successNotificationsDelay,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,failureNotificationsDelay,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent,dialogType,dialogTitle,dialogText', (result) => {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
@@ -1612,6 +1622,68 @@ let _Pages = {
 			});
 		}
 
+		// combined flow select and input
+		{
+			let showFlowList = () => { flowSelectUl.classList.remove('hidden'); };
+			let hideFlowList = () => { flowSelectUl.classList.add('hidden'); };
+
+			flowSelect.addEventListener('change', e => {
+				flowInput.value = flowSelect.value;
+			});
+
+			flowSelect.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+				showFlowList();
+			});
+
+			flowSelectUl.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+			});
+
+			flowSelectUl.addEventListener('click', e => {
+				if (e.target.dataset.value) {
+					flowInput.value  = e.target.dataset.value;
+					flowSelect.value = flowInput.value;
+
+					saveEventMappingData(entity, flowSelectUl);
+
+					hideFlowList();
+				}
+			});
+
+			container.addEventListener('mousedown', e => {
+				if (e.defaultPrevented === false) {
+					hideFlowList();
+				}
+			});
+
+			flowInput.addEventListener('keyup', e => {
+				const el  = e.target;
+				const key = e.key;
+
+				if (key === 'Escape') {
+
+					flowSelectUl.classList.add('hidden');
+					return;
+
+				} else if (key === 'Enter') {
+
+					saveEventMappingData(entity, flowInput);
+					flowSelectUl.classList.add('hidden');
+					return;
+				}
+
+				for (let child of flowSelectUl.children) {
+
+					let shouldHide = !(child.dataset.value && child.dataset.value.match(el.value));
+					child.classList.toggle('hidden', shouldHide);
+				}
+
+				showFlowList();
+			});
+		}
+
+
 		addParameterMappingButton.addEventListener('click', e => {
 
 			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
@@ -1699,6 +1771,9 @@ let _Pages = {
 			methodNameInput.value                  = actionMapping.method;
 			dataTypeSelect.value                   = actionMapping.dataType;
 			dataTypeInput.value                    = actionMapping.dataType ?? '';
+
+			flowSelect.value                       = actionMapping.flow;
+			flowInput.value                        = actionMapping.flow ?? '';
 
 			idExpressionInput.value                = actionMapping.idExpression;
 
@@ -2124,6 +2199,7 @@ let _Pages = {
 				event:                       eventInput?.value ?? eventSelect?.value,
 				action:                      actionSelectElement?.value,
 				method:                      methodNameInput?.value,
+				flow:                        flowInput?.value ?? flowSelect?.value,
 				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
 				idExpression:                idExpressionInput.value,
 				dialogType:                  dialogTypeSelect.value,
@@ -4126,6 +4202,17 @@ let _Pages = {
 							</div>
 						</div>
 
+						<div class="hidden options-method em-action-element em-action-flow">
+							<div class="relative">
+								<label class="block mb-2" for="flow-input" data-comment="Select a flow">Enter or select name of the flow to execute</label>
+								<input type="text" class="combined-input-select-field" id="flow-input" placeholder="Flow">
+								<select class="required combined-input-select-field" id="flow-select">
+									<option value="">Select flow</option>
+								</select>
+								<ul class="combined-input-select-field hidden"></ul>
+							</div>
+						</div>
+						
 						<div class="col-span-2 hidden em-event-element em-event-drop">
 							<h3>Drag & Drop</h3>
 							<div>

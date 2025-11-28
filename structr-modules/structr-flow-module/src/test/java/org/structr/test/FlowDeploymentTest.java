@@ -44,7 +44,7 @@ public class FlowDeploymentTest extends DeploymentTestBase {
 
 		final Map<String, Object> flowParameters = new HashMap<>();
 		final PropertyKey<String> nameKey        = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
-		Iterable<Object> result                  = null;
+		Object result                            = null;
 		FlowContainer container                  = null;
 		String containerUuid                     = null;
 

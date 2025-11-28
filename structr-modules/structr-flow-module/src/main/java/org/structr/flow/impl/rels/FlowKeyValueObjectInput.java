@@ -53,7 +53,7 @@ public class FlowKeyValueObjectInput extends AbstractRelationshipTraitDefinition
 
 	@Override
 	public Relation.Multiplicity getTargetMultiplicity() {
-		return Relation.Multiplicity.One;
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override

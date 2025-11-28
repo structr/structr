@@ -98,7 +98,7 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 		wrappedObject.setProperty(traits.key(FlowContainerTraitDefinition.REPEATER_NODES_PROPERTY), repeaterNodes);
 	}
 
-	public Iterable<Object> evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
+	public Object evaluate(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException {
 
 		final FlowEngine engine = new FlowEngine();
 		final Context context   = new Context();
@@ -119,22 +119,10 @@ public class FlowContainer extends AbstractNodeTraitWrapper implements Deployabl
 				logger.error("Unexpected exception in flow [" + getEffectiveName() + "]:" + flowResult.getError().getMessage());
 			}
 
-			final List<Object> result = new ArrayList<>();
-			result.add(flowResult.getError());
-			return result;
+			return flowResult.getError();
 		}
 
-		if (flowResult.getResult() instanceof Iterable) {
-
-			return (Iterable)flowResult.getResult();
-
-		} else {
-
-			final List<Object> result = new ArrayList<>();
-			result.add(flowResult.getResult());
-			return result;
-		}
-
+		return flowResult.getResult();
 	}
 
 	public Iterable<FlowBaseNode> getFlowNodes(final SecurityContext securityContext) {
