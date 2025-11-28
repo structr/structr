@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -59,6 +60,22 @@ public class RandomUUIDFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "New in v3.6: Returns a new random UUID, a string with 32 characters [0-9a-f].";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${random_uuid()}"),
+				Example.javaScript("""
+						${{
+						    const newId = $.randomUuid();
+						    return newId;
+						}}
+						""")
+		);
+	}
+
+
+
 }
