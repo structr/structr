@@ -44,7 +44,7 @@ public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable
 
 	private final ActionContext actionContext;
 
-	private final String PARAMETER_ERROR_MESSAGE = "Invalid parameter(s) for do_as function. Expected (non-null): Principal, Executable";
+	private final String PARAMETER_ERROR_MESSAGE = "Invalid parameter(s) for doAs function. Expected (non-null): Principal, Executable";
 
 	public DoAsFunction(final ActionContext actionContext) {
 

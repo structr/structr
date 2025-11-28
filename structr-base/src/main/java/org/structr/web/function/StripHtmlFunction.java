@@ -33,7 +33,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "strip_html";
+		return "stripHtml";
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${strip_html(html)}."),
+			Usage.structrScript("Usage: ${stripHtml(html)}."),
 			Usage.javaScript("Usage: ${{$.stripHtml(html)}}.")
 		);
 	}
@@ -83,8 +83,8 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${strip_html('<h3><p>Clean me!</p></h3>')}"),
-				Example.javaScript("${{ $.strip_html('<h3><p>Clean me!</p></h3>') }}")
+				Example.structrScript("${stripHtml('<h3><p>Clean me!</p></h3>')}"),
+				Example.javaScript("${{ $.stripHtml('<h3><p>Clean me!</p></h3>') }}")
 		);
 	}
 
@@ -99,7 +99,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"Similar results can be produced by `str_replace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`"
+				"Similar results can be produced by `strReplace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`"
 		);
 	}
 }

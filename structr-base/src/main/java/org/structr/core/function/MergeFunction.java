@@ -96,7 +96,7 @@ public class MergeFunction extends CoreFunction {
 	public List<String> getNotes() {
 
 		return List.of(
-			"This function will not remove duplicate entries. Use `merge_unique()` for that."
+			"This function will not remove duplicate entries. Use `mergeUnique()` for that."
 		);
 	}
 }

@@ -33,7 +33,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "evaluate_script";
+		return "evaluateScript";
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 			String script = "${" + sources[1].toString().trim() + "}";
 			GraphObject entity = (GraphObject)sources[0];
 
-			return Scripting.replaceVariables(ctx, entity, script, "evaluate_script()");
+			return Scripting.replaceVariables(ctx, entity, script, "evaluateScript()");
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -61,7 +61,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${evaluate_script(entity, script)}"),
+			Usage.structrScript("Usage: ${evaluateScript(entity, script)}"),
 			Usage.javaScript("Usage: ${{ $.evaluateScript(entity, script); }}")
 		);
 	}
@@ -88,7 +88,7 @@ public class EvaluateScriptFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${evaluate_script(me, 'print(this.name)')}", "Print the name of the current user")
+			Example.structrScript("${evaluateScript(me, 'print(this.name)')}", "Print the name of the current user")
 		);
 	}
 

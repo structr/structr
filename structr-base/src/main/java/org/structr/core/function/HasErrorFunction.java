@@ -29,7 +29,7 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "has_error";
+		return "hasError";
 	}
 
 	@Override
@@ -47,8 +47,8 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_error()}"),
-			Usage.javaScript("Usage: ${{ Structr.has_error() }}")
+			Usage.structrScript("Usage: ${hasError()}"),
+			Usage.javaScript("Usage: ${{ Structr.hasError() }}")
 		);
 	}
 

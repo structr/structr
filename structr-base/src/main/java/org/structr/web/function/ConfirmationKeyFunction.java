@@ -29,7 +29,7 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "confirmation_key";
+		return "confirmationKey";
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${confirmation_key()}. Example: ${confirmation_key()}"),
+			Usage.structrScript("Usage: ${confirmationKey()}. Example: ${confirmationKey()}"),
 			Usage.javaScript("Usage: ${{ $.confirmationKey() }}. Example: ${{ $.confirmationKey() }}")
 		);
 	}

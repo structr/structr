@@ -38,7 +38,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "enum_info";
+		return "enumInfo";
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${enum_info(type, enumProperty[, raw])}. Example ${enum_info('Document', 'documentType')}"),
+			Usage.structrScript("Usage: ${enumInfo(type, enumProperty[, raw])}. Example ${enumInfo('Document', 'documentType')}"),
 			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty[, raw])}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
 		);
 	}
@@ -158,7 +158,7 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 		return List.of(
 			Example.html("""
 			<select>
-				<option data-structr-meta-data-key="activityType" data-structr-meta-function-query="enum_info('Activity', 'activityType')">${activityType.value}</option>
+				<option data-structr-meta-data-key="activityType" data-structr-meta-function-query="enumInfo('Activity', 'activityType')">${activityType.value}</option>
 			</select>
 			""", "Configure an HTML select element with the enum options of a property")
 		);

@@ -40,7 +40,7 @@ public class LineStringsToPolygonsFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "line_strings_to_polygons";
+		return "lineStringsToPolygons";
 	}
 
 	@Override

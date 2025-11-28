@@ -35,7 +35,7 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 
 	@Override
 	public String getName() {
-		return "search_fulltext";
+		return "searchFulltext";
 	}
 
 	@Override
@@ -93,8 +93,8 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${search_fulltext(indexName, searchString)}. Example: ${search_fulltext(\"User_name\", \"abc\")}"),
-			Usage.javaScript("Usage: ${{Structr.searchFulltext(indexName, value)}}. Example: ${{Structr.searchFulltext(\"User_name\", \"abc\")}}")
+			Usage.structrScript("Usage: ${searchFulltext(indexName, searchString)}. Example: ${searchFulltext(\"UserName\", \"abc\")}"),
+			Usage.javaScript("Usage: ${{Structr.searchFulltext(indexName, value)}}. Example: ${{Structr.searchFulltext(\"UserName\", \"abc\")}}")
 		);
 	}
 

@@ -33,7 +33,7 @@ public class SetLocaleFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "set_locale";
+		return "setLocale";
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class SetLocaleFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_locale(locale)}. Example: ${set_locale('de_DE')}"),
+			Usage.structrScript("Usage: ${setLocale(locale)}. Example: ${setLocale('de_DE')}"),
 			Usage.javaScript("Usage: ${{ $.setLocale(locale); }}. Example: ${{ $.setLocale('de_DE'); }}")
 		);
 	}
@@ -93,7 +93,7 @@ public class SetLocaleFunction extends CoreFunction {
 
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${ (set_locale('de_DE'), date_format(now, 'E')) }", "Get name of current weekday in german.")
+				Example.structrScript("${ (setLocale('de_DE'), dateFormat(now, 'E')) }", "Get name of current weekday in german.")
 		);
 	}
 }

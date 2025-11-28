@@ -32,7 +32,7 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "enable_notifications";
+		return "enableNotifications";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${enable_notifications()}"),
+			Usage.structrScript("Usage: ${enableNotifications()}"),
 			Usage.javaScript("Usage: ${Structr.enableNotifications()}")
 		);
 	}
@@ -64,6 +64,6 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method can be used to re-enable the Websocket broadcast notifications disabled by the `disable_notifications()` function.";
+		return "This method can be used to re-enable the Websocket broadcast notifications disabled by the `disableNotifications()` function.";
 	}
 }

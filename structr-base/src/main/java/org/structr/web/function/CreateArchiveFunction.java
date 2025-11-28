@@ -45,7 +45,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "create_archive";
+		return "createArchive";
 	}
 
 	@Override
@@ -143,7 +143,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create_archive(archiveFileName, files [, customFileType])}. Example: ${create_archive('archive', find('File'))}"),
+			Usage.structrScript("Usage: ${createArchive(archiveFileName, files [, customFileType])}. Example: ${createArchive('archive', find('File'))}"),
 			Usage.javaScript("Usage: ${{Structr.createArchive(archiveFileName, files [, customFileType])}}. Example: ${{Structr.createArchive('archive', Structr.find('File'))}}")
 		);
 	}
@@ -171,7 +171,7 @@ public class CreateArchiveFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${create_archive('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
+			Example.structrScript("${createArchive('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
 			Example.javaScript("""
 			${{
 				// find a single folder with an absolute path

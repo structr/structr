@@ -173,7 +173,7 @@ public class IncludeFunction extends UiCommunityFunction {
 		1. be somewhere in the pages tree
 		2. be in the Shared Components
 
-		See also `include_child()` and `render()`.
+		See also `includeChild()` and `render()`.
 		""";
 	}
 

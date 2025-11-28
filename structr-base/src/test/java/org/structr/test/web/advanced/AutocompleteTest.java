@@ -339,10 +339,10 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEquals("Invalid autocomplete result", "this",                                  ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "abbr(string, maxLength[, abbr = '…'])", ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 		assertEquals("Invalid autocomplete result", "add(values...)",                        ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "add_header(name, value)",               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "add_labels(node, labels)",              ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "add_to_group(group, user)",             ((GraphObjectMap)result.get(i++)).toMap().get("text"));
-		assertEquals("Invalid autocomplete result", "ancestor_types(type [, blacklist ])",   ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "addHeader(name, value)",                ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "addLabels(node, labels)",               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "addToGroup(group, user)",               ((GraphObjectMap)result.get(i++)).toMap().get("text"));
+		assertEquals("Invalid autocomplete result", "ancestorTypes(type [, blacklist ])",    ((GraphObjectMap)result.get(i++)).toMap().get("text"));
 	}
 
 	void assertFirstResult(final String key, final String value, final List<GraphObject> result) {

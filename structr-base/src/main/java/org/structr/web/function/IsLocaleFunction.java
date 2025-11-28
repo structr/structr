@@ -32,7 +32,7 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "is_locale";
+		return "isLocale";
 	}
 
 	@Override
@@ -69,7 +69,7 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_locale(locales...)}"),
+			Usage.structrScript("Usage: ${isLocale(locales...)}"),
 			Usage.javaScript("Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}")
 		);
 	}
@@ -96,7 +96,7 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${is_locale('en_GB', 'en_US')}", "Check whether the current locale is an English variant")
+			Example.structrScript("${isLocale('en_GB', 'en_US')}", "Check whether the current locale is an English variant")
 		);
 	}
 

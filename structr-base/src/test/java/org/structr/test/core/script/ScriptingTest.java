@@ -790,11 +790,11 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid merge() result", "[1, 2, 3, 4, 5, 6, 7, 8]", Scripting.replaceVariables(ctx, testOne, "${merge(merge('1', '2', '3'), merge('4', '5', merge('6', '7', '8')))}"));
 			assertEquals("Invalid merge() result", "[1, 2, 3, 4, 5, 6, 1, 2, 3, 8]", Scripting.replaceVariables(ctx, testOne, "${ ( store('list', merge('1', '2', '3')), merge(retrieve('list'), merge('4', '5', merge('6', retrieve('list'), '8'))) )}"));
 
-			// merge_unique
-			assertEquals("Invalid merge_unique() result", "[one, two, three]", Scripting.replaceVariables(ctx, testOne, "${merge_unique('one', 'two', 'three', 'two')}"));
-			assertEquals("Invalid merge_unique() result", "[one, two, three]", Scripting.replaceVariables(ctx, testOne, "${merge_unique(merge_unique('one', 'two', 'three'), 'two', merge_unique('one', 'two', 'three'))}"));
-			assertEquals("Invalid merge_unique() result", "[1, 2, 3, 4, 5, 6, 7, 8]", Scripting.replaceVariables(ctx, testOne, "${merge_unique(merge_unique('1', '2', '3'), merge_unique('4', '5', merge_unique('6', '7', '8')))}"));
-			assertEquals("Invalid merge_unique() result", "[1, 2, 3, 4, 5, 6, 8]", Scripting.replaceVariables(ctx, testOne, "${ ( store('list', merge_unique('1', '2', '3')), merge_unique(retrieve('list'), merge_unique('4', '5', merge_unique('6', retrieve('list'), '8'))) )}"));
+			// mergeUnique
+			assertEquals("Invalid mergeUnique() result", "[one, two, three]", Scripting.replaceVariables(ctx, testOne, "${mergeUnique('one', 'two', 'three', 'two')}"));
+			assertEquals("Invalid mergeUnique() result", "[one, two, three]", Scripting.replaceVariables(ctx, testOne, "${mergeUnique(mergeUnique('one', 'two', 'three'), 'two', mergeUnique('one', 'two', 'three'))}"));
+			assertEquals("Invalid mergeUnique() result", "[1, 2, 3, 4, 5, 6, 7, 8]", Scripting.replaceVariables(ctx, testOne, "${mergeUnique(mergeUnique('1', '2', '3'), mergeUnique('4', '5', mergeUnique('6', '7', '8')))}"));
+			assertEquals("Invalid mergeUnique() result", "[1, 2, 3, 4, 5, 6, 8]", Scripting.replaceVariables(ctx, testOne, "${ ( store('list', mergeUnique('1', '2', '3')), mergeUnique(retrieve('list'), mergeUnique('4', '5', mergeUnique('6', retrieve('list'), '8'))) )}"));
 
 			// complement
 			assertEquals("Invalid complement() result", "[]", Scripting.replaceVariables(ctx, testOne, "${complement(merge('one', 'two', 'three'), 'one', merge('two', 'three', 'four'))}"));
@@ -827,20 +827,20 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid split() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one-two-three\", \"-\"))}"));
 			assertEquals("Invalid split() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${split(this.alwaysNull)}"));
 
-			// split_regex
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one	two	three\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\", \";\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\", \",\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one.two.three\", \"\\.\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\", \" \"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one+two+three\", \"+\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one|two|three\", \"|\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one::two::three\", \"::\"))}"));
-			assertEquals("Invalid split_regex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one-two-three\", \"-\"))}"));
-			assertEquals("Invalid split_regex() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${split(this.alwaysNull)}"));
+			// splitRegex
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one	two	three\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one;two;three\", \";\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one,two,three\", \",\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one.two.three\", \"\\.\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one two three\", \" \"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one+two+three\", \"+\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one|two|three\", \"|\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one::two::three\", \"::\"))}"));
+			assertEquals("Invalid splitRegex() result", "onetwothree", Scripting.replaceVariables(ctx, testOne, "${concat(split(\"one-two-three\", \"-\"))}"));
+			assertEquals("Invalid splitRegex() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${split(this.alwaysNull)}"));
 
 			// abbr
 			assertEquals("Invalid abbr() result", "oneStringt…", Scripting.replaceVariables(ctx, testOne, "${abbr(concat(\"one\", this.aString, \"three\"), 10)}"));
@@ -864,11 +864,11 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid num() result", "", Scripting.replaceVariables(ctx, testOne, "${num(this.aString)}"));
 			assertEquals("Invalid num() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${num(this.alwaysNull)}"));
 
-			// index_of
-			assertEquals("Invalid index_of() result", "19", Scripting.replaceVariables(ctx, testOne, "${index_of(this.name, 'for')}"));
-			assertEquals("Invalid index_of() result", "-1", Scripting.replaceVariables(ctx, testOne, "${index_of(this.name, 'entity')}"));
-			assertEquals("Invalid index_of() result", "19", Scripting.replaceVariables(ctx, testOne, "${index_of('a-nice-little-name-for-my-test-object', 'for')}"));
-			assertEquals("Invalid index_of() result", "-1", Scripting.replaceVariables(ctx, testOne, "${index_of('a-nice-little-name-for-my-test-object', 'entity')}"));
+			// indexOf
+			assertEquals("Invalid indexOf() result", "19", Scripting.replaceVariables(ctx, testOne, "${indexOf(this.name, 'for')}"));
+			assertEquals("Invalid indexOf() result", "-1", Scripting.replaceVariables(ctx, testOne, "${indexOf(this.name, 'entity')}"));
+			assertEquals("Invalid indexOf() result", "19", Scripting.replaceVariables(ctx, testOne, "${indexOf('a-nice-little-name-for-my-test-object', 'for')}"));
+			assertEquals("Invalid indexOf() result", "-1", Scripting.replaceVariables(ctx, testOne, "${indexOf('a-nice-little-name-for-my-test-object', 'entity')}"));
 
 			// contains
 			assertEquals("Invalid contains() result", "true", Scripting.replaceVariables(ctx, testOne, "${contains(this.name, 'for')}"));
@@ -880,15 +880,15 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid contains() result", "true", Scripting.replaceVariables(ctx, testOne, "${contains(this.manyToManyTestSixs, first(find('TestSix')))}"));
 			assertEquals("Invalid contains() result", "false", Scripting.replaceVariables(ctx, testOne, "${contains(this.manyToManyTestSixs, first(find('TestFive')))}"));
 
-			// starts_with
-			assertEquals("Invalid starts_with() result", "true", Scripting.replaceVariables(ctx, testOne, "${starts_with(null, null)}"));
-			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(null, 'abc')}"));
-			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with('abcdef', null)}"));
-			assertEquals("Invalid starts_with() result", "true", Scripting.replaceVariables(ctx, testOne, "${starts_with('abcdef', 'abc')}"));
-			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with('ABCDEF', 'abc')}"));
-			assertEquals("Invalid starts_with() result", "true", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('a', 'b'), 'a')}"));
-			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('c', 'a', 'b'), 'a')}"));
-			assertEquals("Invalid starts_with() result", "false", Scripting.replaceVariables(ctx, testOne, "${starts_with(merge('abc', 'b'), 'a')}"));
+			// startsWith
+			assertEquals("Invalid startsWith() result", "true", Scripting.replaceVariables(ctx, testOne, "${startsWith(null, null)}"));
+			assertEquals("Invalid startsWith() result", "false", Scripting.replaceVariables(ctx, testOne, "${startsWith(null, 'abc')}"));
+			assertEquals("Invalid startsWith() result", "false", Scripting.replaceVariables(ctx, testOne, "${startsWith('abcdef', null)}"));
+			assertEquals("Invalid startsWith() result", "true", Scripting.replaceVariables(ctx, testOne, "${startsWith('abcdef', 'abc')}"));
+			assertEquals("Invalid startsWith() result", "false", Scripting.replaceVariables(ctx, testOne, "${startsWith('ABCDEF', 'abc')}"));
+			assertEquals("Invalid startsWith() result", "true", Scripting.replaceVariables(ctx, testOne, "${startsWith(merge('a', 'b'), 'a')}"));
+			assertEquals("Invalid startsWith() result", "false", Scripting.replaceVariables(ctx, testOne, "${startsWith(merge('c', 'a', 'b'), 'a')}"));
+			assertEquals("Invalid startsWith() result", "false", Scripting.replaceVariables(ctx, testOne, "${startsWith(merge('abc', 'b'), 'a')}"));
 
 			// substring
 			assertEquals("Invalid substring() result", "for", Scripting.replaceVariables(ctx, testOne, "${substring(this.name, 19, 3)}"));
@@ -927,13 +927,13 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid urlencode() result", "a%3Cb%3Ec.d%27e%3Ff%28g%29h%7Bi%7Dj%5Bk%5Dl%2Bm%2Fn%E2%80%93o%5Cp%5Cq%7Cr%27s%21t%2Cu-v_w%60x-y-z%C3%B6%C3%A4%C3%BC%C3%9FABCDEFGH", Scripting.replaceVariables(ctx, testOne, "${urlencode(get(this, \"cleanTestString\"))}"));
 			assertEquals("Invalid urlencode() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${urlencode(this.alwaysNull)}"));
 
-			// escape_javascript
-			assertEquals("Invalid escape_javascript() result", "A\\'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escape_javascript(this.stringWithQuotes)}"));
-			assertEquals("Invalid escape_javascript() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escape_javascript(this.alwaysNull)}"));
+			// escapeJavascript
+			assertEquals("Invalid escapeJavascript() result", "A\\'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escapeJavascript(this.stringWithQuotes)}"));
+			assertEquals("Invalid escapeJavascript() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escapeJavascript(this.alwaysNull)}"));
 
-			// escape_json
-			assertEquals("Invalid escape_json() result", "A'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escape_json(this.stringWithQuotes)}"));
-			assertEquals("Invalid escape_json() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escape_json(this.alwaysNull)}"));
+			// escapeJson
+			assertEquals("Invalid escapeJson() result", "A'B\\\"C", Scripting.replaceVariables(ctx, testOne, "${escapeJson(this.stringWithQuotes)}"));
+			assertEquals("Invalid escapeJson() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${escapeJson(this.alwaysNull)}"));
 
 			// is
 			assertEquals("Invalid is() result", "true",  Scripting.replaceVariables(ctx, testOne,  "${is(\"true\", \"true\")}"));
@@ -1342,23 +1342,23 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(this.alwaysNull, \"11\")}"));
 			assertEquals("Invalid min() result with null value", "",  Scripting.replaceVariables(ctx, testOne, "${min(this.alwaysNull, this.alwaysNull)}"));
 
-			// date_format
-			assertEquals("Invalid date_format() result", nowString1, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format1.toPattern() + "\")}"));
-			assertEquals("Invalid date_format() result", nowString2, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format2.toPattern() + "\")}"));
-			assertEquals("Invalid date_format() result", nowString3, Scripting.replaceVariables(ctx, testOne, "${date_format(this.aDate, \"" + format3.toPattern() + "\")}"));
+			// dateFormat
+			assertEquals("Invalid dateFormat() result", nowString1, Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.aDate, \"" + format1.toPattern() + "\")}"));
+			assertEquals("Invalid dateFormat() result", nowString2, Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.aDate, \"" + format2.toPattern() + "\")}"));
+			assertEquals("Invalid dateFormat() result", nowString3, Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.aDate, \"" + format3.toPattern() + "\")}"));
 
-			// date_format with locale
+			// dateFormat with locale
 			Locale locale = ctx.getLocale();
-			assertEquals("Invalid set_locale() result", "", Scripting.replaceVariables(ctx, testOne, "${set_locale('us')}"));
-			assertEquals("Invalid date_format() result", "01. Oct 2017", Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
-			assertEquals("Invalid set_locale() result", "", Scripting.replaceVariables(ctx, testOne, "${set_locale('de')}"));
-			assertEquals("Invalid date_format() result", "01. Okt. 2017", Scripting.replaceVariables(ctx, testOne, "${date_format(parse_date('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
+			assertEquals("Invalid setLocale() result", "", Scripting.replaceVariables(ctx, testOne, "${setLocale('us')}"));
+			assertEquals("Invalid dateFormat() result", "01. Oct 2017", Scripting.replaceVariables(ctx, testOne, "${dateFormat(parseDate('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
+			assertEquals("Invalid setLocale() result", "", Scripting.replaceVariables(ctx, testOne, "${setLocale('de')}"));
+			assertEquals("Invalid dateFormat() result", "01. Okt. 2017", Scripting.replaceVariables(ctx, testOne, "${dateFormat(parseDate('01.10.2017', 'dd.MM.yyyy'), 'dd. MMM yyyy')}"));
 			ctx.setLocale(locale);
 
-			// date_format with null
-			assertEquals("Invalid date_format() result with null value", "",                                           Scripting.replaceVariables(ctx, testOne, "${date_format(this.alwaysNull, \"yyyy\")}"));
-			assertEquals("Invalid date_format() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(\"10\", this.alwaysNull)}"));
-			assertEquals("Invalid date_format() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format(this.alwaysNull, this.alwaysNull)}"));
+			// dateFormat with null
+			assertEquals("Invalid dateFormat() result with null value", "",                                           Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, \"yyyy\")}"));
+			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(\"10\", this.alwaysNull)}"));
+			assertEquals("Invalid dateFormat() result with null value", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${dateFormat(this.alwaysNull, this.alwaysNull)}"));
 
 			// date_format error messages
 			assertEquals("Invalid date_format() result for wrong number of parameters", DateFormatFunction.ERROR_MESSAGE_DATE_FORMAT, Scripting.replaceVariables(ctx, testOne, "${date_format()}"));
@@ -7250,15 +7250,15 @@ public class ScriptingTest extends StructrTest {
 		// test
 		try (final Tx tx = app.tx()) {
 
-			final String result1 = Scripting.evaluate(actionContext, null, "${sort(inheriting_types('Principal'))}", "test1").toString();
-			final String result2 = Scripting.evaluate(actionContext, null, "${sort(inheriting_types('Principal', merge('SubUser', 'SubSubUser')))}", "test1").toString();
-			final String result3 = Scripting.evaluate(actionContext, null, "${sort(ancestor_types('SubSubUser'))}", "test1").toString();
-			final String result4 = Scripting.evaluate(actionContext, null, "${sort(ancestor_types('SubSubUser', merge('SubUser', 'User')))}", "test1").toString();
+			final String result1 = Scripting.evaluate(actionContext, null, "${sort(inheritingTypes('Principal'))}", "test1").toString();
+			final String result2 = Scripting.evaluate(actionContext, null, "${sort(inheritingTypes('Principal', merge('SubUser', 'SubSubUser')))}", "test1").toString();
+			final String result3 = Scripting.evaluate(actionContext, null, "${sort(ancestorTypes('SubSubUser'))}", "test1").toString();
+			final String result4 = Scripting.evaluate(actionContext, null, "${sort(ancestorTypes('SubSubUser', merge('SubUser', 'User')))}", "test1").toString();
 
-			assertEquals("Invalid result for inheriting_types() function.", "[Group, SubSubUser, SubUser, User]", result1);
-			assertEquals("Invalid result for inheriting_types() function.", "[Group, User]", result2);
-			assertEquals("Invalid result for ancestor_types() function.", "[Principal, SubUser, User]", result3);
-			assertEquals("Invalid result for ancestor_types() function.", "[Principal]", result4);
+			assertEquals("Invalid result for inheritingTypes() function.", "[Group, SubSubUser, SubUser, User]", result1);
+			assertEquals("Invalid result for inheritingTypes() function.", "[Group, User]", result2);
+			assertEquals("Invalid result for ancestorTypes() function.", "[Principal, SubUser, User]", result3);
+			assertEquals("Invalid result for ancestorTypes() function.", "[Principal]", result4);
 
 			tx.success();
 
@@ -7301,10 +7301,10 @@ public class ScriptingTest extends StructrTest {
 				final String result3 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser').sort()); }}", "test1");
 				final String result4 = (String) Scripting.evaluate(actionContext, null, "${{ JSON.stringify($.ancestorTypes('SubSubUser', ['SubUser', 'User']).sort()); }}", "test1");
 
-				assertEquals("Invalid result for inheriting_types() function.", "[\"Group\",\"SubSubUser\",\"SubUser\",\"User\"]", result1);
-				assertEquals("Invalid result for inheriting_types() function.", "[\"Group\",\"User\"]", result2);
-				assertEquals("Invalid result for ancestor_types() function.", "[\"Principal\",\"SubUser\",\"User\"]", result3);
-				assertEquals("Invalid result for ancestor_types() function.", "[\"Principal\"]", result4);
+				assertEquals("Invalid result for inheritingTypes() function.", "[\"Group\",\"SubSubUser\",\"SubUser\",\"User\"]", result1);
+				assertEquals("Invalid result for inheritingTypes() function.", "[\"Group\",\"User\"]", result2);
+				assertEquals("Invalid result for ancestorTypes() function.", "[\"Principal\",\"SubUser\",\"User\"]", result3);
+				assertEquals("Invalid result for ancestorTypes() function.", "[\"Principal\"]", result4);
 			}
 
 			// test wrong type name
@@ -7312,12 +7312,12 @@ public class ScriptingTest extends StructrTest {
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('DoesNotExist'); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheriting_types() when querying type that does not exist!", "inheriting_types(): Type 'DoesNotExist' not found.", expected.getMessage());
+					assertEquals("Invalid error message for inheritingTypes() when querying type that does not exist!", "inheritingTypes(): Type 'DoesNotExist' not found.", expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('DoesNotExist'); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestor_types() when querying type that does not exist!", "ancestor_types(): Type 'DoesNotExist' not found.", expected.getMessage());
+					assertEquals("Invalid error message for ancestorTypes() when querying type that does not exist!", "ancestorTypes(): Type 'DoesNotExist' not found.", expected.getMessage());
 				}
 			}
 
@@ -7326,58 +7326,58 @@ public class ScriptingTest extends StructrTest {
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('SomeServiceClass'); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheriting_types() when querying type that is a service class!", "inheriting_types(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
+					assertEquals("Invalid error message for inheritingTypes() when querying type that is a service class!", "inheritingTypes(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('SomeServiceClass'); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestor_types() when querying type that is a service class!", "ancestor_types(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
+					assertEquals("Invalid error message for ancestorTypes() when querying type that is a service class!", "ancestorTypes(): Not applicable to service class 'SomeServiceClass'.", expected.getMessage());
 				}
 			}
 
 			// test wrong parameter type for blacklist parameter
 			{
-				final String expectedErrorNonListParameterInheriting = "inheriting_types(): Expected 'blacklist' parameter to be of type List.";
-				final String expectedErrorNonListParameterAncestor   = "ancestor_types(): Expected 'blacklist' parameter to be of type List.";
+				final String expectedErrorNonListParameterInheriting = "inheritingTypes(): Expected 'blacklist' parameter to be of type List.";
+				final String expectedErrorNonListParameterAncestor   = "ancestorTypes(): Expected 'blacklist' parameter to be of type List.";
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 'This is wrong'); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 'This is wrong'); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', 42); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', 42); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', new Date()); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', new Date()); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.inheritingTypes('User', { test: 'blah' }); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for inheriting_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
+					assertEquals("Invalid error message for inheritingTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterInheriting, expected.getMessage());
 				}
 				try {
 					Scripting.evaluate(actionContext, null, "${{ $.ancestorTypes('User', { test: 'blah' }); }}", "test1");
 				} catch (FrameworkException expected) {
-					assertEquals("Invalid error message for ancestor_types() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
+					assertEquals("Invalid error message for ancestorTypes() when supplying non-List blacklist parameter!", expectedErrorNonListParameterAncestor, expected.getMessage());
 				}
 			}
 

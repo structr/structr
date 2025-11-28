@@ -34,7 +34,7 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_response_header";
+		return "setResponseHeader";
 	}
 
 	@Override
@@ -79,8 +79,8 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_response_header(field, value [, override = false ])}."),
-			Usage.javaScript("Usage: ${{Structr.setResponseHeader(field, value [, override = false ])}}.")
+			Usage.structrScript("Usage: ${setResponseHeader(field, value [, override = false ])}."),
+			Usage.javaScript("Usage: ${{$.setResponseHeader(field, value [, override = false ])}}.")
 		);
 	}
 
@@ -101,8 +101,8 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${set_response_header('Content-Type', 'text/csv')}"),
-				Example.javaScript("${{ $.set_response_header('Content-Type', 'text/csv') }}")
+				Example.structrScript("${setResponseHeader('Content-Type', 'text/csv')}"),
+				Example.javaScript("${{ $.setResponseHeader('Content-Type', 'text/csv') }}")
 		);
 	}
 

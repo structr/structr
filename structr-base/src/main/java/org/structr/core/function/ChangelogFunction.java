@@ -357,19 +357,19 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private boolean _isUserCentricChangelog = false;
 
 		// Properties for the changelog entries
-		private final Property<String>  changelog_verb                        = new StringProperty("verb");
-		private final Property<String>  changelog_time                        = new StringProperty("time");
-		private final Property<String>  changelog_userId                      = new StringProperty("userId");
-		private final Property<String>  changelog_userName                    = new StringProperty("userName");
-		private final Property<String>  changelog_target                      = new StringProperty("target");
-		private final Property<NodeInterface> changelog_targetObj             = new EndNodeProperty<>("targetObj");
-		private final Property<String>  changelog_rel                         = new StringProperty("rel");
-		private final Property<String>  changelog_relId                       = new StringProperty("relId");
-		private final Property<String>  changelog_relDir                      = new StringProperty("relDir");
-		private final Property<String>  changelog_key                         = new StringProperty("key");
-		private final Property<String>  changelog_prev                        = new StringProperty("prev");
-		private final Property<String>  changelog_val                         = new StringProperty("val");
-		private final Property<String>  changelog_type                        = new StringProperty("type");
+		private final Property<String>  changelogVerb                        = new StringProperty("verb");
+		private final Property<String>  changelogTime                        = new StringProperty("time");
+		private final Property<String>  changelogUserId                      = new StringProperty("userId");
+		private final Property<String>  changelogUserName                    = new StringProperty("userName");
+		private final Property<String>  changelogTarget                      = new StringProperty("target");
+		private final Property<NodeInterface> changelogTargetObj             = new EndNodeProperty<>("targetObj");
+		private final Property<String>  changelogRel                         = new StringProperty("rel");
+		private final Property<String>  changelogRelId                       = new StringProperty("relId");
+		private final Property<String>  changelogRelDir                      = new StringProperty("relDir");
+		private final Property<String>  changelogKey                         = new StringProperty("key");
+		private final Property<String>  changelogPrev                        = new StringProperty("prev");
+		private final Property<String>  changelogVal                         = new StringProperty("val");
+		private final Property<String>  changelogType                        = new StringProperty("type");
 
 		public void setIsUserCentricChangelog(final boolean userCentric) {
 			_isUserCentricChangelog = userCentric;
@@ -487,22 +487,22 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 					final GraphObjectMap obj = new GraphObjectMap();
 
-					obj.put(changelog_verb, verb);
-					obj.put(changelog_time, time);
+					obj.put(changelogVerb, verb);
+					obj.put(changelogTime, time);
 
 					if (!_isUserCentricChangelog) {
-						obj.put(changelog_userId, userId);
-						obj.put(changelog_userName, userName);
+						obj.put(changelogUserId, userId);
+						obj.put(changelogUserName, userName);
 					}
 
 					switch (verb) {
 						case "create":
 						case "delete":
-							obj.put(changelog_target, target);
-							obj.put(changelog_type, type);
+							obj.put(changelogTarget, target);
+							obj.put(changelogType, type);
 
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, resolveTarget(target));
+								obj.put(changelogTargetObj, resolveTarget(target));
 							}
 
 							list.add(obj);
@@ -511,13 +511,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 						case "link":
 						case "unlink":
-							obj.put(changelog_rel, relType);
-							obj.put(changelog_relId, relId);
-							obj.put(changelog_relDir, relDir);
-							obj.put(changelog_target, target);
+							obj.put(changelogRel, relType);
+							obj.put(changelogRelId, relId);
+							obj.put(changelogRelDir, relDir);
+							obj.put(changelogTarget, target);
 
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, resolveTarget(target));
+								obj.put(changelogTargetObj, resolveTarget(target));
 							}
 
 							list.add(obj);
@@ -525,15 +525,15 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							break;
 
 						case "change":
-							obj.put(changelog_key, key);
-							obj.put(changelog_prev, _gson.toJson(jsonObj.get("prev")));
-							obj.put(changelog_val, _gson.toJson(jsonObj.get("val")));
+							obj.put(changelogKey, key);
+							obj.put(changelogPrev, _gson.toJson(jsonObj.get("prev")));
+							obj.put(changelogVal, _gson.toJson(jsonObj.get("val")));
 
 							if (_isUserCentricChangelog) {
 
-								obj.put(changelog_target, target);
+								obj.put(changelogTarget, target);
 								if (_resolveTargets) {
-									obj.put(changelog_targetObj, resolveTarget(target));
+									obj.put(changelogTargetObj, resolveTarget(target));
 								}
 							}
 

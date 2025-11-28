@@ -34,7 +34,7 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_bounce_address";
+		return "mailClearBounceAddress";
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_bounce_address()}"),
+			Usage.structrScript("Usage: ${mailClearBounce_address()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearBounceAddress() }}")
 		);
 	}

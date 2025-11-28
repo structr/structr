@@ -38,7 +38,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_content";
+		return "setContent";
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 						fos.write((byte[]) sources[1]);
 
 					} catch (IOException ioex) {
-						logger.warn("set_content(): Unable to write binary data to file '{}'", file.getPath(), ioex);
+						logger.warn("setContent(): Unable to write binary data to file '{}'", file.getPath(), ioex);
 					}
 
 				} else if (sources[1] instanceof String) {
@@ -81,7 +81,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 						}
 
 					} catch (IOException ioex) {
-						logger.warn("set_content(): Unable to write content to file '{}'", file.getPath(), ioex);
+						logger.warn("setContent(): Unable to write content to file '{}'", file.getPath(), ioex);
 					}
 
 				} else {
@@ -106,8 +106,8 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_content(file, content[, encoding ])}."),
-			Usage.javaScript("Usage: ${{Structr.setContent(file, content[, encoding ])}}.")
+			Usage.structrScript("Usage: ${setContent(file, content[, encoding ])}."),
+			Usage.javaScript("Usage: ${{$.setContent(file, content[, encoding ])}}.")
 		);
 	}
 
@@ -124,11 +124,11 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${set_content(first(find('File', 'name', 'test.txt')), 'New Content Of File test.txt')}", "Simply overwrite file with static content"),
-				Example.structrScript("${set_content(create('File', 'name', 'new_document.xlsx'), to_excel(find('User'), 'public'), 'ISO-8859-1')}", "Create new file with Excel content"),
-				Example.structrScript("${set_content(create('File', 'name', 'web-data.json'), GET('https://api.example.com/data.json'))}", "Create a new file and retrieve content from URL"),
-				Example.structrScript("${set_content(create('File', 'name', 'logo.png'), GET('https://example.com/img/logo.png', 'application/octet-stream'))}", "Download binary data (an image) and store it in a local file"),
-				Example.javaScript("${{ $.set_content($.create('File', 'name', 'new_document.xlsx'), $.to_excel($.find('User'), 'public'), 'ISO-8859-1') }}", "Create new file with Excel content (JS version)")
+				Example.structrScript("${setContent(first(find('File', 'name', 'test.txt')), 'New Content Of File test.txt')}", "Simply overwrite file with static content"),
+				Example.structrScript("${setContent(create('File', 'name', 'new_document.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}", "Create new file with Excel content"),
+				Example.structrScript("${setContent(create('File', 'name', 'web-data.json'), GET('https://api.example.com/data.json'))}", "Create a new file and retrieve content from URL"),
+				Example.structrScript("${setContent(create('File', 'name', 'logo.png'), GET('https://example.com/img/logo.png', 'application/octet-stream'))}", "Download binary data (an image) and store it in a local file"),
+				Example.javaScript("${{ $.setContent($.create('File', 'name', 'new_document.xlsx'), $.toExcel($.find('User'), 'public'), 'ISO-8859-1') }}", "Create new file with Excel content (JS version)")
 		);
 	}
 
@@ -145,7 +145,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `to_excel()` function."
+				"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
 		);
 	}
 }

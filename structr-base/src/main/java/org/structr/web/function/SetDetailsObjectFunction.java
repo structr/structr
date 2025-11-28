@@ -32,7 +32,7 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "set_details_object";
+		return "setDetailsObject";
 	}
 
 	@Override
@@ -74,8 +74,8 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_details_object(obj)}."),
-			Usage.javaScript("Usage: ${{Structr.setDetailsObject(obj)}}.")
+			Usage.structrScript("Usage: ${setDetailsObject(obj)}."),
+			Usage.javaScript("Usage: ${{$.setDetailsObject(obj)}}.")
 		);
 	}
 
@@ -93,8 +93,8 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${set_details_object(first(find('User')))}"),
-				Example.javaScript("${{ $.set_details_object($.first($.find('User')))}")
+				Example.structrScript("${setDetailsObject(first(find('User')))}"),
+				Example.javaScript("${{ $.setDetailsObject($.first($.find('User')))}")
 		);
 	}
 

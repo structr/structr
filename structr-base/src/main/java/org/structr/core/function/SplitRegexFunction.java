@@ -35,7 +35,7 @@ public class SplitRegexFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "split_regex";
+		return "splitRegex";
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class SplitRegexFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.splitRegex(str[, regex]) }}."),
-			Usage.structrScript("Usage: ${split_regex(str[, regex])}.")
+			Usage.structrScript("Usage: ${splitRegex(str[, regex])}.")
 		);
 	}
 
@@ -97,13 +97,13 @@ public class SplitRegexFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${split_regex('one,two,three,four')}"),
-				Example.structrScript("${split_regex('one;two;three;four')}"),
-				Example.structrScript("${split_regex('one two three four')}"),
-				Example.structrScript("${split_regex('one::two::three::four', ':+')}"),
-				Example.structrScript("${split_regex('one.two.three.four', '\\\\.')}"),
-				Example.structrScript("${split_regex('one:two&three%four', ':|&|%')}"),
-				Example.javaScript("${{ $.split_regex('one:two&three%four', ':|&|%') }}")
+				Example.structrScript("${splitRegex('one,two,three,four')}"),
+				Example.structrScript("${splitRegex('one;two;three;four')}"),
+				Example.structrScript("${splitRegex('one two three four')}"),
+				Example.structrScript("${splitRegex('one::two::three::four', ':+')}"),
+				Example.structrScript("${splitRegex('one.two.three.four', '\\\\.')}"),
+				Example.structrScript("${splitRegex('one:two&three%four', ':|&|%')}"),
+				Example.javaScript("${{ $.splitRegex('one:two&three%four', ':|&|%') }}")
 		);
 	}
 

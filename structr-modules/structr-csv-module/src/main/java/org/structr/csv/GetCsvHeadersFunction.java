@@ -34,7 +34,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 	@Override
 	public String getName() {
-		return "get_csv_headers";
+		return "getCsvHeaders";
 	}
 
 	@Override
@@ -102,7 +102,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${get_csv_headers(source[, delimiterChar [, quoteChar[, recordSeparator]]])}. Example: ${get_csv_headers('COL1;COL2;COL3\none;two;three')}"),
+				Usage.structrScript("Usage: ${getCsvHeaders(source[, delimiterChar [, quoteChar[, recordSeparator]]])}. Example: ${getCsvHeaders('COL1;COL2;COL3\none;two;three')}"),
 				Usage.javaScript("Usage: ${{Structr.getCsvHeaders(source[, delimiterChar[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}")
 		);
 	}
@@ -121,8 +121,8 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_csv_headers('COL1;COL2;COL3\\none;two;three')}"),
-				Example.javaScript("${{ $.get_csv_headers('COL1;COL2;COL3\\none;two;three') }}")
+				Example.structrScript("${getCsvHeaders('COL1;COL2;COL3\\none;two;three')}"),
+				Example.javaScript("${{ $.getCsvHeaders('COL1;COL2;COL3\\none;two;three') }}")
 		);
 	}
 

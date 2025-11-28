@@ -83,7 +83,7 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${schedule(expression[, title])}."),
-			Usage.javaScript("Usage: ${{Structr.schedule(expression[, title])}}.")
+			Usage.javaScript("Usage: ${{$.schedule(expression[, title])}}.")
 		);
 	}
 

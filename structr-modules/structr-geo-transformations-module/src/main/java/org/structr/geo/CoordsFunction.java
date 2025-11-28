@@ -41,7 +41,7 @@ public class CoordsFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "get_coordinates";
+		return "getCoordinates";
 	}
 
 	@Override

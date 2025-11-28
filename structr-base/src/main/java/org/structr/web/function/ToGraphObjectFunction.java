@@ -31,7 +31,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "to_graph_object";
+		return "toGraphObject";
 	}
 
 	@Override
@@ -82,7 +82,7 @@ public class ToGraphObjectFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${to_graph_object(obj)}"),
+			Usage.structrScript("Usage: ${toGraphObject(obj)}"),
 			Usage.javaScript("Usage: ${{ $.toGraphObject(obj) }}")
 		);
 	}

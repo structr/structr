@@ -21,7 +21,6 @@ package org.structr.rest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -38,13 +37,12 @@ public class RestMethodResult {
 
 	private static final Logger logger = LoggerFactory.getLogger(RestMethodResult.class.getName());
 
-	private boolean serializeSingleObjectAsCollection = Settings.ForceArrays.getValue(false);
 	private Map<String, String> headers               = null;
 	private List<Object> content                      = null;
 	private Object nonGraphObjectResult               = null;
 	private int responseCode                          = 0;
 	private String message                            = null;
-	private Integer overridenResultCount              = null;
+	private Integer overriddenResultCount             = null;
 
 	public RestMethodResult(final int responseCode) {
 		this.headers      = new HashMap<>();
@@ -55,12 +53,6 @@ public class RestMethodResult {
 		headers           = new HashMap<>();
 		this.message      = message;
 		this.responseCode = responseCode;
-	}
-
-	public RestMethodResult(final int responseCode, final boolean serializeSingleObjectAsCollection) {
-		this.headers                           = new HashMap<>();
-		this.responseCode                      = responseCode;
-		this.serializeSingleObjectAsCollection = serializeSingleObjectAsCollection;
 	}
 
 	public void addHeader(final String key, final String value) {
@@ -100,12 +92,12 @@ public class RestMethodResult {
 		return nonGraphObjectResult;
 	}
 
-	public void setOverridenResultCount(final int resultCount) {
-		this.overridenResultCount = resultCount;
+	public void setOverriddenResultCount(final int resultCount) {
+		this.overriddenResultCount = resultCount;
 	}
 
-	public Integer getOverridenResultCount() {
-		return this.overridenResultCount;
+	public Integer getOverriddenResultCount() {
+		return this.overriddenResultCount;
 	}
 
 	// ----- public static methods -----

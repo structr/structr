@@ -134,7 +134,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 		This method modifies the security relationship between the first two parameters. 
 		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
 		The permissions are passed in as a comma-separated list (see the examples below). 
-		The return value is the empty string. See also `grant()` and `is_allowed()`.""";
+		The return value is the empty string. See also `grant()` and `isAllowed()`.""";
 	}
 
 	@Override

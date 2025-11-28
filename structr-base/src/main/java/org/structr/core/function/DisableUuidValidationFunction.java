@@ -32,7 +32,7 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "disable_uuid_validation";
+		return "disableUuidValidation";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${disable_uuid_validation()}"),
+			Usage.structrScript("Usage: ${disableUuidValidation()}"),
 			Usage.javaScript("Usage: ${Structr.disableUuidValidation()}")
 		);
 	}

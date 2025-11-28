@@ -29,7 +29,7 @@ public class JobListFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "job_list";
+		return "jobList";
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class JobListFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${job_list()}. Example: ${job_list()}"),
+			Usage.structrScript("Usage: ${jobList()}. Example: ${jobList()}"),
 			Usage.javaScript("Usage: ${{Structr.jobList()}}. Example: ${{Structr.jobList()}}")
 		);
 	}

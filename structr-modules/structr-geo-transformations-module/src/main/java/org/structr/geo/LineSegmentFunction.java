@@ -41,7 +41,7 @@ public class LineSegmentFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "line_segment";
+		return "lineSegment";
 	}
 
 	@Override

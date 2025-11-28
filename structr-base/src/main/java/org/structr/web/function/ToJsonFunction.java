@@ -37,7 +37,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "to_json";
+		return "toJson";
 	}
 
 	@Override
@@ -121,7 +121,7 @@ public class ToJsonFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${to_json(obj [, view[, depth = 3[, serializeNulls = true ]]])}. Example: ${to_json(this, 'public', 4)}"),
+			Usage.structrScript("Usage: ${toJson(obj [, view[, depth = 3[, serializeNulls = true ]]])}. Example: ${toJson(this, 'public', 4)}"),
 			Usage.javaScript("Usage: ${{Structr.toJson(obj [, view[, depth = 3[, serializeNulls = true ]]])}}. Example: ${{Structr.toJson($.this, 'public', 4)}}")
 		);
 	}

@@ -89,8 +89,8 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${$.error(cause, token[, detail])}. Example: ${$.error('name', 'already_taken'[, 'Another node with that name already exists'])}"),
-			Usage.structrScript("Usage: ${error(cause, token[, detail])}. Example: ${error('name', 'already_taken'[, 'Another node with that name already exists'])}")
+			Usage.javaScript("Usage: ${$.error(cause, token[, detail])}. Example: ${$.error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}"),
+			Usage.structrScript("Usage: ${error(cause, token[, detail])}. Example: ${error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}")
 		);
 	}
 

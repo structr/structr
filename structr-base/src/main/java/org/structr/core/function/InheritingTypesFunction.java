@@ -34,7 +34,7 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "inheriting_types";
+		return "inheritingTypes";
 	}
 
 	@Override
@@ -100,8 +100,8 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${inheriting_types(type[, blacklist])}. Example ${inheriting_types('User')}"),
-			Usage.javaScript("Usage: ${Structr.inheriting_types(type[, blacklist])}. Example ${Structr.inheriting_types('User')}")
+			Usage.structrScript("Usage: ${inheritingTypes(type[, blacklist])}. Example ${inheritingTypes('User')}"),
+			Usage.javaScript("Usage: ${Structr.inheritingTypes(type[, blacklist])}. Example ${Structr.inheritingTypes('User')}")
 		);
 	}
 
@@ -128,7 +128,7 @@ public class InheritingTypesFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${inheriting_types('MyType', merge('UndesiredSubtype'))}", "Returns a list of subtypes of type \"MyType\"")
+			Example.structrScript("${inheritingTypes('MyType', merge('UndesiredSubtype'))}", "Returns a list of subtypes of type \"MyType\"")
 		);
 	}
 }

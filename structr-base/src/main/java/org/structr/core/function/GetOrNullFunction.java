@@ -37,7 +37,7 @@ public class GetOrNullFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "get_or_null";
+		return "getOrNull";
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class GetOrNullFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${get_or_null(entity, propertyKey)}. Example: ${get_or_null(this, \"children\")}"),
+				Usage.structrScript("Usage: ${getOrNull(entity, propertyKey)}. Example: ${getOrNull(this, \"children\")}"),
 				Usage.javaScript("Usage: ${{Structr.getOrNull(entity, propertyKey)}}. Example: ${{Structr.getOrNull(this, \"children\")}}")
 		);
 	}
@@ -125,8 +125,8 @@ public class GetOrNullFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_or_null(page, 'name')}"),
-				Example.javaScript("${{ $.get_or_null(page, 'name') }}")
+				Example.structrScript("${getOrNull(page, 'name')}"),
+				Example.javaScript("${{ $.getOrNull(page, 'name') }}")
 		);
 	}
 

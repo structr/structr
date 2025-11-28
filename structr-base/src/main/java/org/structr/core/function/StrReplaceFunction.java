@@ -34,7 +34,7 @@ public class StrReplaceFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "str_replace";
+		return "strReplace";
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public class StrReplaceFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}."),
-			Usage.structrScript("Usage: ${str_replace(subject, search, replacement)}.")
+			Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}.")
 		);
 	}
 
@@ -88,8 +88,8 @@ public class StrReplaceFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${str_replace('Hello Wrlod!', 'Wrlod', 'World')}"),
-				Example.javaScript("${{ $.str_replace('Hello Wrlod!', 'Wrlod', 'World') }}")
+				Example.structrScript("${strReplace('Hello Wrlod!', 'Wrlod', 'World')}"),
+				Example.javaScript("${{ $.strReplace('Hello Wrlod!', 'Wrlod', 'World') }}")
 		);
 	}
 

@@ -36,7 +36,7 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "get_source";
+		return "getSource";
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class GetSourceFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_source(element, editMode)}. Example: ${get_source(this, 1)}"),
+			Usage.structrScript("Usage: ${getSource(element, editMode)}. Example: ${getSource(this, 1)}"),
 			Usage.javaScript("Usage: ${{Structr.getSource(element, editMode)}}. Example: ${{Structr.getSource(this, 1)}}")
 		);
 	}

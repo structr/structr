@@ -43,7 +43,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "send_event";
+		return "sendEvent";
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class SendEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${send_event(eventType, message, recipient(s))}."),
+			Usage.structrScript("Usage: ${sendEvent(eventType, message, recipient(s))}."),
 			Usage.javaScript("Usage: ${{ $.sendEvent(eventType, message, recipient(s))}}.")
 		);
 	}
@@ -119,8 +119,8 @@ public class SendEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${send_event('message', 'Welcome!', find('User', 'name', 'Bob'))}"),
-				Example.javaScript("${{ $.send_event('message', 'Welcome!', $.find('User', 'name', 'Bob')) }}")
+				Example.structrScript("${sendEvent('message', 'Welcome!', find('User', 'name', 'Bob'))}"),
+				Example.javaScript("${{ $.sendEvent('message', 'Welcome!', $.find('User', 'name', 'Bob')) }}")
 		);
 	}
 

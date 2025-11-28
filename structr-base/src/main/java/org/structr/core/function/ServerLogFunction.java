@@ -101,7 +101,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"The `get_available_serverlogs()` function can be used for the `logFile` parameter"
+				"The `getAvailableServerlogs()` function can be used for the `logFile` parameter"
 		);
 	}
 

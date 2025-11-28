@@ -35,7 +35,7 @@ public class GetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "get_cookie";
+		return "getCookie";
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class GetCookieFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_cookie(name)}. Example: ${get_cookie('cartId')}"),
+			Usage.structrScript("Usage: ${getCookie(name)}. Example: ${getCookie('cartId')}"),
 			Usage.javaScript("Usage: ${{Structr.getCookie(name)}}. Example: ${{Structr.getCookie('cartId')}}")
 		);
 	}

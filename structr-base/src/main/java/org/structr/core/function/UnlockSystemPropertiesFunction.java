@@ -32,7 +32,7 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "unlock_system_properties_once";
+		return "unlockSystemPropertiesOnce";
 	}
 
 	@Override
@@ -68,8 +68,8 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${unlock_system_properties_once(node)}. Example ${unlock_system_properties_once(this)}"),
-			Usage.javaScript("Usage: ${{Structr.unlock_system_properties_once(node)}}. Example ${{Structr.unlock_system_properties_once(Structr.get('this'))}}")
+			Usage.structrScript("Usage: ${unlockSystemPropertiesOnce(node)}. Example ${unlockSystemPropertiesOnce(this)}"),
+			Usage.javaScript("Usage: ${{Structr.unlockSystemPropertiesOnce(node)}}. Example ${{Structr.unlockSystemPropertiesOnce(Structr.get('this'))}}")
 		);
 	}
 

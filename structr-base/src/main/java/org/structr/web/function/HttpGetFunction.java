@@ -231,8 +231,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			Example.structrScript("""
 			${
 				(
-				  add_header('X-User', 'admin'),
-				  add_header('X-Password', 'admin'),
+				  addHeader('X-User', 'admin'),
+				  addHeader('X-Password', 'admin'),
 				  GET('http://localhost:8082/structr/rest/User')
 				)
 			}
@@ -241,7 +241,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=UTF-8')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
 			Example.structrScript("${GET('http://www.google.com', 'text/html; charset=ISO-8859-1')}", "Return the HTML source code of the front page of google.com (since the server sends a charset in the response, the given charset parameter is overridden)."),
 			Example.structrScript("${GET('http://www.google.com', 'text/html', '#footer')}", "Return the HTML content of the element with the ID 'footer' from google.com."),
-			Example.structrScript("${set_content(create('File', 'name', 'google_logo.png'), GET('https://www.google.com/images/branding/googlelogo/1x/googlelogo_light_color_272x92dp.png', 'application/octet-stream'))}", "Create a new file with the google logo in the local Structr instance.")
+			Example.structrScript("${setContent(create('File', 'name', 'googleLogo.png'), GET('https://www.google.com/images/branding/googlelogo/1x/googlelogoLightColor_272x92dp.png', 'application/octet-stream'))}", "Create a new file with the google logo in the local Structr instance.")
 		);
 	}
 
@@ -251,8 +251,8 @@ public class HttpGetFunction extends UiAdvancedFunction {
 			"From version 3.5 onwards, GET() supports binary content by setting the `contentType` parameter to `application/octet-stream`. (This is helpful when creating files - see example.)",
 			"v4.0+: `contentType` can be used like the `Content-Type` header - to set the **expected** response mime type and to set the `charset` with which the response will be interpreted (**unless** the server sends provides a charset, then this charset will be used).",
 			"Prior to v4.0: `contentType` is the **expected** response content type (it does not influence the charset of the response - the charset from the **sending server** will be used).",
-			"The parameters `username` and `password` are intended for HTTP Basic Auth. For header authentication use `add_header()`.",
-			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"The parameters `username` and `password` are intended for HTTP Basic Auth. For header authentication use `addHeader()`.",
+			"The `GET()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);
 	}

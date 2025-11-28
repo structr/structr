@@ -30,7 +30,7 @@ public class CoalesceObjectsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "coalesce_objects";
+		return "coalesceObjects";
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class CoalesceObjectsFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${coalesce_objects(obj1, obj2...)}. Example: ${coalesce(node1, node2, node3)}"),
+			Usage.structrScript("Usage: ${coalesceObjects(obj1, obj2...)}. Example: ${coalesce(node1, node2, node3)}"),
 			Usage.javaScript("Usage: ${{Structr.coalesceObjects(obj1, obj2...)}}. Example: ${{Structr.coalesceObjects(node1, node2, node3)}}")
 		);
 	}

@@ -35,7 +35,7 @@ public class StackDumpFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "stack_dump";
+		return "stackDump";
 	}
 
 	@Override
@@ -58,7 +58,7 @@ public class StackDumpFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${stack_dump()}. Example ${stack_dump()}"),
+			Usage.structrScript("Usage: ${stackDump()}. Example ${stackDump()}"),
 			Usage.javaScript("Usage: ${{ $.stackDump(); }}. Example ${{ $.stackDump(); }}")
 		);
 	}

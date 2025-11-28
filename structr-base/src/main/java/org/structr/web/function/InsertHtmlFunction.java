@@ -34,7 +34,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "insert_html";
+		return "insertHtml";
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${insert_html(parent, html)}. Example: ${insert_html(this, html)}"),
+			Usage.structrScript("Usage: ${insertHtml(parent, html)}. Example: ${insertHtml(this, html)}"),
 			Usage.javaScript("Usage: ${{Structr.insertHtml(parent, html)}}. Example: ${{Structr.insertHtml(this, html)}}")
 		);
 	}

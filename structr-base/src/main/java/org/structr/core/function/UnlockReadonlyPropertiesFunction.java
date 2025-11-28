@@ -32,7 +32,7 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 
 	@Override
 	public String getName() {
-		return "unlock_readonly_properties_once";
+		return "unlockReadonlyPropertiesOnce";
 	}
 
 	@Override
@@ -68,8 +68,8 @@ public class UnlockReadonlyPropertiesFunction extends AdvancedScriptingFunction 
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${unlock_readonly_properties_once(node)}. Example ${unlock_readonly_properties_once(this)}"),
-			Usage.javaScript("Usage: ${{$.unlockReadonlyProperties_once(node)}}. Example ${{$.unlockReadonlyProperties_once($.this)}}")
+			Usage.structrScript("Usage: ${unlockReadonlyPropertiesOnce(node)}. Example ${unlockReadonlyPropertiesOnce(this)}"),
+			Usage.javaScript("Usage: ${{$.unlockReadonlyPropertiesOnce(node)}}. Example ${{$.unlockReadonlyPropertiesOnce($.this)}}")
 		);
 	}
 

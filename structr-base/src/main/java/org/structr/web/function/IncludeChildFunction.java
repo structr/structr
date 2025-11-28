@@ -44,7 +44,7 @@ public class IncludeChildFunction extends IncludeFunction {
 
 	@Override
 	public String getName() {
-		return "include_child";
+		return "includeChild";
 	}
 
 	@Override
@@ -117,7 +117,7 @@ public class IncludeChildFunction extends IncludeFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${include_child(name)}. Example: ${include_child('Child Node')}"),
+			Usage.structrScript("Usage: ${includeChild(name)}. Example: ${includeChild('Child Node')}"),
 			Usage.javaScript("Usage: ${{Structr.includeChild(name)}}. Example: ${{Structr.includeChild('Child Node')}}")
 		);
 	}
@@ -140,8 +140,8 @@ public class IncludeChildFunction extends IncludeFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${include_child('Child1')}", "Render the contents of the child node named \"Child1\" into the output buffer"),
-			Example.structrScript("${include_child('Item Template', find('Item'), 'item')}", "Render the contents of the child node named \"Item Template\" once for every Item node in the database")
+			Example.structrScript("${includeChild('Child1')}", "Render the contents of the child node named \"Child1\" into the output buffer"),
+			Example.structrScript("${includeChild('Item Template', find('Item'), 'item')}", "Render the contents of the child node named \"Item Template\" once for every Item node in the database")
 		);
 	}
 
@@ -151,7 +151,7 @@ public class IncludeChildFunction extends IncludeFunction {
 		return List.of(
 			"Works only during page rendering in Template nodes.",
 			"Child nodes must be direct children of the template node.",
-			"Underneath the template node, child node names MUST be unique in order for `include_child()` to work."
+			"Underneath the template node, child node names MUST be unique in order for `includeChild()` to work."
 		);
 	}
 }

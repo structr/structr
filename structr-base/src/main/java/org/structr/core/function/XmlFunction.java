@@ -103,7 +103,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 		return List.of(
 				Example.structrScript("${xml(read('test.xml'))}", "Read file test.xml from exchange/ directory and return parsed document"),
-				Example.structrScript("${xml(get_content(first(find('File', 'name', 'test.xml'))))}", "Read first file named test.xml from virtual filesystem and return parsed document")
+				Example.structrScript("${xml(getContent(first(find('File', 'name', 'test.xml'))))}", "Read first file named test.xml from virtual filesystem and return parsed document")
 		);
 	}
 

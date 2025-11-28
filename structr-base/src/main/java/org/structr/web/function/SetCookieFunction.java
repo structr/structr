@@ -35,7 +35,7 @@ public class SetCookieFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_cookie";
+		return "setCookie";
 	}
 
 	@Override
@@ -109,7 +109,7 @@ public class SetCookieFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_cookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}. Example: ${get_cookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}"),
+			Usage.structrScript("Usage: ${setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}. Example: ${getCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}"),
 			Usage.javaScript("Usage: ${{Structr.setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}}. Example: ${{Structr.setCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}}")
 		);
 	}

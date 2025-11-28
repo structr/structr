@@ -71,7 +71,7 @@ public class RetrieveFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${retrieve(key)}."),
-			Usage.javaScript("Usage: ${{Structr.retrieve(key)}}.")
+			Usage.javaScript("Usage: ${{ $.retrieve(key) }}.")
 		);
 	}
 

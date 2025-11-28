@@ -109,9 +109,9 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 			if (content != null) {
 
 				final PagingIterable resultIterable = new PagingIterable(request.toString(), content);
-				if (result.getOverridenResultCount() != null) {
+				if (result.getOverriddenResultCount() != null) {
 
-					resultIterable.setOverriddenResultCount(result.getOverridenResultCount());
+					resultIterable.setOverriddenResultCount(result.getOverriddenResultCount());
 				}
 
 				writeJson(securityContext, response, resultIterable, baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);

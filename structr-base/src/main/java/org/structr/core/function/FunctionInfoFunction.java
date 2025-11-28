@@ -42,7 +42,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "function_info";
+		return "functionInfo";
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${function_info([type, name])}. Example ${function_info()}"),
+			Usage.structrScript("Usage: ${functionInfo([type, name])}. Example ${functionInfo()}"),
 			Usage.javaScript("Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}")
 		);
 	}

@@ -34,7 +34,7 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "application_store_has";
+		return "applicationStoreHas";
 	}
 
 	@Override
@@ -66,8 +66,8 @@ public class ApplicationStoreHasFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${application_store_has(key)}. Example: ${application_store_has('do_no_track')}"),
-			Usage.javaScript("Usage: ${{ $.applicationStoreHas(key); }}. Example: ${{ $.applicationStoreHas('do_not_track'); }}")
+			Usage.structrScript("Usage: ${applicationStoreHas(key)}. Example: ${applicationStoreHas('doNoTrack')}"),
+			Usage.javaScript("Usage: ${{ $.applicationStoreHas(key); }}. Example: ${{ $.applicationStoreHas('doNotTrack'); }}")
 		);
 	}
 

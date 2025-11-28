@@ -35,12 +35,12 @@ import java.util.List;
 
 public class ConvertGeometryFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE = "Usage: convert_geometry(sourceCRS, destCRS, geometry)";
+	private static final String ERROR_MESSAGE = "Usage: convertGeometry(sourceCRS, destCRS, geometry)";
 	private static final Logger logger        = LoggerFactory.getLogger(ConvertGeometryFunction.class.getName());
 
 	@Override
 	public String getName() {
-		return "convert_geometry";
+		return "convertGeometry";
 	}
 
 	@Override

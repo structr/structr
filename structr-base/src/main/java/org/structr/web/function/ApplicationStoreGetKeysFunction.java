@@ -32,7 +32,7 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "application_store_get_keys";
+		return "applicationStoreGetKeys";
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${application_store_get_keys()}. Example: ${application_store_get_keys()}"),
+			Usage.structrScript("Usage: ${applicationStoreGetKeys()}. Example: ${applicationStoreGetKeys()}"),
 			Usage.javaScript("Usage: ${{ $.applicationStoreGetKeys(); }}. Example: ${{ $.applicationStoreGetKeys(); }}")
 		);
 	}

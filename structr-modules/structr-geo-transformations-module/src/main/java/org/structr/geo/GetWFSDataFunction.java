@@ -35,11 +35,11 @@ import java.util.Map;
 public class GetWFSDataFunction extends AbstractGeoserverFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWFSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: get_wfs_data(baseUrl, version, typeName [, parameterString ])";
+	public static final String ERROR_MESSAGE = "usage: getWfsData(baseUrl, version, typeName [, parameterString ])";
 
 	@Override
 	public String getName() {
-		return "get_wfs_data";
+		return "getWfsData";
 	}
 
 	@Override

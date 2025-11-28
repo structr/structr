@@ -35,7 +35,7 @@ public class MergeUniqueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "merge_unique";
+		return "mergeUnique";
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class MergeUniqueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${merge_unique(list1, list2, list3...)}. Example: ${merge_unique(this.children, this.siblings)}")
+			Usage.structrScript("Usage: ${mergeUnique(list1, list2, list3...)}. Example: ${mergeUnique(this.children, this.siblings)}")
 		);
 	}
 

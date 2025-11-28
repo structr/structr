@@ -63,7 +63,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		The `broadcast_event()` function implements the server-side part of server-sent events based on the EventSource servlet. Server-sent events allow you to send messages from the server to the client asynchronously, e.g. you can update data or trigger a reload based on events that happen on ther server.
+		The `broadcastEvent()` function implements the server-side part of server-sent events based on the EventSource servlet. Server-sent events allow you to send messages from the server to the client asynchronously, e.g. you can update data or trigger a reload based on events that happen on ther server.
 
 		See https://developer.mozilla.org/en-US/docs/Web/API/EventSource for more information about server-sent events.
 
@@ -82,7 +82,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "broadcast_event";
+		return "broadcastEvent";
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${broadcast_event(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}. Example: ${broadcast_event(\"message\", \"Welcome!\", true, false)}"),
+			Usage.structrScript("Usage: ${broadcastEvent(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}. Example: ${broadcastEvent(\"message\", \"Welcome!\", true, false)}"),
 			Usage.javaScript("Usage: ${{ $.broadcastEvent(eventType, message [, authenticatedUsers = true [ , anonymousUsers = false ]] )}}. Example: ${{ $.broadcastEvent(\"message\", \"Welcome!\", true, false)}}")
 		);
 	}
@@ -112,7 +112,7 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${ broadcast_event('message', 'Hello world!', true, false) }", "Send a generic message to the frontend"),
+			Example.structrScript("${ broadcastEvent('message', 'Hello world!', true, false) }", "Send a generic message to the frontend"),
 			Example.javaScript("${{ $.broadcastEvent('message', JSON.stringify({id: 'APP_MAINTENANCE_SOON', message: 'Application going down for maintenance soon!', date: new Date().getTime()}), true, false); }}", "Send a JSON message to the frontend")
 		);
 	}

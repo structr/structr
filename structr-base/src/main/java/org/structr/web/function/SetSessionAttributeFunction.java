@@ -39,7 +39,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_session_attribute";
+		return "setSessionAttribute";
 	}
 
 	@Override
@@ -88,8 +88,8 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_session_attribute(key, value)}. Example: "),
-			Usage.javaScript("Usage: ${{Structr.setSessionAttribute(key, value)}}. Example: ")
+			Usage.structrScript("Usage: ${setSessionAttribute(key, value)}. Example: "),
+			Usage.javaScript("Usage: ${{$.setSessionAttribute(key, value)}}. Example: ")
 		);
 	}
 
@@ -106,7 +106,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${set_session_attribute('do_no_track', true)}"),
+				Example.structrScript("${setSessionAttribute('do_no_track', true)}"),
 				Example.javaScript("${{ $.setSessionAttribute('do_not_track', true) }}")
 		);
 	}

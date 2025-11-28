@@ -34,7 +34,7 @@ public class ApplicationStorePutFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "application_store_put";
+		return "applicationStorePut";
 	}
 
 	@Override
@@ -66,8 +66,8 @@ public class ApplicationStorePutFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${application_store_put(key,value)}. Example: ${application_store_put('do_no_track', true)}"),
-			Usage.javaScript("Usage: ${{ $.applicationStorePut(key,value); }}. Example: ${{ $.applicationStorePut('do_not_track', true); }}")
+			Usage.structrScript("Usage: ${applicationStorePut(key,value)}. Example: ${applicationStorePut('doNoTrack', true)}"),
+			Usage.javaScript("Usage: ${{ $.applicationStorePut(key,value); }}. Example: ${{ $.applicationStorePut('doNotTrack', true); }}")
 		);
 	}
 

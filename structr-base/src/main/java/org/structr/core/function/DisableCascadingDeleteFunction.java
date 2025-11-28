@@ -32,7 +32,7 @@ public class DisableCascadingDeleteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "disable_cascading_delete";
+		return "disableCascadingDelete";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class DisableCascadingDeleteFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${disable_cascading_delete()}"),
+			Usage.structrScript("Usage: ${disableCascadingDelete()}"),
 			Usage.javaScript("Usage: ${Structr.disableCascadingDelete()}")
 		);
 	}

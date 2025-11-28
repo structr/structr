@@ -38,7 +38,7 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "remove_from_group";
+		return "removeFromGroup";
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${remove_from_group(group, principal)}"),
+			Usage.structrScript("Usage: ${removeFromGroup(group, principal)}"),
 			Usage.javaScript("Usage: ${{$.removeFromGroup(group, principal);}}")
 		);
 	}
@@ -106,8 +106,8 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${remove_from_group(first(find('Group', 'name', 'Admins')), me)}"),
-				Example.javaScript("${{ $.remove_from_group($.first($.find('Group', 'name', 'Admins')), $.me)} }}")
+				Example.structrScript("${removeFromGroup(first(find('Group', 'name', 'Admins')), me)}"),
+				Example.javaScript("${{ $.removeFromGroup($.first($.find('Group', 'name', 'Admins')), $.me)} }}")
 		);
 	}
 

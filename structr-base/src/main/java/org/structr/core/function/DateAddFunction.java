@@ -38,7 +38,7 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "date_add";
+		return "dateAdd";
 	}
 
 	@Override
@@ -121,8 +121,8 @@ public class DateAddFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${date_add(this.createdDate, 1, -1, 0, 0, 0, 0)}"),
-			Usage.javaScript("Usage: ${{ $.date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]]); }}. Example: ${{ $.date_add($.this.createdDate, 1, -1, 0, 0, 0, 0); }}")
+			Usage.structrScript("Usage: ${dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${dateAdd(this.createdDate, 1, -1, 0, 0, 0, 0)}"),
+			Usage.javaScript("Usage: ${{ $.dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]]); }}. Example: ${{ $.dateAdd($.this.createdDate, 1, -1, 0, 0, 0, 0); }}")
 		);
 	}
 
@@ -160,9 +160,9 @@ public class DateAddFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${date_add(now, 1)}", "Adds one year to the current date"),
-				Example.structrScript("${date_add(now, 0, 0, 7)}", "Adds one week to the current date"),
-				Example.structrScript("${date_add(now, 0, 0, -7)}", "Subtracts one week from the current date")
+				Example.structrScript("${dateAdd(now, 1)}", "Adds one year to the current date"),
+				Example.structrScript("${dateAdd(now, 0, 0, 7)}", "Adds one week to the current date"),
+				Example.structrScript("${dateAdd(now, 0, 0, -7)}", "Subtracts one week from the current date")
 		);
 	}
 }

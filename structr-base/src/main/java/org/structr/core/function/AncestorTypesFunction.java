@@ -35,7 +35,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "ancestor_types";
+		return "ancestorTypes";
 	}
 
 	@Override
@@ -115,8 +115,8 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${ancestor_types('MyType')}", "Return all ancestor types of MyType"),
-			Example.structrScript("${ancestor_types('MyType', merge('MyOtherType))}", "Remove MyOtherType from the returned result")
+			Example.structrScript("${ancestorTypes('MyType')}", "Return all ancestor types of MyType"),
+			Example.structrScript("${ancestorTypes('MyType', merge('MyOtherType))}", "Remove MyOtherType from the returned result")
 		);
 	}
 
@@ -128,7 +128,7 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User', merge('Principal'))}"),
+			Usage.structrScript("Usage: ${ancestorTypes(type[, blacklist])}. Example ${ancestorTypes('User', merge('Principal'))}"),
 			Usage.javaScript("Usage: ${{ $.ancestorTypes(type[, blacklist])}. Example ${{ $.ancestorTypes('User', ['Principal']) }}")
 		);
 	}

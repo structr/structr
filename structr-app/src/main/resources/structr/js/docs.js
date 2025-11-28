@@ -27,6 +27,7 @@ let _Documentation = {
 	//urlHashKey: 'structrUrlHashKey_' + location.port,
 
 	unload: () => {
+		_Documentation.search.dispose();
 	},
 	onload: () => {
 
@@ -49,89 +50,7 @@ let _Documentation = {
 
 		Structr.mainMenu.unblock(100);
 
-		waitForElement('#search-field').then(searchField => {
-			searchField.addEventListener('click', e => {
-				const searchOverlay = document.getElementById('search-overlay');
-				searchOverlay.classList.remove('hidden');
-				//overlaySearchField.focus();
-				document.querySelector('[data-autofocus=true]').focus();
-			});
-		});
-
-		const overlaySearchField = document.getElementById('overlay-search-field');
-		let   searchOverlay      = document.getElementById('search-overlay');
-		const searchResultsBox   = document.querySelector('#search-results');
-		let   searchResultsList  = document.querySelector('#search-results ul');
-
-		let searchText;
-
-		window.addEventListener('keydown', e => {
-			if (e.key === 'Escape') {
-				searchOverlay = document.getElementById('search-overlay');
-				searchOverlay.classList.add('hidden');
-			}
-		});
-
-		const removeAllMarkdownChars = (text) => {
-			return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ');
-		}
-
-		window.addEventListener('keyup', e => {
-			searchText = overlaySearchField.value;
-
-			if (!searchResultsList) {
-				searchResultsBox.insertAdjacentHTML('afterbegin', '<ul></ul>');
-				searchResultsList = document.querySelector('#search-results ul');
-			} else {
-				searchResultsList.replaceChildren();
-			}
-
-			if (searchText) {
-
-				let files = [];
-				for (const key of Object.keys(_Documentation._content)) {
-					const content = _Documentation._content[key].toLowerCase();
-					if (content.indexOf(searchText.toLowerCase()) > -1) {
-						files.push(key);
-					}
-				}
-
-				for (const file of files) {
-
-					const text = removeAllMarkdownChars(_Documentation._content[file]);
-
-					//const index = file.content.indexOf(searchText);
-					const path  = encodeURI('#docs:' + file);
-					const index = text.toLowerCase().indexOf(searchText.toLowerCase());
-					const substringBefore = text.slice(0, index);
-					const wordsBefore = substringBefore.split(' ');
-					const substringAfter = text.slice(index);// + searchText.length);
-					const wordsAfter = substringAfter.split(' ');
-
-					const n = 5;
-
-					searchResultsList.insertAdjacentHTML('beforeend', '<li class="search-result"><div class="group-aria-selected:text-sky-600"><span>' +
-
-						wordsBefore.slice(Math.max(wordsBefore.length - n, 1)).join(' ')
-						+ wordsAfter.slice(0, n).join(' ')
-
-						+ `</span></div><div aria-hidden="true" class="search-result-path">` +
-						file
-						+ '<span class="sr-only">/</span></div></li>');
-					//});
-
-					document.querySelectorAll('.search-result').forEach(el => {
-						el.addEventListener('click', searchResultElement => {
-							window.location.href = el.href;
-							window.location.reload();
-						});
-					});
-
-				}
-			}
-		});
-
-
+		_Documentation.search.init();
 
 		const checkIndexLinks = (clickedEl) => {
 			document.querySelectorAll('.index a').forEach(el => {
@@ -146,7 +65,15 @@ let _Documentation = {
 				checkIndexLinks(e.target);
 			});
 		});
-
+	},
+	keyDownHandler: e =>{
+		if (e.key === 'Escape') {
+			_Documentation.search.hideSearch();
+			_Documentation.search.clearSearchResults();
+		}
+	},
+	removeAllMarkdownChars: (text) => {
+		return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ');
 	},
 	init: () => {
 
@@ -383,30 +310,119 @@ let _Documentation = {
 		});
 
 	},
+	search: {
+		overlaySearchField: undefined,
+		searchAnimationFrameKey: undefined,
+		init: () => {
+
+			_Documentation.search.overlaySearchField = document.getElementById('overlay-search-field');
+			_Documentation.search.searchResultsList  = document.querySelector('#search-results ul');
+
+			document.querySelector('#search-field').addEventListener('click', e => {
+				document.getElementById('search-overlay')?.classList.remove('hidden');
+				document.querySelector('[data-autofocus=true]').focus();
+			});
+
+			window.addEventListener('keydown', _Documentation.keyDownHandler);
+
+			_Documentation.search.overlaySearchField.addEventListener('keyup', e => {
+				_Helpers.requestAnimationFrameWrapper(_Documentation.search.searchAnimationFrameKey, _Documentation.search.doSearch);
+			});
+
+			_Documentation.search.overlaySearchField.addEventListener('search', e => {
+				let query = e.target.value;
+				if (query === '') {
+					_Documentation.search.clearSearchResults();
+				}
+			});
+		},
+		dispose: () => {
+			window.removeEventListener('keydown', _Documentation.keyDownHandler);
+		},
+		clearSearchResults: () => {
+			_Documentation.search.searchResultsList.replaceChildren();
+		},
+		doSearch: () => {
+
+			_Documentation.search.clearSearchResults();
+
+			let searchText = _Documentation.search.overlaySearchField.value;
+
+			if (searchText) {
+
+				let files = [];
+				for (const key of Object.keys(_Documentation._content)) {
+					const content = _Documentation._content[key].toLowerCase();
+					if (content.indexOf(searchText.toLowerCase()) > -1) {
+						files.push(key);
+					}
+				}
+
+				for (const file of files) {
+
+					const text            = _Documentation.removeAllMarkdownChars(_Documentation._content[file]);
+					const index           = text.toLowerCase().indexOf(searchText.toLowerCase());
+					const substringBefore = text.slice(0, index);
+					const wordsBefore     = substringBefore.split(' ');
+					const substringAfter  = text.slice(index);
+					const wordsAfter      = substringAfter.split(' ');
+					const numContextWords = 5;
+
+					let result = _Helpers.createSingleDOMElementFromHTML(`
+							<li class="search-result cursor-pointer">
+								<div class="group-aria-selected:text-sky-600">
+									<span>${wordsBefore.slice(Math.max(wordsBefore.length - numContextWords, 1)).join(' ')}${wordsAfter.slice(0, numContextWords).join(' ')}</span>
+								</div>
+								<div aria-hidden="true" class="search-result-path">${file}<span class="sr-only">/</span></div>
+							</li>
+						`);
+
+					result.addEventListener('click', e => {
+						_Documentation.search.hideSearch();
+						_Documentation.loadDoc(encodeURI(file));
+					});
+
+					_Documentation.search.searchResultsList.appendChild(result);
+				}
+			}
+		},
+		hideSearch: () => {
+			document.getElementById('search-overlay')?.classList.add('hidden');
+		}
+	},
 	templates: {
-			main: config => `
-<link rel="stylesheet" type="text/css" media="screen" href="css/docs.css">
-<div id="docs-area">
-	<nav>
-		<ul id="docs-main-navigation">
-		</ul>
-	</nav>
-	<article class="article"></article>
-	<aside class="index"></aside>
-</div>`,
-		searchField: config => `<div id="search-field"><svg aria-hidden="true" viewBox="0 0 20 20"><path fill="#555" d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path></svg>
-		<input type="text" placeholder="Search docs"></div>`,
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/docs.css">
+			<div id="docs-area">
+				<nav>
+					<ul id="docs-main-navigation">
+					</ul>
+				</nav>
+				<article class="article"></article>
+				<aside class="index"></aside>
+			</div>`,
+		searchField: config => `
+			<div id="search-field">
+				<svg aria-hidden="true" viewBox="0 0 20 20">
+					<path fill="#555" d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path>
+				</svg>
+				<input type="text" placeholder="Search docs">
+			</div>
+		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
 		mainNavigationSubItem: config => `<li><a href="#docs:${config.parentIndex}-${config.parentLabel}/${config.index}-${config.name}">${config.label}</a></li>`,
 		searchOverlay: config => `
-<div id="search-overlay" class="hidden">
-	<div id="search-overlay-dialog">
-		<svg aria-hidden="true" viewbox="0 0 20 20">
-			<path d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path>
-		</svg>
-		<input spellcheck="false" id="overlay-search-field" autocomplete="off" type="search" maxlength="512" placeholder="Search docs" autofocus="autofocus" aria-autocomplete="both" aria-labelledby=":R2dja:-label" data-autofocus="true">
-		<div id="search-results"><ul></ul></div>
-	</div>
-</div>`
+			<div id="search-overlay" class="hidden">
+				<div id="search-overlay-dialog">
+					<svg aria-hidden="true" viewbox="0 0 20 20">
+						<path d="M16.293 17.707a1 1 0 0 0 1.414-1.414l-1.414 1.414ZM9 14a5 5 0 0 1-5-5H2a7 7 0 0 0 7 7v-2ZM4 9a5 5 0 0 1 5-5V2a7 7 0 0 0-7 7h2Zm5-5a5 5 0 0 1 5 5h2a7 7 0 0 0-7-7v2Zm8.707 12.293-3.757-3.757-1.414 1.414 3.757 3.757 1.414-1.414ZM14 9a4.98 4.98 0 0 1-1.464 3.536l1.414 1.414A6.98 6.98 0 0 0 16 9h-2Zm-1.464 3.536A4.98 4.98 0 0 1 9 14v2a6.98 6.98 0 0 0 4.95-2.05l-1.414-1.414Z"></path>
+					</svg>
+					<input spellcheck="false" id="overlay-search-field" autocomplete="off" type="search" maxlength="512" placeholder="Search docs" autofocus="autofocus" aria-autocomplete="both" aria-labelledby=":R2dja:-label" data-autofocus="true">
+					<div id="search-results">
+						<ul></ul>
+					</div>
+				</div>
+			</div>
+		`
 	}
 }

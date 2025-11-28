@@ -33,7 +33,7 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "request_store_put";
+		return "requestStorePut";
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${request_store_put(key,value)}."),
+			Usage.structrScript("Usage: ${requestStorePut(key,value)}."),
 			Usage.javaScript("Usage: ${{ $.requestStorePut(key,value); }}.")
 		);
 	}
@@ -90,7 +90,7 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${request_store_put('do_no_track', true)}"),
+				Example.structrScript("${requestStorePut('do_no_track', true)}"),
 				Example.javaScript("${{ $.requestStorePut('do_not_track', true); }}")
 		);
 	}

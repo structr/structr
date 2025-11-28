@@ -32,7 +32,7 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "enable_cascading_delete";
+		return "enableCascadingDelete";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class EnableCascadingDeleteFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${enable_cascading_delete()}"),
+			Usage.structrScript("Usage: ${enableCascadingDelete()}"),
 			Usage.javaScript("Usage: ${$.enableCascadingDelete()}")
 		);
 	}

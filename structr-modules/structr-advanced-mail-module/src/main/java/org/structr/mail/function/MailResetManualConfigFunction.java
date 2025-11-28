@@ -34,7 +34,7 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_reset_manual_config";
+		return "mailResetManualConfig";
 	}
 
 	@Override
@@ -61,7 +61,7 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ mail_reset_manual_config() }"),
+			Usage.structrScript("Usage: ${ mailResetManual_config() }"),
 			Usage.javaScript("Usage: ${{ $.mailResetManualConfig() }}")
 		);
 	}

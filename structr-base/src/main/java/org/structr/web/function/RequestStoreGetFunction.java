@@ -33,7 +33,7 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "request_store_get";
+		return "requestStoreGet";
 	}
 
 	@Override
@@ -65,7 +65,7 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${request_store_get(key)}."),
+			Usage.structrScript("Usage: ${requestStoreGet(key)}."),
 			Usage.javaScript("Usage: ${{ $.requestStoreGet(key); }}.")
 		);
 	}
@@ -83,7 +83,7 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${request_store_get('do_no_track')}"),
+				Example.structrScript("${requestStoreGet('do_no_track')}"),
 				Example.javaScript("${{ $.requestStoreGet('do_not_track'); }}")
 		);
 	}

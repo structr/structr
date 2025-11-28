@@ -29,7 +29,7 @@ public class IsValidUuidFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "is_valid_uuid";
+		return "isValidUuid";
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class IsValidUuidFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_valid_uuid(string)}. Example: ${is_valid_uuid(retrieve('request_parameter_id'))}")
+			Usage.structrScript("Usage: ${isValidUuid(string)}. Example: ${isValidUuid(retrieve('requestParameterId'))}")
 		);
 	}
 
@@ -79,7 +79,7 @@ public class IsValidUuidFunction extends CoreFunction {
 					${{
 						let uuid = $.request.nodeId;
 
-						if ($.is_valid_uuid(uuid)) {
+						if ($.isValidUuid(uuid)) {
 
 							let node = $.find('MyNodeType', uuid);
 

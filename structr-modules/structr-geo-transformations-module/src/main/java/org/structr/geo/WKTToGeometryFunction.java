@@ -38,7 +38,7 @@ public class WKTToGeometryFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "wkt_to_geometry";
+		return "wktToGeometry";
 	}
 
 	@Override

@@ -43,7 +43,7 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "copy_file_contents";
+		return "copyFileContents";
 	}
 
 	@Override
@@ -113,7 +113,7 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ copy_file_contents(sourceFile, targetFile) }"),
+			Usage.structrScript("Usage: ${ copyFileContents(sourceFile, targetFile) }"),
 			Usage.javaScript("Usage: ${{ Structr.copyFileContents(sourceFile, targetFile); }}")
 		);
 	}
