@@ -25,37 +25,38 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-public class GetErrorsFunction extends CoreFunction{
-    @Override
-    public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
-        return ctx.getErrorBuffer().getErrorTokens();
-    }
+public class GetErrorsFunction extends CoreFunction {
 
-    @Override
-    public String getName() {
-        return "get_errors";
-    }
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+		return ctx.getErrorBuffer().getErrorTokens();
+	}
 
-    @Override
-    public String getShortDescription() {
-        return "Returns all error tokens present in the current context.";
-    }
+	@Override
+	public String getName() {
+		return "get_errors";
+	}
 
-    @Override
-    public String getLongDescription() {
-        return "";
-    }
+	@Override
+	public String getShortDescription() {
+		return "Returns all error tokens present in the current context.";
+	}
 
-    @Override
-    public List<Signature> getSignatures() {
-        return Signature.forAllScriptingLanguages("");
-    }
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 
-    @Override
-    public List<Usage> getUsages() {
-        return List.of(
-                Usage.javaScript("Usage: ${{$.getErrors()}}. Example: ${{$.getErrors()}}"),
-                Usage.structrScript("Usage: ${get_errors()}. Example: ${get_errors()}")
-        );
-    }
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.getErrors()}}. Example: ${{$.getErrors()}}"),
+			Usage.structrScript("Usage: ${get_errors()}. Example: ${get_errors()}")
+		);
+	}
 }

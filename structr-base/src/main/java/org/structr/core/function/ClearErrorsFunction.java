@@ -25,38 +25,47 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-public class ClearErrorsFunction extends CoreFunction{
-    @Override
-    public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
-        ctx.getErrorBuffer().getErrorTokens().clear();
-        return null;
-    }
+public class ClearErrorsFunction extends CoreFunction {
 
-    @Override
-    public String getName() {
-        return "clear_errors";
-    }
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+		ctx.getErrorBuffer().getErrorTokens().clear();
+		return null;
+	}
 
-    @Override
-    public String getShortDescription() {
-        return "Clears all error tokens present in the current context.";
-    }
+	@Override
+	public String getName() {
+		return "clear_errors";
+	}
 
-    @Override
-    public String getLongDescription() {
-        return "";
-    }
+	@Override
+	public String getShortDescription() {
+		return "Clears all error tokens present in the current context.";
+	}
 
-    @Override
-    public List<Signature> getSignatures() {
-        return Signature.forAllScriptingLanguages("");
-    }
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 
-    @Override
-    public List<Usage> getUsages() {
-        return List.of(
-                Usage.javaScript("Usage: ${{$.clearErrors()}}. Example: ${{$.clearErrors()}}"),
-                Usage.structrScript("Usage: ${clear_errors()}. Example: ${clear_errors()}")
-        );
-    }
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.clearErrors()}}. Example: ${{$.clearErrors()}}"),
+			Usage.structrScript("Usage: ${clear_errors()}. Example: ${clear_errors()}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See also `getErrors()`, `clearError()`, `error()` and `assert()`."
+		);
+	}
 }

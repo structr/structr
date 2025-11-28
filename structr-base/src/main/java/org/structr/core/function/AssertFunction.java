@@ -86,7 +86,11 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This function allows you to check a precondition and abort the execution flow if the condition is not satisfied, sending error code and error message back to the caller.";
+		return """
+		This function allows you to check a precondition and abort the execution flow immediately if the condition is not satisfied, sending a customized error code and error message to the caller, along with all the error tokens that have accumulated in the error buffer.
+		
+		If you want to collect errors (e.g in a validation function), use `error()` which allows you to store error tokens in the context without aborting the execution flow.
+		""";
 	}
 
 	@Override
@@ -108,8 +112,10 @@ public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public List<String> getNotes() {
+
 		return List.of(
-			"Only works as intended in schema methods - not in page rendering."
+			"See also `getErrors()`, `clearError()`, `clearErrors()` and `error()`.",
+			"Only works in schema methods, not in page rendering."
 		);
 	}
 

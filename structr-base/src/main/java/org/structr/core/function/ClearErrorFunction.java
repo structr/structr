@@ -20,57 +20,76 @@ package org.structr.core.function;
 
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
-public class ClearErrorFunction extends CoreFunction{
-    @Override
-    public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+public class ClearErrorFunction extends CoreFunction {
 
-        if (sources == null || sources.length == 0) {
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-            return null;
-        }
+		if (sources == null || sources.length == 0) {
 
-        if (sources.length == 1 && sources[0] instanceof ErrorToken errorToken) {
+			return null;
+		}
 
-            ctx.getErrorBuffer().getErrorTokens().remove(errorToken);
-        } else {
+		if (sources.length == 1 && sources[0] instanceof ErrorToken errorToken) {
 
-            logParameterError(caller, sources, ctx.isJavaScriptContext());
-        }
+			ctx.getErrorBuffer().getErrorTokens().remove(errorToken);
 
-        return null;
-    }
+		} else {
 
-    @Override
-    public String getName() {
-        return "clear_error";
-    }
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		}
 
-    @Override
-    public String getShortDescription() {
-        return "Clears given error token from the current context.";
-    }
+		return null;
+	}
 
-    @Override
-    public String getLongDescription() {
-        return "";
-    }
+	@Override
+	public String getName() {
+		return "clear_error";
+	}
 
-    @Override
-    public List<Signature> getSignatures() {
-        return Signature.forAllScriptingLanguages("error");
-    }
+	@Override
+	public String getShortDescription() {
+		return "Clears the given error token from the current context.";
+	}
 
-    @Override
-    public List<Usage> getUsages() {
-        return List.of(
-                Usage.javaScript("Usage: ${{$.clearError(error)}}. Example: ${{$.clearError(error)}}"),
-                Usage.structrScript("Usage: ${clear_error(error)}. Example: ${clear_error(error)}")
-        );
-    }
+	@Override
+	public String getLongDescription() {
+		return "This function only supports error tokens returned by the `getErrors()` function as arguments.";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("errorToken");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.clearError(errorToken)}}. Example: ${{$.clearError(errorToken)}}"),
+			Usage.structrScript("Usage: ${clear_error(errorToken)}. Example: ${clear_error(errorToken)}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("errorToken", "error token as returned by `getErrors()`")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See also `getErrors()`, `clearErrors()`, `error()` and `assert()`."
+		);
+	}
 }
