@@ -1995,7 +1995,7 @@ let _Files = {
 				<thead>
 					<tr>
 						<th class="icon">&nbsp;</th>
-						<th name class="pl-4">Name</th>
+						<th name>Name</th>
 						<th export class="text-center">${_Icons.getSvgIcon(_Icons.iconIncludeInFrontendExport, 16, 16, [], _Files.tooltips.includeInFrontendExport)}</th>
 						<th uuid>ID</th>
 						<th created>Created</th>
