@@ -1460,7 +1460,9 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fail("Creating a type that inherits from File AND Folder should throw an error.");
 
 		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+
+			final boolean startsWithExpectedMessage = fex.getMessage().startsWith("Incompatible property inheritance in type Multi: traits File and Folder define the same property position with different types");
+			assertTrue("Unexpected error message for clashes in multi-inheritance", startsWithExpectedMessage);
 		}
 	}
 
