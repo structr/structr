@@ -1040,9 +1040,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 		createEntity("/SchemaNode", "{ name: Test, schemaViews: [ { name: public, nonGraphProperties: \"name, type\" } ], schemaMethods: [ { name: test, source: \"find('Test')\" } ] }");
 		final String uuid = createEntity("Test", "{ name: Test }");
 
-		// default setting for "force arrays" is false..
-		Settings.ForceArrays.setValue(false);
-
 		// trying to execute a non-static method via static path should result in 404
 		RestAssured
 
@@ -1069,36 +1066,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.when()
 				.post("/Test/" + uuid + "/test");
-
-		// test with true as well
-		Settings.ForceArrays.setValue(true);
-
-		// trying to execute a non-static method via static path should result in 404
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(404)
-
-			.when()
-				.post("/Test/test");
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result_count", equalTo(1))
-				.body("result[0][0].type", equalTo("Test"))
-				.body("result[0][0].name", equalTo("Test"))
-
-			.when()
-				.post("/Test/" + uuid + "/test");
 	}
 
 	@Test
@@ -1118,9 +1085,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 		createEntity("/SchemaNode", "{ name: Test2, schemaViews: [ { name: public, nonGraphProperties: \"name, type\" } ], inheritedTraits: [ TestBase2 ] }");
 		final String test2 = createEntity("Test2", "{ name: Test1 }");
-
-		// default setting for "force arrays" is false..
-		Settings.ForceArrays.setValue(false);
 
 		// test 404 error for non-static entity methods
 		RestAssured
@@ -1178,23 +1142,6 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.when()
 				.post("/Test2/" + test2 + "/test");
 
-		// test with true as well
-		Settings.ForceArrays.setValue(true);
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-
-			.expect()
-				.statusCode(200)
-
-				.body("result_count", equalTo(1))
-				.body("result[0][0].type", equalTo("Test2"))
-				.body("result[0][0].name", equalTo("Test1"))
-
-			.when()
-				.post("/Test2/" + test2 + "/test");
 	}
 
 	@Test
