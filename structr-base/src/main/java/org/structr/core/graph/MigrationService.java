@@ -72,7 +72,8 @@ public class MigrationService {
 		"sign-out",
 		"sign-up",
 		"reset-password",
-		"method"
+		"method",
+		"flow"
 	);
 
 	private static final Set<String> FQCNBlacklist = Set.of(
