@@ -143,7 +143,7 @@
 #files-table th[owner]    { width: 10% }
 
 #files-table {
-    table-layout: fixed;
+	table-layout: fixed;
 	margin-bottom: 1rem;
 }
 
@@ -156,16 +156,20 @@
 }
 
 #files-table th {
-    padding-bottom: 1rem;
+	padding-bottom: 1rem;
+	text-align: left;
+}
+#files-table th[export] {
+	text-align: center;
 }
 
 #files-table th,
 #files-table td {
-    padding-right: 2rem;
+	padding-right: 2rem;
 }
 #files-table th:first-of-type,
 #files-table td:first-of-type {
-    padding-left: 1rem;
+	padding-left: 1rem;
 }
 
 
