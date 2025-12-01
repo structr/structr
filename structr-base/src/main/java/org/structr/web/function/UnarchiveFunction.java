@@ -27,6 +27,8 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -92,8 +94,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder])}. Example: ${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}"),
-			Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder])}}. Example: ${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}")
+			Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder])}."),
+			Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder])}}.")
 		);
 	}
 
@@ -104,6 +106,36 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		The `unarchive()` function takes two parameter. 
+		The first parameter is a file object that is linked to an archive file, the second (optional) 
+		parameter points to an existing parent folder. If no parent folder is given, a new subfolder with the 
+		same name as the archive (without extension) is created. 
+		""";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}"),
+				Example.javaScript("${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("archiveFile", "file node"),
+				Parameter.optional("parentFolder", "parent folder node")
+				);
+	}
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The supported file types are ar, arj, cpio, dump, jar, tar, zip and 7z."
+		);
+	}
+
+
 }

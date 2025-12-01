@@ -24,6 +24,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -100,6 +102,39 @@ public class TrimFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Removes any leading or trailing whitespace from the given object. If the object is a string, a trimmed version 
+		will be returned. If it is a collection, a collection of trimmed strings will be returned.""";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${trim('         A text with lots of whitespace        ')}
+						> 'A text with lots of whitespace'"""),
+				Example.javaScript("""
+						${{ $.trim(
+							$.merge('     A text with lots of whitespace    ', '     Another text with lots of whitespace     ')
+							)
+						}}
+						>['A text with lots of whitespace', 'Another text with lots of whitespace']""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("object", "object to trim")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"A space is defined as any character whose codepoint is less than or equal to `U+0020` (the space character)."
+		);
+	}
+
+
 }

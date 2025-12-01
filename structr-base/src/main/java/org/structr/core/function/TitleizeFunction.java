@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -67,12 +69,11 @@ public class TitleizeFunction extends CoreFunction {
 
 	}
 
-
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.titleize(string, separator) }}. (Default separator is ' ') Example: ${{ $.titleize($.this.lowerCamelCaseString, '_') }}"),
-			Usage.structrScript("Usage: ${titleize(string, separator)}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}")
+			Usage.javaScript("Usage: ${{ $.titleize(string, separator) }}"),
+			Usage.structrScript("Usage: ${titleize(string, separator)}")
 		);
 	}
 
@@ -86,4 +87,26 @@ public class TitleizeFunction extends CoreFunction {
 		return "";
 	}
 
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${titleize('structr has a lot of built-in functions')}
+						> 'Structr Has A Lot Of Built-in Functions'
+						"""),
+				Example.javaScript("""
+						${{ titleize('structr has a lot of built-in functions', '- ') }}
+						> 'Structr Has A Lot Of Built In Functions'
+						""", "Different separator")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "URL to connect to"),
+				Parameter.optional("separatorChars", "string separator (default: ` `)")
+				);
+	}
 }
