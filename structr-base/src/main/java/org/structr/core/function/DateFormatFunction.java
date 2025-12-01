@@ -35,11 +35,11 @@ import java.util.List;
 
 public class DateFormatFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_DATE_FORMAT = "Usage: ${date_format(value, pattern)}. Example: ${date_format(this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT = "Usage: ${dateFormat(value, pattern)}. Example: ${dateFormat(this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\")}";
 
 	@Override
 	public String getName() {
-		return "date_format";
+		return "dateFormat";
 	}
 
 	@Override
@@ -106,7 +106,7 @@ public class DateFormatFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript(ERROR_MESSAGE_DATE_FORMAT),
-			Usage.javaScript("Usage: ${{ $.date_format(value, pattern); }}. Example: ${{ $.date_format($.this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\"); }}")
+			Usage.javaScript("Usage: ${{ $.dateFormat(value, pattern); }}. Example: ${{ $.dateFormat($.this.createdDate, \"yyyy-MM-dd'T'HH:mm:ssZ\"); }}")
 		);
 	}
 
@@ -174,9 +174,9 @@ public class DateFormatFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${date_format(to_date(1585504800000), 'yyyy-MM-dd')}", "2020-03-29"),
-				Example.structrScript("${date_format(to_date(1585504800000), 'EEEE')}", "Sunday"),
-				Example.structrScript("${(set_locale('de'), date_format(to_date(1585504800000), 'EEEE'))}", "Sonntag")
+				Example.structrScript("${dateFormat(toDate(1585504800000), 'yyyy-MM-dd')}", "2020-03-29"),
+				Example.structrScript("${dateFormat(toDate(1585504800000), 'EEEE')}", "Sunday"),
+				Example.structrScript("${(setLocale('de'), dateFormat(toDate(1585504800000), 'EEEE'))}", "Sonntag")
 		);
 	}
 }

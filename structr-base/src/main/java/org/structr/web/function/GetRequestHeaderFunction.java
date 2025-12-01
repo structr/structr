@@ -36,7 +36,7 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "get_request_header";
+		return "getRequestHeader";
 	}
 
 	@Override
@@ -80,7 +80,7 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}"),
+			Usage.structrScript("Usage: ${getRequestHeader(name)}. Example: ${getRequestHeader('User-Agent')}"),
 			Usage.javaScript("Usage: ${{ $.getRequestHeader(name) }}. Example: ${{ $.getRequestHeader('User-Agent')}}")
 		);
 	}
@@ -101,8 +101,8 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_request_header('User-Agent')}"),
-				Example.javaScript("${{ $.get_request_header('User-Agent') }}")
+				Example.structrScript("${getRequestHeader('User-Agent')}"),
+				Example.javaScript("${{ $.getRequestHeader('User-Agent') }}")
 		);
 	}
 

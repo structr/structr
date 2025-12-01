@@ -101,11 +101,11 @@ public class BarcodeFunction extends UiAdvancedFunction {
 
 	public Map<String, Object> parseParametersAsMap(final Object[] sources, final int startIndex) throws FrameworkException {
 
-		final int parameter_count = sources.length - startIndex;
+		final int parameterCount = sources.length - startIndex;
 
-		if (parameter_count % 2 != 0) {
+		if (parameterCount % 2 != 0) {
 
-			throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". " + usage(true));
+			throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". " + usage(true));
 		}
 
 		final Map<String, Object> params = new HashMap();

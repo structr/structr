@@ -236,7 +236,6 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 		// since we cannot test the mail confirmation workflow, we just disable sending an e-mail
 		Settings.SmtpTesting.setValue(true);
-		Settings.ForceArrays.setValue(false);
 
 		// switch to REST servlet
 		RestAssured.basePath = restUrl;

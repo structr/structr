@@ -51,8 +51,8 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.*;
 import org.structr.core.traits.relationships.SecurityRelationshipDefinition;
+import org.structr.docs.*;
 import org.structr.module.StructrModule;
-import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.*;
 import org.structr.web.auth.UiAuthenticator;
@@ -145,11 +145,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String EVENTS_FOLDER_PATH                                    = "events";
 	private final static String MODULES_FOLDER_PATH                                   = "modules";
 	private final static String MAIL_TEMPLATES_FOLDER_PATH                            = "mail-templates";
-
-	static {
-
-		MaintenanceResource.registerMaintenanceCommand("deploy", DeployCommand.class);
-	}
 
 	@Override
 	public void execute(final Map<String, Object> parameters) throws FrameworkException {
@@ -3226,6 +3221,62 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addMissingSchemaFile (final String fileName) {
 		missingSchemaFile.add(fileName);
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "deploy";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Creates a Deployment Export or Import of the Structr application.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command reads or writes a text-based export of the application (without its data!) that can be stored in a version control system. The maintenance command is used internally in the Dashboard section.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("mode", "deployment mode, `import` or `export`"),
+			Parameter.optional("source", "source folder for `import` mode"),
+			Parameter.optional("target", "target folder for `export` mode"),
+			Parameter.optional("extendExistingApp", "`import` only: if set to `true`, the import will be incremental, i.e. the existing Structr app will not be removed before importing the new application")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 
 	// ----- nested helper classes -----

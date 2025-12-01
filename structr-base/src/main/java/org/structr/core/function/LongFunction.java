@@ -86,7 +86,7 @@ public class LongFunction extends CoreFunction {
 		return """
 		This function is especially helpful when trying to set a date value in the database via the `cypher()` function.
 
-		Real dates are converted to the number of milliseconds since January 1, 1970, 00:00:00 GMT.
+		Date values are also supported and are converted to the number of milliseconds since January 1, 1970, 00:00:00 GMT.
 		
 		Other date strings are also supported in the following formats:
 		- "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
@@ -100,7 +100,7 @@ public class LongFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("input", "input value to convert to a long integer, can be string, date or floating-point number etc.")
+			Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number etc.")
 		);
 	}
 
@@ -111,6 +111,14 @@ public class LongFunction extends CoreFunction {
 			Example.structrScript("${long(now)}", "Return the milliseconds since epoch of the current date"),
 			Example.structrScript("${long(5.8)}", "Convert a floating-point value into a long"),
 			Example.structrScript("${long('35.8')}", "Convert a string into a long")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See also `num()`."
 		);
 	}
 

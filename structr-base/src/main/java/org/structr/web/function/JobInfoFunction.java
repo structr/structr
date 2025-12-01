@@ -32,7 +32,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "job_info";
+		return "jobInfo";
 	}
 
 	@Override
@@ -47,7 +47,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (!(sources[0] instanceof Number)) {
-				throw new IllegalArgumentException("job_info(): JobId must be numeric");
+				throw new IllegalArgumentException("jobInfo(): JobId must be numeric");
 			}
 
 			final Long jobId = ((Number)sources[0]).longValue();
@@ -55,7 +55,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 			final Map<String, Object> jobInfo = JobQueueManager.getInstance().jobInfo(jobId);
 
 			if (jobInfo == null) {
-				logger.warn("job_info(): Job with ID {} not found", jobId);
+				logger.warn("jobInfo(): Job with ID {} not found", jobId);
 				return false;
 			}
 
@@ -71,7 +71,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${job_info(jobId)}. Example: ${job_info(1)}"),
+			Usage.structrScript("Usage: ${jobInfo(jobId)}. Example: ${jobInfo(1)}"),
 			Usage.javaScript("Usage: ${{Structr.jobInfo(jobId)}}. Example: ${{Structr.jobInfo(1)}}")
 		);
 	}
@@ -126,7 +126,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${job_info(1)}", "Return information about the job with ID 1")
+			Example.structrScript("${jobInfo(1)}", "Return information about the job with ID 1")
 		);
 	}
 }

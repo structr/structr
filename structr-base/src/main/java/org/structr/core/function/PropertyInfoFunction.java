@@ -37,7 +37,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "property_info";
+		return "propertyInfo";
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${property_info(type, name)}."),
+				Usage.structrScript("Usage: ${propertyInfo(type, name)}."),
 				Usage.javaScript("Usage: ${{ $.propertyInfo(type, name) }}.")
 		);
 	}
@@ -135,8 +135,8 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${property_info('User', 'name').uiType}"),
-				Example.javaScript("${{ $.property_info('User', 'name').uiType }}")
+				Example.structrScript("${propertyInfo('User', 'name').uiType}"),
+				Example.javaScript("${{ $.propertyInfo('User', 'name').uiType }}")
 		);
 	}
 

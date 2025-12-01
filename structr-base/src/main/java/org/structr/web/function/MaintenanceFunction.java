@@ -18,9 +18,11 @@
  */
 package org.structr.web.function;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
+import org.structr.autocomplete.WrappingHint;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -30,15 +32,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MaintenanceFunction extends UiAdvancedFunction {
 
@@ -51,7 +49,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("command [, key, value [, ... ]]");
+		return Signature.forAllScriptingLanguages("command [, arguments...]");
 	}
 
 	@Override
@@ -77,14 +75,14 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 				} else {
 
-					final int parameter_count = sources.length;
+					final int parameterCount = sources.length;
 
-					if (parameter_count % 2 == 0) {
+					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 					}
 
-					for (int c = 1; c < parameter_count; c += 2) {
+					for (int c = 1; c < parameterCount; c += 2) {
 
 						params.put(sources[c].toString(), sources[c + 1]);
 					}
@@ -179,11 +177,78 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Executes a maintenance command.";
+		return "Allows an admin user to execute a maintenance command from within a scripting context.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+
+		final List<String> lines = new LinkedList<>();
+
+		lines.add("The following maintenance commands exist:");
+		lines.add("");
+		lines.add("|Name|Description|");
+		lines.add("|---|---|");
+
+		for (final Documentable cmd : MaintenanceResource.getMaintenanceCommands()) {
+
+			if (!DocumentableType.Hidden.equals(cmd.getType())) {
+
+				lines.add("|" + cmd.getName() + "|" + cmd.getShortDescription() + "|");
+			}
+		}
+
+		return StringUtils.join(lines, "\n");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("command", "name of the command to execute"),
+			Parameter.optional("arguments...", "map (or key-value pairs) of arguments (depends on the command)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			${{
+			    $.maintenance('rebuildIndex', { type: 'Article' });
+			}}
+			""", "Rebuild the index for the type \"Article\"")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In a StructrScript environment arguments are passed as pairs of 'key1', 'value1'.",
+			"In a JavaScript environment, this function takes a map as the second argument."
+		);
+	}
+
+	public List<Documentable> getContextHints(final String lastToken) {
+
+		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
+		final List<Documentable> hints = new LinkedList<>();
+
+		for (final Documentable documentable : MaintenanceResource.getMaintenanceCommands()) {
+
+			if (!DocumentableType.Hidden.equals(documentable.getType())) {
+
+				final String name = documentable.getName();
+
+				if (StringUtils.isNotBlank(name)) {
+
+					hints.add(new WrappingHint(documentable, quoteChar + name + quoteChar));
+				}
+			}
+		}
+
+		return hints;
 	}
 }

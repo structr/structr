@@ -272,12 +272,6 @@ public class Scripting {
 		// Clear output buffer
 		actionContext.clear();
 
-		if (actionContext.hasError()) {
-			// Reset error buffer
-			actionContext.getErrorBuffer().getErrorTokens().clear();
-			actionContext.getErrorBuffer().setStatus(0);
-		}
-
 		final Context context = ContextFactory.getContext(engineName, actionContext, entity);
 
 		ContextHelper.incrementReferenceCount(context);

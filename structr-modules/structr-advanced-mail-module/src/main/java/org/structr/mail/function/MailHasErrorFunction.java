@@ -36,7 +36,7 @@ public class MailHasErrorFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_has_error";
+		return "mailHasError";
 	}
 
 	@Override

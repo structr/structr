@@ -35,7 +35,7 @@ public class SetLogLevelFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "set_log_level";
+		return "setLogLevel";
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class SetLogLevelFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_log_level(string)}. Example ${set_log_level('WARN')}"),
+			Usage.structrScript("Usage: ${setLogLevel(string)}. Example ${setLogLevel('WARN')}"),
 			Usage.javaScript("Usage: ${{Structr.setLogLevel(string)}}. Example ${{Structr.setLogLevel('WARN')}}")
 		);
 	}

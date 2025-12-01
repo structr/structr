@@ -36,7 +36,7 @@ public class WeekDaysFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "week_days";
+		return "weekDays";
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class WeekDaysFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${week_days(from, to)}. Example: ${week_days(parse_date(\"2014-01-01\", \"yyyy-MM-dd\"), parse_date(\"2014-01-15\", \"yyyy-MM-dd\"))}"),
+			Usage.structrScript("Usage: ${weekDays(from, to)}. Example: ${weekDays(parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}"),
 			Usage.javaScript("Usage: ${{Structr.weekDays(from, to)}}. Example: ${{Structr.weekDays(Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\"), Structr.parseDate(\"2014-01-15\", \"yyyy-MM-dd\"))}}")
 		);
 	}

@@ -5,36 +5,55 @@
 
 export LOG_FILE="/var/log/structr.log"
 
+# Read config entries from structr.conf if available
+if [ -f "structr.conf" ]; then
+    # Read java heap config
+  	MAX_HEAP=$(grep -E "^\s*application\.heap\.max_size\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+  	MIN_HEAP=$(grep -E "^\s*application\.heap\.min_size\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+
+  	# Read timezone
+  	CONF_TIMEZONE=$(grep -E "^\s*application\.timezone\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+fi
+
 if [ -f bin/memory.conf ]; then
+	echo -e "\n\nDeprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
 	MEMORY_OPTS="$(cat bin/memory.conf)"
 elif [ -f bin/memory.config ]; then
-  echo -e "\n\nDeprecation warning: The default name for the memory configuration file has been changed to memory.conf. Please adjust accordingly.\n\n" >> $LOG_FILE
+	echo -e "\n\nDeprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
 	MEMORY_OPTS="$(cat bin/memory.config)"
-elif [ -n "$MEMORY_OPTS" ]; then
-	MEMORY_OPTS="$MEMORY_OPTS"
+elif [ -f "structr.conf" ]; then
+	if [ -n "$MAX_HEAP" ] || [ -n "$MIN_HEAP" ]; then
+		MEMORY_OPTS=""
+		[ -n "$MIN_HEAP" ] && MEMORY_OPTS="-Xms${MIN_HEAP}"
+		[ -n "$MAX_HEAP" ] && MEMORY_OPTS="${MEMORY_OPTS} -Xmx${MAX_HEAP}"
+		MEMORY_OPTS=$(echo "$MEMORY_OPTS" | xargs)  # trim whitespace
+	fi
 else
 	MEMORY_OPTS=""
 fi
 
 if [ "$ENABLE_STRUCTR_DEBUG" == "yes" ]; then
-  DEBUG_OPTS="-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=*:5005,server=y,suspend=n"
+	DEBUG_OPTS="-Xdebug -Xnoagent -Xrunjdwp:transport=dt_socket,address=*:5005,server=y,suspend=n"
 fi
 
 if [ -n "$JAVA_AGENT_PATH" ]; then
-    JAVA_AGENT_PATH="-javaagent:${JAVA_AGENT_PATH}"
+		JAVA_AGENT_PATH="-javaagent:${JAVA_AGENT_PATH}"
 else
-    unset JAVA_AGENT_PATH
+		unset JAVA_AGENT_PATH
 fi
 
 if [ -n "$STRUCTR_TIMEZONE" ]; then
-  export PROCESS_TZ=$STRUCTR_TIMEZONE
-  echo "Using user-provided timezone '$STRUCTR_TIMEZONE'"
+	export PROCESS_TZ=$STRUCTR_TIMEZONE
+	echo "Using user-provided timezone '$STRUCTR_TIMEZONE'"
+elif [ -n "$CONF_TIMEZONE" ]; then
+	export PROCESS_TZ=$CONF_TIMEZONE
+	echo "Using structr.conf timezone '$CONF_TIMEZONE'"
 elif [ -z "$TZ" ]; then
-  export PROCESS_TZ="UTC"
-  echo "Using default timezone '$PROCESS_TZ'"
+	export PROCESS_TZ="UTC"
+	echo "Using default timezone '$PROCESS_TZ'"
 else
-  export PROCESS_TZ=$TZ
-  echo "Using system TZ env timezone '$TZ'"
+	export PROCESS_TZ=$TZ
+	echo "Using system TZ env timezone '$TZ'"
 fi
 
 RUN_OPTS="-cp lib/*:FINAL_NAME.jar"

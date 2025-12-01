@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -34,7 +35,7 @@ public class MergeUniqueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "merge_unique";
+		return "mergeUnique";
 	}
 
 	@Override
@@ -72,18 +73,38 @@ public class MergeUniqueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${merge_unique(list1, list2, list3...)}. Example: ${merge_unique(this.children, this.siblings)}")
+			Usage.structrScript("Usage: ${mergeUnique(list1, list2, list3...)}. Example: ${mergeUnique(this.children, this.siblings)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Merges the given collections / objects into a single collection, removing duplicates.";
+		return "Merges collections and objects into a single collection, removing duplicates.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		You can use this function to create collections of objects, add objects to a collection, or to merge multiple collections into a single one. All objects that are passed to this function will be added to the resulting collection. If an argument is a collection, all objects in that collection are added to the resulting collection as well.
+
+		This method is very similar to `merge()` except that the resulting collection will **not** contain duplicate entries.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("objects...", "collections or objects to merge into a single collection")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"This function will remove duplicate entries. If you don't want that, use `merge()`."
+		);
 	}
 
 	@Override

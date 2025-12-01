@@ -35,7 +35,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "parse_number";
+		return "parseNumber";
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class ParseNumberFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${parse_number(value, locale)}."),
+				Usage.structrScript("Usage: ${parseNumber(value, locale)}."),
 				Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}.")
 		);
 	}
@@ -111,10 +111,10 @@ public class ParseNumberFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${parse_number('123,456,789.123', 'en')}"),
-				Example.structrScript("${parse_number('123.456.789,123', 'de')}"),
-				Example.javaScript("${{ $.parse_number('123,456,789.123', 'en') }}"),
-				Example.javaScript("${{ $.parse_number('123.456.789,123', 'de') }}")
+				Example.structrScript("${parseNumber('123,456,789.123', 'en')}"),
+				Example.structrScript("${parseNumber('123.456.789,123', 'de')}"),
+				Example.javaScript("${{ $.parseNumber('123,456,789.123', 'en') }}"),
+				Example.javaScript("${{ $.parseNumber('123.456.789,123', 'de') }}")
 		);
 	}
 

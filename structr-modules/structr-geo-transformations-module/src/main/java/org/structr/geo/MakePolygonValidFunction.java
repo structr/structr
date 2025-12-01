@@ -38,7 +38,7 @@ public class MakePolygonValidFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "make_polygon_valid";
+		return "makePolygonValid";
 	}
 
 	@Override

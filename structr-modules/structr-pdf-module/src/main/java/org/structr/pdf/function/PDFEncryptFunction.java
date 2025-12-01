@@ -45,7 +45,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "pdf_encrypt";
+		return "pdfEncrypt";
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${pdf_encrypt(file, password)}. Example: ${pdf_encrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}"),
+			Usage.structrScript("Usage: ${pdfEncrypt(file, password)}. Example: ${pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}"),
 			Usage.javaScript("Usage: ${{ $.pdfEncrypt(file, password) }}. Example: ${{ $.pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword') }}")
 		);
 	}

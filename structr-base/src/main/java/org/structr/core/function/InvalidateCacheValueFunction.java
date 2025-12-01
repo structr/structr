@@ -32,7 +32,7 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "invalidate_cache_value";
+		return "invalidateCacheValue";
 	}
 
 	@Override
@@ -63,8 +63,8 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${invalidate_cache_value(cacheKey)}. Example: ${invalidate_cache_value('mykey')}"),
-			Usage.javaScript("Usage: ${{ Structr.invalidate_cache_value(cacheKey); }}. Example: ${{ Structr.invalidate_cache_value('mykey'); }}")
+			Usage.structrScript("Usage: ${invalidateCacheValue(cacheKey)}. Example: ${invalidateCacheValue('mykey')}"),
+			Usage.javaScript("Usage: ${{ Structr.invalidateCacheValue(cacheKey); }}. Example: ${{ Structr.invalidateCacheValue('mykey'); }}")
 		);
 	}
 

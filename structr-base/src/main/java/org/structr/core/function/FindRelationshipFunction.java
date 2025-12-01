@@ -39,12 +39,12 @@ import java.util.Map;
 
 public class FindRelationshipFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED = "Error in find_relationship(): no type specified.";
-	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND = "Error in find_relationship(): type not found: ";
+	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED = "Error in findRelationship(): no type specified.";
+	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND = "Error in findRelationship(): type not found: ";
 
 	@Override
 	public String getName() {
-		return "find_relationship";
+		return "findRelationship";
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class FindRelationshipFunction extends CoreFunction {
 
 				} else {
 
-					logger.warn("Error in find_relationship(): type \"{}\" not found.", typeString);
+					logger.warn("Error in findRelationship(): type \"{}\" not found.", typeString);
 					return ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND + typeString;
 				}
 			}
@@ -87,7 +87,7 @@ public class FindRelationshipFunction extends CoreFunction {
 			// exit gracefully instead of crashing..
 			if (traits == null) {
 
-				logger.warn("Error in find_relationship(): no type specified. Parameters: {}", getParametersAsString(sources));
+				logger.warn("Error in findRelationship(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED;
 			}
 
@@ -112,14 +112,14 @@ public class FindRelationshipFunction extends CoreFunction {
 
 			} else {
 
-				final int parameter_count = sources.length;
+				final int parameterCount = sources.length;
 
-				if (parameter_count % 2 == 0) {
+				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
-				for (int c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameterCount; c += 2) {
 
 					if (sources[c] == null) {
 						throw new IllegalArgumentException();
@@ -156,7 +156,7 @@ public class FindRelationshipFunction extends CoreFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.javaScript("Usage: ${{ $.findRelationship(type, key, value); }}. Example: ${{ $.findRelationship('PersonRELATED_TOPerson'); }}"),
-			Usage.structrScript("Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship('PersonRELATED_TOPerson')}")
+			Usage.structrScript("Usage: ${findRelationship(type, key, value)}. Example: ${findRelationship('PersonRELATED_TOPerson')}")
 		);
 	}
 

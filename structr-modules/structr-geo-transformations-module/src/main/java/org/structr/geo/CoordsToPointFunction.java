@@ -39,7 +39,7 @@ public class CoordsToPointFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "coords_to_point";
+		return "coordsToPoint";
 	}
 
 	@Override

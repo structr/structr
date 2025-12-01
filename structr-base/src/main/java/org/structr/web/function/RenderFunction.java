@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -126,8 +128,8 @@ public class RenderFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}"),
-			Usage.javaScript("Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}. Example: ${{Structr.render(Structr.get('this').children)}}")
+			Usage.structrScript("Usage: ${render(node)} or ${render(nodes)}."),
+			Usage.javaScript("Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}.")
 		);
 	}
 
@@ -138,6 +140,31 @@ public class RenderFunction extends UiCommunityFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Renders the HTML representation of the given node(s) into the output buffer. This method is exactly equivalent to the 
+		rendering process that Structr uses internally to create the HTML output of pages etc. 
+		It can be used to render dynamic content in pages with placeholders etc.
+		Together with `include()`, `render()` is one of the the most important method when dealing with HTML web templates, 
+		since it allows the user to fill static HTML pages with dynamic content from the underlying node structure.
+		See [Page Rendering](/article/Page%20Rendering) for more information on this topic.
+		""";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${render(children)}"),
+				Example.javaScript("${{ $.render($.children) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("node", "node or list of nodes to be rendered")
+				);
+	}
+
+
 }

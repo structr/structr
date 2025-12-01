@@ -30,7 +30,7 @@ public class ToDateFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "to_date";
+		return "toDate";
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class ToDateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${to_date(value)}. Example: ${to_date(1473201885000)}"),
+			Usage.structrScript("Usage: ${toDate(value)}. Example: ${toDate(1473201885000)}"),
 			Usage.javaScript("Usage: ${{$.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}")
 		);
 	}

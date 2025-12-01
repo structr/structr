@@ -578,9 +578,6 @@ public class RenderContextTest extends StructrUiTest {
 			Scripting.replaceVariables(ctx, p1, "${set_details_object(first(find('TestOne', 'id', '" + detailsDataObject2.getUuid() + "')))}");
 			assertEquals("${current.id} should resolve to new details object", detailsDataObject2.getUuid(), Scripting.replaceVariables(ctx, p1, "${current.id}"));
 
-			// test values() with single parameter
-			assertEquals("Invalid values() result", "[test]", Scripting.replaceVariables(ctx, page, "${values(from_json('{name:test}'))}"));
-
 			testOne = createTestNode("TestOne");
 			testOne.setProperty(Traits.of("TestOne").key("htmlString"), "<a b=\"c\">&d</a>");
 

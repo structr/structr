@@ -32,7 +32,7 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 
 	@Override
 	public String getName() {
-		return "disable_prevent_duplicate_relationships";
+		return "disablePreventDuplicateRelationships";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${disable_prevent_duplicate_relationships()}"),
+			Usage.structrScript("Usage: ${disablePreventDuplicateRelationships()}"),
 			Usage.javaScript("Usage: ${Structr.disablePreventDuplicateRelationships()}")
 		);
 	}

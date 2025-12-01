@@ -26,7 +26,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -95,5 +97,59 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "copyRelationshipProperties";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Copies relationship properties from one key to another.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("sourceKey", "source key"),
+			Parameter.mandatory("destKey", "destination key")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

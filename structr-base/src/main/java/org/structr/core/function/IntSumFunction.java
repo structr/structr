@@ -30,7 +30,7 @@ public class IntSumFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "int_sum";
+		return "intSum";
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class IntSumFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, 'number'))}")
+			Usage.structrScript("Usage: ${intSum(list)}. Example: ${intSum(extract(this.children, 'number'))}")
 		);
 	}
 
@@ -103,7 +103,7 @@ public class IntSumFunction extends CoreFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${int_sum(merge(1, 2, 3, 4))}", "Return the sum of a list of values")
+			Example.structrScript("${intSum(merge(1, 2, 3, 4))}", "Return the sum of a list of values")
 		);
 	}
 

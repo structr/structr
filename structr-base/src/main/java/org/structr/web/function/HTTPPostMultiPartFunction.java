@@ -52,7 +52,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
 	@Override
 	public String getName() {
-		return "POST_multi_part";
+		return "POST_multiPart";
 	}
 
 	@Override
@@ -180,7 +180,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${POST_multi_part(URL, partsMap [, responseContentType])}. Example: ${POST_multi_part('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
+			Usage.structrScript("Usage: ${POST_multiPart(URL, partsMap [, responseContentType])}. Example: ${POST_multiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
 			Usage.javaScript("Usage: ${{ $.POSTMultiPart(URL, partsMap[, responseContentType]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
 		);
 	}
@@ -210,7 +210,7 @@ public class HTTPPostMultiPartFunction extends HttpPostFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `add_header()` (see the related articles for more information).",
+			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
 			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
 		);
 	}

@@ -30,6 +30,7 @@ import org.structr.schema.action.ActionContext;
 import java.util.Arrays;
 
 public class GrantFunction<T extends GraphObject> implements ProxyExecutable {
+
 	private Logger logger = LoggerFactory.getLogger(GrantFunction.class);
 	private final ActionContext actionContext;
 	private final T node;

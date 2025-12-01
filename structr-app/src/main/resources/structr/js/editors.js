@@ -589,26 +589,29 @@ let _Editors = {
 	},
 	getAutoCompletionHintKind: (type) => {
 
-		let lowercaseType = type.toLowerCase();
+        if (type) {
 
-		// see https://microsoft.github.io/monaco-editor/typedoc/enums/languages.CompletionItemKind.html#Method
-		switch (lowercaseType) {
-			case "built-in function":
-				return monaco.languages.CompletionItemKind.Function;
+            let lowercaseType = type.toLowerCase();
 
-			case "method":
-			case "global schema method":
-				return monaco.languages.CompletionItemKind.Method;
+            // see https://microsoft.github.io/monaco-editor/typedoc/enums/languages.CompletionItemKind.html#Method
+            switch (lowercaseType) {
+                case "built-in function":
+                    return monaco.languages.CompletionItemKind.Function;
 
-			case "property":
-				return monaco.languages.CompletionItemKind.Property;
+                case "method":
+                case "global schema method":
+                    return monaco.languages.CompletionItemKind.Method;
 
-			case "keyword":
-				return monaco.languages.CompletionItemKind.Keyword;
+                case "property":
+                    return monaco.languages.CompletionItemKind.Property;
 
-			case "typeName":
-				return monaco.languages.CompletionItemKind.Class;
-		}
+                case "keyword":
+                    return monaco.languages.CompletionItemKind.Keyword;
+
+                case "typeName":
+                    return monaco.languages.CompletionItemKind.Class;
+            }
+        }
 
 		return monaco.languages.CompletionItemKind.Function;
 	},

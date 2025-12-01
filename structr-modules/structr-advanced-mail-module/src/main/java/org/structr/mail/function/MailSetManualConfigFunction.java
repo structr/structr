@@ -35,7 +35,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_set_manual_config";
+		return "mailSetManualConfig";
 	}
 
 	@Override
@@ -96,7 +96,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ mail_set_manual_config([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }"),
+			Usage.structrScript("Usage: ${ mailSetManual_config([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }"),
 			Usage.javaScript("Usage: ${{ $.mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }}")
 		);
 	}

@@ -41,7 +41,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "is_allowed";
+		return "isAllowed";
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_allowed(principal, node, permissions)}. Example: ${is_allowed(me, this, 'write, delete'))}"),
+			Usage.structrScript("Usage: ${isAllowed(principal, node, permissions)}. Example: ${isAllowed(me, this, 'write, delete'))}"),
 			Usage.javaScript("Usage: ${{ $.isAllowed(principal, node, permissions)}}. Example: ${{ $.isAllowed($.me, $.this, 'write, delete'))}}")
 		);
 	}
@@ -144,7 +144,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${is_allowed(me, group1, 'read, write')}", "Check if the current user has `read` and `write` permissions on a group")
+			Example.structrScript("${isAllowed(me, group1, 'read, write')}", "Check if the current user has `read` and `write` permissions on a group")
 		);
 	}
 }

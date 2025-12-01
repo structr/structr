@@ -27,6 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -37,7 +39,7 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "set_session_attribute";
+		return "setSessionAttribute";
 	}
 
 	@Override
@@ -86,8 +88,8 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute('do_no_track', true)}"),
-			Usage.javaScript("Usage: ${{Structr.setSessionAttribute(key, value)}}. Example: ${{Structr.setSessionAttribute('do_not_track', true)}}")
+			Usage.structrScript("Usage: ${setSessionAttribute(key, value)}. Example: "),
+			Usage.javaScript("Usage: ${{$.setSessionAttribute(key, value)}}. Example: ")
 		);
 	}
 
@@ -100,4 +102,22 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	public String getLongDescription() {
 		return "";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setSessionAttribute('do_no_track', true)}"),
+				Example.javaScript("${{ $.setSessionAttribute('do_not_track', true) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "given key"),
+				Parameter.mandatory("value", "given value for key")
+				);
+	}
+
 }

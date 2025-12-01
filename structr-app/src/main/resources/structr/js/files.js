@@ -22,8 +22,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Files = {
 	_moduleName: 'files',
-	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate',
-	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
+	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate,includeInFrontendExport',
+	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers,parentId,includeInFrontendExport',
 	currentWorkingDir: undefined,
 	fileUploadList: undefined,
 	chunkSize: 1024 * 64,
@@ -37,6 +37,10 @@ let _Files = {
 	filesViewModeKey: 'structrFilesViewMode_' + location.port,
 	filesLastOpenFolderKey: 'structrFilesLastOpenFolder_' + location.port,
 	filesResizerLeftKey: 'structrFilesResizerLeftKey_' + location.port,
+	rootFolderName: 'root',
+	tooltips: {
+		includeInFrontendExport: 'If checked this file/folder is exported in the deployment process. This flag can only be set at root level and affects all descendants.'
+	},
 
 	getViewMode: () => LSWrapper.getItem(_Files.filesViewModeKey, 'list'),
 	setViewMode: viewMode => LSWrapper.setItem(_Files.filesViewModeKey, viewMode),
@@ -86,7 +90,7 @@ let _Files = {
 
 		let initFunctionBar = async () => {
 
-			let fileTypes   = await _Schema.getDerivedTypeNames('File', ['CsvFile']);
+			let fileTypes   = await _Schema.getDerivedTypeNames('File', []);
 			let folderTypes = await _Schema.getDerivedTypeNames('Folder', ['Trash']);
 
 			Structr.setFunctionBarHTML(_Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes }));
@@ -466,7 +470,7 @@ let _Files = {
 	},
 	deepOpen: (d, dirs) => {
 
-		_TreeHelper.deepOpen(_Files.getFilesTree(), d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : 'root'));
+		_TreeHelper.deepOpen(_Files.getFilesTree(), d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : _Files.rootFolderName));
 	},
 	refreshTree: () => {
 
@@ -488,7 +492,7 @@ let _Files = {
 						data: { svgIcon: _Icons.getSvgIcon(_Icons.iconAddToFavorites, 18, 24) },
 					},
 					{
-						id: 'root',
+						id: _Files.rootFolderName,
 						text: '/',
 						children: true,
 						icon: _Icons.nonExistentEmptyIcon,
@@ -503,7 +507,7 @@ let _Files = {
 				callback(defaultFilesystemEntries);
 				break;
 
-			case 'root':
+			case _Files.rootFolderName:
 				_Files.load(null, callback);
 				break;
 
@@ -661,7 +665,7 @@ let _Files = {
 	},
 	setWorkingDirectory: (id) => {
 
-		if (id === 'root') {
+		if (id === _Files.rootFolderName) {
 			_Files.currentWorkingDir = null;
 		} else {
 			_Files.currentWorkingDir = { id: id };
@@ -713,7 +717,7 @@ let _Files = {
 
 		LSWrapper.setItem(_Files.filesLastOpenFolderKey, id);
 
-		let isRootFolder           = (id === 'root');
+		let isRootFolder           = (id === _Files.rootFolderName);
 		let parentIsRoot           = (parentId === '#');
 		let listModeActive         = _Files.isViewModeActive('list');
 
@@ -741,7 +745,7 @@ let _Files = {
 
 			_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', `
 				<div class="folder-path truncate">${_Icons.getSvgIcon(_Icons.iconAddToFavorites)} Favorite Files</div>
-				${listModeActive ? _Files.templates.folderContentsTableSkeleton() : _Files.templates.folderContentsTileContainerSkeleton()}
+				${listModeActive ? _Files.templates.folderContentsTableSkeleton({}) : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
 			_Favorites.getFavoritesList().then(data => {
@@ -793,24 +797,7 @@ let _Files = {
 
 			if (listModeActive) {
 
-				_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', _Files.templates.folderContentsTableSkeleton({
-					tableContent: (isRootFolder ? '' : `
-						<tr id="parent-folder-link" class="cursor-pointer">
-							<td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td>
-							<td>
-								<div class="node folder flex items-center justify-between">
-									<b class="name_ leading-8 truncate  pl-4">..</b>
-								</div>
-							</td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-							<td></td>
-						</tr>
-					`)
-				}));
+				_Files.getFolderContentsElement().insertAdjacentHTML('beforeend', _Files.templates.folderContentsTableSkeleton({ isRootFolder, parentId }));
 
 			} else {
 
@@ -831,7 +818,7 @@ let _Files = {
 				// allow drop on ".." element
 				let parentObj = {
 					id: parentId,
-					type: (parentId === 'root') ? 'fake' : 'Folder'
+					type: (parentId === _Files.rootFolderName) ? 'fake' : 'Folder'
 				};
 
 				_Dragndrop.files.enableDroppable(parentObj, _Files.getFolderContentsElement().querySelector('#parent-folder-link .node'));
@@ -858,7 +845,7 @@ let _Files = {
 				</div>
 			`);
 
-			if (id != 'root') {
+			if (id != _Files.rootFolderName) {
 
 				Command.getPromise(id, null).then(obj => {
 					let ctxMenuContainer = _Files.getFolderContentsElement().querySelector('.context-menu-container');
@@ -979,10 +966,13 @@ let _Files = {
 					${getIconColumnHTML()}
 					<td>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
-							<b class="name_ leading-8 truncate pl-4" data-key="name"></b>
+							<b class="name_ leading-8 truncate" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
+					</td>
+					<td class="text-center">
+						<input include-in-frontend-export type="checkbox" ${(d.parentId === null) ? 'class="mr-0 cursor-pointer"' : 'class="mr-0 cursor-not-allowed" disabled'} title="${_Files.tooltips.includeInFrontendExport}" ${d.includeInFrontendExport === true ? 'checked' : ''}>
 					</td>
 					<td class="truncate id_ leading-8">${d.id}</td>
 					<td class="truncate date">${createdDate}</td>
@@ -993,9 +983,15 @@ let _Files = {
 				</tr>
 			`;
 
-			let row       = _Helpers.createSingleDOMElementFromHTML(rowHTML);
-			let tableBody = container.querySelector('#files-table-body');
+			let row = _Helpers.createSingleDOMElementFromHTML(rowHTML);
 
+			row.querySelector('input[include-in-frontend-export]:not(:disabled)')?.addEventListener('change', e => {
+				Command.setProperty(d.id, 'includeInFrontendExport', e.target.checked, false, () => {
+					_Helpers.blinkGreen(e.target.parentNode);
+				});
+			});
+
+			let tableBody = container.querySelector('#files-table-body');
 			_Helpers.fastRemoveElement(tableBody.querySelector(`#${rowId}`));
 
 			// folders are appended after last folder, files are appended at the end
@@ -1999,7 +1995,8 @@ let _Files = {
 				<thead>
 					<tr>
 						<th class="icon">&nbsp;</th>
-						<th name class="pl-4">Name</th>
+						<th name>Name</th>
+						<th export class="text-center">${_Icons.getSvgIcon(_Icons.iconIncludeInFrontendExport, 16, 16, [], _Files.tooltips.includeInFrontendExport)}</th>
 						<th uuid>ID</th>
 						<th created>Created</th>
 						<th modified>Modified</th>
@@ -2009,7 +2006,23 @@ let _Files = {
 					</tr>
 				</thead>
 				<tbody id="files-table-body">
-					${config?.tableContent ?? ''}
+					${((config.isRootFolder === false) ? `
+						<tr id="parent-folder-link" class="cursor-pointer">
+							<td class="is-folder file-icon" data-target-id="${config.parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td>
+							<td>
+								<div class="node folder flex items-center justify-between">
+									<b class="name_ leading-8 truncate">..</b>
+								</div>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>
+					` : '')}
 				</tbody>
 			</table>
 		`,

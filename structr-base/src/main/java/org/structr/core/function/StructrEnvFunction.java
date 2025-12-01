@@ -39,7 +39,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "structr_env";
+		return "structrEnv";
 	}
 
 	@Override
@@ -56,7 +56,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${structr_env()}. Example ${structr_env()}"),
+			Usage.structrScript("Usage: ${structrEnv()}. Example ${structrEnv()}"),
 			Usage.javaScript("Usage: ${{ $.structrEnv()}. Example ${{ $.structrEnv()}")
 		);
 	}

@@ -64,7 +64,7 @@ public interface Documentable {
 			lines.add("");
 		}
 
-		if (parameters != null) {
+		if (parameters != null && !parameters.isEmpty()) {
 
 			lines.add("### Parameters");
 
@@ -86,7 +86,7 @@ public interface Documentable {
 			lines.add(longDescription);
 		}
 
-		if (notes != null) {
+		if (notes != null && !notes.isEmpty()) {
 
 			lines.add("### Notes");
 
@@ -97,7 +97,7 @@ public interface Documentable {
 			lines.add("");
 		}
 
-		if (signatures != null) {
+		if (signatures != null && !signatures.isEmpty()) {
 
 			lines.add("### Signatures");
 			lines.add("");
@@ -111,7 +111,7 @@ public interface Documentable {
 			lines.add("");
 		}
 
-		if (examples != null) {
+		if (examples != null && !examples.isEmpty()) {
 
 			int index = 1;
 

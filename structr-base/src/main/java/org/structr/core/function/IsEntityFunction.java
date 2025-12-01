@@ -35,7 +35,7 @@ public class IsEntityFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "is_entity";
+		return "isEntity";
 	}
 
 	@Override
@@ -67,7 +67,7 @@ public class IsEntityFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_entity(value)}. Example: ${is_entity(this)}")
+			Usage.structrScript("Usage: ${isEntity(value)}. Example: ${isEntity(this)}")
 		);
 	}
 

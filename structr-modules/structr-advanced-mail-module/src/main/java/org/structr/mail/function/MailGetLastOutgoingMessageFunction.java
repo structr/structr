@@ -34,7 +34,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 
 	@Override
 	public String getName() {
-		return "mail_get_last_outgoing_message";
+		return "mailGetLastOutgoingMessage";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_get_last_outgoing_message()}"),
+			Usage.structrScript("Usage: ${mailGet_last_outgoing_message()}"),
 			Usage.javaScript("Usage: ${{ $.mailGetLastOutgoingMessage() }}")
 		);
 	}

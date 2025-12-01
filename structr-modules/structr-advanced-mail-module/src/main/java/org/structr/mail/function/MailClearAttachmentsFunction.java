@@ -34,7 +34,7 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_attachments";
+		return "mailClearAttachments";
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MailClearAttachmentsFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_attachments()}"),
+			Usage.structrScript("Usage: ${mailClearAttachments()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearAttachments() }}")
 		);
 	}

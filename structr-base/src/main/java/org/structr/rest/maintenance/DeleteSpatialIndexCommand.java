@@ -31,7 +31,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.LocationTraitDefinition;
-import org.structr.rest.resource.MaintenanceResource;
+import org.structr.docs.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -46,17 +46,12 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteSpatialIndexCommand.class.getName());
 
-	static {
-
-		MaintenanceResource.registerMaintenanceCommand("deleteSpatialIndex", DeleteSpatialIndexCommand.class);
-	}
-
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
 
 		final DatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getDatabaseService();
-		final List<Node> toDelete          = new LinkedList<>();
+		final List<Node> toDelete     = new LinkedList<>();
 
 		for (final Node node: graphDb.getAllNodes()) {
 
@@ -101,5 +96,58 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "deleteSpatialIndex";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Removes a (broken) spatial index from the database.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command deletes all Structr nodes with the properties `bbox` and `gtype`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This is a legacy command which you will probably never need."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

@@ -919,7 +919,7 @@ StructrElement.prototype.exists = function() {
 };
 
 StructrElement.prototype.isActiveNode = function() {
-	return this.hideConditions || this.showConditions || this.dataKey || this.cypherQuery || this.functionQuery
+	return this.hideConditions || this.showConditions || this.dataKey || this.cypherQuery || this.functionQuery || this.flow
 		//String attributes
 		|| this["data-structr-id"]
 		|| this["eventMapping"]
@@ -946,6 +946,9 @@ StructrElement.prototype.getActiveNodeInfo = function() {
 	}
 	if (this.functionQuery) {
 		list.push('Has function query in repeater configuration');
+	}
+	if (this.flow) {
+		list.push('Has flow in repeater configuration');
 	}
 	if (this["data-structr-id"]) {
 		list.push('Has populated data-structr-id attribute');

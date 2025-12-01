@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -31,7 +33,7 @@ public class StripHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "strip_html";
+		return "stripHtml";
 	}
 
 	@Override
@@ -63,18 +65,41 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${strip_html(html)}. Example: ${strip_html('<p>foo</p>')}"),
-			Usage.javaScript("Usage: ${{Structr.stripHtml(html)}}. Example: ${{Structr.stripHtml('<p>foo</p>')}}")
+			Usage.structrScript("Usage: ${stripHtml(html)}."),
+			Usage.javaScript("Usage: ${{$.stripHtml(html)}}.")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Strips all (HTML) tags from the given string.";
+		return "Removes all HTML tags from the given source string and returns only the content.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${stripHtml('<h3><p>Clean me!</p></h3>')}"),
+				Example.javaScript("${{ $.stripHtml('<h3><p>Clean me!</p></h3>') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("source", "HTML string for content extraction")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Similar results can be produced by `strReplace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`"
+		);
 	}
 }

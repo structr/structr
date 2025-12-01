@@ -19,6 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -36,7 +37,7 @@ public class MergeFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("list1, list2, list3...");
+		return Signature.forAllScriptingLanguages("objects...");
 	}
 
 	@Override
@@ -68,18 +69,34 @@ public class MergeFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.merge(list1, list2, list3, ...)}}. Example: ${{$.merge($.this.children, $.this.siblings)}}"),
-			Usage.structrScript("Usage: ${merge(list1, list2, list3, ...)}. Example: ${merge(this.children, this.siblings)}")
+			Usage.javaScript("Usage: ${{$.merge(objects...)}}. Example: ${{$.merge($.this.children, $.this.siblings)}}"),
+			Usage.structrScript("Usage: ${merge(objects...)}. Example: ${merge(this.children, this.siblings)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Merges the given collections / objects into a single collection.";
+		return "Merges collections and objects into a single collection.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "You can use this function to create collections of objects, add objects to a collection, or to merge multiple collections into a single one. All objects that are passed to this function will be added to the resulting collection. If an argument is a collection, all objects in that collection are added to the resulting collection as well.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("objects...", "collections or objects to merge into a single collection")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"This function will not remove duplicate entries. Use `mergeUnique()` for that."
+		);
 	}
 }

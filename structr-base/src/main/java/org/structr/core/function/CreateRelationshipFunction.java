@@ -42,7 +42,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "create_relationship";
+		return "createRelationship";
 	}
 
 	@Override
@@ -94,14 +94,14 @@ public class CreateRelationshipFunction extends CoreFunction {
 				} else {
 
 					propertyMap               = new PropertyMap();
-					final int parameter_count = sources.length;
+					final int parameterCount = sources.length;
 
-					if (parameter_count % 2 == 0) {
+					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 					}
 
-					for (int c = 3; c < parameter_count; c += 2) {
+					for (int c = 3; c < parameterCount; c += 2) {
 
 						final PropertyKey key = traits.key(sources[c].toString());
 
@@ -143,7 +143,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create_relationship(fromNode, toNode, relationshipType)}. Example: ${create_relationship(me, user, 'FOLLOWS')}"),
+			Usage.structrScript("Usage: ${createRelationship(fromNode, toNode, relationshipType)}. Example: ${createRelationship(me, user, 'FOLLOWS')}"),
 			Usage.javaScript("Usage: ${{ $.createRelationship(fromNode, toNode, relationshipType)}}. Example: ${{ $.createRelationship(Structr.get('me'), user, 'FOLLOWS')}}")
 		);
 	}

@@ -56,7 +56,7 @@ public class ReadShapefileFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "read_shapefile";
+		return "readShapefile";
 	}
 
 	@Override

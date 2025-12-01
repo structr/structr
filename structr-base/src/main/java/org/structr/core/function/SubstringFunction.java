@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -73,8 +75,8 @@ public class SubstringFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.substring(string, start [, length ]) }}. Example: ${{ $.substring($.this.name, 19, 3) }}"),
-			Usage.structrScript("Usage: ${substring(string, start [, length ])}. Example: ${substring(this.name, 19, 3)}")
+			Usage.javaScript("Usage: ${{ $.substring(string, start [, length ]) }}."),
+			Usage.structrScript("Usage: ${substring(string, start [, length ])}.")
 		);
 	}
 
@@ -85,6 +87,35 @@ public class SubstringFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Returns a portion with the given length of the given string, starting from the given start index. 
+		If no length parameter is given or the length would exceed the string length (calculated from the start index), the rest of the string is returned.
+		""";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${substring('This is my test', 2)}
+						> is is my test
+						${substring('This is my test', 8, 2)}
+						> my
+						${substring('This is my test', 8, 100)}
+						> my test
+						"""),
+				Example.javaScript("${{ $.substring('This is my test', 2) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "URL to connect to"),
+				Parameter.mandatory("start", "URL to connect to"),
+				Parameter.optional("length", "length of string from start")
+				);
 	}
 }

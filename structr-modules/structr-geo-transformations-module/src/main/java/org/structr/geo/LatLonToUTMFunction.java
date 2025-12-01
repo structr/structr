@@ -36,13 +36,13 @@ import java.util.List;
 
 public class LatLonToUTMFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE = "Usage: ${lat_lon_to_utm(latitude, longitude)}. Example: ${lat_lon_to_utm(41.3445, 7.35)}";
+	private static final String ERROR_MESSAGE = "Usage: ${latLonToUtm(latitude, longitude)}. Example: ${latLonToUtm(41.3445, 7.35)}";
 	private static final Logger logger        = LoggerFactory.getLogger(LatLonToUTMFunction.class.getName());
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
 
 	@Override
 	public String getName() {
-		return "lat_lon_to_utm";
+		return "latLonToUtm";
 	}
 
 	@Override

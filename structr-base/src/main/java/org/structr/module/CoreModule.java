@@ -211,8 +211,6 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new LastFunction());
 		Functions.put(licenseManager, new NthFunction());
 		Functions.put(licenseManager, new MergePropertiesFunction());
-		Functions.put(licenseManager, new KeysFunction());
-		Functions.put(licenseManager, new ValuesFunction());
 		Functions.put(licenseManager, new TimerFunction());
 		Functions.put(licenseManager, new StrReplaceFunction());
 		Functions.put(licenseManager, new SearchFunction());
@@ -248,6 +246,9 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new AddLabelsFunction());
 		Functions.put(licenseManager, new RemoveLabelsFunction());
 		Functions.put(licenseManager, new ScheduleFunction());
+		Functions.put(licenseManager, new GetErrorsFunction());
+		Functions.put(licenseManager, new ClearErrorsFunction());
+		Functions.put(licenseManager, new ClearErrorFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());

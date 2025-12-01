@@ -30,7 +30,7 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mqtt_subscribe";
+		return "mqttSubscribe";
 	}
 
 	@Override
@@ -67,8 +67,8 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mqtt_subscribe(client, topic)}. Example ${mqtt_subscribe(client, 'myTopic')}"),
-			Usage.javaScript("Usage: ${{Structr.mqttSubscribe(client, topic)}}. Example ${{Structr.mqtt_subscribe(client, topic)}}")
+			Usage.structrScript("Usage: ${mqttSubscribe(client, topic)}. Example ${mqttSubscribe(client, 'myTopic')}"),
+			Usage.javaScript("Usage: ${{Structr.mqttSubscribe(client, topic)}}. Example ${{Structr.mqttSubscribe(client, topic)}}")
 		);
 	}
 

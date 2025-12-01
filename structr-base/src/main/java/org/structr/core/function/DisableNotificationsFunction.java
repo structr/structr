@@ -32,7 +32,7 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "disable_notifications";
+		return "disableNotifications";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${disable_notifications()}"),
+			Usage.structrScript("Usage: ${disableNotifications()}"),
 			Usage.javaScript("Usage: ${Structr.disableNotifications()}")
 		);
 	}
@@ -64,6 +64,6 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method can be used to temporarily disable the broadcasting of large modification operations, which greatly reduces the processing time. If you experience very slow (i.e. more than 10 seconds) object creation, modification or deletion, try to disable notifications before executing the operation. See also `enable_notifications()`.";
+		return "This method can be used to temporarily disable the broadcasting of large modification operations, which greatly reduces the processing time. If you experience very slow (i.e. more than 10 seconds) object creation, modification or deletion, try to disable notifications before executing the operation. See also `enableNotifications()`.";
 	}
 }

@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -35,7 +36,7 @@ public class MultFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("value1, value2");
+		return Signature.forAllScriptingLanguages("values...");
 	}
 
 	@Override
@@ -83,7 +84,7 @@ public class MultFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Multiplies the first argument by the second argument.";
+		return "Returns the product of all given arguments.";
 	}
 
 	@Override
@@ -94,5 +95,20 @@ public class MultFunction extends CoreFunction {
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("values...", "one or more values to multiply")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments."
+		);
 	}
 }

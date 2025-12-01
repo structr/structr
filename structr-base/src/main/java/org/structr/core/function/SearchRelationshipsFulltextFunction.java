@@ -34,7 +34,7 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 
 	@Override
 	public String getName() {
-		return "search_relationships_fulltext";
+		return "searchRelationshipsFulltext";
 	}
 
 	@Override
@@ -83,8 +83,8 @@ public class SearchRelationshipsFulltextFunction extends CoreFunction implements
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${search_relationships_fulltext(indexName, searchString)}. Example: ${search_relationships_fulltext(\"User_name\", \"abc\")}"),
-			Usage.javaScript("Usage: ${{Structr.searchRelationshipsFulltext(indexName, value)}}. Example: ${{Structr.searchRelationshipsFulltext(\"User_name\", \"abc\")}}")
+			Usage.structrScript("Usage: ${searchRelationshipsFulltext(indexName, searchString)}. Example: ${searchRelationshipsFulltext(\"UserName\", \"abc\")}"),
+			Usage.javaScript("Usage: ${{Structr.searchRelationshipsFulltext(indexName, value)}}. Example: ${{Structr.searchRelationshipsFulltext(\"UserName\", \"abc\")}}")
 		);
 	}
 

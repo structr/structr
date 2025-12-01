@@ -32,7 +32,7 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "unescape_html";
+		return "unescapeHtml";
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${unescape_html(text)}. Example: ${unescape_html('test &amp; test')}"),
+			Usage.structrScript("Usage: ${unescapeHtml(text)}. Example: ${unescapeHtml('test &amp; test')}"),
 			Usage.javaScript("Usage: ${{Structr.unescapeHtml(text)}}. Example: ${{Structr.unescapeHtml('test &amp; test')}}")
 		);
 	}

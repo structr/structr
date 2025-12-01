@@ -40,7 +40,7 @@ public class CoordsToMultipointFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "coords_to_multipoint";
+		return "coordsToMultipoint";
 	}
 
 	@Override

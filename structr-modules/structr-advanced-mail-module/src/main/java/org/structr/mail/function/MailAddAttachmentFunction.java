@@ -44,7 +44,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_attachment";
+		return "mailAddAttachment";
 	}
 
 	@Override
@@ -88,7 +88,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_attachment(file[, name])}"),
+			Usage.structrScript("Usage: ${mailAddAttachment(file[, name])}"),
 			Usage.javaScript("Usage: ${{ Structr.mailAddAttachment(file[, name]) }}")
 		);
 	}

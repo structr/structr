@@ -30,7 +30,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -115,5 +117,62 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "setRelationshipProperties";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Sets a given set of property values on all relationships of a certain type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		This command takes all arguments other than `type` for input properties and sets the given values on all nodes of the given type.
+		
+		Please note that you can not set the `type` property of a relationship with this command. Relationship types can only be changed by removing and re-creating the relationship.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type of relationships to set properties on")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

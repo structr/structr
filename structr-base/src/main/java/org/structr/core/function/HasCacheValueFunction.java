@@ -32,7 +32,7 @@ public class HasCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "has_cache_value";
+		return "hasCacheValue";
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class HasCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
-			logger.warn("has_cache_value() is deprecated and will be removed in a future version.");
+			logger.warn("hasCacheValue() is deprecated and will be removed in a future version.");
 			return CacheExpression.hasCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
@@ -63,8 +63,8 @@ public class HasCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_cache_value(cacheKey)}. Example: ${has_cache_value('mykey')}"),
-			Usage.javaScript("Usage: ${{ Structr.has_cache_value(cacheKey); }}. Example: ${{ Structr.has_cache_value('mykey'); }}")
+			Usage.structrScript("Usage: ${hasCacheValue(cacheKey)}. Example: ${hasCacheValue('mykey')}"),
+			Usage.javaScript("Usage: ${{ Structr.hasCacheValue(cacheKey); }}. Example: ${{ Structr.hasCacheValue('mykey'); }}")
 		);
 	}
 

@@ -36,7 +36,7 @@ public class ParseDateFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "parse_date";
+		return "parseDate";
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class ParseDateFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${parse_date(value, pattern)}."),
+				Usage.structrScript("Usage: ${parseDate(value, pattern)}."),
 				Usage.javaScript("Usage: ${{ $.parseDate(value, pattern) }}.")
 		);
 	}
@@ -109,8 +109,8 @@ public class ParseDateFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${parse_date('2015-12-12', 'yyyy-MM-dd')}"),
-				Example.javaScript("${{ $.parse_date('2015-12-12', 'yyyy-MM-dd') }}")
+				Example.structrScript("${parseDate('2015-12-12', 'yyyy-MM-dd')}"),
+				Example.javaScript("${{ $.parseDate('2015-12-12', 'yyyy-MM-dd') }}")
 		);
 	}
 

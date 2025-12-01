@@ -107,6 +107,7 @@ public class ScriptMethod extends AbstractMethod {
 			if ("js".equals(splitSource[0])) {
 
 				snippet = new Snippet(name, splitSource[1], this.wrapJsInMain);
+				snippet.setMimeType("application/javascript+module");
 			} else {
 
 				snippet = new Snippet(name, splitSource[1], false);

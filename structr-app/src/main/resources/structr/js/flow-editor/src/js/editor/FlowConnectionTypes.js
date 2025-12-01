@@ -54,7 +54,7 @@ export class FlowConnectionTypes {
             },
             FlowKeyValueObjectInput: {
                 name: "KEY_VALUE_SOURCE",
-                sourceAttribute: "objectDataTarget",
+                sourceAttribute: "objectDataTargets",
                 targetAttribute: "keyValueSources",
                 type: "FlowKeyValueObjectInput"
             },

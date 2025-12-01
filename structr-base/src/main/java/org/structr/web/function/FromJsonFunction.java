@@ -38,7 +38,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "from_json";
+		return "fromJson";
 	}
 
 	@Override
@@ -140,7 +140,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}"),
+			Usage.structrScript("Usage: ${fromJson(src)}. Example: ${fromJson('{name:test}')}"),
 			Usage.javaScript("Usage: ${{Structr.fromJson(src)}}. Example: ${{Structr.fromJson('{name:test}')}}")
 		);
 	}
@@ -167,7 +167,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${from_json('{name: Test, value: 123}')}")
+			Example.structrScript("${fromJson('{name: Test, value: 123}')}")
 		);
 	}
 

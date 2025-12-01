@@ -41,7 +41,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "log_event";
+		return "logEvent";
 	}
 
 	@Override
@@ -112,7 +112,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${log_event(action, message [, subject [, object ]] )}. Example: ${log_event('read', 'Book has been read')}"),
+			Usage.structrScript("Usage: ${logEvent(action, message [, subject [, object ]] )}. Example: ${logEvent('read', 'Book has been read')}"),
 			Usage.javaScript("Usage: ${{Structr.logEvent(action, message [, subject [, object ]] )}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}")
 		);
 	}
@@ -146,7 +146,7 @@ public class LogEventFunction extends UiAdvancedFunction {
 	public List<Example> getExamples() {
 
 		return List.of(
-			Example.structrScript("${log_event('VIEW', me.id)}", "Log a simple \"VIEW\" event"),
+			Example.structrScript("${logEvent('VIEW', me.id)}", "Log a simple \"VIEW\" event"),
 			Example.javaScript("""
 			${{
 			    $.logEvent({

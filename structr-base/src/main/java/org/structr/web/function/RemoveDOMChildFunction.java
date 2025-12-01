@@ -35,7 +35,7 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "remove_dom_child";
+		return "removeDomChild";
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${remove_dom_child(parent, child)}. Example: ${remove_dom_child(this, child)}"),
+			Usage.structrScript("Usage: ${removeDomChild(parent, child)}. Example: ${removeDomChild(this, child)}"),
 			Usage.javaScript("Usage: ${{Structr.removeDomChild(parent, child)}}. Example: ${{Structr.removeDomChild(this, child)}}")
 		);
 	}

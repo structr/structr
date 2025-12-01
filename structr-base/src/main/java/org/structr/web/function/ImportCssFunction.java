@@ -46,7 +46,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "import_css";
+		return "importCss";
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${import_css(file)}. Example: ${import_css(cssFile)}"),
+			Usage.structrScript("Usage: ${importCss(file)}. Example: ${importCss(cssFile)}"),
 			Usage.javaScript("Usage: ${{Structr.importCss(file)}}. Example: ${{Structr.importCss(cssFile)}}")
 		);
 	}

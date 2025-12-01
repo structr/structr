@@ -39,7 +39,7 @@ public class LastFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("list");
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override

@@ -135,9 +135,6 @@ public abstract class ContextFactory {
 			case "python":
 				return getOrCreateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity), allowEntityOverride);
 
-			case "R":
-				return getOrCreateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity), allowEntityOverride);
-
 			default:
 				throw new FrameworkException(500, "Could not initialize context for language: " + language);
 		}
