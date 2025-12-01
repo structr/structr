@@ -71,12 +71,12 @@ public class FloorFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the given value, rounded **down** to the nearest integer.";
+		return "Returns the given value, rounded down to the nearest integer.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
+		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override

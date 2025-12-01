@@ -37,7 +37,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "has_css_class";
+		return "hasCssClass";
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_css_class(element, css)}. Example: ${has_css_class(this, 'active')}"),
+			Usage.structrScript("Usage: ${hasCssClass(element, css)}. Example: ${hasCssClass(this, 'active')}"),
 			Usage.javaScript("Usage: ${{Structr.hasCssClass(element, css)}}. Example: ${{Structr.hasCssClass(this, 'active')}}")
 		);
 	}

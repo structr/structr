@@ -42,7 +42,7 @@ public class ToCsvFunction extends CsvFunction {
 
 	@Override
 	public String getName() {
-		return "to_csv";
+		return "toCsv";
 	}
 
 	@Override
@@ -91,7 +91,7 @@ public class ToCsvFunction extends CsvFunction {
 
 						if (properties.size() == 0) {
 
-							logger.info("to_csv(): Unable to create CSV if list of properties is empty - returning empty CSV");
+							logger.info("toCsv(): Unable to create CSV if list of properties is empty - returning empty CSV");
 							return "";
 						}
 
@@ -106,7 +106,7 @@ public class ToCsvFunction extends CsvFunction {
 			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
 			if (nodes.size() == 0 && propertyView != null) {
 
-				logger.info("to_csv(): Can not create CSV if no nodes are given - returning empty CSV");
+				logger.info("toCsv(): Can not create CSV if no nodes are given - returning empty CSV");
 				return "";
 			}
 
@@ -117,7 +117,7 @@ public class ToCsvFunction extends CsvFunction {
 
 			} else if (quoteChar.length() > 1) {
 
-				logger.info("to_csv(): quoteChar is more than one character ('{}'), first character will be used ('{}')", quoteChar, quoteChar.charAt(0));
+				logger.info("toCsv(): quoteChar is more than one character ('{}'), first character will be used ('{}')", quoteChar, quoteChar.charAt(0));
 			}
 
 			// validate/fix delimiterChar parameter
@@ -127,7 +127,7 @@ public class ToCsvFunction extends CsvFunction {
 
 			} else if (delimiterChar.length() > 1) {
 
-				logger.info("to_csv(): delimiterChar is more than one character ('{}'), first character will be used ('{}')", delimiterChar, delimiterChar.charAt(0));
+				logger.info("toCsv(): delimiterChar is more than one character ('{}'), first character will be used ('{}')", delimiterChar, delimiterChar.charAt(0));
 			}
 
 			try {
@@ -140,7 +140,7 @@ public class ToCsvFunction extends CsvFunction {
 
 			} catch (Throwable t) {
 
-				logger.warn("to_csv(): Exception occurred", t);
+				logger.warn("toCsv(): Exception occurred", t);
 				return "";
 			}
 
@@ -154,8 +154,8 @@ public class ToCsvFunction extends CsvFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}"),
-			Usage.javaScript("Usage: ${{Structr.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}")
+			Usage.structrScript("Usage: ${toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${toCsv(find('Page'), 'ui')}"),
+			Usage.javaScript("Usage: ${{Structr.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.toCsv(Structr.find('Page'), 'ui'))}}")
 		);
 	}
 
@@ -221,7 +221,7 @@ public class ToCsvFunction extends CsvFunction {
 							try {
 								value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 							} catch (FrameworkException fex) {
-								logger.warn("to_csv(): Exception", fex);
+								logger.warn("toCsv(): Exception", fex);
 							}
 						}
 
@@ -239,7 +239,7 @@ public class ToCsvFunction extends CsvFunction {
 						try {
 							value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 						} catch (FrameworkException fex) {
-							logger.warn("to_csv(): Exception", fex);
+							logger.warn("toCsv(): Exception", fex);
 						}
 					}
 

@@ -457,12 +457,14 @@ public abstract class AbstractHintProvider {
 		hints.add(0, new QueryStringHint());
 		hints.add(0, new PredicateHint());
 		hints.add(0, new PathInfoHint());
+		hints.add(0, new ParentHint());
 		hints.add(0, new ParameterMapHint());
 		hints.add(0, new PageHint());
 		hints.add(0, new NowHint());
 		hints.add(0, new MethodParametersHint());
 		hints.add(0, new MeHint());
 		hints.add(0, new LocaleHint());
+		hints.add(0, new LinkHint());
 		hints.add(0, new IPHint());
 		hints.add(0, new IdHint());
 		hints.add(0, new HostHint());

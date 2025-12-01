@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -32,12 +33,12 @@ public class IndexOfFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "index_of";
+		return "indexOf";
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("str, word");
+		return Signature.forAllScriptingLanguages("string, word");
 	}
 
 	@Override
@@ -67,13 +68,13 @@ public class IndexOfFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${index_of(string, word)}. Example: ${index_of(this.name, \"the\")}")
+			Usage.structrScript("Usage: ${indexOf(string, word)}. Example: ${indexOf(this.name, \"the\")}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns the position of the given word in the given string, or -1.";
+		return "Returns the position of the first occurrence of the given word in the given string, or -1 if the string doesn't contain the word.";
 	}
 
 	@Override
@@ -84,5 +85,14 @@ public class IndexOfFunction extends CoreFunction {
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("string", "input string"),
+			Parameter.mandatory("word", "word to search")
+		);
 	}
 }

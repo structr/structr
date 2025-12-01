@@ -284,7 +284,7 @@ let _Entities = {
 			});
 		};
 
-		flowSelector.insertAdjacentHTML('beforeend', '<option>--- Select Flow ---</option>');
+		flowSelector.insertAdjacentHTML('beforeend', '<option value="">--- Select Flow ---</option>');
 
 		Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, (flows) => {
 
@@ -3110,8 +3110,8 @@ let _Entities = {
 			`,
 			includeInFrontendExport: config => `
 				<div class="mb-2 flex items-center">
-					<input type="checkbox" name="includeInFrontendExport" id="includeInFrontendExport">
-					<label for="includeInFrontendExport" data-comment-config='{"insertAfter":true}' data-comment="If checked this file/folder is exported in the deployment process. If a parent folder has this flag enabled, it will automatically be exported and the flag does not need to be set.">Include in frontend export</label>
+					<input type="checkbox" name="includeInFrontendExport" id="includeInFrontendExport" ${(config.file?.parent || config.folder?.parent) ? 'disabled' : ''}>
+					<label for="includeInFrontendExport" data-comment-config='{"insertAfter":true}' data-comment="${_Files.tooltips.includeInFrontendExport}">Include in frontend export</label>
 				</div>
 			`,
 			fileOptions: config => `

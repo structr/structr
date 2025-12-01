@@ -29,6 +29,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -39,7 +41,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "is_allowed";
+		return "isAllowed";
 	}
 
 	@Override
@@ -113,18 +115,36 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_allowed(principal, node, permissions)}. Example: ${is_allowed(me, this, 'write, delete'))}"),
-			Usage.javaScript("Usage: ${{Structr.is_allowed(principal, node, permissions)}}. Example: ${{Structr.is_allowed(Structr.('me'), Structr.this, 'write, delete'))}}")
+			Usage.structrScript("Usage: ${isAllowed(principal, node, permissions)}. Example: ${isAllowed(me, this, 'write, delete'))}"),
+			Usage.javaScript("Usage: ${{ $.isAllowed(principal, node, permissions)}}. Example: ${{ $.isAllowed($.me, $.this, 'write, delete'))}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns whether the principal has all of the permission(s) on the given node.";
+		return "Returns true if the given principal has the given permissions on the given node.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. The permissions are passed in as a comma-separated list (see example). See also `grant()` and `revoke()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("principal", "principal to check permissions for"),
+			Parameter.mandatory("node", "node to check permissions on"),
+			Parameter.mandatory("permissions", "string with comma-separated list of permissions (`read`, `write`, `delete` and `accessControl`)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${isAllowed(me, group1, 'read, write')}", "Check if the current user has `read` and `write` permissions on a group")
+		);
 	}
 }

@@ -179,7 +179,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 				"Symlinks are not allowed, director traversal is not allowed.",
 				"The key of the script must be all-lowercase.",
 				"The script must be executable (`chmod +x`)",
-				"This method does not preserve binary content, it can *not* be used to stream binary data through Structr. Use `exec_binary()` for that.",
+				"This method does not preserve binary content, it can *not* be used to stream binary data through Structr. Use `execBinary()` for that.",
 				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
 				"All parameter values are automatically put in double-quotes",
 				"All parameters can be passed as a string or as an object containing a `value` field and a `mask` flag.",

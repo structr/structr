@@ -33,7 +33,7 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "remove_response_header";
+		return "removeResponseHeader";
 	}
 
 	@Override
@@ -72,7 +72,7 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${remove_response_header(field)}. Example: ${remove_response_header('X-Frame-Options'}"),
+			Usage.structrScript("Usage: ${removeResponseHeader(field)}. Example: ${removeResponseHeader('X-Frame-Options'}"),
 			Usage.javaScript("Usage: ${{Structr.removeResponseHeader(field)}}. Example: ${{Structr.removeResponseHeader('X-Frame-Options')}}")
 		);
 	}

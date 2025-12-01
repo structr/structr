@@ -27,7 +27,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -145,5 +147,59 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "fixNodeProperties";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Tries to fix properties in the database that have been stored with the wrong type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command can be used to convert property values whose property type was changed, e.g. from String to Integer.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type of nodes to fix"),
+			Parameter.optional("name", "name of property to fix (defaults to \"all properties\" if omitted)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

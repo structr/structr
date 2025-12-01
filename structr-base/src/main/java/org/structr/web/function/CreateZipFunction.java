@@ -43,7 +43,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "create_zip";
+		return "createZip";
 	}
 
 	@Override
@@ -195,7 +195,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${create_zip('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
+			Example.structrScript("${createZip('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
 			Example.javaScript("""
 			${{
 				// find a single folder with an absolute path

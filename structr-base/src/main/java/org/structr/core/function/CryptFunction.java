@@ -47,7 +47,7 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 		if (key == null) {
 
-			logger.info("set_encryption_key() was called with null parameter, resetting global secret key");
+			logger.info("setEncryptionKey() was called with null parameter, resetting global secret key");
 
 			// reset hash
 			secretKeyHash = null;
@@ -167,12 +167,12 @@ public abstract class CryptFunction extends AdvancedScriptingFunction {
 
 			logger.error("Unable to decrypt ciphertext. Falling back to previous method. If this works, it is recommended to update the value by re-encrypting it. Cause: {}: {}", t.getClass().getSimpleName(), t.getMessage());
 
-			return decryptWithKeyHash_deprecated(encryptedText, keyHash);
+			return decryptWithKeyHashDeprecated(encryptedText, keyHash);
 		}
 	}
 
 	@Deprecated
-	public static String decryptWithKeyHash_deprecated(final String encryptedText, final byte[] keyHash) {
+	public static String decryptWithKeyHashDeprecated(final String encryptedText, final byte[] keyHash) {
 
 		try {
 

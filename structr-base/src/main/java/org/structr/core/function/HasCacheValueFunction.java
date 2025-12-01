@@ -34,7 +34,7 @@ public class HasCacheValueFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "has_cache_value";
+		return "hasCacheValue";
 	}
 
 	@Override
@@ -51,7 +51,7 @@ public class HasCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
-			logger.warn("has_cache_value() is deprecated and will be removed in a future version.");
+			logger.warn("hasCacheValue() is deprecated and will be removed in a future version.");
 			return CacheExpression.hasCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
@@ -65,8 +65,8 @@ public class HasCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_cache_value(cacheKey)}."),
-			Usage.javaScript("Usage: ${{ Structr.has_cache_value(cacheKey); }}.")
+			Usage.structrScript("Usage: ${hasCacheValue(cacheKey)}."),
+			Usage.javaScript("Usage: ${{ $.hasCacheValue(cacheKey); }}.")
 		);
 	}
 
@@ -87,7 +87,7 @@ public class HasCacheValueFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${has_cache_value('externalResult')}"),
+				Example.structrScript("${hasCacheValue('externalResult')}"),
 				Example.javaScript("""
 						${{
 							let myComplexFunction = function() {

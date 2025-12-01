@@ -134,7 +134,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 		This method creates or modifies the security relationship between the first two parameters. 
 		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
 		The permissions are passed in as a comma-separated list (see the examples below). 
-		The return value is the empty string. See also `revoke()` and `is_allowed()`.""";
+		The return value is the empty string. See also `revoke()` and `isAllowed()`.""";
 	}
 
 	@Override

@@ -80,7 +80,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "import_gpx";
+		return "importGpx";
 	}
 
 	@Override
@@ -219,8 +219,8 @@ public class ImportGPXFunction extends GeoFunction {
 	public List<Usage> getUsages() {
 
 		return List.of(
-			Usage.structrScript("${import_gpx(get_content(first(find('File', 'name', 'track.gpx')), 'utf-8')}"),
-			Usage.structrScript("${import_gpx('<?xml version=\"1.0\"?><gpx version=\"1.0\"><wpt lat=\"42.438878\" lon=\"-71.119277\"><name>5066</name></wpt></gpx>')}"),
+			Usage.structrScript("${importGpx(getContent(first(find('File', 'name', 'track.gpx')), 'utf-8')}"),
+			Usage.structrScript("${importGpx('<?xml version=\"1.0\"?><gpx version=\"1.0\"><wpt lat=\"42.438878\" lon=\"-71.119277\"><name>5066</name></wpt></gpx>')}"),
 			Usage.javaScript("${{ $.importGpx($.getContent($.find('File', { name: 'track.gpx' })[0], 'utf-8'); }}"),
 			Usage.javaScript("${{ $.importGpx('<?xml version=\"1.0\"?><gpx version=\"1.0\"><wpt lat=\"42.438878\" lon=\"-71.119277\"><name>5066</name></wpt></gpx>'); }}")
 		);

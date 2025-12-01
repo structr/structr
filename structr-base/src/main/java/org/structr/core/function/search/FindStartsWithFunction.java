@@ -30,7 +30,7 @@ public class FindStartsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "find.starts_with";
+		return "find.startsWith";
 	}
 
 	@Override

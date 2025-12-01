@@ -31,7 +31,7 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 
 	@Override
 	public String getName() {
-		return "add_labels";
+		return "addLabels";
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 
 		return List.of(
 			Usage.javaScript("addLabels(node, [ 'LABEL1', 'LABEL2' ])"),
-			Usage.structrScript("add_labels(node, merge('LABEL1', 'LABEL2'))")
+			Usage.structrScript("addLabels(node, merge('LABEL1', 'LABEL2'))")
 		);
 	}
 }

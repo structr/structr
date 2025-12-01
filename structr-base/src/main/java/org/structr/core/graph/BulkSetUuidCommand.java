@@ -27,7 +27,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -47,10 +49,10 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 	public long executeWithCount(final Map<String, Object> attributes) throws FrameworkException {
 
 		final PropertyKey<String> idProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
-		final String nodeType  = (String) attributes.get("type");
-		final String relType   = (String) attributes.get("relType");
+		final String nodeType = (String) attributes.get("type");
+		final String relType = (String) attributes.get("relType");
 		final Boolean allNodes = (Boolean) attributes.get("allNodes");
-		final Boolean allRels  = (Boolean) attributes.get("allRels");
+		final Boolean allRels = (Boolean) attributes.get("allRels");
 
 		if (nodeType != null || Boolean.TRUE.equals(allNodes)) {
 
@@ -170,5 +172,62 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return true;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "setUuid";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Adds UUIDs to all nodes and relationships that don’t have a value in their `id` property.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.optional("type", "if set, this command will only be applied to nodes with the given type"),
+			Parameter.optional("relType", "if set, this command will only be applied to relationships with the given type"),
+			Parameter.optional("allNodes", "if set to `true`, this command will only be applied to nodes"),
+			Parameter.optional("allRels", "if set to `true`, this command will only be applied to relationships")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

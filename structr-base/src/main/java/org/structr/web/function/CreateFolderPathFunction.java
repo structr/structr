@@ -33,7 +33,7 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "create_folder_path";
+		return "createFolderPath";
 	}
 
 	@Override
@@ -76,7 +76,7 @@ public class CreateFolderPathFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${create_folder_path(path)}. Example: ${create_folder_path(\"/img/icons/large\")}"),
+			Usage.structrScript("Usage: ${createFolderPath(path)}. Example: ${createFolderPath(\"/img/icons/large\")}"),
 			Usage.javaScript("Usage: ${{ Structr.createFolderPath({ path: value})}}. Example: ${{ Structr.createFolderPath({ path: \"/img/icons/large\"})}}")
 		);
 	}

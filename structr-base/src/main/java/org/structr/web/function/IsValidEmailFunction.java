@@ -32,7 +32,7 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "is_valid_email";
+		return "isValidEmail";
 	}
 
 	@Override
@@ -61,8 +61,8 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_valid_email(address)}"),
-			Usage.javaScript("Usage: ${{ $.is_valid_email(address) }}")
+			Usage.structrScript("Usage: ${isValidEmail(address)}"),
+			Usage.javaScript("Usage: ${{ $.isValidEmail(address) }}")
 		);
 	}
 
@@ -86,9 +86,9 @@ public class IsValidEmailFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${validate_email('john@example.com')}", "Valid email"),
-				Example.structrScript("${validate_email('John Doe <john@example.com>')}", "Invalid email"),
-				Example.structrScript("${validate_email('john@example')}", "Invalid email"),
+				Example.structrScript("${validateEmail('john@example.com')}", "Valid email"),
+				Example.structrScript("${validateEmail('John Doe <john@example.com>')}", "Invalid email"),
+				Example.structrScript("${validateEmail('john@example')}", "Invalid email"),
 				Example.javaScript("""
 					${{
 						let potentialEmail = $.request.email;

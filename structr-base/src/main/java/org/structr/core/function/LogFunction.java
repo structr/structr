@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.Scripting;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -39,7 +41,7 @@ public class LogFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("str");
+		return Signature.forAllScriptingLanguages("objects...");
 	}
 
 	@Override
@@ -71,18 +73,44 @@ public class LogFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${log(string)}. Example ${log('Hello World!')}"),
-			Usage.javaScript("Usage: ${{Structr.log(string)}}. Example ${{Structr.log('Hello World!')}}")
+			Usage.structrScript("Usage: ${log(objects...)}. Example ${log('Hello World!', 'test', 123)}"),
+			Usage.javaScript("Usage: ${{ $.log(objects...); }}. Example ${{ $.log('Hello World!', 'test', 123)); }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Logs the given string to the logfile.";
+		return "Logs the given objects to the logfile.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function takes one or more arguments and logs the string representation of all of them to the Structr logfile. Please note that the individual objects are logged in a single line, one after another, without a separator.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("objects...", "object or list of objects to log")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${log('user is ', $.me)}", "Logs a string with the current user ID")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"Single nodes are printed as `NodeType(name, uuid)`, unless they are in a collection that is being logged.",
+			"If you want a JSON representation in the log file, you can use `toJson(node, view)`",
+			"If you use `JSON.stringify()`, the default view `public` will be used"
+		);
 	}
 }

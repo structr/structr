@@ -390,6 +390,17 @@
             <groupId>org.eclipse.elk</groupId>
             <artifactId>org.eclipse.elk.alg.disco</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.shredzone.acme4j</groupId>
+            <artifactId>acme4j-client</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.shredzone.acme4j</groupId>
+            <artifactId>acme4j-client</artifactId>
+            <version>3.4.0</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>

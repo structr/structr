@@ -32,11 +32,11 @@ import java.util.Locale;
 
 public class NumberFormatFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${number_format(value, locale, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${numberFormat(value, locale, pattern)}. Example: ${numberFormat(12345.6789, 'en', '#,##0.00')}";
 
 	@Override
 	public String getName() {
-		return "number_format";
+		return "numberFormat";
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public class NumberFormatFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${number_format(value, locale, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}"),
+			Usage.structrScript("Usage: ${numberFormat(value, locale, pattern)}. Example: ${numberFormat(12345.6789, 'en', '#,##0.00')}"),
 			Usage.javaScript("Usage: ${{Structr.numberFormat(value, locale, pattern)}}. Example: ${{Structr.numberFormat(12345.6789, 'en', '#,##0.00')}}")
 		);
 	}
@@ -95,6 +95,25 @@ public class NumberFormatFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		This method uses the Java NumberFormat class which supports the ISO two-letter language codes, e.g. "en", "de" etc.
+		
+		The following four pattern chars are supported:
+
+		| Letter | Description |
+		| --- | --- |
+		| 0 | Any number, or "0" |
+		| # | Any number, or nothing |
+		| . | The decimal separator |
+		| , | The thousands-separator |
+		""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In general, if you want a formatted number to be visible all the time, use \"0\" in the pattern, otherwise use \"#\"."
+		);
 	}
 }

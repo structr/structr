@@ -34,7 +34,7 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "application_store_delete";
+		return "applicationStoreDelete";
 	}
 
 	@Override
@@ -68,8 +68,8 @@ public class ApplicationStoreDeleteFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${application_store_delete(key)}. Example: ${application_store_delete('do_no_track')}"),
-			Usage.javaScript("Usage: ${{ $.applicationStoreDelete(key)}}. Example: ${{ $.applicationStoreDelete('do_not_track')}}")
+			Usage.structrScript("Usage: ${applicationStoreDelete(key)}. Example: ${applicationStoreDelete('doNoTrack')}"),
+			Usage.javaScript("Usage: ${{ $.applicationStoreDelete(key)}}. Example: ${{ $.applicationStoreDelete('doNotTrack')}}")
 		);
 	}
 

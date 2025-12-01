@@ -434,7 +434,7 @@ public abstract class RESTCallHandler {
 
 			if (obj instanceof Collection c) {
 
-				result.setOverridenResultCount(c.size());
+				result.setOverriddenResultCount(c.size());
 			}
 
 		}

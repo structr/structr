@@ -29,7 +29,7 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 
 	@Override
 	public String getName() {
-		return "remove_labels";
+		return "removeLabels";
 	}
 
 	@Override
@@ -62,7 +62,7 @@ public class RemoveLabelsFunction extends ManageLabelsFunction {
 
 		return List.of(
 			Usage.javaScript("$.removeLabels(node, [ 'LABEL1', 'LABEL2' ])"),
-			Usage.structrScript("remove_labels(node, merge('LABEL1', 'LABEL2'))")
+			Usage.structrScript("removeLabels(node, merge('LABEL1', 'LABEL2'))")
 		);
 	}
 }

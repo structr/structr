@@ -52,6 +52,7 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -100,8 +101,8 @@ public class FlowServlet extends JsonRestServlet {
 				if (flowNode != null) {
 
 					final FlowContainer flow          = flowNode.as(FlowContainer.class);
-					final Iterable<Object> flowResult = flow.evaluate(securityContext, flowParameters);
-					ResultStream result               =  new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
+					final Object flowResult           = flow.evaluate(securityContext, flowParameters);
+					ResultStream result               =  new PagingIterable<>("FlowContainer " + flow.getUuid(), List.of(flowResult));
 
 					if (returnContent) {
 
@@ -227,8 +228,8 @@ public class FlowServlet extends JsonRestServlet {
 				if (flowNode != null) {
 
 					final FlowContainer flow          = flowNode.as(FlowContainer.class);
-					final Iterable<Object> flowResult = flow.evaluate(securityContext, flowParameters);
-					final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
+					final Object flowResult           = flow.evaluate(securityContext, flowParameters);
+					final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), List.of(flowResult));
 
 					// timing..
 					double queryTimeEnd = System.nanoTime();

@@ -54,10 +54,10 @@ export class FlowSockets {
         this._sockets['nextIfFalse'] = nextIfFalse;
 
         let keyValueSources = new D3NE.Socket('keyValueSources', 'KeyValue nodes', 'Connected nodes provide KeyValue pairs of data for the object created by this data source.');
-        let objectDataTarget = new D3NE.Socket('objectDataTarget', 'ObjectDataSource', 'Connects to a FlowObjectDataSource and provides it with a KeyValue pair of information.');
+        let objectDataTarget = new D3NE.Socket('objectDataTargets', 'ObjectDataSource', 'Connects to a FlowObjectDataSource and provides it with a KeyValue pair of information.');
         objectDataTarget.combineWith(keyValueSources);
         this._sockets['keyValueSources'] = keyValueSources;
-        this._sockets['objectDataTarget'] = objectDataTarget;
+        this._sockets['objectDataTargets'] = objectDataTarget;
 
         let loopBody = new D3NE.Socket('loopBody', 'Start node', 'Connects to the first node of the loop that will get executed for each element of input data collection.');
         loopBody.combineWith(this._sockets['prev']);

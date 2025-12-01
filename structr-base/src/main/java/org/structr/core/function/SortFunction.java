@@ -27,6 +27,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
@@ -123,8 +125,8 @@ public class SortFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.sort(list1, [key [, descending=false]])}}. Example: ${{$.sort($.this.children, \"name\")}}"),
-			Usage.structrScript("Usage: ${sort(list1, [key [, descending=false]])}. Example: ${sort(this.children, \"name\")}")
+			Usage.javaScript("Usage: ${{$.sort(list1, [key [, descending=false]])}}."),
+			Usage.structrScript("Usage: ${sort(list1, [key [, descending=false]])}.")
 		);
 	}
 
@@ -135,7 +137,38 @@ public class SortFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Sorts the given collection according to the given property key and returns the result in a new collection. 
+		The optional parameter `sortDescending` is a **boolean flag** that indicates whether the sort order is ascending (default) or descending. 
+		This method is often used in conjunction with `find()`.
+		The `sort()` and `find()` functions are often used in repeater elements in a function query, see Repeater Elements.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${extract(sort(find('User'), 'name'), 'name')}"),
+				Example.structrScript("${extract(sort(find('User'), 'name', true), 'name')}"),
+				Example.javaScript("${{ $.sort($.find('User'), 'name') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("collection", "The collection to be sorted"),
+				Parameter.mandatory("propertyKey", "The name of the property"),
+				Parameter.optional("sortDescending", "Sort descending, if true. Default: false)")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Do not use JavaScript build-in function `sort` on node collections! This can damage relationships of sorted nodes"
+		);
 	}
 
 }

@@ -35,6 +35,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.*;
 import org.structr.schema.SchemaHelper;
 
 import java.io.*;
@@ -893,6 +894,57 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				outputStream.writeBoolean((boolean)value);
 				break;
 		}
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return "";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 
 	static class NodeCreation extends EntityCreation {

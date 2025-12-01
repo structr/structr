@@ -173,7 +173,7 @@ public class GetFunction extends CoreFunction {
 		return """
 		Returns the value for the given property key from the given entity. 
 		This method will print an error message if the first parameter is null / not accessible. 
-		See `get_or_null()` for a more tolerant get method.
+		See `getOrNull()` for a more tolerant get method.
 		""";
 	}
 

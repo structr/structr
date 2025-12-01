@@ -31,14 +31,16 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.script.polyglot.function.*;
+import org.structr.core.script.polyglot.function.CacheFunction;
+import org.structr.core.script.polyglot.function.DoAsFunction;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
+import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
@@ -47,10 +49,10 @@ import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
 
-	private final static Logger logger   = LoggerFactory.getLogger(StructrBinding.class);
-	private  ActionContext actionContext = null;
-	private GraphObject entity           = null;
-	private Value methodParameters       = null;
+	private final static Logger logger  = LoggerFactory.getLogger(StructrBinding.class);
+	private Value methodParameters      = null;
+	private ActionContext actionContext;
+	private GraphObject entity;
 
 	public StructrBinding(final ActionContext actionContext, final GraphObject entity) {
 
@@ -153,7 +155,8 @@ public class StructrBinding implements ProxyObject {
 				}
 
 				// look for built-in function with the given name first (because it is fast)
-				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+				//Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+				Function<Object, Object> func = Functions.get(CaseHelper.toCamelCase(name));
 				if (func != null) {
 
 					return new FunctionWrapper(actionContext, entity, func);

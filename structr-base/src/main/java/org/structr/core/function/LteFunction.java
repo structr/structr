@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -48,18 +49,27 @@ public class LteFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}")
+			Usage.structrScript("Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), 'Equal to or less than two', 'More than two')}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns true if the first argument is less or equal to the second argument.";
+		return "Returns true if the first argument is less that or equal to the second argument.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value"),
+			Parameter.mandatory("value2", "second value")
+		);
 	}
 
 	@Override

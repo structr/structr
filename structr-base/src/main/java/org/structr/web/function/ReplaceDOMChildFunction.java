@@ -36,7 +36,7 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "replace_dom_child";
+		return "replaceDomChild";
 	}
 
 	@Override
@@ -59,7 +59,7 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${replace_dom_child(parent, child, html)}. Example: ${replace_dom_child(this, child, html)}"),
+			Usage.structrScript("Usage: ${replaceDomChild(parent, child, html)}. Example: ${replaceDomChild(this, child, html)}"),
 			Usage.javaScript("Usage: ${{Structr.replaceDomChild(parent, child, html)}}. Example: ${{Structr.replaceDomChild(this, child, html)}}")
 		);
 	}

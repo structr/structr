@@ -44,7 +44,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public String getName() {
-		return "exec_binary";
+		return "execBinary";
 	}
 
 	@Override
@@ -155,8 +155,8 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${exec_binary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{ $.exec_binary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+			Usage.structrScript("Usage: ${execBinary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{ $.execBinary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
 		);
 	}
 
@@ -213,7 +213,7 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${exec_binary(response, 'my.create.pdf')}", "Streaming binary content of the `my.create.pdf` script to the client.")
+				Example.structrScript("${execBinary(response, 'my.create.pdf')}", "Streaming binary content of the `my.create.pdf` script to the client.")
 		);
 	}
 
@@ -260,14 +260,14 @@ public class ExecBinaryFunction extends ExecFunction {
 
 			if (parameter == null) {
 
-				logger.warn("exec_binary(): Critical: Expected attribute 'value' to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true })");
+				logger.warn("execBinary(): Critical: Expected attribute 'value' to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true })");
 
 				throw new ArgumentNullException();
 			}
 
 			if (maskParameter == null) {
 
-				logger.info("exec_binary(): Expected 'mask' attribute to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true }). Assuming 'mask = false'");
+				logger.info("execBinary(): Expected 'mask' attribute to be non-null for parameter in map-representation (ex.: { value: \"myParameter\", mask: true }). Assuming 'mask = false'");
 			}
 
 			this.addParameter(parameter.toString(), Boolean.TRUE.equals(maskParameter));

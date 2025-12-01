@@ -26,6 +26,8 @@ import org.bson.Document;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -94,11 +96,78 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Opens and returns a connection to an external MongoDB instance.";
+		return "Opens a connection to a MongoDB source and returns a MongoCollection which can be used to further query the Mongo database.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("url", "connection URL to MongoDB"),
+			Parameter.mandatory("database", "name of the database to connect to"),
+			Parameter.mandatory("collection", "name of the collection to fetch")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			{
+				// Open the connection to mongo and return the testCollection
+				let collection = $.mongodb('mongodb://localhost', 'testDatabase', 'testCollection');
+
+				// Insert a record
+				collection.insertOne($.bson({
+					name: 'Test4'
+				}));
+
+				// Query all records with a give property set
+				return collection.find($.bson({ name: 'Test4' }));
+			}
+			""", "Open connection, insert object and retrieve objects with identical name"),
+			Example.javaScript("""
+			{
+				// Open the connection to mongo and return the testCollection
+				let collection = $.mongodb('mongodb://localhost', 'testDatabase', 'testCollection');
+
+				// Query all records with a give property set
+				return collection.find($.bson({ name: { $regex: 'Test[0-9]' } }));
+			}
+			""", "Open connection and find objects with regex name"),
+			Example.javaScript("""
+			{
+				// Open the connection to mongo and return the testCollection
+				let collection = $.mongodb('mongodb://localhost', 'testDatabase', 'testCollection');
+
+				 // Insert a record
+				collection.insertOne($.bson({
+					name: 'Test9',
+					date: new Date(2018, 1, 1)
+				}));
+
+				return collection.find($.bson({ date: { $gte: new Date(2018, 1, 1) } }));
+			}
+			""", "Open connection, insert object with date and query all objects with dates greater than equal (gte) that date")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"The returned MongoCollection object has the functions exposed as described in https://mongodb.github.io/mongo-java-driver/4.2/apidocs/mongodb-driver-sync/com/mongodb/client/MongoCollection.html",
+			"Native MongoDB operators (https://docs.mongodb.com/manual/reference/operator/) can be used.",
+			"Every function without parameters or with Bson parameter can be used.",
+			"Creating a Bson object is done with the `$.bson()` function which simple converts a JSON object to Bson.",
+			"The result of a `collection.find()` is not a native JS array, so functions like `.filter()` or `.map()` are not available - the `for of` syntax applies.",
+			"The records in a result are also not native JS objects, so the dot notation (i.e. `record.name`) does not work - the `record.get('name')` syntax applies.",
+			"All examples assume a MongoDB instance has been locally started via Docker with the following command: docker run -ti -p 27017:27017 mongo"
+		);
 	}
 }

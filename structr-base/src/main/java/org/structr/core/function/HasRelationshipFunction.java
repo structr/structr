@@ -35,7 +35,7 @@ public class HasRelationshipFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "has_relationship";
+		return "hasRelationship";
 	}
 
 	@Override
@@ -116,8 +116,8 @@ public class HasRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${has_relationship(entity1, entity2 [, relType])}."),
-			Usage.javaScript("Usage: ${{Structr.has_relationship(entity1, entity2 [, relType])}}.")
+			Usage.structrScript("Usage: ${hasRelationship(entity1, entity2 [, relType])}."),
+			Usage.javaScript("Usage: ${{$.hasRelationship(entity1, entity2 [, relType])}}.")
 		);
 	}
 
@@ -134,8 +134,8 @@ public class HasRelationshipFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${has_relationship(me, page, 'OWNS')}"),
-				Example.javaScript("${{ $.has_relationship($.me, $.page, 'OWNS') }}")
+				Example.structrScript("${hasRelationship(me, page, 'OWNS')}"),
+				Example.javaScript("${{ $.hasRelationship($.me, $.page, 'OWNS') }}")
 		);
 	}
 

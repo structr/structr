@@ -612,6 +612,13 @@
 		<path d="M20.75 5.75a0.5 0.5 0 0 0 -0.5 -0.5h-16a0.5 0.5 0 0 0 -0.5 0.5v13a0.5 0.5 0 0 0 0.5 0.5h16a0.5 0.5 0 0 0 0.5 -0.5Zm-10 5a1 1 0 0 1 0 1.42l-2.5 2.5a1 1 0 0 1 -1.42 0 1 1 0 0 1 0 -1.42l1.62 -1.61a0.25 0.25 0 0 0 0 -0.36L6.79 9.71a1 1 0 1 1 1.42 -1.42Zm6.75 2.75a1 1 0 0 1 -1 1h-4a1 1 0 0 1 0 -2h4a1 1 0 0 1 1 1Z"/>
 	</symbol>
 
+	<symbol id="deployment-package-export" viewBox="-0.5 -0.5 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1">
+		<path d="m13.657208333333333 14.375 0 -5.03125 -4.3125 0 0 5.03125 -2.875 0 5.03125 5.03125 5.03125 -5.03125 -2.875 0z"></path>
+		<path d="M2.157208333333333 6.46875h18.6875s1.4375 0 1.4375 1.4375v12.9375s0 1.4375 -1.4375 1.4375h-18.6875s-1.4375 0 -1.4375 -1.4375V7.90625s0 -1.4375 1.4375 -1.4375"></path>
+		<path d="m0.91425 7.1875 2.3 -5.6148750000000005A1.4375 1.4375 0 0 1 4.529083333333333 0.71875h13.943750000000001a1.4375 1.4375 0 0 1 1.3138750000000001 0.853875l2.2463333333333333 5.524791666666666"></path>
+		<path d="m11.500958333333333 6.46875 0 -5.75"></path>
+	</symbol>
+
 
 	<!-- non-trivial color icon -->
 	<symbol id="dom-active-element" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">

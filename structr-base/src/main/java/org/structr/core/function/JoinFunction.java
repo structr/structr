@@ -22,9 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -80,16 +78,33 @@ public class JoinFunction extends CoreFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Joins all its parameters to a single string using the given separator.";
+		return "Joins the given collection of strings into a single string, separated by the given separator.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "This function is often used in conjunction with `find()` and `extract()` to create comma-separated lists of property values.";
 	}
 
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "collection of values to join"),
+			Parameter.mandatory("separator", "separator string")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${join(extract(find('User'), 'name'), ', ')}", "Create a comma-separated list of all the user names in the database")
+		);
 	}
 }

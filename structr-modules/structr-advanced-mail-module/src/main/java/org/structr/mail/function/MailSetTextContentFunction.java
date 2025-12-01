@@ -35,7 +35,7 @@ public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_set_text_content";
+		return "mailSetTextContent";
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class MailSetTextContentFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_set_text_content(textContent)}"),
+			Usage.structrScript("Usage: ${mailSetTextContent(textContent)}"),
 			Usage.javaScript("Usage: ${{ $.mailSetTextContent(textContent) }}")
 		);
 	}

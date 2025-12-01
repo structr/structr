@@ -36,7 +36,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "get_incoming_relationships";
+		return "getIncomingRelationships";
 	}
 
 	@Override
@@ -119,7 +119,7 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-				Usage.structrScript("Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}"),
+				Usage.structrScript("Usage: ${getIncomingRelationships(from, to [, relType])}. Example: ${getIncomingRelationships(me, user, 'FOLLOWS')}"),
 				Usage.javaScript("Usage: ${{$.getIncomingRelationships(from, to [, relType])}}. Example: ${{$.getIncomingRelationships($.me, user, 'FOLLOWS')}}")
 		);
 	}
@@ -138,8 +138,8 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${get_incoming_relationships(page, me)}"),
-				Example.javaScript("${{ $.get_incoming_relationships(page, $.me) }}")
+				Example.structrScript("${getIncomingRelationships(page, me)}"),
+				Example.javaScript("${{ $.getIncomingRelationships($.page, $.me) }}")
 		);
 	}
 

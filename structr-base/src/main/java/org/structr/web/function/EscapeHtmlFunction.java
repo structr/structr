@@ -34,7 +34,7 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "escape_html";
+		return "escapeHtml";
 	}
 
 	@Override
@@ -66,7 +66,7 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${escape_html(string)}. Example: ${escape_html('test & test')}"),
+			Usage.structrScript("Usage: ${escapeHtml(string)}. Example: ${escapeHtml('test & test')}"),
 			Usage.javaScript("Usage: ${{ $.escapeHtml(string); }}. Example: ${{ $.escapeHtml('test & test'); }}")
 		);
 	}
@@ -98,7 +98,7 @@ public class EscapeHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("${escape_html('Test & Test\"')} => Test &amp; Test&quot;")
+			Example.structrScript("${escapeHtml('Test & Test\"')} => Test &amp; Test&quot;")
 		);
 	}
 }

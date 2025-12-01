@@ -20,6 +20,7 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.Traits;
 import org.structr.flow.traits.definitions.FlowKeyValueTraitDefinition;
@@ -34,6 +35,22 @@ public class FlowKeyValue extends FlowDataSource implements DeployableEntity {
 	}
 
 	public final String getKey() {
+
 		return wrappedObject.getProperty(traits.key(FlowKeyValueTraitDefinition.KEY_PROPERTY));
+	}
+
+	public void setKey(final String key) throws FrameworkException {
+
+		wrappedObject.setProperty(traits.key(FlowKeyValueTraitDefinition.KEY_PROPERTY), key);
+	}
+
+	public Iterable<FlowObjectDataSource> getObjectDataTargets() {
+
+		return wrappedObject.getProperty(traits.key(FlowKeyValueTraitDefinition.OBJECT_DATA_TARGET_PROPERTY));
+	}
+
+	public void setObjectDataTargets(final Iterable<FlowObjectDataSource> objectDataTargets) throws FrameworkException {
+
+		wrappedObject.setProperty(traits.key(FlowKeyValueTraitDefinition.OBJECT_DATA_TARGET_PROPERTY), objectDataTargets);
 	}
 }

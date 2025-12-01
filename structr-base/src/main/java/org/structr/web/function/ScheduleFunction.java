@@ -24,6 +24,8 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
 
@@ -80,8 +82,8 @@ public class ScheduleFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${schedule(script[, title])}. Example: ${schedule(\"delete(find('User'))\", \"Delete all users!\")}"),
-			Usage.javaScript("Usage: ${{Structr.schedule(script[, title])}}. Example: ${{Structr.schedule(function() {}, 'This is a no-op!')}}")
+			Usage.structrScript("Usage: ${schedule(expression[, title])}."),
+			Usage.javaScript("Usage: ${{$.schedule(expression[, title])}}.")
 		);
 	}
 
@@ -92,6 +94,53 @@ public class ScheduleFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		Allows the user to insert a script snippet into the import queue for later execution. 
+		Useful in situations where a script should run after a long-running import job, or if the script should run in 
+		a separate transaction that is independent of the calling transaction.
+		The `title` parameter is optional and is displayed in the structr admin UI in the Importer section and in the 
+		notification messages when a script is started or finished.
+		The `onFinish` parameter is a script snippet which will be called when the process finishes (successfully or with an exception).
+		A parameter `jobInfo` is injected in the context of the `onFinish` function (see `job_info()` for more information on this object).
+		The schedule function returns the job id under which it is registered.
+		""";
+	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${schedule('call(\"myCleanupScript\")', 'Cleans unconnected nodes from the graph')}"),
+				Example.javaScript("""
+						${{
+						    $.schedule(function() {
+						        // execute global method
+						        $.call('myCleanupScript');
+						    }, 'Cleans unconnected nodes from the graph');
+						}}
+						"""),
+				Example.javaScript("""
+						${{
+						    $.schedule(function() {
+						        // execute global method
+						        Structr.call('myCleanupScript');
+						    }, 'Cleans unconnected nodes from the graph', function() {
+						        $.log('scheduled function finished!');
+						        $.log('Job Info: ', $.get('jobInfo'));
+						    });
+						}}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("expression", "function to run later"),
+				Parameter.optional("title", "title of schedule"),
+				Parameter.optional("onFinish", "function to be called when main expression finished")
+				);
 	}
 }

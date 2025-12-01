@@ -271,11 +271,11 @@
 	background-color: var(--dark-ocker); }
 .node-editor .node .socket.output.result:hover {
 	background-color: orange; }
-.node-editor .node .socket.output.objectDataTarget.used {
+.node-editor .node .socket.output.objectDataTargets.used {
 	background-color: var(--color-flow-datasource-blue); }
-.node-editor .node .socket.output.objectDataTarget:not(.used) {
+.node-editor .node .socket.output.objectDataTargets:not(.used) {
 	background-color: var(--medium-blue); }
-.node-editor .node .socket.output.objectDataTarget:hover {
+.node-editor .node .socket.output.objectDataTargets:hover {
 	background-color: var(--color-flow-datasource-blue); }
 .node-editor .node .socket.output.loopBody.used {
 	background-color: var(--color-flow-next-light-green); }
@@ -430,7 +430,7 @@
 
 #flows-canvas.focus-data .connections .connection.output-datatarget.input-datasource,
 #flows-canvas.focus-data .connections .connection.output-datatarget.input-datasources,
-#flows-canvas.focus-data .connections .connection.output-objectdatatarget.input-keyvaluesources,
+#flows-canvas.focus-data .connections .connection.output-objectdatatargets.input-keyvaluesources,
 #flows-canvas.focus-data .connections .connection.output-call.input-parameters,
 #flows-canvas.focus-data .connections .connection.output-datatarget.input-startvalue,
 #flows-canvas.focus-data .connections .connection.output-datatarget.input-scriptsource,
@@ -472,7 +472,7 @@
 	stroke: var(--color-flow-datasource-blue); }
 .node-editor .connections .connection.output-datatarget.input-valuesource {
 	stroke: var(--color-flow-datasource-blue); }
-.node-editor .connections .connection.output-objectdatatarget.input-keyvaluesources {
+.node-editor .connections .connection.output-objectdatatargets.input-keyvaluesources {
 	stroke: var(--color-flow-datasource-blue); }
 .node-editor .connections .connection.output-call.input-parameters {
 	stroke: var(--color-flow-datasource-blue); }

@@ -19,10 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Example;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -48,7 +45,7 @@ public class GtFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), \"More than two\", \"Equal to or less than two\")}")
+			Usage.structrScript("Usage: ${gt(value1, value2)}. Example: ${if(gt(this.children, 2), 'More than two', 'Equal to or less than two')}")
 		);
 	}
 
@@ -60,8 +57,17 @@ public class GtFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This method tries to convert its parameter objects into numerical values, i.e. you can compare strings numerically. 
-		It is often used in conjunction with `size()` to determine if a collection is empty or not.""";
+		This function tries to convert its arguments into numerical values, i.e. you can compare strings numerically. It is often used in conjunction with `size()` to determine if a collection is empty or not.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value"),
+			Parameter.mandatory("value2", "second value")
+		);
 	}
 
 	@Override

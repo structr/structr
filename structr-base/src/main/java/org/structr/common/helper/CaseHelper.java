@@ -36,6 +36,34 @@ public class CaseHelper {
 		return WordUtils.capitalize(input, new char[] { '_' }).replaceAll("_", "");
 	}
 
+	public static String toCamelCase(final String input) {
+
+		final StringBuilder out = new StringBuilder();
+		final int len           = input.length();
+		boolean uppercaseNext   = false;
+
+		for (int i = 0; i < len; i++) {
+
+			char c = input.charAt(i);
+			if (c == '_') {
+
+				uppercaseNext = true;
+
+			} else {
+
+				if (uppercaseNext) {
+					out.append(Character.toUpperCase(c));
+				} else {
+					out.append(c);
+				}
+
+				uppercaseNext = false;
+			}
+		}
+
+		return out.toString();
+	}
+
 	public static String toLowerCamelCase(final String input) {
 		return input.substring(0, 1).toLowerCase().concat(WordUtils.capitalize(input, new char[] { '_' }).replaceAll("_", "").substring(1));
 	}

@@ -48,7 +48,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "from_excel";
+		return "fromExcel";
 	}
 
 	@Override
@@ -115,7 +115,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${from_excel(file[, sheetIndexOrName = 0 ])}. Example: ${from_excel(first(find('File', 'name', 'test.xlsx')))}"),
+			Usage.structrScript("Usage: ${fromExcel(file[, sheetIndexOrName = 0 ])}. Example: ${fromExcel(first(find('File', 'name', 'test.xlsx')))}"),
 			Usage.javaScript("Usage: ${{ $.fromExcel(file[, sheetIndexOrName = 0 ]); }}. Example: ${{ $.fromExcel(fileNode); }}")
 		);
 	}

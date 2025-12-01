@@ -38,7 +38,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "add_to_group";
+		return "addToGroup";
 	}
 
 	@Override
@@ -107,7 +107,7 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${add_to_group(group, user)}"),
+			Usage.structrScript("Usage: ${addToGroup(group, user)}"),
 			Usage.javaScript("Usage: ${{$.addToGroup(group, user);}}")
 		);
 	}

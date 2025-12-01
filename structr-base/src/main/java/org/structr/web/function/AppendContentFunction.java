@@ -38,7 +38,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "append_content";
+		return "appendContent";
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 						fos.write((byte[]) sources[1]);
 
 					} catch (IOException ioex) {
-						logger.warn("append_content(): Unable to append binary data to file '{}'", file.getPath(), ioex);
+						logger.warn("appendContent(): Unable to append binary data to file '{}'", file.getPath(), ioex);
 					}
 
 				} else if (sources[1] instanceof String) {
@@ -76,7 +76,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 						}
 
 					} catch (IOException ioex) {
-						logger.warn("append_content(): Unable to append to file '{}'", file.getPath(), ioex);
+						logger.warn("appendContent(): Unable to append to file '{}'", file.getPath(), ioex);
 					}
 
 				} else {
@@ -116,7 +116,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${append_content(file, content[, encoding ])}. Example: ${append_content(first(find('File', 'name', 'test.txt')), 'additional content')}"),
+			Usage.structrScript("Usage: ${appendContent(file, content[, encoding ])}. Example: ${appendContent(first(find('File', 'name', 'test.txt')), 'additional content')}"),
 			Usage.javaScript("Usage: ${{ $.appendContent(file, content[, encoding ]) }}. Example: ${{ $.appendContent(fileNode, 'additional content') }}")
 		);
 	}
@@ -133,7 +133,7 @@ public class AppendContentFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.structrScript("append_content(first(find('File', 'name', 'test.txt')), '\\nAdditional Content')", "Append the string '\\nAdditional Content' to the file with the name 'test.txt'.")
+			Example.structrScript("appendContent(first(find('File', 'name', 'test.txt')), '\\nAdditional Content')", "Append the string '\\nAdditional Content' to the file with the name 'test.txt'.")
 		);
 	}
 

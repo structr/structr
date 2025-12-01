@@ -113,11 +113,6 @@
         </dependency>
         <dependency>
             <groupId>org.structr</groupId>
-            <artifactId>structr-security-module</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.structr</groupId>
             <artifactId>structr-text-search-module</artifactId>
             <version>${project.version}</version>
         </dependency>

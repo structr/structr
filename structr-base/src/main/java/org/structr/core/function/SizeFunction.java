@@ -22,6 +22,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -79,7 +81,7 @@ public class SizeFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${size(collection)}. Example: ${size(this.children)}")
+			Usage.structrScript("Usage: ${size(collection)}.")
 		);
 	}
 
@@ -97,4 +99,23 @@ public class SizeFunction extends CoreFunction {
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${size(page.children)}"),
+				Example.structrScript("${size(merge('a', 'b', 'c'))}"),
+				Example.javaScript("${{ return $.size([1, 2, 3, 5, 8]); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("collection", "collection to count")
+				);
+	}
+
+
 }

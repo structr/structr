@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
@@ -371,7 +372,7 @@ public class Functions {
 		}
 
 		// no match, try functions
-		final Function<Object, Object> function = getNamespacedFunction(word, namespace.values());
+		final Function<Object, Object> function = getNamespacedFunction(CaseHelper.toCamelCase(word), namespace.values());
 		if (function != null) {
 
 			final String namespaceIdentifier = function.getNamespaceIdentifier();

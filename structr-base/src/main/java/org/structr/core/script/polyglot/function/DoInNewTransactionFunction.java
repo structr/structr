@@ -211,7 +211,7 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 					pageNo++;
 
 					return (nodes.length > 0);
-					
+
 				}, function() {
 					$.log('Error occurred in batch function. Stopping.');
 					return false;

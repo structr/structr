@@ -36,11 +36,11 @@ import java.util.Map;
 public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWCSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: get_wcs_data(baseUrl, coverageId, boundingBox, min, max)";
+	public static final String ERROR_MESSAGE = "usage: getWcsData(baseUrl, coverageId, boundingBox, min, max)";
 
 	@Override
 	public String getName() {
-		return "get_wcs_data";
+		return "getWcsData";
 	}
 
 	@Override

@@ -42,7 +42,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "wkt_to_polygons";
+		return "wktToPolygons";
 	}
 
 	@Override
@@ -79,7 +79,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 			} else {
 
-				logger.warn("Invalid parameter for wkt_to_coordinates, expected string, got {}", sources[0].getClass().getSimpleName() );
+				logger.warn("Invalid parameter for wktToCoordinates, expected string, got {}", sources[0].getClass().getSimpleName() );
 			}
 
 			return "Invalid parameters";

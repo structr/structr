@@ -40,7 +40,7 @@ public class CoordsToPolygonFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "coords_to_polygon";
+		return "coordsToPolygon";
 	}
 
 	@Override

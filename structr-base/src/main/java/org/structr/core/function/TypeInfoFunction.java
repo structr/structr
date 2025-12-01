@@ -30,7 +30,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "type_info";
+		return "typeInfo";
 	}
 
 	@Override
@@ -60,7 +60,7 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}"),
+			Usage.structrScript("Usage: ${typeInfo(type[, view])}. Example ${typeInfo('User', 'public')}"),
 			Usage.javaScript("Usage: ${$.typeInfo(type[, view])}. Example ${$.typeInfo('User', 'public')}")
 		);
 	}

@@ -32,7 +32,7 @@ public class IPHint extends KeywordHint {
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the current IP address **of the server that Structr runs on**.";
+		return "Refers to the IP address of the interface on which the request was received.";
 	}
 
 	@Override
@@ -51,6 +51,7 @@ public class IPHint extends KeywordHint {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
+			"Only available in a context where Structr is responding to an HTTP request from the outside."
 		);
 	}
 }

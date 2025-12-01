@@ -22,6 +22,7 @@ import org.structr.api.graph.Node;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -69,18 +70,26 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{$.instantiate(node)}}. Example: ${{$.instantiate(result.node)}}"),
+			Usage.javaScript("Usage: ${{ $.instantiate(node); }}. Example: ${{ $.instantiate(result.node); }}"),
 			Usage.structrScript("Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Instantiates the given Neo4j node into a Structr node.";
+		return "Converts the given raw Neo4j entity to a Structr entity.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "You can use this function to convert raw Neo4j entities from a `cypher()` result into Structr entities.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("entity", "entity to instantiate")
+		);
 	}
 }

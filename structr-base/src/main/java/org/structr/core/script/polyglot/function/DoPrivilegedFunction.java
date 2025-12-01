@@ -86,10 +86,10 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 	@Override
 	public String getLongDescription() {
 		return """
-This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
+		This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
 
-**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
-			""";
+		**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
+		""";
 	}
 
 	@Override
@@ -100,23 +100,24 @@ This can be useful in scenarios where no security checks should run (e.g. bulk i
 	@Override
 	public List<Example> getExamples() {
 
-		return List.of(Example.javaScript("""
-${{
-	let userToDelete = $.find('User', { name: 'user_to_delete' })[0];
+		return List.of(Example.javaScript(
+		"""
+		${{
+			let userToDelete = $.find('User', { name: 'user_to_delete' })[0];
 
-	$.doPrivileged(() => {
+			$.doPrivileged(() => {
 
-		// look up user again to set correct access rights
-		let user = $.find('User', userToDelete.id);
+				// look up user again to set correct access rights
+				let user = $.find('User', userToDelete.id);
 
-		// delete all projects owned by user
-		$.delete($.find('Project', { projectOwner: user }));
+				// delete all projects owned by user
+				$.delete($.find('Project', { projectOwner: user }));
 
-		// delete user
-		$.delete(user);
-	});
-}}
-			""", null));
+				// delete user
+				$.delete(user);
+			});
+		}}
+		""", null));
 	}
 
 	@Override

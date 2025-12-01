@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Language;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -32,7 +33,7 @@ public class IsCollectionFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
-		return "is_collection";
+		return "isCollection";
 	}
 
 	@Override
@@ -64,7 +65,7 @@ public class IsCollectionFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${is_collection(value)}. Example: ${is_collection(this)}")
+			Usage.structrScript("Usage: ${isCollection(value)}. Example: ${isCollection(this)}")
 		);
 	}
 
@@ -76,6 +77,14 @@ public class IsCollectionFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value", "value to check")
+		);
 	}
 
 	@Override

@@ -33,7 +33,7 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "import_html";
+		return "importHtml";
 	}
 
 	@Override
@@ -77,7 +77,7 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${import_html(parent, html)}. Example: ${import_html(this, '<div></div>')}"),
+			Usage.structrScript("Usage: ${importHtml(parent, html)}. Example: ${importHtml(this, '<div></div>')}"),
 			Usage.javaScript("Usage: ${{Structr.importHtml(parent, html)}}. Example: ${{Structr.importHtml(this, '<div></div>')}}")
 		);
 	}

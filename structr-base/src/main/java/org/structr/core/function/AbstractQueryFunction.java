@@ -175,13 +175,13 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 		} else {
 
-			final int parameter_count = sources.length;
+			final int parameterCount = sources.length;
 
 			// the below loop must work for both simple parameters (key, value, key, value, key, value, ...)
 			// and advanced ones (predicate, predicate, predicate, ...) so we increment the value
 			// of c inside the loop if a non-advanced parameter is encountered.
 
-			for (int c = 1; c < parameter_count; c++) {
+			for (int c = 1; c < parameterCount; c++) {
 
 				if (sources[c] == null) {
 					throw new IllegalArgumentException();

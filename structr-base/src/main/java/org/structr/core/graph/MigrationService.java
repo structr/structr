@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseFeature;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
@@ -71,7 +72,8 @@ public class MigrationService {
 		"sign-out",
 		"sign-up",
 		"reset-password",
-		"method"
+		"method",
+		"flow"
 	);
 
 	private static final Set<String> FQCNBlacklist = Set.of(
@@ -185,7 +187,9 @@ public class MigrationService {
 			migrateFolderMountTarget();
 			migrateEventActionMapping();
 			updateSharedComponentFlag();
-			migrateRestQueryRepeaters();
+			if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
+				migrateRestQueryRepeaters();
+			}
 			warnAboutWrongNotionProperties();
 		}
 	}

@@ -39,7 +39,7 @@ public class FirstFunction extends CoreFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("list");
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class FirstFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This function is often used in conjunction with `find()` to return the first result of a query.";
+		return "This function is often used in conjunction with `find()` to return the first result of a query. See also `last()` and `nth()`.";
 	}
 
 	@Override
@@ -111,10 +111,5 @@ public class FirstFunction extends CoreFunction {
 		return List.of(
 			Example.structrScript("${first(find('User'))}", "Return the first of the existing users")
 		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of();
 	}
 }

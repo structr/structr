@@ -52,13 +52,15 @@ public class LocaleHint extends KeywordHint {
 	public List<Example> getExamples() {
 		return List.of(
 			Example.javaScript("""
-			""")
+			${{
+				$.log('Current locale is: ' + $.locale);
+			}}
+			""", "Print the current locale of a request to the log file")
 		);
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of(
-		);
+		return null;
 	}
 }
