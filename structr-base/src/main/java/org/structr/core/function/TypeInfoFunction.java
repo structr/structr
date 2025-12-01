@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -60,8 +62,8 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${typeInfo(type[, view])}. Example ${typeInfo('User', 'public')}"),
-			Usage.javaScript("Usage: ${$.typeInfo(type[, view])}. Example ${$.typeInfo('User', 'public')}")
+			Usage.structrScript("Usage: ${typeInfo(type[, view])}."),
+			Usage.javaScript("Usage: ${$.typeInfo(type[, view])}.")
 		);
 	}
 
@@ -72,6 +74,29 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+		If called with a view, all properties of that view are returned as a list. The items of the list are in the same 
+		format as `property_info()` returns. This is identical to the result one would get from `/structr/rest/_schema/<type>/<view>`.
+		If called without a view, the complete type information is returned as an object. 
+		This is identical to the result one would get from `/structr/rest/_schema/<type>`.
+		""";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${typeInfo('User', 'public')}"),
+				Example.javaScript("${{ $.typeInfo('User', 'public') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("type", "schema type"),
+				Parameter.optional("view", "view (default: `public`)")
+				);
+	}
+
 }

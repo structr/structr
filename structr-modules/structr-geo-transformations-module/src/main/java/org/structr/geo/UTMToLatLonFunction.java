@@ -32,13 +32,15 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.DoubleProperty;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class UTMToLatLonFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE            = "Usage: ${utmToLatLon(utmString)}. Example: ${utmToLatLon('32U 395473 5686479')}";
+	private static final String ERROR_MESSAGE            = "Usage: ${utmToLatLon(utmString)}.";
 	private static final Logger logger                   = LoggerFactory.getLogger(UTMToLatLonFunction.class.getName());
 	private static final String UTMHemisphere            = "SSSSSSSSSSNNNNNNNNNNN";
 	private static final String UTMzdlChars              = "CDEFGHJKLMNPQRSTUVWXX";
@@ -118,6 +120,8 @@ public class UTMToLatLonFunction extends GeoFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
+				Usage.javaScript("Usage: ${{ $.utmToLatLon(utmString) }}."),
+				Usage.structrScript("Usage: ${utmToLatLon(utmString)}.")
 		);
 	}
 
@@ -129,6 +133,27 @@ public class UTMToLatLonFunction extends GeoFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${utmToLatLon('32U 395473 5686479')}
+						> {latitude=53.85499997165232, longitude=8.081674915658844}
+						"""),
+				Example.javaScript("""
+						${{ $.utmToLatLon('32U 395473 5686479') 
+						> {latitude=53.85499997165232, longitude=8.081674915658844}
+						}}""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("utmString", "UTM location string")
+				);
 	}
 
 	// ----- private methods -----
