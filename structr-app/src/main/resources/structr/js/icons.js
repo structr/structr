@@ -149,7 +149,7 @@ let _Icons = {
 	iconPasswordReset:       'reset-password-templates',
 	iconRunButton:           'run_button',
 	iconSettingsCog:         'settings-cog',
-	iconSettingsWrench:      'wrench',
+	iconSettingsWrench:      'settings-wrench',
 	iconSliders:             'sliders-icon',
 	iconSnapshots:           'snapshots-icon',
 	iconSwagger:             'swagger-logo-bw',
@@ -169,6 +169,7 @@ let _Icons = {
 	iconInfoBlueFilled:      'info-sign-icon-filled',
 	iconWaitingSpinner:      'waiting-spinner',
 	iconHistory:             'history',
+	iconWrench:              'wrench',
 
 	iconLogoAuth0:           'logo-auth0',
 	iconLogoMicrosoft:       'logo-microsoft',
