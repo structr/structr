@@ -25,5 +25,6 @@ public interface MailTemplate extends NodeInterface {
 
 	String getText();
 	String getLocale();
+	String getDescription();
 	void setLocale(final String locale) throws FrameworkException;
 }

@@ -65,11 +65,11 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		CONFIRM_REGISTRATION_TEXT_BODY,
 		CONFIRM_REGISTRATION_HTML_BODY,
 		CONFIRM_REGISTRATION_BASE_URL,
-		CONFIRM_REGISTRATION_SUCCESS_PATH,
-		CONFIRM_REGISTRATION_FAILURE_PATH,
 		CONFIRM_REGISTRATION_PAGE,
+		CONFIRM_REGISTRATION_TARGET_PAGE,
+		CONFIRM_REGISTRATION_ERROR_PAGE,
 		CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY,
-		CONFIRM_REGISTRATION_TARGET_PATH_KEY,
+		CONFIRM_REGISTRATION_TARGET_PAGE_KEY,
 		CONFIRM_REGISTRATION_ERROR_PAGE_KEY
 	}
 
@@ -190,8 +190,8 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		// WARNING! This is unchecked user input!!
 		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
-		String successPath = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SUCCESS_PATH, AbstractDataServlet.prefixLocation("register_thanks"), localeString);
-		String failurePath  = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_FAILURE_PATH, AbstractDataServlet.prefixLocation("register_error"), localeString);
+		String successPath = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE, AbstractDataServlet.prefixLocation("register_thanks"), localeString);
+		String failurePath  = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, AbstractDataServlet.prefixLocation("register_error"), localeString);
 
 //		// Allow overriding success path from frontend action
 //		if (propertySetFromUserPOST.containsKey(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_TARGET)) {
@@ -208,7 +208,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
 				+ "?" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
-				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString)           + "=" + successPath
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PAGE_KEY, HtmlServlet.TARGET_PATH_KEY, localeString)           + "=" + successPath
 				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)             + "=" + failurePath
 		);
 

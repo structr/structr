@@ -34,6 +34,10 @@ public class MailTemplateTraitWrapper extends AbstractNodeTraitWrapper implement
 		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.TEXT_PROPERTY));
 	}
 
+	public String getDescription() {
+		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.DESCRIPTION_PROPERTY));
+	}
+
 	public String getLocale() {
 		return wrappedObject.getProperty(traits.key(MailTemplateTraitDefinition.LOCALE_PROPERTY));
 	}

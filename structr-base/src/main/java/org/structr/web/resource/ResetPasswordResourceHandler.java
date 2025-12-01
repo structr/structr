@@ -63,11 +63,11 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		RESET_PASSWORD_TEXT_BODY,
 		RESET_PASSWORD_HTML_BODY,
 		RESET_PASSWORD_BASE_URL,
-		RESET_PASSWORD_TARGET_PATH,
+		RESET_PASSWORD_TARGET_PAGE,
 		RESET_PASSWORD_ERROR_PAGE,
 		RESET_PASSWORD_PAGE,
 		RESET_PASSWORD_CONFIRMATION_KEY_KEY,
-		RESET_PASSWORD_TARGET_PATH_KEY,
+		RESET_PASSWORD_TARGET_PAGE_KEY,
 		RESET_PASSWORD_ERROR_PAGE_KEY
 	}
 
@@ -136,7 +136,8 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 				getTemplateText(TemplateKey.RESET_PASSWORD_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.RESET_PASSWORD_PAGE, HtmlServlet.RESET_PASSWORD_PAGE, localeString)
 				+ "?" + getTemplateText(TemplateKey.RESET_PASSWORD_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
-				+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PATH, AbstractDataServlet.prefixLocation(HtmlServlet.RESET_PASSWORD_PAGE), localeString)
+				+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_TARGET_PAGE, AbstractDataServlet.prefixLocation(HtmlServlet.RESET_PASSWORD_PAGE), localeString)
+				+ "&" + getTemplateText(TemplateKey.RESET_PASSWORD_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString) + "=" + getTemplateText(TemplateKey.RESET_PASSWORD_ERROR_PAGE, AbstractDataServlet.prefixLocation(HtmlServlet.RESET_PASSWORD_PAGE), localeString)
 		);
 
 		final String textMailContent = replaceVariablesInTemplate(TemplateKey.RESET_PASSWORD_TEXT_BODY, "Go to ${link} to reset your password.", localeString, ctx);

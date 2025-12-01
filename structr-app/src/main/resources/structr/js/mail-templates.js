@@ -28,6 +28,8 @@ let _MailTemplates = {
 	mailTemplateDetailContainer: undefined,
 	mailTemplateDetailForm: undefined,
 	previewElement: undefined,
+	saveContentButton: undefined,
+	savedContent: undefined,
 
 	mailTemplatesResizerLeftKey:     'structrMailTemplatesResizerLeftKey_' + location.port,
 	mailTemplateSelectedElementKey:  'structrMailTemplatesSelectedElementKey_' + location.port,
@@ -78,13 +80,18 @@ let _MailTemplates = {
 			e.preventDefault();
 
 			let defaultRegistrationTemplates = [
-				{ name: 'CONFIRM_REGISTRATION_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
-				{ name: 'CONFIRM_REGISTRATION_SENDER_NAME',		text: 'Structr Mail Daemon' },
-				{ name: 'CONFIRM_REGISTRATION_SUBJECT',			text: 'Welcome to Structr, please finalize registration' },
-				{ name: 'CONFIRM_REGISTRATION_TEXT_BODY',		text: 'Go to ${link} to finalize registration.' },
-				{ name: 'CONFIRM_REGISTRATION_HTML_BODY',		text: '<div>Click <a href=\'${link}\'>here</a> to finalize registration.</div>' },
-				{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE',		text: '/register_thanks' },
-				{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE',		text: '/register_error' },
+				{ name: 'CONFIRM_REGISTRATION_SENDER_ADDRESS',       text: 'structr-mail-daemon@localhost',                                           description: 'Sender address of the registration mail' },
+				{ name: 'CONFIRM_REGISTRATION_SENDER_NAME',          text: 'Structr Mail Daemon',                                                     description: 'Sender name of the registration mail' },
+				{ name: 'CONFIRM_REGISTRATION_SUBJECT',              text: 'Welcome to Structr, please finalize registration',                        description: 'Subject of the registration mail' },
+				{ name: 'CONFIRM_REGISTRATION_TEXT_BODY',            text: 'Go to ${link} to finalize registration.',                                 description: 'Plain text body of the registration mail' },
+				{ name: 'CONFIRM_REGISTRATION_HTML_BODY',            text: '<div>Click <a href=\'${link}\'>here</a> to finalize registration.</div>', description: 'HTML body of the registration mail' },
+				{ name: 'CONFIRM_REGISTRATION_BASE_URL',             text: '${base_url}',                                                             description: 'Server base URL to prefix all links' },
+				{ name: 'CONFIRM_REGISTRATION_PAGE',                 text: '/confirm_registration',                                                   description: 'Path of the validation page linked in the first e-mail' },
+				{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE',          text: '/register_thanks',                                                        description: 'Path of the page redirecting to on successful validation' },
+				{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE',           text: '/register_error',                                                         description: 'Path of the page redirecting to in case of errors' },
+				{ name: 'CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY', text: 'key',                                                                     description: 'Name of the URL parameter of the confirmation key' },
+				{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE_KEY',      text: 'target',                                                                  description: 'Name of the URL parameter of the page redirecting to on successful validation' },
+				{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE_KEY',       text: 'onerror',                                                                 description: 'Name of the URL parameter of the page redirecting to in case of errors' },
 			];
 
 			let mtData = localePreselect.value.trim().split(',').map((l) => {
@@ -100,12 +107,18 @@ let _MailTemplates = {
 			e.preventDefault();
 
 			let defaultResetPasswordTemplates = [
-				{ name: 'RESET_PASSWORD_SENDER_ADDRESS',	text: 'structr-mail-daemon@localhost' },
-				{ name: 'RESET_PASSWORD_SENDER_NAME',		text: 'Structr Mail Daemon' },
-				{ name: 'RESET_PASSWORD_SUBJECT',			text: 'Request to reset your Structr password' },
-				{ name: 'RESET_PASSWORD_TEXT_BODY',			text: 'Go to ${link} to reset your password.' },
-				{ name: 'RESET_PASSWORD_HTML_BODY',			text: '<div>Click <a href=\'${link}\'>here</a> to reset your password.</div>' },
-				{ name: 'RESET_PASSWORD_TARGET_PAGE',		text: '/reset-password' }
+				{ name: 'RESET_PASSWORD_SENDER_NAME',          text: 'Structr Mail Daemon',                                                   description: 'Sender name of the reset password mail' },
+				{ name: 'RESET_PASSWORD_SENDER_ADDRESS',       text: 'structr-mail-daemon@localhost',                                         description: 'Sender address of the reset password mail' },
+				{ name: 'RESET_PASSWORD_SUBJECT',              text: 'Request to reset your Structr password',                                description: 'Subject of the reset password mail' },
+				{ name: 'RESET_PASSWORD_TEXT_BODY',            text: 'Go to ${link} to reset your password.',                                 description: 'Plaintext mail body' },
+				{ name: 'RESET_PASSWORD_HTML_BODY',            text: '<div>Click <a href=\'${link}\'>here</a> to reset your password.</div>', description: 'HTML mail body' },
+				{ name: 'RESET_PASSWORD_BASE_URL',             text: '${base_url}',                                                           description: 'Used to build the link variable' },
+				{ name: 'RESET_PASSWORD_PAGE',                 text: '/reset-password',                                                       description: 'Path of the page linked in the first e-mail' },
+				{ name: 'RESET_PASSWORD_TARGET_PAGE',          text: '/reset-password',                                                       description: 'Path of the page redirecting to on successful password reset' },
+				{ name: 'RESET_PASSWORD_ERROR_PAGE',           text: '/reset-password',                                                       description: 'Path of the page redirecting to in case of errors' },
+				{ name: 'RESET_PASSWORD_CONFIRMATION_KEY_KEY', text: 'key',                                                                   description: 'Name of the URL parameter of the confirmation key' },
+				{ name: 'RESET_PASSWORD_TARGET_PAGE_KEY',      text: 'target',                                                                description: 'Name of the URL parameter of the page redirecting to on successful validation' },
+				{ name: 'RESET_PASSWORD_ERROR_PAGE_KEY',       text: 'onerror',                                                               description: 'Name of the URL parameter of the page redirecting to in case of errors' },
 			];
 
 			let mtData = localePreselect.value.trim().split(',').map((l) => {
@@ -120,12 +133,14 @@ let _MailTemplates = {
 		_MailTemplates.mailTemplateDetailContainer = document.getElementById('mail-templates-detail-container');
 		_MailTemplates.mailTemplateDetailForm      = document.getElementById('mail-template-detail-form');
 		_MailTemplates.previewElement              = document.getElementById('mail-template-preview');
+		_MailTemplates.saveContentButton           = document.getElementById('save-mail-template-content-button');
 
 		_MailTemplates.listMailTemplates();
+		_MailTemplates.initMailTemplateDetailForm();
 
-		_MailTemplates.mailTemplateDetailForm.addEventListener('submit', (e) => {
+		_MailTemplates.saveContentButton.addEventListener('click', (e) => {
 			e.preventDefault();
-			_MailTemplates.saveMailTemplate();
+			_MailTemplates.saveMailTemplateContent();
 		})
 
 		Structr.mainMenu.unblock(100);
@@ -306,7 +321,7 @@ let _MailTemplates = {
 	},
 	showMailTemplateDetails: (mailTemplateId, isCreate) => {
 
-		Command.get(mailTemplateId, '', (mt) => {
+		Command.get(mailTemplateId, '', mt => {
 
 			_MailTemplates.mailTemplateDetailContainer.style.display = null;
 
@@ -328,13 +343,53 @@ let _MailTemplates = {
 
 			let editor = _MailTemplates.activateEditor(mt);
 			_MailTemplates.updatePreview(editor.getValue());
+			_MailTemplates.savedContent = editor.getValue();
 
 			if (isCreate === true) {
 				_MailTemplates.mailTemplatesPager.refresh();
 			}
 		});
 	},
-	activateEditor: (mt) => {
+	initMailTemplateDetailForm: () => {
+
+		for (let el of _MailTemplates.mailTemplateDetailForm.querySelectorAll('.property')) {
+
+			el.addEventListener('blur', () => {
+
+				const key = el.dataset.property;
+				_MailTemplates.saveValue(el, key, newVal => {
+					if (el.type === 'checkbox') {
+						_Helpers.blinkGreen(el.parentNode);
+					} else {
+						_Helpers.blinkGreen(el);
+					}
+					const id = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
+					let propEl = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id)?.querySelector(`[data-property="${key}"]`);
+					if (propEl) propEl.innerText = newVal;
+
+				});
+			});
+
+			if (el.type === 'checkbox') {
+				el.addEventListener('change', () => {
+					el.blur();
+				});
+			}
+		}
+	},
+	saveValue: (el, key, callback) => {
+		const id = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
+		Command.get(id, '', mt => {
+			const oldVal = mt[key];
+			const newVal = el.type === 'checkbox' ? el.checked : el.value;
+			if (oldVal !== newVal) {
+				Command.setProperty(id, key, newVal, false, obj => {
+					callback(obj[key]);
+				});
+			}
+		});
+	},
+	activateEditor: mt => {
 
 		let initialText = mt.text || '';
 
@@ -349,9 +404,14 @@ let _MailTemplates = {
 			autocomplete: true,
 			changeFn: (editor, entity) => {
 				_Editors.updateMonacoEditorLanguage(editor, getLanguageForMailTemplateText(editor.getValue()), mt);
+				if (editor.getValue() !== _MailTemplates.savedContent) {
+					_Helpers.enableElement(_MailTemplates.saveContentButton);
+				} else {
+					_Helpers.disableElements(true, _MailTemplates.saveContentButton);
+				}
 			},
 			saveFn: (editor, entity) => {
-				_MailTemplates.saveMailTemplate();
+				_MailTemplates.saveMailTemplateContent();
 			},
 			wordWrap: (_Editors.getSavedEditorOptions().lineWrapping ? 'on' : 'off')
 		};
@@ -363,12 +423,14 @@ let _MailTemplates = {
 		_Helpers.fastRemoveAllChildren(document.querySelector('#mail-template-editor-options'));
 		_Editors.appendEditorOptionsElement(document.querySelector('#mail-template-editor-options'));
 
+		_Helpers.disableElements(true, _MailTemplates.saveContentButton);
+
 		return editor;
 	},
 	updatePreview: (text) => {
 		_MailTemplates.previewElement.contentDocument.documentElement.innerHTML = text;
 	},
-	saveMailTemplate: async () => {
+	saveMailTemplateContent: async () => {
 
 		let data = _MailTemplates.getObjectDataFromElement(_MailTemplates.mailTemplateDetailForm);
 		let id   = _MailTemplates.mailTemplateDetailForm.dataset['mailTemplateId'];
@@ -387,6 +449,10 @@ let _MailTemplates = {
 			let rowInList = _MailTemplates.mailTemplatesList.querySelector('#mail-template-' + id);
 			_MailTemplates.populateMailTemplatePagerRow(rowInList, data);
 			_MailTemplates.updatePreview(data.text);
+			_MailTemplates.savedContent = data.text;
+
+			_Dialogs.custom.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+			_Helpers.disableElements(true, _MailTemplates.saveContentButton);
 
 		} else {
 			_Helpers.blinkRed($blinkTarget);
@@ -437,7 +503,6 @@ let _MailTemplates = {
 						<input id="mail-template-id" type="hidden" class="property" data-property="id">
 
 						<div class="flex gap-4 py-2 px-0">
-
 							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-name">Name</label>
 								<input id="mail-template-name" type="text" class="property mt-2" data-property="name">
@@ -449,35 +514,46 @@ let _MailTemplates = {
 							</div>
 						</div>
 
-						<div class="flex py-2 px-0">
-							<input id="mail-template-visible-to-public-users" class="property" type="checkbox" data-property="visibleToPublicUsers">
-							<label for="mail-template-visible-to-public-users">Visible to public users</label>
+						<div class="flex gap-4 py-2 px-0">
+							<div class="inline-flex flex-col flex-2">
+								<label for="mail-template-locale">Description</label>
+								<input id="mail-template-locale" type="text" class="property mt-2" data-property="description">
+							</div>
+							<div class="flex flex-col flex-2">
+								<label>Visibility</label>
+								<div class="flex gap-4">
+									<div class="flex py-2 px-4 mt-2">
+										<input id="mail-template-visible-to-public-users" class="property" type="checkbox" data-property="visibleToPublicUsers">
+										<label for="mail-template-visible-to-public-users">Visible to public users</label>
+									</div>
+									<div class="flex py-2 px-4 mt-2">
+										<input id="mail-template-visible-to-authenticated-users" class="property" type="checkbox" data-property="visibleToAuthenticatedUsers">
+										<label for="mail-template-visible-to-authenticated-users">Visible to authenticated users</label>
+									</div>
+								</div>
+							</div>
 						</div>
-
-						<div class="flex py-2 px-0">
-							<input id="mail-template-visible-to-authenticated-users" class="property" type="checkbox" data-property="visibleToAuthenticatedUsers">
-							<label for="mail-template-visible-to-authenticated-users">Visible to authenticated users</label>
-						</div>
-
+						
 						<div class="flex gap-4 py-2 px-0">
 							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-text">Content</label>
-								<div id="mail-template-text" class="property" data-property="text"></div>
+								<div id="mail-template-text" class="property mt-2" data-property="text"></div>
 							</div>
 
 							<div class="inline-flex flex-col flex-2">
 								<label for="mail-template-preview">Preview</label>
-								<iframe id="mail-template-preview"></iframe>
+								<iframe id="mail-template-preview" class="mt-2"></iframe>
 							</div>
 						</div>
 
-						<div class="flex gap-4 py-2 px-0 justify-between">
-							<div id="mail-template-editor-options">
+						<div class="flex gap-4 px-0 justify-between">
+							<div class="inline-flex">
+								<button type="button" id="save-mail-template-content-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled">
+									${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2')} Save Content
+								</button>
+								<div id="mail-template-editor-options">
+								</div>
 							</div>
-
-							<button type="submit" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2')} Save
-							</button>
 						</div>
 
 					</form>

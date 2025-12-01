@@ -32,10 +32,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
@@ -186,6 +183,7 @@ public class MigrationService {
 			migratePrincipalToPrincipalInterface();
 			migrateFolderMountTarget();
 			migrateEventActionMapping();
+			migrateMailTemplates();
 			updateSharedComponentFlag();
 			if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 				migrateRestQueryRepeaters();
@@ -520,6 +518,42 @@ public class MigrationService {
 
 		if ((directionCount + eventMappingCount + structrAppJsCount) > 0) {
 			logger.info("Migrated {} relationships, {} event mappings and {} structr-app.js settings.", directionCount, eventMappingCount, structrAppJsCount);
+		}
+	}
+
+	private static void migrateMailTemplates() {
+
+		final App app = StructrApp.getInstance();
+
+		String[][] renamedKeys = {
+			{ "CONFIRM_REGISTRATION_SUCCESS_PATH",    "CONFIRM_REGISTRATION_TARGET_PAGE" },
+			{ "CONFIRM_REGISTRATION_FAILURE_PATH",    "CONFIRM_REGISTRATION_ERROR_PAGE" },
+			{ "CONFIRM_REGISTRATION_TARGET_PATH_KEY", "CONFIRM_REGISTRATION_TARGET_PAGE_KEY" },
+			{ "RESET_PASSWORD_TARGET_PATH",           "RESET_PASSWORD_TARGET_PAGE" },
+			{ "RESET_PASSWORD_TARGET_PATH_KEY",       "RESET_PASSWORD_TARGET_PAGE_KEY" }
+		};
+
+		try (final Tx tx = app.tx()) {
+
+			for (final String[] renamedKey : renamedKeys) {
+				final String oldKey = renamedKey[0];
+				final String newKey = renamedKey[1];
+
+				for (final NodeInterface mailTemplate : app.nodeQuery(StructrTraits.MAIL_TEMPLATE).getResultStream()) {
+					if (oldKey.equals(mailTemplate.getName())) {
+						mailTemplate.setName(newKey);
+
+						logger.info("Updated mail template {} to {} (value: {})", oldKey, newKey, mailTemplate.getProperty(Traits.key("MailTemplate", "text")));
+					}
+				}
+			}
+
+
+			tx.success();
+
+		} catch (Throwable fex) {
+			logger.warn("Unable to migrate mail templates: {}", fex.getMessage());
+			fex.printStackTrace();
 		}
 	}
 
