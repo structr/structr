@@ -2860,7 +2860,6 @@ i.fa-sitemap {
 	padding: 12px;
 	clear: both;
 	overflow: hidden;
-	border: 1px solid var(--gray-999) ! important;
 	background: var(--solid-white) ! important;
 	font-family: var(--font-main) ! important;
 }
@@ -4118,6 +4117,9 @@ ul.combined-input-select-field li:hover {
 }
 .mt-1 {
 	margin-top: .25rem;
+}
+.mt-1\.5 {
+	margin-top: .375rem;
 }
 .mt-2 {
 	margin-top: .5rem;
