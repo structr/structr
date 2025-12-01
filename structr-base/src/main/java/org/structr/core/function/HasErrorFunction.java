@@ -48,13 +48,13 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${hasError()}"),
-			Usage.javaScript("Usage: ${{ Structr.hasError() }}")
+			Usage.javaScript("Usage: ${{ $.hasError() }}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Allows checking if an error occurred in the scripting context.";
+		return "Allows checking if an error has been raised in the scripting context.";
 	}
 
 	@Override
