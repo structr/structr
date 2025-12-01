@@ -257,7 +257,7 @@ public class Console {
 
 			if (size <= maxResults) {
 
-				writable.print(Functions.get("to_json").apply(actionContext, null, new Object[] { result } ));
+				writable.print(Functions.get("toJson").apply(actionContext, null, new Object[] { result } ));
 
 			} else {
 

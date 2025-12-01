@@ -625,6 +625,9 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 			// also ignore simple "Closed" exception
 		} else if (t instanceof EOFException && t.getMessage().equals("Reset cancel_stream_error")) {
 			// also ignore EOFExceptions that happen on page close
+		} else if (t instanceof java.nio.channels.ClosedChannelException && t.getMessage() == null) {
+			// only debug-log ClosedChannelException for "Session Closed" which is thrown by WebSocketSessionState.onEof
+			logger.debug("Caught ClosedChannelException exception", t);
 		} else {
 
 			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
