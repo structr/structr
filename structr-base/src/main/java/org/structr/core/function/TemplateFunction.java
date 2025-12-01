@@ -105,8 +105,8 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${template(name, locale, source)}. Example: "),
-			Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}. Example: ")
+			Usage.structrScript("Usage: ${template(name, locale, source)}."),
+			Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}.")
 		);
 	}
 
