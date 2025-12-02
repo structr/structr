@@ -88,10 +88,9 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 			if (userHomeDir == null) {
 
-				app.create(StructrTraits.FOLDER,
+				userHomeDir = app.create(StructrTraits.FOLDER,
 						new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), user.getUuid()),
 						new NodeAttribute(folderTraits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), user),
-						new NodeAttribute(folderTraits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true),
 						new NodeAttribute(parentKey, homeFolder),
 						new NodeAttribute(homeFolderKey, user)
 				);
@@ -103,15 +102,7 @@ public class UserTraitWrapper extends PrincipalTraitWrapper implements User {
 
 			tx.success();
 
-			// FIXME: if the node already existed, "user.getHomeDirectory()" returns null. this is why the found node is returned.
-			if (userHomeDir == null) {
-
-				return user.getHomeDirectory();
-
-			} else {
-
-				return userHomeDir.as(Folder.class);
-			}
+			return userHomeDir.as(Folder.class);
 
 		} catch (Throwable t) {
 
