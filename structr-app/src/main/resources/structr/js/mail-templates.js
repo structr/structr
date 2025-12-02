@@ -43,6 +43,8 @@ let _MailTemplates = {
 
 		_MailTemplates.init();
 
+		const baseUrl = location.protocol + '//' + location.host;
+
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('mail-templates'));
 
 		Structr.setMainContainerHTML(_MailTemplates.templates.main());
@@ -85,7 +87,7 @@ let _MailTemplates = {
 				{ name: 'CONFIRM_REGISTRATION_SUBJECT',              text: 'Welcome to Structr, please finalize registration',                        description: 'Subject of the registration mail' },
 				{ name: 'CONFIRM_REGISTRATION_TEXT_BODY',            text: 'Go to ${link} to finalize registration.',                                 description: 'Plain text body of the registration mail' },
 				{ name: 'CONFIRM_REGISTRATION_HTML_BODY',            text: '<div>Click <a href=\'${link}\'>here</a> to finalize registration.</div>', description: 'HTML body of the registration mail' },
-				{ name: 'CONFIRM_REGISTRATION_BASE_URL',             text: '${base_url}',                                                             description: 'Server base URL to prefix all links' },
+				{ name: 'CONFIRM_REGISTRATION_BASE_URL',             text: `${baseUrl}`,                                                             description: 'Server base URL to prefix all links' },
 				{ name: 'CONFIRM_REGISTRATION_PAGE',                 text: '/confirm_registration',                                                   description: 'Path of the validation page linked in the first e-mail' },
 				{ name: 'CONFIRM_REGISTRATION_TARGET_PAGE',          text: '/register_thanks',                                                        description: 'Path of the page redirecting to on successful validation' },
 				{ name: 'CONFIRM_REGISTRATION_ERROR_PAGE',           text: '/register_error',                                                         description: 'Path of the page redirecting to in case of errors' },
@@ -112,7 +114,7 @@ let _MailTemplates = {
 				{ name: 'RESET_PASSWORD_SUBJECT',              text: 'Request to reset your Structr password',                                description: 'Subject of the reset password mail' },
 				{ name: 'RESET_PASSWORD_TEXT_BODY',            text: 'Go to ${link} to reset your password.',                                 description: 'Plaintext mail body' },
 				{ name: 'RESET_PASSWORD_HTML_BODY',            text: '<div>Click <a href=\'${link}\'>here</a> to reset your password.</div>', description: 'HTML mail body' },
-				{ name: 'RESET_PASSWORD_BASE_URL',             text: '${base_url}',                                                           description: 'Used to build the link variable' },
+				{ name: 'RESET_PASSWORD_BASE_URL',             text: `${baseUrl}`,                                                    description: 'Used to build the link variable' },
 				{ name: 'RESET_PASSWORD_PAGE',                 text: '/reset-password',                                                       description: 'Path of the page linked in the first e-mail' },
 				{ name: 'RESET_PASSWORD_TARGET_PAGE',          text: '/reset-password',                                                       description: 'Path of the page redirecting to on successful password reset' },
 				{ name: 'RESET_PASSWORD_ERROR_PAGE',           text: '/reset-password',                                                       description: 'Path of the page redirecting to in case of errors' },
