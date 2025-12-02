@@ -206,7 +206,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

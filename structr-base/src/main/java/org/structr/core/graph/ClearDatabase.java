@@ -74,7 +74,7 @@ public class ClearDatabase extends NodeServiceCommand implements MaintenanceComm
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

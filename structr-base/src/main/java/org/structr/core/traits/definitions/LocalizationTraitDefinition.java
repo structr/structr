@@ -118,9 +118,9 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<String> localizedNameProperty = new StringProperty(LOCALIZED_NAME_PROPERTY).indexed();
-		final Property<String> domainProperty        = new StringProperty(DOMAIN_PROPERTY).indexed();
-		final Property<String> localeProperty        = new StringProperty(LOCALE_PROPERTY).notNull().indexed();
+		final Property<String> localizedNameProperty = new StringProperty(LOCALIZED_NAME_PROPERTY).indexed().description("translated text");
+		final Property<String> domainProperty        = new StringProperty(DOMAIN_PROPERTY).indexed().description("domain in which the translation is valid");
+		final Property<String> localeProperty        = new StringProperty(LOCALE_PROPERTY).notNull().indexed().description("locale for which the translation is valid");
 		final Property<Boolean> importedProperty     = new BooleanProperty(IMPORTED_PROPERTY);
 
 		return newSet(
@@ -149,5 +149,24 @@ public final class LocalizationTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Relation getRelation() {
 		return null;
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "This type represents translations for text snippets.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		### How It Works
+		A localization is an expression that is included in the content of a page or any other textual element in the following form:
+
+		`localize(key, domain)`
+
+		`key` is a term describing the concept that should be rendered depending on the locale which is currently active for the accessing user, and domain describes the context for this term. The combination of key and domain has to be unique.
+
+		The retrieval process works just as rendering the page. If you request the locale en_US you might get localizations for en as a fallback if no exact match is found. If no localization could be found, an empty input field is rendered where you can quickly create the missing localization.
+		""";
 	}
 }

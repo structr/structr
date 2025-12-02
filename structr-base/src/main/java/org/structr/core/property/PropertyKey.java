@@ -408,9 +408,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	Comparator<GraphObject> sorted(final boolean descending);
 
+	// ----- documentation -----
+	PropertyKey<T> description(final String description);
+	String getDescription();
+
 	// ----- OpenAPI -----
 	Object getExampleValue(final String type, final String viewName);
 	Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName);
 	Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level);
 	Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level);
+
 }

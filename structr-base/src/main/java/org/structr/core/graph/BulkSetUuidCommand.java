@@ -176,7 +176,7 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

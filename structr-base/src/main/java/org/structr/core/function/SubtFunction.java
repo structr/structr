@@ -21,11 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Language;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
-import org.structr.docs.Example;
-import org.structr.docs.Parameter;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -93,7 +89,7 @@ public class SubtFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
+		return "This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override

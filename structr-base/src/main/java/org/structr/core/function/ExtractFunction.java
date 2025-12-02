@@ -139,7 +139,7 @@ public class ExtractFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method iterates over the given collection and extracts the value for the given property key of each element. The return value of this method is a collection of extracted property values. It is often used in combination with `find()` and `join()` to create comma-separated lists of entity values.";
+		return "This function iterates over the given collection and extracts the value for the given property key of each element. The return value of this function is a collection of extracted property values. It is often used in combination with `find()` and `join()` to create comma-separated lists of entity values.";
 	}
 
 	@Override

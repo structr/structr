@@ -27,7 +27,7 @@ public class UserDefinedFunctionHint extends MethodHint {
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.UserDefinedFunction;
 	}
 }

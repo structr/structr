@@ -42,9 +42,8 @@ public class ParameterMapHint extends KeywordHint {
 
 	@Override
 	public List<Example> getExamples() {
+
 		return List.of(
-			Example.javaScript("""
-			""")
 		);
 	}
 

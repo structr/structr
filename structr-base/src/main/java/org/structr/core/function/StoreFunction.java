@@ -21,10 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -88,7 +88,7 @@ public class StoreFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This method can be used to temporarily save the results of a computation step etc. and is often used to provide 
+		This function can be used to temporarily save the results of a computation step etc. and is often used to provide 
 		some sort of "variables" in the scripting context. See `retrieve()` for the inverse operation.
 		""";
 	}

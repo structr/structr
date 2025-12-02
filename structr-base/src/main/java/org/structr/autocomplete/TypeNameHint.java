@@ -84,7 +84,7 @@ public class TypeNameHint extends AbstractHint {
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.TypeName;
 	}
 }

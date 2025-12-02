@@ -23,6 +23,12 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Base interface for all things that are documentable. Implement this
+ * interface to enable automatic documentation generation for your class,
+ * but keep in mind that the object still needs to be registered in the
+ * appropriate places.
+ */
 public interface Documentable {
 
 	/**
@@ -42,6 +48,8 @@ public interface Documentable {
 
 		// build Markdown
 		final List<Signature> signatures = getSignatures();
+		final List<Setting> settings     = getSettings();
+		final List<Property> properties  = getProperties();
 		final List<Parameter> parameters = getParameters();
 		final List<Example> examples     = getExamples();
 		final List<String> notes         = getNotes();
@@ -61,6 +69,36 @@ public interface Documentable {
 
 			lines.add("");
 			lines.add("**StructrScript only**");
+			lines.add("");
+		}
+
+		if (properties != null && !properties.isEmpty()) {
+
+			lines.add("### Properties");
+
+			lines.add("");
+			lines.add("|Name|Description|");
+			lines.add("|---|---|");
+
+			for (final Property property : properties) {
+				lines.add("|" + property.getName() + "|" + property.getDescription() + "|");
+			}
+
+			lines.add("");
+		}
+
+		if (settings != null && !settings.isEmpty()) {
+
+			lines.add("### Settings");
+
+			lines.add("");
+			lines.add("|Name|Description|");
+			lines.add("|---|---|");
+
+			for (final Setting setting : settings) {
+				lines.add("|" + setting.getName() + "|" + setting.getDescription() + "|");
+			}
+
 			lines.add("");
 		}
 
@@ -145,7 +183,7 @@ public interface Documentable {
 	 *
 	 * @return
 	 */
-	DocumentableType getType();
+	DocumentableType getDocumentableType();
 
 	/**
 	 * Returns the name of this Documentable.
@@ -222,17 +260,37 @@ public interface Documentable {
 	 */
 	List<Usage> getUsages();
 
+	/**
+	 * Returns the properties of this Documentable, or null if no
+	 * properties are defined.
+	 *
+	 * @return the properties or null
+	 */
+	default List<Property> getProperties() {
+		return null;
+	}
+
+	/**
+	 * Returns the settings of this Documentable, or null if no
+	 * settings are defined.
+	 *
+	 * @return the settings or null
+	 */
+	default List<Setting> getSettings() {
+		return null;
+	}
+
 	default boolean isDynamic() {
 		return false;
 	}
 
 	default boolean isHidden() {
-		return false;
+		return DocumentableType.Hidden.equals(getDocumentableType());
 	}
 
 	default String getDisplayName() {
 
-		switch (getType()) {
+		switch (getDocumentableType()) {
 
 			case BuiltInFunction:
 			case Method:
@@ -247,7 +305,7 @@ public interface Documentable {
 	default boolean isJavaScriptOnly() {
 
 		final List<Language> languages = getLanguages();
-		if (languages.size() == 1) {
+		if (languages != null && languages.size() == 1) {
 
 			return languages.get(0).equals(Language.JavaScript);
 		}
@@ -258,7 +316,7 @@ public interface Documentable {
 	default boolean isStructrScriptOnly() {
 
 		final List<Language> languages = getLanguages();
-		if (languages.size() == 1) {
+		if (languages != null && languages.size() == 1) {
 
 			return languages.get(0).equals(Language.StructrScript);
 		}

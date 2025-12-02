@@ -41,6 +41,7 @@ import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
@@ -107,11 +108,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			@Override
 			public boolean hasKey(final String name) {
 				return key(name) != null;
-			}
-
-			@Override
-			public String getName() {
-				return "GraphObjectMap";
 			}
 
 			@Override
@@ -207,6 +203,57 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 			@Override
 			public Map<String, Map<String, PropertyKey>> getDynamicTypes() {
 				return Map.of();
+			}
+
+			// ----- interface Documentable -----
+			@Override
+			public DocumentableType getDocumentableType() {
+				return DocumentableType.Hidden;
+			}
+
+			@Override
+			public String getName() {
+				return null;
+			}
+
+			@Override
+			public String getShortDescription() {
+				return null;
+			}
+
+			@Override
+			public String getLongDescription() {
+				return null;
+			}
+
+			@Override
+			public List<Parameter> getParameters() {
+				return null;
+			}
+
+			@Override
+			public List<Example> getExamples() {
+				return null;
+			}
+
+			@Override
+			public List<String> getNotes() {
+				return null;
+			}
+
+			@Override
+			public List<Signature> getSignatures() {
+				return null;
+			}
+
+			@Override
+			public List<Language> getLanguages() {
+				return null;
+			}
+
+			@Override
+			public List<Usage> getUsages() {
+				return null;
 			}
 		};
 	}

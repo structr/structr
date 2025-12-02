@@ -141,20 +141,17 @@ public class RenderFunction extends UiCommunityFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Renders the HTML representation of the given node(s) into the output buffer. This method is exactly equivalent to the 
-		rendering process that Structr uses internally to create the HTML output of pages etc. 
-		It can be used to render dynamic content in pages with placeholders etc.
-		Together with `include()`, `render()` is one of the the most important method when dealing with HTML web templates, 
-		since it allows the user to fill static HTML pages with dynamic content from the underlying node structure.
-		See [Page Rendering](/article/Page%20Rendering) for more information on this topic.
+		Renders the HTML representation of the given node(s) into the output buffer. This function is exactly equivalent to the rendering process that Structr uses internally to create the HTML output of pages etc. It can be used to render dynamic content in pages with placeholders etc. Together with `include()`, `render()` is one of the the most important method when dealing with HTML web templates, since it allows the user to fill static HTML pages with dynamic content from the underlying node structure.
+		
+		See the documentation article about Page Rendering for more information on this topic.
 		""";
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${render(children)}"),
-				Example.javaScript("${{ $.render($.children) }}")
+			Example.structrScript("${render(children)}"),
+			Example.javaScript("${{ $.render($.children) }}")
 		);
 	}
 
@@ -162,8 +159,8 @@ public class RenderFunction extends UiCommunityFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("node", "node or list of nodes to be rendered")
-				);
+			Parameter.mandatory("node", "node or list of nodes to be rendered")
+		);
 	}
 
 

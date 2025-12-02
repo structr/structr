@@ -20,20 +20,21 @@ package org.structr.test.common;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.autocomplete.AbstractHintProvider;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.Tx;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.TraitsManager;
 import org.structr.docs.*;
+import org.structr.docs.impl.lifecycle.*;
+import org.structr.docs.impl.service.MailServiceDocumentable;
+import org.structr.rest.resource.MaintenanceResource;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static org.testng.AssertJUnit.fail;
 
@@ -42,43 +43,51 @@ public class CreateDocumentationTest extends StructrUiTest {
 	@Test
 	public void createDocumentationTest() {
 
-		try (final Tx tx = app.tx()) {
+		final List<Documentable> documentables = new LinkedList<>();
+		final List<String> errors              = new LinkedList<>();
 
-			tx.success();
+		final Map<DocumentableType, DocumentationEntry> files = Map.of(
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
-		}
+			DocumentableType.Keyword,            new DocumentationEntry("1-Keywords.md",             "Keywords"),
+			DocumentableType.BuiltInFunction,    new DocumentationEntry("2-Functions.md",            "Built-in Functions"),
+			DocumentableType.LifecycleMethod,    new DocumentationEntry("3-Lifecycle Methods.md",    "Lifecycle Methods"),
+			DocumentableType.SystemType,         new DocumentationEntry("4-System Types.md",         "System Types"),
+			DocumentableType.Service,            new DocumentationEntry("5-Services.md",             "Services"),
+			DocumentableType.MaintenanceCommand, new DocumentationEntry("6-Maintenance Commands.md", "Maintenance Commands")
+		);
 
-		final List<Documentable> functions = new LinkedList<>(Functions.getFunctions());
-		final List<String> lines           = new LinkedList<>();
-		final List<String> errors          = new LinkedList<>();
-
-		// add expressions and hints that are not registered as module functions
-		Functions.addExpressions(functions);
-		AbstractHintProvider.addKeywordHints(functions);
+		collectDocumentables(documentables);
 
 		// sort by name
-		Collections.sort(functions, Comparator.comparing(Documentable::getName));
+		Collections.sort(documentables, Comparator.comparing(Documentable::getName));
 
-		// header
-		lines.add("# Built-In functions");
-
-		for (final Documentable function : functions) {
+		// check style and content and generate Markdown docs
+		for (final Documentable item : documentables) {
 
 			// check metadata for style errors etc.
-			errors.addAll(checkFunctionMetadata(function));
+			errors.addAll(checkFunctionMetadata(item));
 
-			lines.addAll(function.createMarkdownDocumentation());
+			final DocumentableType itemType = item.getDocumentableType();
+			if (itemType != null) {
+
+				final DocumentationEntry entry = files.get(itemType);
+				if (entry != null) {
+
+					entry.lines.addAll(item.createMarkdownDocumentation());
+				}
+			}
 		}
 
-		try {
+		for (final DocumentationEntry entry : files.values()) {
 
-			Files.writeString(Path.of("Functions.md"), StringUtils.join(lines, "\n"));
+			try {
 
-		} catch (IOException e) {
+				Files.writeString(Path.of(entry.fileName), StringUtils.join(entry.lines, "\n"));
 
-			e.printStackTrace();
+			} catch (IOException e) {
+
+				fail("Unable to create documentation for " + entry.fileName + ": " + e.getMessage());
+			}
 		}
 
 		if (!errors.isEmpty()) {
@@ -88,78 +97,158 @@ public class CreateDocumentationTest extends StructrUiTest {
 	}
 
 	// ----- private methods -----
-	private List<String> checkFunctionMetadata(final Documentable func) {
+	private void collectDocumentables(final List<Documentable> documentables) {
+
+		// built-in functions
+		documentables.addAll(Functions.getFunctions());
+
+		// expressions and hints that are not registered as module functions
+		Functions.addExpressions(documentables);
+
+		// keywords
+		AbstractHintProvider.addKeywordHints(documentables);
+
+		// maintenance commands
+		documentables.addAll(MaintenanceResource.getMaintenanceCommands());
+
+		// system types
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+		for (final String traitName : rootInstance.getAllTypes(t -> t.isNodeType())) {
+
+			final Traits traits = rootInstance.getTraits(traitName);
+			if (!traits.isHidden()) {
+
+				documentables.add(traits);
+			}
+		}
+
+		// lifecycle methods
+		documentables.add(new OnCreate());
+		documentables.add(new OnSave());
+		documentables.add(new OnDelete());
+		documentables.add(new AfterCreate());
+		documentables.add(new AfterSave());
+		documentables.add(new AfterDelete());
+
+		// services
+		documentables.add(new MailServiceDocumentable());
+	}
+
+	private List<String> checkFunctionMetadata(final Documentable item) {
+
+		final DocumentableType documentableType = item.getDocumentableType();
+
+		// skip documentables that are hidden
+		if (item.isHidden()) {
+			return Collections.emptyList();
+		}
 
 		final List<String> errors = new LinkedList<>();
+		final String type         = documentableType.toString();
 
 		// verify that the short description ends with a period
-		final String desc = func.getShortDescription();
-		if (!desc.endsWith(".")) {
+		final String desc = item.getShortDescription();
+		if (!desc.strip().endsWith(".") && !DocumentableType.Service.equals(documentableType) && !DocumentableType.SystemType.equals(documentableType)) {
 
-			errors.add("Short description of " + func.getName() + " does not end with a period character.");
+			errors.add("Short description of " + type + " " + item.getName() + " does not end with a period character.");
 		}
 
 		if (desc.toLowerCase().startsWith("this method")) {
 
-			errors.add("Short description of " + func.getName() + " starts with 'this method' instead of 'this function'.");
+			errors.add("Short description of " + type + " " + item.getName() + " starts with 'this method' instead of 'this function'.");
 		}
 
-		// verify that a function has at least one language
-		final List<Language> languages = func.getLanguages();
-		if (languages.isEmpty()) {
+		final String longDesc = item.getLongDescription();
+		if (StringUtils.isNotBlank(longDesc)) {
 
-			errors.add("Function " + func.getName() + " has no languages.");
+			if (longDesc.toLowerCase().startsWith("this method")) {
+
+				errors.add("Long description of " + type + " " + item.getName() + " starts with 'this method' instead of 'this function'.");
+			}
+
+			if (longDesc.toLowerCase().contains("/article")) {
+
+				errors.add("Long description of " + type + " " + item.getName() + " still contains Markdown reference link to old documentation page (/article).");
+			}
+		}
+
+		// verify that an item has at least one language
+		if (documentableType.supportsLanguages()) {
+
+			final List<Language> languages = item.getLanguages();
+			if (languages == null || languages.isEmpty()) {
+
+				errors.add(type + " " + item.getName() + " has no languages.");
+			}
+		}
+
+		// verify that a documentation item has no empty examples
+		if (documentableType.supportsExamples()) {
+
+			final List<Example> examples = item.getExamples();
+			if (examples != null) {
+
+				for (final Example example : item.getExamples()) {
+
+					if (StringUtils.isBlank(example.getText())) {
+
+						errors.add(type + " " + item.getName() + " has empty example.");
+					}
+				}
+			}
 		}
 
 		// verify signatures, usages and parameters only for built-in functions
-		if (DocumentableType.UserDefinedFunction.equals(func.getType())) {
+		if (DocumentableType.BuiltInFunction.equals(documentableType)) {
 
 			// verify that a function has at least one signature
-			final List<Signature> signatures = func.getSignatures();
+			final List<Signature> signatures = item.getSignatures();
 			if (signatures == null || signatures.isEmpty()) {
 
-				errors.add("Function " + func.getName() + " has no signatures.");
+				errors.add("Function " + item.getName() + " has no signatures.");
 			}
 
 			// verify that a function has at least one usage
-			final List<Usage> usages = func.getUsages();
+			final List<Usage> usages = item.getUsages();
 			if (usages == null || usages.isEmpty()) {
 
-				errors.add("Function " + func.getName() + " has no usages.");
+				errors.add("Function " + item.getName() + " has no usages.");
 			}
 
 			// verify the parameters
-			final List<Parameter> parameters = func.getParameters();
+			final List<Parameter> parameters = item.getParameters();
 			if (parameters != null && !parameters.isEmpty()) {
 
 				for (final Parameter parameter : parameters) {
 
 					if (StringUtils.isEmpty(parameter.getName())) {
-						errors.add("Function " + func.getName() + " has empty parameter name.");
+						errors.add(type + " " + item.getName() + " has empty parameter name.");
 					}
 
 					if (Character.isUpperCase(parameter.getName().charAt(0))) {
-						errors.add("Parameter " + parameter.getName() + " of function " + func.getName() + " should not start with an uppercase letter.");
+						errors.add("Parameter " + parameter.getName() + " of function " + item.getName() + " should not start with an uppercase letter.");
 					}
 
 					if (parameter.getDescription() != null) {
 
-						if (parameter.getDescription().endsWith(".")) {
-							errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not end with a period character.");
+						final String parameterDescription = parameter.getDescription();
+
+						if (parameterDescription.endsWith(".") && !parameterDescription.endsWith("etc.")) {
+							errors.add("Parameter description for " + parameter.getName() + " of function " + item.getName() + " should not end with a period character.");
 						}
 
 						// check some things in the description text
-						final String d = parameter.getDescription().strip().toLowerCase();
+						final String d = parameterDescription.toLowerCase();
 
 						if (d.startsWith("the ") || d.startsWith("a ") || d.startsWith("an ") || d.startsWith("optional ")) {
-							errors.add("Parameter description for " + parameter.getName() + " of function " + func.getName() + " should not start with the words 'the', 'a', 'an', or 'optional'.");
+							errors.add("Parameter description for " + parameter.getName() + " of function " + item.getName() + " should not start with the words 'the', 'a', 'an', or 'optional'.");
 						}
 					}
 				}
 			}
 
 			// verify that a function has a usage and a signature for all languages
-			for (final Language language : func.getLanguages()) {
+			for (final Language language : item.getLanguages()) {
 
 				boolean hasUsage     = false;
 				boolean hasSignature = false;
@@ -188,41 +277,31 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 				if (!hasUsage) {
 
-					errors.add("Function " + func.getName() + " has no usage for language " + language.name());
+					errors.add(type + " " + item.getName() + " has no usage for language " + language.name());
 				}
 
 				if (!hasSignature) {
 
-					errors.add("Function " + func.getName() + " has no signature for language " + language.name());
+					errors.add(type + " " + item.getName() + " has no signature for language " + language.name());
 				}
 			}
 		}
 
 		return errors;
 	}
+
+	private class DocumentationEntry {
+
+		final List<String> lines = new LinkedList<>();
+		String fileName;
+		String header;
+
+		public DocumentationEntry(final String fileName, final String header) {
+
+			this.fileName = fileName;
+			this.header = header;
+
+			lines.add("# " + header);
+		}
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

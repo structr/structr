@@ -81,7 +81,7 @@ public class MinFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method tries to convert its arguments into numerical values, i.e. you can use strings as arguments. See also `max()`.";
+		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments. See also `max()`.";
 	}
 
 	@Override

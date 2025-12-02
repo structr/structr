@@ -61,7 +61,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.BuiltInFunction;
 	}
 

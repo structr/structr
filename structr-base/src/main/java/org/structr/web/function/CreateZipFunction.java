@@ -29,6 +29,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -234,6 +235,15 @@ public class CreateZipFunction extends UiAdvancedFunction {
 			"Creates and returns a ZIP archive with the given name (first parameter), containing the given files/folders (second parameter).",
 			"By setting a password as the optional third parameter, the ZIP file will be encrypted.",
 			"If the optional fourth parameter is `aes` or `AES`, the ZIP file will be encrypted with the AES256 method."
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+
+		return List.of(
+			Usage.structrScript("Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip(\"archive\", find(\"File\"))}"),
+			Usage.javaScript("Usage: ${{ $.createZip(archiveFileName, files [, password [, encryptionMethod ] ]); }}. Example: ${{ $.createZip(\"archive\", Structr.find(\"File\")); }}")
 		);
 	}
 

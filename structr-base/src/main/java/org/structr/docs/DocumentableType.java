@@ -20,22 +20,38 @@ package org.structr.docs;
 
 public enum DocumentableType {
 
-	BuiltInFunction("Built-in function"),
-	Keyword("Keyword"),
-	Method("Method"),
-	Property("Property"),
-	TypeName("Type name"),
-	UserDefinedFunction("User-defined function"),
-	MaintenanceCommand("Maintenance command"),
-	Hidden(null);
+	BuiltInFunction("Built-in function", true, true),
+	Keyword("Keyword", true, true),
+	Method("Method", true, true),
+	Property("Property", false, false),
+	TypeName("Type name", false, false),
+	UserDefinedFunction("User-defined function", false, false),
+	MaintenanceCommand("Maintenance command", false, false),
+	SystemType("System type", false, false),
+	LifecycleMethod("Lifecycle method", false, true),
+	Service("Service", false, false),
+	Hidden(null, false, false);
 
+	private final boolean supportsLanguages;
+	private final boolean supportsExamples;
 	private final String displayName;
 
-	DocumentableType(final String displayName) {
-		this.displayName = displayName;
+	DocumentableType(final String displayName, final boolean supportsLanguages, final boolean supportsExamples) {
+
+		this.supportsLanguages = supportsLanguages;
+		this.supportsExamples  = supportsExamples;
+		this.displayName       = displayName;
 	}
 
 	public String getDisplayName() {
 		return displayName;
+	}
+
+	public boolean supportsLanguages() {
+		return supportsLanguages;
+	}
+
+	public boolean supportsExamples() {
+		return supportsExamples;
 	}
 }

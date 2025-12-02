@@ -82,7 +82,7 @@ public class MaxFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method tries to convert its arguments into numerical values, i.e. you can use strings as arguments. See also `min()`.";
+		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments. See also `min()`.";
 	}
 
 	@Override

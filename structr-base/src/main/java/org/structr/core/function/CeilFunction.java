@@ -77,7 +77,7 @@ public class CeilFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method tries to convert its arguments into numerical values, i.e. you can use strings as arguments.";
+		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments.";
 	}
 
 	@Override

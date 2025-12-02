@@ -100,7 +100,7 @@ public class IntFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("input", "input value to convert to an integer, can be string or floating-point number etc.")
+			Parameter.mandatory("input", "input value to convert to an integer, can be string or floating-point number")
 		);
 	}
 

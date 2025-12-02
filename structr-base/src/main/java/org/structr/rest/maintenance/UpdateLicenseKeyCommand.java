@@ -107,7 +107,7 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.Hidden;
 	}
 

@@ -1064,7 +1064,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 		// ----- interface Documentable -----
 		@Override
-		public DocumentableType getType() {
+		public DocumentableType getDocumentableType() {
 			return DocumentableType.Hidden;
 		}
 
@@ -1134,7 +1134,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 		// ----- interface Documentable -----
 		@Override
-		public DocumentableType getType() {
+		public DocumentableType getDocumentableType() {
 			return DocumentableType.Hidden;
 		}
 

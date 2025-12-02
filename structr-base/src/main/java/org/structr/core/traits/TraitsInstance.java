@@ -24,10 +24,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class TraitsInstance {
 
@@ -67,6 +64,7 @@ public class TraitsInstance {
 		return globalTypeMap.get(name);
 	}
 
+	// ----- public methods -----
 	public void registerTrait(final Trait trait) {
 
 		final String name  = trait.getName();
@@ -82,11 +80,6 @@ public class TraitsInstance {
 		globalTraitMap.put(name, trait);
 	}
 
-	void unregisterTraits(final Set<String> names) {
-		globalTraitMap.keySet().removeAll(names);
-	}
-
-	// ----- public methods -----
 	public Traits getTraits(final String name) {
 
 		final Traits traits = globalTypeMap.get(name);
@@ -101,6 +94,10 @@ public class TraitsInstance {
 	public Trait getTrait(final String type) {
 
 		return globalTraitMap.get(type);
+	}
+
+	public Collection<Trait> getAllTraitDefinitions() {
+		return globalTraitMap.values();
 	}
 
 	/**

@@ -79,7 +79,7 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

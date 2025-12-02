@@ -103,7 +103,7 @@ public class XPathFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING. This method can be used in conjunction with `xml()` to extract data from an XML document.";
+		return "The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING. This function can be used in conjunction with `xml()` to extract data from an XML document.";
 	}
 
 	@Override

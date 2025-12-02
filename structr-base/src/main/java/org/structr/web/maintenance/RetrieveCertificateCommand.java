@@ -921,7 +921,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

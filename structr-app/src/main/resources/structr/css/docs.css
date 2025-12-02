@@ -254,7 +254,7 @@
     color: var(--structr-green);
 }
 
-.index p, .index ul, .index ol, .index code, .index pre, .index blockquote {
+.index p, .index ul, .index ol, .index code, .index pre, .index blockquote, .index h1, .index h5, .index h6, .index h7 {
     display: none;
 }
 

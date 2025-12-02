@@ -96,7 +96,7 @@ public class NumFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number etc.")
+			Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number")
 		);
 	}
 

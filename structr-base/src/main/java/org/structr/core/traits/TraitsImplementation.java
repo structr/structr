@@ -27,11 +27,9 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.*;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A named collection of traits that a node can have.
@@ -155,11 +153,6 @@ public class TraitsImplementation implements Traits {
 	@Override
 	public boolean hasKey(final String name) {
 		return key(name, false) != null;
-	}
-
-	@Override
-	public String getName() {
-		return typeName;
 	}
 
 	@Override
@@ -459,6 +452,119 @@ public class TraitsImplementation implements Traits {
 		}
 
 		return dynamicProperties;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+
+		if (getShortDescription() != null) {
+
+			return DocumentableType.SystemType;
+		}
+
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return typeName;
+	}
+
+	@Override
+	public String getShortDescription() {
+
+		final List<Trait> reverseList = new LinkedList<>(getTraits());
+
+		// we need to reverse the list so we get information about the toplevel trait
+		Collections.reverse(reverseList);
+
+		for (final Trait trait : reverseList) {
+
+			final TraitDefinition definition = trait.getDefinition();
+			if (definition != null) {
+
+				final String description = definition.getShortDescription();
+				if (description != null) {
+
+					return description;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getLongDescription() {
+
+		final List<Trait> reverseList = new LinkedList<>(getTraits());
+
+		// we need to reverse the list so we get information about the toplevel trait
+		Collections.reverse(reverseList);
+
+		for (final Trait trait : reverseList) {
+
+			final TraitDefinition definition = trait.getDefinition();
+			if (definition != null) {
+
+				final String description = definition.getLongDescription();
+				if (description != null) {
+
+					return description;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return null;
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return null;
+	}
+
+	@Override
+	public List<Property> getProperties() {
+
+		final List<Property> properties = new LinkedList<>();
+
+		for (final PropertyKey<?> key : getAllPropertyKeys()) {
+
+			// only include keys that have a description
+			final String description = key.getDescription();
+			if (description != null) {
+
+				properties.add(new Property(key.jsonName(), description));
+			}
+		}
+
+		return properties;
 	}
 
 	// ----- private methods -----

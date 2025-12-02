@@ -101,7 +101,7 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

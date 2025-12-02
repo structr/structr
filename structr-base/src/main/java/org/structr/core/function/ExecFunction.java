@@ -82,7 +82,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 
 					if (!isNewCallSignature) {
 
-						logger.warn("{}(): Deprecation Warning: The call signature for this method has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
+						logger.warn("{}(): Deprecation Warning: The call signature for this function has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
 
 						for (int i = 1; i < sources.length; i++) {
 
@@ -179,7 +179,7 @@ public class ExecFunction extends AdvancedScriptingFunction {
 				"Symlinks are not allowed, director traversal is not allowed.",
 				"The key of the script must be all-lowercase.",
 				"The script must be executable (`chmod +x`)",
-				"This method does not preserve binary content, it can *not* be used to stream binary data through Structr. Use `execBinary()` for that.",
+				"This function does not preserve binary content, it can *not* be used to stream binary data through Structr. Use `execBinary()` for that.",
 				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
 				"All parameter values are automatically put in double-quotes",
 				"All parameters can be passed as a string or as an object containing a `value` field and a `mask` flag.",
@@ -190,14 +190,14 @@ public class ExecFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename."),
-				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag."),
+				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename"),
+				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag"),
 				Parameter.optional("logBehaviour", (
 						"Specifies the function's call-logging behavior:"
 								+ "<p>`0`: skip logging the command line<br>"
 								+ "`1`: log only the script's full path<br>"
 								+ "`2`: log the script path and all parameters, applying masking as configured</p>"
-								+ "The default for this can be set via `%s`.").formatted(Settings.LogScriptProcessCommandLine.getKey()
+								+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey()
 						)
 				)
 		);

@@ -72,7 +72,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 					if (!isNewCallSignature) {
 
-						logger.warn("{}(): Deprecation Warning: The call signature for this method has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
+						logger.warn("{}(): Deprecation Warning: The call signature for this function has changed. The old signature of providing all arguments to the script is still supported but will be removed in a future version. Please consider upgrading to the new signature: {}", getName(), getSignature());
 
 						for (int i = 2; i < sources.length; i++) {
 
@@ -181,14 +181,14 @@ public class ExecBinaryFunction extends ExecFunction {
 	public List<Parameter> getParameters() {
 		return List.of(
 				Parameter.mandatory("outputStream", "output stream to write the output to"),
-				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename."),
-				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag."),
+				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename"),
+				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag"),
 				Parameter.optional("logBehaviour", (
 								"Specifies the function's call-logging behavior:"
 										+ "<p>`0`: skip logging the command line<br>"
 										+ "`1`: log only the script's full path<br>"
 										+ "`2`: log the script path and all parameters, applying masking as configured</p>"
-										+ "The default for this can be set via `%s`.").formatted(Settings.LogScriptProcessCommandLine.getKey()
+										+ "The default for this can be set via `%s`").formatted(Settings.LogScriptProcessCommandLine.getKey()
 						)
 				)
 		);
@@ -202,7 +202,7 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-			This method is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output buffer **without modifying the binary data**.
+			This function is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output buffer **without modifying the binary data**.
 			
 			This is important to allow streaming of binary data from a script to the client.
 			

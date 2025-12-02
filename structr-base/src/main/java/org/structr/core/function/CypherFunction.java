@@ -135,7 +135,7 @@ public class CypherFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 		return List.of(
 			Parameter.mandatory("query", "query to execute"),
-			Parameter.optional("parameters", "optional map to supply parameters for the variables in the query"),
+			Parameter.optional("parameters", "map to supply parameters for the variables in the query"),
 			Parameter.optional("runInNewTransaction", "whether the Cypher query should be run in a new transaction - see notes about the implications of that flag")
 
 		);

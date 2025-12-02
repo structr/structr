@@ -92,10 +92,7 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return """
-		This method can be used both in [Entity Callback Functions](/article/Entity%20Callback%20Functions)  
-		and in the [Page Rendering](/article/Page%20Rendering) process to obtain the value of a given HTTP header, 
-		allowing the user to use HTTP headers from their web application clients to control features of the application.""";
+		return "This function can be used both in Entity Callback Functions and in the Page Rendering process to obtain the value of a given HTTP header, allowing the user to use HTTP headers from their web application clients to control features of the application.";
 	}
 
 	@Override

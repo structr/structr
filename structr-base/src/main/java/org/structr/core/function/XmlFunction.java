@@ -115,7 +115,7 @@ public class XmlFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This method can be used in conjunction with `xpath()` to extract data from an XML document.
+		This function can be used in conjunction with `xpath()` to extract data from an XML document.
 
 		By default, the following features of DocumentBuilderFactory are active to protect against malicious input.
 		This is controlled via the configuration setting `%s`:

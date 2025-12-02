@@ -3225,7 +3225,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

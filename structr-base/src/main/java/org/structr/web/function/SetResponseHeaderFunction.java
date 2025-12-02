@@ -21,10 +21,10 @@ package org.structr.web.function;
 
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -93,7 +93,7 @@ public class SetResponseHeaderFunction extends UiAdvancedFunction {
 	public String getLongDescription() {
 		return """
 		Sets the value of the HTTP response header with the given name to the given value. 
-		This method can be used to set and/or override HTTP response headers in the Structr server implementation to 
+		This function can be used to set and/or override HTTP response headers in the Structr server implementation to 
 		control certain aspects of browser / client behaviour.
 		""";
 	}

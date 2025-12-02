@@ -43,8 +43,6 @@ public class IPHint extends KeywordHint {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-			Example.javaScript("""
-			""")
 		);
 	}
 

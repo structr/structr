@@ -87,7 +87,7 @@ public class MergeUniqueFunction extends CoreFunction {
 		return """
 		You can use this function to create collections of objects, add objects to a collection, or to merge multiple collections into a single one. All objects that are passed to this function will be added to the resulting collection. If an argument is a collection, all objects in that collection are added to the resulting collection as well.
 
-		This method is very similar to `merge()` except that the resulting collection will **not** contain duplicate entries.
+		This function is very similar to `merge()` except that the resulting collection will **not** contain duplicate entries.
 		""";
 	}
 

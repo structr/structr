@@ -108,7 +108,7 @@ public class MultFunction extends CoreFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments."
+			"This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments."
 		);
 	}
 }

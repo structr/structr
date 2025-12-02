@@ -201,9 +201,9 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("node", "The node for which possible relationship types should be checked"),
-				Parameter.optional("lookupType", "Either `existing` or `schema` - default: `existing`"),
-				Parameter.optional("direction", "Either `incoming`, `outgoing` or `both` - default: `both`")
+				Parameter.mandatory("node", "node for which possible relationship types should be checked"),
+				Parameter.optional("lookupType", "`existing` or `schema` - default: `existing`"),
+				Parameter.optional("direction", "`incoming`, `outgoing` or `both` - default: `both`")
 		);
 	}
 }

@@ -25,7 +25,7 @@ import java.util.List;
 public abstract class KeywordHint extends AbstractHint {
 
 	@Override
-	public final DocumentableType getType() {
+	public final DocumentableType getDocumentableType() {
 		return DocumentableType.Keyword;
 	}
 

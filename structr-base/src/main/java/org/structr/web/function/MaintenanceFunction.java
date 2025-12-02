@@ -192,7 +192,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 		for (final Documentable cmd : MaintenanceResource.getMaintenanceCommands()) {
 
-			if (!DocumentableType.Hidden.equals(cmd.getType())) {
+			if (!DocumentableType.Hidden.equals(cmd.getDocumentableType())) {
 
 				lines.add("|" + cmd.getName() + "|" + cmd.getShortDescription() + "|");
 			}
@@ -238,7 +238,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 		for (final Documentable documentable : MaintenanceResource.getMaintenanceCommands()) {
 
-			if (!DocumentableType.Hidden.equals(documentable.getType())) {
+			if (!DocumentableType.Hidden.equals(documentable.getDocumentableType())) {
 
 				final String name = documentable.getName();
 

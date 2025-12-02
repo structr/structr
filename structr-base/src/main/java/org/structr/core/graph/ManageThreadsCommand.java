@@ -274,7 +274,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.Hidden;
 	}
 

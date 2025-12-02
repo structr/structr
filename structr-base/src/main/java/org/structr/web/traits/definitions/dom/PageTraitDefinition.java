@@ -230,111 +230,28 @@ public class PageTraitDefinition extends AbstractNodeTraitDefinition {
 		return null;
 	}
 
-	/*
-	public Node importNode(final Node node, final boolean deep, final boolean removeParentFromSourceNode) throws DOMException {
-
-		if (node instanceof DOMNode) {
-
-			final DOMNode domNode = (DOMNode) node;
-
-			// step 1: use type-specific import impl.
-			Node importedNode = domNode.doImport(this);
-
-			// step 2: do recursive import?
-			if (deep && domNode.hasChildNodes()) {
-
-				// FIXME: is it really a good idea to do the
-				// recursion inside of a transaction?
-				Node child = domNode.getFirstChild();
-
-				while (child != null) {
-
-					// do not remove parent for child nodes
-					importNode(child, deep, false);
-					child = child.getNextSibling();
-
-					final Logger logger = LoggerFactory.getLogger(Page.class);
-					logger.info("sibling is {}", child);
-				}
-
-			}
-
-			// step 3: remove node from its current parent
-			// (Note that this step needs to be done last in
-			// (order for the child to be able to find its
-			// siblings.)
-			if (removeParentFromSourceNode) {
-
-				// only do this for the actual source node, do not remove
-				// child nodes from its parents
-				Node _parent = domNode.getParentNode();
-				if (_parent != null) {
-					_parent.removeChild(domNode);
-				}
-			}
-
-			return importedNode;
-
-		}
-
-		return null;
+	@Override
+	public String getShortDescription() {
+		return "This type is the main entry point for Structr's Page Rendering Engine.";
 	}
 
-	public Node adoptNode(final Node node, final boolean removeParentFromSourceNode) throws DOMException {
-
-		if (node instanceof DOMNode) {
-
-			final DOMNode domNode = (DOMNode) node;
-
-			// step 2: do recursive import?
-			if (domNode.hasChildNodes()) {
-
-				Node child = domNode.getFirstChild();
-				while (child != null) {
-
-					// do not remove parent for child nodes
-					adoptNode(child, false);
-					child = child.getNextSibling();
-				}
-
-			}
-
-			// step 3: remove node from its current parent
-			// (Note that this step needs to be done last in
-			// (order for the child to be able to find its
-			// siblings.)
-			if (removeParentFromSourceNode) {
-
-				// only do this for the actual source node, do not remove
-				// child nodes from its parents
-				Node _parent = domNode.getParentNode();
-				if (_parent != null) {
-					_parent.removeChild(domNode);
-				}
-			}
-
-			// step 1: use type-specific adopt impl.
-			Node adoptedNode = domNode.doAdopt(this);
-
-			return adoptedNode;
-
-		}
-
-		return null;
+	@Override
+	public String getLongDescription() {
+		return """
+		### How It Works
+		When a user accesses the URL of a Page with their browser, a process is started that runs through this tree structure from top to bottom and generates the HTML representation for each element. This process is called page rendering. Because of this sequential processing, it is possible to run through the same element more than once without additional effort (e.g. for each result of a database query) or to hide the content of specific elements depending on certain conditions (for access control).
+		
+		### Keywords
+		The following keywords are valid in the context of the page rendering process: `page`, `this`, `request`, ...
+		
+		### Common Use Cases
+		- Pages can be used to server static content, like text, images etc. from Structr's filesystem.
+		- Pages are also the main element of a dynamic web application.
+		
+		### Additional Information
+		- A Page either consist of HTML elements or a single Template element (a so-called "Main Page Template")
+		- HTML elements be configured to execute a database query (or a script) and loop over the results, creating a Repeater
+		- The information that comes with the request URL (path elements, request parameters, etc.) are also available in the Page Rendering process.
+		""";
 	}
-
-	public Element getDocumentElement() {
-
-		Node node = this.treeGetFirstChild();
-
-		if (node instanceof Element) {
-
-			return (Element) node;
-
-		} else {
-
-			return null;
-		}
-	}
-	*/
 }

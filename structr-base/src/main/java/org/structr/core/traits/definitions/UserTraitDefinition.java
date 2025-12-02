@@ -245,4 +245,21 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 		}
 	}
+
+	@Override
+	public String getShortDescription() {
+		return "The type `User` is one of the base classes for Structr's access control and permissions system.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		### How It Works
+		All requests to Structr are evaluated in the context of the user making the request.
+		
+		You can also impersonate other users if you need to, using the built-in function `doAs()`.
+		
+		If you want to execute a script in the context of an admin user, you can use the `doPrivileged()` function.
+		""";
+	}
 }

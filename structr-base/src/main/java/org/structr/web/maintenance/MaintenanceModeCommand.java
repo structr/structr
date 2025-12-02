@@ -83,7 +83,7 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

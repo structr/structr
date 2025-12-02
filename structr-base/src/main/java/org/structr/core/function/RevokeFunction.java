@@ -28,10 +28,10 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.traits.StructrTraits;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
@@ -131,7 +131,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This method modifies the security relationship between the first two parameters. 
+		This function modifies the security relationship between the first two parameters. 
 		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
 		The permissions are passed in as a comma-separated list (see the examples below). 
 		The return value is the empty string. See also `grant()` and `isAllowed()`.""";

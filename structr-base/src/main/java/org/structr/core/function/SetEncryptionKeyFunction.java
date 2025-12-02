@@ -19,10 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -103,8 +103,8 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"Please note that this method overwrites the encryption key that is stored in structr.conf.",
-				"The overwritten key can be restored by using `null` as a parameter to this method, as shown in the example below."
+				"Please note that this function overwrites the encryption key that is stored in structr.conf.",
+				"The overwritten key can be restored by using `null` as a parameter to this function, as shown in the example below."
 		);
 	}
 }

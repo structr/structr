@@ -121,7 +121,7 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

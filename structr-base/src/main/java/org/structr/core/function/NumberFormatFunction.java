@@ -96,7 +96,7 @@ public class NumberFormatFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This method uses the Java NumberFormat class which supports the ISO two-letter language codes, e.g. "en", "de" etc.
+		This function uses the Java NumberFormat class which supports the ISO two-letter language codes, e.g. "en", "de" etc.
 		
 		The following four pattern chars are supported:
 

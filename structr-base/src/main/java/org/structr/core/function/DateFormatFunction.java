@@ -118,7 +118,7 @@ public class DateFormatFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-				This method uses the Java SimpleDateFormat class which provides the following pattern chars:
+				This function uses the Java SimpleDateFormat class which provides the following pattern chars:
 
 				| Letter | Date or Time Component |
 				| --- | --- |

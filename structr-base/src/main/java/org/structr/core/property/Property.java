@@ -79,6 +79,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected String hint                       = null;
 	protected String category                   = null;
 	protected String sourceUuid                 = null;
+	protected String description                = null;
 
 	private boolean requiresSynchronization     = false;
 
@@ -676,6 +677,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Comparator<GraphObject> sorted(final boolean descending) {
 		return new DefaultSortOrder(this, descending);
+	}
+
+	// ----- documentation -----
+	@Override
+	public Property<T> description(final String description) {
+		this.description = description;
+		return this;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
 	}
 
 	// ----- interface Comparable -----

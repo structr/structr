@@ -111,7 +111,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Retrieves the content of the given file from the Structr filesystem. This method can be used to access the binary content of a file stored in Structr.
+		Retrieves the content of the given file from the Structr filesystem. This function can be used to access the binary content of a file stored in Structr.
 		
 		The `encoding` argument controls the type of the returned data. Without an encoding, the raw data is returned as an array of bytes.
 		

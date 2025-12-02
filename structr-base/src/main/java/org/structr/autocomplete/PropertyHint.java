@@ -80,7 +80,7 @@ public class PropertyHint extends AbstractHint {
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.Property;
 	}
 }

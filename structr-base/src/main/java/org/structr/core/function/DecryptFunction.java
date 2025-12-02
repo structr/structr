@@ -114,7 +114,7 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method either uses the internal global encryption key from the '" + Settings.GlobalSecret.getKey() + "' setting in structr.conf, or the optional second parameter.";
+		return "This function either uses the internal global encryption key from the '" + Settings.GlobalSecret.getKey() + "' setting in structr.conf, or the optional second parameter.";
 	}
 
 	@Override

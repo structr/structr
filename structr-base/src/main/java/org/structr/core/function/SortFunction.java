@@ -25,10 +25,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
@@ -140,7 +140,7 @@ public class SortFunction extends CoreFunction {
 		return """
 		Sorts the given collection according to the given property key and returns the result in a new collection. 
 		The optional parameter `sortDescending` is a **boolean flag** that indicates whether the sort order is ascending (default) or descending. 
-		This method is often used in conjunction with `find()`.
+		This function is often used in conjunction with `find()`.
 		The `sort()` and `find()` functions are often used in repeater elements in a function query, see Repeater Elements.
 		""";
 	}
@@ -158,9 +158,9 @@ public class SortFunction extends CoreFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("collection", "The collection to be sorted"),
-				Parameter.mandatory("propertyKey", "The name of the property"),
-				Parameter.optional("sortDescending", "Sort descending, if true. Default: false)")
+				Parameter.mandatory("collection", "collection to be sorted"),
+				Parameter.mandatory("propertyKey", "name of the property"),
+				Parameter.optional("sortDescending", "sort descending, if true. Default: false)")
 				);
 	}
 

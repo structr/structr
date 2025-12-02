@@ -436,7 +436,7 @@ public abstract class AbstractHintProvider {
 		item.put(text,             documentable.getDisplayName());
 		item.put(documentationKey, getDocumentation(documentable));
 		item.put(replacementKey,   documentable.getName());
-		item.put(typeKey,          documentable.getType().getDisplayName());
+		item.put(typeKey,          documentable.getDocumentableType().getDisplayName());
 
 		return item;
 	}

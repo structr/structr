@@ -64,6 +64,6 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method can be used to re-enable the Websocket broadcast notifications disabled by the `disableNotifications()` function.";
+		return "This function can be used to re-enable the Websocket broadcast notifications disabled by the `disableNotifications()` function.";
 	}
 }

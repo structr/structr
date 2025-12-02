@@ -100,7 +100,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

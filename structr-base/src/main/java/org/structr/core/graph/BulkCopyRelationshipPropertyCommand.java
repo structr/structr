@@ -101,7 +101,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

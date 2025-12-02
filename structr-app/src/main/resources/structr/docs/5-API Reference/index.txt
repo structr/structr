@@ -1,4 +1,6 @@
 1-Keywords.md
 2-Functions.md
-3-System Types.md
-4-Function List.md
+3-Lifecycle Methods.md
+4-System Types.md
+5-Services.md
+6-Maintenance Commands.md

@@ -30,7 +30,7 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.BuiltInFunction;
 	}
 }

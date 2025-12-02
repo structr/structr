@@ -96,7 +96,7 @@ public class LastFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method is often used in conjunction with `find()`. See also `first()` and `nth()`.";
+		return "This function is often used in conjunction with `find()`. See also `first()` and `nth()`.";
 	}
 
 	@Override

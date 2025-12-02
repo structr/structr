@@ -151,7 +151,7 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

@@ -105,7 +105,7 @@ public class CleanFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This method can be used to convert complex strings or collections of strings (e.g. user names, article titles, etc.) into simple strings that can be used in URLs etc.
+		This function can be used to convert complex strings or collections of strings (e.g. user names, article titles, etc.) into simple strings that can be used in URLs etc.
 		
 		| Characters | Action |
 		| --- | --- | --- |

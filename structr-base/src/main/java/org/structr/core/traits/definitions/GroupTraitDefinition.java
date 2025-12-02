@@ -114,7 +114,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	}
 
 	@Override
-	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
 		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(traitsInstance, MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL);
 		final Property<String> jwksReferenceIdProperty          = new StringProperty(JWKS_REFERENCE_ID_PROPERTY).indexed().unique();
@@ -155,6 +155,22 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 		return isAdmin();
 	}
 	*/
+
+	@Override
+	public String getShortDescription() {
+		return "This type is one of the base classes for Structr's access control and permissions system.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		### How It Works
+		Groups enable collective permission management by allowing administrators to grant access rights to multiple users simultaneously rather than configuring permissions individually.
+		
+		### Applying Groups to Schema Types
+		When defining custom types in Structr's schema, you can specify which groups have permission to work with instances of that type. For example, if you create a `Product` type and grant the "ProductManagers" group write permission on it, members of that group automatically get the configured permissions on `Product` nodes. This allows you to build applications where different user roles have different levels of access to your data model.
+		""";
+	}
 
 	// ----- public static methods -----
 	public static boolean doesNotContainCircles(final NodeInterface group, final ErrorBuffer errorBuffer) {

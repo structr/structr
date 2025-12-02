@@ -120,7 +120,7 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		This method is one of the most important and frequently used built-in functions. It returns a collection of entities, which can be empty if none of the existing nodes or relationships matches the given search parameters. `find()` accepts several different predicates (key, value pairs) and other query options like sort order or pagination controls. See the examples below for an overview of the possible parameter combinations for an advanced find() query.
+		This function is one of the most important and frequently used built-in functions. It returns a collection of entities, which can be empty if none of the existing nodes or relationships matches the given search parameters. `find()` accepts several different predicates (key, value pairs) and other query options like sort order or pagination controls. See the examples below for an overview of the possible parameter combinations for an advanced find() query.
 		
 		**Predicates**
 		
@@ -180,7 +180,7 @@ public class FindFunction extends AbstractQueryFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-			Parameter.mandatory("type", "type to return (includes inherited types"),
+			Parameter.mandatory("type", "type to return (includes inherited types)"),
 			Parameter.optional("predicates", "list of predicates"),
 			Parameter.optional("uuid", "uuid, makes the function return **a single object**")
 		);

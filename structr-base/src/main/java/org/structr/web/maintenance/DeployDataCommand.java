@@ -1284,7 +1284,7 @@ public class DeployDataCommand extends DeployCommand {
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.MaintenanceCommand;
 	}
 

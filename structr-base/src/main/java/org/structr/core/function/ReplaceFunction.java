@@ -104,7 +104,7 @@ public class ReplaceFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "This method can be used to evaluate template expressions in database objects, for example to create customized e-mails etc.";
+		return "This function can be used to evaluate template expressions in database objects, for example to create customized e-mails etc.";
 	}
 
 	@Override

@@ -898,7 +898,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.Hidden;
 	}
 

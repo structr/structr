@@ -305,7 +305,7 @@ Omitting results in a “lower than equal” search, omitting results in a “gr
 
 The range filter is especially useful for date ranges as shown in the following example. The first query selects only those projects that were created in January 2020. The date format used in this example is the international date format as specified in ISO 8601. Please note that the date query string is timezone-specific, so your search results may vary. You can configure the timezone of your Structr installation in the start script.
 
->**Note:** Rhe next query needs manual URL encoding if you want to test it with a command-line tool, or any other tool that does not encode URLs automatically.
+>**Note:** The next query needs manual URL encoding if you want to test it with a command-line tool, or any other tool that does not encode URLs automatically.
 
     $ curl -s -HX-User:admin -HX-Password:admin http://localhost:8082/structr/rest/Project?createdDate=[2020-01-01T00:00:00Z TO 2020-01-31T23:59:59Z]"
 

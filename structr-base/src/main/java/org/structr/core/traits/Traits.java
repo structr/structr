@@ -25,11 +25,12 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
+import org.structr.docs.Documentable;
 
 import java.util.Map;
 import java.util.Set;
 
-public interface Traits {
+public interface Traits extends Documentable {
 
 	Set<String> getLabels();
 	boolean contains(final String type);

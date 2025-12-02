@@ -56,4 +56,29 @@ public interface TraitDefinition extends Comparable<TraitDefinition> {
 		return false;
 	}
 
+	/**
+	 * Override this method to return a short description of this type.
+	 *
+	 * Write a short sentence that start with "This type..." and describe
+	 * what the type is used for.
+	 *
+	 * @return
+	 */
+	default String getShortDescription() {
+		return null;
+	}
+
+	/**
+	 * Override this method to return a detailed description of
+	 * this type. If possible, please observe the following guidelines:
+	 *
+	 * 2. Write a "How It Works" paragraph with heading 3.
+	 * 3. Write a "Common Use Cases" paragraph with heading 3.
+	 * 4. Write additional paragraphs with noteworthy things about the type.
+	 *
+	 * @return
+	 */
+	default String getLongDescription() {
+		return null;
+	}
 }

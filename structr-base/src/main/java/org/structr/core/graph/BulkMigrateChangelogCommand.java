@@ -141,7 +141,7 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.Hidden;
 	}
 

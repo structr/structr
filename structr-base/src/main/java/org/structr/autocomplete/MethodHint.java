@@ -110,7 +110,7 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.Method;
 	}
 }

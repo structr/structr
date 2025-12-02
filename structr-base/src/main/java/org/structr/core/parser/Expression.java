@@ -78,7 +78,7 @@ public abstract class Expression implements Documentable {
 	}
 
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.BuiltInFunction;
 	}
 

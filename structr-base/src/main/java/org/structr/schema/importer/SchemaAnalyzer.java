@@ -71,11 +71,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 		publishBeginMessage(SCHEMA_ANALYZE_STATUS, broadcastData);
 
-
-
 		analyzeSchema(SCHEMA_ANALYZE_STATUS);
-
-
 
 		final long endTime = System.currentTimeMillis();
 		DecimalFormat decimalFormat  = new DecimalFormat("0.00", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
@@ -743,7 +739,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 	// ----- interface Documentable -----
 	@Override
-	public DocumentableType getType() {
+	public DocumentableType getDocumentableType() {
 		return DocumentableType.Hidden;
 	}
 

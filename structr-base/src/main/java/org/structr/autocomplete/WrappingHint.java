@@ -34,8 +34,8 @@ public class WrappingHint extends AbstractHint {
 	}
 
 	@Override
-	public DocumentableType getType() {
-		return documentable.getType();
+	public DocumentableType getDocumentableType() {
+		return documentable.getDocumentableType();
 	}
 
 	@Override

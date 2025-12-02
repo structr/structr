@@ -169,7 +169,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<NodeInterface> storageConfigurationProperty = new EndNode(traitsInstance, STORAGE_CONFIGURATION_PROPERTY, StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION);
-		final Property<NodeInterface> parentProperty               = new StartNode(traitsInstance, PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE).updateCallback(AbstractFileTraitDefinition::updateHasParent);
+		final Property<NodeInterface> parentProperty               = new StartNode(traitsInstance, PARENT_PROPERTY, StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE).updateCallback(AbstractFileTraitDefinition::updateHasParent).description("parent folder of this File or Folder");
 		final Property<String> parentIdProperty                    = new EntityIdProperty(PARENT_ID_PROPERTY, StructrTraits.ABSTRACT_FILE, PARENT_PROPERTY, StructrTraits.FOLDER);
 		final Property<Boolean> hasParentProperty                  = new BooleanProperty(HAS_PARENT_PROPERTY).indexed();
 		final Property<Boolean> includeInFrontendExportProperty    = new BooleanProperty(INCLUDE_IN_FRONTEND_EXPORT_PROPERTY).indexed();
@@ -177,7 +177,7 @@ public class AbstractFileTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> nameProperty                        = new StringProperty(NAME_PROPERTY).notNull().indexed(); // fixme: not dynamic, but does it have any consequences?
 		final Property<Long> lastSeenMountedProperty               = new LongProperty(LAST_SEEN_MOUNTED_PROPERTY);
 		final Property<Boolean> isMountedProperty                  = new AbstractFileIsMountedProperty();
-		final Property<String> pathProperty                        = new PathProperty(PATH_PROPERTY).typeHint("String").indexed();
+		final Property<String> pathProperty                        = new PathProperty(PATH_PROPERTY).typeHint("String").indexed().description("full path of this file or folder (read-only)");
 
 		return Set.of(
 			storageConfigurationProperty,
