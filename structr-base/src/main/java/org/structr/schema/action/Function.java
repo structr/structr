@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.autocomplete.BuiltinFunctionHint;
+import org.structr.autocomplete.TypeNameHint;
+import org.structr.autocomplete.WrappingHint;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
@@ -849,6 +851,38 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		}
 
 		return value;
+	}
+
+	// ----- protected methods -----
+	protected List<Documentable> getContextHintsForTypes(final String lastToken) {
+
+		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
+		final List<Documentable> hints = new LinkedList<>();
+
+		for (final String type : Traits.getAllTypes(t -> t.isNodeType() && !t.isServiceClass())) {
+
+			Documentable hint = null;
+
+			if (Traits.exists(type)) {
+
+				final Traits traits = Traits.of(type);
+				if (traits.getShortDescription() != null) {
+
+					hint = new WrappingHint(traits, quoteChar + type + quoteChar);
+				}
+
+			}
+
+			// fallback: old style
+			if (hint == null) {
+
+				hint = new TypeNameHint(quoteChar + type + quoteChar, type);
+			}
+
+			hints.add(hint);
+		}
+
+		return hints;
 	}
 
 	// ----- private methods -----

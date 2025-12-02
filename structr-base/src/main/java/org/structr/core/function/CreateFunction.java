@@ -26,10 +26,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
-import org.structr.docs.Example;
-import org.structr.docs.Parameter;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -113,6 +110,11 @@ public class CreateFunction extends CoreFunction {
 
 			return usage(ctx.isJavaScriptContext());
 		}
+	}
+
+	@Override
+	public List<Documentable> getContextHints(final String lastToken) {
+		return getContextHintsForTypes(lastToken);
 	}
 
 	@Override

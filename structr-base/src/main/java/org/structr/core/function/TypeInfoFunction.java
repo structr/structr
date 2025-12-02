@@ -19,10 +19,7 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.docs.Signature;
-import org.structr.docs.Usage;
-import org.structr.docs.Example;
-import org.structr.docs.Parameter;
+import org.structr.docs.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -57,6 +54,11 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
 		}
+	}
+
+	@Override
+	public List<Documentable> getContextHints(String lastToken) {
+		return getContextHintsForTypes(lastToken);
 	}
 
 	@Override

@@ -19,7 +19,6 @@
 package org.structr.core.function;
 
 import org.structr.api.config.Settings;
-import org.structr.autocomplete.TypeNameHint;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -34,7 +33,6 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.Documentable;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -46,16 +44,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 	@Override
 	public List<Documentable> getContextHints(final String lastToken) {
-
-		final List<Documentable> hints = new LinkedList<>();
-		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
-
-		for (final String type : Traits.getAllTypes(t -> t.isNodeType() && !t.isServiceClass())) {
-
-			hints.add(new TypeNameHint(quoteChar + type + quoteChar, type));
-		}
-
-		return hints;
+		return getContextHintsForTypes(lastToken);
 	}
 
 	public void applyQueryParameters(final SecurityContext securityContext, final Query<?> query) {

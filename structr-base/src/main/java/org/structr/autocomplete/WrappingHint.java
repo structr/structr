@@ -87,4 +87,14 @@ public class WrappingHint extends AbstractHint {
 	public boolean isHidden() {
 		return documentable.isHidden();
 	}
+
+	@Override
+	public List<Property> getProperties() {
+		return documentable.getProperties();
+	}
+
+	@Override
+	public List<Setting> getSettings() {
+		return documentable.getSettings();
+	}
 }
