@@ -56,9 +56,9 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	@Override
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
-		final Property<String> textProperty   = new StringProperty(TEXT_PROPERTY).description("text content of the template");
-		final Property<String> descriptionProperty = new StringProperty(DESCRIPTION_PROPERTY).indexed();
-		final Property<String> localeProperty      = new StringProperty(LOCALE_PROPERTY).indexed().description("locale for the template");
+		final Property<String> textProperty        = new StringProperty(TEXT_PROPERTY).description("text content of this template");
+		final Property<String> descriptionProperty = new StringProperty(DESCRIPTION_PROPERTY).indexed().description("description of this template");
+		final Property<String> localeProperty      = new StringProperty(LOCALE_PROPERTY).indexed().description("locale for this template");
 
 		return newSet(
 			textProperty,
