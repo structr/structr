@@ -116,6 +116,8 @@ public class PulsarClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final org.structr.messaging.implementation.pulsar.PulsarClient client = messageClient.as(org.structr.messaging.implementation.pulsar.PulsarClient.class);
 
+					getSuper().sendMessage(securityContext, client, topic, message);
+
 					if (client.getServers() == null || client.getServers().length == 0) {
 						return new RestMethodResult(400, "PulsarClient " + client.getUuid() + " has no servers specified");
 					}
