@@ -189,6 +189,8 @@ public class MQTTClientTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public RestMethodResult sendMessage(final SecurityContext securityContext, final MessageClient client, final String topic, final String message) throws FrameworkException {
 
+					getSuper().sendMessage(securityContext, client, topic, message);
+
 					if (client.getIsEnabled()) {
 
 						final MQTTClientConnection connection = MQTTContext.getClientForId(client.getUuid());

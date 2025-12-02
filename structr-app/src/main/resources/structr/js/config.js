@@ -579,7 +579,7 @@ let _Search = {
 
 			let searchUiHTML = _Helpers.createSingleDOMElementFromHTML(`
 				<div id="search-container" class="w-1/3">
-					<input id="search-box" placeholder="Search config..." class="w-full box-border">
+					<input id="search-box" autofocus="true" placeholder="Search config..." class="w-full box-border">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 			`);

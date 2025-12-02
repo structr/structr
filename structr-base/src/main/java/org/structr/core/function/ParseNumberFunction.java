@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -91,8 +93,8 @@ public class ParseNumberFunction extends CoreFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${parseNumber(value, locale)}. Example: ${parseNumber('12345.6789', 'en')}"),
-			Usage.javaScript("Usage: ${{Structr.parseNumber(value, locale)}}. Example: ${{Structr.parseNumber('12345.6789', 'en')}}")
+				Usage.structrScript("Usage: ${parseNumber(value, locale)}."),
+				Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}.")
 		);
 	}
 
@@ -103,6 +105,32 @@ public class ParseNumberFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Parses the given string into a numerical value. With the second (optional) parameter you can pass a locale string to take a country-/language specific number formatting into account.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${parseNumber('123,456,789.123', 'en')}"),
+				Example.structrScript("${parseNumber('123.456.789,123', 'de')}"),
+				Example.javaScript("${{ $.parseNumber('123,456,789.123', 'en') }}"),
+				Example.javaScript("${{ $.parseNumber('123.456.789,123', 'de') }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If no locale parameter is given, the default locale for the context is used. See the `locale` keyword."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "String that will be parsed into numerical value"),
+				Parameter.optional("locale", "Locale string for specific number formatting")
+		);
 	}
 }

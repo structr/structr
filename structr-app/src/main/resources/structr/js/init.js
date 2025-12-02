@@ -1960,6 +1960,8 @@ let Structr = {
 
 				<div class="flex gap-4 ml-2 mr-6">
 
+					<a target="_blank" href="${_Helpers.getPrefixedRootUrl('/structr/config')}">${_Icons.getSvgIconWithID('settings-icon', _Icons.iconSettingsWrench, 20,20,_Icons.getSvgIconClassesForColoredIcon(['text-white', 'mt-1.5']), 'System Settings')}</a>
+
 					${_Icons.getSvgIconWithID('terminal-icon', _Icons.iconTerminal, 26,26,_Icons.getSvgIconClassesForColoredIcon(['text-white']), 'Toggle Console')}
 
 					<div id="${Structr.notificationIconId}" class="relative">

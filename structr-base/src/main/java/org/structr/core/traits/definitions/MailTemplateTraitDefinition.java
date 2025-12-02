@@ -37,8 +37,9 @@ import java.util.Set;
  */
 public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefinition {
 
-	public static final String TEXT_PROPERTY   = "text";
-	public static final String LOCALE_PROPERTY = "locale";
+	public static final String TEXT_PROPERTY        = "text";
+	public static final String DESCRIPTION_PROPERTY = "description";
+	public static final String LOCALE_PROPERTY      = "locale";
 
 	public MailTemplateTraitDefinition() {
 		super(StructrTraits.MAIL_TEMPLATE);
@@ -56,10 +57,12 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
 
 		final Property<String> textProperty   = new StringProperty(TEXT_PROPERTY).description("text content of the template");
-		final Property<String> localeProperty = new StringProperty(LOCALE_PROPERTY).indexed().description("locale for the template");
+		final Property<String> descriptionProperty = new StringProperty(DESCRIPTION_PROPERTY).indexed();
+		final Property<String> localeProperty      = new StringProperty(LOCALE_PROPERTY).indexed().description("locale for the template");
 
 		return newSet(
 			textProperty,
+			descriptionProperty,
 			localeProperty
 		);
 	}
@@ -71,12 +74,12 @@ public final class MailTemplateTraitDefinition extends AbstractNodeTraitDefiniti
 
 			PropertyView.Public,
 			newSet(
-				TEXT_PROPERTY, LOCALE_PROPERTY
+					TEXT_PROPERTY, DESCRIPTION_PROPERTY, LOCALE_PROPERTY
 			),
 
 			PropertyView.Ui,
 			newSet(
-				TEXT_PROPERTY, LOCALE_PROPERTY
+					TEXT_PROPERTY, DESCRIPTION_PROPERTY, LOCALE_PROPERTY
 			)
 		);
 	}

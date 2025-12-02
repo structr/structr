@@ -32,6 +32,8 @@ import org.structr.core.traits.definitions.MailTemplateTraitDefinition;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 
 import java.util.List;
 
@@ -103,8 +105,8 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${template(name, locale, source)}. Example: ${template('TEXT_TEMPLATE_1', 'en_EN', this)}"),
-			Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}. Example: ${{ $.template('TEXT_TEMPLATE_1', 'en_EN', $.this)}}")
+			Usage.structrScript("Usage: ${template(name, locale, source)}."),
+			Usage.javaScript("Usage: ${{ $.template(name, locale, source)}}.")
 		);
 	}
 
@@ -115,6 +117,39 @@ public class TemplateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Loads a node of type `MailTemplate` with the given name and locale values and uses the given source entity to resolve template expressions in the content field of the loaded node, returning the resulting text.";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${template('TEXT_TEMPLATE_1', 'en', this)}", "Passing the Structr me object, representing the current user"),
+				Example.javaScript("${{ return $.template('TEXT_TEMPLATE_1', 'en', $.this)}}"),
+				Example.javaScript("""
+						${{
+						    return $.template('MAIL_SUBJECT', 'de', $.toGraphObject({name: "Mr. Foo"}))
+						}}
+						""", "passing an arbitrary JavaScript object")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("name", "Mail-Template name"),
+				Parameter.mandatory("locale", "Mail-Template locale"),
+				Parameter.mandatory("source", "source entity for given expressions")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Short example for mail-template: `Welcome, ${this.name}!`",
+				"This function is quite similar to the `replace()` function which serves a similar purpose but works on any string rather than on a mail template.",
+				"The third parameter 'source' expects a node or relationship object fetched from the database. If the third parameter is an arbitrary design JavaScript object, it has to be wrapped with the `toGraphObject()` function, before being passed as the parameter."
+		);
 	}
 }

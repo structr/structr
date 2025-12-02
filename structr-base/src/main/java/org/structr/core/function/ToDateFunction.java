@@ -21,6 +21,8 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
@@ -89,7 +91,22 @@ public class ToDateFunction extends CoreFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "The number is interpreted as UNIX timestamp (milliseconds from Jan. 1, 1970).";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${toDate(1585504800000)}"),
+				Example.javaScript("${{ $.toDate(1585504800000) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("number", "unix timestamp")
+		);
 	}
 
 }

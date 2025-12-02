@@ -117,6 +117,8 @@ public class KafkaClientTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final KafkaClient client = messageClient.as(KafkaClient.class);
 
+					getSuper().sendMessage(securityContext, client, topic, message);
+
 					if (client.getProducer() == null && client.getServers() != null && client.getServers().length > 0) {
 
 						client.setProducer(new KafkaProducer<>(client.getConfiguration(KafkaProducer.class)));

@@ -383,7 +383,7 @@ public class FileTraitWrapper extends AbstractFileTraitWrapper implements File {
 		if ("text/csv".equals(getContentType())) {
 
 			final Map<String, Object> map       = new LinkedHashMap<>();
-			final Function<Object, Object> func = Functions.get("get_csv_headers");
+			final Function<Object, Object> func = Functions.get("getCsvHeaders");
 
 			if (func != null) {
 

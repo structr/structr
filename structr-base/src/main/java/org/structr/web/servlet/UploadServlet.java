@@ -826,11 +826,17 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			final boolean filesystemEnabled = Settings.FilesystemEnabled.getValue();
 			final Principal user = securityContext.getUser(false);
 
+			String path;
+
 			if (filesystemEnabled && user != null) {
-				return addFinalSlash(user.as(User.class).getOrCreateHomeDirectory().getPath());
+				path = addFinalSlash(user.as(User.class).getOrCreateHomeDirectory().getPath());
+			} else {
+				path = getDefaultUploadFolderPathValueFromSetting();
 			}
 
-			return getDefaultUploadFolderPathValueFromSetting();
+			tx.success();
+
+			return path;
 		}
 	}
 
