@@ -26,11 +26,17 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsImplementation;
+import org.structr.core.traits.TraitsManager;
+import org.structr.core.traits.operations.FrameworkMethod;
+import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.messaging.traits.definitions.MQTTClientTraitDefinition;
+import org.structr.messaging.traits.operations.MessageClientOperations;
 
 import java.util.List;
 
@@ -126,6 +132,12 @@ public class MQTTClientTraitWrapper extends MessageClientTraitWrapper implements
 
 	@Override
 	public void messageCallback(String topic, String message) throws FrameworkException {
-		sendMessage(getSecurityContext(), topic, message);
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			MessageClientOperations operations = TraitsManager.getCurrentInstance().getTrait(StructrTraits.MESSAGE_CLIENT).getFrameworkMethod(MessageClientOperations.class);
+			operations.sendMessage(getSecurityContext(), this, topic, message);
+
+			tx.success();
+		}
 	}
 }
