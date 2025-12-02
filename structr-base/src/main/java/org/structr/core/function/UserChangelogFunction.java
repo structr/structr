@@ -22,6 +22,8 @@ import org.structr.api.config.Settings;
 import org.structr.core.GraphObject;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,16 +43,14 @@ public class UserChangelogFunction extends ChangelogFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${userChangelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: ${userChangelog(current, false, 'verb', 'change', 'timeTo', now)}"),
-			Usage.javaScript("Usage: ${{Structr.userChangelog(user[, resolve=false[, filterObject]])}}. Example: ${{Structr.userChangelog(Structr.get('me'), false, {verb:\"change\", timeTo: new Date()}))}}")
+			Usage.structrScript("Usage: ${userChangelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: "),
+			Usage.javaScript("Usage: ${{$.userChangelog(user[, resolve=false[, filterObject]])}}. Example: ")
 		);
 	}
 
 	@Override
 	protected String getChangelogForGraphObject (final GraphObject obj) throws IOException {
-
 		return getChangelogForUUID(obj.getUuid(), "u");
-
 	}
 
 	@Override
@@ -66,8 +66,50 @@ public class UserChangelogFunction extends ChangelogFunction {
 		}
 	}
 
+
 	@Override
 	protected boolean isUserCentric () {
 		return true;
 	}
+
+	@Override
+	public String getShortDescription() {
+		return "Returns the changelog for the changes a specific user made.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${userChangelog(current, false, 'verb', 'change', 'timeTo', now)}"),
+				Example.javaScript("${{ $.userChangelog($.me, false, {verb:\"change\", timeTo: new Date()})) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("user", "given user"),
+				Parameter.optional("resolve", "resolve user (default: `false`)"),
+				Parameter.optional("filterKey1", "key1 (only StructrScript)"),
+				Parameter.optional("filterValue1", "value1 (only StructrScript)"),
+				Parameter.optional("filterKey1", "keyN (only StructrScript)"),
+				Parameter.optional("filterValue1", "valueN (only StructrScript)"),
+				Parameter.optional("map", "data map (only JavaScript)")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Functionally identical to the changelog() function - only the data source is different.",
+				"The User changelog has to be enabled for this function to work properly. This can be done via the application.changelog.user_centric.enabled key in configuration file structr.conf"
+		);
+	}
+
+
 }

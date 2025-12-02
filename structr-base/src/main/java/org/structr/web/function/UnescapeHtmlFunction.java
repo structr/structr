@@ -24,6 +24,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -64,18 +66,33 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${unescapeHtml(text)}. Example: ${unescapeHtml('test &amp; test')}"),
-			Usage.javaScript("Usage: ${{Structr.unescapeHtml(text)}}. Example: ${{Structr.unescapeHtml('test &amp; test')}}")
+			Usage.structrScript("Usage: ${unescapeHtml(text)}."),
+			Usage.javaScript("Usage: ${{Structr.unescapeHtml(text)}}.")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Relaces escaped HTML entities with the actual characters, e.g. &lt; with <.";
+		return "Reverses the effect of `escape_html()`.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return "Relaces escaped HTML entities with the actual characters, e.g. &lt; with <.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${unescapeHtml('test &amp; test')}"),
+				Example.javaScript("${{Structr.unescapeHtml('test &amp; test')}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("string", "escaped string")
+				);
 	}
 }

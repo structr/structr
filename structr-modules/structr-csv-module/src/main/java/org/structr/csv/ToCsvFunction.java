@@ -28,6 +28,8 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.schema.action.ActionContext;
 
@@ -154,8 +156,8 @@ public class ToCsvFunction extends CsvFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${toCsv(find('Page'), 'ui')}"),
-			Usage.javaScript("Usage: ${{Structr.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.toCsv(Structr.find('Page'), 'ui'))}}")
+			Usage.structrScript("Usage: ${toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}."),
+			Usage.javaScript("Usage: ${{Structr.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}.")
 		);
 	}
 
@@ -168,6 +170,41 @@ public class ToCsvFunction extends CsvFunction {
 	public String getLongDescription() {
 		return "";
 	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${toCsv(find('Page'), 'ui')}"),
+				Example.javaScript("${{ $.toCsv($.find('Page'), 'ui')) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("nodes", "A collection of objects (these objects can be database nodes or javascript objects)"),
+				Parameter.optional("propertiesOrView","The name of a view (e.g. ui or public) or a collection of property names (e.g. merge('id', 'name') in StructrScript or ['id', 'name'] in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used."),
+				Parameter.optional("delimiterChar","A single character used as the column separator. (If more than one character is supplied, only the first character is used without raising an error) (default: `;`)"),
+				Parameter.optional("quoteChar","A single character used as the quote character. (If more than one character is supplied, only the first character is used without raising an error) (default (`\"`)"),
+				Parameter.optional("recordSeparator","The separator between the records (recommended usage is \n, \r or \r\n) (default: `\n`)"),
+				Parameter.optional("includeHeader","Switch indicating if a header row should be printed (default `true`)"),
+				Parameter.optional("localizeHeader","Switch indicating if the column names in the header should be localized (default: `false`)"),
+				Parameter.optional("headerLocalizationDomain","Optional header localization domain")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the column values contain the quote character, a `\\` is prepended before that instance of the quote character",
+				"All instances of `\n` or `\r` in the column values are replaced by `\\n` and `\\r` respectively so we can guarantee that only intended newlines (i.e. the record separator) occurr inside the produced CSV",
+				"The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.",
+				"If a view is given, the (optionally localized) property names of that view are used as header row",
+				"If a collection of properties is given, these (optionally localized) property names are used as a header row"
+		);
+	}
+
+
 
 	public static void writeCsv(
 			final ResultStream result,
