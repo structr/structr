@@ -43,6 +43,12 @@ import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
 import org.structr.core.function.SetLogLevelFunction;
 import org.structr.core.graph.*;
+import org.structr.cron.CronService;
+import org.structr.docs.Documentable;
+import org.structr.docs.impl.service.FtpServiceDocumentable;
+import org.structr.docs.impl.service.MailServiceDocumentable;
+import org.structr.docs.impl.service.SSHServiceDocumentable;
+import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaService;
@@ -141,6 +147,20 @@ public class Services implements StructrServices, BroadcastReceiver {
 				logger.warn("Weak Java Runtime Version check enabled. Continuing despite version mismatch. To enable strong Java Runtime Version check set application.runtime.enforce.recommended = true in structr.conf");
 			}
 		}
+	}
+
+	/**
+	 * Call this method to collect documentable services
+	 *
+	 * @param documentables
+	 */
+	public static void collectDocumentation(final List<Documentable> documentables) {
+
+		documentables.add(new FtpServiceDocumentable());
+		documentables.add(new SSHServiceDocumentable());
+		documentables.add(new MailServiceDocumentable());
+		documentables.add(CronService.getDocumentation());
+		documentables.add(DirectoryWatchService.getDocumentation());
 	}
 
 	/**

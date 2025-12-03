@@ -30,6 +30,7 @@ public enum DocumentableType {
 	SystemType("System type", false, false),
 	LifecycleMethod("Lifecycle method", false, true),
 	Service("Service", false, false),
+	Setting("Setting", false, false),
 	Hidden(null, false, false);
 
 	private final boolean supportsLanguages;

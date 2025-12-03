@@ -71,7 +71,7 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "Disables or enables certificate validation for outgoing requests. All subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` calls in the same request (meaning the request from the client to structr) will use the setting configured here.";
+		return "Disables or enables certificate validation for outgoing requests. All subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` calls in the same request (meaning the request from the client to Structr) will use the setting configured here.";
 	}
 
 	@Override

@@ -19,14 +19,17 @@
 package org.structr.test.common;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
+import org.structr.api.config.SettingsGroup;
 import org.structr.autocomplete.AbstractHintProvider;
+import org.structr.core.Services;
 import org.structr.core.function.Functions;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.TraitsManager;
 import org.structr.docs.*;
 import org.structr.docs.impl.lifecycle.*;
-import org.structr.docs.impl.service.MailServiceDocumentable;
+import org.structr.docs.impl.settings.SettingDocumentable;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -53,7 +56,8 @@ public class CreateDocumentationTest extends StructrUiTest {
 			DocumentableType.LifecycleMethod,    new DocumentationEntry("3-Lifecycle Methods.md",    "Lifecycle Methods"),
 			DocumentableType.SystemType,         new DocumentationEntry("4-System Types.md",         "System Types"),
 			DocumentableType.Service,            new DocumentationEntry("5-Services.md",             "Services"),
-			DocumentableType.MaintenanceCommand, new DocumentationEntry("6-Maintenance Commands.md", "Maintenance Commands")
+			DocumentableType.MaintenanceCommand, new DocumentationEntry("6-Maintenance Commands.md", "Maintenance Commands"),
+			DocumentableType.Setting,            new DocumentationEntry("7-Settings.md",             "Settings")
 		);
 
 		collectDocumentables(documentables);
@@ -131,7 +135,16 @@ public class CreateDocumentationTest extends StructrUiTest {
 		documentables.add(new AfterDelete());
 
 		// services
-		documentables.add(new MailServiceDocumentable());
+		Services.collectDocumentation(documentables);
+
+		// settings
+		for (final SettingsGroup group : Settings.getGroups()) {
+
+			for (final org.structr.api.config.Setting setting : group.getSettings()) {
+
+				documentables.add(new SettingDocumentable(setting));
+			}
+		}
 	}
 
 	private List<String> checkFunctionMetadata(final Documentable item) {
@@ -148,14 +161,28 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 		// verify that the short description ends with a period
 		final String desc = item.getShortDescription();
-		if (!desc.strip().endsWith(".") && !DocumentableType.Service.equals(documentableType) && !DocumentableType.SystemType.equals(documentableType)) {
+		if (desc != null) {
 
-			errors.add("Short description of " + type + " " + item.getName() + " does not end with a period character.");
-		}
+			if (DocumentableType.Service.equals(documentableType) || DocumentableType.SystemType.equals(documentableType) || DocumentableType.Setting.equals(documentableType)) {
 
-		if (desc.toLowerCase().startsWith("this method")) {
+				// ignore
+			} else {
 
-			errors.add("Short description of " + type + " " + item.getName() + " starts with 'this method' instead of 'this function'.");
+				if (!desc.strip().endsWith(".")) {
+
+					errors.add("Short description of " + type + " " + item.getName() + " does not end with a period character.");
+				}
+
+				if (desc.toLowerCase().startsWith("this method")) {
+
+					errors.add("Short description of " + type + " " + item.getName() + " starts with 'this method' instead of 'this function'.");
+				}
+
+				if (containsLowercaseStructr(desc)) {
+
+					errors.add("Short description of " + type + " " + item.getName() + " uses structr, please change to Structr with a capital S.");
+				}
+			}
 		}
 
 		final String longDesc = item.getLongDescription();
@@ -169,6 +196,11 @@ public class CreateDocumentationTest extends StructrUiTest {
 			if (longDesc.toLowerCase().contains("/article")) {
 
 				errors.add("Long description of " + type + " " + item.getName() + " still contains Markdown reference link to old documentation page (/article).");
+			}
+
+			if (containsLowercaseStructr(longDesc)) {
+
+				errors.add("Long description of " + type + " " + item.getName() + " uses structr, please change to Structr with a capital S.");
 			}
 		}
 
@@ -288,6 +320,95 @@ public class CreateDocumentationTest extends StructrUiTest {
 		}
 
 		return errors;
+	}
+
+	private boolean containsLowercaseStructr(final String string) {
+
+		final int structrLength = "structr".length();
+		final int length        = string.length();
+		int fromIndex           = 0;
+
+		while (true) {
+
+			final int pos = string.indexOf("structr", fromIndex);
+			int counter   = 0;
+
+			if (pos == -1) {
+				return false;
+			}
+
+			// uncomment this to debug false positives
+			//System.out.println(string.substring(Math.max(0, pos - 5), pos + structrLength + 5));
+
+			final int pos2 = string.indexOf("structr.conf", fromIndex);
+			if (pos2 == pos) {
+
+				fromIndex = pos + 1;
+				continue;
+			}
+
+			// check char before
+			if (pos > 0) {
+
+				final char before = string.charAt(pos - 1);
+				if (isIgnorable(before)) {
+					counter++;
+				}
+
+			} else {
+
+				// no char before structr => valid
+				counter++;
+			}
+
+			if (pos + structrLength < length) {
+
+				final char after = string.charAt(pos + structrLength);
+				if (isIgnorable(after)) {
+					counter++;
+				}
+
+			} else {
+
+				// no character after structr => valid
+				counter++;
+			}
+
+			// we found a match
+			if (counter == 2) {
+
+				return true;
+
+			} else {
+
+				// next occurence
+				fromIndex = pos + 1;
+			}
+		}
+	}
+
+	private boolean isIgnorable(final char c) {
+
+		if (Character.isWhitespace(c)) {
+			return true;
+		}
+
+		if (c ==  '"') { return true; }
+		if (c ==  '\'') { return true; }
+		if (c ==  '`') { return true; }
+		if (c ==  ',') { return true; }
+		if (c ==  '.') { return true; }
+		if (c ==  ';') { return true; }
+		if (c ==  '?') { return true; }
+		if (c ==  '!') { return true; }
+		if (c ==  '(') { return true; }
+		if (c ==  ')') { return true; }
+		if (c ==  '[') { return true; }
+		if (c ==  ']') { return true; }
+		if (c ==  '{') { return true; }
+		if (c ==  '}') { return true; }
+
+		return false;
 	}
 
 	private class DocumentationEntry {

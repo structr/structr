@@ -12,16 +12,16 @@ This type is one of Structr's built-in types for managing uploaded files and fil
 |visibleToPublicUsers|whether this entity is visible to public users|
 |visibleToAuthenticatedUsers|whether this entity is visible to authenticated users|
 |owner|owner of this node|
-|path|full path of this file or folder (read-only)|
 |parent|parent folder of this File or Folder|
-|contentType|content type of the file|
-|sha512|SHA512 checksum of the file's content (optional, see below)|
-|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
-|size|size of this file|
-|md5|MD5 checksum of the file's content (optional, see below)|
-|crc32|CRC32 checksum of the file's content (optional, see below)|
-|sha1|SHA1 checksum of the file's content (optional, see below)|
+|path|full path of this file or folder (read-only)|
 |checksum|xxHash checksum of the file's content (generated automatically)|
+|sha1|SHA1 checksum of the file's content (optional, see below)|
+|crc32|CRC32 checksum of the file's content (optional, see below)|
+|md5|MD5 checksum of the file's content (optional, see below)|
+|size|size of this file|
+|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
+|sha512|SHA512 checksum of the file's content (optional, see below)|
+|contentType|content type of the file|
 
 
 ### How Files Work
@@ -51,8 +51,8 @@ This type is one of Structr's built-in types for organizing files and creating h
 |visibleToPublicUsers|whether this entity is visible to public users|
 |visibleToAuthenticatedUsers|whether this entity is visible to authenticated users|
 |owner|owner of this node|
-|path|full path of this file or folder (read-only)|
 |parent|parent folder of this File or Folder|
+|path|full path of this file or folder (read-only)|
 |enabledChecksums|override for the global checksums setting, allows you to enable or disable individual checksums for all files in this folder (and sub-folders)|
 
 
@@ -106,21 +106,21 @@ This type allows you to handle images within your application.
 |visibleToPublicUsers|whether this entity is visible to public users|
 |visibleToAuthenticatedUsers|whether this entity is visible to authenticated users|
 |owner|owner of this node|
-|path|full path of this file or folder (read-only)|
 |parent|parent folder of this File or Folder|
-|contentType|content type of the file|
-|sha512|SHA512 checksum of the file's content (optional, see below)|
-|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
-|size|size of this file|
-|md5|MD5 checksum of the file's content (optional, see below)|
-|crc32|CRC32 checksum of the file's content (optional, see below)|
-|sha1|SHA1 checksum of the file's content (optional, see below)|
+|path|full path of this file or folder (read-only)|
 |checksum|xxHash checksum of the file's content (generated automatically)|
-|exifSubIFDData|Exif SubIFD data|
-|width|width of this image|
-|gpsData|GPS data|
-|exifIFD0Data|Exif IFD0 data|
+|sha1|SHA1 checksum of the file's content (optional, see below)|
+|crc32|CRC32 checksum of the file's content (optional, see below)|
+|md5|MD5 checksum of the file's content (optional, see below)|
+|size|size of this file|
+|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
+|sha512|SHA512 checksum of the file's content (optional, see below)|
+|contentType|content type of the file|
 |height|height of this image|
+|exifIFD0Data|Exif IFD0 data|
+|gpsData|GPS data|
+|width|width of this image|
+|exifSubIFDData|Exif SubIFD data|
 |orientation|orientation of this image|
 
 
@@ -175,8 +175,9 @@ This type represents customizable email templates.
 |visibleToAuthenticatedUsers|whether this entity is visible to authenticated users|
 |name|name of this node|
 |owner|owner of this node|
-|text|text content of the template|
-|locale|locale for the template|
+|text|text content of this template|
+|description|description of this template|
+|locale|locale for this template|
 
 
 ### How It Works

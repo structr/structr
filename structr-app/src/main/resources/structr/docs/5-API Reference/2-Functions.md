@@ -3858,12 +3858,49 @@ gte(value1, value2)
 
 ## hasCacheValue(key)
 Checks if a cached value exists for the given key.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|key|cache key|no|
+
+
+Checks if a cached value exists for the given key. Returns false if there is no stored value for the given key or if the stored value is expired.
+This function is especially useful if the result of a JavaScript function should be cached (see Example 2).
+
 ### Signatures
 
 ```
 hasCacheValue(key)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${hasCacheValue('externalResult')}
+```
+##### Example 2 (JavaScript)
+```
+${{
+	let myComplexFunction = function() {
+		// computation... for brevity just return a date string
+		return new Date().toString();
+	};
+	let cacheKey = 'myKey';
+	if ($.hasCacheValue(cacheKey)) {
+		// retrieve cached value
+		let cacheValue = $.getCacheValue(cacheKey);
+		// ...
+		// ...
+	} else {
+		// cache the result of a complex function
+		let cacheResult = $.cache(cacheKey, 30, myComplexFunction());
+		// ...
+		// ...
+	}
+}}
+
+```
 
 ## hasCssClass(element, css)
 Returns whether the given element has the given CSS class(es).
@@ -3875,7 +3912,7 @@ hasCssClass(element, css)
 
 
 ## hasError()
-Allows checking if an error occurred in the scripting context.
+Allows checking if an error has been raised in the scripting context.
 ### Signatures
 
 ```
@@ -3885,48 +3922,148 @@ hasError()
 
 ## hasIncomingRelationship(source, target [, relType ])
 Returns true if the given entity has incoming relationships of the given type.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|from|entity the relationship goes from|no|
+|to|entity the relationship goes to|no|
+|relType|type of relationship|yes|
+
+
+Returns a boolean value indicating whether **at least one** incoming relationship exists between the given entities, with an optional qualifying relationship type. See also `incoming()`, `outgoing()`, `has_relationship()` and `has_outgoing_relationship()`.
 ### Signatures
 
 ```
 hasIncomingRelationship(source, target [, relType ])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${hasIncomingRelationship(me, page, 'OWNS')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.hasIncomingRelationship($.me, $.page, 'OWNS') }}
+```
 
 ## hasOutgoingRelationship(source, target [, relType ])
 Returns true if the given entity has outgoing relationships of the given type.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|from|entity the relationship goes from|no|
+|to|entity the relationship goes to|no|
+|relType|type of relationship|yes|
+
+
+returns a boolean value indicating whether **at least one** outgoing relationship exists between the given entities, with an optional qualifying relationship type. See also `incoming()`, `outgoing()`, `has_relationship()` and `has_incoming_relationship()`.
 ### Signatures
 
 ```
 hasOutgoingRelationship(source, target [, relType ])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${hasOutgoingRelationship(me, page, 'OWNS')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.hasOutgoingRelationship($.me, $.page, 'OWNS') }}
+```
 
 ## hasRelationship(source, target [, relType ])
 Returns true if the given entity has relationships of the given type.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|entity1|entity that has a relationship|no|
+|entity2|entity that has a relationship|no|
+|relType|type of relationship|yes|
+
+
+Returns a boolean value indicating whether **at least one** relationship exists between the given entities, with an optional qualifying relationship type. See also `incoming()` and `outgoing()`.
 ### Signatures
 
 ```
 hasRelationship(source, target [, relType ])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${hasRelationship(me, page, 'OWNS')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.hasRelationship($.me, $.page, 'OWNS') }}
+```
 
 ## hash(algorithm, value)
 Returns the hash (as a hexadecimal string) of a given string, using the given algorithm (if available via the underlying JVM).
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|algorithm|Hash algorithm that will be used to convert the string|no|
+|value|String that will be converted to hash string|no|
+
+
+Returns the hash (as a hexadecimal string) of a given string, using the given algorithm (if available via the underlying JVM).
+Currently, the SUN provider makes the following hashes/digests available: MD2, MD5, SHA-1, SHA-224, SHA-256, SHA-384, SHA-512, SHA-512/224, SHA-512/256, SHA3-224, SHA3-256, SHA3-384, SHA3-512
+If an algorithm does not exist, an error message with all available algorithms will be logged and a null value will be returned.
+
 ### Signatures
 
 ```
 hash(algorithm, value)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${hash('SHA-512', 'Hello World!')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.hash('SHA-512', 'Hello World!') }}
+```
 
 ## hmac(value, secret [, hashAlgorithm ])
 Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|value|Payload that will be converted to hash string|no|
+|secret|Secret value|no|
+|hashAlgorithm|Hash algorithm that will be used to convert the payload|yes|
+
+
+Returns a keyed-hash message authentication code generated out of the given payload, secret and hash algorithm.
+### Notes
+- Default value for parameter hashAlgorithm is SHA256.
+
 ### Signatures
 
 ```
 hmac(value, secret [, hashAlgorithm ])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${hmac(to_json(me)), 'aVeryGoodSecret')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.hmac(JSON.stringify({key1: 'test'}), 'aVeryGoodSecret') }}
+```
 
 ## if()
 Evaluates a condition and executes different expressions depending on the result.
@@ -5407,21 +5544,68 @@ outgoing(entity [, relType ])
 
 ## parseDate(str, pattern)
 Parses the given date string using the given format string.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|string|date string|no|
+|pattern|date pattern|no|
+
+
+Parses the given string according to the given pattern and returns a date object. This method is the inverse of <a href='#date_format'>date_format()</a>.
 ### Signatures
 
 ```
 parseDate(str, pattern)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${parseDate('2015-12-12', 'yyyy-MM-dd')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.parseDate('2015-12-12', 'yyyy-MM-dd') }}
+```
 
 ## parseNumber(number [, locale ])
 Parses the given string using the given (optional) locale.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|string|String that will be parsed into numerical value|no|
+|locale|Locale string for specific number formatting|yes|
+
+
+Parses the given string into a numerical value. With the second (optional) parameter you can pass a locale string to take a country-/language specific number formatting into account.
+### Notes
+- If no locale parameter is given, the default locale for the context is used. See the `locale` keyword.
+
 ### Signatures
 
 ```
 parseNumber(number [, locale ])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${parseNumber('123,456,789.123', 'en')}
+```
+##### Example 2 (StructrScript)
+```
+${parseNumber('123.456.789,123', 'de')}
+```
+##### Example 3 (JavaScript)
+```
+${{ $.parseNumber('123,456,789.123', 'en') }}
+```
+##### Example 4 (JavaScript)
+```
+${{ $.parseNumber('123.456.789,123', 'de') }}
+```
 
 ## prefetch(query, listOfKeys)
 Prefetches a subgraph.
@@ -5434,33 +5618,119 @@ prefetch(query, listOfKeys)
 
 ## print(objects...)
 Prints the given strings or objects to the output buffer.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|objects|Objects that will be printed into the page rendering buffer|no|
+
+
+Prints the string representation of all of the given objects into the page rendering buffer. This method is often used in conjunction with `each()` to create rendering output for a collection of entities etc. in scripting context.
 ### Signatures
 
 ```
 print(objects...)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${print('Hello, world!')}
+```
+##### Example 2 (StructrScript)
+```
+${print(this.name, 'test')}
+```
+##### Example 3 (JavaScript)
+```
+${{ $.print('Hello, world!') }}
+```
+##### Example 4 (JavaScript)
+```
+${{ $.print($.get('this').name, 'test') }}
+```
 
 ## propertyInfo(type, propertyName)
 Returns the schema information for the given property.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|type|type of the object|no|
+|name|name of the object|no|
+
+
+Returns a property info object for the property of the given type with the given name. A property info object has the following structure:
+
+| Field | Description | Type |
+| --- | --- | --- |
+| dbName | Database (Neo4j) name - can be used in Cypher etc. | String |
+| jsonName | JSON name (as it appears in JSON REST output) | String |
+| className | Class name of the property type | String |
+| declaringClass | Name of the declaring class | String |
+| defaultValue | Default value or null | String |
+| contentType | Content type or null (String only) | String |
+| format | Format or null | String |
+| readOnly | Read-only flag | Boolean |
+| system | System flag | Boolean |
+| indexed | Indexed flag | Boolean |
+| indexedWhenEmpty | Indexed-when-empty flag | Boolean |
+| unique | Unique flag | Boolean |
+| notNull | Not-null flag | Boolean |
+| dynamic | Dynamic flag | Boolean |
+| relatedType | Related type (for relationship properties) | String |
+| type | Property type from definition | String |
+| uiType | Extended property type for Edit Mode (e.g. String, String[] etc.) | String |
+| isCollection | Collection or entity (optional) | String |
+| databaseConverter | Database converter type (internal) | String |
+| inputConverter | Input converter type (internal) | String |
+| relationshipType | Relationship type (for relationship properties) | String |
+
 ### Signatures
 
 ```
 propertyInfo(type, propertyName)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${propertyInfo('User', 'name').uiType}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.propertyInfo('User', 'name').uiType }}
+```
 
 ## quot(value1, value2)
 Divides the first argument by the second argument.
 
 **StructrScript only**
 
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|value1|Numerical value. Can be also given as string|no|
+|value2|Numerical value. Can be also given as string|no|
+
+
+Returns the quotient of value1 and value2. This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.
 ### Signatures
 
 ```
 quot(value1, value2)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${quot(10, 2)}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.quot(10, 2) }}
+```
 
 ## random(length)
 Returns a random alphanumeric string of the given length.
@@ -5971,7 +6241,7 @@ Schedules a script or a function to be executed in a separate thread.
 Allows the user to insert a script snippet into the import queue for later execution.
 Useful in situations where a script should run after a long-running import job, or if the script should run in
 a separate transaction that is independent of the calling transaction.
-The `title` parameter is optional and is displayed in the structr admin UI in the Importer section and in the
+The `title` parameter is optional and is displayed in the Structr admin UI in the Importer section and in the
 notification messages when a script is started or finished.
 The `onFinish` parameter is a script snippet which will be called when the process finishes (successfully or with an exception).
 A parameter `jobInfo` is injected in the context of the `onFinish` function (see `job_info()` for more information on this object).
@@ -6926,86 +7196,322 @@ ${{ $.systemInfo() }}
 
 ## template(name, locale, entity)
 Returns a MailTemplate object with the given name, replaces the placeholders with values from the given entity.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|name|Mail-Template name|no|
+|locale|Mail-Template locale|no|
+|source|source entity for given expressions|no|
+
+
+Loads a node of type `MailTemplate` with the given name and locale values and uses the given source entity to resolve template expressions in the content field of the loaded node, returning the resulting text.
+### Notes
+- Short example for mail-template: `Welcome, ${this.name}!`
+- This function is quite similar to the `replace()` function which serves a similar purpose but works on any string rather than on a mail template.
+- The third parameter 'source' expects a node or relationship object fetched from the database. If the third parameter is an arbitrary design JavaScript object, it has to be wrapped with the `toGraphObject()` function, before being passed as the parameter.
+
 ### Signatures
 
 ```
 template(name, locale, entity)
 ```
 
+### Examples
+##### 1. (StructrScript) Passing the Structr me object, representing the current user
+```
+${template('TEXT_TEMPLATE_1', 'en', this)}
+```
+##### Example 2 (JavaScript)
+```
+${{ return $.template('TEXT_TEMPLATE_1', 'en', $.this)}}
+```
+##### 3. (JavaScript) passing an arbitrary JavaScript object
+```
+${{
+    return $.template('MAIL_SUBJECT', 'de', $.toGraphObject({name: "Mr. Foo"}))
+}}
+
+```
 
 ## timer(name, action)
 Starts/Stops/Pings a timer.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|name|name of timer|no|
+|action|action (`start` or `get`)|no|
+
+
+This function can be used to measure the performance of sections of code. The `action` parameter can be `start` to create a new timer or `get` to retrieve the elapsed time (in milliseconds) since the start of the timer.
+### Notes
+- Using the `get` action before the `start` action returns 0 and starts the timer.
+- Using the `start` action on an already existing timer overwrites the timer.
+
 ### Signatures
 
 ```
 timer(name, action)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${timer('benchmark1', 'start')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.timer('benchmark1', 'start') }}
+```
 
 ## titleize(str)
 Titleizes the given string.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|string|URL to connect to|no|
+|separatorChars|string separator (default: ` `)|yes|
+
 ### Signatures
 
 ```
 titleize(str)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${titleize('structr has a lot of built-in functions')}
+> 'Structr Has A Lot Of Built-in Functions'
+
+```
+##### 2. (JavaScript) Different separator
+```
+${{ titleize('structr has a lot of built-in functions', '- ') }}
+> 'Structr Has A Lot Of Built In Functions'
+
+```
 
 ## toDate(number)
 Converts the given number to a date.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|number|unix timestamp|no|
+
+
+The number is interpreted as UNIX timestamp (milliseconds from Jan. 1, 1970).
 ### Signatures
 
 ```
 toDate(number)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${toDate(1585504800000)}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.toDate(1585504800000) }}
+```
 
 ## toGraphObject(obj)
 Converts the given entity to GraphObjectMap.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|source|object or collection|no|
+|view|view (default: `public`)|yes|
+|depth|conversion depth (default: 3)|yes|
+
+
+Tries to convert given object or collection containing graph objects into a graph object.
+If an element in the source can not be converted to a graph object, it is ignored.
+Graph objects can be used in repeaters for example and thus it can be useful to create custom graph
+objects for iteration in such contexts. The optional `view` parameter can be used to select the view
+representation of the entity. If no view is given, the `public` view is used. The optional `depth`
+parameter defines at which depth the conversion stops. If no depth is given, the default value of 3 is used.
+### Notes
+- Since strings can not be converted to graph objects but it can be desirable to use collections of strings in repeaters (e.g. the return value of the `inheriting_types()` function), collections of strings are treated specially and converted to graph objects with `value` => `<string>` as its result. (see example 2)
+
 ### Signatures
 
 ```
 toGraphObject(obj)
 ```
 
+### Examples
+##### Example 1 (JavaScript)
+```
+${{
+	let coll = $.toGraphObject([
+		{id:"o1",name:"objectA"},
+		{id:"o2",name:"objectB"}
+	]);
+	$.print(coll.join(', '));
+}}
+> {id=o1, name=objectA}, {id=o2, name=objectB}
+
+```
+##### Example 2 (StructrScript)
+```
+${toGraphObject(inheritingTypes('Principal'))}
+> [{value=Principal},{value=Group},{value=LDAPGroup},{value=LDAPUser},{value=User}]
+
+```
 
 ## toJson(obj [, view, depth = 3, serializeNulls = true ])
 Serializes the given object to JSON.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|source|object or collection|no|
+|view|view (default: `public`)|yes|
+|depth|conversion depth (default: 3)|yes|
+|serializeNulls|nulled keep properties (default: true)|yes|
+
+
+Returns a JSON string representation of the given object very similar to `JSON.stringify()` in JavaScript.
+The output of this method will be very similar to the output of the REST server except for the response
+headers and the result container. The optional `view` parameter can be used to select the view representation
+of the entity. If no view is given, the `public` view is used. The optional `depth` parameter defines
+at which depth the JSON serialization stops. If no depth is given, the default value of 3 is used.
+
+### Notes
+- For database objects this method is preferrable to `JSON.stringify()` because a view can be chosen. `JSON.stringify()` will only return the `id` and `type` property for nodes.
+
 ### Signatures
 
 ```
 toJson(obj [, view, depth = 3, serializeNulls = true ])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${ toJson(find('MyData'), 'public', 4) }
+```
+##### Example 2 (JavaScript)
+```
+${{$.toJson($.this, 'public', 4)}}
+```
 
 ## trim(str)
 Removes whitespace at the edges of the given string.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|object|object to trim|no|
+
+
+Removes any leading or trailing whitespace from the given object. If the object is a string, a trimmed version
+will be returned. If it is a collection, a collection of trimmed strings will be returned.
+### Notes
+- A space is defined as any character whose codepoint is less than or equal to `U+0020` (the space character).
+
 ### Signatures
 
 ```
 trim(str)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${trim('         A text with lots of whitespace        ')}
+> 'A text with lots of whitespace'
+```
+##### Example 2 (JavaScript)
+```
+${{ $.trim(
+	$.merge('     A text with lots of whitespace    ', '     Another text with lots of whitespace     ')
+	)
+}}
+>['A text with lots of whitespace', 'Another text with lots of whitespace']
+```
 
 ## typeInfo(type [, view])
 Returns the type information for the specified type.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|type|schema type|no|
+|view|view (default: `public`)|yes|
+
+
+If called with a view, all properties of that view are returned as a list. The items of the list are in the same
+format as `property_info()` returns. This is identical to the result one would get from `/structr/rest/_schema/<type>/<view>`.
+If called without a view, the complete type information is returned as an object.
+This is identical to the result one would get from `/structr/rest/_schema/<type>`.
+
 ### Signatures
 
 ```
 typeInfo(type [, view])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${typeInfo('User', 'public')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.typeInfo('User', 'public') }}
+```
 
 ## unarchive(file, [, parentFolder ])
 Unarchives given file to an optional parent folder.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|archiveFile|file node|no|
+|parentFolder|parent folder node|yes|
+
+
+The `unarchive()` function takes two parameter.
+The first parameter is a file object that is linked to an archive file, the second (optional)
+parameter points to an existing parent folder. If no parent folder is given, a new subfolder with the
+same name as the archive (without extension) is created.
+
+### Notes
+- The supported file types are ar, arj, cpio, dump, jar, tar, zip and 7z.
+
 ### Signatures
 
 ```
 unarchive(file, [, parentFolder ])
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}
+```
 
 ## unescapeHtml(text)
+Reverses the effect of `escape_html()`.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|string|escaped string|no|
+
+
 Relaces escaped HTML entities with the actual characters, e.g. &lt; with <.
 ### Signatures
 
@@ -7013,6 +7519,15 @@ Relaces escaped HTML entities with the actual characters, e.g. &lt; with <.
 unescapeHtml(text)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${unescapeHtml('test &amp; test')}
+```
+##### Example 2 (JavaScript)
+```
+${{Structr.unescapeHtml('test &amp; test')}}
+```
 
 ## unlockReadonlyPropertiesOnce()
 Unlocks any read-only property for a single access.
@@ -7034,71 +7549,103 @@ unlockSystemPropertiesOnce()
 
 ## unwind(list1, list2, ...)
 Converts a list of lists into a flat list.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|collections|collection(s) to unwind|no|
+
+
+Combines the given nested collections into to a single, "flat" collection.
+This method is the reverse of `extract()` and can be used to flatten collections of related nodes that were
+created with nested `extract()` calls etc. It is often used in conjunction with the `find()` method like in the example below.
+
+### Notes
+- `unwind()` is quite similar to `merge()`. The big difference is that `unwind()` filters out empty collections.
+
 ### Signatures
 
 ```
 unwind(list1, list2, ...)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${unwind(this.children)}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.unwind([[1,2,3],4,5,[6,7,8]])}}
+> [1, 2, 3, 4, 5, 6, 7, 8]
+
+```
 
 ## upper(str)
 Returns the uppercase value of its parameter.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|str|given string|no|
+
 ### Signatures
 
 ```
 upper(str)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${upper(this.nickName)}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.upper($.this.nickName) }}
+```
 
 ## urlencode(str)
 URL-encodes the given string.
+### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|str|given string|no|
+
 ### Signatures
 
 ```
 urlencode(str)
 ```
 
+### Examples
+##### Example 1 (StructrScript)
+```
+${urlencode(this.email)}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.urlencode($.this.email) }}
+```
 
 ## userChangelog(user [, resolve=false [, filterKey, filterValue ]... ])
-Returns the changelog for a given entity.
+Returns the changelog for the changes a specific user made.
 ### Parameters
 
 |Name|Description|Optional|
 |---|---|---|
-|entityOrUUID|entity to fetch changelog for|no|
-|resolve|whether remote entities are resolved and returned|yes|
-|filterKey|filter key, see above table|yes|
-|filterValue|filter value, see above table|yes|
-
-
-The `resolve` parameter controls if remote entities are resolved. Every changelog entry which has a `target` will be resolved as `targetObj` (if the remote entity still exists in the database).
-
-**Filtering**
-All filter options are chained using the boolean AND operator. Only changelog entries matching all of the specified filters will be returned.
-For filter keys which can occurr more than once, the filter values are combined using the boolean OR operator (see examples 1 and 2)
-
-| Filter Key | Applicable Changelog verbs (\*) | Changelog Entry will be returned if | max. occurrences |
-|---|---|---|---|
-| timeFrom (\*\*) | create, delete, link, unlink, change | `timeFrom` <= `time` of the entry | 1 (\*\*\*) |
-| timeTo (\*\*) | create, delete, link, unlink, change | `timeTo` >= `time` of the entry | 1 (\*\*\*) |
-| verb | create, delete, link, unlink, change | `verb` of the entry matches at least one of the verbs | n (\*\*\*\*) |
-| userId | create, delete, link, unlink, change | `userId` of the entry matches at least one of the userIds     | n (\*\*\*\*) |
-| userName | create, delete, link, unlink, change | `userName` of the entry matches at least one of the userNames | n (\*\*\*\*) |
-| relType | link, unlink | `rel` of the entry matches at least one of the relTypes | n (\*\*\*\*) |
-| relDir | link, unlink | `relDir` of the entry matches the given relDir | 1 (\*\*\*) |
-| target | create, delete, link, unlink | `target` of the entry matches at least one of the targets     | n (\*\*\*\*) |
-| key | change | `key` of the entry matches at least one of the keys | n (\*\*\*\*) |
-
-(\*) If a filter parameter is supplied, only changelog entries can be returned to which it is applicable. (e.g. combining `key` and `relType` can never yield a result as they are mutually exclusive)
-(\*\*) timeFrom/timeTo can be specified as a Long (time in ms since epoch), as a JavaScript Date object, or as a String with the format `yyyy-MM-dd'T'HH:mm:ssZ`
-(\*\*\*) The last supplied parameter takes precedence over the others
-(\*\*\*\*) The way we supply multiple occurrences of a keyword can differ from StructrScript to JavaScript
+|user|given user|no|
+|resolve|resolve user (default: `false`)|yes|
+|filterKey1|key1 (only StructrScript)|yes|
+|filterValue1|value1 (only StructrScript)|yes|
+|filterKey1|keyN (only StructrScript)|yes|
+|filterValue1|valueN (only StructrScript)|yes|
+|map|data map (only JavaScript)|yes|
 
 ### Notes
-- The Changelog has to be enabled for this function to work properly. This can be done via the `application.changelog.enabled` key in configuration file structr.conf
-- The `prev` and `val` keys in the `change` event contain JSON encoded elements since they can be strings or arrays.
-- In a StructrScript environment parameters are passed as pairs of `'filterKey1', 'filterValue1'`.
-- In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.
+- Functionally identical to the changelog() function - only the data source is different.
+- The User changelog has to be enabled for this function to work properly. This can be done via the application.changelog.user_centric.enabled key in configuration file structr.conf
 
 ### Signatures
 
@@ -7107,27 +7654,19 @@ userChangelog(user [, resolve=false [, filterKey, filterValue ]... ])
 ```
 
 ### Examples
-##### 1. (StructrScript) Return all changelog entries with verb=link
+##### Example 1 (StructrScript)
 ```
-${changelog(node, false, 'verb', 'link')}
+${userChangelog(current, false, 'verb', 'change', 'timeTo', now)}
 ```
-##### 2. (JavaScript) Return all changelog entries with verb=(link OR unlink)
+##### Example 2 (JavaScript)
 ```
-${{ $.changelog(node, false, {verb: ['link', 'unlink']}); }}
-```
-##### 3. (JavaScript) Return all changelog entries with (rel=OWNS) AND (verb=(link OR unlink))
-```
-${{ $.changelog(node, false, {verb: ['link', 'unlink'], 'relType': 'OWNS'}); }}
-```
-##### 4. (JavaScript) Return all changelog entries with (target=<NODEID>) AND (verb=(link OR unlink))
-```
-${{ $.changelog(node, false, {verb: ['link', 'unlink'], 'target': '<NODEID>'}); }}
+${{ $.userChangelog($.me, false, {verb:"change", timeTo: new Date()})) }}
 ```
 
 ## validateCertificates(boolean)
 Disables or enables strict certificate checking when performing a request in a scripting context. The setting remains for the whole request.
 
-Disables or enables certificate validation for outgoing requests. All subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` calls in the same request (meaning the request from the client to structr) will use the setting configured here.
+Disables or enables certificate validation for outgoing requests. All subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` calls in the same request (meaning the request from the client to Structr) will use the setting configured here.
 ### Notes
 - By default, certificate validation is always enabled - only in rare cases would/should it be necessary to change this behaviour
 

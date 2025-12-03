@@ -4,3 +4,4 @@
 4-System Types.md
 5-Services.md
 6-Maintenance Commands.md
+7-Settings.md
