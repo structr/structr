@@ -260,7 +260,7 @@ let _Documentation = {
 		});
 
 		// Make navigation link active
-		waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
+		_Helpers.waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
 			el.classList.add('active');
 		});
 

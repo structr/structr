@@ -131,6 +131,13 @@ document.addEventListener("DOMContentLoaded", () => {
 			Structr.openPropertiesDialogForUserProvidedUUID();
 		}
 
+		// Ctrl-Alt-o
+		if ((code === 'KeyO' || keyCode === 79) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+
+			Structr.navigateToDOMElementDialogForUserProvidedUUID();
+		}
+
 		// Ctrl-Alt-m
 		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
@@ -1554,7 +1561,6 @@ let Structr = {
 								builder.specialInteractionButton(`Go to code`, () => {
 
 									_Code.helpers.navigateToSchemaObjectFromAnywhere(obj);
-
 								});
 
 							} else {
@@ -1575,15 +1581,14 @@ let Structr = {
 									}
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
-
 								});
 							}
 
-							// show message
 							builder.show();
 						});
 
 					} else {
+
 						new WarningMessage().title('Server-side Scripting Error').text(getLocationTable(data)).requiresConfirmation().show();
 					}
 				}
@@ -1856,6 +1861,16 @@ let Structr = {
 			Command.get(uuid, null, (obj) => {
 				_Entities.showProperties(obj, null, true);
 			});
+		}).catch(e => {
+			if (typeof e !== 'string') {
+				console.warn(e);
+			}
+		});
+	},
+	navigateToDOMElementDialogForUserProvidedUUID: () => {
+
+		_Dialogs.readUUIDFromUser.showPromise('Enter the UUID of the DOM element which you want to select.<br>The pages section and the appropriate elements will be loaded.').then(uuid => {
+			_Pages.selectAndShowArbitraryDOMElement(uuid);
 		}).catch(e => {
 			if (typeof e !== 'string') {
 				console.warn(e);
