@@ -281,14 +281,12 @@ public class CronService extends Thread implements RunnableService {
 
 			@Override
 			public String getShortDescription() {
-				return "A service for periodic task scheduling.";
+				return "This service allows you to schedule periodic execution of built-in functions based on a pattern similar to the \"cron\" daemon on UNIX systems.";
 			}
 
 			@Override
 			public String getLongDescription() {
 				return """
-				This service allows you to schedule periodic execution of built-in functions based on a pattern similar to the "cron" daemon on UNIX systems.
-				
 				### How It Works
 				Scheduled tasks for the CronService are configured in `structr.conf`. The main configuration key is `CronService.tasks`. It accepts a whitespace-separated list of user-defined function names. These are the tasks that are registered with the CronService.
 

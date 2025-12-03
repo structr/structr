@@ -17,9 +17,6 @@ Sets the value of the <code>Access-Control-Expose-Headers</code> header.
 ## access.control.max.age
 Sets the value of the <code>Access-Control-Max-Age</code> header. Unit is seconds.
 
-## agentservice.active
-
-
 ## application.baseurl.override
 Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on
 
@@ -73,9 +70,6 @@ Whether indexing is enabled globally (can be controlled separately for each file
 
 ## application.filesystem.indexing.maxsize
 Maximum size (MB) of a file to be indexed
-
-## application.filesystem.mount.followsymlinks
-
 
 ## application.filesystem.unique.insertionposition
 Defines the insertion position of the uniqueness criterion (currently a timestamp).<dl><dt>start</dt><dd>prefixes the name with a timestamp</dd><dt>beforeextension</dt><dd>puts the timestamp before the last dot (or at the end if the name does not contain a dot)</dd><dt>end</dt><dd>appends the timestamp after the complete name</dd></dl>
@@ -149,18 +143,6 @@ Turns on logging for requested but non-existing localizations.
 ## application.localization.usefallbacklocale
 Turns on usage of fallback locale if for the current locale no localization is found
 
-## application.proxy.http.password
-
-
-## application.proxy.http.port
-
-
-## application.proxy.http.url
-
-
-## application.proxy.http.username
-
-
 ## application.proxy.mode
 Sets the mode of the proxy servlet. Possible values are 'disabled' (off, servlet responds with 503 error code), 'protected' (only authenticated requests allowed) and 'public' (anonymous requests allowed). Default is disabled.
 
@@ -199,9 +181,6 @@ Enables <b>Chrome</b> debugger initialization in scripting engine. The current d
 
 ## application.scripting.js.wrapinmainfunction
 Forces js scripts to be wrapped in a main function for legacy behaviour.
-
-## application.security.resolution.depth
-
 
 ## application.session.clear.onshutdown
 Clear all sessions on shutdown if set to true.
@@ -279,9 +258,6 @@ Validity period (in minutes) of the confirmation key generated during self regis
 ## confirmationkey.validwithouttimestamp
 How to interpret confirmation keys without a timestamp
 
-## cronservice.active
-
-
 ## cronservice.allowparallelexecution
 Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.
 
@@ -318,41 +294,8 @@ Unused
 ## data.exchange.path
 IMPORTANT: Path is relative to base.path
 
-## database.available.connections
-
-
 ## database.cache.uuid.size
 Size of the database driver relationship cache
-
-## database.connection.databasename
-
-
-## database.connection.name
-
-
-## database.connection.password
-
-
-## database.connection.url
-
-
-## database.connection.url.sample
-
-
-## database.connection.username
-
-
-## database.driver
-
-
-## database.driver.mode
-
-
-## database.neo4j.default.password
-
-
-## database.neo4j.default.username
-
 
 ## database.prefetching.maxcount
 How many results a prefetching query may return before prefetching will be deactivated for that query.
@@ -372,14 +315,8 @@ Forces Structr to use lazy evaluation for relationship queries
 ## database.result.softlimit
 Soft result count limit for a single query (can be overridden by setting the <code>_pageSize</code> request parameter or by adding the request parameter <code>_disableSoftLimit</code> to a non-null value)
 
-## database.tenant.identifier
-
-
 ## dateproperty.defaultformat
 Default ISO8601 date format pattern
-
-## default.database.driver
-
 
 ## deployment.data.export.nodes.batchsize
 Sets the batch size for data deployment when exporting nodes.<br><br>The relationships for each node are collected and exported while the node itself is exported. It can make sense to reduce this number, if all/most nodes have very high amount of relationships.
@@ -393,59 +330,11 @@ Sets the batch size for data deployment when importing relationships.
 ## deployment.schema.format
 Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.
 
-## deploymentservlet.authenticator
-
-
-## deploymentservlet.class
-
-
-## deploymentservlet.defaultview
-
-
 ## deploymentservlet.filegroup.name
 For unix based file systems only. Adds the group ownership to the created deployment files.
 
-## deploymentservlet.outputdepth
-
-
-## deploymentservlet.path
-
-
-## deploymentservlet.resourceprovider
-
-
-## deploymentservlet.user.autocreate
-
-
-## deploymentservlet.user.autologin
-
-
-## eventsourceservlet.authenticator
-
-
-## eventsourceservlet.class
-
-
-## eventsourceservlet.defaultview
-
-
-## eventsourceservlet.outputdepth
-
-
-## eventsourceservlet.path
-
-
-## eventsourceservlet.resourceprovider
-
-
 ## files.path
 Path to the Structr file storage folder
-
-## flowservlet.authenticator
-
-
-## flowservlet.class
-
 
 ## flowservlet.defaultview
 Default view to use when no view is given in the URL.
@@ -456,9 +345,6 @@ Maximum nesting depth of JSON output.
 ## flowservlet.path
 The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.
 
-## flowservlet.resourceprovider
-
-
 ## geocoding.apikey
 Geocoding configuration
 
@@ -468,44 +354,8 @@ Geocoding configuration
 ## geocoding.provider
 Geocoding configuration
 
-## healthcheckservlet.authenticator
-
-
-## healthcheckservlet.class
-
-
-## healthcheckservlet.defaultview
-
-
-## healthcheckservlet.outputdepth
-
-
-## healthcheckservlet.path
-
-
-## healthcheckservlet.resourceprovider
-
-
 ## healthcheckservlet.whitelist
 IP addresses in this list are allowed to access the health check endpoint at /structr/health.
-
-## histogramservlet.authenticator
-
-
-## histogramservlet.class
-
-
-## histogramservlet.defaultview
-
-
-## histogramservlet.outputdepth
-
-
-## histogramservlet.path
-
-
-## histogramservlet.resourceprovider
-
 
 ## histogramservlet.whitelist
 IP addresses in this list are allowed to access the query histogram endpoint at /structr/histogram.
@@ -537,9 +387,6 @@ Specifies the list of properties that are be used to resolve entities from URL p
 ## htmlservlet.resourceprovider
 FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.
 
-## httpservice.active
-
-
 ## httpservice.async
 Whether the HttpServices uses asynchronous request handling. Disable this option if you encounter problems with HTTP responses.
 
@@ -564,12 +411,6 @@ Use GZIP compression for HTTP transfers
 ## httpservice.httpbasicauth.enabled
 Enables HTTP Basic Auth support for pages and files
 
-## httpservice.lifecycle.listeners
-
-
-## httpservice.log.jetty.startupconfig
-
-
 ## httpservice.servlets
 Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.
 
@@ -578,15 +419,6 @@ Enables SNI host check.
 
 ## httpservice.sni.required
 Enables strict SNI check for the http service.
-
-## httpservice.ssl.ciphers.excluded
-
-
-## httpservice.ssl.protocols.excluded
-
-
-## httpservice.ssl.protocols.included
-
 
 ## httpservice.uricompliance
 	Configures the URI compliance for the Jetty server. This is simply passed down and is Jetty's own specification.
@@ -608,9 +440,6 @@ Enables strict SNI check for the http service.
 	</dl>
 
 	<br><strong>WARNING</strong>: Requires a restart (of at least the HttpService).
-
-
-## importer.inheritancedetection
 
 
 ## initialuser.create
@@ -730,17 +559,8 @@ Configures the default log level. Takes effect immediately.
 ## log.querytime.threshold
 Milliseconds after which a long-running query will be logged.
 
-## log.requests
-
-
 ## log.scriptprocess.commandline
 Configures the default logging behaviour for the command line generated for script processes. This applies to the exec()- and exec_binary() functions, as well as some processes handling media conversion or processing. For the exec() and exec_binary() function, this can be overridden for each call of the function.
-
-## loginservlet.authenticator
-
-
-## loginservlet.class
-
 
 ## loginservlet.defaultview
 Default view to use when no view is given in the URL.
@@ -751,15 +571,6 @@ Maximum nesting depth of JSON output.
 ## loginservlet.path
 The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.
 
-## loginservlet.resourceprovider
-
-
-## logoutservlet.authenticator
-
-
-## logoutservlet.class
-
-
 ## logoutservlet.defaultview
 Default view to use when no view is given in the URL.
 
@@ -768,9 +579,6 @@ Maximum nesting depth of JSON output.
 
 ## logoutservlet.path
 The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.
-
-## logoutservlet.resourceprovider
-
 
 ## maintenance.application.ftp.port
 FTP port the Structr server will listen on (if FtpService is enabled) in maintenance mode
@@ -793,32 +601,8 @@ Text for default maintenance page (HTML is allowed)
 ## maintenance.resource.path
 The local folder for static resources served in maintenance mode. If no path is provided the a default maintenance page with customizable text is shown in maintenance mode.
 
-## metricsservlet.authenticator
-
-
-## metricsservlet.class
-
-
-## metricsservlet.defaultview
-
-
-## metricsservlet.path
-
-
-## metricsservlet.resourceprovider
-
-
 ## metricsservlet.whitelist
 IP addresses in this list are allowed to access the health check endpoint at /structr/metrics.
-
-## nodeservice.active
-
-
-## nodeservice.start.retries
-
-
-## nodeservice.start.timeout
-
 
 ## oauth.auth0.accesstoken.location
 Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. 
@@ -988,9 +772,6 @@ Specifies the scope of the authentifcation.
 ## oauth.google.token_location
 URL of the token endpoint.
 
-## oauth.google.user_details_resource_uri
-
-
 ## oauth.linkedin.accesstoken.location
 Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. 
 
@@ -1030,35 +811,11 @@ Enables verbose logging for oauth login
 ## oauth.servers
 Space-separated List of available oauth services. Defaults to a list of all available services.
 
-## openapiservlet.authenticator
-
-
-## openapiservlet.class
-
-
-## openapiservlet.defaultview
-
-
-## openapiservlet.outputdepth
-
-
-## openapiservlet.path
-
-
-## openapiservlet.resourceprovider
-
-
 ## openapiservlet.server.title
 The main title of the OpenAPI server definition.
 
 ## openapiservlet.server.version
 The version number of the OpenAPI definition
-
-## pdfservlet.authenticator
-
-
-## pdfservlet.class
-
 
 ## pdfservlet.customresponseheaders
 List of custom response headers that will be added to every HTTP response
@@ -1075,38 +832,11 @@ The URI under which requests are accepted by the servlet. Needs to include a wil
 ## pdfservlet.resolveproperties
 Specifies the list of properties that are be used to resolve entities from URL paths.
 
-## pdfservlet.resourceprovider
-
-
-## proxyservlet.authenticator
-
-
-## proxyservlet.class
-
-
-## proxyservlet.defaultview
-
-
-## proxyservlet.outputdepth
-
-
-## proxyservlet.path
-
-
-## proxyservlet.resourceprovider
-
-
 ## registration.allowloginbeforeconfirmation
 Enables self-registered users to login without clicking the activation link in the registration email.
 
 ## registration.customuserattributes
 Attributes the registering user is allowed to provide. All other attributes are discarded. (eMail is always allowed)
-
-## registration.customuserclass
-
-
-## schemaservice.active
-
 
 ## security.authentication.propertykeys
 List of property keys separated by space in the form of <Type>.<key> (example: 'Member.memberId') to be used in addition to the default 'Principal.name Principal.eMail'
@@ -1198,9 +928,6 @@ Respected by the most recent Google Authenticator implementations. <i>Warning: C
 ## security.twofactorauthentication.issuer
 Must be URL-compliant in order to scan the created QR code
 
-## security.twofactorauthentication.level
-
-
 ## security.twofactorauthentication.loginpage
 The application page where the user enters the current two factor token
 
@@ -1213,26 +940,11 @@ Defines the period that a TOTP code will be valid for, in seconds.<br>Respected 
 ## security.twofactorauthentication.whitelistedips
 A comma-separated (,) list of IPs for which two factor authentication is disabled. Both IPv4 and IPv6 are supported. CIDR notation is also supported. (e.g. 192.168.0.1/24 or 2A01:598:FF30:C500::/64)
 
-## services.start.retries
-
-
-## services.start.timeout
-
-
-## setup.wizard.completed
-
-
 ## smtp.host
 Address of the SMTP server used to send e-mails
 
-## smtp.password
-
-
 ## smtp.port
 SMTP server port to use when sending e-mails
-
-## smtp.testing.only
-
 
 ## smtp.tls.enabled
 Whether to use TLS when sending e-mails
@@ -1240,26 +952,14 @@ Whether to use TLS when sending e-mails
 ## smtp.tls.required
 Whether TLS is required when sending e-mails
 
-## smtp.user
-
-
 ## superuser.password
 Password of the superuser
 
 ## superuser.username
 Name of the superuser
 
-## testing.connection.url
-
-
 ## tmp.path
 Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default
-
-## tokenservlet.authenticator
-
-
-## tokenservlet.class
-
 
 ## tokenservlet.defaultview
 Default view to use when no view is given in the URL.
@@ -1269,9 +969,6 @@ Maximum nesting depth of JSON output.
 
 ## tokenservlet.path
 The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.
-
-## tokenservlet.resourceprovider
-
 
 ## uploadservlet.allowanonymousuploads
 Allows anonymous users to upload files.

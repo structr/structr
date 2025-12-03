@@ -142,7 +142,10 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 			for (final org.structr.api.config.Setting setting : group.getSettings()) {
 
-				documentables.add(new SettingDocumentable(setting));
+				if (setting.getComment() != null) {
+
+					documentables.add(new SettingDocumentable(setting));
+				}
 			}
 		}
 	}
