@@ -116,7 +116,7 @@ public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 	@Override
 	public Set<PropertyKey> createPropertyKeys(final TraitsInstance traitsInstance) {
 
-		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(traitsInstance, MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL);
+		final Property<Iterable<NodeInterface>> membersProperty = new EndNodes(traitsInstance, MEMBERS_PROPERTY, StructrTraits.GROUP_CONTAINS_PRINCIPAL).description("members of the group, can be User or Group");
 		final Property<String> jwksReferenceIdProperty          = new StringProperty(JWKS_REFERENCE_ID_PROPERTY).indexed().unique();
 		final Property<String> nameProperty                     = new StringProperty(NodeInterfaceTraitDefinition.NAME_PROPERTY).indexed().notNull().unique();
 		final Property<Boolean> isGroupProperty                 = new ConstantBooleanProperty(IS_GROUP_PROPERTY, true);
