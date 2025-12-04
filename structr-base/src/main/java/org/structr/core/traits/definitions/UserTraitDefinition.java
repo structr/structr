@@ -175,7 +175,7 @@ public final class UserTraitDefinition extends AbstractNodeTraitDefinition {
 
 			if (!ValidationHelper.isValidStringNotBlank(user, nameKey, errorBuffer) && !ValidationHelper.isValidStringNotBlank(user, eMailKey, errorBuffer)) {
 
-				throw new FrameworkException(422, "Cannot create a user who has neither a name nor an email address", errorBuffer);
+				throw new FrameworkException(422, "A user must have a name or an email address", errorBuffer);
 			}
 
 			// check per-user licensing count

@@ -169,7 +169,7 @@ public class UserTest extends StructrUiTest {
 			.expect()
 			.statusCode(422)
 			.body("code", equalTo(422))
-			.body("message", equalTo("Cannot create a user who has neither a name nor an email address"))
+			.body("message", equalTo("A user must have a name or an email address"))
 			.body("errors[0].token",    equalTo("must_not_be_empty"))
 			.body("errors[0].type",     equalTo("User"))
 			.body("errors[0].property", equalTo("name"))
@@ -192,7 +192,7 @@ public class UserTest extends StructrUiTest {
 			final ErrorBuffer buffer = fex.getErrorBuffer();
 
 			assertEquals("Invalid error code", 422, fex.getStatus());
-			assertEquals("Invalid error message", "Cannot create a user who has neither a name nor an email address", fex.getMessage());
+			assertEquals("Invalid error message", "A user must have a name or an email address", fex.getMessage());
 
 			assertEquals("Invalid type in error token", "User", buffer.getErrorTokens().get(0).getType());
 			assertEquals("Invalid property in error token", "name", buffer.getErrorTokens().get(0).getProperty());
