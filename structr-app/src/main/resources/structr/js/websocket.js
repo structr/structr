@@ -180,7 +180,7 @@ let StructrWS = {
 
 		if (command === 'LOGIN' || code === 100) {
 
-			if (command === 'LOGIN' || !StructrWS.userId) {
+			if ((command === 'LOGIN' || !StructrWS.userId) && data.code < 400) {
                 let response = await fetch('/structr/rest/me');
                 let result   = await response.json();
 				StructrWS.userId = result.result.id;
