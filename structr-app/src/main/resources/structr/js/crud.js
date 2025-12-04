@@ -1352,6 +1352,15 @@ let _Crud = {
 				});
 			}
 		},
+		refreshWithNewValue: (id, key, type, value) => {
+
+			let cells = _Crud.objectList.getCellsForKeyInObject(id, key);
+
+			for (let cell of cells) {
+				_Helpers.fastRemoveAllChildren(cell[0]);
+				_Crud.objectList.populateCell(id, key, type, value, cell);
+			}
+		},
 		activateTextInputField: (el, id, key, propertyType) => {
 
 			var oldValue = el.text();
