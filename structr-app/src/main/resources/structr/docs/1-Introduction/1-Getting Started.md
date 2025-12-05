@@ -180,7 +180,7 @@ After installation (for Docker or manual setup), you'll need to go through the i
 
 Navigate to [http://localhost:8082/structr](http://localhost:8082/structr) which will redirect you to the configuration wizard at [http://localhost:8082/structr/config](http://localhost:8082/structr/config).
 
-![Enter a superuser password](initial-configuration-superuser-password.png)
+![Enter a superuser password](config_set-superuser-password.png)
 
 > **Note:** Choose a strong password - this is your system administrator account with full access to all Structr features. After the first call, the configuration tool is secured with this password. If you have forgotten the password, you can only obtain it as a system administrator at the operating system level from structr.conf.
 
