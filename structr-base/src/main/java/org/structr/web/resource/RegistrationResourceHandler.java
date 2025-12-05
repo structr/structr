@@ -113,9 +113,11 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 				if (userNode != null) {
 
 					// For existing users, update confirmation key
-					user.setProperty(confKeyKey, confKey);
+					userNode.setProperty(confKeyKey, confKey);
 
 					existingUser = true;
+
+					user = userNode.as(User.class);
 
 				} else {
 
