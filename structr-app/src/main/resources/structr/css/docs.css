@@ -30,7 +30,7 @@
     overflow: auto;
     height: calc(100vh - 8rem);
     width: 20%;
-    min-width: 12rem;
+    min-width: 16rem;
 }
 
 #docs-area nav a {
@@ -227,7 +227,8 @@
 }
 
 .index {
-    min-width: 10rem;
+    width: 20%;
+    min-width: 16rem;
     overflow: auto;
     height: calc(100vh - 10rem);
     padding: 1.75rem 1rem 2rem 1rem;
@@ -254,8 +255,14 @@
     color: var(--structr-green);
 }
 
-.index p, .index ul, .index ol, .index code, .index pre, .index blockquote, .index h1, .index h5, .index h6, .index h7 {
+.index p, .index ul, .index ol, .index code, .index pre, .index blockquote, .index h1, .index h3, .index h4, .index h5, .index h6, .index h7, .index dl {
     display: none;
+}
+
+index h2, .index h3 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .index h1 {
