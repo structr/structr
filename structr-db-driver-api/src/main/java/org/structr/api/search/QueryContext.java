@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,7 @@ public class QueryContext {
 	private boolean deferred           = false;
 	private boolean isSuperuser        = false;
 	private boolean sliced             = false;
+	private boolean prefetch           = false;
 	private int overriddenFetchSize    = -1;
 	private int skip                   = -1;
 	private int limit                  = -1;
@@ -127,5 +128,9 @@ public class QueryContext {
 
 		this.overriddenFetchSize = newFetchSize;
 		this.overridesFetchSize  = true;
+	}
+
+	public void prefetch() {
+		this.prefetch = true;
 	}
 }

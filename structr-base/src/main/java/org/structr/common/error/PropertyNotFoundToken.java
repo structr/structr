@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a required object could not be found.
  *
@@ -27,7 +25,10 @@ import org.structr.core.property.PropertyKey;
  */
 public class PropertyNotFoundToken extends SemanticErrorToken {
 
-	public PropertyNotFoundToken(final String type, final PropertyKey key, Object value) {
-		super(type, key, "object_not_found", value);
+	public PropertyNotFoundToken(final String type, final String propertyKey, Object value) {
+
+		super(type, propertyKey, "object_not_found");
+
+		withDetail(value);
 	}
 }

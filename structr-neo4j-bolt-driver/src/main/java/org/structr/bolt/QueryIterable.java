@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.bolt;
 
 import org.neo4j.driver.Record;
-import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
 
 import java.util.Iterator;
 
@@ -27,10 +26,10 @@ import java.util.Iterator;
  */
 public class QueryIterable implements Iterable<Record> {
 
-	private BoltDatabaseService db    = null;
-	private AdvancedCypherQuery query = null;
+	private BoltDatabaseService db = null;
+	private CypherQuery query      = null;
 
-	public QueryIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+	public QueryIterable(final BoltDatabaseService db, final CypherQuery query) {
 		this.query = query;
 		this.db    = db;
 	}
@@ -39,8 +38,9 @@ public class QueryIterable implements Iterable<Record> {
 	public Iterator<Record> iterator() {
 
 		final SessionTransaction tx = db.getCurrentTransaction();
-		final Flux<Record> flux     = (Flux<Record>)tx.collectRecords(query.getStatement(true), query.getParameters(), null);
 
-		return flux.toIterable().iterator();
+		tx.setIsPing(query.getQueryContext().isPing());
+
+		return tx.collectRecords(query, null).iterator();
 	}
 }

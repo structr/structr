@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,7 @@ package org.structr.web.common;
  */
 public class StringRenderBuffer extends AsyncBuffer {
 
-	private StringBuilder buf = new StringBuilder();
+	private final StringBuilder buf = new StringBuilder();
 
 	@Override
 	public AsyncBuffer append(final String s) {

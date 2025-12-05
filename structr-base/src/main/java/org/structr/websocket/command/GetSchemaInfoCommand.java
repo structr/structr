@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,10 +20,8 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
 import org.structr.websocket.StructrWebSocket;
@@ -50,20 +48,13 @@ public class GetSchemaInfoCommand extends AbstractCommand {
 		try {
 
 			final String type = webSocketData.getNodeDataStringValue("type");
-
 			if (type != null) {
 
-				Class typeClass = StructrApp.getConfiguration().getNodeEntityClass(type);
-				if (typeClass == null) {
-
-					typeClass = StructrApp.getConfiguration().getRelationshipEntityClass(type);
-				}
-
-				webSocketData.setResult(Iterables.toList(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), type, typeClass, PropertyView.All)));
+				webSocketData.setResult(SchemaTypeResource.getSchemaTypeResult(getWebSocket().getSecurityContext(), type, PropertyView.All));
 
 			} else {
 
-				webSocketData.setResult(Iterables.toList(SchemaResource.getSchemaOverviewResult()));
+				webSocketData.setResult(SchemaResource.getSchemaOverviewResult());
 			}
 
 			// send only over local connection (no broadcast)

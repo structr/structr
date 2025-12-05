@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,10 +25,15 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.StructrScriptException;
+import org.structr.core.script.polyglot.function.DoAsFunction;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
+import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
+import org.structr.docs.Documentable;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -43,33 +48,22 @@ import java.util.*;
 public class Functions {
 
 	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
+	private static final Set<Function<Object, Object>> allFunctions      = new LinkedHashSet<>();
 	private static final Map<String, Function<Object, Object>> functions = new LinkedHashMap<>();
 
 	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function) {
-
-		final boolean licensed = (licenseManager == null || licenseManager.isModuleLicensed(function.getRequiredModule()));
-
-		registerFunction(licensed, function.getName(), function);
-
-		function.aliases().forEach(alias -> {
-			registerFunction(licensed, alias, function);
-		});
+		Functions.put(licenseManager, function, true);
 	}
 
-	private static void registerFunction(final boolean licensed, final String name, final Function<Object, Object> function) {
+	public static void put(final LicenseManager licenseManager, final Function<Object, Object> function, final boolean warnUnregistered) {
 
-		if (functions.containsKey(name)) {
-			logger.warn("A function named '{}' is already registered! The previous function will be overwritten with this one.", name);
-		}
+		allFunctions.add(function);
 
-		if (licensed) {
+		functions.put(function.getName(), function);
 
-			functions.put(name, function);
-
-		} else {
-
-			functions.put(name, new UnlicensedFunction(name, function.getRequiredModule()));
-		}
+		function.aliases().forEach(alias -> {
+			functions.put(alias, function);
+		});
 	}
 
 	public static Set<String> getNames() {
@@ -95,6 +89,14 @@ public class Functions {
 
 	public static Collection<Function<Object, Object>> getFunctions() {
 		return new LinkedList<>(functions.values());
+	}
+
+	public static void refresh(final LicenseManager manager) {
+
+		for (final Function<Object, Object> function : allFunctions) {
+
+			Functions.put(manager, function, false);
+		}
 	}
 
 	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
@@ -296,6 +298,23 @@ public class Functions {
 		return result;
 	}
 
+	public static void addExpressions(final List<Documentable> functions) {
+
+		functions.add(new DoInNewTransactionFunction(null, null));
+		functions.add(new DoPrivilegedFunction(null));
+		functions.add(new DoAsFunction(null));
+		functions.add(new CacheExpression(0, 0));
+		functions.add(new IfExpression(0, 0));
+		functions.add(new IsExpression(0, 0));
+		functions.add(new EachExpression(0, 0));
+		functions.add(new FilterExpression(0, 0));
+		functions.add(new MapExpression(0, 0));
+		functions.add(new ReduceExpression(0, 0));
+		functions.add(new AnyExpression(0, 0));
+		functions.add(new AllExpression(0, 0));
+		functions.add(new NoneExpression(0, 0));
+	}
+
 	// ----- private methods -----
 	private static Expression checkReservedWords(final String word, final int level, final Map<Integer, String> namespace, final int row, final int column) throws FrameworkException {
 
@@ -333,10 +352,7 @@ public class Functions {
 				return new ReduceExpression(row, column);
 
 			case "slice":
-				return new SliceExpression(row, column);
-
-			case "batch":
-				return new BatchExpression(row, column);
+				throw new FrameworkException(422, "The slice() function is not supported any more, please use the page() predicate which does exactly the same, but with database support.");
 
 			case "data":
 				return new ValueExpression("data", row, column);
@@ -356,7 +372,7 @@ public class Functions {
 		}
 
 		// no match, try functions
-		final Function<Object, Object> function = getNamespacedFunction(word, namespace.values());
+		final Function<Object, Object> function = getNamespacedFunction(CaseHelper.toCamelCase(word), namespace.values());
 		if (function != null) {
 
 			final String namespaceIdentifier = function.getNamespaceIdentifier();
@@ -399,13 +415,13 @@ public class Functions {
 
 	private static class StructrScriptTokenizer {
 
-		private List<Tokenizer> candidates = new LinkedList<>();
+		private static final List<Tokenizer> candidates = new LinkedList<>();
 		private List<Token> tokens         = new LinkedList<>();
 		private Tokenizer currentToken     = null;
 		private int column                 = 1;
 		private int row                    = 1;
 
-		public StructrScriptTokenizer() {
+		static {
 
 			candidates.add(new Identifier());
 			candidates.add(new SingleCharacter((char)9));  // tab
@@ -430,6 +446,7 @@ public class Functions {
 			int count          = 0;
 			int i              = 0;
 
+			// FIXME: does this mean StructrScript expressions can only be 1000 characters long?!
 			while (i < length && count++ < 1000) {
 
 				while (i < length && currentToken != null && currentToken.accept(chars[i])) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,8 @@
 package org.structr.module;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.*;
 import org.structr.core.function.search.*;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
@@ -33,7 +30,7 @@ import java.util.Set;
 public class AdvancedScriptingModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override
@@ -47,6 +44,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new ChangelogFunction());
 		Functions.put(licenseManager, new UserChangelogFunction());
 		Functions.put(licenseManager, new ServerLogFunction());
+		Functions.put(licenseManager, new GetAvailableServerLogsFunction());
 
 		Functions.put(licenseManager, new GrantFunction());
 		Functions.put(licenseManager, new RevokeFunction());
@@ -77,6 +75,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new InstantiateFunction());
 
 		Functions.put(licenseManager, new PropertyInfoFunction());
+		Functions.put(licenseManager, new FunctionInfoFunction());
 		Functions.put(licenseManager, new TypeInfoFunction());
 		Functions.put(licenseManager, new EnumInfoFunction());
 		Functions.put(licenseManager, new StructrEnvFunction());
@@ -100,8 +99,9 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new SetEncryptionKeyFunction());
 		Functions.put(licenseManager, new EncryptFunction());
 		Functions.put(licenseManager, new DecryptFunction());
+		Functions.put(licenseManager, new LoginFunction());
 
-		Functions.put(licenseManager, new RangeFunction());
+		Functions.put(licenseManager, new FindRangeFunction());
 		Functions.put(licenseManager, new FindWithinDistanceFunction());
 		Functions.put(licenseManager, new FindEmptyFunction());
 		Functions.put(licenseManager, new FindEqualsFunction());
@@ -113,6 +113,10 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new FindPageFunction());
 		Functions.put(licenseManager, new FindStartsWithFunction());
 		Functions.put(licenseManager, new FindEndsWithFunction());
+		Functions.put(licenseManager, new FindLtFunction());
+		Functions.put(licenseManager, new FindLteFunction());
+		Functions.put(licenseManager, new FindGteFunction());
+		Functions.put(licenseManager, new FindGtFunction());
 	}
 
 	@Override
@@ -122,28 +126,11 @@ public class AdvancedScriptingModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

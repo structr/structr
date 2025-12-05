@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,50 +18,27 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Set;
 
 /**
  * Indicates that a specific property value already exists in the database.
- *
- *
  */
 public class CompoundToken extends ErrorToken {
 
-	private PropertyKey[] keys = null;
+	public CompoundToken(final String type, final Set<PropertyKey> keys, final String uuid) {
 
-	public CompoundToken(final String type, final PropertyKey[] keys, final String uuid) {
+		super("already_taken");
 
-		super(type, null, "already_taken", uuid);
+		withType(type);
+		withDetail(uuid);
 
-		this.keys = keys;
+		with("keys", keys);
 	}
 
 	@Override
 	public Object getValue() {
-		return keys;
-	}
-
-	@Override
-	public JsonObject toJSON() {
-
-		final JsonObject token = new JsonObject();
-		final JsonArray array  = new JsonArray();
-
-		// add all keys that form the compound index
-		for (final PropertyKey key : keys) {
-			array.add(new JsonPrimitive(key.jsonName()));
-		}
-
-		token.add("type",       getStringOrNull(getType()));
-		token.add("properties", array);
-		token.add("token",      getStringOrNull(getToken()));
-
-		// optional
-		addIfNonNull(token, "detail", getObjectOrNull(getDetail()));
-
-		return token;
+		return data.get("keys");
 	}
 }

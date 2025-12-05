@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.config.Settings;
 import org.structr.rest.servlet.MetricsServlet;
+
 import java.io.IOException;
 
 /**
@@ -49,7 +50,11 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 
         	try {
 
-			chain.doFilter(request, response);
+		        chain.doFilter(request, response);
+
+	        } catch (Throwable t) {
+
+			t.printStackTrace();
 
 		} finally {
 
@@ -66,7 +71,7 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 			if (path != null) {
 
 				// replace UUIDs with placeholder string to avoid polluting the stats
-				path = path.replaceAll(Settings.getValidUUIDRegexString(), "<uuid>");
+				path = path.replaceAll(Settings.getValidUUIDRegexStringForURLParts(), "<uuid>");
 
 				buf.append(path);
 			}

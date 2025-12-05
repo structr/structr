@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.schema.openapi.operation;
 
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -57,8 +59,8 @@ public class OpenAPITokenOperation extends LinkedHashMap<String, Object> {
 					new OpenAPISchemaReference("RefreshTokenLoginBody")
 				),
 				Map.of(
-					"name",	 "admin",
-					"password", "admin"
+					NodeInterfaceTraitDefinition.NAME_PROPERTY, "admin",
+					PrincipalTraitDefinition.PASSWORD_PROPERTY, "admin"
 				)
 			),
 

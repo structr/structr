@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,10 +24,10 @@ import java.util.Iterator;
 
 public class LazyRecordIterable implements Iterable<Record> {
 
-	private AdvancedCypherQuery query = null;
+	private CypherQuery query = null;
 	private BoltDatabaseService db    = null;
 
-	public LazyRecordIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+	public LazyRecordIterable(final BoltDatabaseService db, final CypherQuery query) {
 		this.query = query;
 		this.db    = db;
 	}

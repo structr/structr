@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,23 +22,26 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 
 public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER    = "Usage: ${get_request_header(name)}. Example: ${get_request_header('User-Agent')}";
-	public static final String ERROR_MESSAGE_GET_REQUEST_HEADER_JS = "Usage: ${{Structr.getRequestHeader(name)}}. Example: ${{Structr.getRequestHeader('User-Agent')}}";
-
 	@Override
 	public String getName() {
-		return "get_request_header";
+		return "getRequestHeader";
 	}
 
 	@Override
-	public String getSignature() {
-		return "name";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override
@@ -75,12 +78,36 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_REQUEST_HEADER_JS : ERROR_MESSAGE_GET_REQUEST_HEADER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getRequestHeader(name)}. Example: ${getRequestHeader('User-Agent')}"),
+			Usage.javaScript("Usage: ${{ $.getRequestHeader(name) }}. Example: ${{ $.getRequestHeader('User-Agent')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the value of the given request header field";
+	public String getShortDescription() {
+		return "Returns the value of the given request header field.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function can be used both in Entity Callback Functions and in the Page Rendering process to obtain the value of a given HTTP header, allowing the user to use HTTP headers from their web application clients to control features of the application.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getRequestHeader('User-Agent')}"),
+				Example.javaScript("${{ $.getRequestHeader('User-Agent') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("name", "name of request header field")
+				);
 	}
 }

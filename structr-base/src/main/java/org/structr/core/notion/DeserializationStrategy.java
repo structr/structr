@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
- * Defines a strategy for deserializing a {@link GraphObject} from an input
+ * Defines a strategy for deserializing a {@link org.structr.core.GraphObject} from an input
  * object.
  *
  *
@@ -41,9 +41,9 @@ import java.util.Set;
  */
 public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 
-	public abstract T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException;
+	public abstract T deserialize(final SecurityContext securityContext, String type, S source, final Object context) throws FrameworkException;
 
-	public abstract void setRelationProperty(final RelationProperty<S> parentProperty);
+	public abstract void setRelationProperty(final RelationProperty parentProperty);
 
 	protected void setProperties(final SecurityContext securityContext, final GraphObject obj, final PropertyMap properties) throws FrameworkException {
 

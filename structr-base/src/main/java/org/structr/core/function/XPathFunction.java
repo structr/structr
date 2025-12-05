@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,15 +21,17 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 
 import javax.xml.namespace.QName;
 import javax.xml.xpath.*;
+import java.util.List;
 
 public class XPathFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_XPATH = "Usage: ${xpath(xmlDocument, expression, returnType)}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\" [, \"STRING\"])}";
 
 	@Override
 	public String getName() {
@@ -37,8 +39,8 @@ public class XPathFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "document, xpath [, returnType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("document, xpath [, returnType ]");
 	}
 
 	@Override
@@ -87,12 +89,56 @@ public class XPathFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_XPATH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${xpath(xmlDocument, expression [, returnType ])}. Example: ${xpath(xml(this.xmlSource), \"/test/testValue\", \"STRING\")}"),
+			Usage.javaScript("Usage: ${{ $.xpath(xmlDocument, expression [, returnType ]) }}. Example: ${{ $.xpath(xml($.this.xmlSource), '/test/testValue', 'STRING') }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the value of the given XPath expression from the given XML DOM. The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING.";
+	public String getShortDescription() {
+		return "Returns the value of the given XPath expression from the given XML document.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The optional third parameter defines the return type, possible values are: NUMBER, STRING, BOOLEAN, NODESET, NODE, default is STRING. This function can be used in conjunction with `xml()` to extract data from an XML document.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let xmlString = `
+					<xml>
+						<projects>
+							<project name="Project 1">
+								<budget>100</budget>
+							</project>
+							<project name="Project 2">
+								<budget>500</budget>
+							</project>
+							<project name="Project 3">
+								<budget>750</budget>
+							</project>
+						</projects>
+					</xml>`;
+
+					let xmlDocument  = $.xml(xmlString);
+					let projectCount = $.xpath(xmlDocument, "count(/xml/projects/project)", "NUMBER");
+
+					const projectData = [...Array(projectCount).keys()].map(i => {
+						return {
+							name:   $.xpath(xmlDocument, `/xml/projects/project[${i+1}]/@name`, "STRING"),
+							budget: $.xpath(xmlDocument, `/xml/projects/project[${i+1}]/budget`, "NUMBER"),
+						}
+					});
+
+					return projectData;
+				}
+				""", "Read project information from XML and convert it to JSON.")
+		);
 	}
 }

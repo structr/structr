@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,26 +18,73 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.docs.*;
+
+import java.util.List;
+
 public class TypeNameHint extends AbstractHint {
 
-    public TypeNameHint(final String name, final String simpleTypeName) {
+	private final String simpleTypeName;
+	private final String name;
 
-        this.name          = name;
-        this.documentation = simpleTypeName;
-    }
+	public TypeNameHint(final String name, final String simpleTypeName) {
 
-    @Override
-    public String getName() {
-        return name;
-    }
+		this.name           = name;
+		this.simpleTypeName = simpleTypeName;
+	}
 
-    @Override
-    public String getDocumentation() {
-        return "Schema type **" + this.documentation + "**";
-    }
+	@Override
+	public String getName() {
+		return name;
+	}
 
-    @Override
-    public String getType() {
-        return "Type name";
-    }
+	@Override
+	public String getShortDescription() {
+		return "Schema type **" + simpleTypeName + "**";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> createMarkdownDocumentation() {
+		return List.of(getShortDescription());
+	}
+
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.TypeName;
+	}
 }

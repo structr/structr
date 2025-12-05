@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,24 +26,27 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class IsInGroupFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${is_in_group(group, principal [, checkHierarchy = false ])}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.isInGroup(group, principal [, checkHierarchy = false ]);}}";
-
 	@Override
 	public String getName() {
-		return "is_in_group";
+		return "isInGroup";
 	}
 
 	@Override
-	public String getSignature() {
-		return "group, user [, checkHierarchy = false ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("group, user [, checkHierarchy = false ]");
 	}
 
 	@Override
@@ -53,11 +56,11 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 2, 3);
 
-			if (!(sources[0] instanceof Group)) {
+			if (!(sources[0] instanceof NodeInterface g && g.is(StructrTraits.GROUP))) {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof Principal)) {
+			} else if (!(sources[1] instanceof NodeInterface p && p.is(StructrTraits.PRINCIPAL))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 
@@ -69,9 +72,9 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 				boolean checkHierarchy = (sources.length > 2 && sources[2] instanceof Boolean) ? (boolean) sources[2] : false;
 
-				final RelationshipType type = StructrApp.getInstance().getDatabaseService().forName(RelationshipType.class, "CONTAINS");
-				final Group group           = (Group)sources[0];
-				final Principal principal   = (Principal)sources[1];
+				final RelationshipType type = StructrApp.getInstance().getDatabaseService().getRelationshipType("CONTAINS");
+				final Group group           = ((NodeInterface)sources[0]).as(Group.class);
+				final Principal principal   = ((NodeInterface)sources[1]).as(Principal.class);
 
 				return principalInGroup(new HashSet<>(), group, principal, type, checkHierarchy);
 			}
@@ -94,7 +97,7 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 
 		if (!isInGroup && checkHierarchy) {
 
-			for (final Group principalGroup : principal.getGroups()) {
+			for (final Group principalGroup : principal.getParents()) {
 
 				if (!isInGroup && !seenGroups.contains(principalGroup.getUuid())) {
 
@@ -109,12 +112,30 @@ public class IsInGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${isInGroup(group, principal [, checkHierarchy = false ])}"),
+			Usage.javaScript("Usage: ${{ $.isInGroup(group, principal [, checkHierarchy = false ]);}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if a user is in the given group. If the optional parameter checkHierarchy is set to false, only a direct group membership is checked. Otherwise the group hierarchy is checked.";
+	public String getShortDescription() {
+		return "Returns true if the given user is in the given group.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "If the optional parameter `checkHierarchy` is set to `false`, only a direct group membership is checked. Otherwise, the full group hierarchy will be checked.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("group", "group to check membership"),
+			Parameter.mandatory("principal", "principal whose membership will be checked"),
+			Parameter.optional("checkHierarchy", "set to `false` to only check direct membership")
+		);
 	}
 }

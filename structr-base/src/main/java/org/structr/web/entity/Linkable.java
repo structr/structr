@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,38 +18,14 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
 
 /**
  *
  */
 public interface Linkable extends NodeInterface {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Linkable");
-
-		type.setIsInterface();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Linkable"));
-		type.setCategory("ui");
-
-		type.addBooleanProperty("enableBasicAuth", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
-		type.addStringProperty("basicAuthRealm",   PropertyView.Ui);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Ui, "linkingElements");
-		type.addViewProperty(PropertyView.Ui, "linkingElementsIds");
-	}}
-
 	boolean getEnableBasicAuth();
 	String getBasicAuthRealm();
-
-	public String getPath();
+	String getPath();
 }

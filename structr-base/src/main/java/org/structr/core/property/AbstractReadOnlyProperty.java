@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -72,7 +72,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, final T value) throws FrameworkException {
-		throw new FrameworkException(422, "Property " + jsonName() + " is read-only", new ReadOnlyPropertyToken(obj.getClass().getSimpleName(), this));
+		throw new FrameworkException(422, "Property ‛" + jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(obj.getClass().getSimpleName(), jsonName));
 	}
 
 	@Override
@@ -86,7 +86,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
@@ -107,6 +107,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 		openApiTypeMap.put("double", "number");
 
 		if (valueType != null) {
+
 			String simpleName = valueType.getSimpleName().toLowerCase();
 
 			if (openApiTypeMap.containsKey(simpleName)) {

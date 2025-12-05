@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,115 +18,34 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.FlowResult;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowEngine;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowCallContainer;
-import org.structr.flow.impl.rels.FlowCallParameter;
-import org.structr.flow.impl.rels.FlowDataInput;
+import org.structr.flow.traits.definitions.FlowCallTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+public class FlowCall extends FlowAction implements DeployableEntity, ThrowingElement {
 
-public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
+	public FlowCall(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	private static final Logger logger 									= LoggerFactory.getLogger(FlowCall.class);
+	public final Iterable<FlowParameterInput> getParameters() {
 
-	public static final Property<Iterable<FlowBaseNode>> dataTarget       = new EndNodes<>("dataTarget", FlowDataInput.class);
-	public static final Property<Iterable<FlowParameterInput>> parameters = new StartNodes<>("parameters", FlowCallParameter.class);
-	public static final Property<FlowContainer> flow                      = new EndNode<>("flow", FlowCallContainer.class);
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowCallTraitDefinition.PARAMETERS_PROPERTY));
 
-	public static final View defaultView 								= new View(FlowCall.class, PropertyView.Public, flow, dataTarget, parameters, isStartNodeOfContainer);
-	public static final View uiView      								= new View(FlowCall.class, PropertyView.Ui,     flow, dataTarget, parameters, isStartNodeOfContainer, flowContainer);
+		return Iterables.map(n -> n.as(FlowParameterInput.class), nodes);
+	}
 
-	@Override
-	public void execute(Context context) throws FlowException {
+	public final FlowContainer getFlow() {
 
-		final List<FlowParameterInput> params = Iterables.toList(getProperty(parameters));
-		final FlowContainer flow              = getProperty(FlowCall.flow);
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowCallTraitDefinition.FLOW_PROPERTY));
+		if (node != null) {
 
-		if (flow != null) {
-
-			Context functionContext = new Context(context.getThisObject());
-
-			final FlowEngine engine = new FlowEngine(functionContext);
-			FlowNode startNode = flow.getProperty(FlowContainer.startNode);
-
-			if (startNode != null) {
-
-				// Inject all parameters into context
-				if (params != null && params.size() > 0) {
-					for (FlowParameterInput p : params) {
-						p.process(context, functionContext);
-					}
-				}
-
-				try {
-					final FlowResult result = engine.execute(functionContext, startNode);
-
-					// Save result
-					context.setData(getUuid(), result.getResult());
-
-					if (result.getError() != null) {
-
-						throw new FrameworkException(422, "FlowCall encountered an unexpected exception during execution." + result.getError().getMessage());
-					}
-				} catch (FrameworkException ex) {
-
-					throw new FlowException(ex, this);
-				}
-
-			} else {
-
-				logger.warn("Unable to evaluate FlowCall {}, flow container doesn't specify a start node.", getUuid());
-			}
-
-			// TODO: handle error
-
-		} else {
-
-			logger.warn("Unable to evaluate FlowCall {}, missing flow container.", getUuid());
+			return node.as(FlowContainer.class);
 		}
 
-	}
-
-	@Override
-	public Object get(Context context) throws FlowException {
-		if (!context.hasData(getUuid())) {
-			this.execute(context);
-		}
-		return context.getData(getUuid());
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
-
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
-
-		return result;
-	}
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
 		return null;
 	}
 }

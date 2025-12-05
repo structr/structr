@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,22 +18,24 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.action.ActionContext;
 
-public class ConfirmationKeyFunction extends UiCommunityFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_CONFIRMATION_KEY    = "Usage: ${confirmation_key()}. Example: ${confirmation_key()}";
-	public static final String ERROR_MESSAGE_CONFIRMATION_KEY_JS = "Usage: ${{Structr.confirmation_key()}}. Example: ${{Structr.confirmation_key()}}";
+public class ConfirmationKeyFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "confirmation_key";
+		return "confirmationKey";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -43,12 +45,20 @@ public class ConfirmationKeyFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CONFIRMATION_KEY_JS : ERROR_MESSAGE_CONFIRMATION_KEY);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${confirmationKey()}. Example: ${confirmationKey()}"),
+			Usage.javaScript("Usage: ${{ $.confirmationKey() }}. Example: ${{ $.confirmationKey() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Creates a confirmation key to use as a one-time token. Used for user confirmation or password reset.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

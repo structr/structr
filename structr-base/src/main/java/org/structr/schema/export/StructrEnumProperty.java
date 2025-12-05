@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,21 +19,9 @@
 package org.structr.schema.export;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonEnumProperty;
-import org.structr.api.schema.JsonProperty;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.schema.SchemaService;
 
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -46,10 +34,7 @@ import java.util.Set;
  */
 public class StructrEnumProperty extends StructrStringProperty implements JsonEnumProperty {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrEnumProperty.class);
-
 	protected Set<String> enums = new LinkedHashSet<>();
-	protected String fqcn       = null;
 
 	public StructrEnumProperty(final StructrTypeDefinition parent, final String name) {
 
@@ -57,17 +42,11 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 	}
 
 	@Override
-	public JsonEnumProperty setEnumType(final Class type) {
+	public JsonEnumProperty setFormat(final String format) {
 
-		this.fqcn = type.getName().replace("$", ".");
+		super.setFormat(format);
 
-		return this;
-	}
-
-	@Override
-	public JsonEnumProperty setEnums(String... values) {
-
-		for (final String value : values) {
+		for (final String value : format.split("[, ]+")) {
 			enums.add(value.trim());
 		}
 
@@ -84,15 +63,7 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 		final Map<String, Object> map = super.serialize();
 
-		if (fqcn != null) {
-
-			map.put(JsonSchema.KEY_FQCN, fqcn);
-
-		} else {
-
-			map.put(JsonSchema.KEY_ENUM, enums);
-		}
-
+		map.put(JsonSchema.KEY_ENUM, enums);
 		map.remove(JsonSchema.KEY_FORMAT);
 
 		return map;
@@ -104,71 +75,11 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		super.deserialize(source);
 
 		final List<String> enumValues = getListOrNull(source.get(JsonSchema.KEY_ENUM));
-		final Object typeValue        = source.get(JsonSchema.KEY_FQCN);
 
 		if (enumValues != null && !enumValues.isEmpty()) {
 
 			enums.addAll((List)enumValues);
-
-		} else if (typeValue != null && typeValue instanceof String) {
-
-			this.fqcn = typeValue.toString();
-
-		} else {
-
-			logger.warn("Missing enum values of {}.{}, trying to find information in the local schema.", this.parent.getName(), this.name);
-
-			final String typeName = this.parent.getName();
-			if (typeName != null) {
-
-				final JsonSchema builtInSchema = SchemaService.getDynamicSchema();
-				final JsonType type            = builtInSchema.getType(typeName);
-
-				if (type != null) {
-
-					final Set<JsonProperty> properties = type.getProperties();
-					for (final JsonProperty prop : properties) {
-
-						if (this.name.equals(prop.getName())) {
-
-							if (prop instanceof StructrEnumProperty) {
-
-								StructrEnumProperty e = (StructrEnumProperty)prop;
-
-								this.fqcn = e.fqcn;
-							}
-						}
-					}
-				}
-			}
-
-			if (this.fqcn == null) {
-				throw new IllegalStateException("Missing enum values for property " + name);
-			}
 		}
-	}
-
-	@Override
-	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaProperty schemaProperty) {
-
-		super.deserialize(schemaNodes, schemaProperty);
-
-		setEnums(schemaProperty.getEnumDefinitions().toArray(new String[0]));
-
-		this.fqcn = schemaProperty.getFqcn();
-	}
-
-	@Override
-	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
-
-		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
-		final PropertyMap properties  = new PropertyMap();
-
-		properties.put(SchemaProperty.fqcn, this.fqcn);
-
-		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
-
-		return property;
 	}
 
 	@Override

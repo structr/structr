@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,12 @@ package org.structr.core.script;
 import org.structr.common.error.AssertException;
 
 public class AlreadyLoggedAssertException extends AssertException {
-    public AlreadyLoggedAssertException(final String message, final int statusCode) {
-        super(message, statusCode);
-    }
 
-    public AlreadyLoggedAssertException(final AssertException ex) {
-        super(ex.getMessage(), ex.getStatus());
-    }
+	public AlreadyLoggedAssertException(final String message, final int statusCode) {
+		super(message, statusCode);
+	}
+
+	public AlreadyLoggedAssertException(final AssertException ex) {
+		super(ex.getMessage(), ex.getStatus());
+	}
 }

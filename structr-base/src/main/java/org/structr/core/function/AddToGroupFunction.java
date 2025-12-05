@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,21 +24,21 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class AddToGroupFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${add_to_group(group, user)}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.addToGroup(group, user);}}";
-
 	@Override
 	public String getName() {
-		return "add_to_group";
-	}
-
-	@Override
-	public String getSignature() {
-		return "group, user";
+		return "addToGroup";
 	}
 
 	@Override
@@ -48,11 +48,11 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			if (!(sources[0] instanceof Group)) {
+			if (!(sources[0] instanceof NodeInterface n1 && n1.is(StructrTraits.GROUP))) {
 
 				logParameterError(caller, sources, "Expected node of type Group as first argument!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof Principal)) {
+			} else if (!(sources[1] instanceof NodeInterface n2 && n2.is(StructrTraits.PRINCIPAL))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as second argument!", ctx.isJavaScriptContext());
 
@@ -62,10 +62,10 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Group group    = (Group)sources[0];
-				final Principal user = (Principal)sources[1];
+				final NodeInterface group = (NodeInterface)sources[0];
+				final NodeInterface user  = (NodeInterface)sources[1];
 
-				group.addMember(ctx.getSecurityContext(), user);
+				group.as(Group.class).addMember(ctx.getSecurityContext(), user.as(Principal.class));
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -81,12 +81,44 @@ public class AddToGroupFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("group", "group to add to"),
+			Parameter.mandatory("principal", "user or group to add to the given group")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Adds a user to a group.";
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return Language.scriptingLanguages();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("group, user");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${addToGroup(group, user)}"),
+			Usage.javaScript("Usage: ${{$.addToGroup(group, user);}}")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Adds the given user as a member of the given group.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

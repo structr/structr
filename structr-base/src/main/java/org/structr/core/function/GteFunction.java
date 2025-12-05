@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,12 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
-public class GteFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_GTE = "Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), \"Equal to or more than two\", \"Less than two\")}";
+public class GteFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -31,8 +32,8 @@ public class GteFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
 	@Override
@@ -42,12 +43,42 @@ public class GteFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_GTE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${gte(value1, value2)}. Example: ${if(gte(this.children, 2), 'Equal to or more than two', 'Less than two')}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the first argument is greater or equal to the second argument";
+	public String getShortDescription() {
+		return "Returns true if the first argument is greater than or equal to the second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function tries to convert its arguments into numerical values, i.e. you can compare strings numerically.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value"),
+			Parameter.mandatory("value2", "second value")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript(" ${gte(1, 2)} ", "This will return `false`"),
+			Example.structrScript(" ${gte(2, 1)} ", "This will return `true`"),
+			Example.structrScript(" ${gte(2, 2)} ", "This will return `true`")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

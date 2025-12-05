@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,17 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.Aggregation;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
+import org.structr.flow.impl.FlowAggregate;
+import org.structr.flow.impl.FlowNode;
 
-public class AggregationHandler implements FlowHandler<Aggregation> {
+public class AggregationHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(Context context, Aggregation flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode flowElement) throws FlowException {
 
-		flowElement.aggregate(context);
+		flowElement.as(FlowAggregate.class).aggregate(context);
+
 		return flowElement.next();
 
 	}

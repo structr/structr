@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,44 +18,19 @@
  */
 package org.structr.autocomplete;
 
-public abstract class BuiltinFunctionHint extends AbstractHint {
+import org.structr.docs.DocumentableType;
 
-	public abstract String shortDescription();
-	public abstract String getSignature();
+public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	@Override
 	public String getDisplayName() {
 
 		// show method with signature right away
-		return getReplacement();
+		return getName() + "(" + getFirstSignature() + ")";
 	}
 
 	@Override
-	public String getDocumentation() {
-		return shortDescription();
-	}
-
-	@Override
-	public String getReplacement() {
-
-		final StringBuilder buf = new StringBuilder();
-
-		buf.append(getName());
-		buf.append("(");
-
-		final String signature = getSignature();
-		if (signature != null) {
-
-			buf.append(signature);
-		}
-
-		buf.append(")");
-
-		return buf.toString();
-	}
-
-	@Override
-	public String getType() {
-		return "Built-in function";
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.BuiltInFunction;
 	}
 }

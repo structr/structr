@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,16 +19,18 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
 import javax.mail.internet.MimeUtility;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_decode_text(text)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_decode_text(text) }}";
 
 	public MailDecodeTextFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -40,8 +42,8 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "text";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("text");
 	}
 
 	@Override
@@ -69,12 +71,38 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_decode_text(text)}"),
+			Usage.javaScript("Usage: ${{ $.mailDecodeText(text) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Decodes RFC 822 \"text\" token from mail-safe form as per RFC 2047";
+	public String getShortDescription() {
+		return "Decodes RFC 822 \"text\" token from mail-safe form as per RFC 2047.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+				Decode "unstructured" headers, that is, headers that are defined as '*text' as per RFC 822.
+				The string is decoded using the algorithm specified in RFC 2047, Section 6.1. If the charset-conversion fails for any sequence, it is returned as-is.
+				If the String is not an RFC 2047 style encoded header, it is also returned as-is.
+				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("text", "text to decode")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mail_decode_text('=?utf-8?Q?h=C3=A4llo?=')}", "Decoding encoded string \"hällo\"")
+		);
 	}
 }

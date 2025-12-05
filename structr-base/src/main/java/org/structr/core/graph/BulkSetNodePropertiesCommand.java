@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,14 +24,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -53,30 +55,33 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 
 	public long executeWithCount(final Map<String, Object> properties) throws FrameworkException {
 
-		final String type = (String)properties.get("type");
+		final PropertyKey<String> typeProperty = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY);
+		final PropertyKey<String> idProperty   = Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY);
+		final String type                      = (String)properties.get("type");
+
 		if (StringUtils.isBlank(type)) {
 
 			throw new FrameworkException(422, "Type must not be empty");
 		}
 
-		final App app     = StructrApp.getInstance();
-		final Class clazz = SchemaHelper.getEntityClassForRawType(type);
-		if (clazz == null) {
+		if (!Traits.exists(type)) {
 
 			throw new FrameworkException(422, "Invalid type " + type);
 		}
+
+		final App app = StructrApp.getInstance();
 
 		// remove "type" so it won't be set later
 		properties.remove("type");
 
 		// to be able to change the type (i.e. the labels) of a node, we cannot rely on the node query here, hence we need to fetch ALL nodes
-		final long count = bulkGraphOperation(securityContext, app.nodeQuery(), 1000, "SetNodeProperties", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, app.nodeQuery(), 1000, "SetNodeProperties", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
+			public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface node) {
 
 				// Treat only "our" nodes
-				if (node.getProperty(GraphObject.id) != null && node.getProperty(AbstractNode.type).equals(type)) {
+				if (node.getProperty(idProperty) != null && type.equals(node.getProperty(typeProperty))) {
 
 					for (Entry entry : properties.entrySet()) {
 
@@ -88,10 +93,10 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 							key = "type";
 						}
 
-						PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+						PropertyKey propertyKey = node.getTraits().key(key);
 						if (propertyKey != null) {
 
-							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+							final PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 							if (inputConverter != null) {
 
 								try {
@@ -123,8 +128,8 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-				logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
+			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
+				logger.warn("Unable to set properties of node {}: {}", node.getUuid(), t.getMessage());
 			}
 
 			@Override
@@ -148,5 +153,61 @@ public class BulkSetNodePropertiesCommand extends NodeServiceCommand implements 
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "setNodeProperties";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Sets a given set of property values on all nodes of a certain type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command takes all arguments other than `type` and `newType` for input properties and sets the given values on all nodes of the given type.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type of nodes to set properties on"),
+			Parameter.optional("newType", "can be used to update the `type` property of nodes (because type is already taken)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Warning: if this command is used to change the `type` property of nodes, the \"Create Labels\" command has to be called afterwards to update the labels of the changed nodes - otherwise they will not be accessible."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

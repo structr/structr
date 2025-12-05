@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,15 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${ mail_set_manual_config(smtpHost = 'localhost', smtpPort = 25, smtpUser = null, smtpPassword = null, smtpUseTLS = true, smtpRequireTLS = true) }";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_manual_config(smtpHost = 'localhost', smtpPort = 25, smtpUser = null, smtpPassword = null, smtpUseTLS = true, smtpRequireTLS = true) }}";
+public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	public MailSetManualConfigFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -33,12 +35,12 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_set_manual_config";
+		return "mailSetManualConfig";
 	}
 
 	@Override
-	public String getSignature() {
-			return "smtpHost = 'localhost', smtpPort = 25, smtpUser = null, smtpPassword = null, smtpUseTLS = true, smtpRequireTLS = true";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("[smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]");
 	}
 
 	@Override
@@ -92,12 +94,40 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ mailSetManual_config([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }"),
+			Usage.javaScript("Usage: ${{ $.mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets a manual SMTP configuration for the current mail";
+	public String getShortDescription() {
+		return "Sets a manual SMTP configuration for the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"A manual configuration overrides a selected configuration (see `mail_select_config()`) which overrides the default configuration.",
+				"If no value is provided for `smtpUser` and/or `smtpPassword`, the given `smtpHost` will be contacted without authentication."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.optional("smtpHost", "SMTP host to connect to (default: `localhost`)"),
+				Parameter.optional("smtpPort", "SMTP port to connect use (default: `25`)"),
+				Parameter.optional("smtpUser", "username to use for authentication"),
+				Parameter.optional("smtpPassword", "password to use for authentication"),
+				Parameter.optional("smtpUseTLS", "use TLS when sending email (default: `true`)"),
+				Parameter.optional("smtpRequireTLS", "require TLS when sending emails (default: `true`)")
+		);
 	}
 }

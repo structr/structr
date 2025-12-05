@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Direction;
-import org.structr.api.search.Occurrence;
+import org.structr.api.graph.RelationshipType;
+import org.structr.api.search.Operation;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
@@ -37,23 +38,26 @@ import java.util.*;
  */
 public class AdvancedCypherQuery implements CypherQuery {
 
-	private final Map<String, Object> parameters    = new HashMap<>();
+	private final Map<String, Object> parameters    = new TreeMap<>();
 	private final Set<String> indexLabels           = new LinkedHashSet<>();
-	private final Set<String> typeLabels            = new LinkedHashSet<>();
+	protected final Set<String> typeLabels            = new LinkedHashSet<>();
 	private final Map<String, GraphQueryPart> parts = new LinkedHashMap<>();
 	private final StringBuilder buffer              = new StringBuilder();
+	private AbstractCypherIndex<?> index            = null;
+	private QueryContext queryContext               = null;
 	private QueryTimer queryTimer                   = null;
 	private int fetchSize                           = Settings.FetchSize.getValue();
 	private boolean hasOptionalParts                = false;
-	private String currentGraphPartIdentifier       = "n";
+	private int graphPartIdentifierIndex            = 1;
+	private String currentGraphPartIdentifier       = null;
 	private String sourceTypeLabel                  = null;
 	private String targetTypeLabel                  = null;
-	private AbstractCypherIndex<?> index            = null;
+	private String relationshipType                 = null;
+	private String type                             = null;
+	private boolean outgoing                        = false;
 	private SortOrder sortOrder                     = null;
 	private int fetchPage                           = 0;
 	private int count                               = 0;
-	private QueryContext queryContext               = null;
-	private boolean timeoutViolated                 = false;
 
 	public AdvancedCypherQuery(final QueryContext queryContext, final AbstractCypherIndex<?> index, final int requestedPageSize, final int requestedPage) {
 
@@ -83,7 +87,36 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	@Override
 	public String toString() {
-		return getStatement(false);
+		return getStatement();
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		return hashCode() == other.hashCode();
+	}
+
+	@Override
+	public int hashCode() {
+
+		int hashCode = 31 + getStatement().hashCode();
+
+		for (final Map.Entry<String, Object> p : getParameters().entrySet()) {
+
+			final Object value = p.getValue();
+			if (value != null) {
+
+				if (value.getClass().isArray()) {
+
+					hashCode = 31 * hashCode + Arrays.deepHashCode((Object[]) value);
+
+				} else {
+
+					hashCode = 31 * hashCode + value.hashCode();
+				}
+			}
+		}
+
+		return hashCode;
 	}
 
 	@Override
@@ -100,10 +133,18 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return sortOrder;
 	}
 
-	@Override
-	public String getStatement(final boolean paged) {
+	public boolean hasPredicates() {
+		return buffer.length() > 0;
+	}
 
-		final boolean hasPredicates = buffer.length() > 0;
+	public boolean getHasOptionalParts() {
+		return hasOptionalParts;
+	}
+
+	@Override
+	public String getStatement() {
+
+		final boolean hasPredicates = hasPredicates();
 		final StringBuilder buf     = new StringBuilder();
 		final int typeCount         = typeLabels.size();
 
@@ -111,7 +152,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 0:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), this));
 				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
@@ -124,7 +165,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 1:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), this));
 				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
@@ -140,7 +181,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				// create UNION query
 				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
 
-					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), this));
 
 					if (hasPredicates) {
 						buf.append(" WHERE ");
@@ -185,13 +226,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 			}
 		}
 
-		if (paged) {
-
-			buf.append(" SKIP ");
-			buf.append(fetchPage * fetchSize);
-			//buf.append(" LIMIT ");
-			//buf.append(fetchSize);
-		}
+		buf.append(" SKIP ");
+		buf.append(fetchPage * fetchSize);
 
 		return buf.toString();
 	}
@@ -205,15 +241,19 @@ public class AdvancedCypherQuery implements CypherQuery {
 		buffer.append("(");
 	}
 
-	public void endGroup() {
+	public boolean endGroup() {
 
 		if ('(' == buffer.charAt(buffer.length() - 1)) {
 
 			buffer.deleteCharAt(buffer.length() - 1);
 
+			return false;
+
 		} else {
 
 			buffer.append(")");
+
+			return true;
 		}
 	}
 
@@ -390,6 +430,32 @@ public class AdvancedCypherQuery implements CypherQuery {
 		}
 	}
 
+	public void addExactListParameter(final String key, final String operator, final Object value) {
+
+		if (value != null) {
+
+			final String paramKey = "param" + count++;
+
+			buffer.append("ALL(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" $");
+			buffer.append(paramKey);
+			buffer.append(")");
+
+			parameters.put(paramKey, value);
+
+		} else {
+
+			buffer.append("ALL(x IN n.`");
+			buffer.append(key);
+			buffer.append("` WHERE x ");
+			buffer.append(operator);
+			buffer.append(" null)");
+		}
+	}
+
 	public void addParameters(final String key, final String operator1, final Object value1, final String operator2, final Object value2) {
 
 		final String paramKey1 = "param" + count++;
@@ -416,8 +482,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	public void addGraphQueryPart(final GraphQueryPart newPart) {
 
-		final Occurrence occurrence = newPart.getOccurrence();
-		if (Occurrence.OPTIONAL.equals(occurrence)) {
+		final Operation operation = newPart.getOperation();
+		if (Operation.OR.equals(operation)) {
 
 			final String linkIdentifier       = newPart.getLinkIdentifier();
 			final GraphQueryPart existingPart = parts.get(linkIdentifier);
@@ -483,6 +549,25 @@ public class AdvancedCypherQuery implements CypherQuery {
 		}
 
 		return queryTimer;
+	}
+
+	public void storeRelationshipInfo(final String type, final RelationshipType relationshipType, final Direction direction) {
+
+		this.type             = type;
+		this.relationshipType = relationshipType.name();
+		this.outgoing         = Direction.OUTGOING.equals(direction);
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public String getRelationshipType() {
+		return relationshipType;
+	}
+
+	public boolean isOutgoing() {
+		return outgoing;
 	}
 
 	// ----- private methods -----
@@ -566,16 +651,8 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 	private String getNextGraphPartIdentifier() {
 
-		currentGraphPartIdentifier = Character.toString(currentGraphPartIdentifier.charAt(0) + 1);
+		currentGraphPartIdentifier = "n" + graphPartIdentifierIndex++;
 
 		return currentGraphPartIdentifier;
-	}
-
-	public void setTimeoutViolated () {
-		this.timeoutViolated = true;
-	}
-
-	public boolean timeoutViolated() {
-		return this.timeoutViolated;
 	}
 }

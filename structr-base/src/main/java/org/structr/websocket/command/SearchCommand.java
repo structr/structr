@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,13 +27,11 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.common.RenderContext;
-import org.structr.web.datasource.RestDataSource;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -73,6 +71,7 @@ public class SearchCommand extends AbstractCommand {
 		Boolean exactSearch = null;
 
 		if (searchString != null) {
+
 			typeString  = webSocketData.getNodeDataStringValue(TYPE_KEY);
 			exactSearch = webSocketData.getNodeDataBooleanValue(EXACT_KEY);
 		}
@@ -80,13 +79,13 @@ public class SearchCommand extends AbstractCommand {
 		final String restQuery    = webSocketData.getNodeDataStringValue(REST_QUERY_KEY);
 		final String cypherQuery  = webSocketData.getNodeDataStringValue(CYPHER_QUERY_KEY);
 		final String paramString  = webSocketData.getNodeDataStringValue(CYPHER_PARAMS_KEY);
+		final int pageSize        = webSocketData.getPageSize();
+		final int page            = webSocketData.getPage();
 
-		final int pageSize             = webSocketData.getPageSize();
-		final int page                 = webSocketData.getPage();
-
-		Class type = null;
+		Traits type = null;
 		if (typeString != null) {
-			type = SchemaHelper.getEntityClassForRawType(typeString);
+
+			type = Traits.of(typeString);
 		}
 
 		if (searchString == null) {
@@ -124,47 +123,28 @@ public class SearchCommand extends AbstractCommand {
 					return;
 
 				}
-
 			}
 
 			if (restQuery != null) {
-
-				final RestDataSource restDataSource = new RestDataSource();
-				try {
-					securityContext.setRequest(getWebSocket().getRequest());
-
-					webSocketData.setResult(restDataSource.getData(new RenderContext(securityContext), restQuery));
-					getWebSocket().send(webSocketData, true);
-
-					return;
-
-				} catch (FrameworkException ex) {
-					logger.error("", ex);
-					return;
-				}
-
+				throw new UnsupportedOperationException("Using restQuery in the SEARCH command is deprecated.");
 			}
-
 		}
 
-		final String sortOrder = webSocketData.getSortOrder();
-		final String sortKey = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
-		final PropertyKey sortProperty = StructrApp.key(AbstractNode.class, sortKey);
-		final Query query = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder));
+		final String sortOrder         = webSocketData.getSortOrder();
+		final String sortKey           = (webSocketData.getSortKey() == null ? "name" : webSocketData.getSortKey());
+		final PropertyKey sortProperty = type.key(sortKey);
+		final QueryGroup query         = StructrApp.getInstance(securityContext).nodeQuery().includeHidden().sort(sortProperty, "desc".equals(sortOrder)).and();
 
-		query.and(AbstractNode.name, searchString, exactSearch);
+		query.key(type.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), searchString, exactSearch);
 
 		if (type != null) {
-			query.andType(type);
+			query.types(type);
 		}
 
 		try {
 
-			// do search
-			final List<AbstractNode> result = query.getAsList();
-
 			// set full result list
-			webSocketData.setResult(result);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -179,9 +159,7 @@ public class SearchCommand extends AbstractCommand {
 
 	@Override
 	public String getCommand() {
-
 		return "SEARCH";
-
 	}
 
 	// ----- private methods -----

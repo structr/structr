@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,9 @@
 package org.structr.csv;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -35,7 +30,7 @@ import java.util.Set;
 public class CSVModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override
@@ -53,29 +48,11 @@ public class CSVModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		// CSV import depends on the API builder now
-		return new LinkedHashSet<>(Arrays.asList(new String[] { "api-builder" } ));
+		return Set.of("ui", "api-builder");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
 		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
-		return null;
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 }

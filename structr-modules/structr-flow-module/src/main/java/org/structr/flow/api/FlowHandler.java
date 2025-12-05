@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,11 +20,9 @@ package org.structr.flow.api;
 
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
+import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
-public interface FlowHandler<T extends FlowElement> {
+public interface FlowHandler {
 
 	/**
 	 * Handles the given flow element and returns the next
@@ -35,5 +33,5 @@ public interface FlowHandler<T extends FlowElement> {
 	 *
 	 * @return the next element or null
 	 */
-	FlowElement handle(final Context context, final T flowElement) throws FlowException;
+	FlowNode handle(final Context context, final FlowNode flowElement) throws FlowException;
 }

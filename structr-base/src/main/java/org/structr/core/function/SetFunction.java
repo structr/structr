@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -27,19 +25,20 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class SetFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_SET = "Usage: ${set(entity, propertyKey, value, ...)}. Example: ${set(this, \"email\", lower(this.email))}";
-	public static final String ERROR_MESSAGE_SET_JS = "Usage: ${{Structr.set(entity, propertyKey, value, ...)}}. Example: ${{Structr.set(this, \"email\", lower(this.email))}}";
 
 	@Override
 	public String getName() {
@@ -47,8 +46,8 @@ public class SetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, parameterMap";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("entity, parameterMap");
 	}
 
 	@Override
@@ -58,17 +57,16 @@ public class SetFunction extends CoreFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || (sources[0] instanceof GraphObjectMap);
 			final SecurityContext securityContext          = ctx.getSecurityContext();
-			final ConfigurationProvider config             = StructrApp.getConfiguration();
 
-			Class type = null;
+			Traits type = null;
 			PropertyMap propertyMap = null;
 
 			if (sources[0] instanceof GraphObject) {
 
 				final GraphObject source = (GraphObject) sources[0];
-				type = source.getEntityType();
+				type = source.getTraits();
 			}
 
 			if (type == null) {
@@ -80,41 +78,30 @@ public class SetFunction extends CoreFunction {
 
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map) sources[1]);
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map) sources[1]);
 
 			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, ((GraphObjectMap)sources[1]).toMap());
-
-			} else if (sources.length == 2 && sources[1] instanceof String) {
-
-				final Gson gson = new GsonBuilder().create();
-
-				final Map<String, Object> values = deserialize(gson, sources[1].toString());
-				if (values != null) {
-
-					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, values);
-
-				}
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), ((GraphObjectMap)sources[1]).toMap());
 
 			} else if (sources.length > 2) {
 
 				propertyMap               = new PropertyMap();
-				final int parameter_count = sources.length;
+				final int parameterCount = sources.length;
 
-				if (parameter_count % 2 == 0) {
+				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + (ctx.isJavaScriptContext() ? ERROR_MESSAGE_SET_JS : ERROR_MESSAGE_SET));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
-				for (int c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameterCount; c += 2) {
 
 					final String keyName  = sources[c].toString();
-					final PropertyKey key = config.getPropertyKeyForJSONName(type, keyName, useGenericPropertyForUnknownKeys);
+					final PropertyKey key = (useGenericPropertyForUnknownKeys ? type.keyOrGenericProperty(keyName) : type.key(keyName));
 
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value = sources[c + 1];
 
 						if (inputConverter != null) {
@@ -127,13 +114,13 @@ public class SetFunction extends CoreFunction {
 					} else {
 
 						// key does not exist and generic property is not desired => log warning
-						logger.warn("Unknown property {}.{}, value will not be set.", type.getSimpleName(), keyName);
+						logger.warn("set(): Unknown property {}.{}, value will not be set.", type.getName(), keyName);
 					}
 				}
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid use of builtin method set, usage: set(entity, params..)");
+				throw new FrameworkException(422, "Invalid use of builtin method set, usage: set(entity, params..) or set(entity, map)");
 			}
 
 			if (propertyMap != null) {
@@ -154,12 +141,63 @@ public class SetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SET;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${set(entity, propertyKey1, value1, ...)} or ${set(entity, propertyMap)}."),
+			Usage.javaScript("Usage: ${{ $.set(entity, propertyMap) }} or ${{ $.set(entity, propertyKey1, value1, ...)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets a value on an entity";
+	public String getShortDescription() {
+		return "Sets a value or multiple values on an entity. The values can be provided as a map or as a list of alternating keys and values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Sets the passed values for the given property keys on the specified entity, using the security context of the current user.
+		`set()` accepts several different parameter combinations, where the first parameter is always a graph object. 
+		The second parameter can either be a list of (key, value) pairs, a JSON-coded string (to accept return values of the 
+		`geocode()` function) or a map (e.g. a result from nested function calls or a simple map built in serverside JavaScript).
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${set(user, 'name', 'new-user-name', 'eMail', 'new@email.com')}"),
+				Example.structrScript("${set(page, 'name', 'my-page-name')}"),
+				Example.javaScript("""
+						${{
+						    let me = $.me;
+						    $.set(me, {name: 'my-new-name', eMail: 'new@email.com'});
+						}}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "node to be updated"),
+				Parameter.mandatory("map", "parameterMap (only JavaScript)"),
+				Parameter.mandatory("key1", "key1 (only StructrScript)"),
+				Parameter.mandatory("value1", "value for key1 (only StructrScript)"),
+				Parameter.mandatory("key2", "key2 (only JavaScript)"),
+				Parameter.mandatory("value2", "value for key1 (only StructrScript)"),
+				Parameter.mandatory("keyN", "keyN (only JavaScript)"),
+				Parameter.mandatory("valueN", "value for keyN (only StructrScript)")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter.",
+				"When using the `set()` method on an entity that is not writable by the current user, a 403 Forbidden HTTP error will be thrown. In this case, use `set_privileged()` which will execute the `set()` operation with elevated privileges."
+		);
 	}
 }

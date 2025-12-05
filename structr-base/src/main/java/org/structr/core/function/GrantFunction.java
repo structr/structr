@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,23 +18,27 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class GrantFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_GRANT    = "Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}";
-	public static final String ERROR_MESSAGE_GRANT_JS = "Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}";
 
 	@Override
 	public String getName() {
@@ -42,8 +46,8 @@ public class GrantFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "user, node, permissions";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("user, node, permissions");
 	}
 
 	@Override
@@ -53,7 +57,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof Principal)) {
+			if (sources[0] instanceof NodeInterface n && !n.is(StructrTraits.PRINCIPAL)) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
@@ -61,7 +65,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to grant rights for the SuperUser!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof AbstractNode)) {
+			} else if (!(sources[1] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 
@@ -71,8 +75,8 @@ public class GrantFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Principal principal         = (Principal)sources[0];
-				final AbstractNode node           = (AbstractNode)sources[1];
+				final Principal principal         = ((NodeInterface)sources[0]).as(Principal.class);
+				final NodeInterface node          = (NodeInterface) sources[1];
 				final Set<Permission> permissions = new HashSet();
 				final String[] parts              = ((String)sources[2]).split("[,]+");
 
@@ -95,7 +99,7 @@ public class GrantFunction extends AdvancedScriptingFunction {
 				}
 
 				if (permissions.size() > 0) {
-					node.grant(permissions, principal, ctx.getSecurityContext());
+					node.as(AccessControllable.class).grant(permissions, principal, ctx.getSecurityContext());
 				}
 			}
 
@@ -112,12 +116,53 @@ public class GrantFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GRANT_JS : ERROR_MESSAGE_GRANT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${grant(principal, node, permissions)}. Example: ${grant(me, this, 'read, write, delete'))}"),
+			Usage.javaScript("Usage: ${{Structr.grant(principal, node, permissions)}}. Example: ${{Structr.grant(Structr.get('me'), Structr.this, 'read, write, delete'))}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Grants the given permissions on the given entity to a user";
+	public String getShortDescription() {
+		return "Grants the given permissions on the given node to the given principal.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		This function creates or modifies the security relationship between the first two parameters. 
+		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
+		The permissions are passed in as a comma-separated list (see the examples below). 
+		The return value is the empty string. See also `revoke()` and `isAllowed()`.""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${grant(me, node1, 'read')}
+						${grant(me, node2, 'read, write')}
+						${grant(me, node3, 'read, write, delete')}
+						${grant(me, node4, 'read, write, delete, accessControl')}
+						"""),
+				Example.javaScript("""
+						${{ $.grant($.me, node1, 'read') }}
+						${{ $.grant($.me, node2, 'read, write') }}
+						${{ $.grant($.me, node3, 'read, write, delete') }}
+						${{ $.grant($.me, node4, 'read, write, delete, accessControl') }}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("principal", "User or Group node"),
+				Parameter.mandatory("node", "node to grant permissions"),
+				Parameter.mandatory("permissions", "comma seperated permission string of `read`, `write`, `delete`, `accessControl`")
+				);
+	}
+
 }

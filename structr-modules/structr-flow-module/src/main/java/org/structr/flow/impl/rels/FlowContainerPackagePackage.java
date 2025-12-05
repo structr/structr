@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,26 +20,40 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToMany;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowContainerPackage;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class FlowContainerPackagePackage extends OneToMany<FlowContainerPackage, FlowContainerPackage> implements PermissionPropagation {
+public class FlowContainerPackagePackage extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowContainerPackage> getSourceType() {
-		return FlowContainerPackage.class;
+	public FlowContainerPackagePackage() {
+		super(StructrTraits.FLOW_CONTAINER_PACKAGE_PACKAGE);
 	}
 
 	@Override
-	public Class<FlowContainerPackage> getTargetType() {
-		return FlowContainerPackage.class;
+	public String getSourceType() {
+		return StructrTraits.FLOW_CONTAINER_PACKAGE;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.FLOW_CONTAINER_PACKAGE;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "CONTAINS_PACKAGE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
 	}
 
 	@Override
@@ -50,6 +64,11 @@ public class FlowContainerPackagePackage extends OneToMany<FlowContainerPackage,
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

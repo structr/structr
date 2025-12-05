@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,7 @@ import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.util.FixedSizeCache;
+import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
@@ -33,27 +33,30 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.DateProperty;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.core.script.polyglot.context.ContextHelper;
+import org.structr.core.script.polyglot.util.JSFunctionTranspiler;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Scripting {
 
-	private static final Pattern importPattern                      = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
-	private static final FixedSizeCache<String, Source> sourceCache = new FixedSizeCache<>("Source Cache", 10000);
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 
@@ -94,7 +97,11 @@ public class Scripting {
 
 					try {
 
-						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
+						final ScriptConfig scriptConfig = ScriptConfig.builder()
+								.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+								.build();
+
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null, scriptConfig);
 						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
 						// non-null value?
@@ -141,41 +148,48 @@ public class Scripting {
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, null);
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.build();
+
+		return evaluate(actionContext, entity, input, methodName, null, scriptConfig);
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-		return evaluate(actionContext, entity, input, methodName, 0, codeSource);
+
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.build();
+
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, scriptConfig);
 	}
 
-	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
+		return evaluate(actionContext, entity, input, methodName, 0, codeSource, scriptConfig);
+	}
+
+	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName, final int startRow, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
 
 		final String expression = StringUtils.strip(input);
-		boolean isJavascript    = expression.startsWith("${{") && expression.endsWith("}}");
-		final int prefixOffset  = isJavascript ? 1 : 0;
-		String source           = expression.substring(2 + prefixOffset, expression.length() - (1 + prefixOffset));
 
-		if (source.length() <= 0) {
+		if (expression.isEmpty()) {
 			return null;
 		}
 
-		boolean isScriptEngine = false;
-		String engine = "";
+		String source;
+		String[] splitSnippet = splitSnippetIntoEngineAndScript(expression);
+		final String engine   = splitSnippet[0];
 
-		if (!isJavascript) {
+		if (!engine.isEmpty()) {
 
-			final Matcher matcher = ScriptEngineExpression.matcher(expression);
-			if (matcher.matches()) {
+			source = splitSnippet[1];
+		} else {
 
-				engine = matcher.group(1);
-				source = matcher.group(2);
-
-				logger.debug("Scripting engine {} requested.", engine);
-
-				isJavascript = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
-				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
-			}
+			source = expression.substring(2, expression.length() - 1);
 		}
+
+		final boolean isJavascript = "js".equals(engine);
+		final boolean isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
 
 		actionContext.setJavaScriptContext(isJavascript);
 
@@ -191,23 +205,25 @@ public class Scripting {
 			securityContext.setDoTransactionNotifications(false);
 		}
 
-		final Snippet snippet = new Snippet(methodName, source);
+		final Snippet snippet = new Snippet(methodName, source, scriptConfig.wrapJsInMain());
 		snippet.setCodeSource(codeSource);
 		snippet.setStartRow(startRow);
 
 		if (isScriptEngine) {
 
-			return evaluateScript(actionContext, entity, engine, snippet);
+			return PolyglotWrapper.unwrap(actionContext, evaluateScript(actionContext, entity, engine, snippet, scriptConfig));
 
 		} else if (isJavascript) {
 
-			final Object result = evaluateJavascript(actionContext, entity, snippet);
+			snippet.setMimeType("application/javascript+module");
+			snippet.setEngineName("js");
+			final Object result = evaluateScript(actionContext, entity, "js", snippet, scriptConfig);
 
 			if (enableTransactionNotifications && securityContext != null) {
 				securityContext.setDoTransactionNotifications(true);
 			}
 
-			return result;
+			return PolyglotWrapper.unwrap(actionContext, result);
 
 		} else {
 
@@ -233,7 +249,7 @@ public class Scripting {
 				});
 				*/
 
-				return extractedValue;
+				return PolyglotWrapper.unwrap(actionContext, extractedValue);
 
 			} catch (StructrScriptException t) {
 
@@ -247,146 +263,83 @@ public class Scripting {
 		}
 	}
 
-	public static Object evaluateJavascript(final ActionContext actionContext, final GraphObject entity, final Snippet snippet) throws FrameworkException {
+	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
+		return evaluateScript(actionContext, entity, engineName, snippet, ScriptConfig.builder().build());
+	}
+
+	public static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet, final ScriptConfig scriptConfig) throws FrameworkException {
 
 		// Clear output buffer
 		actionContext.clear();
 
-		if (actionContext.hasError()) {
-			// Reset error buffer
-			actionContext.getErrorBuffer().getErrorTokens().clear();
-			actionContext.getErrorBuffer().setStatus(0);
-		}
+		final Context context = ContextFactory.getContext(engineName, actionContext, entity);
+
+		ContextHelper.incrementReferenceCount(context);
+		context.enter();
+
+		Object result = null;
 
 		try {
-			final Context context = ContextFactory.getContext("js", actionContext, entity);
 
-			context.enter();
-
-			try {
-
-				Object result = null;
-
-				try {
-
-					Source source = sourceCache.get(snippet.getSource());
-					if (source == null) {
-
-						final String code = embedInFunction(snippet);
-
-						source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
-
-						// store in cache
-						sourceCache.put(snippet.getSource(), source);
-					}
-
-					final Value value = context.eval(source);
-
-					result = PolyglotWrapper.unwrap(actionContext, value);
-
-				} catch (PolyglotException ex) {
-
-					if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
-
-						// Only report error, if exception is not an already logged AssertException
-						if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
-							reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-						}
-
-						// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
-						if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
-							throw new AlreadyLoggedAssertException(ae);
-						}
-
-						// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
-						if (ex.asHostException().getCause() instanceof FrameworkException) {
-							throw ex.asHostException().getCause();
-						} else {
-							throw ex.asHostException();
-						}
-					}
-
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-					throw new FrameworkException(422, "Server-side scripting error", ex);
-				}
-
-				// Prefer explicitly printed output over actual result
-				final String outputBuffer = actionContext.getOutput();
-				if (outputBuffer != null && !outputBuffer.isEmpty()) {
-
-					return outputBuffer;
-				}
-
-				return result != null ? result : "";
-
-			} catch (RuntimeException ex) {
-
-				if (ex.getCause() instanceof FrameworkException) {
-
-					throw (FrameworkException) ex.getCause();
-
-				} else if (ex instanceof AssertException) {
-
-					throw ex;
-				} else {
-
-					throw ex;
-				}
-
-			} catch (FrameworkException ex) {
-
-				throw ex;
-
-			} catch (Throwable ex) {
-
-				throw new FrameworkException(422, "Server-side scripting error", ex);
-
-			} finally {
-
-				context.leave();
-			}
+			final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
+			result = PolyglotWrapper.unwrap(actionContext, value);
 
 		} finally {
 
-			//actionContext.putScriptingContext("js", null);
+			context.leave();
+			ContextHelper.decrementReferenceCount(context);
+
+			if (scriptConfig == null || !scriptConfig.keepContextOpen()) {
+
+				if (ContextHelper.getReferenceCount(context) <= 0) {
+
+					context.close();
+					actionContext.putScriptingContext(engineName, null);
+				}
+			}
 		}
+
+		// Legacy print() support: Prefer explicitly printed output over actual result
+		final String outputBuffer = actionContext.getOutput();
+		if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+			return outputBuffer;
+		}
+
+		return result != null ? result : "";
 	}
 
-	// ----- private methods -----
-	private static Object evaluateScript(final ActionContext actionContext, final GraphObject entity, final String engineName, final Snippet snippet) throws FrameworkException {
+	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 
 		try {
 
-			final Context context = ContextFactory.getContext(engineName, actionContext, entity);
+			Source source = null;
+			String code = snippet.getSource();
 
-			context.enter();
+			if ("js".equals(engineName) && snippet.embed()) {
 
-			// Clear output buffer
-			actionContext.clear();
-
-			if (actionContext.hasError()) {
-				// Reset error buffer
-				actionContext.getErrorBuffer().getErrorTokens().clear();
-				actionContext.getErrorBuffer().setStatus(0);
+				code = JSFunctionTranspiler.transpileSource(snippet);
 			}
 
-			Object result = null;
+			source = Source.newBuilder(engineName, code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 			try {
+				if (source != null) {
 
-				Source source = sourceCache.get(snippet.getSource());
+					final Value result = context.eval(source);
 
-				if (source == null) {
+					// Legacy print() support: Prefer explicitly printed output over actual result
+					final String outputBuffer = actionContext.getOutput();
+					if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
-					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
+						return Value.asValue(outputBuffer);
+					}
 
-					// store in cache
-					sourceCache.put(snippet.getSource(), source);
+					return result;
+				} else {
+
+					return null;
 				}
-
-				final Value value = context.eval(source);
-
-				result = PolyglotWrapper.unwrap(actionContext, value);
 
 			} catch (PolyglotException ex) {
 
@@ -415,17 +368,6 @@ public class Scripting {
 				}
 			}
 
-			context.leave();
-
-			// Prefer explicitly printed output over actual result
-			final String outputBuffer = actionContext.getOutput();
-			if (outputBuffer != null && !outputBuffer.isEmpty()) {
-
-				return outputBuffer;
-			}
-
-			return result != null ? result : "";
-
 		} catch (RuntimeException ex) {
 
 			if (ex.getCause() instanceof FrameworkException) {
@@ -446,50 +388,37 @@ public class Scripting {
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
-
-		} finally {
-
-			//actionContext.putScriptingContext(engineName, null);
 		}
 	}
 
-	private static String embedInFunction(final Snippet snippet) {
+	public static String[] splitSnippetIntoEngineAndScript(final String snippet) {
 
-		if (snippet.embed()) {
+		final boolean isAutoScriptingEnv = !(snippet.startsWith("${") && snippet.endsWith("}"));
+		final boolean isJavascript       = (snippet.startsWith("${{") && snippet.endsWith("}}")) || (isAutoScriptingEnv && (snippet.startsWith("{") && snippet.endsWith("}")));
 
-			final String transpiledSource;
-			// Regex that matches import statements
+		String engine = "";
+		String script = "";
 
-			if (importPattern.matcher(snippet.getSource()).find()) {
+		if (isJavascript) {
 
-				final Map<Boolean, List<String>> partitionedScript = snippet.getSource().lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
-				final String importStatements = String.join("\n", partitionedScript.get(true));
-				final String code = String.join("\n", partitionedScript.get(false));
+			engine = "js";
+			script = snippet.substring(isAutoScriptingEnv ? 1 : 3, snippet.length() - (isAutoScriptingEnv ? 1 : 2));
 
-				StringBuilder reassembledScript = new StringBuilder();
-				reassembledScript
-						.append(importStatements).append("\n")
-						.append("function main() {\n")
-						.append(code)
-						.append("\n}\n\nmain();");
-				transpiledSource = reassembledScript.toString();
-				// Change mimetype to module since import statements have been found.
-				snippet.setMimeType("application/javascript+module");
-			} else {
+		} else {
 
-				transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
+			final Matcher matcher = ScriptEngineExpression.matcher(isAutoScriptingEnv ? String.format("${%s}", snippet) : snippet);
+			if (matcher.matches()) {
+
+				engine = matcher.group(1);
+				script = matcher.group(2);
 			}
-
-			snippet.setTranscribedSource(transpiledSource);
 		}
 
-		if (snippet.getTranscribedSource() == null) {
-
-			return snippet.getSource();
-		}
-
-		return snippet.getTranscribedSource();
+		logger.debug("Scripting engine {} requested.", engine);
+		return new String[] { engine, script };
 	}
+
+	// ----- private methods -----
 
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {
@@ -616,7 +545,7 @@ public class Scripting {
 
 		} else if (value instanceof Date) {
 
-			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			return DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else if (value instanceof Iterable) {
 
@@ -637,7 +566,7 @@ public class Scripting {
 
 		} else if (value instanceof Date) {
 
-			return DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			return DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else if (value instanceof Iterable) {
 
@@ -663,7 +592,7 @@ public class Scripting {
 
 			final StringBuilder buf = new StringBuilder();
 			final GraphObject obj   = (GraphObject)value;
-			final String name       = obj.getProperty(AbstractNode.name);
+			final String name       = obj.getProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY));
 
 			buf.append(obj.getType());
 			buf.append("(");
@@ -765,22 +694,24 @@ public class Scripting {
 
 			}
 
-			final GraphObject codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
+			final NodeInterface codeSource = StructrApp.getInstance().getNodeById(codeSourceId);
 			if (codeSource != null) {
 
-				nodeType = codeSource.getClass().getSimpleName();
+				nodeType = codeSource.getTraits().getName();
 				nodeId = codeSource.getUuid();
 
-				if (codeSource instanceof SchemaMethod && ((SchemaMethod)codeSource).isStaticMethod()) {
+				if (codeSource.is(StructrTraits.SCHEMA_METHOD) && codeSource.as(SchemaMethod.class).isStaticMethod()) {
 
-					final AbstractSchemaNode node = codeSource.getProperty(SchemaMethod.schemaNode);
-					final String staticTypeName = node.getName();
-					messageData.put("staticType", staticTypeName);
+					final AbstractSchemaNode node = codeSource.as(SchemaMethod.class).getSchemaNode();
+					final String staticTypeName   = codeSource.getName();
+
+					messageData.put("staticType",     staticTypeName);
 					messageData.put("isStaticMethod", true);
-					eventData.put("staticType", staticTypeName);
-					eventData.put("isStaticMethod", true);
+					eventData.put("staticType",       staticTypeName);
+					eventData.put("isStaticMethod",   true);
 
 					exceptionPrefix.append(staticTypeName).append("[static]:");
+
 				} else {
 
 					if (entity == null) {

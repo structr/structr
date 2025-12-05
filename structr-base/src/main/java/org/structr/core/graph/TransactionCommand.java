@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,9 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
-import org.structr.api.NetworkException;
-import org.structr.api.NotInTransactionException;
-import org.structr.api.Predicate;
+import org.structr.api.*;
 import org.structr.api.graph.Node;
+import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNetworkException;
@@ -37,7 +35,6 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.TransactionPostProcessQueue;
@@ -218,6 +215,9 @@ public class TransactionCommand {
 					cmd.postProcessQueue.applyProcessQueue();
 				}
 
+				// copy transaction success status to modification queue
+				modificationQueue.setTransactionWasSuccessful(cmd.transaction.isSuccessful());
+
 			} else {
 
 				cmd.transaction.end();
@@ -279,6 +279,8 @@ public class TransactionCommand {
 
 			assertSameTransaction(node, command.getTransactionId());
 
+			TransactionCommand.getCurrentTransaction().setNodeIsCreated(node.getNode().getId().getId());
+
 			ModificationQueue modificationQueue = command.getModificationQueue();
 			if (modificationQueue != null) {
 
@@ -296,7 +298,7 @@ public class TransactionCommand {
 		}
 	}
 
-	public static void nodeModified(final Principal user, final AbstractNode node, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public static void nodeModified(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		TransactionCommand command = commands.get();
 		if (command != null) {
@@ -439,25 +441,32 @@ public class TransactionCommand {
 		TransactionCommand.simpleBroadcastGenericMessage(messageData, sessionIdPredicate);
 	}
 
-	public static void simpleBroadcastGenericMessage (final Map<String, Object> data) {
+	public static void simpleBroadcastGenericMessage(final Map<String, Object> data) {
 		simpleBroadcastGenericMessage(data, null);
 	}
 
-	public static void simpleBroadcastGenericMessage (final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
+	public static void simpleBroadcastGenericMessage(final Map<String, Object> data, final Predicate<String> sessionIdPredicate) {
 		simpleBroadcast("GENERIC_MESSAGE", data, sessionIdPredicate);
 	}
 
-	public static void simpleBroadcastDeprecationWarning (final String deprecationSubType, final String title, final String text, final String uuid) {
+	public static void simpleBroadcastDeprecationWarning(final String deprecationSubType, final String title, final String text) {
+		simpleBroadcastDeprecationWarning(deprecationSubType, title, text, null);
+	}
 
-		final Map<String, Object> messageData = Map.of(
-				MaintenanceCommand.COMMAND_TYPE_KEY,    "DEPRECATION",
-				MaintenanceCommand.COMMAND_SUBTYPE_KEY, deprecationSubType,
-				MaintenanceCommand.COMMAND_TITLE_KEY,   title,
-				MaintenanceCommand.COMMAND_MESSAGE_KEY, text,
-				"nodeId", uuid
-		);
+	public static void simpleBroadcastDeprecationWarning(final String deprecationSubType, final String title, final String text, final String uuid) {
 
-		TransactionCommand.simpleBroadcastGenericMessage(messageData);
+		final Map<String, Object> messageData = new HashMap();
+
+		messageData.put(MaintenanceCommand.COMMAND_TYPE_KEY,    "DEPRECATION");
+		messageData.put(MaintenanceCommand.COMMAND_SUBTYPE_KEY, deprecationSubType);
+		messageData.put(MaintenanceCommand.COMMAND_TITLE_KEY,   title);
+		messageData.put(MaintenanceCommand.COMMAND_MESSAGE_KEY, text);
+
+		if (uuid != null) {
+			messageData.put("nodeId", uuid);
+		}
+
+		simpleBroadcastGenericMessage(messageData);
 	}
 
 	public static void simpleBroadcastException (final Exception ex, final Map<String, Object> data, final boolean printStackTrace) {
@@ -505,6 +514,27 @@ public class TransactionCommand {
 
 		RuntimeEventLog.transaction("Not in transaction");
 		throw new NotInTransactionException("Not in transaction.");
+	}
+
+	public static Transaction getCurrentTransaction() {
+
+		final TransactionCommand cmd = commands.get();
+		if (cmd != null) {
+
+			return cmd.transaction;
+		}
+
+		RuntimeEventLog.transaction("Not in transaction");
+		throw new NotInTransactionException("Not in transaction.");
+	}
+
+	public static boolean isDeleted(final PropertyContainer propertyContainer) {
+
+		if (propertyContainer.isNode()) {
+			return isDeleted((Node)propertyContainer);
+		}
+
+		return isDeleted((Relationship)propertyContainer);
 	}
 
 	public static boolean isDeleted(final Node node) {
@@ -585,6 +615,11 @@ public class TransactionCommand {
 
 			transactionCommand.postProcessQueue.queueProcess(runnable);
 		}
+	}
+
+	public static void flushCaches() {
+		final DatabaseService graphDb = Services.getInstance().getDatabaseService();
+		graphDb.flushCaches();
 	}
 
 	private static void assertSameTransaction(final GraphObject obj, final long currentTransactionId) {

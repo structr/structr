@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,35 +18,34 @@
  */
 package org.structr.core.function;
 
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.VersionHelper;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.DateProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.polyglot.context.ContextFactory;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
-public class StructrEnvFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_STRUCTR_ENV    = "Usage: ${structr_env()}. Example ${structr_env()}";
-	public static final String ERROR_MESSAGE_STRUCTR_ENV_JS = "Usage: ${Structr.structr_env()}. Example ${Structr.structr_env()}";
+public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "structr_env";
+		return "structrEnv";
 	}
 
 	@Override
-	public String getSignature() {
-		return "";
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -55,13 +54,21 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_STRUCTR_ENV : ERROR_MESSAGE_STRUCTR_ENV_JS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${structrEnv()}. Example ${structrEnv()}"),
+			Usage.javaScript("Usage: ${{ $.structrEnv()}. Example ${{ $.structrEnv()}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns Structr runtime env information.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static GraphObjectMap getStructrEnv() throws FrameworkException {
@@ -105,9 +112,6 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 			info.setProperty(new StringProperty("debuggerPath"), ContextFactory.getDebuggerPath());
 		}
 
-		info.setProperty(new StringProperty("availableReleasesUrl"),    Settings.ReleasesIndexUrl.getValue());
-		info.setProperty(new StringProperty("availableSnapshotsUrl"),   Settings.SnapshotsIndexUrl.getValue());
-
 		info.setProperty(new GenericProperty("dashboardInfo"),   getStructrDashboardInfo());
 
 		info.setProperty(new StringProperty("debuggerActive"), Settings.ScriptingDebugger.getValue());
@@ -123,13 +127,27 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 
 		final GraphObjectMap dashboardInfo  = new GraphObjectMap();
 		final GraphObjectMap configFileInfo = new GraphObjectMap();
+		final GraphObjectMap runtimeInfo    = new GraphObjectMap();
 
-		final PropertiesConfiguration conf = Settings.getDefaultPropertiesConfiguration();
+		final FileBasedConfigurationBuilder<PropertiesConfiguration> conf = Settings.getDefaultPropertiesConfigurationBuilder();
+
 		configFileInfo.setProperty(new StringProperty("actualPermissions"),    Settings.getActualConfigurationFilePermissionsAsString(conf));
 		configFileInfo.setProperty(new StringProperty("expectedPermissions"),  Settings.getExpectedConfigurationFilePermissionsAsString());
 		configFileInfo.setProperty(new BooleanProperty("permissionsOk"), Settings.checkConfigurationFilePermissions(conf, false));
 
 		dashboardInfo.setProperty(new GenericProperty("configFileInfo"), configFileInfo);
+
+		final Runtime runtime = Runtime.getRuntime();
+
+		runtimeInfo.setProperty(new LongProperty("maxMemory"), runtime.maxMemory());
+		runtimeInfo.setProperty(new LongProperty("freeMemory"), runtime.freeMemory());
+		runtimeInfo.setProperty(new LongProperty("totalMemory"), runtime.totalMemory());
+		runtimeInfo.setProperty(new IntProperty("availableProcessors"), runtime.availableProcessors());
+
+		dashboardInfo.setProperty(new GenericProperty("runtimeInfo"), runtimeInfo);
+
+		dashboardInfo.setProperty(new GenericProperty("allowedUUIDFormat"), Settings.UUIDv4AllowedFormats.getValue());
+		dashboardInfo.setProperty(new GenericProperty("createCompactUUIDs"), Settings.UUIDv4CreateCompact.getValue());
 
 		return dashboardInfo;
 	}

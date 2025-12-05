@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,31 @@
  */
 package org.structr.api;
 
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+
 /**
  *
  */
-public interface Transaction extends AutoCloseable {
+public interface Transaction extends AutoCloseable, Prefetcher {
 
 	void failure();
 	void success();
 	long getTransactionId();
+	boolean isSuccessful();
+	boolean isRolledBack();
+	void setNodeIsCreated(final long id);
+	boolean isNodeCreated(final long id);
+	boolean isNodeDeleted(final long id);
+	boolean isRelationshipDeleted(final long id);
 
 	@Override
 	void close();
+
+	Node getNode(final Identity id);
+	Relationship getRelationship(final Identity id);
+
+	void setIsPing(final boolean isPing);
+	int level();
 }

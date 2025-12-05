@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.schema.openapi.operation.maintenance;
 
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.OpenAPIOperation;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -60,7 +61,7 @@ public class OpenAPIMaintenanceOperationCreateLabels extends LinkedHashMap<Strin
                 new OpenAPIRequestResponse(
                    "Request body",
 			        new OpenAPIObjectSchema(
-                    new OpenAPIPrimitiveSchema("Node type to limit creation of labels to", "type", "string", null, "Group", false)
+                    new OpenAPIPrimitiveSchema("Node type to limit creation of labels to", "type", "string", null, StructrTraits.GROUP, false)
                     )
             ),
 

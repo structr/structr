@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,14 @@
  */
 package org.structr.core.property;
 
-import org.apache.commons.lang.SerializationUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.search.Occurrence;
+import org.apache.commons.lang3.SerializationUtils;
+import org.structr.api.search.Operation;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
@@ -35,9 +33,6 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -48,8 +43,6 @@ import java.util.Map;
  *
  */
 public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
-
-	private static final Logger logger = LoggerFactory.getLogger(ByteArrayProperty.class.getName());
 
 	public ByteArrayProperty(final String name) {
 		super(name);
@@ -75,12 +68,6 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 	@Override
 	public Class valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Necessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + Byte.class.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
-
 		return Byte[].class;
 	}
 
@@ -90,28 +77,28 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public PropertyConverter<Byte[], byte[]> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Byte[], byte[]> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Byte[], byte[]> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, Byte[]> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Byte[]> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return new ArrayInputConverter(securityContext);
 	}
 
 	private class ArrayDatabaseConverter extends PropertyConverter<Byte[], byte[]> {
 
-		public ArrayDatabaseConverter(SecurityContext securityContext, GraphObject entity) {
+		public ArrayDatabaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 			super(securityContext, entity);
 		}
 
 		@Override
-		public byte[] convert(Byte[] source) throws FrameworkException {
+		public byte[] convert(final Byte[] source) throws FrameworkException {
 
 			if (source != null) {
 
@@ -123,7 +110,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		}
 
 		@Override
-		public Byte[] revert(byte[] source) throws FrameworkException {
+		public Byte[] revert(final byte[] source) throws FrameworkException {
 
 			try {
 
@@ -146,7 +133,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 	private class ArrayInputConverter extends PropertyConverter<Object, Byte[]> {
 
-		public ArrayInputConverter(SecurityContext securityContext) {
+		public ArrayInputConverter(final SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
@@ -166,7 +153,7 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		}
 
 		@Override
-		public Byte[] convert(Object source) throws FrameworkException {
+		public Byte[] convert(final Object source) throws FrameworkException {
 
 			if (source == null) {
 				return null;
@@ -201,25 +188,25 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Byte[] searchValue, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Byte[] searchValue, final boolean exactMatch, final QueryGroup query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? occur : Occurrence.OPTIONAL, exactMatch);
+			return new ArraySearchAttribute(this, "", exactMatch);
 		}
 
-		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, query.getParent(), Operation.AND);
 
 		for (byte value : searchValue) {
 
-			group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
+			group.add(new ArraySearchAttribute(this, value, exactMatch));
 		}
 
 		return group;
 	}
 
 	@Override
-	public Object getExampleValue(String type, String viewName) {
+	public Object getExampleValue(final String type, final String viewName) {
 		return null;
 	}
 
@@ -228,9 +215,14 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		return false;
 	}
 
+	@Override
+	public boolean isArray() {
+		return true;
+	}
+
 	// ----- OpenAPI -----
 	@Override
-	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+	public Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName) {
 		return null;
 	}
 

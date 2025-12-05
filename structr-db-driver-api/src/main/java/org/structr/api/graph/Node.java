@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.api.graph;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -28,7 +29,7 @@ public interface Node extends PropertyContainer {
 	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType);
 	Relationship createRelationshipTo(final Node endNode, final RelationshipType relationshipType, final Map<String, Object> properties);
 
-	void addLabel(final String label);
+	void addLabels(final Set<String> label);
 	void removeLabel(final String label);
 
 	Iterable<String> getLabels();
@@ -39,5 +40,7 @@ public interface Node extends PropertyContainer {
 	Iterable<Relationship> getRelationships();
 	Iterable<Relationship> getRelationships(final Direction direction);
 	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType);
-	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType);
+
+	Map<String, Long> getDegree();
+	Map<String, Object> getCache();
 }

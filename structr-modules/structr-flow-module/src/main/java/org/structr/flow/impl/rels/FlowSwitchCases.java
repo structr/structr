@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,29 +20,55 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.OneToMany;
-import org.structr.flow.impl.FlowSwitch;
-import org.structr.flow.impl.FlowSwitchCase;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
-public class FlowSwitchCases extends OneToMany<FlowSwitch, FlowSwitchCase> implements PermissionPropagation {
+public class FlowSwitchCases extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowSwitch> getSourceType() {
-		return FlowSwitch.class;
+	public FlowSwitchCases() {
+		super(StructrTraits.FLOW_SWITCH_CASES);
 	}
 
 	@Override
-	public Class<FlowSwitchCase> getTargetType() {
-		return FlowSwitchCase.class;
+	public String getSourceType() {
+		return StructrTraits.FLOW_SWITCH;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.FLOW_SWITCH_CASE;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "SWITCH_CASE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.NONE;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

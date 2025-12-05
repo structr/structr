@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -82,7 +82,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final OutputStream outputStream = ((File) structrFile).getOutputStream();
+			final OutputStream outputStream = structrFile.as(File.class).getOutputStream();
 
 			tx.success();
 
@@ -100,7 +100,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final InputStream inputStream = ((File) structrFile).getInputStream();
+			final InputStream inputStream = structrFile.as(File.class).getInputStream();
 
 			tx.success();
 

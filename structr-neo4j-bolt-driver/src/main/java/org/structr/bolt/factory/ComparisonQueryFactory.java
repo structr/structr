@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,7 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 
 		if (predicate instanceof ComparisonQuery) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			// add label of declaring class for the given property name
 			// to select the correct index
@@ -44,17 +44,17 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 				query.indexLabel(label);
 			}
 
-			final ComparisonQuery comparisonQuery     = (ComparisonQuery)predicate;
-			final Object value                        = getReadValue(comparisonQuery.getSearchValue());
-			final ComparisonQuery.Operation operation = comparisonQuery.getOperation();
-			final String name                         = predicate.getName();
+			final ComparisonQuery comparisonQuery       = (ComparisonQuery)predicate;
+			final Object value                          = getReadValue(comparisonQuery.getSearchValue());
+			final ComparisonQuery.Comparison comparison = comparisonQuery.getComparison();
+			final String name                           = predicate.getName();
 
-			if (value == null && operation == null) {
+			if (value == null && comparison == null) {
 				return false;
 			}
 
 			String operationString = null;
-			switch (operation) {
+			switch (comparison) {
 				case equal:
 					operationString = "=";
 					break;
@@ -100,6 +100,11 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<AdvancedCypherQ
 					operationString = "CONTAINS";
 					query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
 					return true;
+
+				case matches:
+					operationString = "=~";
+					break;
+
 			}
 
 			query.addSimpleParameter(name, operationString, value);

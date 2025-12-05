@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,14 +23,17 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class ContainsFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_CONTAINS = "Usage: ${contains(string, word)} or ${contains(collection, element)}. Example: ${contains(this.name, \"the\")} or ${contains(find('Page'), page)}";
 
 	@Override
 	public String getName() {
@@ -38,8 +41,8 @@ public class ContainsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "stringOrList, wordOrObject";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("stringOrList, wordOrObject");
 	}
 
 	@Override
@@ -87,12 +90,44 @@ public class ContainsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CONTAINS;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.contains(string, word)}} or ${{$.contains(collection, element)}}. Example: ${{$.contains($.this.name, \"the\")}} or ${{$.contains($.find('Page'), page)}}"),
+			Usage.structrScript("Usage: ${contains(string, word)} or ${contains(collection, element)}. Example: ${contains(this.name, \"the\")} or ${contains(find('Page'), page)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the given string or collection contains an element";
+	public String getShortDescription() {
+		return "Returns true if the given string or collection contains a given element.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Returns a boolean value that indicates whether the given string contains the given word or the given collection contains the given element.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("stringOrCollection", "string or collection to check"),
+			Parameter.mandatory("wordOrObject", "word or object to check")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${contains(request.inputString, 'test')}", "Check if a given string contains the word \"test\""),
+			Example.structrScript("${contains(project.members, me)}", "Check if the given collection contains a node"),
+			Example.javaScript("${{ $.contains(project.members, $.me); }}", "Check if the given collection contains a node")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"In JavaScript, this function is **not** the `contains` predicate to be used in `$.find()`, please use `$.predicate.contains()` for that."
+		);
 	}
 }

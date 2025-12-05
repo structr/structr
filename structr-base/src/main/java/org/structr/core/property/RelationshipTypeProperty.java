@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 
 /**
  *
@@ -33,17 +34,15 @@ public class RelationshipTypeProperty extends StringProperty {
 
 	public RelationshipTypeProperty() {
 
-		super("relType");
+		super(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY);
 
 		systemInternal();
 		readOnly();
-		passivelyIndexed();
 		writeOnce();
-
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -58,7 +57,7 @@ public class RelationshipTypeProperty extends StringProperty {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		if (obj instanceof RelationshipInterface) {
 
@@ -99,7 +98,7 @@ public class RelationshipTypeProperty extends StringProperty {
 	}
 
 	@Override
-	public PropertyConverter<?, String> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, String> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,14 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
+
 public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFunction {
-
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_get_last_outgoing_message()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_get_last_outgoing_message() }}";
 
 	public MailGetLastOutgoingMessageFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -34,12 +34,12 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 
 	@Override
 	public String getName() {
-		return "mail_get_last_outgoing_message";
+		return "mailGetLastOutgoingMessage";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -50,12 +50,27 @@ public class MailGetLastOutgoingMessageFunction extends AdvancedMailModuleFuncti
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mailGet_last_outgoing_message()}"),
+			Usage.javaScript("Usage: ${{ $.mailGetLastOutgoingMessage() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the last outgoing message sent by the advanced mail module in the current script";
+	public String getShortDescription() {
+		return "Returns the last outgoing message sent by the advanced mail module in the current script as a node of type `EMailMessage`.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"This method will only yield a result if `mail_save_outgoing_message()` was active when sending the mail."
+		);
 	}
 }

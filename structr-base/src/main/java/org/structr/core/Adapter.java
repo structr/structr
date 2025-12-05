@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,5 +34,5 @@ public interface Adapter<S, T>
 	 * @param s the source class
 	 * @return the target class
 	 */
-	public T adapt(S s) throws FrameworkException;
+	T adapt(S s) throws FrameworkException;
 }

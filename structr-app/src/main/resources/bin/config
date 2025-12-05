@@ -1,0 +1,73 @@
+#!/bin/bash
+#
+# configuration options for structr-ui
+#
+
+if [ -z "$REPLICA" ]; then
+	export LOG_FILE="logs/server.log"
+else
+	export LOG_FILE="logs/server.${REPLICA}.log"
+fi
+
+
+# Read config entries from structr.conf if available
+if [ -f "structr.conf" ]; then
+    # Read java heap config
+  	MAX_HEAP=$(grep -E "^\s*application\.heap\.max_size\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+  	MIN_HEAP=$(grep -E "^\s*application\.heap\.min_size\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+
+  	# Read timezone
+  	CONF_TIMEZONE=$(grep -E "^\s*application\.timezone\s*=" structr.conf | sed 's/^[^=]*=\s*//' | tr -d '[:space:]')
+fi
+
+if [ -f bin/memory.conf ]; then
+	echo -e "\n\n        Deprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
+	MEMORY_OPTS="$(cat bin/memory.conf)"
+elif [ -f bin/memory.config ]; then
+	echo -e "\n\n        Deprecation warning: The memory.conf file is deprecated. Please use application.heap.min_size and application.heap.max_size in structr.conf instead.\n\n" >> $LOG_FILE
+	MEMORY_OPTS="$(cat bin/memory.config)"
+elif [ -f "structr.conf" ]; then
+	if [ -n "$MAX_HEAP" ] || [ -n "$MIN_HEAP" ]; then
+		MEMORY_OPTS=""
+		[ -n "$MIN_HEAP" ] && MEMORY_OPTS="-Xms${MIN_HEAP}"
+		[ -n "$MAX_HEAP" ] && MEMORY_OPTS="${MEMORY_OPTS} -Xmx${MAX_HEAP}"
+		MEMORY_OPTS=$(echo "$MEMORY_OPTS" | xargs)  # trim whitespace
+	fi
+else
+	MEMORY_OPTS=""
+fi
+
+if [ "$ENABLE_STRUCTR_DEBUG" == "yes" ]; then
+	DEBUG_OPTS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
+	echo "        debug enabled with config: $DEBUG_OPTS"
+fi
+
+if [ -n "$JAVA_AGENT_PATH" ]; then
+		echo "        java agent selected: $JAVA_AGENT_PATH"
+		JAVA_AGENT_PATH="-javaagent:${JAVA_AGENT_PATH}"
+else
+		unset JAVA_AGENT_PATH
+fi
+
+
+if [ -n "$STRUCTR_TIMEZONE" ]; then
+	export PROCESS_TZ=$STRUCTR_TIMEZONE
+	echo "        Using user-provided timezone '$STRUCTR_TIMEZONE'"
+elif [ -n "$CONF_TIMEZONE" ]; then
+	export PROCESS_TZ=$CONF_TIMEZONE
+	echo "        Using structr.conf timezone '$CONF_TIMEZONE'"
+elif [ -z "$TZ" ]; then
+	export PROCESS_TZ="UTC"
+	echo "        Using default timezone '$PROCESS_TZ'"
+else
+	export PROCESS_TZ=$TZ
+	echo "        Using system TZ env timezone '$TZ'"
+fi
+
+mkdir -p plugins
+
+RUN_OPTS="-cp ./lib/*:./plugins/*:${project.build.finalName}.jar"
+JAVA_OPTS="$JAVA_AGENT_PATH -Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.country=US -Duser.language=en -Duser.timezone=$PROCESS_TZ -Dfile.encoding=UTF-8 -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -server $MEMORY_OPTS -XX:+UseNUMA -XX:+UseG1GC $DEBUG_OPTS"
+MAIN_CLASS="org.structr.Server"
+DISPLAY_NAME="${project.build.finalName}.jar"
+PID_FILE="server.pid"

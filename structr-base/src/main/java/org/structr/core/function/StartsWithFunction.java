@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,23 +20,26 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class StartsWithFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_STARTS_WITH = "Usage: ${starts_with(string, prefix)}. Example: ${starts_with(locale, \"de\")}";
-
 	@Override
 	public String getName() {
-		return "starts_with";
+		return "startsWith";
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, prefix";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str, prefix");
 	}
 
 	@Override
@@ -84,12 +87,46 @@ public class StartsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_STARTS_WITH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.startsWith(string, prefix) }}."),
+			Usage.structrScript("Usage: ${startsWith(string, prefix)}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the given string starts with the given prefix";
+	public String getShortDescription() {
+		return "Returns true if the given string starts with the given prefix.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${startsWith('Hello World!', 'Hello')}
+						> true
+						${startsWith('Hello World!', 'Hola')}
+						> false
+						"""),
+
+				Example.javaScript("${{ $.startsWith('Hello World!', 'Hello') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "string to check"),
+				Parameter.mandatory("prefix", "given start prefix")
+				);
+	}
+
 }

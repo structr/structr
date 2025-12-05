@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,6 +24,10 @@ import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -32,17 +36,14 @@ import java.util.Map;
 
 public class FromJsonFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_FROM_JSON    = "Usage: ${from_json(src)}. Example: ${from_json('{name:test}')}";
-	public static final String ERROR_MESSAGE_FROM_JSON_JS = "Usage: ${{Structr.from_json(src)}}. Example: ${{Structr.from_json('{name:test}')}}";
-
 	@Override
 	public String getName() {
-		return "from_json";
+		return "fromJson";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source");
 	}
 
 	@Override
@@ -137,13 +138,44 @@ public class FromJsonFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_JSON_JS : ERROR_MESSAGE_FROM_JSON);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${fromJson(src)}. Example: ${fromJson('{name:test}')}"),
+			Usage.javaScript("Usage: ${{Structr.fromJson(src)}}. Example: ${{Structr.fromJson('{name:test}')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Parses the given JSON string and returns an object";
+	public String getShortDescription() {
+		return "Parses the given JSON string and returns an object.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "This function is the inverse of the `toJson()` function.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("src", "JSON source to parse")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${fromJson('{name: Test, value: 123}')}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In a JavaScript scripting context the `JSON.parse()` function is available."
+		);
+	}
 }

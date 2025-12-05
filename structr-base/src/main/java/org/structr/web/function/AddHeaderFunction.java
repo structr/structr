@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,19 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class AddHeaderFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${add_header(field, value)}. Example: ${add_header('X-User', 'johndoe')}";
-	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{Structr.add_header(field, value)}}. Example: ${{Structr.add_header('X-User', 'johndoe')}}";
-
 	@Override
 	public String getName() {
-		return "add_header";
-	}
-
-	@Override
-	public String getSignature() {
-		return "name, value";
+		return "addHeader";
 	}
 
 	@Override
@@ -66,12 +64,67 @@ public class AddHeaderFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name, value");
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Adds the given header field and value to the next request";
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${addHeader(name, value)}. Example: ${addHeader('X-User', 'johndoe')}"),
+			Usage.javaScript("Usage: ${{ $.addHeader(name, value)}}. Example: ${{ $.addHeader('X-User', 'johndoe')}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("name", "name of the header field"),
+			Parameter.mandatory("value", "value of the header field")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Temporarily adds the given (key, value) tuple to the local list of request headers.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "All headers added with this function will be sent with any subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` call in the same request (meaning the request from the client to Structr).";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Prior to 3.5.0 it was not possible to remove headers. In 3.5.0 this function was changed to remove a header if `value = null` was provided as an argument."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript(
+				"""
+				${
+				    (
+					addHeader('X-User', 'tester1'),
+					addHeader('X-Password', 'test'),
+					GET('http://localhost:8082/structr/rest/User')
+				    )
+				}
+				""", "Authenticate an HTTP GET request with addHeader (StructrScript version)"),
+			Example.javaScript(
+				"""
+					${{
+					    $.addHeader('X-User', 'tester1');
+					    $.addHeader('X-Password', 'test');
+					    let result = $.GET('http://localhost:8082/structr/rest/User');
+					}}
+				""", "Authenticate an HTTP GET request with addHeader (JavaScript version)"
+			)
+		);
 	}
 }

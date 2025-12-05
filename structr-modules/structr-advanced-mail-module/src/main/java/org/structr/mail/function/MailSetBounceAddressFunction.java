@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,17 @@
  */
 package org.structr.mail.function;
 
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_set_bounce_address(bounceAddress)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_bounce_address(bounceAddress) }}";
+public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	public MailSetBounceAddressFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -34,12 +36,12 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_set_bounce_address";
+		return "mailSetBounceAddress";
 	}
 
 	@Override
-	public String getSignature() {
-		return "bounceAddress";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("address");
 	}
 
 	@Override
@@ -62,12 +64,27 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mailSetBounce_address(address)}"),
+			Usage.javaScript("Usage: ${{ $.mailSetBounceAddress(address) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the bounce address of the current mail";
+	public String getShortDescription() {
+		return "Sets the bounce address of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address to which undeliverable messages will be returned if undeliverable")
+		);
 	}
 }

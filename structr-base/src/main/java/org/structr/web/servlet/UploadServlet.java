@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,19 +29,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.ee10.servlet.ServletHolder;
 import org.eclipse.jetty.io.QuietException;
-import org.eclipse.jetty.server.MultiPartFormInputStream;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
-import org.structr.common.PathHelper;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.PathHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
 import org.structr.core.JsonInput;
@@ -50,31 +49,47 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.User;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 
 /**
  * Simple upload servlet.
  */
 public class UploadServlet extends AbstractServletBase implements HttpServiceServlet {
+
+	private static final Set<String> AllowedProperties = Set.of(
+		GraphObjectTraitDefinition.TYPE_PROPERTY,
+		NodeInterfaceTraitDefinition.NAME_PROPERTY,
+		AbstractFileTraitDefinition.PARENT_ID_PROPERTY,
+		AbstractFileTraitDefinition.PARENT_PROPERTY,
+		GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY,
+		GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY
+	);
 
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
@@ -85,7 +100,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 	// non-static fields
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	private java.io.File filesDir                 = null;
+	private final java.io.File filesDir           = null;
 
 	public UploadServlet() {
 	}
@@ -121,7 +136,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			try {
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
@@ -135,9 +150,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try {
 
-			if (request.getParts().size() <= 0) {
+			if (!request.getContentType().startsWith("multipart/form-data") || request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -145,10 +160,10 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			logger.warn("Unable to send response", ioex);
 		}
 
-		SecurityContext securityContext = null;
-		String redirectUrl              = null;
-		boolean appendUuidOnRedirect    = false;
-		String path                     = null;
+		SecurityContext securityContext  = null;
+		String redirectUrl               = null;
+		boolean appendUuidOnRedirect     = false;
+		String uploadFolderPathParameter = null;
 
 		// isolate request authentication in a transaction
 		try (final Tx tx = StructrApp.getInstance().tx()) {
@@ -159,7 +174,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			} catch (AuthenticationException ae) {
 
 				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -177,16 +192,21 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			return;
 		}
 
-		final App app              = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
-			if (securityContext.getUser(false) == null && !Settings.UploadAllowAnonymous.getValue()) {
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+				if (securityContext.getUser(false) == null && !Settings.UploadAllowAnonymous.getValue()) {
 
-				return;
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes(StandardCharsets.UTF_8));
+
+					return;
+				}
+
+				tx.success();
 			}
 
 			// Ensure access mode is frontend
@@ -212,8 +232,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			response.setContentType("text/html");
 
-			final Map<String, Object> params         = new HashMap<>();
-			String uuid                              = null;
+			final Map<String, Object> params = new HashMap<>();
+			String uuid = null;
 
 			// 1. Collect non-file parts
 			final Collection<Part> parts = request.getParts();
@@ -221,8 +241,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				if (p.getSubmittedFileName() == null) {
 
-					final String fieldName = p.getName();
-					final String fieldValue = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
+					final String fieldValue = IOUtils.toString(p.getInputStream(), StandardCharsets.UTF_8);
+					final String fieldName  = p.getName();
 
 					if (REDIRECT_AFTER_UPLOAD_PARAMETER.equals(fieldName)) {
 
@@ -234,7 +254,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 					} else if (UPLOAD_FOLDER_PATH_PARAMETER.equals(fieldName)) {
 
-						path = fieldValue;
+						uploadFolderPathParameter = fieldValue;
 
 					} else if (FILE_SCHEMA_TYPE_PARAMETER.equals(fieldName)) {
 
@@ -264,79 +284,127 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				if (p.getSubmittedFileName() != null) {
 
 					final String contentType = p.getContentType();
-					boolean isImage = (contentType != null && contentType.startsWith("image"));
-					boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-					Class cls = null;
+					Traits cls = null;
 					if (type != null) {
 
-						cls = SchemaHelper.getEntityClassForRawType(type);
+						if (Traits.exists(type)) {
+
+							cls = Traits.of(type);
+
+						} else {
+
+							logger.warn("Unable to create entity of type '" + type + "', class is not defined.");
+						}
 					}
 
 					if (cls == null) {
 
+						boolean isImage = (contentType != null && contentType.startsWith("image"));
+						boolean isVideo = (contentType != null && contentType.startsWith("video"));
+
 						if (isImage) {
 
-							cls = SchemaHelper.getEntityClassForRawType("Image");
+							cls = Traits.of(StructrTraits.IMAGE);
 
 						} else if (isVideo) {
 
-							cls = SchemaHelper.getEntityClassForRawType("VideoFile");
-							if (cls == null) {
-
-								logger.warn("Unable to create entity of type VideoFile, class is not defined.");
-							}
+							cls = Traits.of(StructrTraits.VIDEO_FILE);
 
 						} else {
 
-							cls = SchemaHelper.getEntityClassForRawType("File");
+							cls = Traits.of(StructrTraits.FILE);
 						}
 					}
 
 					if (cls != null) {
 
-						type = cls.getSimpleName();
+						type = cls.getName();
+					}
+
+					final Set<String> forbiddenProperties = new LinkedHashSet<>();
+
+					// check parameters against whitelist (and allow dynamic properties to be set)
+					// (this needs to be done here because we need the target type)
+					for (final Iterator<String> it = params.keySet().iterator(); it.hasNext(); ) {
+
+						final String propertyName = it.next();
+						if (cls.hasKey(propertyName)) {
+
+							final PropertyKey key = cls.key(propertyName);
+
+							if (!AllowedProperties.contains(propertyName) && !key.isDynamic()) {
+
+								forbiddenProperties.add(propertyName);
+							}
+						}
+					}
+
+					if (!forbiddenProperties.isEmpty()) {
+						throw new FrameworkException(422, "Additional file properties found which are not allowed to be set during upload: '" + forbiddenProperties + "'. Only custom properties and the following properties may be set: '" + AllowedProperties + "'");
+					}
+
+					Folder uploadFolder                                  = null;
+					final String contextSensitiveDefaultUploadFolderPath = getContextSensitiveDefaultUploadFolderPath(securityContext);
+
+					if (params.containsKey(AbstractFileTraitDefinition.PARENT_PROPERTY)) {
+
+						uploadFolder = getFolderParent(securityContext, params.get(AbstractFileTraitDefinition.PARENT_PROPERTY).toString());
+					}
+
+					if (params.containsKey(AbstractFileTraitDefinition.PARENT_ID_PROPERTY)) {
+
+						uploadFolder = getFolderParent(securityContext, params.get(AbstractFileTraitDefinition.PARENT_ID_PROPERTY).toString());
 					}
 
 					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
-					File newFile      = null;
-					boolean retry     = true;
+					File newFile = null;
+					boolean retry = true;
 
 					while (retry) {
 
 						retry = false;
 
-						final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
-						Folder uploadFolder                         = null;
-
 						// If a path attribute was sent, create all folders on the fly.
-						if (path != null) {
+						if (uploadFolder == null) {
 
-							uploadFolder = getOrCreateFolderPath(securityContext, path);
+							if (uploadFolderPathParameter != null) {
 
-						} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
+								final boolean isUploadPathParameterAllowed = isUploadFolderPathParameterAllowed(securityContext, uploadFolderPathParameter);
 
-							uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+								if (isUploadPathParameterAllowed) {
+
+									uploadFolder = getOrCreateFolderPathInAllowedLocation(uploadFolderPathParameter);
+
+								} else {
+
+									throw new NotAllowedException("Using the '" + UPLOAD_FOLDER_PATH_PARAMETER + "' parameter is only allowed for authenticated users. Furthermore it is only allowed for paths underneath the configured default upload folder (or the users home directory, if that feature is enabled). Usually it is preferred to use the parameter \"parent=FOLDER_UUID\" to point to a specific folder.");
+								}
+
+							} else if (StringUtils.isNotBlank(contextSensitiveDefaultUploadFolderPath)) {
+
+								uploadFolder = getOrCreateFolderPathInAllowedLocation(contextSensitiveDefaultUploadFolderPath);
+							}
 						}
 
 						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 							try (final InputStream is = p.getInputStream()) {
 
-								newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+								newFile = FileHelper.createFile(securityContext, is, contentType, type, name, uploadFolder).as(File.class);
 
 								final PropertyMap changedProperties = new PropertyMap();
 
-								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, type, params));
 
 								// Update type as it could have changed
-								changedProperties.put(AbstractNode.type, type);
+								changedProperties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
 								newFile.unlockSystemPropertiesOnce();
 								newFile.setProperties(securityContext, changedProperties, true);
 
 								// validate and rename file after setting all properties (as the folder might have changed)
-								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
+								newFile.validateAndRenameFileOnce(securityContext, null);
 
 								uuid = newFile.getUuid();
 
@@ -357,33 +425,40 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					// only the actual existing file creates a UUID output
 					if (newFile != null) {
 
-						// upload trigger
-						newFile.notifyUploadCompletion();
+						// all property access must be wrapped in a transaction
+						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-						newFile.callOnUploadHandler(securityContext);
+							// upload trigger
+							newFile.notifyUploadCompletion();
 
-						// store uuid
-						uuid = newFile.getUuid();
+							newFile.callOnUploadHandler(securityContext);
+
+							// store uuid
+							uuid = newFile.getUuid();
+
+							tx.success();
+						}
 					}
 				}
 			}
 
-			// send redirect to allow form-based file upload without JavaScript..
+			// send redirect to allow form-based file upload without JavaScript...
 			if (StringUtils.isNotBlank(redirectUrl)) {
 
 				if (appendUuidOnRedirect) {
 
-					sendRedirectHeader(response, redirectUrl + (redirectUrl.endsWith("/") ? "" : "/") + uuid, false);	// user-provided, should be already prefixed
+					sendRedirectHeader(response, redirectUrl + (redirectUrl.endsWith("/") ? "" : "/") + uuid, false);    // user-provided, should be already prefixed
 
 				} else {
 
-					sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
+					sendRedirectHeader(response, redirectUrl, false);    // user-provided, should be already prefixed
 				}
 
 			} else {
 
 				// Just write out the uuids of the new files
 				if (uuid != null) {
+
 					response.getWriter().write(uuid);
 				}
 			}
@@ -392,9 +467,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			final String content;
 
-			if (t instanceof FrameworkException) {
+			if (t instanceof FrameworkException fex) {
 
-				final FrameworkException fex = (FrameworkException) t;
 				logger.error(fex.toString());
 				content = errorPage(fex);
 
@@ -411,11 +485,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				content = errorPage(t);
 
-				// set response status to 500
-				response.setStatus(500);
+				response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			}
 
 			try {
+
 				final ServletOutputStream out = response.getOutputStream();
 				IOUtils.write(content, out, "utf-8");
 
@@ -437,7 +511,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			try {
 
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
@@ -456,14 +530,14 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			if (uuid == null) {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
 			if (!Settings.isValidUuid(uuid)) {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));
+				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes(StandardCharsets.UTF_8));
 				return;
 			}
 
@@ -491,13 +565,13 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					if (node == null) {
 
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
+						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes(StandardCharsets.UTF_8));
 					}
 
-					if (node instanceof org.structr.web.entity.File) {
+					if (node instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-						final File file = (File) node;
-						if (file.isGranted(Permission.write, securityContext)) {
+						final File file = n.as(File.class);
+						if (n.isGranted(Permission.write, securityContext)) {
 
 							try (final InputStream is = p.getInputStream()) {
 
@@ -511,7 +585,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						} else {
 
 							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes("UTF-8"));
+							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes(StandardCharsets.UTF_8));
 						}
 					}
 
@@ -530,7 +604,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	}
 
 	@Override
-	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doOptions(HttpServletRequest request, HttpServletResponse response) {
 
 		setCustomResponseHeaders(response);
 
@@ -571,7 +645,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		} finally {
 
 			try {
-				//response.getWriter().flush();
+
 				response.getWriter().close();
 
 			} catch (Throwable t) {
@@ -609,11 +683,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		// isolate input parsing (will include read and write operations)
 		try (final Tx tx = app.tx()) {
 
-			jsonInput   = gson.fromJson(input, IJsonInput.class);
+			jsonInput = gson.fromJson(input, IJsonInput.class);
 			tx.success();
 
 		} catch (JsonSyntaxException jsx) {
-			//logger.warn("", jsx);
+
 			throw new FrameworkException(400, jsx.getMessage());
 		}
 
@@ -634,7 +708,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		}
 
 		return jsonInput;
-
 	}
 
 	private Map<String, Object> convertPropertySetToMap(JsonInput propertySet) {
@@ -646,11 +719,13 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		return new LinkedHashMap<>();
 	}
 
-	private synchronized Folder getOrCreateFolderPath(SecurityContext securityContext, String path) {
+	private synchronized Folder getOrCreateFolderPathInAllowedLocation(final String path) {
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			Folder folder = FileHelper.createFolderPath(securityContext, path);
+			final NodeInterface newFolder = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path);
+			final Folder folder           = (newFolder != null) ? newFolder.as(Folder.class) : null;
+
 			tx.success();
 
 			return folder;
@@ -662,11 +737,122 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		return null;
 	}
 
+	private void checkUploadFolderRightsIfNecessary(final SecurityContext securityContext, final Folder targetFolder) throws FrameworkException, NotAllowedException {
+
+		final boolean requiredWriteRights = areWriteRightsRequiredForTargetFolder(securityContext, targetFolder);
+
+		if (requiredWriteRights) {
+
+			final boolean isAllowed = targetFolder.isGranted(Permission.write, securityContext);
+
+			if (!isAllowed) {
+
+				throw new NotAllowedException("User is not allowed to write to given folder.");
+			}
+		}
+	}
+
+	private boolean isUploadFolderPathParameterAllowed(final SecurityContext securityContext, final String uploadFolderPathParameter) throws FrameworkException {
+
+		final boolean userPresent = (securityContext.getUser(false) != null);
+
+		return userPresent && !isRestrictedPath(securityContext, addFinalSlash(uploadFolderPathParameter));
+	}
+
+	private boolean isRestrictedPath(final SecurityContext securityContext, final String targetFolderPath) throws FrameworkException {
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			final boolean isUnderneathConfiguredDefaultUploadFolder = targetFolderPath.startsWith(getDefaultUploadFolderPathValueFromSetting());
+			if (isUnderneathConfiguredDefaultUploadFolder) {
+				return false;
+			}
+
+			final boolean filesystemEnabled = Settings.FilesystemEnabled.getValue();
+			final Principal user = securityContext.getUser(false);
+
+			if (filesystemEnabled && user != null) {
+
+				final Folder homeFolder              = user.as(User.class).getOrCreateHomeDirectory();
+				final String homeFolderPath          = addFinalSlash(homeFolder.getPath());
+				final boolean isUnderneathHomeFolder = targetFolderPath.startsWith(homeFolderPath);
+
+				if (isUnderneathHomeFolder) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
+
+	private boolean areWriteRightsRequiredForTargetFolder(final SecurityContext securityContext, final Folder targetFolder) throws FrameworkException {
+
+		final App privilegedApp = StructrApp.getInstance();
+		try (final Tx tx = privilegedApp.tx()) {
+
+			final Folder folder_privileged          = privilegedApp.getNodeById(StructrTraits.FOLDER, targetFolder.getUuid()).as(Folder.class);
+			final String givenFolderPath            = addFinalSlash(folder_privileged.getPath());
+
+			return isRestrictedPath(securityContext, givenFolderPath);
+		}
+	}
+
+	private Folder getFolderParent(final SecurityContext securityContext, final String parentId) throws FrameworkException {
+
+		Folder folder = null;
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			NodeInterface node = app.getNodeById(parentId);
+
+			if (node == null) {
+				throw new NotFoundException("Upload folder not found: " + parentId);
+			}
+
+			folder = node.as(Folder.class);
+
+			checkUploadFolderRightsIfNecessary(securityContext, folder);
+		}
+
+		return folder;
+	}
+
+	private String getContextSensitiveDefaultUploadFolderPath(final SecurityContext securityContext) throws FrameworkException{
+
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+			final boolean filesystemEnabled = Settings.FilesystemEnabled.getValue();
+			final Principal user = securityContext.getUser(false);
+
+			String path;
+
+			if (filesystemEnabled && user != null) {
+				path = addFinalSlash(user.as(User.class).getOrCreateHomeDirectory().getPath());
+			} else {
+				path = getDefaultUploadFolderPathValueFromSetting();
+			}
+
+			tx.success();
+
+			return path;
+		}
+	}
+
+	private String getDefaultUploadFolderPathValueFromSetting() {
+		return addFinalSlash(Settings.DefaultUploadFolder.getValue());
+	}
+
+	private String addFinalSlash(final String path) {
+		return path + (path.endsWith("/") ? "" : "/");
+	}
+
 	private String errorPage(final FrameworkException t) {
-		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.toJSON() + "</p>\n</body></html>";
+		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.toJSON() + "</p></body></html>";
 	}
 
 	private String errorPage(final Throwable t) {
-		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.getMessage() + "</p>\n</body></html>";
+		return "<html><head><title>Error in Upload</title></head><body><h1>Error in Upload</h1><p>" + t.getMessage() + "</p></body></html>";
 	}
 }

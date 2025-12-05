@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -40,7 +40,7 @@ public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 
 		if (predicate instanceof SpatialQuery) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
 			// add label of declaring class for the given property name
 			// to select the correct index

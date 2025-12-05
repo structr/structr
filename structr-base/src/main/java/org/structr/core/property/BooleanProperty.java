@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,8 +33,6 @@ import java.util.Set;
 
 /**
 * A property that stores and retrieves a simple Boolean value.
- *
- *
  */
 public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 
@@ -82,7 +80,7 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean> inputConverter(final SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 
@@ -115,6 +113,11 @@ public class BooleanProperty extends AbstractPrimitiveProperty<Boolean> {
 			}
 		}
 
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

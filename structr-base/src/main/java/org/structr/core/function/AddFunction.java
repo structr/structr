@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,20 +19,19 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class AddFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_ADD = "Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}";
+public class AddFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
 		return "add";
-	}
-
-	@Override
-	public String getSignature() {
-		return "values...";
 	}
 
 	@Override
@@ -64,12 +63,37 @@ public class AddFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ADD;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("values...");
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the sum of the given arguments";
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("values", "list of values to add")
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${add(values...)}. Example: ${add(1, 2, 3, this.children.size)}")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Returns the sum of the given arguments.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

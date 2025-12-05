@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,13 +23,14 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class BsonFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE    = "Usage: ${bson(data)}. Example: ${bson({ name: 'Test' })}";
 
 	@Override
 	public String getName() {
@@ -37,8 +38,8 @@ public class BsonFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "data";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("data");
 	}
 
 	@Override
@@ -64,12 +65,20 @@ public class BsonFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.bson(data) }}. Example: ${{ $.bson({ name: 'Test' }) }}"),
+			Usage.structrScript("Usage: ${bson(data)}. Example: ${bson({ name: 'Test' })}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Creates BSON document from a map / object";
+	public String getShortDescription() {
+		return "Creates BSON document from a map / object.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

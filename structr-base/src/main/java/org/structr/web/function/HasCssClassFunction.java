@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,28 +22,27 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Arrays;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class HasCssClassFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_HAS_CSS_CLASS    = "Usage: ${has_css_class(element, css)}. Example: ${has_css_class(this, 'active')}";
-	public static final String ERROR_MESSAGE_HAS_CSS_CLASS_JS = "Usage: ${{Structr.hasCssClass(element, css)}}. Example: ${{Structr.hasCssClass(this, 'active')}}";
-
 	@Override
 	public String getName() {
-		return "has_css_class";
+		return "hasCssClass";
 	}
 
 	@Override
-	public String getSignature() {
-		return "element, css";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("element, css");
 	}
 
 	@Override
@@ -51,13 +50,13 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasMinLengthAndTypes(sources, 2, DOMNode.class, String.class);
+			assertArrayHasMinLengthAndTypes(sources, 2, NodeInterface.class, String.class);
 
 			// we can safely cast here because of the assert.. above
 
-			final DOMNode element       = (DOMNode)sources[0];
+			final NodeInterface element = (NodeInterface)sources[0];
 			final String css            = (String)sources[1];
-			final String elementClasses = element.getProperty(StructrApp.key(DOMElement.class, "_html_class"));
+			final String elementClasses = element.as(DOMNode.class).getCssClass();
 
 			if (StringUtils.isNotBlank(css) && StringUtils.isNotBlank(elementClasses)) {
 
@@ -83,12 +82,20 @@ public class HasCssClassFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_HAS_CSS_CLASS_JS : ERROR_MESSAGE_HAS_CSS_CLASS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${hasCssClass(element, css)}. Example: ${hasCssClass(this, 'active')}"),
+			Usage.javaScript("Usage: ${{Structr.hasCssClass(element, css)}}. Example: ${{Structr.hasCssClass(this, 'active')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns whether the given element has the given CSS class(es).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

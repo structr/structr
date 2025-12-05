@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,12 +20,16 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 public class TitleizeFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_TITLEIZE = "Usage: ${titleize(string, separator)}. (Default separator is \" \") Example: ${titleize(this.lowerCamelCaseString, \"_\")}";
 
 	@Override
 	public String getName() {
@@ -33,8 +37,8 @@ public class TitleizeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str");
 	}
 
 	@Override
@@ -65,15 +69,44 @@ public class TitleizeFunction extends CoreFunction {
 
 	}
 
-
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_TITLEIZE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.titleize(string, separator) }}"),
+			Usage.structrScript("Usage: ${titleize(string, separator)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Titleizes the given string";
+	public String getShortDescription() {
+		return "Titleizes the given string.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${titleize('structr has a lot of built-in functions')}
+						> 'Structr Has A Lot Of Built-in Functions'
+						"""),
+				Example.javaScript("""
+						${{ titleize('structr has a lot of built-in functions', '- ') }}
+						> 'Structr Has A Lot Of Built In Functions'
+						""", "Different separator")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "URL to connect to"),
+				Parameter.optional("separatorChars", "string separator (default: ` `)")
+				);
+	}
 }

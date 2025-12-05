@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,11 +53,10 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public String toString() {
-		return "MemoryQuery(" + labels.toString() + ")";
+		return rootPredicate.toString();
 	}
 
 	public void addTypeLabel(final String typeLabel) {
-
 		labels.add(typeLabel);
 	}
 
@@ -69,8 +68,9 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 		if (negateNextPredicate) {
 
-			negateNextPredicate = false;
 			currentPredicate.add(new NotPredicate<>(predicate));
+
+			negateNextPredicate = false;
 
 		} else {
 
@@ -80,12 +80,22 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public void and() {
-		currentPredicate.setConjunction(Conjunction.And);
+
+		final GroupPredicate<T> p = new GroupPredicate<>(currentPredicate, Conjunction.And);
+
+		currentPredicate.add(p);
+
+		currentPredicate = p;
 	}
 
 	@Override
 	public void or() {
-		currentPredicate.setConjunction(Conjunction.Or);
+
+		final GroupPredicate<T> p = new GroupPredicate<>(currentPredicate, Conjunction.Or);
+
+		currentPredicate.add(p);
+
+		currentPredicate = p;
 	}
 
 	@Override
@@ -95,7 +105,7 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public void andNot() {
-		currentPredicate.setConjunction(Conjunction.And);
+		and();
 		not();
 	}
 
@@ -141,7 +151,10 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 
 	@Override
 	public boolean accept(final T value) {
-		return rootPredicate.accept(value);
+
+		final boolean accepted = currentPredicate.accept(value);
+
+		return accepted;
 	}
 
 	public QueryContext getQueryContext() {
@@ -190,7 +203,6 @@ public class MemoryQuery<T extends PropertyContainer> implements DatabaseQuery, 
 						} else {
 
 							return desc ? 1 : -1;
-
 						}
 					}
 

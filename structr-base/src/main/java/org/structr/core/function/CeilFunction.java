@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,15 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class CeilFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_CEIL = "Usage: ${ceil(value)}. Example: ${ceil(32.4)}";
+public class CeilFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +37,8 @@ public class CeilFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override
@@ -59,12 +63,34 @@ public class CeilFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CEIL;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.ceil(value)}}. Example: ${{$.ceil(32.4)}}"),
+			Usage.structrScript("Usage: ${ceil(value)}. Example: ${ceil(32.4)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the smallest integer that is greater than or equal to the argument";
+	public String getShortDescription() {
+		return "Returns the given value, rounded up to the nearest integer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("value", "input value (can also be a string with a number in it)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${ ceil(5.8) }", "Returns 6")
+		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,10 +22,14 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -36,17 +40,14 @@ import java.util.Set;
 
 public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES    = "Usage: ${get_relationship_types(node, lookupType [, direction])}. Example: ${get_relationship_types(me, 'existing', 'both')}";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIP_TYPES_JS = "Usage: ${{Structr.get_relationship_types(node, lookupType [, direction ])}}. Example: ${{Structr.get_relationship_types(me, 'existing', 'both')}}";
-
 	@Override
 	public String getName() {
-		return "get_relationship_types";
+		return "getRelationshipTypes";
 	}
 
 	@Override
-	public String getSignature() {
-		return "node, lookupType [, direction ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("node, lookupType [, direction ]");
 	}
 
 	@Override
@@ -59,11 +60,11 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 3);
 
 			final Object param1 = sources[0];
-			AbstractNode node = null;
+			NodeInterface node = null;
 
-			if (param1 instanceof AbstractNode) {
+			if (param1 instanceof NodeInterface) {
 
-				node = (AbstractNode)param1;
+				node = (NodeInterface)param1;
 
 			} else {
 
@@ -82,7 +83,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 					final PropertyKey<String> classNameKey        = new StringProperty("className");
 					final PropertyKey<String> relationshipTypeKey = new StringProperty("relationshipType");
 
-					final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), node.getClass(), "all");
+					final List<GraphObjectMap> propertyList = SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), node.getType(), "all");
 
 					switch(direction) {
 						case "incoming":
@@ -120,14 +121,14 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 					switch(direction) {
 						case "incoming":
-							for (final AbstractRelationship rel : node.getIncomingRelationships()) {
+							for (final RelationshipInterface rel : node.getIncomingRelationships()) {
 
 								resultSet.add(rel.getRelType().name());
 							}
 							break;
 
 						case "outgoing":
-							for (final AbstractRelationship rel : node.getOutgoingRelationships()) {
+							for (final RelationshipInterface rel : node.getOutgoingRelationships()) {
 
 								resultSet.add(rel.getRelType().name());
 							}
@@ -135,7 +136,7 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 
 						default:
 						case "both":
-							for (final AbstractRelationship rel : node.getRelationships()) {
+							for (final RelationshipInterface rel : node.getRelationships()) {
 
 								resultSet.add(rel.getRelType().name());
 							}
@@ -157,12 +158,52 @@ public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_RELATIONSHIP_TYPES_JS : ERROR_MESSAGE_GET_RELATIONSHIP_TYPES);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getRelationshipTypes(node, lookupType [, direction])}. Example: ${getRelationshipTypes(me, 'existing', 'both')}"),
+			Usage.javaScript("Usage: ${{$.getRelationshipTypes(node, lookupType [, direction ])}}. Example: ${{$.getRelationshipTypes(me, 'existing', 'both')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the list of available relationship types form and/or to this node. Either potentially available (schema) or actually available (database).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${getRelationshipTypes(me, 'schema')}
+						${getRelationshipTypes(me, 'schema', 'incoming')}
+						${getRelationshipTypes(me, 'schema', 'outgoing')}
+						${getRelationshipTypes(me, 'existing')}
+						${getRelationshipTypes(me, 'existing', 'incoming')}
+						${getRelationshipTypes(me, 'existing', 'outgoing')}
+						"""),
+				Example.javaScript("""
+						${{ $.getRelationshipTypes($.me, 'schema') }}
+						${{ $.getRelationshipTypes($.me, 'schema', 'incoming') }}
+						${{ $.getRelationshipTypes($.me, 'schema', 'outgoing') }}
+						${{ $.getRelationshipTypes($.me, 'existing') }}
+						${{ $.getRelationshipTypes($.me, 'existing', 'incoming') }}
+						${{ $.getRelationshipTypes($.me, 'existing', 'outgoing') }}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("node", "node for which possible relationship types should be checked"),
+				Parameter.optional("lookupType", "`existing` or `schema` - default: `existing`"),
+				Parameter.optional("direction", "`incoming`, `outgoing` or `both` - default: `both`")
+		);
 	}
 }

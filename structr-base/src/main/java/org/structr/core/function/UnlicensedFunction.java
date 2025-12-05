@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,8 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+
+import java.util.List;
 
 /**
  * Dummy function that replaces unlicensed functions to prevent
@@ -47,13 +51,19 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return UnlicensedScriptException.buildLogMessage(name, module);
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Placeholder for unlicensed functions";
+	public String getShortDescription() {
+		return "Placeholder for unlicensed functions.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override
@@ -62,7 +72,7 @@ public class UnlicensedFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
+	public List<Signature> getSignatures() {
 		return null;
 	}
 

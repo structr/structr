@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,9 @@ package org.structr.core.graph;
 
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 
@@ -32,30 +32,24 @@ import org.structr.schema.NonIndexed;
  */
 public interface RelationshipInterface extends GraphObject, NonIndexed {
 
-	public void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId);
+	NodeInterface getSourceNode();
+	NodeInterface getTargetNode();
+	NodeInterface getSourceNodeAsSuperUser();
+	NodeInterface getTargetNodeAsSuperUser();
+	NodeInterface getOtherNode(final NodeInterface thisNode);
 
-	public void onRelationshipCreation();
-	public void onRelationshipInstantiation();
-	public void onRelationshipDeletion();
+	RelationshipType getRelType();
+	Relation getRelation();
 
-	public NodeInterface getSourceNode();
-	public NodeInterface getTargetNode();
-	public NodeInterface getSourceNodeAsSuperUser();
-	public NodeInterface getTargetNodeAsSuperUser();
-	public NodeInterface getOtherNode(final NodeInterface thisNode);
-	public RelationshipType getRelType();
+	Relationship getRelationship();
 
-	public Relationship getRelationship();
+	PropertyMap getProperties() throws FrameworkException;
 
-	public PropertyMap getProperties() throws FrameworkException;
+	String getSourceNodeId();
+	void setSourceNodeId(final String startNodeId) throws FrameworkException;
 
-	public String getSourceNodeId();
-	public void setSourceNodeId(final String startNodeId) throws FrameworkException;
+	String getTargetNodeId();
+	void setTargetNodeId(final String targetIdNode) throws FrameworkException;
 
-	public String getTargetNodeId();
-	public void setTargetNodeId(final String targetIdNode) throws FrameworkException;
-
-	public int getCascadingDeleteFlag();
-
-	public boolean isInternal();
+	boolean isDeleted();
 }

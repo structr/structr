@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,6 @@ class NodeNodeMapper implements Function<org.neo4j.driver.types.Node, Node> {
 
 	@Override
 	public Node apply(final org.neo4j.driver.types.Node t) {
-		return NodeWrapper.newInstance(db, t);
+		return db.getCurrentTransaction().getNodeWrapper(t);
 	}
 }

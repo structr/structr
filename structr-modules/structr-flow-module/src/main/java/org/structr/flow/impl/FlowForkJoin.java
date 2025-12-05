@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,68 +18,14 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.flow.api.Action;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 import org.structr.flow.api.ThrowingElement;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
+public class FlowForkJoin extends FlowAction implements DeployableEntity, ThrowingElement {
 
-public class FlowForkJoin extends FlowNode implements Action, DeployableEntity, ThrowingElement {
-
-	public static final Property<FlowExceptionHandler> exceptionHandler 	= new EndNode<>("exceptionHandler", FlowExceptionHandlerNodes.class);
-
-	public static final View defaultView 									= new View(FlowAction.class, PropertyView.Public, exceptionHandler, isStartNodeOfContainer);
-	public static final View uiView      									= new View(FlowAction.class, PropertyView.Ui, exceptionHandler, isStartNodeOfContainer);
-
-	@Override
-	public FlowExceptionHandler getExceptionHandler(Context context) {
-		return getProperty(exceptionHandler);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
-
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
-
-		return result;
-	}
-
-	@Override
-	public void execute(Context context) throws FlowException {
-
-		try {
-
-			Queue<Future> futures = context.getForkFutures();
-
-			while(futures.size() > 0) {
-				//Poll head and invoke get to force the promise to resolve and thus waiting for thread termination
-				Future f = futures.poll();
-				if (f != null) {
-					f.get();
-				}
-			}
-
-		} catch (ExecutionException | InterruptedException ex) {
-
-			throw new FlowException(ex, this);
-
-		}
-
+	public FlowForkJoin(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 }

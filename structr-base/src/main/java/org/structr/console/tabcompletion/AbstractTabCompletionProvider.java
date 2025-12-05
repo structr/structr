@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.console.tabcompletion;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 
@@ -102,5 +103,9 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 		}
 
 		return thisMap;
+	}
+
+	protected Set<String> getNodeTypes() {
+		return Traits.getAllTypes(t -> t.isNodeType());
 	}
 }

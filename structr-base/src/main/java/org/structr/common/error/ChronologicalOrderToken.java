@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,18 +18,15 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
-import java.util.Date;
-
 /**
  * Indicates that two given date properties must be ordered chronologically.
- *
- *
  */
 public class ChronologicalOrderToken extends SemanticErrorToken {
 
-	public ChronologicalOrderToken(final String type, final PropertyKey<Date> propertyKey1, final PropertyKey<Date> propertyKey2) {
-		super(type, propertyKey1, "must_lie_before", propertyKey2.jsonName());
+	public ChronologicalOrderToken(final String type, final String propertyKey1, final String propertyKey2) {
+
+		super(type, propertyKey1, "must_lie_before");
+
+		withDetail(propertyKey2);
 	}
 }

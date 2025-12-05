@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,12 @@ public interface JsonFunctionProperty extends JsonDynamicProperty {
 
 	public JsonFunctionProperty setWriteFunction(final String writeFunction);
 	public String getWriteFunction();
+
+	public JsonFunctionProperty setWriteFunctionWrapJS(final boolean wrap);
+	public Boolean getWriteFunctionWrapJS();
+
+	public JsonFunctionProperty setReadFunctionWrapJS(final boolean wrap);
+	public Boolean getReadFunctionWrapJS();
 
 	public JsonFunctionProperty setIsCachingEnabled(final boolean enabled);
 	public Boolean getIsCachingEnabled();

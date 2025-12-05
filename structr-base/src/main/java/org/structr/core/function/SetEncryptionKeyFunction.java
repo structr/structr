@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,21 +19,24 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_SET_KEY    = "Usage: ${set_encryption_key(secret)}";
-	public static final String ERROR_MESSAGE_SET_KEY_JS = "Usage: ${{Structr.setEncryptionKey(secret)}}";
-
 	@Override
 	public String getName() {
-		return "set_encryption_key";
+		return "setEncryptionKey";
 	}
 
 	@Override
-	public String getSignature() {
-		return "secretKey";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("secretKey");
 	}
 
 	@Override
@@ -62,12 +65,46 @@ public class SetEncryptionKeyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_KEY_JS : ERROR_MESSAGE_SET_KEY);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setEncryptionKey(secret)}"),
+			Usage.javaScript("Usage: ${{$.setEncryptionKey(secret)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf";
+	public String getShortDescription() {
+		return "Sets the secret key for encryt()/decrypt(), overriding the value from structr.conf.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setEncryptionKey('MyNewSecret')}"),
+				Example.javaScript("${{ $.setEncryptionKey('MyNewSecret') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("secret", "new secret key")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Please note that this function overwrites the encryption key that is stored in structr.conf.",
+				"The overwritten key can be restored by using `null` as a parameter to this function, as shown in the example below."
+		);
 	}
 }

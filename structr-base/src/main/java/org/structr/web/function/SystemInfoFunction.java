@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,10 @@ import org.structr.core.Services;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeService;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
 
@@ -38,16 +42,9 @@ import java.util.Map;
 
 public class SystemInfoFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_SYSTEM_INFO = "Usage: ${system_info([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.";
-
 	@Override
 	public String getName() {
-		return "system_info";
-	}
-
-	@Override
-	public String getSignature() {
-		return null;
+		return "systemInfo";
 	}
 
 	@Override
@@ -73,13 +70,55 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SYSTEM_INFO;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.systemInfo([key])}. "),
+			Usage.structrScript("Usage: ${systemInfo([key])}. When called without parameters all info will be returned, otherwise specify a key to request specific info.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns information about the system.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		When called without parameters all info will be returned, otherwise specify a key to request specific info.
+		| Key | Value |
+		| --- | --- |
+		| now | Current time in ms |
+		| uptime | Time in ms since the application started |
+		| runtime | Version string of the java runtime |
+		| counts | number of nodes and relationships in the database (if connected) |
+		| caches | Size and max size of the node/relationship/localizations caches |
+		| memory | Memory information gathered from the runtime and from management beans (in bytes) |
+		""";
+	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${ systemInfo()}"),
+				Example.javaScript("${{ $.systemInfo() }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("key", "info key")
+				);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	public static Map getSystemInfo () {
@@ -115,8 +154,8 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 			}
 		}
 
-		info.put("deployment_active", DeployCommand.isDeploymentActive());
-		info.put("maintenance_active", Settings.MaintenanceModeEnabled.getValue());
+		info.put("deploymentActive", DeployCommand.isDeploymentActive());
+		info.put("maintenanceActive", Settings.MaintenanceModeEnabled.getValue());
 
 		final Map<String, Map> memoryInfo = new LinkedHashMap<>();
 
@@ -124,7 +163,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 		memoryRuntimeInfo.put("free", Runtime.getRuntime().freeMemory());
 		memoryRuntimeInfo.put("max", Runtime.getRuntime().maxMemory());
 		memoryRuntimeInfo.put("total", Runtime.getRuntime().totalMemory());
-		memoryInfo.put("runtime_info", memoryRuntimeInfo);
+		memoryInfo.put("runtimeInfo", memoryRuntimeInfo);
 
 		final Map<String, Map> memoryBeansInfo = new LinkedHashMap<>();
 
@@ -144,7 +183,7 @@ public class SystemInfoFunction extends AdvancedScriptingFunction {
 			}
 		}
 
-		memoryInfo.put("mgmt_bean_info", memoryBeansInfo);
+		memoryInfo.put("mgmtBeanInfo", memoryBeansInfo);
 
 		info.put("memory", memoryInfo);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,7 @@
  */
 package org.structr.core.property;
 
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.PropertyNotion;
 
 /**
@@ -28,14 +27,13 @@ import org.structr.core.notion.PropertyNotion;
  *
  * @param <T>
  */
-public class CollectionIdProperty<T extends AbstractNode> extends CollectionNotionProperty<T, String> {
+public class CollectionIdProperty<T extends NodeInterface> extends CollectionNotionProperty<T, String> {
 
-	public CollectionIdProperty(String name, Property<Iterable<T>> base) {
-		this(name, base, false);
+	public CollectionIdProperty(final String name, final String baseType, final String basePropertyName, final String relatedType) {
+		this(name, baseType, basePropertyName, relatedType, false);
 	}
 
-	public CollectionIdProperty(String name, Property<Iterable<T>> base, boolean createIfNotExisting) {
-
-		super(name, base, new PropertyNotion(GraphObject.id, createIfNotExisting));
+	public CollectionIdProperty(final String name, final String baseType, final String basePropertyName, final String relatedType, final boolean createIfNotExisting) {
+		super(name, baseType, basePropertyName, relatedType, new PropertyNotion("id", createIfNotExisting));
 	}
 }

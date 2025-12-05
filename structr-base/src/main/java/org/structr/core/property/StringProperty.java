@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,12 +44,19 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	private ContentType contentType;
 
 	public StringProperty(final String jsonName) {
+
 		super(jsonName);
+
+		this.typeHint("String");
 	}
 
 	public StringProperty(final String jsonName, final String dbName) {
+
 		super(jsonName);
+
 		this.dbName = dbName;
+
+		this.typeHint("String");
 	}
 
 	@Override
@@ -93,7 +100,7 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new PropertyConverter<Object, String>(securityContext) {
 
 			@Override
@@ -136,6 +143,11 @@ public class StringProperty extends AbstractPrimitiveProperty<String> {
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	// ----- private methods -----

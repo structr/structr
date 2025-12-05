@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,12 @@
  */
 package org.structr.flow.impl;
 
-/**
- *
- */
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+
 public class FlowOr extends FlowLogicCondition {
 
-	@Override
-	protected Boolean combine(Boolean result, Boolean value) {
-		if (result == null) {
-			return value;
-		}
-		return result || value;
+	public FlowOr(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,12 +20,15 @@ package org.structr.common.error;
 
 import com.google.gson.JsonElement;
 
+import java.util.Map;
+
 /**
  * Common base class for FrameworkException and AssertException to be able
  * to handle them with the same code.
  */
 public interface JsonException {
 
+	Map<String, String> headers();
 	JsonElement toJSON();
 	int getStatus();
 }

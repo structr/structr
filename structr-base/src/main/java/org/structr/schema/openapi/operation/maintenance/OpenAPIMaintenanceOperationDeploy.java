@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,39 +38,38 @@ public class OpenAPIMaintenanceOperationDeploy extends LinkedHashMap<String, Obj
 
         operations.put("post", new OpenAPIOperation(
 
-                // summary
-                "Exports or imports the application",
+			// summary
+			"Exports or imports the application",
 
-                // description
-		"This command reads or writes a text-based export of the application (**without its data**) that can be stored"
-	      + " in a version control system. The maintenance command is used internally in the Dashboard section.",
+			// description
+			"This command reads or writes a text-based export of the application (**without its data**) that can be stored" +
+			" in a version control system. The maintenance command is used internally in the Dashboard section.",
 
-                // operation ID
-                "deploy",
+			// operation ID
+			"deploy",
 
-                // tags
-                Set.of("Maintenance commands (admin only)"),
+			// tags
+			Set.of("Maintenance commands (admin only)"),
 
-                // parameters
-                null,
+			// parameters
+			null,
 
-                // request body
-                new OpenAPIRequestResponse(
-                        "Request body",
-			new OpenAPIObjectSchema(
+			// request body
+			new OpenAPIRequestResponse(
+					"Request body",
+					new OpenAPIObjectSchema(
                         	new OpenAPIPrimitiveSchema("Deployment mode",                  "mode",              "string", null, "export", Map.of(0, "import", 1, "export"), false),
                         	new OpenAPIPrimitiveSchema("Source folder when **importing**", "source",            "string"),
                         	new OpenAPIPrimitiveSchema("Target folder when **exporting**", "target",            "string", null, "/home/user/structr-app/webapp", false),
                         	new OpenAPIPrimitiveSchema("Incremental import",               "extendExistingApp", "boolean", false)
-                        )
-                ),
+					)
+			),
 
-                // responses
-                Map.of(
-                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
-                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-                )
+			// responses
+			Map.of(
+					"200", new OpenAPISchemaReference("#/components/responses/ok"),
+					"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
+			)
         ));
-
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,25 +20,27 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.List;
 import java.util.Locale;
 
 public class ParseNumberFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_PARSE_NUMBER    = "Usage: ${parse_number(value, locale)}. Example: ${parse_number('12345.6789', 'en')}";
-	public static final String ERROR_MESSAGE_PARSE_NUMBER_JS = "Usage: ${{Structr.parseNumber(value, locale)}}. Example: ${{Structr.parseNumber('12345.6789', 'en')}}";
-
 	@Override
 	public String getName() {
-		return "parse_number";
+		return "parseNumber";
 	}
 
 	@Override
-	public String getSignature() {
-		return "number [, locale ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("number [, locale ]");
 	}
 
 	@Override
@@ -74,7 +76,7 @@ public class ParseNumberFunction extends CoreFunction {
 
 			} catch (ParseException ex) {
 
-				logException(ex, "{}: Could not parse string \"{}\" to number. Parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
+				logException(ex, "{}: Could not parse string \"{}\" to number. Parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 			}
 
 		} catch (final IllegalArgumentException e) {
@@ -89,12 +91,46 @@ public class ParseNumberFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_NUMBER_JS : ERROR_MESSAGE_PARSE_NUMBER);
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${parseNumber(value, locale)}."),
+				Usage.javaScript("Usage: ${{ $.parseNumber(value, locale) }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Parses the given string using the given (optional) locale";
+	public String getShortDescription() {
+		return "Parses the given string using the given (optional) locale.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Parses the given string into a numerical value. With the second (optional) parameter you can pass a locale string to take a country-/language specific number formatting into account.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${parseNumber('123,456,789.123', 'en')}"),
+				Example.structrScript("${parseNumber('123.456.789,123', 'de')}"),
+				Example.javaScript("${{ $.parseNumber('123,456,789.123', 'en') }}"),
+				Example.javaScript("${{ $.parseNumber('123.456.789,123', 'de') }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If no locale parameter is given, the default locale for the context is used. See the `locale` keyword."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "String that will be parsed into numerical value"),
+				Parameter.optional("locale", "Locale string for specific number formatting")
+		);
 	}
 }

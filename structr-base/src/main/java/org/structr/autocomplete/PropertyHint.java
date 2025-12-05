@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,19 @@
  */
 package org.structr.autocomplete;
 
+import org.structr.docs.*;
+
+import java.util.List;
+
 public class PropertyHint extends AbstractHint {
 
-	public PropertyHint(final String name, final String documentation) {
+	private final String shortDescription;
+	private final String name;
 
-		this.name          = name;
-		this.documentation = documentation;
+	public PropertyHint(final String name, final String shortDescription) {
+
+		this.shortDescription = shortDescription;
+		this.name             = name;
 	}
 
 	@Override
@@ -32,7 +39,48 @@ public class PropertyHint extends AbstractHint {
 	}
 
 	@Override
-	public String getType() {
-		return "Property";
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+		);
+	}
+
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Property;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,31 +20,36 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class FindRelationshipFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP = "Usage: ${find_relationship(type, key, value)}. Example: ${find_relationship(\"PersonRELATED_TOPerson\"}";
-	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED = "Error in find_relationship(): no type specified.";
-	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND = "Error in find_relationship(): type not found: ";
+	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED = "Error in findRelationship(): no type specified.";
+	public static final String ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND = "Error in findRelationship(): type not found: ";
 
 	@Override
 	public String getName() {
-		return "find_relationship";
+		return "findRelationship";
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type [, parameterMap ]");
 	}
 
 	@Override
@@ -58,39 +63,38 @@ public class FindRelationshipFunction extends CoreFunction {
 			}
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Query query = StructrApp.getInstance(securityContext).relationshipQuery().sort(GraphObject.createdDate);
+			final QueryGroup query  = StructrApp.getInstance(securityContext).relationshipQuery().sort(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.CREATED_DATE_PROPERTY)).and();
 
 			// the type to query for
-			Class type = null;
+			Traits traits = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = config.getRelationshipEntityClass(typeString);
+				traits = Traits.of(typeString);
 
-				if (type != null) {
+				if (traits != null) {
 
-					query.andTypes(type);
+					query.types(traits);
 
 				} else {
 
-					logger.warn("Error in find_relationship(): type \"{}\" not found.", typeString);
+					logger.warn("Error in findRelationship(): type \"{}\" not found.", typeString);
 					return ERROR_MESSAGE_FIND_RELATIONSHIP_TYPE_NOT_FOUND + typeString;
 				}
 			}
 
 			// exit gracefully instead of crashing..
-			if (type == null) {
+			if (traits == null) {
 
-				logger.warn("Error in find_relationship(): no type specified. Parameters: {}", getParametersAsString(sources));
+				logger.warn("Error in findRelationship(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_FIND_RELATIONSHIP_NO_TYPE_SPECIFIED;
 			}
 
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				query.and(PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]));
+				query.key(PropertyMap.inputTypeToJavaType(securityContext, traits.getName(), (Map)sources[1]));
 
 			} else if (sources.length == 2) {
 
@@ -100,32 +104,32 @@ public class FindRelationshipFunction extends CoreFunction {
 				}
 
 				// special case: second parameter is a UUID
-				final PropertyKey key = StructrApp.key(type, "id");
+				final PropertyKey key = traits.key(GraphObjectTraitDefinition.ID_PROPERTY);
 
-				query.and(key, sources[1].toString());
+				query.key(key, sources[1].toString());
 
 				return query.getFirst();
 
 			} else {
 
-				final int parameter_count = sources.length;
+				final int parameterCount = sources.length;
 
-				if (parameter_count % 2 == 0) {
+				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + ERROR_MESSAGE_FIND_RELATIONSHIP);
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
-				for (int c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameterCount; c += 2) {
 
 					if (sources[c] == null) {
 						throw new IllegalArgumentException();
 					}
 
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
+					final PropertyKey key = traits.key(sources[c].toString());
 
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value = sources[c + 1];
 
 						if (inputConverter != null) {
@@ -133,7 +137,7 @@ public class FindRelationshipFunction extends CoreFunction {
 							value = inputConverter.convert(value);
 						}
 
-						query.and(key, value);
+						query.key(key, value);
 					}
 				}
 			}
@@ -149,13 +153,45 @@ public class FindRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_FIND_RELATIONSHIP;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.findRelationship(type, key, value); }}. Example: ${{ $.findRelationship('PersonRELATED_TOPerson'); }}"),
+			Usage.structrScript("Usage: ${findRelationship(type, key, value)}. Example: ${findRelationship('PersonRELATED_TOPerson')}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs";
+	public String getShortDescription() {
+		return "Returns a collection of relationship entities of the given type from the database, takes optional key/value pairs.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("type", "type to return (includes inherited types"),
+			Parameter.optional("predicates", "list of predicates"),
+			Parameter.optional("uuid", "uuid, makes the function return **a single object**")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return super.getExamples();
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"The relationship type for custom schema relationships is auto-generated as `<source type name><relationship type><target type name>`",
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
+	}
 }

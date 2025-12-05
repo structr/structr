@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,34 +20,37 @@ package org.structr.core.graph.search;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
-
-import java.util.Set;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 
 /**
  *
  *
+ * @param <S>
  */
 public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAttribute<String> implements TypeQuery {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeSearchAttribute.class.getName());
 
-	private Set<String> types = null;
-	private Class sourceType  = null;
-	private Class targetType  = null;
+	private String sourceType = null;
+	private String targetType = null;
+	private String type       = null;
 
-	public TypeSearchAttribute(final Class<S> type, final Occurrence occur, final boolean isExactMatch) {
-		super(AbstractNode.type, null, occur, isExactMatch);
+	public TypeSearchAttribute(final String type, final boolean isExactMatch) {
 
-		if (Relation.class.isAssignableFrom(type)) {
+		super(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), null, isExactMatch);
+
+		final Traits traits = Traits.of(type);
+
+		if (traits.isRelationshipType()) {
 
 			try {
 
-				final Relation rel = (Relation)type.newInstance();
+				final Relation rel = traits.getRelation();
 				setValue(rel.name());
 
 				this.sourceType = rel.getSourceType();
@@ -60,15 +63,11 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 		} else {
 
 			// node types
-			setValue(type.getSimpleName());
+			setValue(type);
 		}
 
-		this.types  = SearchCommand.getAllSubtypesAsStringSet(type.getSimpleName());
-	}
-
-	@Override
-	public String toString() {
-		return "TypeSearchAttribute(" + super.toString() + ")";
+		//this.types = traits.getLabels();
+		this.type = type;
 	}
 
 	@Override
@@ -78,28 +77,16 @@ public class TypeSearchAttribute<S extends GraphObject> extends PropertySearchAt
 
 	@Override
 	public boolean includeInResult(final GraphObject entity) {
-
-		final String nodeValue   = entity.getProperty(getKey());
-		final Occurrence occur   = getOccurrence();
-		final boolean isOfType   = types.contains(nodeValue);
-
-		if (occur.equals(Occurrence.FORBIDDEN)) {
-
-			return !isOfType;
-
-		} else {
-
-			return isOfType;
-		}
+		return entity.getTraits().contains(type);
 	}
 
 	@Override
-	public Class getSourceType() {
+	public String getSourceType() {
 		return sourceType;
 	}
 
 	@Override
-	public Class getTargetType() {
+	public String getTargetType() {
 		return targetType;
 	}
 }

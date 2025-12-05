@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,24 +21,30 @@ package org.structr.core.function;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class PrivilegedFindFunction extends AbstractQueryFunction {
 
-	public static final String ERROR_MESSAGE_PRIVILEGEDFIND = "Usage: ${find_privileged(type, key, value)}. Example: ${find_privileged(\"User\", \"email\", \"tester@test.com\"}";
-	public static final String ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED = "Error in find_privileged(): no type specified.";
-	public static final String ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND = "Error in find_privileged(): type not found: ";
+	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED = "Error in findPrivileged(): no type specified.";
+	private static final String ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND = "Error in findPrivileged(): type not found: ";
 	@Override
 	public String getName() {
-		return "find_privileged";
+		return "findPrivileged";
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, options...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type, options...");
 	}
 
 	@Override
@@ -58,25 +64,30 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final App app                      = StructrApp.getInstance(securityContext);
-			final Query query                  = app.nodeQuery();
+			final App app          = StructrApp.getInstance(securityContext);
+			final QueryGroup query = app.nodeQuery().and();
 
 			// the type to query for
-			Class type = null;
+			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = config.getNodeEntityClass(typeString);
+
+				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
+
+					throw new FrameworkException(422, "Type GraphObject not supported in findPrivileged(), please use type NodeInterface to search for nodes of all types.");
+				}
+
+				type = Traits.of(typeString);
 
 				if (type != null) {
 
-					query.andTypes(type);
+					query.types(type);
 
 				} else {
 
-					logger.warn("Error in find_privileged(): type '{}' not found.", typeString);
+					logger.warn("Error in findPrivileged(): type '{}' not found.", typeString);
 					return ERROR_MESSAGE_PRIVILEGEDFIND_TYPE_NOT_FOUND + typeString;
 
 				}
@@ -84,7 +95,7 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 
 			// exit gracefully instead of crashing..
 			if (type == null) {
-				logger.warn("Error in find_privileged(): no type specified. Parameters: {}", getParametersAsString(sources));
+				logger.warn("Error in findPrivileged(): no type specified. Parameters: {}", getParametersAsString(sources));
 				return ERROR_MESSAGE_PRIVILEGEDFIND_NO_TYPE_SPECIFIED;
 			}
 
@@ -106,12 +117,45 @@ public class PrivilegedFindFunction extends AbstractQueryFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_PRIVILEGEDFIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.findPrivileged(type, map)}. Example: ${{$.findPrivileged(\"User\", { eMail: 'tester@test.com' }); }}"),
+			Usage.structrScript("Usage: ${findPrivileged(type, key, value)}. Example: ${findPrivileged(\"User\", \"email\", \"tester@test.com\"}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Executed in a super user context.";
+	public String getShortDescription() {
+		return "Executes a `find()` operation with elevated privileges.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "You can use this function to query data from an anonymous context or when a users privileges need to be escalated. See documentation of `find()` for more details.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("type", "type to return (includes inherited types"),
+			Parameter.optional("predicates", "list of predicates"),
+			Parameter.optional("uuid", "uuid, makes the function return **a single object**")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return super.getExamples();
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"It is recommended to use `find()` instead of `findPrivileged()` whenever possible, as improper use of `findPrivileged()` can result in the exposure of sensitive data.",
+			"In a StructrScript environment parameters are passed as pairs of 'key1', 'value1'.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
 	}
 }

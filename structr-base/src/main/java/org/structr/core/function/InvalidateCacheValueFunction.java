@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,21 +22,22 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class InvalidateCacheValueFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_INVALIDATE_CACHE_VALUE    = "Usage: ${invalidate_cache_value(cacheKey)}. Example: ${invalidate_cache_value('mykey')}";
-	public static final String ERROR_MESSAGE_INVALIDATE_CACHE_VALUE_JS = "Usage: ${{ Structr.invalidate_cache_value(cacheKey); }}. Example: ${{ Structr.invalidate_cache_value('mykey'); }}";
-
 	@Override
 	public String getName() {
-		return "invalidate_cache_value";
+		return "invalidateCacheValue";
 	}
 
 	@Override
-	public String getSignature() {
-		return "cacheKey";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("cacheKey");
 	}
 
 	@Override
@@ -60,12 +61,20 @@ public class InvalidateCacheValueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return inJavaScriptContext ? ERROR_MESSAGE_INVALIDATE_CACHE_VALUE_JS : ERROR_MESSAGE_INVALIDATE_CACHE_VALUE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${invalidateCacheValue(cacheKey)}. Example: ${invalidateCacheValue('mykey')}"),
+			Usage.javaScript("Usage: ${{ Structr.invalidateCacheValue(cacheKey); }}. Example: ${{ Structr.invalidateCacheValue('mykey'); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Invalidates the cached value for the given key (if present).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

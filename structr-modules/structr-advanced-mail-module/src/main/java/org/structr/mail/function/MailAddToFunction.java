@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,16 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailAddToFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_to(toAddress[, toName])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_to(toAddress[, toName]) }}";
+public class MailAddToFunction extends AdvancedMailModuleFunction {
 
 	public MailAddToFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -37,8 +40,8 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "toAddress [, toName ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("address [, name ]");
 	}
 
 	@Override
@@ -63,12 +66,57 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_add_to(address [, name])}"),
+			Usage.javaScript("Usage: ${{ $.mailAddTo(address [, name]) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Adds a FROM address and optional FROM name to the current mail";
+	public String getShortDescription() {
+		return "Adds a `To:` recipient to the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "address of the recipient"),
+				Parameter.optional("name", "name of the recipient")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more recipients."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+							let project = $.this;
+
+							$.mailBegin('sender@example.com', 'Project Service', 'Project Status Report: ' + project.name);
+
+							for (let member of project.members) {
+
+								$.mailAddTo(member.eMail, member.name);
+							}
+
+							let htmlContent = $.template('Project-Status-Template', 'en', project);
+							$.mailSetHtmlContent(htmlContent);
+
+							$.mailSend();
+						}}""", "Project Status Report mail where all project members are \"To:\" recipients.")
+		);
 	}
 }

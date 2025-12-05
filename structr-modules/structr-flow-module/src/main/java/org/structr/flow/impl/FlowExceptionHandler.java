@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,66 +18,22 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.Exception;
-import org.structr.flow.api.FlowElement;
-import org.structr.flow.api.FlowType;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowDataInput;
-import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
+import org.structr.api.util.Iterables;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.flow.traits.definitions.FlowExceptionHandlerTraitDefinition;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public class FlowExceptionHandler extends FlowDataSource implements DeployableEntity {
 
-public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
-
-	private static final Logger logger = LoggerFactory.getLogger(FlowExceptionHandler.class);
-
-	public static final Property<Iterable<FlowBaseNode>> handledNodes = new StartNodes<>("handledNodes", FlowExceptionHandlerNodes.class);
-	public static final Property<Iterable<FlowBaseNode>> dataTarget   = new EndNodes<>("dataTarget", FlowDataInput.class);
-
-	public static final View defaultView = new View(FlowNode.class, PropertyView.Public,  next, handledNodes, dataTarget);
-	public static final View uiView      = new View(FlowNode.class, PropertyView.Ui,      next, handledNodes, dataTarget);
-
-	@Override
-	public Object get(Context context) throws FlowException {
-
-		return context.getData(getUuid());
+	public FlowExceptionHandler(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	@Override
-	public FlowType getFlowType() {
-		return FlowType.Exception;
-	}
+	public Iterable<FlowBaseNode> getHandledNodes() {
 
-	@Override
-	public FlowContainer getFlowContainer() {
-		return this.getProperty(flowContainer);
-	}
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowExceptionHandlerTraitDefinition.HANDLED_NODES_PROPERTY));
 
-	@Override
-	public FlowElement next() {
-		return getProperty(FlowExceptionHandler.next);
-	}
-
-	@Override
-	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
-
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
-
-		return result;
+		return Iterables.map(n -> n.as(FlowBaseNode.class), nodes);
 	}
 }

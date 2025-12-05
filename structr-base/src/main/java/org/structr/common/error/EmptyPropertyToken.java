@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a given property value may not be empty.
  *
@@ -27,7 +25,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class EmptyPropertyToken extends SemanticErrorToken {
 
-	public EmptyPropertyToken(final String type, final PropertyKey propertyKey) {
+	public EmptyPropertyToken(final String type, final String propertyKey) {
 		super(type, propertyKey, "must_not_be_empty");
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,37 +22,36 @@ import org.apache.ftpserver.ftplet.Authentication;
 
 /**
  *
- *
  */
 public class StructrAuthentication implements Authentication {
-	
-    private final String username;
-    private final String password;
+
+	private final String username;
+	private final String password;
 
 
-    /**
-     * Constructor with the minimal data for an authentication
-     * 
-     * @param username
-     * @param password
-     */
-    public StructrAuthentication(final String username, final String password) {
-        this.username = username;
-        this.password = password;
-    }
+	/**
+	 * Constructor with the minimal data for an authentication
+	 *
+	 * @param username
+	 * @param password
+	 */
+	public StructrAuthentication(final String username, final String password) {
+		this.username = username;
+		this.password = password;
+	}
 
-    /**
-     * @return password
-     */
-    public String getPassword() {
-        return password;
-    }
+	/**
+	 * @return password
+	 */
+	public String getPassword() {
+		return password;
+	}
 
-    /**
-     * @return username
-     */
-    public String getUsername() {
-        return username;
-    }
+	/**
+	 * @return username
+	 */
+	public String getUsername() {
+		return username;
+	}
 
 }

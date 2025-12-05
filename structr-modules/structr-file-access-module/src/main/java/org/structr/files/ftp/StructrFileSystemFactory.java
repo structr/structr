@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,7 +43,7 @@ public class StructrFileSystemFactory implements FileSystemFactory {
 		
 			FileSystemView fileSystemView = new StructrFileSystemView(user);
 			
-			logger.debug("Created Structr File System View [user, homeDir, workingDir]: {}, {}, {}", new Object[]{user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath()});
+			logger.debug("Created Structr File System View [user, homeDir, workingDir]: {}, {}, {}", user.getName(), fileSystemView.getHomeDirectory().getAbsolutePath(), fileSystemView.getWorkingDirectory().getAbsolutePath());
 			
 			tx.success();
 			

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,94 +20,158 @@ package org.structr.core.script.polyglot.function;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
+import java.util.List;
 
+/**
+ * Runs the given function in the context of a given user.
+ *
+ */
 public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable {
-    private static final Logger logger = LoggerFactory.getLogger(DoAsFunction.class);
-    private final ActionContext actionContext;
 
-    public DoAsFunction(final ActionContext actionContext) {
+	private final ActionContext actionContext;
 
-        this.actionContext = actionContext;
-    }
+	private final String PARAMETER_ERROR_MESSAGE = "Invalid parameter(s) for doAs function. Expected (non-null): Principal, Executable";
 
-    @Override
-    public Object execute(Value... arguments) {
+	public DoAsFunction(final ActionContext actionContext) {
 
-        Object[] parameters = Arrays.stream(arguments).map(a -> PolyglotWrapper.unwrap(actionContext, a)).toArray();
+		this.actionContext = actionContext;
+	}
 
-        if (parameters.length == 2) {
+	@Override
+	public Object execute(Value... arguments) {
 
-            final SecurityContext initialSecurityContext = actionContext.getSecurityContext();
+		Object[] parameters = Arrays.stream(arguments).map(a -> PolyglotWrapper.unwrap(actionContext, a)).toArray();
 
-            try {
+		if (parameters.length == 2 && parameters[0] != null && parameters[1] != null) {
 
-                final Principal user = (Principal) parameters[0];
-                final ProxyExecutable executable = (ProxyExecutable) parameters[1];
+			final SecurityContext initialSecurityContext = actionContext.getSecurityContext();
 
-                final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);
+			try {
 
-                userContext.setContextStore(initialSecurityContext.getContextStore());
-                actionContext.setSecurityContext(userContext);
-                executable.execute();
-                initialSecurityContext.setContextStore(userContext.getContextStore());
+				final NodeInterface node = (NodeInterface) parameters[0];
 
-            } catch (ClassCastException ex) {
+				if (node.is(StructrTraits.USER)) {
 
-                throw new RuntimeException(new FrameworkException(422, "Invalid parameters for do_as function. Expected: Principal, Executable"));
-            } finally {
+					final Principal user             = node.as(Principal.class);
+					final ProxyExecutable executable = (ProxyExecutable) parameters[1];
+					final SecurityContext userContext = SecurityContext.getInstance(user, initialSecurityContext.getRequest(), AccessMode.Frontend);
 
-                actionContext.setSecurityContext(initialSecurityContext);
-            }
+					userContext.setContextStore(initialSecurityContext.getContextStore());
+					actionContext.setSecurityContext(userContext);
 
-        } else {
+					if (executable instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
 
-            throw new RuntimeException(new FrameworkException(422, "Invalid parameter count for do_as function."));
-        }
+						functionWrapper.setActionContext(actionContext);
+					}
 
-        return null;
-    }
+					try (final Tx tx = StructrApp.getInstance(userContext).tx()) {
+						executable.execute();
 
-    @Override
-    public String getName() {
-        return "doAs";
-    }
+						tx.success();
+					} catch (FrameworkException e) {
 
-    @Override
-    public String shortDescription() {
-        return """
-**JavaScript-only**
+						throw new RuntimeException(e);
+					}
 
-Runs the given function in the context of the given user.
+					initialSecurityContext.setContextStore(userContext.getContextStore());
 
-**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
+				} else {
 
-Example:
-```
-${{
-    let user = $.find('User', { name: 'user_to_impersonate' })[0];
+					throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
+				}
 
-    $.doAs(user, () => {
+			} catch (ClassCastException ex) {
 
-        // code to be run as the given user
-    });
-}}
-```
-""";
-    }
+				throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
 
-    @Override
-    public String getSignature() {
-        return "user, function";
-    }
+			} finally {
+
+				actionContext.setSecurityContext(initialSecurityContext);
+			}
+
+		} else {
+
+			throw new RuntimeException(new FrameworkException(422, PARAMETER_ERROR_MESSAGE));
+		}
+
+		return null;
+	}
+
+	@Override
+	public String getName() {
+		return "doAs";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Runs the given function in the context of the given user.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(Example.javaScript(
+			"""
+			${{
+			    let user = $.find('User', { name: 'user_to_impersonate' })[0];
+
+			    $.doAs(user, () => {
+
+			        // code to be run as the given user
+			    });
+			}}
+			"""
+		));
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"**Important**: Any node resource that was loaded outside of the function scope must be looked up again **inside** the function scope to prevent access problems."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+
+		return List.of(
+			Signature.of("user, function", Language.JavaScript)
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.JavaScript);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.doAs(user, function) }}. Example: ${{ $.doAs(user, () => log($.me))}")
+		);
+	}
 }

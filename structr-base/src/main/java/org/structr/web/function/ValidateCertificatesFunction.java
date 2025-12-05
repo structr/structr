@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,23 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Example;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ValidateCertificatesFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_ADD_HEADER    = "Usage: ${ validate_certificates(boolean) }. Example: ${ validate_certificates(false) }";
-	public static final String ERROR_MESSAGE_ADD_HEADER_JS = "Usage: ${{ $.validateCertificates(boolean) }}. Example: ${{ $.validateCertificates(false) }}";
-
 	@Override
 	public String getName() {
-		return "validate_certificates";
+		return "validateCertificates";
 	}
 
 	@Override
-	public String getSignature() {
-		return "boolean";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("boolean");
 	}
 
 	@Override
@@ -48,12 +50,39 @@ public class ValidateCertificatesFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ADD_HEADER_JS : ERROR_MESSAGE_ADD_HEADER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ validateCertificates(boolean) }. Example: ${ validateCertificates(false) }"),
+			Usage.javaScript("Usage: ${{ $.validateCertificates(boolean) }}. Example: ${{ $.validateCertificates(false) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public List<String> getNotes() {
+		return List.of(
+				"By default, certificate validation is always enabled - only in rare cases would/should it be necessary to change this behaviour"
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
 		return "Disables or enables strict certificate checking when performing a request in a scripting context. The setting remains for the whole request.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Disables or enables certificate validation for outgoing requests. All subsequent `GET()`, `HEAD()`, `POST()`, `PUT()` or `DELETE()` calls in the same request (meaning the request from the client to Structr) will use the setting configured here.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+						    $.validateCertificates(false);
+						    let result = $.GET('https://www.domain-with-invalid-certificate.com/resource.json');
+						}}
+						""")
+		);
 	}
 }

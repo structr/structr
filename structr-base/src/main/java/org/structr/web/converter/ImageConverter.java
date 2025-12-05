@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Image;
 
@@ -67,25 +68,22 @@ public class ImageConverter extends PropertyConverter {
 			Image img = null;
 
 			try {
-				if (source instanceof byte[]) {
+				if (source instanceof byte[] data) {
 
-					byte[] data      = (byte[]) source;
 					MagicMatch match = Magic.getMagicMatch(data);
 					String mimeType  = match.getMimeType();
 
 					if (keyAndClass != null) {
 
-						img = (Image) ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getCls());
+						img = ImageHelper.createFile(securityContext, data, mimeType, keyAndClass.getType()).as(Image.class);
 
 					} else {
 
-						ImageHelper.setImageData((Image) currentObject, data, mimeType);
+						ImageHelper.setImageData(currentObject.as(Image.class), data, mimeType);
 
 					}
 
-				} else if (source instanceof String) {
-
-					String sourceString = (String) source;
+				} else if (source instanceof String sourceString) {
 
 					if (StringUtils.isNotBlank(sourceString)) {
 
@@ -94,19 +92,19 @@ public class ImageConverter extends PropertyConverter {
 							// UUID?
 							if (sourceString.length() == 32) {
 
-								img = (Image) ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+								img = ImageHelper.transformFile(securityContext, sourceString, keyAndClass != null ? keyAndClass.getType() : null).as(Image.class);
 							}
 
 							if (img == null) {
 
-								img = (Image) ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getCls() : null);
+								img = ImageHelper.createFileBase64(securityContext, sourceString, keyAndClass != null ? keyAndClass.getType() : null).as(Image.class);
 
 							}
 
 						} else {
 
-							ImageHelper.decodeAndSetFileData((Image) currentObject, sourceString);
-							ImageHelper.updateMetadata((Image)currentObject);
+							ImageHelper.decodeAndSetFileData(currentObject.as(Image.class), sourceString);
+							ImageHelper.updateMetadata(currentObject.as(Image.class));
 
 						}
 					}
@@ -137,9 +135,12 @@ public class ImageConverter extends PropertyConverter {
 	@Override
 	public Object revert(Object source) {
 
-		if (currentObject instanceof Image) {
-			return ImageHelper.getBase64String((Image) currentObject);
+		if (currentObject.is(StructrTraits.IMAGE)) {
+
+			return ImageHelper.getBase64String((currentObject.as(Image.class)));
+
 		} else {
+
 			return source;
 		}
 	}

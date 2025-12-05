@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@ package org.structr.bolt;
 
 import org.structr.api.graph.Direction;
 import org.structr.api.search.GraphQuery;
-import org.structr.api.search.Occurrence;
+import org.structr.api.search.Operation;
 
 import java.util.Set;
 
@@ -28,13 +28,13 @@ import java.util.Set;
  */
 public class GraphQueryPart {
 
-	private Occurrence occurrence = null;
-	private Set<Object> values    = null;
-	private Direction direction   = null;
-	private String label          = null;
-	private String otherLabel     = null;
-	private String relationship   = null;
-	private String identifier     = null;
+	private Operation operation = null;
+	private Set<Object> values  = null;
+	private Direction direction = null;
+	private String label        = null;
+	private String otherLabel   = null;
+	private String relationship = null;
+	private String identifier   = null;
 
 	public GraphQueryPart(final GraphQuery query) {
 
@@ -43,15 +43,14 @@ public class GraphQueryPart {
 		this.otherLabel   = query.getOtherLabel();
 		this.direction    = query.getDirection();
 		this.relationship = query.getRelationship();
-		this.occurrence   = query.getOccurrence();
 	}
 
 	public String getLinkIdentifier() {
 		return "(" + label + ")" + getRelationshipPattern() + "(" + otherLabel + ")";
 	}
 
-	public Occurrence getOccurrence() {
-		return occurrence;
+	public Operation getOperation() {
+		return operation;
 	}
 
 	public Set<Object> getValues() {

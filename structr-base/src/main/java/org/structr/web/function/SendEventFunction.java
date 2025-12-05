@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,17 +20,21 @@ package org.structr.web.function;
 
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class SendEventFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_SEND_EVENT    = "Usage: ${send_event(eventType, message, recipient(s))}. Example: ${send_event(\"message\", \"Welcome!\", find('User', 'name', 'Bob'))}";
-	public static final String ERROR_MESSAGE_SEND_EVENT_JS = "Usage: ${{Structr.send_event(eventType, message, recipient(s))}}. Example: ${{Structr.send_event(\"message\", \"Welcome!\", $.find('User', 'name', 'Bob'))}}";
 
 	@Override
 	public boolean isHidden() {
@@ -39,12 +43,12 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "send_event";
+		return "sendEvent";
 	}
 
 	@Override
-	public String getSignature() {
-		return "eventType, message, recipient(s)";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("eventType, message, recipient(s)");
 	}
 
 	@Override
@@ -56,13 +60,13 @@ public class SendEventFunction extends UiAdvancedFunction {
 			final String name             = sources[0].toString();
 			final String message          = sources[1].toString();
 
-			if (sources[2] instanceof User) {
+			if (sources[2] instanceof NodeInterface n && n.is(StructrTraits.USER)) {
 
-				return EventSourceServlet.sendEvent(name, message, (User)sources[1]);
+				return EventSourceServlet.sendEvent(name, message, n.as(User.class));
 
-			} else if (sources[2] instanceof Group) {
+			} else if (sources[2] instanceof NodeInterface n && n.is(StructrTraits.GROUP)) {
 
-				return EventSourceServlet.sendEvent(name, message, (Group)sources[2]);
+				return EventSourceServlet.sendEvent(name, message, n.as(Group.class));
 
 			} else if (sources[2] instanceof Iterable) {
 
@@ -70,8 +74,10 @@ public class SendEventFunction extends UiAdvancedFunction {
 
 				for (Object obj : (Iterable)sources[2]) {
 
-					if (Principal.class.isAssignableFrom(obj.getClass())) {
-						targets.add((Principal)obj);
+					if (obj instanceof NodeInterface n && n.is(StructrTraits.PRINCIPAL)) {
+
+						targets.add(n.as(Principal.class));
+
 					} else {
 						logger.warn("{}: Ignoring non-principal {}", getName(), obj);
 					}
@@ -90,12 +96,48 @@ public class SendEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SEND_EVENT_JS : ERROR_MESSAGE_SEND_EVENT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${sendEvent(eventType, message, recipient(s))}."),
+			Usage.javaScript("Usage: ${{ $.sendEvent(eventType, message, recipient(s))}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Triggers the sending of a sever-sent event to a given list of recipients. The message will only be sent if they have an open connection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${sendEvent('message', 'Welcome!', find('User', 'name', 'Bob'))}"),
+				Example.javaScript("${{ $.sendEvent('message', 'Welcome!', $.find('User', 'name', 'Bob')) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("eventType", "event type name"),
+				Parameter.mandatory("message", "message content"),
+				Parameter.mandatory("recipients", "single user, list of users, list of group and users")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Recipients can either be a single user, a single group or a mixed list of both."
+		);
 	}
 }

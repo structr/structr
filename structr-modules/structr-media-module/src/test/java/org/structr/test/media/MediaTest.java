@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,24 +19,19 @@
 package org.structr.test.media;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.media.AVConv;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.io.InputStream;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
-/**
- */
 public class MediaTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(MediaTest.class.getName());
@@ -49,15 +44,16 @@ public class MediaTest extends StructrUiTest {
 			return;
 		}
 
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("VideoFile");
+		if (System.getProperty("os.name").equals("Mac OS X")) {
+			logger.info("Not performing test because `avconv` behaves differently on Mac!");
+			return;
+		}
+
+		final String type = StructrTraits.VIDEO_FILE;
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
-			);
+			createAdminUser();
 
 			// create AutoClosable input stream
 			try (final InputStream is = MediaTest.class.getResourceAsStream("/test.mp4")) {
@@ -74,12 +70,11 @@ public class MediaTest extends StructrUiTest {
 		// use RestAssured to check file
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
-			.body("result[0].type",                  equalTo("VideoFile"))
+			.body("result[0].type",                  equalTo(StructrTraits.VIDEO_FILE))
 			.body("result[0].name",                  equalTo("test.mp4"))
 			.body("result[0].path",                  equalTo("/test.mp4"))
 			.body("result[0].checksum",              equalTo(3346681520328299771L))

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.FileHelper.Base64URIData;
 import org.structr.web.common.ImageHelper;
@@ -63,7 +64,7 @@ public class FileDataConverter extends PropertyConverter {
 			return false;
 		}
 
-		final File currentFile = (File)getCurrentObject();
+		final File currentFile = getCurrentObject().as(File.class);
 
 		if (source instanceof byte[]) {
 
@@ -85,9 +86,7 @@ public class FileDataConverter extends PropertyConverter {
 				logger.warn("Unable to parse file data", mex);
 			}
 
-		} else if (source instanceof String) {
-
-			String sourceString = (String) source;
+		} else if (source instanceof String sourceString) {
 
 			if (StringUtils.isNotBlank(sourceString)) {
 
@@ -108,14 +107,15 @@ public class FileDataConverter extends PropertyConverter {
 	}
 
 	@Override
-	public Object revert(Object source) {
+	public Object revert(final Object source) {
 
-		if (currentObject instanceof File) {
+		if (currentObject != null && currentObject.is(StructrTraits.FILE)) {
 
-			final File currentFile = (File)currentObject;
+			final File currentFile = currentObject.as(File.class);
 			return ImageHelper.getBase64String(currentFile);
 
 		} else {
+
 			return source;
 		}
 	}
@@ -125,9 +125,13 @@ public class FileDataConverter extends PropertyConverter {
 
 		if (currentObject instanceof CreationContainer) {
 
-			return (File)((CreationContainer)currentObject).getWrappedObject();
+			return ((CreationContainer)currentObject).getWrappedObject().as(File.class);
 		}
 
-		return (File)currentObject;
+		if (currentObject != null && currentObject.is(StructrTraits.FILE)) {
+			return currentObject.as(File.class);
+		}
+
+		return null;
 	}
 }

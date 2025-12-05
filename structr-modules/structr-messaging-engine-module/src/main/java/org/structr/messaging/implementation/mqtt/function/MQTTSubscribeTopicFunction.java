@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,26 +19,28 @@
 package org.structr.messaging.implementation.mqtt.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 
-public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE    = "Usage: ${mqtt_subscribe(client, topic)}. Example ${mqtt_subscribe(client, 'myTopic')}";
-	public static final String ERROR_MESSAGE_MQTTSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_subscribe(client, topic)}}. Example ${{Structr.mqtt_subscribe(client, topic)}}";
+public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mqtt_subscribe";
+		return "mqttSubscribe";
 	}
 
 	@Override
-	public String getSignature() {
-		return "client, topic";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("client, topic");
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
 		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
 
 			MQTTClient client = null;
@@ -52,7 +54,8 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			MQTTClient.subscribeTopic(client, sources[1].toString());
+			client.subscribeTopic(ctx.getSecurityContext(), sources[1].toString());
+
 		} else {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -62,12 +65,20 @@ public class MQTTSubscribeTopicFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTSUBSCRIBE_JS : ERROR_MESSAGE_MQTTSUBSCRIBE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mqttSubscribe(client, topic)}. Example ${mqttSubscribe(client, 'myTopic')}"),
+			Usage.javaScript("Usage: ${{Structr.mqttSubscribe(client, topic)}}. Example ${{Structr.mqttSubscribe(client, topic)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Subscribes given topic on given mqtt client.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

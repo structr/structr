@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,10 +27,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.module.StructrModule;
 import org.structr.module.xml.XMLModule;
 import org.structr.rest.common.XMLHandler;
@@ -47,7 +47,7 @@ public class XMLFileImportJob extends FileImportJob {
 
 	private static final Logger logger = LoggerFactory.getLogger(XMLFileImportJob.class.getName());
 
-	private String contentType;
+	private final String contentType;
 
 	public XMLFileImportJob(final File file, final Principal user, final Map<String, Object> configuration, final ContextStore ctxStore) throws FrameworkException {
 		super(file, user, configuration, ctxStore);
@@ -130,7 +130,7 @@ public class XMLFileImportJob extends FileImportJob {
 
 						while (iterator.hasNext() && ++count <= batchSize) {
 
-							app.create(AbstractNode.class, PropertyMap.inputTypeToJavaType(threadContext, iterator.next()));
+							app.create(StructrTraits.NODE_INTERFACE, PropertyMap.inputTypeToJavaType(threadContext, iterator.next()));
 							overallCount++;
 						}
 

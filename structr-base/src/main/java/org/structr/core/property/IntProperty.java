@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,12 +19,11 @@
 package org.structr.core.property;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NumberToken;
+import org.structr.common.error.NumberFormatToken;
+import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
@@ -37,8 +36,6 @@ import java.util.TreeMap;
  *
  */
 public class IntProperty extends AbstractPrimitiveProperty<Integer> implements NumericalPropertyKey<Integer> {
-
-	private static final Logger logger = LoggerFactory.getLogger(IntProperty.class.getName());
 
 	public IntProperty(final String name) {
 		super(name);
@@ -74,7 +71,7 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	}
 
 	@Override
-	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Integer> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 
@@ -109,7 +106,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+					);
 				}
 			}
 
@@ -151,7 +151,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+					);
 				}
 			}
 
@@ -184,6 +187,11 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

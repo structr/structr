@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,12 +27,16 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,27 +45,30 @@ import java.util.stream.Collectors;
  *
  *
  */
-public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Iterable<Relationship>, Iterable<S>> {
+public class ManyStartpoint extends AbstractEndpoint implements Source<Iterable<Relationship>, Iterable<NodeInterface>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(ManyStartpoint.class.getName());
 
-	private Relation<S, ?, ManyStartpoint<S>, ?> relation = null;
+	private Relation<ManyStartpoint, ?> relation = null;
 
-	public ManyStartpoint(final Relation<S, ?, ManyStartpoint<S>, ?> relation) {
+	public ManyStartpoint(final Relation<ManyStartpoint, ?> relation, final String propertyName) {
+
+		super(propertyName);
+
 		this.relation = relation;
 	}
 
 	@Override
-	public Iterable<S> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
+	public Iterable<NodeInterface> get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		final NodeFactory<S> nodeFactory  = new NodeFactory<>(securityContext);
+		final NodeFactory nodeFactory     = new NodeFactory(securityContext);
 		final Iterable<Relationship> rels = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rels != null) {
 
 			if (predicate != null && predicate.comparator() != null) {
 
-				final List<S> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), from.getId()), rels));
+				final List<NodeInterface> result = Iterables.toList(Iterables.map(from -> nodeFactory.instantiate(from.getStartNode(), from.getId()), rels));
 
 				Collections.sort(result, predicate.comparator());
 
@@ -78,23 +85,37 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 	}
 
 	@Override
-	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<S> collection) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final Iterable<NodeInterface> collection) throws FrameworkException {
 
-		final App app                            = StructrApp.getInstance(securityContext);
-		final List<Relation> createdRelationship = new LinkedList<>();
-		final PropertyMap properties             = new PropertyMap();
-		final NodeInterface actualTargetNode     = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
-		final Set<S> toBeDeleted                 = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualTargetNode, null)));
-		final Set<S> toBeCreated                 = new LinkedHashSet<>();
-		final Class relationClass                = relation.getClass();
+		final App app                                         = StructrApp.getInstance(securityContext);
+		final List<RelationshipInterface> createdRelationship = new LinkedList<>();
+		final PropertyMap properties                          = new PropertyMap();
+		final NodeInterface actualTargetNode                  = unwrap(securityContext, relation.getType(), targetNode, properties);
+		final Set<NodeInterface> toBeDeleted                  = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualTargetNode, null)));
+		final Set<NodeInterface> toBeCreated                  = new LinkedHashSet<>();
+		final Traits sourceType                               = Traits.of(relation.getSourceType());
+		final String relationType                             = relation.getType();
 
 		if (collection != null) {
-			Iterables.addAll(toBeCreated, collection);
+
+			for (final NodeInterface n : collection) {
+
+				if (n != null) {
+
+					final Traits type = n.getTraits();
+
+					if (!SearchCommand.isTypeAssignableFromOtherType(sourceType, type)) {
+						throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), sourceType.getName()));
+					}
+
+					toBeCreated.add(n);
+				}
+			}
 		}
 
 		// create intersection of both sets
-		final Set<S> intersection          = intersect(toBeCreated, toBeDeleted);
-		final Map<String, GraphObject> map = intersection.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+		final Set<NodeInterface> intersection = intersect(toBeCreated, toBeDeleted);
+		final Map<String, NodeInterface> map  = intersection.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
 
 		// remove all existing nodes from the list of to be created nodes
 		// so we don't delete and re-create the relationship
@@ -103,13 +124,13 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 		if (actualTargetNode != null) {
 
 			// remove existing relationships
-			for (S sourceNode : toBeDeleted) {
+			for (NodeInterface sourceNode : toBeDeleted) {
 
 				final String uuid = sourceNode.getUuid();
 
-				for (Iterator<AbstractRelationship> it = actualTargetNode.getIncomingRelationships(relationClass).iterator(); it.hasNext();) {
+				for (Iterator<RelationshipInterface> it = actualTargetNode.getIncomingRelationships(relationType).iterator(); it.hasNext();) {
 
-					final AbstractRelationship rel = it.next();
+					final RelationshipInterface rel = it.next();
 
 					if (sourceNode.equals(actualTargetNode)) {
 
@@ -125,10 +146,10 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 							// only set properties
 							final PropertyMap foreignProperties = new PropertyMap();
-							final GraphObject inputObject       = map.get(uuid);
+							final NodeInterface inputObject     = map.get(uuid);
 
 							// extract and set foreign properties from input object
-							unwrap(securityContext, relationClass, inputObject, foreignProperties);
+							unwrap(securityContext, relationType, inputObject, foreignProperties);
 							rel.setProperties(securityContext, foreignProperties);
 
 						} else {
@@ -141,14 +162,14 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 			}
 
 			// create new relationships
-			for (S sourceNode : toBeCreated) {
+			for (NodeInterface sourceNode : toBeCreated) {
 
 				if (sourceNode != null) {
 
 					properties.clear();
 
-					final S actualSourceNode           = (S)unwrap(securityContext, relationClass, sourceNode, properties);
-					final PropertyMap notionProperties = getNotionProperties(securityContext, relationClass, actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
+					final NodeInterface actualSourceNode = unwrap(securityContext, relationType, sourceNode, properties);
+					final PropertyMap notionProperties   = getNotionProperties(securityContext, relationType, actualSourceNode.getName() + relation.name() + actualTargetNode.getName());
 
 					if (notionProperties != null) {
 
@@ -157,7 +178,7 @@ public class ManyStartpoint<S extends NodeInterface> extends AbstractEndpoint im
 
 					relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
-					createdRelationship.add(app.create(actualSourceNode, actualTargetNode, relationClass, properties));
+					createdRelationship.add(app.create(actualSourceNode, actualTargetNode, relationType, properties));
 				}
 			}
 		}

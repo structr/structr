@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,24 +19,26 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
  */
 public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_DISABLE_NOTIFICATIONS    = "Usage: ${disable_notifications()}";
-	public static final String ERROR_MESSAGE_DISABLE_NOTIFICATIONS_JS = "Usage: ${Structr.disableNotifications()}";
-
 	@Override
 	public String getName() {
-		return "disable_notifications";
+		return "disableNotifications";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -48,13 +50,20 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DISABLE_NOTIFICATIONS_JS : ERROR_MESSAGE_DISABLE_NOTIFICATIONS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${disableNotifications()}"),
+			Usage.javaScript("Usage: ${Structr.disableNotifications()}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Disables the Websocket notifications in the Structr Ui for the current transaction";
+	public String getShortDescription() {
+		return "Disables the Websocket broadcast notifications in the Structr Backend UI for the current transaction.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "This function can be used to temporarily disable the broadcasting of large modification operations, which greatly reduces the processing time. If you experience very slow (i.e. more than 10 seconds) object creation, modification or deletion, try to disable notifications before executing the operation. See also `enableNotifications()`.";
+	}
 }

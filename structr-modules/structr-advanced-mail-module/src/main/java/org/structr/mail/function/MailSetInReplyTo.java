@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,15 +19,18 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
+
 public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_set_in_reply_to(messageId)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_set_in_reply_to(messageId) }}";
-
-	public static final String IN_REPLY_TO_HEADER = "In-reply-to";
+	public static final String IN_REPLY_TO_HEADER = "In-Reply-To";
 
 	public MailSetInReplyTo(final AdvancedMailModule parent) {
 		super(parent);
@@ -39,8 +42,8 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "messageId";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("messageId");
 	}
 
 	@Override
@@ -65,12 +68,37 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_set_in_reply_to(messageId)}"),
+			Usage.javaScript("Usage: ${{ $.mailSetInReplyTo(messageId) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Automatically sets the In-reply-to header for the outgoing mail so the recipient mail client knows to which message the mail is a reply.";
+	public String getShortDescription() {
+		return "Sets the `In-Reply-To` header for the outgoing mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+				Indicates that the mail is a reply to the message with the given `messageId`. This function automatically sets the `In-Reply-To` header of the mail so that the receiving mail client can handle it correctly.
+				This function is especially interesting in combination with the mail service and automatically ingested mails from configured mailboxes.
+				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("messageId", "message id of the mail to respond to")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${mail_set_in_reply_to('<1910177794.5.1555059600315.JavaMail.username@machine.local>')}")
+		);
 	}
 }

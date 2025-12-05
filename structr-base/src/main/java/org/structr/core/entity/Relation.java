@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,33 +18,24 @@
  */
 package org.structr.core.entity;
 
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.RelationshipType;
+import org.structr.common.PermissionPropagation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
-import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Defines constants for structr's relationship entities.
  *
- * @param <A>
- * @param <B>
  * @param <S>
  * @param <T>
  *
  *
  */
-public interface Relation<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> extends RelationshipInterface, RelationshipType {
+public interface Relation<S extends Source, T extends Target> extends RelationshipType, PermissionPropagation {
 
 	/**
 	 * No cascading delete / autocreate.
@@ -84,79 +75,43 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 		"CONSTRAINT_BASED"
 	};
 
-	public enum Multiplicity { One, Many }
-
-	public Class<A> getSourceType();
-	public Class<B> getTargetType();
-
-	public Class getOtherType(final Class type);
-
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type);
-
-	public Multiplicity getSourceMultiplicity();
-	public Multiplicity getTargetMultiplicity();
-
-	public S getSource();
-	public T getTarget();
-
-	public Property<String> getSourceIdProperty();
-	public Property<String> getTargetIdProperty();
-	public Notion getEndNodeNotion();
-	public Notion getStartNodeNotion();
-
-	public int getCascadingDeleteFlag();
-	public int getAutocreationFlag();
-
-	public void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
-
-	public boolean isHidden();
-
-	public void setSourceProperty(final PropertyKey source);
-	public void setTargetProperty(final PropertyKey target);
-
-	public PropertyKey getSourceProperty();
-	public PropertyKey getTargetProperty();
-
-	public static final Map<Class, Relation> relationCache = new LinkedHashMap<>();
-
-	public static Relation getInstance(final Class<? extends Relation> type) {
-
-		Relation instance = relationCache.get(type);
-		if (instance == null) {
-
-			try {
-
-				instance = type.newInstance();
-				relationCache.put(type, instance);
-
-
-			} catch (Throwable t) {
-				LoggerFactory.getLogger(Relation.class).error("{}", ExceptionUtils.getStackTrace(t));
-			}
-		}
-
-		return instance;
+	/*
+	default String getType() {
+		return getSourceType() + name() + getTargetType();
 	}
+	*/
 
-	public static Cardinality getCardinality(final Relation relation) {
+	enum Multiplicity { One, Many }
 
-		final Multiplicity sm = relation.getSourceMultiplicity();
-		final Multiplicity tm = relation.getTargetMultiplicity();
+	String getSourceType();
+	String getTargetType();
+	String getType();
 
-		switch (sm) {
+	String getOtherType(final String type);
+	Direction getDirectionForType(final String type);
 
-			case One:
-				switch (tm) {
-					case One: return Cardinality.OneToOne;
-					case Many: return Cardinality.OneToMany;
-				}
-			case Many:
-				switch (tm) {
-					case One: return Cardinality.ManyToOne;
-					case Many: return Cardinality.ManyToMany;
-				}
-		}
+	Multiplicity getSourceMultiplicity();
+	Multiplicity getTargetMultiplicity();
 
-		return null;
-	}
+	S getSource();
+	T getTarget();
+
+	Notion getEndNodeNotion();
+	Notion getStartNodeNotion();
+
+	int getCascadingDeleteFlag();
+	int getAutocreationFlag();
+
+	void ensureCardinality(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException;
+
+	PropertyKey<String> getSourceIdProperty();
+	PropertyKey<String> getTargetIdProperty();
+
+	void setSourceProperty(final PropertyKey source);
+	void setTargetProperty(final PropertyKey target);
+
+	PropertyKey getSourceProperty();
+	PropertyKey getTargetProperty();
+
+	boolean isInternal();
 }

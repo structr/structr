@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,25 @@
  */
 package org.structr.schema.action;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.autocomplete.BuiltinFunctionHint;
+import org.structr.autocomplete.TypeNameHint;
+import org.structr.autocomplete.WrappingHint;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.property.*;
-import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.core.traits.Traits;
+import org.structr.docs.*;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.File;
 import java.io.IOException;
@@ -45,15 +45,13 @@ import java.net.URLEncoder;
 import java.util.*;
 
 /**
- *
- *
+ * Base class for built-in functions.
  */
 public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
 
 	public abstract T apply(ActionContext ctx, Object caller, S[] sources) throws FrameworkException;
-	public abstract String usage(boolean inJavaScriptContext);
 	public abstract String getRequiredModule();
 
 	public List<String> aliases() {
@@ -62,6 +60,82 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	public String getNamespaceIdentifier() {
 		return null;
+	}
+
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.BuiltInFunction;
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		// override this method to modify default behaviour
+		return Language.scriptingLanguages();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		// override this method to modify default behaviour
+		return null;
+	}
+
+	public int hashCode() {
+		return getName().hashCode();
+	}
+
+	public boolean equals(final Object obj) {
+
+		if (obj instanceof Function) {
+			return obj.hashCode() == hashCode();
+		}
+
+		return false;
+	}
+
+	public final String usage(boolean inJavaScriptContext) {
+
+		Usage first = null;
+
+		for (final Usage usage : getUsages()) {
+
+			// store first to return it later
+			if (first == null) {
+				first = usage;
+			}
+
+			if (usage.isJavaScript() && inJavaScriptContext) {
+				return usage.getUsage();
+			}
+
+			if (usage.isStructrScript() && !inJavaScriptContext) {
+				return usage.getUsage();
+			}
+		}
+
+		if (first != null) {
+			return first.getUsage();
+		}
+
+		// there should always be at least one Usage object...
+		throw new RuntimeException("No Usage defined in function " + getName());
 	}
 
 	/**
@@ -84,7 +158,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param inJavaScriptContext Has the function been called from a JavaScript context?
 	 */
 	protected void logParameterError(final Object caller, final Object[] parameters, final String message, final boolean inJavaScriptContext) {
-		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getReplacement(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
+		logger.warn("{}: {} '{}'. Parameters: {}. {}", new Object[] { getDisplayName(), message, caller, getParametersAsString(parameters), usage(inJavaScriptContext) });
 	}
 
 	/**
@@ -95,7 +169,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	 * @param parameters The method parameters
 	 */
 	protected void logException (final Object caller, final Throwable t, final Object[] parameters) {
-		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(parameters) });
+		logException(t, "{}: Exception in '{}' for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(parameters) });
 	}
 
 	/**
@@ -113,7 +187,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		if (Settings.LogFunctionsStackTrace.getValue()) {
 			l.error(msg, ArrayUtils.add(messageParams, t));
 		} else {
-			l.error(msg + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
+			l.error(msg + "\n(Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")", messageParams);
 		}
 	}
 
@@ -186,6 +260,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 			}
 		}
 	}
+
 	protected void assertArrayHasMinLengthAndTypes(final Object[] array, final int minimum, final Class... types) throws ArgumentCountException, ArgumentNullException {
 
 		if (array.length < minimum) {
@@ -199,13 +274,71 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			if (element != null) {
 
-				if (!type.isAssignableFrom(element.getClass())) {
-					throw ArgumentTypeException.wrongTypes(array, minimum, types);
+				if (GraphObject.class.isAssignableFrom(type)) {
+
+					if (element instanceof GraphObject g) {
+
+						if (!g.is(type.getSimpleName())) {
+
+							throw ArgumentTypeException.wrongTypes(array, minimum, types);
+						}
+
+					} else {
+
+						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+					}
+
+				} else {
+
+					if (!type.isAssignableFrom(element.getClass())) {
+						throw ArgumentTypeException.wrongTypes(array, minimum, types);
+					}
 				}
 
 			} else {
 
 				throw ArgumentTypeException.wrongTypes(array, minimum, types);
+			}
+		}
+	}
+
+	protected void assertArrayHasLengthAndTypes(final Object[] array, final int length, final Class... types) throws ArgumentCountException, ArgumentNullException {
+
+		if (array.length != length) {
+			throw ArgumentTypeException.wrongTypes(array, length, types);
+		}
+
+		for (int i=0; (i<array.length && i < types.length); i++) {
+
+			final Object element = array[i];
+			final Class type     = types[i];
+
+			if (element != null) {
+
+				if (GraphObject.class.isAssignableFrom(type)) {
+
+					if (element instanceof GraphObject g) {
+
+						if (!g.is(type.getSimpleName())) {
+
+							throw ArgumentTypeException.wrongTypes(array, length, types);
+						}
+
+					} else {
+
+						throw ArgumentTypeException.wrongTypes(array, length, types);
+					}
+
+				} else {
+
+					if (!type.isAssignableFrom(element.getClass())) {
+						throw ArgumentTypeException.wrongTypes(array, length, types);
+					}
+				}
+
+			} else {
+
+				throw ArgumentTypeException.wrongTypes(array, length, types);
 			}
 		}
 	}
@@ -224,7 +357,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			} else {
 
-				Date date = DatePropertyParser.parseISO8601DateString(obj.toString());
+				Date date = DatePropertyGenerator.parseISO8601DateString(obj.toString());
 
 				if (date != null) {
 
@@ -237,11 +370,11 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		} catch (NumberFormatException nfe) {
 
-			logger.error("{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
+			logger.error("{}: Exception parsing '{}'", new Object[] { getDisplayName(), obj });
 
 		} catch (Throwable t) {
 
-			logException(t, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
+			logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(), obj });
 		}
 
 		return null;
@@ -343,7 +476,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception parsing '{}'", new Object[] { getReplacement(), obj });
+				logException(t, "{}: Exception parsing '{}'", new Object[] { getDisplayName(), obj });
 			}
 		}
 
@@ -498,60 +631,6 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return null;
 	}
 
-	protected static File getServerlogFile() {
-
-		final String basePath = Settings.getBasePath();
-
-		if (!basePath.isEmpty()) {
-
-			final String logPath = basePath.endsWith(File.separator) ? basePath.concat("logs" + File.separator) : basePath.concat(File.separator + "logs" + File.separator);
-
-			File logFile;
-
-			// log file name from env
-			final String envLogFile = System.getenv("LOG_FILE");
-			if (envLogFile != null) {
-
-				logFile = new File(envLogFile);
-				if (logFile.exists()) {
-
-					return logFile;
-				}
-			}
-
-			// logs/server.log
-			logFile = new File(logPath.concat("server.log"));
-			if (logFile.exists()) {
-
-				return logFile;
-			}
-
-			// special handling for .deb installation
-			logFile = new File("/var/log/structr.log");
-			if (logFile.exists()) {
-				return logFile;
-			}
-
-			logger.warn("Could not locate logfile");
-
-		} else {
-
-			logger.warn("Unable to determine base.path from structr.conf, no data input/output possible.");
-		}
-
-		return null;
-	}
-
-	protected static String serialize(final Gson gson, final Map<String, Object> map) {
-		return gson.toJson(map, new TypeToken<Map<String, String>>() {
-		}.getType());
-	}
-
-	protected static Map<String, Object> deserialize(final Gson gson, final String source) {
-		return gson.fromJson(source, new TypeToken<Map<String, Object>>() {
-		}.getType());
-	}
-
 	protected static void recursivelyConvertMapToGraphObjectMap(final GraphObjectMap destination, final Map<String, Object> source, final int depth) {
 
 		if (depth > 20) {
@@ -560,16 +639,22 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 		for (final Map.Entry entry : source.entrySet()) {
 
-			final ConfigurationProvider provider = StructrApp.getConfiguration();
-			final String key                     = entry.getKey().toString();
-			final Object value                   = entry.getValue();
+			final String key   = entry.getKey().toString();
+			final Object value = entry.getValue();
 
 			if (value instanceof Map) {
 
-				final Map<String, Object> map = (Map<String, Object>)value;
-				final GraphObjectMap obj = new GraphObjectMap();
+				final Map<String, Object> map = (Map<String, Object>) value;
+				final GraphObjectMap obj = GraphObjectMap.fromMap(source);
 
-				destination.put(provider.getPropertyKeyForJSONName(obj.getClass(), key), obj);
+				final Traits traits           = obj.getTraits();
+				final PropertyKey propertyKey = traits.key(key);
+
+				if (propertyKey != null) {
+					destination.put(propertyKey, obj);
+				} else {
+					logger.warn("PropertyKey is null for key '{}' in map {}", key, map);
+				}
 
 				recursivelyConvertMapToGraphObjectMap(obj, map, depth + 1);
 
@@ -593,11 +678,11 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 					}
 				}
 
-				destination.put(provider.getPropertyKeyForJSONName(list.getClass(), key), list);
+				destination.put(new GenericProperty(key), list);
 
 			} else {
 
-				destination.put(value != null ? provider.getPropertyKeyForJSONName(value.getClass(), key) : new StringProperty(key), value);
+				destination.put(new GenericProperty(key), value);
 			}
 		}
 	}
@@ -768,6 +853,38 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 		return value;
 	}
 
+	// ----- protected methods -----
+	protected List<Documentable> getContextHintsForTypes(final String lastToken) {
+
+		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
+		final List<Documentable> hints = new LinkedList<>();
+
+		for (final String type : Traits.getAllTypes(t -> t.isNodeType() && !t.isServiceClass())) {
+
+			Documentable hint = null;
+
+			if (Traits.exists(type)) {
+
+				final Traits traits = Traits.of(type);
+				if (traits.getShortDescription() != null) {
+
+					hint = new WrappingHint(traits, quoteChar + type + quoteChar);
+				}
+
+			}
+
+			// fallback: old style
+			if (hint == null) {
+
+				hint = new TypeNameHint(quoteChar + type + quoteChar, type);
+			}
+
+			hints.add(hint);
+		}
+
+		return hints;
+	}
+
 	// ----- private methods -----
 	private boolean eq(final Object o1, final Object o2) {
 
@@ -864,7 +981,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	private int compareDateString(final Object o1, final Object o2) {
 
-		final String value1 = DatePropertyParser.format((Date)o1, Settings.DefaultDateFormat.getValue());
+		final String value1 = DatePropertyGenerator.format((Date)o1, Settings.DefaultDateFormat.getValue());
 		final String value2 = (String)o2;
 
 		return value1.compareTo(value2);
@@ -873,7 +990,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	private int compareStringDate(final Object o1, final Object o2) {
 
 		final String value1 = (String)o1;
-		final String value2 = DatePropertyParser.format((Date)o2, Settings.DefaultDateFormat.getValue());
+		final String value2 = DatePropertyGenerator.format((Date)o2, Settings.DefaultDateFormat.getValue());
 
 		return value1.compareTo(value2);
 	}

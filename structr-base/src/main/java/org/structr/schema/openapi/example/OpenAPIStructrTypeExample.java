@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,11 @@ package org.structr.schema.openapi.example;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.schema.Schema;
 import org.structr.schema.export.StructrTypeDefinition;
 
@@ -39,9 +42,9 @@ public class OpenAPIStructrTypeExample extends TreeMap<String, Object> {
 
 		if (level > 0 && Schema.RestrictedViews.contains(viewName)) {
 
-			handleProperty(type, AbstractNode.id,   viewName, level);
-			handleProperty(type, AbstractNode.type, viewName, level);
-			handleProperty(type, AbstractNode.name, viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY),   viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), viewName, level);
+			handleProperty(type, Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), viewName, level);
 
 		} else {
 

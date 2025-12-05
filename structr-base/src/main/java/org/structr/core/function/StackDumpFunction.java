@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -31,17 +33,14 @@ public class StackDumpFunction extends CoreFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(StackDumpFunction.class.getName());
 
-	public static final String ERROR_MESSAGE_STACK_DUMP    = "Usage: ${stack_dump()}. Example ${stack_dump()}";
-	public static final String ERROR_MESSAGE_LOG_JS = "Usage: ${{ $.stackDump(); }}. Example ${{ $.stackDump(); }}";
-
 	@Override
 	public String getName() {
-		return "stack_dump";
+		return "stackDump";
 	}
 
 	@Override
-	public String getSignature() {
-		return "";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -57,12 +56,20 @@ public class StackDumpFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOG_JS : ERROR_MESSAGE_STACK_DUMP);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${stackDump()}. Example ${stackDump()}"),
+			Usage.javaScript("Usage: ${{ $.stackDump(); }}. Example ${{ $.stackDump(); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Logs the current execution stack.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

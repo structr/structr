@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,21 @@
  */
 package org.structr.web.servlet;
 
-import org.structr.web.resource.LoginResource;
-import org.structr.web.resource.TokenResource;
+import jakarta.servlet.http.HttpServletRequest;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.traits.StructrTraits;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 
 public class TokenServlet extends LoginServlet {
-    @Override
-    protected String getUriPart() {
-        return "token";
-    }
 
-    @Override
-    protected LoginResource getLoginResource() {
-        return new TokenResource();
-    }
+	@Override
+	protected String getUriPart() {
+		return "token";
+	}
+
+	@Override
+	protected RESTCallHandler getLoginResource(final HttpServletRequest request) throws FrameworkException {
+		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), StructrTraits.USER);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,6 @@
 package org.structr.schema.export;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -31,8 +29,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.FunctionProperty;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.SchemaService;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
@@ -42,19 +43,15 @@ import org.structr.schema.openapi.result.OpenAPIMultipleResponseSchema;
 import org.structr.schema.openapi.result.OpenAPISingleResponseSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
-import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Collectors;
 
 /**
  *
  *
  */
 public class StructrTypeDefinitions implements StructrDefinition {
-
-	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinitions.class);
 
 	private final Set<StructrRelationshipTypeDefinition> relationships = new TreeSet<>();
 	private final Set<StructrTypeDefinition> typeDefinitions           = new TreeSet<>();
@@ -90,6 +87,10 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public JsonObjectType addType(final String name) {
 
+		if (StructrTraits.XMPP_CLIENT.equals(name)) {
+			Thread.dumpStack();
+		}
+
 		final JsonType type = getType(name, false);
 		if (type != null) {
 
@@ -114,11 +115,13 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
-		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
-		final Set<String> blacklist               = SchemaService.getBlacklist();
+		final Map<String, SchemaRelationshipNode> schemaRels = new LinkedHashMap<>();
+		final Map<String, SchemaNode> schemaNodes            = new LinkedHashMap<>();
+		final Set<String> blacklist                          = SchemaService.getBlacklist();
 
 		// collect list of schema nodes
-		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		app.nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
+		app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n.as(SchemaRelationshipNode.class)); });
 
 		// iterate type definitions
 		for (final StructrTypeDefinition type : typeDefinitions) {
@@ -129,16 +132,11 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				continue;
 			}
 
-			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, app);
+			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, schemaRels, app);
 			if (schemaNode != null) {
 
 				type.setSchemaNode(schemaNode);
 			}
-		}
-
-		// resolve inheritance relationships
-		for (final StructrTypeDefinition type : typeDefinitions) {
-			type.resolveInheritanceRelationships(schemaNodes);
 		}
 
 		// resolve schema relationships
@@ -234,50 +232,46 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public Map<String, Object> serializeOpenAPIResponses(final Map<String, Object> responses, final String tag) {
 
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-		final Map<String, Object> map             = new TreeMap<>();
+		final Map<String, Object> map = new TreeMap<>();
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
 			if (type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				Class typeClass = configuration.getNodeEntityClass(type.name);
-				if (typeClass == null) {
+				if (!type.isServiceClass()) {
 
-					final Map<String, Class> interfaces = configuration.getInterfaces();
+					final Traits traits = Traits.of(type.name);
+					final Set<String> viewNames = traits.getViewNames();
 
-					typeClass = interfaces.get("org.structr.dynamic." + type.name);
-				}
+					viewNames.removeAll(StructrTypeDefinition.VIEW_BLACKLIST);
+					viewNames.remove("all");
 
-				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+					for (String viewName : viewNames) {
 
-				viewNames = viewNames.stream().filter(viewName ->  StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName)).collect(Collectors.toSet());
+						final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
 
-				for (String viewName : viewNames) {
+						String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
+						map.put(typeName + "MultipleResponse",
+								new OpenAPIRequestResponse(
+										"The request was executed successfully.",
+										new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
+										new OpenAPIExampleAnyResult(List.of(), true),
+										null,
+										false,
+										null
+								)
+						);
 
-					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
-
-					String viewNameStringForReference = StringUtils.equals(viewName, PropertyView.Public) ? "" : "." + viewName;
-					map.put(typeName + "MultipleResponse",
-							new OpenAPIRequestResponse(
-								"The request was executed successfully.",
-								new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "MultipleResponseSchema"),
-								new OpenAPIExampleAnyResult(List.of(), true),
-								null,
-								false,
-								null
-							)
-					);
-
-					map.put(typeName + "SingleResponse",
-						new OpenAPIRequestResponse("The request was executed successfully.",
-							new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
-							new OpenAPIExampleAnyResult(Map.of(), true),
-							null,
-							false,
-							null
-						)
-					);
+						map.put(typeName + "SingleResponse",
+								new OpenAPIRequestResponse("The request was executed successfully.",
+										new OpenAPISchemaReference(type.getName() + viewNameStringForReference + "SingleResponseSchema"),
+										new OpenAPIExampleAnyResult(Map.of(), true),
+										null,
+										false,
+										null
+								)
+						);
+					}
 				}
 
 				for (final StructrMethodDefinition method : type.methods) {
@@ -299,33 +293,33 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private Set<String> getViewNamesOfType(final StructrTypeDefinition type, final String view) {
 
-		final ConfigurationProvider configuration = StructrApp.getConfiguration();
-		Class typeClass = configuration.getNodeEntityClass(type.name);
+		final Traits traits         = Traits.of(type.name);
+		final Set<String> viewNames = traits.getViewNames();
 
-		if (typeClass == null) {
-			Map<String, Class> interfaces = configuration.getInterfaces();
-			typeClass = interfaces.get("org.structr.dynamic." + type.name);
-		}
+		viewNames.remove(StructrTypeDefinition.VIEW_BLACKLIST);
+		viewNames.remove("all");
 
-		Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+		// fixme: what does this do??
+		/*
 		viewNames = viewNames.stream().filter(viewName -> {
 			if (StringUtils.isNotEmpty(view) && !StringUtils.equals(view, viewName)) {
 				return false;
 			}
 			return StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName);
 		}).collect(Collectors.toSet());
+		*/
 
 		return viewNames;
 	}
 
 	private Map<String, Object> serializeOpenAPIForTypes(final Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
 
-		final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList("User", "File", "Image", "NodeInterface"));
+		final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList(StructrTraits.USER, StructrTraits.FILE, StructrTraits.IMAGE, StructrTraits.NODE_INTERFACE));
 		final Map<String, Object> map   = new TreeMap<>();
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
-			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI()) {
+			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI() && !type.isServiceClass()) {
 
 				for (final String viewName : this.getViewNamesOfType(type, view)) {
 
@@ -336,36 +330,13 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					map.put(typeName, typeMap);
 					typeMap.put("allOf", allOf);
 
-					// base type must be resolved and added as well, but only if base type isn't included in tag itself.
-					final URI baseTypeReference = type.getExtends();
-
-					if (StringUtils.isEmpty(view) && baseTypeReference != null && !StringUtils.equals(viewName, PropertyView.All)) {
-
-						final Object def = root.resolveURI(baseTypeReference);
-						if (def instanceof StructrTypeDefinition) {
-							final StructrTypeDefinition baseType = (StructrTypeDefinition) def;
-							if (!schemas.containsKey(baseType.getName()) && !baseType.includeInOpenAPI()) {
-								OpenAPIStructrTypeSchemaOutput openAPIStructrTypeSchemaOutput = new OpenAPIStructrTypeSchemaOutput(baseType, PropertyView.Public, 0);
-								schemas.put(baseType.getName(), openAPIStructrTypeSchemaOutput);
-							}
-						}
-					}
-
-					final String reference = type.resolveTypeReferenceForOpenAPI(type.getExtends());
-					if (StringUtils.isEmpty(view) && reference != null ) {
-
-						allOf.add(new OpenAPISchemaReference(reference, PropertyView.Public));
-
-					} else if (StringUtils.isEmpty(view)) {
-
-						// default base type AbstractNode
-						allOf.add(new OpenAPISchemaReference("#/components/schemas/AbstractNode", PropertyView.Public));
-					}
+					// default base type NodeInterface
+					allOf.add(new OpenAPISchemaReference("#/components/schemas/NodeInterface", PropertyView.Public));
 
 					// add actual type definition
 					allOf.add(new OpenAPIStructrTypeSchemaOutput(type, viewName, 0));
 
-					// genereate schema for readFunction returnType
+					// generate schema for readFunction returnType
 					type.visitProperties(key -> {
 
 						if (key instanceof FunctionProperty && StringUtils.isEmpty(key.typeHint())) {
@@ -395,16 +366,25 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
 
+		final App app                 = StructrApp.getInstance();
 		final Map<String, Object> map = new TreeMap<>();
 
-		for (final StructrTypeDefinition type : typeDefinitions) {
+		try (final Tx tx = app.tx()) {
 
-			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
+			for (final StructrTypeDefinition type : typeDefinitions) {
 
-				Set<String> viewNames = this.getViewNamesOfType(type, null);
+				if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
 
-				map.putAll(type.serializeOpenAPIOperations(tag, viewNames));
+					Set<String> viewNames = this.getViewNamesOfType(type, null);
+
+					map.putAll(type.serializeOpenAPIOperations(tag, viewNames));
+				}
 			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
 		}
 
 		return map;
@@ -431,8 +411,9 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 					typeDefinitions.add(type);
 
-					if (type instanceof StructrRelationshipTypeDefinition) {
-						relationships.add((StructrRelationshipTypeDefinition)type);
+					if (type instanceof StructrRelationshipTypeDefinition r) {
+
+						relationships.add(r);
 					}
 
 				}
@@ -454,7 +435,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
 
 		// collect list of schema nodes
-		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		app.nodeQuery(StructrTraits.SCHEMA_NODE).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n.as(SchemaNode.class)); });
 
 		// iterate
 		for (final SchemaNode schemaNode : schemaNodes.values()) {
@@ -462,13 +443,20 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, schemaNode);
 			if (type != null) {
 
-				typeDefinitions.add(type);
+				try {
+					typeDefinitions.add(type);
+
+				} catch (Throwable t) {
+
+					System.out.println(schemaNode.getName());
+					t.printStackTrace();
+				}
 			}
 		}
 
-		for (final SchemaRelationshipNode schemaRelationship : app.nodeQuery(SchemaRelationshipNode.class).getAsList()) {
+		for (final NodeInterface node : app.nodeQuery(StructrTraits.SCHEMA_RELATIONSHIP_NODE).getAsList()) {
 
-			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, schemaRelationship);
+			final StructrTypeDefinition type = StructrTypeDefinition.deserialize(schemaNodes, root, node.as(SchemaRelationshipNode.class));
 			if (type != null) {
 
 				typeDefinitions.add(type);
@@ -493,13 +481,21 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return relationships;
 	}
 
-	void diff(final StructrTypeDefinitions other) throws FrameworkException {
+	void diff(final StructrTypeDefinitions staticSchema) throws FrameworkException {
 
 		final Map<String, StructrTypeDefinition> databaseTypes = getMappedTypes();
-		final Map<String, StructrTypeDefinition> structrTypes  = other.getMappedTypes();
+		final Map<String, StructrTypeDefinition> structrTypes  = staticSchema.getMappedTypes();
 		final Set<String> typesOnlyInDatabase                  = new TreeSet<>(databaseTypes.keySet());
 		final Set<String> typesOnlyInStructrSchema             = new TreeSet<>(structrTypes.keySet());
 		final Set<String> bothTypes                            = new TreeSet<>(databaseTypes.keySet());
+
+		// FIXME ? can the two remaining strings be removed? the functionality has been removed for quite some time
+		final Set<String> toMigrate = Set.of(
+			"AbstractMinifiedFileMINIFICATIONFile", StructrTraits.IMAGE_PICTURE_OF_USER, StructrTraits.IMAGE_THUMBNAIL_IMAGE, StructrTraits.USER_HOME_DIR_FOLDER, StructrTraits.USER_WORKING_DIR_FOLDER,
+			"AbstractFileCONTAINS_NEXT_SIBLINGAbstractFile", StructrTraits.FOLDER_CONTAINS_ABSTRACT_FILE, StructrTraits.FOLDER_CONTAINS_FILE, StructrTraits.FOLDER_CONTAINS_FOLDER,
+			StructrTraits.FOLDER_CONTAINS_IMAGE, StructrTraits.VIDEO_FILE_HAS_CONVERTED_VIDEO_VIDEO_FILE, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE,
+			StructrTraits.ABSTRACT_FILE_CONFIGURED_BY_STORAGE_CONFIGURATION
+		);
 
 		typesOnlyInDatabase.removeAll(structrTypes.keySet());
 		typesOnlyInStructrSchema.removeAll(databaseTypes.keySet());
@@ -509,9 +505,9 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		for (final String key : typesOnlyInDatabase) {
 
 			final StructrTypeDefinition type = databaseTypes.get(key);
-			if (type.isBuiltinType()) {
+			if (toMigrate.contains(key)) {
 
-				handleRemovedBuiltInType(type);
+				//handleRemovedBuiltInType(type);
 
 			} else {
 
@@ -524,9 +520,10 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 			final StructrTypeDefinition localType = databaseTypes.get(name);
 			final StructrTypeDefinition otherType = structrTypes.get(name);
+			final Traits nodeType                 = getNodeType(name);
 
 			// compare types
-			localType.diff(otherType);
+			localType.diff(nodeType, otherType);
 		}
 	}
 
@@ -542,11 +539,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return mapped;
 	}
 
-	private void handleRemovedBuiltInType(final StructrTypeDefinition type) throws FrameworkException {
-
-		logger.warn("Built-in type {} was removed or renamed in the current version of the Structr schema, deleting.", type.getName());
-
-		// We can not determine yet if the type was deleted or renamed, so we need to delete it..
-		StructrApp.getInstance().delete(type.getSchemaNode());
+	private Traits getNodeType(final String name) {
+		return Traits.of(name);
 	}
 }

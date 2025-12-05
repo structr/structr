@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,8 @@
  */
 package org.structr.core;
 
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -32,20 +32,20 @@ import java.util.concurrent.ConcurrentLinkedQueue;
  */
 public class TransactionChangeSet {
 
-	private final Queue<AbstractNode> propagationQueue    = new ConcurrentLinkedQueue<>();
+	private final Queue<NodeInterface> propagationQueue    = new ConcurrentLinkedQueue<>();
 	private boolean systemOnly                      = true;
 
 	private final Queue<AbstractRelationship> modifiedRels  = new ConcurrentLinkedQueue<>();
 	private final Queue<AbstractRelationship> createdRels   = new ConcurrentLinkedQueue<>();
 	private final Queue<AbstractRelationship> deletedRels   = new ConcurrentLinkedQueue<>();
 
-	private final Queue<AbstractNode> modifiedNodes         = new ConcurrentLinkedQueue<>();
-	private final Queue<AbstractNode> createdNodes          = new ConcurrentLinkedQueue<>();
-	private final Queue<AbstractNode> deletedNodes          = new ConcurrentLinkedQueue<>();
+	private final Queue<NodeInterface> modifiedNodes         = new ConcurrentLinkedQueue<>();
+	private final Queue<NodeInterface> createdNodes          = new ConcurrentLinkedQueue<>();
+	private final Queue<NodeInterface> deletedNodes          = new ConcurrentLinkedQueue<>();
 
-	private final Queue<AbstractNode> ownerModifiedNodes    = new ConcurrentLinkedQueue<>();
-	private final Queue<AbstractNode> securityModifiedNodes = new ConcurrentLinkedQueue<>();
-	private final Queue<AbstractNode> locationModifiedNodes = new ConcurrentLinkedQueue<>();
+	private final Queue<NodeInterface> ownerModifiedNodes    = new ConcurrentLinkedQueue<>();
+	private final Queue<NodeInterface> securityModifiedNodes = new ConcurrentLinkedQueue<>();
+	private final Queue<NodeInterface> locationModifiedNodes = new ConcurrentLinkedQueue<>();
 
 	public void include(TransactionChangeSet changeSet) {
 
@@ -126,7 +126,7 @@ public class TransactionChangeSet {
 		return systemOnly;
 	}
 
-	public void create(AbstractNode created) {
+	public void create(NodeInterface created) {
 
 		createdNodes.add(created);
 		propagationQueue.add(created);
@@ -134,7 +134,7 @@ public class TransactionChangeSet {
 		systemOnly = false;
 	}
 
-	public void modify(AbstractNode modified) {
+	public void modify(NodeInterface modified) {
 
 		if (!isNewOrDeleted(modified)) {
 
@@ -143,7 +143,7 @@ public class TransactionChangeSet {
 		}
 	}
 
-	public void delete(AbstractNode deleted) {
+	public void delete(NodeInterface deleted) {
 
 		propagationQueue.remove(deleted);
 		createdNodes.remove(deleted);
@@ -181,7 +181,7 @@ public class TransactionChangeSet {
 		systemOnly = false;
 	}
 
-	public void modifyRelationshipEndpoint(AbstractNode node, String relationshipType) {
+	public void modifyRelationshipEndpoint(NodeInterface node, String relationshipType) {
 
 		switch (relationshipType) {
 
@@ -203,7 +203,7 @@ public class TransactionChangeSet {
 		}
 	}
 
-	public void modifyOwner(AbstractNode ownerModified) {
+	public void modifyOwner(NodeInterface ownerModified) {
 
 		if (!isNewOrDeleted(ownerModified)) {
 
@@ -212,7 +212,7 @@ public class TransactionChangeSet {
 		}
 	}
 
-	public void modifySecurity(AbstractNode securityModified) {
+	public void modifySecurity(NodeInterface securityModified) {
 
 		if (!isNewOrDeleted(securityModified)) {
 
@@ -221,7 +221,7 @@ public class TransactionChangeSet {
 		}
 	}
 
-	public void modifyLocation(AbstractNode locationModified) {
+	public void modifyLocation(NodeInterface locationModified) {
 
 		if (!isNewOrDeleted(locationModified)) {
 
@@ -242,36 +242,36 @@ public class TransactionChangeSet {
 		return deletedRels;
 	}
 
-	public Queue<AbstractNode> getModifiedNodes() {
+	public Queue<NodeInterface> getModifiedNodes() {
 		return modifiedNodes;
 	}
 
-	public Queue<AbstractNode> getCreatedNodes() {
+	public Queue<NodeInterface> getCreatedNodes() {
 		return createdNodes;
 	}
 
-	public Queue<AbstractNode> getDeletedNodes() {
+	public Queue<NodeInterface> getDeletedNodes() {
 		return deletedNodes;
 	}
 
-	public Queue<AbstractNode> getOwnerModifiedNodes() {
+	public Queue<NodeInterface> getOwnerModifiedNodes() {
 		return ownerModifiedNodes;
 	}
 
-	public Queue<AbstractNode> getSecurityModifiedNodes() {
+	public Queue<NodeInterface> getSecurityModifiedNodes() {
 		return securityModifiedNodes;
 	}
 
-	public Queue<AbstractNode> getLocationModifiedNodes() {
+	public Queue<NodeInterface> getLocationModifiedNodes() {
 		return locationModifiedNodes;
 	}
 
-	public Queue<AbstractNode> getPropagationQueue() {
+	public Queue<NodeInterface> getPropagationQueue() {
 		return propagationQueue;
 	}
 
 	// ----- private methods -----
-	private boolean isNew(AbstractNode node) {
+	private boolean isNew(NodeInterface node) {
 		return createdNodes.contains(node);
 	}
 
@@ -279,7 +279,7 @@ public class TransactionChangeSet {
 		return createdRels.contains(relationship);
 	}
 
-	private boolean isDeleted(AbstractNode node) {
+	private boolean isDeleted(NodeInterface node) {
 		return deletedNodes.contains(node);
 	}
 
@@ -287,7 +287,7 @@ public class TransactionChangeSet {
 		return deletedRels.contains(relationship);
 	}
 
-	private boolean isNewOrDeleted(AbstractNode node) {
+	private boolean isNewOrDeleted(NodeInterface node) {
 		return isNew(node) || isDeleted(node);
 	}
 

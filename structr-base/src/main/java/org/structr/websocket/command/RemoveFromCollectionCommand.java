@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
@@ -73,7 +71,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 		GraphObject obj         = getNode(webSocketData.getId());
 		if (obj != null) {
 
-			if (!((AbstractNode)obj).isGranted(Permission.write, getWebSocket().getSecurityContext())) {
+			if (!((NodeInterface)obj).isGranted(Permission.write, getWebSocket().getSecurityContext())) {
 
 				getWebSocket().send(MessageBuilder.status().message("No write permission").code(400).build(), true);
 				logger.warn("No write permission for {} on {}", new Object[]{getWebSocket().getCurrentUser().toString(), obj.toString()});
@@ -95,7 +93,7 @@ public class RemoveFromCollectionCommand extends AbstractCommand {
 
 			try {
 
-				PropertyKey key = StructrApp.key(obj.getClass(), keyString);
+				PropertyKey key = obj.getTraits().key(keyString);
 				if (key != null) {
 
 					List collection = Iterables.toList((Iterable) obj.getProperty(key));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -72,14 +72,19 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
-		return mappedKey.inputConverter(securityContext);
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
+		return mappedKey.inputConverter(securityContext, false);
 	}
 
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return mappedKey.isArray();
 	}
 
 	// ----- OpenAPI -----

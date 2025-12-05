@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,11 @@ package org.structr.core.parser;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.List;
 
 /**
  *
@@ -31,7 +34,7 @@ import org.structr.schema.action.EvaluationHints;
 
 public class IfExpression extends Expression {
 
-	public static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
+	private static final String ERROR_MESSAGE_IF = "Usage: ${if(condition, trueValue, falseValue)}. Example: ${if(empty(this.name), this.nickName, this.name)}";
 
 	public IfExpression(final int row, final int column) {
 		super("if", row, column);
@@ -105,5 +108,65 @@ public class IfExpression extends Expression {
 	@Override
 	public Object transform(final ActionContext ctx, final GraphObject entity, final Object source, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 		return source;
+	}
+
+	@Override
+	public String getName() {
+		return "if";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Evaluates a condition and executes different expressions depending on the result.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("condition", "condition to evaluate"),
+			Parameter.mandatory("trueExpression", "expression to evaluate if condition is `true`"),
+			Parameter.mandatory("falseExpression", "expression to evaluate if condition is `false`")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${if(me.isAdmin, 'background-color-red', 'background-color-white')}", "Make the background color of an element red if the current user is an admin user"),
+			Example.structrScript("${if(me.isAdmin, 'You have admin rights.', 'You do not have admin rights.')}", "Display different strings depending on the status of a user")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function is only available in StructrScript.",
+			"This function is often used in HTML attributes, for example to conditionally output CSS classes etc.",
+			"The `is()` function is a shortcut for `if(condition, trueExpression, null)`."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of(
+			Signature.structrScript("condition, trueExpression, falseExpression")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${if(condition, trueExpression, falseExpression)}. Example: ${if(me.isAdmin, 'background-color-red', 'background-color-white')}")
+		);
 	}
 }

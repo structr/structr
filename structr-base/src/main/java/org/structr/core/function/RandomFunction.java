@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,16 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RandomFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_RANDOM = "Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}";
 
 	@Override
 	public String getName() {
@@ -34,8 +39,8 @@ public class RandomFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "length";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("length");
 	}
 
 	@Override
@@ -71,12 +76,38 @@ public class RandomFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_RANDOM;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.random(num)}}. Example: ${{$.set($.this, \"password\", $.random(8))}}"),
+			Usage.structrScript("Usage: ${random(num)}. Example: ${set(this, \"password\", random(8))}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a random alphanumeric string of the given length";
+	public String getShortDescription() {
+		return "Returns a random alphanumeric string of the given length.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function can for example be used to create default passwords etc.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${random(8)}"),
+				Example.javaScript("${{ $.random(8) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("length", "length of random string")
+				);
+	}
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,46 +18,12 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.flow.api.DataSource;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
 
-import java.util.Iterator;
-
-/**
- *
- */
 public class FlowFirst extends FlowDataSource {
 
-	@Override
-	public Object get(final Context context) throws FlowException {
-
-		final DataSource _dataSource = getProperty(dataSource);
-
-		if (_dataSource != null) {
-
-			Object currentData = context.getData(getUuid());
-
-			if (currentData != null) {
-				return currentData;
-			}
-
-			Object dsData = _dataSource.get(context);
-
-			if (dsData instanceof Iterable) {
-				Iterable c = (Iterable)dsData;
-				Iterator it = c.iterator();
-
-				if (it.hasNext()) {
-					Object data = it.next();
-					context.setData(getUuid(), data);
-					return data;
-				}
-
-			}
-
-		}
-
-		return null;
+	public FlowFirst(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 }

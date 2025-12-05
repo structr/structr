@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,12 +29,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Maps the given target property key to a related node.
- * 
- *
  */
 public class RelatedNodePropertyMapper<T extends NodeInterface> extends PropertyConverter {
 
@@ -43,18 +39,16 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 	private PropertyKey<T> sourceKey  = null;
 	private PropertyKey targetKey = null;
 	
-	public RelatedNodePropertyMapper(SecurityContext securityContext, GraphObject currentObject, PropertyKey<T> sourceKey, PropertyKey targetKey) {
+	public RelatedNodePropertyMapper(final SecurityContext securityContext, final GraphObject currentObject, final PropertyKey<T> sourceKey, final PropertyKey targetKey) {
 		
 		super(securityContext, currentObject);
 		
 		this.sourceKey = sourceKey;
 		this.targetKey = targetKey;
 	}
-	
-	//~--- methods --------------------------------------------------------
 
 	@Override
-	public Object convert(Object source) {
+	public Object convert(final Object source) {
 
 		NodeInterface relatedNode = getRelatedNode(true);
 		if (relatedNode != null) {
@@ -73,7 +67,7 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 	}
 
 	@Override
-	public Object revert(Object source) {
+	public Object revert(final Object source) {
 
 		NodeInterface relatedNode = getRelatedNode(false);
 		if (relatedNode != null) {
@@ -84,9 +78,7 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 		return null;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
-	private NodeInterface getRelatedNode(boolean add) {
+	private NodeInterface getRelatedNode(final boolean add) {
 
 		T relatedNode = null;
 
@@ -99,12 +91,12 @@ public class RelatedNodePropertyMapper<T extends NodeInterface> extends Property
 
 				final RelationProperty relationProperty = (RelationProperty)sourceKey;
 				final App app                           = StructrApp.getInstance();
-				final Class<T> relatedType              = relationProperty.getTargetType();
+				final String relatedType                = relationProperty.getTargetType();
 
 				if (relatedType != null) {
 					
 					try {
-						relatedNode = app.create(relatedType);
+						relatedNode = (T)app.create(relatedType);
 						relationProperty.addSingleElement(securityContext, localNode, relatedNode);
 
 					} catch (FrameworkException fex) {

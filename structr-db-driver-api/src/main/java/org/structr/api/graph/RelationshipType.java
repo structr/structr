@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,14 +24,26 @@ package org.structr.api.graph;
 public interface RelationshipType {
 
 	String name();
+	String getSourceType();
+	String getTargetType();
 
-	public static RelationshipType forName(final String name) {
+	static RelationshipType forName(final String name) {
 
 		return new RelationshipType() {
 
 			@Override
 			public String name() {
 				return name;
+			}
+
+			@Override
+			public String getSourceType() {
+				return null;
+			}
+
+			@Override
+			public String getTargetType() {
+				return null;
 			}
 		};
 	}

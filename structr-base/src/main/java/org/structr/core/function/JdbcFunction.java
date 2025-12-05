@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,10 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.sql.*;
@@ -31,16 +35,14 @@ import java.util.Map;
 
 public class JdbcFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${jdbc(url, query)}. Example: ${jdbc(\"jdbc:mysql://localhost:3306\", \"SELECT * from Test\")}";
-
 	@Override
 	public String getName() {
 		return "jdbc";
 	}
 
 	@Override
-	public String getSignature() {
-		return "jdbcUrl, sqlQuery";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("jdbcUrl, sqlQuery[, username, password]");
 	}
 
 	@Override
@@ -54,9 +56,19 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
 
+			String username = null;
+			String password = null;
+
+			switch (sources.length) {
+
+				case 4: password = sources[3].toString();
+				case 3: username = sources[2].toString();
+					break;
+			}
+
 			try {
 
-				try (final Connection connection = DriverManager.getConnection(url)) {
+				try (final Connection connection = getConnection(url, username, password)) {
 
 					final Statement statement = connection.createStatement();
 
@@ -87,14 +99,15 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 			} catch (Throwable t) {
 
-				if (t instanceof ClassNotFoundException) {
+				// gets thrown as a basic SQLException
+				if (t.getMessage().contains("No suitable driver found")) {
 
-					logException(t, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.", new Object[] { t.getMessage() });
-					throw new FrameworkException(422, "JDBC driver not found. Make sure the driver's JAR is located in the lib directory.");
+					//logger.warn("No suitable JDBC driver not found. Ensure that the appropriate driver JAR file is located in the lib directory.");
+					throw new FrameworkException(422, "No suitable JDBC driver not found. Ensure that the appropriate driver JAR file is located in the lib directory.");
 
 				} else {
 
-					logException(t, t.getMessage(), sources);
+					//logException(t, t.getMessage(), sources);
 					throw new FrameworkException(422, t.getMessage());
 				}
 			}
@@ -114,12 +127,86 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.jdbc(url, query[, username, password ]); }}. Example: ${{ $.jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd'); }}"),
+			Usage.structrScript("Usage: ${jdbc(url, query[, username, password ])}. Example: ${jdbc('jdbc:mysql://localhost:3306', 'SELECT * from Test', 'user', 'p4ssw0rd')}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Fetches data from a JDBC source";
+	public String getShortDescription() {
+		return "Fetches data from a JDBC source.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Make sure the driver specific to your SQL server is available in a JAR file in Structr's lib directory (`/usr/lib/structr/lib` in Debian installations).
+		
+		Other JAR sources are available for Oracle (https://www.oracle.com/technetwork/database/application-development/jdbc/downloads/index.html) or MSSQL (https://docs.microsoft.com/en-us/sql/connect/jdbc/download-microsoft-jdbc-driver-for-sql-server).
+		
+		For other SQL Servers, please consult the documentation of that server.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "JDBC url to connect to the server"),
+			Parameter.mandatory("query", "query to execute"),
+			Parameter.optional("username", "username to use to connect"),
+			Parameter.optional("password", "password to used to connect")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			{
+			    let rows = $.jdbc('jdbc:oracle:thin:test/test@localhost:1521:orcl', 'SELECT * FROM test.emails');
+
+			    rows.forEach(function(row) {
+
+				$.log('Fetched row from Oracle database: ', row);
+
+				let fromPerson = $.getOrCreate('Person', 'name', row.fromAddress);
+				let toPerson   = $.getOrCreate('Person', 'name', row.toAddress);
+
+				let message = $.getOrCreate('EMailMessage',
+				    'content',   row.emailBody,
+				    'sender',    fromPerson,
+				    'recipient', toPerson,
+				    'sentDate',  $.parseDate(row.emailDate, 'yyyy-MM-dd')
+				);
+
+				$.log('Found existing or created new EMailMessage node: ', message);
+			    });
+			}
+			""", "Fetch data from an Oracle database")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"Username and password can also be included in the JDBC connection string."
+		);
+	}
+
+	private Connection getConnection(final String url, final String username, final String password) throws SQLException {
+
+		if (username == null && password == null) {
+
+			return DriverManager.getConnection(url);
+
+		} else {
+
+			return DriverManager.getConnection(url, username, password);
+		}
 	}
 }

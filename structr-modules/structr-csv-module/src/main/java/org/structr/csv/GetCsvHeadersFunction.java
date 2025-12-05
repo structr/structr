@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,23 +21,25 @@ package org.structr.csv;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.StringReader;
+import java.util.List;
 
 public class GetCsvHeadersFunction extends CsvFunction {
 
-	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${get_csv_headers(source[, delimiter[, quoteChar[, recordSeparator]]])}. Example: ${get_csv_headers('COL1;COL2;COL3\none;two;three')}";
-	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.getCsvHeaders(source[, delimiter[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}";
-
 	@Override
 	public String getName() {
-		return "get_csv_headers";
+		return "getCsvHeaders";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source [, d, qc, rs ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' ]]]");
 	}
 
 	@Override
@@ -49,16 +51,19 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 			try {
 
-				final String source    = sources[0].toString();
-				String delimiter       = ";";
-				String quoteChar       = "\"";
+				final String source = sources[0].toString();
+				String delimiter = ";";
+				String quoteChar = "\"";
 				String recordSeparator = "\n";
 
 				switch (sources.length) {
 
-					case 4: recordSeparator = (String)sources[3];
-					case 3: quoteChar = (String)sources[2];
-					case 2: delimiter = (String)sources[1];
+					case 4:
+						recordSeparator = (String) sources[3];
+					case 3:
+						quoteChar = (String) sources[2];
+					case 2:
+						delimiter = (String) sources[1];
 						break;
 				}
 
@@ -82,7 +87,7 @@ public class GetCsvHeadersFunction extends CsvFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
+				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[]{getName(), t.getMessage(), getParametersAsString(sources)});
 			}
 
 			return "";
@@ -95,12 +100,49 @@ public class GetCsvHeadersFunction extends CsvFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_CSV_JS : ERROR_MESSAGE_FROM_CSV);
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${getCsvHeaders(source[, delimiterChar [, quoteChar[, recordSeparator]]])}. Example: ${getCsvHeaders('COL1;COL2;COL3\none;two;three')}"),
+				Usage.javaScript("Usage: ${{Structr.getCsvHeaders(source[, delimiterChar[, quoteChar[, recordSeparator]]])}}. Example: ${{Structr.getCsvHeaders('COL1;COL2;COL3\none;two;three')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Parses the given CSV string and returns a list of column headers";
+	public String getShortDescription() {
+		return "Parses the given CSV string and returns a list of column headers.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getCsvHeaders('COL1;COL2;COL3\\none;two;three')}"),
+				Example.javaScript("${{ $.getCsvHeaders('COL1;COL2;COL3\\none;two;three') }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"An API Key has to be configured in structr.conf.",
+				"See the documentation on the Translation module for more info."
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("source", "CSV string"),
+				Parameter.optional("delimiter", "CSV field delimiter, default: ';'"),
+				Parameter.optional("quoteChar", "CSV field quotechar, default: '\"'"),
+				Parameter.optional("recordSeparator", "CSV record separator, default: '\\n'")
+		);
 	}
 }

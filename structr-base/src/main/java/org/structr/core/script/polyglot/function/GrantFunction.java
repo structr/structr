@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.schema.action.ActionContext;
 import java.util.Arrays;
 
 public class GrantFunction<T extends GraphObject> implements ProxyExecutable {
+
 	private Logger logger = LoggerFactory.getLogger(GrantFunction.class);
 	private final ActionContext actionContext;
 	private final T node;

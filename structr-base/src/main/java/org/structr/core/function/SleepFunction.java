@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,12 +23,17 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SleepFunction extends CoreFunction {
 
 	private static final Logger logger             = LoggerFactory.getLogger(SleepFunction.class);
-	public static final String ERROR_MESSAGE_SLEEP = "Usage: ${sleep(milliseconds)}. Example: ${sleep(1000)}";
 
 	@Override
 	public String getName() {
@@ -36,8 +41,8 @@ public class SleepFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "milliseconds";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("milliseconds");
 	}
 
 	@Override
@@ -60,7 +65,9 @@ public class SleepFunction extends CoreFunction {
 				Thread.sleep(milliseconds);
 
 			} catch (InterruptedException iex) {
+
 				logger.warn("Interrupted while waiting for {} milliseconds: {}", milliseconds, iex.getMessage());
+				Thread.currentThread().interrupt();
 			}
 
 			return sources[0].toString().toUpperCase();
@@ -78,12 +85,36 @@ public class SleepFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SLEEP;
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${sleep(milliseconds)}."),
+				Usage.javaScript("Usage: ${{$.sleep(milliseconds)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Pauses the execution of the current thread for the given number of milliseconds.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${sleep(1000)}"),
+				Example.javaScript("${{$.sleep(1000)}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("milliseconds", "milliseconds to sleep")
+				);
 	}
 }

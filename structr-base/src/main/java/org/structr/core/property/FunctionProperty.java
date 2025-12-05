@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,18 +19,24 @@
 package org.structr.core.property;
 
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.SchemaProperty;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
@@ -38,6 +44,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -45,12 +52,13 @@ import java.util.Map;
  */
 public class FunctionProperty<T> extends Property<T> {
 
-	private static final Logger logger            = LoggerFactory.getLogger(FunctionProperty.class.getName());
-	private static final BooleanProperty pBoolean = new BooleanProperty("pBoolean");
-	private static final IntProperty pInt         = new IntProperty("pInt");
-	private static final LongProperty pLong       = new LongProperty("pLong");
-	private static final DoubleProperty pDouble   = new DoubleProperty("pDouble");
-	private static final DateProperty pDate       = new DateProperty("pDate");
+	private static final Logger logger             = LoggerFactory.getLogger(FunctionProperty.class.getName());
+	private static final Map<String, String> cache = new ConcurrentHashMap<>();
+	private static final BooleanProperty pBoolean  = new BooleanProperty("pBoolean");
+	private static final IntProperty pInt          = new IntProperty("pInt");
+	private static final LongProperty pLong        = new LongProperty("pLong");
+	private static final DoubleProperty pDouble    = new DoubleProperty("pDouble");
+	private static final DateProperty pDate        = new DateProperty("pDate");
 
 	public FunctionProperty(final String name) {
 		super(name);
@@ -76,7 +84,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -116,7 +124,11 @@ public class FunctionProperty<T> extends Property<T> {
 					// don't ignore predicate
 					actionContext.setPredicate(predicate);
 
-					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid);
+					final ScriptConfig scriptConfig = ScriptConfig.builder()
+							.wrapJsInMain(this.readFunctionWrapJS())
+							.build();
+
+					Object result = Scripting.evaluate(actionContext, obj, "${".concat(readFunction.trim()).concat("}"), "getProperty(" + jsonName + ")", sourceUuid, scriptConfig);
 
 					PropertyConverter converter = null;
 
@@ -125,19 +137,19 @@ public class FunctionProperty<T> extends Property<T> {
 						switch (typeHint.toLowerCase()) {
 
 							case "boolean":
-								converter = pBoolean.inputConverter(securityContext);
+								converter = pBoolean.inputConverter(securityContext, false);
 								break;
 							case "int":
-								converter = pInt.inputConverter(securityContext);
+								converter = pInt.inputConverter(securityContext, false);
 								break;
 							case "long":
-								converter = pLong.inputConverter(securityContext);
+								converter = pLong.inputConverter(securityContext, false);
 								break;
 							case "double":
-								converter = pDouble.inputConverter(securityContext);
+								converter = pDouble.inputConverter(securityContext, false);
 								break;
 							case "date":
-								converter = pDate.inputConverter(securityContext);
+								converter = pDate.inputConverter(securityContext, false);
 								break;
 						}
 
@@ -164,12 +176,21 @@ public class FunctionProperty<T> extends Property<T> {
 
 			} else {
 
-				logger.warn("Unable to evaluate function property {}, object was null.", jsonName());
+				logger.warn("Unable to evaluate function property '{}', object was null.", jsonName());
 			}
 
 		} catch (Throwable t) {
 
-			logger.warn("Exception while evaluating read function in Function property '" + jsonName() + "'", t);
+			final String message = "Exception while evaluating read function in Function property '" + jsonName() + "' for node " + target.getUuid();
+
+			if (Settings.LogFunctionsStackTrace.getValue()) {
+
+				logger.warn(message, t);
+
+			} else {
+
+				logger.warn(message + " (Stacktrace suppressed - see setting " + Settings.LogFunctionsStackTrace.getKey() + ")");
+			}
 		}
 
 		return null;
@@ -177,6 +198,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 
@@ -216,6 +242,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 
 	private PropertyConverter getDatabaseConverter(final SecurityContext securityContext) {
+
 		if (typeHint != null) {
 
 			PropertyConverter converter = null;
@@ -231,6 +258,7 @@ public class FunctionProperty<T> extends Property<T> {
 
 			return converter;
 		}
+
 		return null;
 	}
 
@@ -245,7 +273,7 @@ public class FunctionProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return getDatabaseConverter(securityContext);
 	}
 
@@ -257,7 +285,7 @@ public class FunctionProperty<T> extends Property<T> {
 		final String func       = getWriteFunction();
 		T result                = null;
 
-		if (func != null) {
+		if (StringUtils.isNotBlank(func)) {
 
 			try {
 
@@ -267,7 +295,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 				ctx.setConstant("value", value);
 
-				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid);
+				final ScriptConfig scriptConfig = ScriptConfig.builder()
+						.wrapJsInMain(this.writeFunctionWrapJS())
+						.build();
+
+				result = (T)Scripting.evaluate(ctx, obj, "${".concat(func.trim()).concat("}"), "setProperty(" + jsonName + ")", sourceUuid, scriptConfig);
 
 			} catch (FrameworkException fex) {
 
@@ -278,6 +310,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 				logger.warn("Exception while evaluating write function in Function property \"{}\": {}", jsonName(), t.getMessage());
 			}
+
+		} else {
+
+			logger.warn("FunctionProperty {} has empty write function, value will not be changed.", jsonName());
 		}
 
 		if (ctx.hasError()) {
@@ -303,11 +339,11 @@ public class FunctionProperty<T> extends Property<T> {
 
 			switch (typeHint.toLowerCase()) {
 
-				case "boolean": converter = pBoolean.inputConverter(securityContext); break;
-				case "int":     converter = pInt.inputConverter(securityContext); break;
-				case "long":    converter = pLong.inputConverter(securityContext); break;
-				case "double":  converter = pDouble.inputConverter(securityContext); break;
-				case "date":    converter = pDate.inputConverter(securityContext); break;
+				case "boolean": converter = pBoolean.inputConverter(securityContext, false); break;
+				case "int":     converter = pInt.inputConverter(securityContext, false); break;
+				case "long":    converter = pLong.inputConverter(securityContext, false); break;
+				case "double":  converter = pDouble.inputConverter(securityContext, false); break;
+				case "date":    converter = pDate.inputConverter(securityContext, false); break;
 			}
 
 			if (converter != null) {
@@ -322,34 +358,50 @@ public class FunctionProperty<T> extends Property<T> {
 
 	// ----- private methods -----
 	private String getReadFunction() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.readFunction, this.readFunction);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY), this.readFunction);
 	}
 
 	private String getWriteFunction() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.writeFunction, this.writeFunction);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY), this.writeFunction);
 	}
 
 	private String getOpenAPIReturnType() throws FrameworkException {
-		return getCachedSourceCode(SchemaProperty.openAPIReturnType, this.openAPIReturnType);
+		return getCachedSourceCode(Traits.of(StructrTraits.SCHEMA_PROPERTY).key(SchemaPropertyTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY), this.openAPIReturnType);
 	}
 
 	public String getCachedSourceCode(final PropertyKey<String> key, final String defaultValue) throws FrameworkException {
 
-		final SchemaProperty property = getCodeSource();
-		if (property != null) {
+		final String cacheKey = sourceUuid + "." + key.jsonName();
+		final String src      = cache.get(cacheKey);
 
-			final String value = property.getProperty(key);
-			if (value != null) {
+		if (src == null) {
 
-				return value;
+			final NodeInterface property = getCodeSource();
+			if (property != null) {
+
+				final String value = property.getProperty(key);
+				if (value != null) {
+
+					cache.put(cacheKey, value);
+
+					return value;
+				}
 			}
+
+		} else {
+
+			return src;
 		}
 
 		return defaultValue;
 	}
 
-	public SchemaProperty getCodeSource() throws FrameworkException {
-		return StructrApp.getInstance().get(SchemaProperty.class, sourceUuid);
+	public static void clearCache() {
+		cache.clear();
+	}
+
+	public NodeInterface getCodeSource() throws FrameworkException {
+		return StructrApp.getInstance().getNodeById(StructrTraits.SCHEMA_PROPERTY, sourceUuid);
 	}
 
 	// ----- OpenAPI -----

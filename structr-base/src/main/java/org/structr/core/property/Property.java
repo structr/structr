@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,17 +23,17 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.traits.Trait;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -44,37 +44,44 @@ import java.util.regex.Pattern;
  */
 public abstract class Property<T> implements PropertyKey<T> {
 
-	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
-	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.*) TO (.*)\\]");
+	private static final Logger logger               = LoggerFactory.getLogger(Property.class.getName());
+	private static final Pattern RANGE_QUERY_PATTERN = Pattern.compile("\\[(.*) TO (.*)\\]");
 
-	protected List<String> transformators                  = new LinkedList<>();
-	protected Class<? extends GraphObject> declaringClass  = null;
-	protected T defaultValue                               = null;
-	protected boolean readOnly                             = false;
-	protected boolean systemInternal                       = false;
-	protected boolean writeOnce                            = false;
-	protected boolean unvalidated                          = false;
-	protected boolean indexed                              = false;
-	protected boolean indexedPassively                     = false;
-	protected boolean indexedWhenEmpty                     = false;
-	protected boolean compound                             = false;
-	protected boolean unique                               = false;
-	protected boolean notNull                              = false;
-	protected boolean dynamic                              = false;
-	protected boolean isPartOfBuiltInSchema                = false;
-	protected boolean cachingEnabled                       = false;
-	protected String dbName                                = null;
-	protected String jsonName                              = null;
-	protected String format                                = null;
-	protected String typeHint                              = null;
-	protected String readFunction                          = null;
-	protected String writeFunction                         = null;
-	protected String openAPIReturnType                     = null;
-	protected String hint                                  = null;
-	protected String category                              = null;
-	protected String sourceUuid                            = null;
+	protected final List<String> transformators = new LinkedList<>();
+	protected UpdateCallback<T> updateCallback  = null;
+	protected Trait declaringTrait              = null;
+	protected T defaultValue                    = null;
+	protected boolean readOnly                  = false;
+	protected boolean systemInternal            = false;
+	protected boolean writeOnce                 = false;
+	protected boolean unvalidated               = false;
+	protected boolean indexed                   = false;
+	protected boolean indexedPassively          = false;
+	protected boolean indexedWhenEmpty          = false;
+	protected boolean fulltextIndexed           = false;
+	protected boolean compound                  = false;
+	protected boolean unique                    = false;
+	protected boolean notNull                   = false;
+	protected boolean dynamic                   = false;
+	protected boolean cachingEnabled            = false;
+	protected boolean nodeOnly                  = false;
+	protected boolean isAbstract                = false;
+	protected boolean serializationDisabled     = false;
+	protected boolean writeFunctionWrapJS       = true;
+	protected boolean readFunctionWrapJS        = true;
+	protected String dbName                     = null;
+	protected String jsonName                   = null;
+	protected String format                     = null;
+	protected String typeHint                   = null;
+	protected String readFunction               = null;
+	protected String writeFunction              = null;
+	protected String openAPIReturnType          = null;
+	protected String hint                       = null;
+	protected String category                   = null;
+	protected String sourceUuid                 = null;
+	protected String description                = null;
 
-	private boolean requiresSynchronization                = false;
+	private boolean requiresSynchronization     = false;
 
 	protected Property(final String name) {
 		this(name, name);
@@ -184,6 +191,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Property<T> nodeIndexOnly() {
+
+		this.nodeOnly = true;
+
+		return this;
+	}
+
+	@Override
 	public Property<T> passivelyIndexed() {
 
 		this.indexedPassively = true;
@@ -199,6 +214,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 		this.indexedWhenEmpty = true;
 
 		return this;
+	}
+
+	@Override
+	public Property<T> fulltextIndexed() {
+
+		this.fulltextIndexed = true;
+		return this;
+
 	}
 
 	public Property<T> hint(final String hint) {
@@ -227,14 +250,8 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public Property<T> partOfBuiltInSchema() {
-		this.isPartOfBuiltInSchema = true;
-		return this;
-	}
-
-	@Override
-	public boolean isPartOfBuiltInSchema() {
-		return this.isPartOfBuiltInSchema;
+	public boolean isAbstract() {
+		return isAbstract;
 	}
 
 	@Override
@@ -245,26 +262,27 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public String getSynchronizationKey() {
 
-		if (declaringClass != null) {
+		if (declaringTrait != null) {
 
-			return declaringClass.getSimpleName() + "." + dbName;
+			return declaringTrait.getLabel() + "." + dbName;
 		}
 
 		return "GraphObject." + dbName;
 	}
 
 	@Override
-	public void setDeclaringClass(final Class declaringClass) {
-		this.declaringClass = declaringClass;
+	public void setDeclaringTrait(final Trait declaringTrait) {
+		this.declaringTrait = declaringTrait;
 	}
 
 	@Override
-	public void registrationCallback(final Class type) {
+	public void registrationCallback(final Trait trait) {
+		this.declaringTrait = trait;
 	}
 
 	@Override
-	public Class getDeclaringClass() {
-		return declaringClass;
+	public Trait getDeclaringTrait() {
+		return declaringTrait;
 	}
 
 	@Override
@@ -321,7 +339,21 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 	@Override
 	public Property<T> unique(final boolean unique) {
+
 		this.unique = unique;
+
+		if (unique) {
+			this.requiresSynchronization = true;
+		}
+
+		return this;
+	}
+
+	@Override
+	public Property<T> setIsAbstract(final boolean isAbstract) {
+
+		this.isAbstract = isAbstract;
+
 		return this;
 	}
 
@@ -360,8 +392,35 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public Boolean readFunctionWrapJS() {
+		return this.readFunctionWrapJS;
+	}
+
+	@Override
+	public Boolean writeFunctionWrapJS() {
+		return this.writeFunctionWrapJS;
+	}
+
+	@Override
+	public Property<T> readFunctionWrapJS(final boolean wrap) {
+		this.readFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
+	public Property<T> writeFunctionWrapJS(final boolean wrap) {
+		this.writeFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
 	public Property<T> cachingEnabled(final boolean enabled) {
 		this.cachingEnabled = enabled;
+		return this;
+	}
+
+	public Property<T> disableSerialization(final boolean disableSerialization) {
+		this.serializationDisabled = disableSerialization;
 		return this;
 	}
 
@@ -393,10 +452,23 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return this;
 	}
 
+	/**
+	 * Register a callback that gets notified when this property is set.
+	 * Note that this is currently only implemented in the StartNode,
+	 * EndNode, StartNodes and EndNodes properties!
+	 *
+	 * @param callback
+	 * @return
+	 */
+	public Property<T> updateCallback(final UpdateCallback<T> callback) {
+		this.updateCallback = callback;
+		return this;
+	}
+
 	@Override
 	public int hashCode() {
 
-		// make hashCode funtion work for subtypes that override jsonName() etc. as well
+		// make hashCode function work for subtypes that override jsonName() etc. as well
 		if (dbName() != null && jsonName() != null) {
 			return (dbName().hashCode() * 31) + jsonName().hashCode();
 		}
@@ -450,8 +522,18 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
+	public boolean isNodeIndexOnly() {
+		return nodeOnly;
+	}
+
+	@Override
 	public boolean isPassivelyIndexed() {
 		return indexedPassively;
+	}
+
+	@Override
+	public boolean isFulltextIndexed() {
+		return fulltextIndexed;
 	}
 
 	@Override
@@ -480,7 +562,14 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public boolean cachingEnabled() { return cachingEnabled; }
+	public boolean cachingEnabled() {
+		return cachingEnabled;
+	}
+
+	@Override
+	public boolean serializationDisabled() {
+		return serializationDisabled;
+	}
 
 	@Override
 	public Object getIndexValue(final Object value) {
@@ -549,12 +638,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query) {
-		return new PropertySearchAttribute(this, searchValue, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query) {
+		return new PropertySearchAttribute(this, searchValue, exactMatch);
 	}
 
 	@Override
-	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException {
+	public void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final QueryGroup query) throws FrameworkException {
 
 		final String[] searchValues = request.getParameterValues(jsonName());
 		if (searchValues != null) {
@@ -569,7 +658,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException {
 
-		PropertyConverter inputConverter = inputConverter(securityContext);
+		PropertyConverter inputConverter = inputConverter(securityContext, true);
 		Object convertedSearchValue      = requestParameter;
 
 		if (inputConverter != null) {
@@ -590,7 +679,19 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return new DefaultSortOrder(this, descending);
 	}
 
-    // ----- interface Comparable -----
+	// ----- documentation -----
+	@Override
+	public Property<T> description(final String description) {
+		this.description = description;
+		return this;
+	}
+
+	@Override
+	public String getDescription() {
+		return description;
+	}
+
+	// ----- interface Comparable -----
 	@Override
 	public int compareTo(final PropertyKey other) {
 		return dbName().compareTo(other.dbName());
@@ -615,12 +716,12 @@ public abstract class Property<T> implements PropertyKey<T> {
 		return resultStr;
 	}
 
-	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final Query query) throws FrameworkException {
+	protected void determineSearchType(final SecurityContext securityContext, final String requestParameter, final boolean exactMatch, final QueryGroup query) throws FrameworkException {
 
 		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
 
 			// check for existence of range query string
-			Matcher matcher = rangeQueryPattern.matcher(requestParameter);
+			Matcher matcher = RANGE_QUERY_PATTERN.matcher(requestParameter);
 			if (matcher.matches()) {
 
 				if (matcher.groupCount() == 2) {
@@ -628,7 +729,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 					final String rangeStart = matcher.group(1);
 					final String rangeEnd   = matcher.group(2);
 
-					final PropertyConverter inputConverter = inputConverter(securityContext);
+					final PropertyConverter inputConverter = inputConverter(securityContext, false);
 					Object rangeStartConverted = (rangeStart.equals("")) ? null : rangeStart;
 					Object rangeEndConverted   = (rangeEnd.equals(""))   ? null : rangeEnd;
 
@@ -643,7 +744,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 						}
 					}
 
-					query.andRange(this, rangeStartConverted, rangeEndConverted);
+					query.range(this, rangeStartConverted, rangeEndConverted);
 
 					return;
 				}
@@ -680,40 +781,35 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (requestParameter.contains(";")) {
 
+			final QueryGroup or = query.or();
+
 			if (multiValueSplitAllowed()) {
 
 				// descend into a new group
-				query.and();
 
 				for (final String part : requestParameter.split("[;]+")) {
 
-					query.or(this, convertSearchValue(securityContext, part), exactMatch);
+					or.key(this, convertSearchValue(securityContext, part), exactMatch);
 				}
-
-				// ascend to the last group
-				query.parent();
 
 			} else {
 
-				query.or(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+				or.key(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 			}
 
 		} else if (requestParameter.contains(",")) {
 
 			// descend into a new group
-			query.and();
+			final QueryGroup and = query.and();
 
 			for (final String part : requestParameter.split("[,]+")) {
 
-				query.and(this, convertSearchValue(securityContext, part), exactMatch);
+				and.key(this, convertSearchValue(securityContext, part), exactMatch);
 			}
-
-			// ascend to the last group
-			query.parent();
 
 		} else {
 
-			query.and(this, convertSearchValue(securityContext, requestParameter), exactMatch);
+			query.and().key(this, convertSearchValue(securityContext, requestParameter), exactMatch);
 		}
 	}
 

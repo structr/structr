@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,7 +29,9 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
-import org.structr.rest.resource.MaintenanceParameterResource;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
+import org.structr.docs.*;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,22 +46,17 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteSpatialIndexCommand.class.getName());
 
-	static {
-
-		MaintenanceParameterResource.registerMaintenanceCommand("deleteSpatialIndex", DeleteSpatialIndexCommand.class);
-	}
-
 	@Override
 	public void execute(Map<String, Object> attributes) throws FrameworkException {
 
 
 		final DatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getDatabaseService();
-		final List<Node> toDelete          = new LinkedList<>();
+		final List<Node> toDelete     = new LinkedList<>();
 
 		for (final Node node: graphDb.getAllNodes()) {
 
 			try {
-				if (node.hasProperty("bbox") && node.hasProperty("gtype") && node.hasProperty("id") && node.hasProperty("latitude") && node.hasProperty("longitude")) {
+				if (node.hasProperty("bbox") && node.hasProperty("gtype") && node.hasProperty(GraphObjectTraitDefinition.ID_PROPERTY) && node.hasProperty(LocationTraitDefinition.LATITUDE_PROPERTY) && node.hasProperty(LocationTraitDefinition.LONGITUDE_PROPERTY)) {
 
 					toDelete.add(node);
 				}
@@ -99,5 +96,58 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "deleteSpatialIndex";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Removes a (broken) spatial index from the database.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command deletes all Structr nodes with the properties `bbox` and `gtype`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This is a legacy command which you will probably never need."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

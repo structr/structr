@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,8 +39,6 @@ import java.util.List;
 public class NodeRelationshipsCommand extends NodeServiceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(NodeRelationshipsCommand.class.getName());
-
-	//~--- methods --------------------------------------------------------
 
 	/**
 	 * Fetch relationships for the given source node.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,48 +24,74 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 
 /**
  *
  */
-public class DeletingFileImportVisitor extends FileImportVisitor {
+public abstract class DeletingFileImportVisitor extends FileImportVisitor {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeletingFileImportVisitor.class.getName());
 
-	public DeletingFileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata) {
+	private int count      = 0;
+	private long totalTime = 0;
+	private int batchCount = 0;
+
+	private final int batchSize;
+	private long startTime;
+
+	private final List<String> parents;
+
+	public DeletingFileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata, final int batchSize, final List<String> requiredParentsPaths) {
 
 		super(securityContext, basePath, metadata);
+
+		this.batchSize = batchSize;
+		this.startTime = System.currentTimeMillis();
+
+		this.parents = requiredParentsPaths;
 	}
+
+	protected abstract void sendProgressUpdateNotification(final int count, final long duration, final long meanDuration);
 
 	// ----- private methods -----
 	@Override
-	protected void createFolder(final Path folderObj) {
+	protected boolean createFolder(final Path path) {
 
-		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
+		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 
-		try (final Tx tx = app.tx()) {
+		// only delete folder if it was in the export set and NOT as a required parent (meaning that it was deliberately exported and not just because it was required because a child was exported)
+		final boolean folderWasOnlyExportedAsParent = parents.contains(folderPath);
 
-			tx.disableChangelog();
+		if (!folderWasOnlyExportedAsParent) {
 
-			final Folder folder = getExistingFolder(folderPath);
-			if (folder != null) {
+			try (final Tx tx = app.tx()) {
 
-				this.folderCache.remove(folderPath);
+				tx.disableChangelog();
 
-				app.delete(folder);
+				final NodeInterface folder = getExistingFolder(folderPath);
+				if (folder != null) {
+
+					this.folderCache.remove(folderPath);
+
+					app.delete(folder);
+				}
+
+			} catch (Exception ex) {
+
+				logger.error("Error occurred while deleting folder before import: " + path, ex);
 			}
-
-		} catch (Exception ex) {
-
-			logger.error("Error occurred while deleting folder before import: " + folderObj, ex);
 		}
 
-		super.createFolder(folderObj);
+		super.createFolder(path);
+
+		objectProcessed();
+
+		return true;
 	}
 
 	@Override
@@ -101,5 +127,41 @@ public class DeletingFileImportVisitor extends FileImportVisitor {
 		}
 
 		super.createFile(path, fileName);
+
+		objectProcessed();
+	}
+
+	private void objectProcessed() {
+
+		count++;
+
+		if (count % batchSize == 0) {
+
+			batchCount++;
+
+			final long endTime = System.currentTimeMillis();
+
+			final long duration = endTime - startTime;
+			totalTime += duration;
+
+			startTime = endTime;
+
+			sendProgressUpdateNotification(count, duration, totalTime / batchCount);
+		}
+	}
+
+	public void finished() {
+
+		if (count % batchSize != 0) {
+
+			batchCount++;
+
+			final long endTime = System.currentTimeMillis();
+
+			final long duration = endTime - startTime;
+			totalTime += duration;
+
+			sendProgressUpdateNotification(count, duration, totalTime / batchCount);
+		}
 	}
 }

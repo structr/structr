@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,20 +22,18 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to create a relationship.
- *
- *
  */
 public class CreateRelationshipCommand extends AbstractCommand {
 
@@ -49,11 +47,11 @@ public class CreateRelationshipCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String sourceId                = webSocketData.getRelDataStringValue("sourceId");
-		final String targetId                = webSocketData.getRelDataStringValue("targetId");
-		final String relType                 = webSocketData.getRelDataStringValue("relType");
-		final AbstractNode sourceNode        = getNode(sourceId);
-		final AbstractNode targetNode        = getNode(targetId);
+		final String sourceId                = webSocketData.getRelDataStringValue(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
+		final String targetId                = webSocketData.getRelDataStringValue(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
+		final String relType                 = webSocketData.getRelDataStringValue(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY);
+		final NodeInterface sourceNode       = getNode(sourceId);
+		final NodeInterface targetNode       = getNode(targetId);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
@@ -62,8 +60,7 @@ public class CreateRelationshipCommand extends AbstractCommand {
 
 			try {
 
-				final Class relationClass       = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
-
+				final String relationClass      = sourceNode.getType() + relType + targetNode.getType();
 				final RelationshipInterface rel = app.create(sourceNode, targetNode, relationClass);
 
 				TransactionCommand.registerRelCallback(rel, callback);
@@ -73,28 +70,21 @@ public class CreateRelationshipCommand extends AbstractCommand {
 					webSocketData.setResult(Arrays.asList(rel));
 
 					getWebSocket().send(webSocketData, true);
-
 				}
 
 			} catch (FrameworkException t) {
 
 				getWebSocket().send(MessageBuilder.status().code(400).message(t.getMessage()).build(), true);
-
 			}
 
 		} else {
 
 			getWebSocket().send(MessageBuilder.status().code(400).message("The CREATE_RELATIONSHIP command needs source and target!").build(), true);
 		}
-
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
-
 		return "CREATE_RELATIONSHIP";
-
 	}
-
 }

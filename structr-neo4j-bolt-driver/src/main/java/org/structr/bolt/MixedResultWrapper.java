@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,19 +38,19 @@ class MixedResultWrapper<S, T> implements Function<S, T> {
 	@Override
 	public T apply(final S from) throws RuntimeException {
 
-		if (from instanceof Node) {
+		if (from instanceof Node node) {
 
-			return (T)NodeWrapper.newInstance(db, (Node)from);
+			return (T)db.getCurrentTransaction().getNodeWrapper(node);
 		}
 
-		if (from instanceof Relationship) {
+		if (from instanceof Relationship rel) {
 
-			return (T)RelationshipWrapper.newInstance(db, (Relationship)from);
+			return (T)db.getCurrentTransaction().getRelationshipWrapper(rel);
 		}
 
-		if (from instanceof Path) {
+		if (from instanceof Path path) {
 
-			return (T)new PathWrapper(db, (Path)from);
+			return (T)new PathWrapper(db, path);
 		}
 
 		return (T)from;

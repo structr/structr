@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,11 +57,11 @@ public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
-		final boolean isString = predicate.getType().equals(String.class);
+		final boolean isString = String.class.equals(predicate.getType());
 		final Object value     = getReadValue(predicate.getValue());
 		final String name      = predicate.getName();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// add label of declaring class for the given property name
 		// to select the correct index

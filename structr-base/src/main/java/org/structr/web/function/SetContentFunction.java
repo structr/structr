@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,25 +21,29 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.List;
 
 public class SetContentFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_SET_CONTENT    = "Usage: ${set_content(file, content[, encoding = \"UTF-8\"])}. Example: ${set_content(first(find('File', 'name', 'test.txt')), 'Overwritten content')}";
-	public static final String ERROR_MESSAGE_SET_CONTENT_JS = "Usage: ${{Structr.setContent(file, content[, encoding = \"UTF-8\"])}}. Example: ${{Structr.setContent(fileNode, 'Overwritten content')}}";
-
 	@Override
 	public String getName() {
-		return "set_content";
+		return "setContent";
 	}
 
 	@Override
-	public String getSignature() {
-		return "file, content[, encoding = \"UTF-8\"]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("file, content[, encoding ]");
 	}
 
 	@Override
@@ -49,10 +53,10 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			if (sources[0] instanceof File) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-				final File file       = (File)sources[0];
-				final String encoding = (sources.length == 3 && sources[2] != null) ? sources[2].toString() : "UTF-8";
+				final File file       = n.as(File.class);
+				final String encoding = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : null;
 
 				if (sources[1] instanceof byte[]) {
 
@@ -61,20 +65,28 @@ public class SetContentFunction extends UiAdvancedFunction {
 						fos.write((byte[]) sources[1]);
 
 					} catch (IOException ioex) {
-						logger.warn("set_content(): Unable to write binary data to file '{}'", file.getPath(), ioex);
+						logger.warn("setContent(): Unable to write binary data to file '{}'", file.getPath(), ioex);
 					}
 
-				} else {
+				} else if (sources[1] instanceof String) {
 
 					final String content = (String)sources[1];
 
 					try (final OutputStream fos = file.getOutputStream(true, false)) {
 
-						fos.write(content.getBytes(encoding));
+						if (encoding != null) {
+							fos.write(content.getBytes(encoding));
+						} else {
+							fos.write(content.getBytes());
+						}
 
 					} catch (IOException ioex) {
-						logger.warn("set_content(): Unable to write content to file '{}'", file.getPath(), ioex);
+						logger.warn("setContent(): Unable to write content to file '{}'", file.getPath(), ioex);
 					}
+
+				} else {
+
+					throw new FrameworkException(422, getName() + "(): Content must be of type String or byte[]. Found: " + sources[1].getClass().getSimpleName());
 				}
 			}
 
@@ -92,12 +104,48 @@ public class SetContentFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_CONTENT_JS : ERROR_MESSAGE_SET_CONTENT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setContent(file, content[, encoding ])}."),
+			Usage.javaScript("Usage: ${{$.setContent(file, content[, encoding ])}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the content of the given file";
+	public String getShortDescription() {
+		return "Sets the content of the given file. Content can either be of type String or byte[].";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setContent(first(find('File', 'name', 'test.txt')), 'New Content Of File test.txt')}", "Simply overwrite file with static content"),
+				Example.structrScript("${setContent(create('File', 'name', 'new_document.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}", "Create new file with Excel content"),
+				Example.structrScript("${setContent(create('File', 'name', 'web-data.json'), GET('https://api.example.com/data.json'))}", "Create a new file and retrieve content from URL"),
+				Example.structrScript("${setContent(create('File', 'name', 'logo.png'), GET('https://example.com/img/logo.png', 'application/octet-stream'))}", "Download binary data (an image) and store it in a local file"),
+				Example.javaScript("${{ $.setContent($.create('File', 'name', 'new_document.xlsx'), $.toExcel($.find('User'), 'public'), 'ISO-8859-1') }}", "Create new file with Excel content (JS version)")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("file", "file node"),
+				Parameter.mandatory("content", "content to set"),
+				Parameter.optional("encoding", "encoding, default: UTF-8")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The `encoding` parameter is used when writing the data to the file. The default (`UTF-8`) rarely needs to be changed but can be very useful when working with binary strings. For example when using the `toExcel()` function."
+		);
 	}
 }

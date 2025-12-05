@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,10 @@ package org.structr.core.function.search;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.graph.search.PathPropertySortOrder;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
 public class SortPathPredicate extends AbstractPredicate {
@@ -36,7 +37,7 @@ public class SortPathPredicate extends AbstractPredicate {
 	}
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 		query.sort(new PathPropertySortOrder(new ActionContext(securityContext), sortPath, sortDescending));
 	}
 }

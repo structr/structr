@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,48 +18,57 @@
  */
 package org.structr.autocomplete;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.autocomplete.keywords.*;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.*;
+import org.structr.core.parser.CacheExpression;
+import org.structr.core.property.Property;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
 import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
-import org.structr.core.script.polyglot.function.IncludeJSFunction;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.docs.Documentable;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.Content.ContentHandler;
+import org.structr.web.ContentHandler;
+import org.structr.web.traits.wrappers.dom.ContentTraitWrapper;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.*;
-import java.util.Map.Entry;
-import java.util.logging.Level;
 
 
 
 public abstract class AbstractHintProvider {
 
-	private static final Logger logger = LoggerFactory.getLogger(AbstractHintProvider.class);
+	private static final Logger logger                    = LoggerFactory.getLogger(AbstractHintProvider.class);
+	public static final Property<String> text             = new StringProperty("text");
+	public static final Property<String> documentationKey = new StringProperty("documentation");
+	public static final Property<String> replacementKey   = new StringProperty("replacement");
+	public static final Property<String> typeKey          = new StringProperty("type");
 
-	protected abstract List<AbstractHint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult);
+	protected abstract List<Documentable> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult);
 	protected abstract String getFunctionName(final String sourceName);
 
 	protected final Comparator comparator     = new HintComparator();
@@ -75,7 +84,7 @@ public abstract class AbstractHintProvider {
 
 		if (StringUtils.isBlank(textAfter) || textAfter.startsWith(" ") || textAfter.startsWith("\t") || textAfter.startsWith("\n") || textAfter.startsWith(";") || textAfter.startsWith(")")) {
 
-			if (isAutoscriptEnv || currentEntity instanceof SchemaMethod) {
+			if (isAutoscriptEnv || (currentEntity != null && currentEntity.is(StructrTraits.SCHEMA_METHOD))) {
 
 				// we can use the whole text here, the method will always contain script code and nothing else
 				// add ${ to be able to reuse code below
@@ -86,7 +95,7 @@ public abstract class AbstractHintProvider {
 				try {
 
 					final AutocompleteContentHandler handler = new AutocompleteContentHandler();
-					Content.renderContentWithScripts(textBefore, handler);
+					ContentTraitWrapper.renderContentWithScripts(textBefore, handler);
 
 					if (handler.inScript()) {
 
@@ -125,21 +134,21 @@ public abstract class AbstractHintProvider {
 	public List<GraphObject> getHints(final ActionContext actionContext, final GraphObject currentEntity, final String script, final int cursorLine, final int cursorPosition) {
 
 		final ParseResult parseResult     = new ParseResult();
-		final List<AbstractHint> allHints = getAllHints(actionContext, currentEntity, script, parseResult);
+		final List<Documentable> allHints = getAllHints(actionContext, currentEntity, script, parseResult);
 		final List<GraphObject> hints     = new LinkedList<>();
 		final String lastToken            = parseResult.getLastToken();
 		final boolean unrestricted        = lastToken.endsWith("(") || lastToken.endsWith(("."));
 
-		for (final AbstractHint hint : allHints) {
+		for (final Documentable hint : allHints) {
 
 			if (!hint.isHidden()) {
 
-				final String functionName = getFunctionName(hint.getReplacement());
+				final String functionName = getFunctionName(hint.getName());
 				final String displayName  = getFunctionName(hint.getDisplayName());
 
 				if ((unrestricted || displayName.startsWith(lastToken)) && ( (!script.endsWith(functionName)) || (script.endsWith(functionName) && hint instanceof Function) )) {
 
-					hints.add(hint.toGraphObject());
+					hints.add(toGraphObject(hint));
 				}
 			}
 		}
@@ -147,12 +156,7 @@ public abstract class AbstractHintProvider {
 		return hints;
 	}
 
-	protected AbstractHint createKeywordHint(final String name, final String description, final String replacement) {
-
-		return new KeywordHint(name, description, replacement);
-	}
-
-	protected void handleJSExpression(final ActionContext actionContext, final GraphObject currentNode, final String expression, final List<AbstractHint> hints, final ParseResult result) {
+	protected void handleJSExpression(final ActionContext actionContext, final GraphObject currentNode, final String expression, final List<Documentable> hints, final ParseResult result) {
 
 		final String[] expressionParts = StringUtils.splitPreserveAllTokens(expression, ".(");
 		final List<String> tokens      = Arrays.asList(expressionParts);
@@ -170,16 +174,18 @@ public abstract class AbstractHintProvider {
 		result.setExpression(expression);
 	}
 
-	protected void addAllHints(final ActionContext actionContext, final List<AbstractHint> hints) {
+	protected void addAllHints(final ActionContext actionContext, final List<Documentable> hints) {
 
 		for (final Function<Object, Object> func : Functions.getFunctions()) {
 			hints.add(func);
 		}
 
-		hints.add(new IncludeJSFunction(actionContext));
 		hints.add(new DoInNewTransactionFunction(actionContext, null));
 		hints.add(new DoAsFunction(actionContext));
 		hints.add(new DoPrivilegedFunction(actionContext));
+
+		// other non-keyword hints
+		hints.add(new CacheExpression(0, 0));
 
 		// sort current hints = only built-in functions
 		// sort case-insensitive so POST and GET etc do not show up at the top
@@ -189,27 +195,18 @@ public abstract class AbstractHintProvider {
 		// If you change something here, make sure to change AutocompleteTest.java accordingly.
 
 		// add keywords, keep in sync and include everything from StructrBinding.getMemberKeys()
-		hints.add(0, createKeywordHint("this",                "The current object", "this"));
-		hints.add(0, createKeywordHint("session",             "The current session", "session"));
-		hints.add(0, createKeywordHint("response",            "The current response",       "response"));
-		hints.add(0, createKeywordHint("request",             "The current request", "request"));
-		hints.add(0, createKeywordHint("predicate",           "Search predicate", "predicate"));
-		hints.add(0, createKeywordHint("page",                "The current page",           "page"));
-		hints.add(0, createKeywordHint("methodParameters",    "Access method parameters", "methodParameters"));
-		hints.add(0, createKeywordHint("me",                  "The current user", "me"));
-		hints.add(0, createKeywordHint("locale",              "The current locale",         "locale"));
-		hints.add(0, createKeywordHint("current",             "The current details object", "current"));
-		hints.add(0, createKeywordHint("cache",               "Time-based cache object", "cache"));
-		hints.add(0, createKeywordHint("batch",               "Open a batch transaction context", "batch"));
-		hints.add(0, createKeywordHint("applicationStore",    "The application store", "applicationStore"));
+		AbstractHintProvider.addKeywordHints(hints);
 
 		// add global schema methods to show at the start of the list
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name, true).getAsList();
+			final Traits traits = Traits.of(StructrTraits.SCHEMA_METHOD);
 
-			for (final SchemaMethod method : methods) {
-				hints.add(0, new GlobalSchemaMethodHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
+			for (final NodeInterface node : StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).key(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY), null).sort(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
+
+				final SchemaMethod method = node.as(SchemaMethod.class);
+
+				hints.add(0, new UserDefinedFunctionHint(method.getName(), method.getSummary(), method.getDescription()));
 			}
 
 			tx.success();
@@ -227,19 +224,21 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
-	protected void addHintsForType(final ActionContext actionContext, final Class type, final List<AbstractHint> hints, final ParseResult result) {
+	protected void addHintsForType(final ActionContext actionContext, final String type, final List<Documentable> hints, final ParseResult result) {
 
-		final List<AbstractHint> methodHints = new LinkedList<>();
+		final List<Documentable> methodHints = new LinkedList<>();
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			// entity properties
-			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type.getSimpleName(), type, PropertyView.All);
+			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type, PropertyView.All);
 			for (final GraphObjectMap property : typeInfo) {
 
 				final Map<String, Object> map = property.toMap();
 				final String name             = (String)map.get("jsonName");
-				final String propertyType     = (String)map.get("uiType");
+				final boolean hasRelatedType  = map.get("relatedType") != null;
+				final boolean isCollection    = Boolean.TRUE.equals(map.get("isCollection"));
+				final String propertyType     = map.get("type") + ((hasRelatedType && isCollection) ? "[]" : "");
 				final String declaringClass   = (String)map.get("declaringClass");
 
 				// skip properties defined in NodeInterface class, except for name
@@ -257,20 +256,12 @@ public abstract class AbstractHintProvider {
 
 			// entity methods
 			// go into their own collection, are sorted and the appended to the list
-			final SchemaNode typeNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).and(SchemaNode.name, type.getSimpleName()).getFirst();
+			final Collection<AbstractMethod> methods = Methods.getAllMethods(Traits.of(type)).values();
+			for (final AbstractMethod method : methods) {
 
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
-			for (final Entry<String, Method> entry : methods.entrySet()) {
-
-				final String name = entry.getKey();
-				String methodSummary     = "";
-				String methodDescription = "";
-
-				final SchemaMethod schemaMethod = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, typeNode).andName(name).getFirst();
-				if (schemaMethod != null) {
-					methodSummary     = schemaMethod.getProperty(SchemaMethod.summary);
-					methodDescription = schemaMethod.getProperty(SchemaMethod.description);
-				}
+				final String name              = method.getName();
+				final String methodSummary     = method.getSummary();
+				final String methodDescription = method.getDescription();
 
 				methodHints.add(new MethodHint(name, methodSummary, methodDescription));
 			}
@@ -289,10 +280,10 @@ public abstract class AbstractHintProvider {
 		hints.addAll(methodHints);
 	}
 
-	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<AbstractHint> hints, final ParseResult result) {
+	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<Documentable> hints, final ParseResult result) {
 
 		List<String> tokenTypes = new LinkedList<>();
-		Class type              = null;
+		String type             = null;
 
 		for (final String token : tokens) {
 
@@ -310,43 +301,49 @@ public abstract class AbstractHintProvider {
 
 				case "page":
 					tokenTypes.add("keyword");
-					type      = StructrApp.getConfiguration().getNodeEntityClass("Page");
+					type = StructrTraits.PAGE;
 					break;
 
 				case "me":
 					tokenTypes.add("keyword");
-					type      = StructrApp.getConfiguration().getNodeEntityClass("User");
+					type = StructrTraits.USER;
 					break;
 
 				case "current":
 					tokenTypes.add("keyword");
-					type      = StructrApp.getConfiguration().getNodeEntityClass("AbstractNode");
+					type = StructrTraits.NODE_INTERFACE;
 					break;
 
 				case "this":
-					if(currentNode instanceof SchemaMethod) {
 
-						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
-						if (node != null) {
+					if (currentNode != null && currentNode.isNode()) {
+
+						final NodeInterface node = (NodeInterface)currentNode;
+
+						if (node.is(StructrTraits.SCHEMA_METHOD)) {
+
+							final AbstractSchemaNode schemaNode = node.as(SchemaMethod.class).getSchemaNode();
+							if (schemaNode != null) {
+
+								tokenTypes.add("keyword");
+								type = schemaNode.getClassName();
+							}
+
+						} else if (node.is(StructrTraits.SCHEMA_PROPERTY) && SchemaHelper.Type.Function.equals(currentNode.as(SchemaProperty.class).getPropertyType())) {
+
+
+							final AbstractSchemaNode schemaNode = node.as(SchemaProperty.class).getSchemaNode();
+							if (schemaNode != null) {
+
+								tokenTypes.add("keyword");
+								type = schemaNode.getClassName();
+							}
+
+						} else if (currentNode != null) {
 
 							tokenTypes.add("keyword");
-							type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
+							type = currentNode.getType();
 						}
-
-					} else if (currentNode instanceof SchemaProperty && Type.Function.equals(((SchemaProperty)currentNode).getPropertyType())) {
-
-
-						final AbstractSchemaNode node = currentNode.getProperty(SchemaMethod.schemaNode);
-						if (node != null) {
-
-							tokenTypes.add("keyword");
-							type = StructrApp.getConfiguration().getNodeEntityClass(node.getClassName());
-						}
-
-					} else if (currentNode != null) {
-
-						tokenTypes.add("keyword");
-						type      = StructrApp.getConfiguration().getNodeEntityClass(currentNode.getType());
 					}
 					break;
 
@@ -354,12 +351,14 @@ public abstract class AbstractHintProvider {
 					// skip numbers
 					if (!StringUtils.isNumeric(token)) {
 
-						if (type != null) {
+						if (type != null && Traits.exists(type)) {
 
+							final Traits traits   = Traits.of(type);
 							final String cleaned  = token.replaceAll("[\\W\\d]+", "");
-							final PropertyKey key = StructrApp.key(type, cleaned, false);
 
-							if (key != null && key.relatedType() != null) {
+							if (traits.hasKey(cleaned)) {
+
+								final PropertyKey key = traits.key(cleaned);
 
 								tokenTypes.add("keyword");
 								type = key.relatedType();
@@ -409,15 +408,15 @@ public abstract class AbstractHintProvider {
 					final Function func = Functions.get(tokenType);
 					if (func != null) {
 
-						final List<AbstractHint> contextHints = func.getContextHints(result.getLastToken());
+						final List<Documentable> contextHints = func.getContextHints(result.getLastToken());
 						if (contextHints != null) {
 
 							hints.addAll(contextHints);
 
 							Collections.sort(hints, comparator);
-						}
 
-						return true;
+							return true;
+						}
 
 					} else if (requireValidPredecessor) {
 
@@ -430,11 +429,59 @@ public abstract class AbstractHintProvider {
 		return false;
 	}
 
+	private GraphObjectMap toGraphObject(final Documentable documentable) {
+
+		final GraphObjectMap item = new GraphObjectMap();
+
+		item.put(text,             documentable.getDisplayName());
+		item.put(documentationKey, getDocumentation(documentable));
+		item.put(replacementKey,   documentable.getName());
+		item.put(typeKey,          documentable.getDocumentableType().getDisplayName());
+
+		return item;
+	}
+
+	private String getDocumentation(final Documentable documentable) {
+
+		final List<String> lines = documentable.createMarkdownDocumentation();
+
+		return StringUtils.join(lines, "\n");
+	}
+
+	public static void addKeywordHints(final List<Documentable> hints) {
+
+		hints.add(0, new ThisHint());
+		hints.add(0, new TenantIdentifierHint());
+		hints.add(0, new SessionHint());
+		hints.add(0, new RequestHint());
+		hints.add(0, new QueryStringHint());
+		hints.add(0, new PredicateHint());
+		hints.add(0, new PathInfoHint());
+		hints.add(0, new ParentHint());
+		hints.add(0, new ParameterMapHint());
+		hints.add(0, new PageHint());
+		hints.add(0, new NowHint());
+		hints.add(0, new MethodParametersHint());
+		hints.add(0, new MeHint());
+		hints.add(0, new LocaleHint());
+		hints.add(0, new LinkHint());
+		hints.add(0, new IPHint());
+		hints.add(0, new IdHint());
+		hints.add(0, new HostHint());
+		hints.add(0, new DataHint());
+		hints.add(0, new CurrentHint());
+		hints.add(0, new ChildrenHint());
+		hints.add(0, new BaseUrlHint());
+		hints.add(0, new ApplicationStoreHint());
+		hints.add(0, new ApplicationRootPathHint());
+
+	}
+
 	// ----- nested classes -----
-	protected static class HintComparator implements Comparator<AbstractHint> {
+	protected static class HintComparator implements Comparator<Documentable> {
 
 		@Override
-		public int compare(final AbstractHint o1, final AbstractHint o2) {
+		public int compare(final Documentable o1, final Documentable o2) {
 
 			final boolean firstIsDynamic  = o1.isDynamic();
 			final boolean secindIsDynamic = o2.isDynamic();

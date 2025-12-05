@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,16 +22,17 @@ import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.List;
 
 public class ServerLogFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_SERVERLOG = "Usage: ${serverlog([lines = 50])}. Example: ${serverlog(200)}";
-	public static final String ERROR_MESSAGE_SERVERLOG_JS = "Usage: ${{Structr.serverlog([lines = 50])}}. Example: ${{Structr.serverlog(200)}}";
 
 	private static final Logger logger = LoggerFactory.getLogger(ServerLogFunction.class.getName());
 
@@ -41,8 +42,8 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "[ lines = 50, [ truncateLinesAfter ] ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("[ lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' (default different based on configuration) ] ] ]");
 	}
 
 	@Override
@@ -50,6 +51,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 		int lines              = 50;
 		int truncateLinesAfter = -1;
+		String logFileName     = null;
 
 		if (sources != null && sources.length > 0 && sources[0] instanceof Number) {
 
@@ -61,24 +63,67 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 			truncateLinesAfter = ((Number)sources[1]).intValue();
 		}
 
-		return getServerLog(lines, truncateLinesAfter);
+		if (sources != null && sources.length > 2 && sources[2] instanceof String) {
+
+			logFileName = (String) sources[2];
+		}
+
+		return getServerLog(lines, truncateLinesAfter, logFileName);
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SERVERLOG_JS : ERROR_MESSAGE_SERVERLOG);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]])}. Example: ${serverlog(200, -1, '/var/log/structr.log')}"),
+			Usage.javaScript("Usage: ${{ $.serverlog([lines = 50 [, truncateLinesAfter = -1 [, logFile = '/var/log/structr.log' ]]]); }}. Example: ${{ $.serverlog(200, -1, '/var/log/structr.log'); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the last n lines from the server log file";
+	public String getShortDescription() {
+		return "Returns the last n lines from the server log file.";
 	}
 
-	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter) {
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.optional("lines", "number of lines to return"),
+				Parameter.optional("truncateLinesAfter", "number of characters after which each log line is truncated with \"[...]\""),
+				Parameter.optional("logFile", "log file to read from")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The `getAvailableServerlogs()` function can be used for the `logFile` parameter"
+		);
+	}
+
+	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName) {
 
 		int lines = numberOfLines;
 
-		final File logFile = getServerlogFile();
+		List<String> logFileNames = GetAvailableServerLogsFunction.getListOfServerlogFileNames();
+
+		final File logFile;
+		if (requestedLogfileName != null && logFileNames.contains(requestedLogfileName)) {
+
+			logFile = new File(requestedLogfileName);
+
+		} else if (logFileNames.size() > 0) {
+
+			logFile = new File(logFileNames.get(0));
+
+		} else {
+
+			logFile = null;
+		}
 
 		if (logFile != null) {
 

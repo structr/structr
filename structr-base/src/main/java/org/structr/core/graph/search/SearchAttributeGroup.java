@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,39 +18,56 @@
  */
 package org.structr.core.graph.search;
 
-import org.structr.api.search.GroupQuery;
-import org.structr.api.search.Occurrence;
-import org.structr.api.search.QueryPredicate;
+import org.structr.api.Predicate;
+import org.structr.api.search.*;
+import org.structr.api.util.ResultStream;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
- * Represents a group of search operators, to be used for queries with multiple textual search attributes grouped by parenthesis.
+ * Represents a group of search operators, to be used for queries with multiple textual search attributes grouped by parentheses.
  *
  *
  */
-public class SearchAttributeGroup extends SearchAttribute implements GroupQuery {
+public class SearchAttributeGroup<T> extends SearchAttribute<T> implements QueryGroup<T>, GroupQuery {
 
-	private List<SearchAttribute> searchItems = new LinkedList<>();
-	private SearchAttributeGroup parent       = null;
+	private static final Set<String> indexedWarningDisabled = Set.of(
+		SchemaMethodTraitDefinition.SOURCE_PROPERTY,
+		SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY,
+		SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY
+	);
 
-	public SearchAttributeGroup(final Occurrence occur) {
-		this(null, occur);
-	}
+	private final List<SearchAttribute> searchItems = new LinkedList<>();
+	private final SecurityContext securityContext;
+	private final Operation operation;
+	private final Query<T> query;
 
-	public SearchAttributeGroup(final SearchAttributeGroup parent, final Occurrence occur) {
+	public SearchAttributeGroup(final SecurityContext securityContext, final Query<T> parent, final Operation operation) {
 
-		super(occur);
-		this.parent = parent;
+		super(null, null);
+
+		this.securityContext = securityContext;
+		this.operation       = operation;
+		this.query           = parent;
 	}
 
 	@Override
 	public String toString() {
 
-		final StringBuilder buf = new StringBuilder("SearchAttributeGroup(");
+		final StringBuilder buf = new StringBuilder(operation + "(");
 
 		for (final Iterator<SearchAttribute> it = searchItems.iterator(); it.hasNext();) {
 
@@ -66,14 +83,6 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 		buf.append(")");
 
 		return buf.toString();
-	}
-
-	public final SearchAttributeGroup getParent() {
-		return parent;
-	}
-
-	public final void setSearchAttributes(final List<SearchAttribute> searchItems) {
-		this.searchItems = searchItems;
 	}
 
 	public List<SearchAttribute> getSearchAttributes() {
@@ -98,20 +107,23 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 
 		boolean includeInResult = true;
 
 		for (SearchAttribute attr : getSearchAttributes()) {
 
-			switch (attr.getOccurrence()) {
+			switch (operation) {
 
-				case FORBIDDEN:
-				case REQUIRED:
+				case NOT:
+					includeInResult &= !attr.includeInResult(entity);
+					break;
+
+				case AND:
 					includeInResult &= attr.includeInResult(entity);
 					break;
 
-				case OPTIONAL:
+				case OR:
 					// special behaviour for OR'ed predicates
 					if (attr.includeInResult(entity)) {
 
@@ -133,13 +145,32 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 	}
 
 	@Override
+	public boolean isEmpty() {
+
+		boolean isEmpty = searchItems.isEmpty();
+
+		for (SearchAttribute attr : searchItems) {
+
+			if (attr instanceof SearchAttributeGroup g) {
+
+				isEmpty &= g.isEmpty();
+
+			} else {
+
+				return false;
+			}
+		}
+
+		return isEmpty;
+	}
+
+	@Override
 	public void setExactMatch(final boolean exact) {
 
 		for (SearchAttribute attr : getSearchAttributes()) {
 
 			attr.setExactMatch(exact);
 		}
-
 	}
 
 	@Override
@@ -157,5 +188,327 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 		}
 
 		return predicates;
+	}
+
+	// ----- interface QueryGroup<T> -----
+	@Override
+	public Operation getOperation() {
+		return operation;
+	}
+
+	@Override
+	public Query<T> getParent() {
+		return query;
+	}
+
+	@Override
+	public QueryGroup attributes(final List<SearchAttribute> attributes, final Operation operation) {
+
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, operation);
+
+		// add all search items
+		for (final SearchAttribute attr : searchItems) {
+			group.add(attr);
+		}
+
+		// add new attributes
+		for (final SearchAttribute attr : attributes) {
+			group.add(attr);
+		}
+
+		searchItems.clear();
+		searchItems.add(group);
+
+		return this;
+	}
+
+	@Override
+	public QueryGroup<T> uuid(final String uuid) {
+
+		query.doNotSort(true);
+
+		return key(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), uuid);
+	}
+
+	@Override
+	public QueryGroup<T> types(final Traits traits) {
+
+		query.setTraits(traits);
+
+		type(traits.getName());
+
+		return this;
+	}
+
+	@Override
+	public QueryGroup<T> type(final String type) {
+
+		searchItems.add(new TypeSearchAttribute(type, true));
+		return this;
+	}
+
+	@Override
+	public QueryGroup<T> name(final String name) {
+		return key(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+	}
+
+	@Override
+	public QueryGroup<T> location(final double latitude, final double longitude, final double distance) {
+		searchItems.add(new DistanceSearchAttribute(latitude, longitude, distance));
+		return this;
+	}
+
+	@Override
+	public QueryGroup<T> location(final String street, final String postalCode, final String city, final String country, final double distance) {
+		return location(street, null, postalCode, city, null, country, distance);
+	}
+
+	@Override
+	public QueryGroup<T> location(final String street, final String postalCode, final String city, final String state, final String country, final double distance) {
+		return location(street, null, postalCode, city, state, country, distance);
+	}
+
+	@Override
+	public QueryGroup<T> location(final String street, final String house, final String postalCode, final String city, final String state, final String country, final double distance) {
+		searchItems.add(new DistanceSearchAttribute(street, house, postalCode, city, state, country, distance));
+		return this;
+	}
+
+	@Override
+	public <P> QueryGroup<T> key(final PropertyKey<P> key, final P value) {
+
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
+			query.doNotSort(false);
+		}
+
+		return key(key, value, true);
+	}
+
+	@Override
+	public <P> QueryGroup<T> key(final PropertyKey<P> key, final P value, final boolean exact) {
+
+		if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
+
+			query.doNotSort(false);
+		}
+
+		searchItems.add(key.getSearchAttribute(securityContext, value, exact, this));
+
+		return this;
+	}
+
+	@Override
+	public <P> QueryGroup<T> key(final PropertyMap attributes) {
+
+		for (final Map.Entry<PropertyKey, Object> entry : attributes.entrySet()) {
+
+			final PropertyKey key = entry.getKey();
+			final Object value = entry.getValue();
+
+			if (Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY).equals(key)) {
+
+				query.doNotSort(false);
+			}
+
+			key(key, value);
+		}
+
+		return this;
+	}
+
+	@Override
+	public QueryGroup<T> notBlank(final PropertyKey key) {
+
+		searchItems.add(new NotBlankSearchAttribute(key));
+
+		return this;
+	}
+
+	@Override
+	public QueryGroup<T> blank(final PropertyKey key) {
+
+		if (key.relatedType() != null) {
+
+			// related nodes
+			if (key.isCollection()) {
+
+				searchItems.add(key.getSearchAttribute(securityContext, Collections.EMPTY_LIST, true, this));
+
+			} else {
+
+				searchItems.add(key.getSearchAttribute(securityContext, null, true, this));
+			}
+
+		} else {
+
+			// everything else
+			searchItems.add(new EmptySearchAttribute(key, null));
+		}
+
+		return this;
+	}
+
+	@Override
+	public <P> QueryGroup<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseSensitive) {
+
+		searchItems.add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.startsWith : ComparisonQuery.Comparison.caseInsensitiveStartsWith, prefix));
+
+		return this;
+	}
+
+	@Override
+	public <P> QueryGroup<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseSensitive) {
+
+		searchItems.add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Comparison.endsWith : ComparisonQuery.Comparison.caseInsensitiveEndsWith, suffix));
+
+		return this;
+	}
+
+	@Override
+	public QueryGroup<T> matches(final PropertyKey<String> key, final String regex) {
+
+		searchItems.add(new ComparisonSearchAttribute(key, ComparisonQuery.Comparison.matches, regex));
+
+		return this;
+	}
+
+	@Override
+	public <P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd) {
+
+		return range(key, rangeStart, rangeEnd, true, true);
+	}
+
+	@Override
+	public <P> QueryGroup<T> range(final PropertyKey<P> key, final P rangeStart, final P rangeEnd, final boolean includeStart, final boolean includeEnd) {
+
+		searchItems.add(new RangeSearchAttribute(key, rangeStart, rangeEnd, includeStart, includeEnd));
+
+		return this;
+	}
+
+	// ----- interface Query<T> -----
+	@Override
+	public QueryContext getQueryContext() {
+		return query.getQueryContext();
+	}
+
+	@Override
+	public Query<T> isPing(boolean isPing) {
+		return query.isPing(isPing);
+	}
+
+	@Override
+	public ResultStream<T> getResultStream() throws FrameworkException {
+		return query.getResultStream();
+	}
+
+	@Override
+	public List<T> getAsList() throws FrameworkException {
+		return query.getAsList();
+	}
+
+	@Override
+	public T getFirst() throws FrameworkException {
+		return query.getFirst();
+	}
+
+	@Override
+	public Traits getTraits() {
+		return query.getTraits();
+	}
+
+	@Override
+	public Query<T> disableSorting() {
+		return query.disableSorting();
+	}
+
+	@Override
+	public Query<T> sort(final SortOrder sortOrder) {
+		return query.sort(sortOrder);
+	}
+
+	@Override
+	public Query<T> sort(final PropertyKey key, final boolean descending) {
+		return query.sort(key, descending);
+	}
+
+	@Override
+	public Query<T> comparator(final Comparator<T> comparator) {
+		return query.comparator(comparator);
+	}
+
+	@Override
+	public Query<T> pageSize(final int pageSize) {
+		return query.pageSize(pageSize);
+	}
+
+	@Override
+	public Query<T> page(final int page) {
+		return query.page(page);
+	}
+
+	@Override
+	public Query<T> publicOnly() {
+		return query.publicOnly();
+	}
+
+	@Override
+	public Query<T> includeHidden() {
+		return query.includeHidden();
+	}
+
+	@Override
+	public Query<T> publicOnly(final boolean publicOnly) {
+		return query.publicOnly(publicOnly);
+	}
+
+	@Override
+	public Query<T> includeHidden(final boolean includeHidden) {
+		return query.includeHidden(includeHidden);
+	}
+
+	@Override
+	public QueryGroup<T> and() {
+
+		// create nested group that the user can add to
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.AND);
+		searchItems.add(group);
+
+		return group;
+	}
+
+	@Override
+	public QueryGroup<T> or() {
+
+		// create nested group that the user can add to
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.OR);
+		searchItems.add(group);
+
+		return group;
+	}
+
+	@Override
+	public QueryGroup<T> not() {
+
+		// create nested group that the user can add to
+		final SearchAttributeGroup group = new SearchAttributeGroup(securityContext, this, Operation.NOT);
+		searchItems.add(group);
+
+		return group;
+	}
+
+	@Override
+	public Predicate<GraphObject> toPredicate() {
+		return query.toPredicate();
+	}
+
+	@Override
+	public void doNotSort(final boolean doNotSort) {
+		query.doNotSort(doNotSort);
+	}
+
+	@Override
+	public void setTraits(final Traits traits) {
+		query.setTraits(traits);
 	}
 }

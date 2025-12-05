@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,28 +28,27 @@ import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.sm.predicates.ForEveryStanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
-import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
-import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.InitializationCallback;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.xmpp.handler.*;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
  *
@@ -72,16 +71,17 @@ public class XMPPContext {
 
 	static {
 
-		Services.getInstance().registerInitializationCallback(new InitializationCallback() {
+		Services.getInstance().registerInitializationCallback(() -> {
 
-			@Override
-			public void initializationDone() {
+			if (Traits.exists(StructrTraits.XMPP_CLIENT)) {
 
 				final App app = StructrApp.getInstance();
 
 				try (final Tx tx = app.tx()) {
 
-					for (final XMPPClient client : app.nodeQuery(XMPPClient.class).getAsList()) {
+					for (final NodeInterface clientNode : app.nodeQuery(StructrTraits.XMPP_CLIENT).getAsList()) {
+
+						final XMPPClient client = clientNode.as(XMPPClient.class);
 
 						client.setIsConnected(false);
 

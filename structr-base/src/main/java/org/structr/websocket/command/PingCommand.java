@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
@@ -59,7 +58,7 @@ public class PingCommand extends AbstractCommand {
 
 			getWebSocket().send(MessageBuilder.status()
 				.callback(webSocketData.getCallback())
-				.data("username", currentUser.getProperty(AbstractNode.name))
+				.data("username", currentUser.getName())
 				.data("isAdmin", currentUser.isAdmin())
 				.code(100).build(), true);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,15 +26,18 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Iterator;
+import java.util.List;
 
 public class DeleteFunction extends CoreFunction implements BatchableFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeleteFunction.class);
-
-	public static final String ERROR_MESSAGE_DELETE = "Usage: ${delete(objectOrList)}. Example: ${delete(this)}";
 
 	private boolean batched = false;
 	private int batchSize   = -1;
@@ -45,8 +48,8 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "objectOrList";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("objectOrList");
 	}
 
 	@Override
@@ -65,13 +68,36 @@ public class DeleteFunction extends CoreFunction implements BatchableFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_DELETE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.delete(objectOrList)}}. Example: ${{$.delete(this)}}"),
+			Usage.structrScript("Usage: ${delete(objectOrList)}. Example: ${delete(this)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Deletes the given entity from the database";
+	public String getShortDescription() {
+		return "Deletes the one or more nodes or relationships from the database.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("objectOrList", "object(s) to delete, can also be a list")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${delete(first(find('Project')))}", "Delete the first project"),
+			Example.structrScript("${delete(find('Project'))}", "Delete all projects")
+		);
 	}
 
 	// ----- interface BatchableFunction -----

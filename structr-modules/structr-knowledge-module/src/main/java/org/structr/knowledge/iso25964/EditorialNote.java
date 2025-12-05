@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,23 +18,14 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.knowledge.iso25964.relationship.ThesaurusTermhasEditorialNoteEditorialNote;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface EditorialNote extends Note {
+public class EditorialNote extends Note {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("EditorialNote");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/EditorialNote"));
-		type.setExtends(URI.create("#/definitions/Note"));
-	}}
+	public static final Property<ThesaurusTerm> termProperty = new StartNode<>("term", ThesaurusTermhasEditorialNoteEditorialNote.class);
 }

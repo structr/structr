@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,48 +18,13 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
 import org.structr.common.error.FrameworkException;
-
-/**
- * Storage object for mount configuration data.
- */
+import org.structr.core.graph.NodeInterface;
 
 public interface StorageConfigurationEntry extends NodeInterface {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("StorageConfigurationEntry");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/StorageConfigurationEntry"));
-		type.setExtends(URI.create("#/definitions/AbstractNode"));
-		type.setCategory("core");
-
-		type.addStringProperty("name", PropertyView.Ui);
-		type.addEncryptedProperty("value", PropertyView.Ui);
-
-		type.addPropertyGetter("configuration", StorageConfiguration.class);
-		type.addViewProperty(PropertyView.Ui, "configuration");
-
-		type.addPropertySetter("name", String.class);
-
-		type.addPropertyGetter("value", String.class);
-		type.addPropertySetter("value", String.class);
-
-	}}
-
 	StorageConfiguration getConfiguration();
-
 	void setName(final String name) throws FrameworkException;
-
 	String getValue();
 	void setValue(final String value) throws FrameworkException;
-
 }

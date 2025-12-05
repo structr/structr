@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,18 +18,15 @@
  */
 package org.structr.core.function;
 
-import org.structr.autocomplete.AbstractHint;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class RetrieveFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_RETRIEVE    = "Usage: ${retrieve(key)}. Example: ${retrieve('tmpUser')}";
-	public static final String ERROR_MESSAGE_RETRIEVE_JS = "Usage: ${{Structr.retrieve(key)}}. Example: ${{Structr.retrieve('tmpUser')}}";
 
 	@Override
 	public String getName() {
@@ -37,8 +34,8 @@ public class RetrieveFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override
@@ -67,17 +64,46 @@ public class RetrieveFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_RETRIEVE_JS : ERROR_MESSAGE_RETRIEVE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${retrieve(key)}."),
+			Usage.javaScript("Usage: ${{ $.retrieve(key) }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the value associated with the given key from the temporary store";
+	public String getShortDescription() {
+		return "Returns the value associated with the given key from the temporary store.";
 	}
 
 	@Override
-	public List<AbstractHint> getContextHints(final String lastToken) {
+	public String getLongDescription() {
+		return """
+		Retrieves the value previously stored under the given key in the current request context. 
+		This function can be used to obtain the results of a previous computation step etc. and is often used to provide 
+		some sort of "variables" in the scripting context. See `store()` for the inverse operation.
+		Additionally, the `retrieve()` function is used to retrieve the parameters supplied to the execution of a custom method.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript(" ${retrieve('tmpUser')}"),
+				Example.javaScript("${{ $.retrieve('tmpUser') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("url", "key to retrieve")
+				);
+	}
+
+	@Override
+	public List<Documentable> getContextHints(final String lastToken) {
 
 		// this might be the place where information about the execution context
 		// of a function etc. can be used, but not yet.

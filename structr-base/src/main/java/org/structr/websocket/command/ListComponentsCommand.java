@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,18 +21,17 @@ package org.structr.websocket.command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
-import org.structr.common.PagingHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.PagingHelper;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Websocket command to retrieve nodes which are in use on more than
@@ -58,9 +57,19 @@ public class ListComponentsCommand extends AbstractCommand {
 
 		try {
 
-			final ShadowDocument hiddenDoc     = CreateComponentCommand.getOrCreateHiddenDocument();
-			List<DOMNode> filteredResults      = new LinkedList();
-			List<DOMNode> resultList           = Iterables.toList(hiddenDoc.getElements());
+			final ShadowDocument hiddenDoc = CreateComponentCommand.getOrCreateHiddenDocument();
+			List<DOMNode> filteredResults  = new LinkedList();
+			List<DOMNode> resultList       = Iterables.toList(hiddenDoc.getElements());
+
+			TransactionCommand.getCurrentTransaction().prefetch("(n:NodeInterface { id: \"" + hiddenDoc.getUuid() + "\" })<-[:PAGE]-(:DOMNode)-[r:CONTAINS*]->(m:DOMNode)", Set.of(
+
+				"all/INCOMING/PAGE",
+				"all/INCOMING/CONTAINS",
+
+				"all/OUTGOING/PAGE",
+				"all/OUTGOING/CONTAINS"
+
+			));
 
 			// Filter list and return only top level nodes
 			for (DOMNode node : resultList) {
@@ -74,9 +83,10 @@ public class ListComponentsCommand extends AbstractCommand {
 			// Sort the components by name
 			Collections.sort(filteredResults, new Comparator<DOMNode>() {
 				@Override
-				public int compare(DOMNode node1, DOMNode node2) {
-					final String nameNode1 = node1.getProperty(DOMNode.name);
-					final String nameNode2 = node2.getProperty(DOMNode.name);
+				public int compare(final DOMNode node1, final DOMNode node2) {
+
+					final String nameNode1 = node1.getName();
+					final String nameNode2 = node2.getName();
 
 					if (nameNode1 != null && nameNode2 != null) {
 
@@ -103,7 +113,7 @@ public class ListComponentsCommand extends AbstractCommand {
 			int resultCountBeforePaging = filteredResults.size();
 
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
+			webSocketData.setResult(unwrap(PagingHelper.subList(filteredResults, pageSize, page)));
 			webSocketData.setRawResultCount(resultCountBeforePaging);
 
 			// send only over local connection
@@ -118,8 +128,6 @@ public class ListComponentsCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
 
@@ -127,4 +135,16 @@ public class ListComponentsCommand extends AbstractCommand {
 
 	}
 
+	// ----- private methods -----
+	private List<NodeInterface> unwrap(final List<DOMNode> source) {
+
+		final List<NodeInterface> result = new ArrayList<>(source.size());
+
+		for (final DOMNode n : source) {
+
+			result.add(n);
+		}
+
+		return result;
+	}
 }

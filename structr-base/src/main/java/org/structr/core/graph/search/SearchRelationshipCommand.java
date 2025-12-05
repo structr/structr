@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,13 +27,11 @@ import org.structr.core.graph.RelationshipInterface;
 
 /**
  * Search for relationships by their attributes.
- *
- *
  */
-public class SearchRelationshipCommand<T extends RelationshipInterface> extends SearchCommand<Relationship, T> {
+public class SearchRelationshipCommand extends SearchCommand<Relationship, RelationshipInterface> {
 
 	@Override
-	public Factory<Relationship, T> getFactory(SecurityContext securityContext, boolean includeHidden, boolean publicOnly, int pageSize, int page) {
+	public Factory<Relationship, RelationshipInterface> getFactory(final SecurityContext securityContext, final boolean includeHidden, final boolean publicOnly, final int pageSize, final int page) {
 		return new RelationshipFactory(securityContext, includeHidden, publicOnly, pageSize, page);
 	}
 

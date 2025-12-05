@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,17 +21,17 @@ package org.structr.core.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.Traits;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -51,17 +51,21 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 	private static final Logger logger = LoggerFactory.getLogger(CollectionIdProperty.class.getName());
 
-	private Property<Iterable<S>> collectionProperty = null;
-	private Notion<S, T> notion                      = null;
+	private final String baseType;
+	private final String relatedType;
+	private final String basePropertyName;
+	private final Notion<S, T> notion;
 
-	public CollectionNotionProperty(String name, Property<Iterable<S>> base, Notion<S, T> notion) {
+	public CollectionNotionProperty(String name, final String baseType, final String basePropertyName, final String relatedType, Notion<S, T> notion) {
 
 		super(name);
 
-		this.notion             = notion;
-		this.collectionProperty = base;
+		this.notion           = notion;
+		this.baseType         = baseType;
+		this.relatedType      = relatedType;
+		this.basePropertyName = basePropertyName;
 
-		notion.setType(base.relatedType());
+		notion.setType(relatedType);
 	}
 
 	@Override
@@ -100,7 +104,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Iterable<T>> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
@@ -113,6 +117,8 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		try {
+
+			final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
 
 			return (notion.getCollectionAdapterForGetter(securityContext).adapt(collectionProperty.getProperty(securityContext, obj, applyConverter, predicate)));
 
@@ -127,6 +133,8 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, Iterable<T> value) throws FrameworkException {
 
+		final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
+
 		if (value != null) {
 
 			return collectionProperty.setProperty(securityContext, obj, notion.getCollectionAdapterForSetter(securityContext).adapt(value));
@@ -138,18 +146,23 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public Class relatedType() {
-		return collectionProperty.relatedType();
+	public String relatedType() {
+		return relatedType;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override
@@ -160,7 +173,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 
 		if (propertyKey != null) {
 
-			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext);
+			PropertyConverter inputConverter = propertyKey.inputConverter(securityContext, false);
 			if (inputConverter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {
@@ -181,8 +194,11 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Iterable<T> searchValueIterable, boolean exactMatch, final Query query) {
-		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), collectionProperty, searchValueIterable, occur, exactMatch);
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Iterable<T> searchValueIterable, final boolean exactMatch, final QueryGroup query) {
+
+		final PropertyKey<Iterable<S>> collectionProperty = Traits.of(baseType).key(basePropertyName);
+
+		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), collectionProperty, searchValueIterable, exactMatch);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,6 @@ package org.structr.core.graph;
 
 import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
 
 import java.util.Collections;
 
@@ -31,7 +30,7 @@ import java.util.Collections;
  */
 public class GetAllRelationships extends NodeServiceCommand {
 
-	public Iterable<AbstractRelationship> execute() throws FrameworkException {
+	public Iterable<RelationshipInterface> execute() throws FrameworkException {
 
 		RelationshipFactory relationshipFactory = new RelationshipFactory(securityContext);
 		DatabaseService graphDb                 = (DatabaseService)arguments.get("graphDb");

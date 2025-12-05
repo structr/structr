@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,33 +18,42 @@
  */
 package org.structr.excel;
 
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class FromExcelFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_FROM_EXCEL    = "Usage: ${from_excel(file[, sheetIndexOrName = 0 ])}. Example: ${from_excel(first(find('File', 'name', 'test.xlsx')))}";
-	public static final String ERROR_MESSAGE_FROM_EXCEL_JS = "Usage: ${{Structr.fromExcel(file[, sheetIndexOrName = 0 ])}}. Example: ${{ $.fromExcel(fileNode); }}";
-
 	@Override
 	public String getName() {
-		return "from_excel";
+		return "fromExcel";
 	}
 
 	@Override
-	public String getSignature() {
-		return "file [, sheetIndexOrName = 0 ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("file [, sheetIndexOrName = 0 ]");
 	}
 
 	@Override
@@ -59,9 +68,9 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
-			if (sources[0] instanceof File) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-				final File file = (File)sources[0];
+				final File file = n.as(File.class);
 
 				if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
 					return "";
@@ -104,13 +113,36 @@ public class FromExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_EXCEL_JS : ERROR_MESSAGE_FROM_EXCEL);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${fromExcel(file[, sheetIndexOrName = 0 ])}. Example: ${fromExcel(first(find('File', 'name', 'test.xlsx')))}"),
+			Usage.javaScript("Usage: ${{ $.fromExcel(file[, sheetIndexOrName = 0 ]); }}. Example: ${{ $.fromExcel(fileNode); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Reads data from a given Excel sheet. The sheet can be passed as zero-indexed sheet number or by sheet name.";
+	public List<String> getNotes() {
+		return List.of(
+				"The columns in the first row of the excel sheet are used as headers and must be populated for columns to be read."
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Reads data from a given Excel sheet.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("file", "excel file to read from"),
+				Parameter.optional("sheetIndexOrName", "sheet index or name of sheet to read from (defaults to first sheet)")
+		);
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The sheet can be passed as zero-indexed sheet number or by sheet name.";
 	}
 
 	private Object readExcel(final InputStream is, final String sheetName) throws Throwable {

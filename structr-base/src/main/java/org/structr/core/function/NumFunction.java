@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
-public class NumFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_NUM = "Usage: ${num(string)}. Example: ${num(this.numericalStringValue)}";
+public class NumFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +34,8 @@ public class NumFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("object");
 	}
 
 	@Override
@@ -67,12 +68,57 @@ public class NumFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_NUM;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${num(object)}. Example: ${num(this.numericalStringValue)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Converts the given string to a floating-point number";
+	public String getShortDescription() {
+		return "Tries the convert given object into a floating-point number with double precision.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Date values are also supported and are converted to the number of milliseconds since January 1, 1970, 00:00:00 GMT.
+		
+		Other date strings are also supported in the following formats:
+		- "yyyy-MM-dd'T'HH:mm:ss.SSSXXX"
+		- "yyyy-MM-dd'T'HH:mm:ssXXX"
+		- "yyyy-MM-dd'T'HH:mm:ssZ"
+		- "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("object", "input object to convert to a long integer, can be string, date or floating-point number")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${num(now)}", "Return the milliseconds since epoch of the current date"),
+			Example.structrScript("${num('35.8')}", "Convert a string into a floating-point number")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See also `long()`."
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

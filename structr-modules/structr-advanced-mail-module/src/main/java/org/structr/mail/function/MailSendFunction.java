@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,15 +19,16 @@
 package org.structr.mail.function;
 
 import org.apache.commons.mail.EmailException;
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSendFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_send()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_send() }}";
+public class MailSendFunction extends AdvancedMailModuleFunction {
 
 	public MailSendFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -39,8 +40,8 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -77,12 +78,36 @@ public class MailSendFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_send()}"),
+			Usage.javaScript("Usage: ${{ $.mailSend() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sends the current mail";
+	public String getShortDescription() {
+		return "Sends the currently configured mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+				The message-id of the created mail is being returned.
+
+				If not all pre-conditions are met or the sending of the mail fails, an empty string will be returned and an error message is logged.
+				
+				A possible error message can be retrieved via `mail_get_error()` and the presence of an error can be checked via `mail_has_error()`.
+				
+				Before attempting to send the mail, the last error (if any) is cleared automatically.
+				""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Will result in an error if no `To:`, `Cc:` or `Bcc:` addresses are configured.",
+				"Will result in an error if `mail_begin()` was not called"
+		);
 	}
 }

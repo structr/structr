@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,27 +20,20 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Image;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
-import java.util.List;
-
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class ListFilesCommand extends AbstractCommand {
@@ -57,50 +50,34 @@ public class ListFilesCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		final SecurityContext securityContext  = getWebSocket().getSecurityContext();
-		final String rawType                   = webSocketData.getNodeDataStringValue("type");
-		final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
-		final String sortOrder                 = webSocketData.getSortOrder();
-		final String sortKey                   = webSocketData.getSortKey();
-		final int pageSize                     = webSocketData.getPageSize();
-		final int page                         = webSocketData.getPage();
-		final PropertyKey sortProperty         = StructrApp.key(type, sortKey);
-		final Query query                      = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden().sort(sortProperty, "desc".equals(sortOrder));
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final String rawType                  = webSocketData.getNodeDataStringValue("type");
+		final Traits type                     = Traits.of(rawType);
+		final String sortOrder                = webSocketData.getSortOrder();
+		final String sortKey                  = webSocketData.getSortKey();
+		final int pageSize                    = webSocketData.getPageSize();
+		final int page                        = webSocketData.getPage();
+		final PropertyKey sortProperty        = type.key(sortKey);
+
+		final QueryGroup<NodeInterface> query = StructrApp.getInstance(securityContext)
+			.nodeQuery(rawType)
+			.includeHidden()
+			.sort(sortProperty, "desc".equals(sortOrder))
+			.page(page)
+			.pageSize(pageSize)
+			.and()
+			.key(type.key(AbstractFileTraitDefinition.PARENT_PROPERTY), null);
 
 		// for image lists, suppress thumbnails
-		if (type.equals(Image.class)) {
+		if (type.contains(StructrTraits.IMAGE)) {
 
-			query.and(StructrApp.key(Image.class, "isThumbnail"), false);
+			query.key(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
 		}
 
 		try {
 
-			// do search
-			List<NodeInterface> filteredResults    = new LinkedList();
-			List<? extends GraphObject> resultList = query.getAsList();
-
-			// add only root folders to the list
-			for (GraphObject obj : resultList) {
-
-				if (obj instanceof AbstractFile) {
-
-					AbstractFile node = (AbstractFile) obj;
-
-					if (node.getParent() == null) {
-
-						filteredResults.add(node);
-					}
-
-				}
-
-			}
-
-			// save raw result count
-			int resultCountBeforePaging = filteredResults.size();
-
 			// set full result list
-			webSocketData.setResult(PagingHelper.subList(filteredResults, pageSize, page));
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -108,18 +85,11 @@ public class ListFilesCommand extends AbstractCommand {
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
-
 		}
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
-
 		return "LIST_FILES";
-
 	}
-
 }

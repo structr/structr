@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,14 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.EndNodes;
+import org.structr.core.property.Property;
+import org.structr.knowledge.iso25964.relationship.SplitNonPreferredTermUSEPreferredTerm;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface SplitNonPreferredTerm extends NodeInterface {
+public class SplitNonPreferredTerm extends ThesaurusTerm {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-
-		final JsonObjectType type     = schema.addType("SplitNonPreferredTerm");
-		final JsonObjectType prefTerm = schema.addType("PreferredTerm");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SplitNonPreferredTerm"));
-		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
-
-		final JsonReferenceType compoundEquivalence = type.relate(prefTerm, "USE", Cardinality.ManyToMany, "preferredTerms", "splitNonPreferredTerms");
-	}}
+	public static final Property<Iterable<PreferredTerm>> preferredTerms = new EndNodes<>("preferredTerms", SplitNonPreferredTermUSEPreferredTerm.class);
 }

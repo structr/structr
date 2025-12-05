@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,13 +21,11 @@ package org.structr.bolt;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.Values;
 import org.neo4j.driver.async.AsyncSession;
 import org.neo4j.driver.async.AsyncTransaction;
 import org.neo4j.driver.async.ResultCursor;
 import org.neo4j.driver.exceptions.*;
 import org.neo4j.driver.summary.ResultSummary;
-import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Relationship;
 import org.structr.api.NetworkException;
@@ -36,7 +34,9 @@ import org.structr.api.RetryException;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 
-import java.util.*;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -47,6 +47,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 	private AsyncSession session       = null;
 	private AsyncTransaction tx        = null;
 	private boolean closed             = false;
+	private boolean forcedFailure      = false;
 
 	public AsyncSessionTransaction(final BoltDatabaseService db, final AsyncSession session) {
 
@@ -54,7 +55,6 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		this.session       = session;
 		this.tx            = resolveImmediately(session.beginTransactionAsync(db.getTransactionConfig(transactionId)));
-		this.db            = db;
 	}
 
 	public AsyncSessionTransaction(final BoltDatabaseService db, final AsyncSession session, final int timeoutInSeconds) {
@@ -63,14 +63,13 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		final TransactionConfig config = db.getTransactionConfigForTimeout(timeoutInSeconds, transactionId);
 
-		this.transactionId = ID_SOURCE.getAndIncrement();
 		this.session       = session;
 		this.tx            = resolveImmediately(session.beginTransactionAsync(config));
-		this.db            = db;
 	}
 
 	@Override
 	public void failure() {
+		forcedFailure = true;
 	}
 
 	@Override
@@ -81,35 +80,54 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
+	public boolean isSuccessful() {
+		return success && !forcedFailure;
+	}
+
+	@Override
 	public void close() {
 
-		if (!success) {
+		clearChangeset();
 
-			resolveImmediately(tx.rollbackAsync());
+		if (forcedFailure || !success) {
 
-			for (final EntityWrapper entity : accessedEntities) {
+			try {
+				resolveImmediately(tx.rollbackAsync());
 
-				entity.rollback(transactionKey);
-				entity.removeFromCache();
-			}
-
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.stale();
+			} catch (TransientException tex) {
+				closed = true;
+				throw new RetryException(tex);
+			} catch (NoSuchRecordException nex) {
+				throw new NotFoundException(nex);
+			} catch (ServiceUnavailableException ex) {
+				throw new NetworkException(ex.getMessage(), ex);
+			} catch (DatabaseException dex) {
+				isRolledBack = true;
+				throw AsyncSessionTransaction.translateDatabaseException(dex);
+			} catch (ClientException cex) {
+				isRolledBack = true;
+				throw AsyncSessionTransaction.translateClientException(cex);
 			}
 
 		} else {
 
-			resolveImmediately(tx.commitAsync());
+			try {
 
-			RelationshipWrapper.expunge(deletedRels);
-			NodeWrapper.expunge(deletedNodes);
+				resolveImmediately(tx.commitAsync());
 
-			for (final EntityWrapper entity : accessedEntities) {
-				entity.commit(transactionKey);
-			}
-
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.clearCaches();
+			} catch (TransientException tex) {
+				closed = true;
+				throw new RetryException(tex);
+			} catch (NoSuchRecordException nex) {
+				throw new NotFoundException(nex);
+			} catch (ServiceUnavailableException ex) {
+				throw new NetworkException(ex.getMessage(), ex);
+			} catch (DatabaseException dex) {
+				isRolledBack = true;
+				throw AsyncSessionTransaction.translateDatabaseException(dex);
+			} catch (ClientException cex) {
+				isRolledBack = true;
+				throw AsyncSessionTransaction.translateClientException(cex);
 			}
 		}
 
@@ -129,19 +147,11 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 		} finally {
 
-			// Notify all nodes that are modified in this transaction
-			// so that the relationship caches are rebuilt.
-			for (final EntityWrapper entity : modifiedEntities) {
-				entity.onClose();
-			}
-
-			// make sure that the resources are freed
-			//if (session.isOpen()) {
-				resolveImmediately(session.closeAsync());
-			//}
+			resolveImmediately(session.closeAsync());
 		}
 	}
 
+	@Override
 	public boolean isClosed() {
 		return closed;
 	}
@@ -151,33 +161,14 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	public boolean getBoolean(final String statement) {
+	protected Boolean getBoolean(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement);
-			return getBoolean(statement, Collections.EMPTY_MAP);
+			logQuery(query);
 
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public boolean getBoolean(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final boolean value       = resolveImmediately(cursor.peekAsync()).get(0).asBoolean();
@@ -194,40 +185,23 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
-	public long getLong(final String statement) {
+	protected Long getLong(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement);
-			return getLong(statement, Collections.EMPTY_MAP);
+			logQuery(query);
 
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public long getLong(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final long value          = resolveImmediately(cursor.peekAsync()).get(0).asLong();
@@ -244,80 +218,23 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
-	public Object getObject(final String statement, final Map<String, Object> map) {
+	protected Node getNode(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			logQuery(query);
 
-			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
-			final Object object       = resolveImmediately(cursor.peekAsync()).get(0).asObject();
-
-			resolveImmediately(cursor.consumeAsync());
-
-			return object;
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public Entity getEntity(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
-			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
-			final CompletionStage<Record> peek = cursor.peekAsync();
-			final Record record                = resolveImmediately(peek);
-			Entity entity                      = null;
-
-			if (record != null) {
-				entity = record.get(0).asEntity();
-			}
-
-			logSummary(resolveImmediately(cursor.consumeAsync()));
-
-			return entity;
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
-		}
-	}
-
-	@Override
-	public Node getNode(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor          = resolveImmediately(tx.runAsync(statement, map));
 			final CompletionStage<Record> peek = cursor.peekAsync();
@@ -340,18 +257,23 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
-	public Relationship getRelationship(final String statement, final Map<String, Object> map) {
+	protected Relationship getRelationship(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			logQuery(query);
+
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
 			final ResultCursor cursor = resolveImmediately(tx.runAsync(statement, map));
 			final CompletionStage<Record> peek = cursor.peekAsync();
@@ -374,67 +296,50 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
-	public Object collectRecords(final String statement, final Map<String, Object> map, final Object input) {
+	protected Iterable<Record> collectRecords(final CypherQuery query, final IterableQueueingRecordConsumer consumer) {
 
-		logQuery(statement, map);
+		if (consumer != null) {
 
-		final IterableQueueingRecordConsumer consumer = (IterableQueueingRecordConsumer)input;
+			final String statement = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
 
-		tx.runAsync(statement, map)
-			.thenCompose(cursor -> consumer.start(cursor))
-			.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
-			.thenAccept(summary -> consumer.finish())
-			.exceptionally(t -> consumer.exception(t));
+			logQuery(query);
 
-		return consumer;
-	}
+			tx.runAsync(statement, map)
+				.thenCompose(cursor -> consumer.start(cursor))
+				.thenCompose(cursor -> cursor.forEachAsync(consumer::accept))
+				.thenAccept(summary -> consumer.finish())
+				.exceptionally(t -> consumer.exception(t));
 
-	@Override
-	public Iterable<String> getStrings(final String statement, final Map<String, Object> map) {
-
-		try {
-
-			logQuery(statement, map);
-
-			final ResultCursor cursor    = resolveImmediately(tx.runAsync(statement, map));
-			final List<String> immutable = resolveImmediately(cursor.peekAsync()).get(0).asList(Values.ofString());
-
-			logSummary(resolveImmediately(cursor.consumeAsync()));
-
-			return new LinkedList<>(immutable);
-
-		} catch (TransientException tex) {
-			closed = true;
-			throw new RetryException(tex);
-		} catch (NoSuchRecordException nex) {
-			throw new NotFoundException(nex);
-		} catch (ServiceUnavailableException ex) {
-			throw new NetworkException(ex.getMessage(), ex);
-		} catch (DatabaseException dex) {
-			throw AsyncSessionTransaction.translateDatabaseException(dex);
-		} catch (ClientException cex) {
-			throw AsyncSessionTransaction.translateClientException(cex);
+			return consumer;
 		}
+
+		return List.of();
 	}
 
 	@Override
-	public Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map) {
+	protected Iterable<Map<String, Object>> run(final CypherQuery query) {
 
 		try {
 
-			logQuery(statement, map);
+			final String statement        = query.getStatement();
+			final Map<String, Object> map = query.getParameters();
+
+			logQuery(query);
 
 			final ResultCursor cursor  = resolveImmediately(tx.runAsync(statement, map));
 			final List<Record> records = resolveImmediately(cursor.listAsync());
 
-			return Iterables.map(new RecordMapMapper(db), records);
+			return Iterables.toList(Iterables.map(new RecordMapMapper(db), records));
 
 		} catch (TransientException tex) {
 			closed = true;
@@ -444,14 +349,16 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
-	public void set(final String statement, final Map<String, Object> map) {
+	protected void set(final String statement, final Map<String, Object> map) {
 
 		try {
 
@@ -470,14 +377,16 @@ class AsyncSessionTransaction extends SessionTransaction {
 		} catch (ServiceUnavailableException ex) {
 			throw new NetworkException(ex.getMessage(), ex);
 		} catch (DatabaseException dex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateDatabaseException(dex);
 		} catch (ClientException cex) {
+			isRolledBack = true;
 			throw AsyncSessionTransaction.translateClientException(cex);
 		}
 	}
 
 	@Override
-	public Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+	public Iterable<Record> newIterable(final BoltDatabaseService db, final CypherQuery query) {
 
 		final IterableQueueingRecordConsumer consumer = new IterableQueueingRecordConsumer(db, query);
 		final QueryContext context                    = query.getQueryContext();
@@ -533,8 +442,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 				return iterator.hasNext();
 
 			} catch (ClientException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}
 		}
@@ -547,8 +458,10 @@ class AsyncSessionTransaction extends SessionTransaction {
 				return iterator.next();
 
 			} catch (ClientException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateClientException(dex);
 			} catch (DatabaseException dex) {
+				isRolledBack = true;
 				throw AsyncSessionTransaction.translateDatabaseException(dex);
 			}
 		}

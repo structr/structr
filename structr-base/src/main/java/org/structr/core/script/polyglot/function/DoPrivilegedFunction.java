@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,10 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.SecurityContext;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
@@ -76,37 +79,72 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 	}
 
 	@Override
-	public String shortDescription() {
-		return """
-**JavaScript-only**
-
-Runs the given function in a privileged (superuser) context. This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
-
-**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
-
-Example:
-```
-${{
-	let userToDelete = $.find('User', { name: 'user_to_delete' })[0];
-
-	$.doPrivileged(() => {
-
-		// look up user again to set correct access rights
-		let user = $.find('User', userToDelete.id);
-
-		// delete all projects owned by user
-		$.delete($.find('Project', { projectOwner: user }));
-
-		// delete user
-		$.delete(user);
-	});
-}}
-```
-""";
+	public String getShortDescription() {
+		return "Runs the given function in a privileged (superuser) context.";
 	}
 
 	@Override
-	public String getSignature() {
-		return "function";
+	public String getLongDescription() {
+		return """
+		This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
+
+		**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(Example.javaScript(
+		"""
+		${{
+			let userToDelete = $.find('User', { name: 'user_to_delete' })[0];
+
+			$.doPrivileged(() => {
+
+				// look up user again to set correct access rights
+				let user = $.find('User', userToDelete.id);
+
+				// delete all projects owned by user
+				$.delete($.find('Project', { projectOwner: user }));
+
+				// delete user
+				$.delete(user);
+			});
+		}}
+		""", null));
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+
+		return List.of(
+			Language.JavaScript
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.doPrivileged(function) }}. Example: ${{ $.doPrivileged(() => log($.me))}")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+
+		return List.of(
+			Signature.of("function", Language.values())
+		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,11 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import org.structr.web.entity.StorageConfiguration;
 
 /**
  * Abstract base class for all storage providers.
@@ -61,6 +61,7 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	@Override
 	public boolean equals(Object obj) {
+
 		if (obj == null) {
 
 			return false;
@@ -92,6 +93,7 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 				// Move binary content from old sp to new sp
 				try (final InputStream is = this.getInputStream(); final OutputStream os = destinationStorageProvider.getOutputStream()) {
+
 					IOUtils.copy(is, os);
 
 					// Clean up old binary data on previous sp

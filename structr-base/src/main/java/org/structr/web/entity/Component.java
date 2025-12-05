@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,29 +18,7 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.common.PropertyView;
-import org.structr.schema.SchemaService;
-import org.structr.web.entity.dom.DOMElement;
+import org.structr.core.graph.NodeInterface;
 
-import java.net.URI;
-
-/**
- * Represents a component. A component is an assembly of elements
- */
-public interface Component extends DOMElement {
-
-	static class Impl { static {
-
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-		final JsonType type     = schema.addType("Component");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Component"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("html");
-
-		type.addIntegerProperty("position");
-		type.addStringProperty("kind", PropertyView.Public, PropertyView.Ui);
-	}}
+public interface Component extends NodeInterface {
 }

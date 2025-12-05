@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,5 +28,5 @@ import org.structr.common.error.FrameworkException;
  */
 public interface TransactionPostProcess {
 	
-	public boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
+	boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException;
 }

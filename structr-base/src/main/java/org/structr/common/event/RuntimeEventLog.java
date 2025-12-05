@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,11 @@ import java.util.concurrent.LinkedBlockingDeque;
  * them for a limited amount of time.
  */
 public class RuntimeEventLog {
+
+	public static final String METHOD_KEY = "method";
+	public static final String PATH_KEY   = "path";
+	public static final String ID_KEY     = "id";
+	public static final String NAME_KEY   = "name";
 
 	private static final BlockingDeque<RuntimeEvent> events = new LinkedBlockingDeque<>(101_000);
 
@@ -92,11 +97,19 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Rest, method, Map.of("method", method, "path", path, "id", user.getUuid(), "name", user.getName()));
+			add(EventType.Rest, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path,
+					ID_KEY,     user.getUuid(),
+					NAME_KEY,   user.getName()
+			));
 
 		} else {
 
-			add(EventType.Rest, method, Map.of("method", method, "path", path));
+			add(EventType.Rest, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path
+			));
 		}
 	}
 
@@ -104,11 +117,19 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Csv, method, Map.of("method", method, "path", path, "id", user.getUuid(), "name", user.getName()));
+			add(EventType.Csv, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path,
+					ID_KEY,     user.getUuid(),
+					NAME_KEY,   user.getName()
+			));
 
 		} else {
 
-			add(EventType.Csv, method, Map.of("method", method, "path", path));
+			add(EventType.Csv, method, Map.of(
+					METHOD_KEY, method,
+					PATH_KEY,   path
+			));
 		}
 	}
 
@@ -116,7 +137,10 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.GraphQL, query, Map.of("id", user.getUuid(), "name", user.getName()));
+			add(EventType.GraphQL, query, Map.of(
+					ID_KEY,   user.getUuid(),
+					NAME_KEY, user.getName()
+			));
 
 		} else {
 
@@ -128,7 +152,10 @@ public class RuntimeEventLog {
 
 		if (user != null) {
 
-			add(EventType.Http, path, Map.of("id", user.getUuid(), "name", user.getName()));
+			add(EventType.Http, path, Map.of(
+					ID_KEY, user.getUuid(),
+					NAME_KEY, user.getName()
+			));
 
 		} else {
 
@@ -161,6 +188,14 @@ public class RuntimeEventLog {
 		}
 
 		return list;
+	}
+
+	public static void acknowledgeAllEventsForId(final String uuid) {
+
+		if (uuid != null) {
+
+			RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get(RuntimeEvent.ID_PROPERTY))).stream().forEach(e -> e.acknowledge());
+		}
 	}
 
 	// ----- private methods -----

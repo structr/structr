@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.web.function;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -30,12 +29,14 @@ import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.StringProperty;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -43,170 +44,174 @@ import org.structr.web.entity.Folder;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class HTTPPostMultiPartFunction extends UiAdvancedFunction {
-    public static final String ERROR_MESSAGE_POST    = "Usage: ${POST_multi_part(URL, parts [, responseContentType])}. Example: ${POST('http://localhost:8082/structr/upload', '{name:\"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")}')}";
-    public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POSTMultiPart(URL, parts[, responseContentType])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")}')}}";
+public class HTTPPostMultiPartFunction extends HttpPostFunction {
 
-    @Override
-    public String getName() {
-        return "POST_multi_part";
-    }
+	@Override
+	public String getName() {
+		return "POST_multiPart";
+	}
 
-    @Override
-    public String getSignature() {
-        return "url, parts";
-    }
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-    @Override
-    public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+		try {
 
-        try {
+			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-            assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
+			final String uri                = sources[0].toString();
+			final Map<String, Object> parts = (HashMap) sources[1];
+			final String contentType        = (sources.length >= 3 && sources[2] != null) ? sources[2].toString() : DEFAULT_CONTENT_TYPE;
 
-            final String uri = sources[0].toString();
-            final Map<String, Object> parts = (HashMap) sources[1];
-            String contentType = "application/json";
+			final Map<String, Object> responseData = this.postMultiPart(uri, parts, ctx.getHeaders(), ctx.isValidateCertificates());
 
-            // override default content type
-            if (sources.length >= 3 && sources[2] != null) {
-                contentType = sources[2].toString();
-            }
+			final GraphObjectMap response = processResponseData(ctx, caller, responseData, contentType);
 
-            final Map<String, String> responseData = this.postMultiPart(ctx, uri, parts, ctx.getHeaders(), ctx.isValidateCertificates());
+			return response;
 
-            final int statusCode = Integer.parseInt(responseData.get("status"));
-            responseData.remove("status");
+		} catch (IllegalArgumentException e) {
 
-            final String responseBody = responseData.get("body");
-            responseData.remove("body");
+			logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
+			return usage(ctx.isJavaScriptContext());
+		}
+	}
 
-            final GraphObjectMap response = new GraphObjectMap();
+	private MultipartEntityBuilder addInputStreamToMultiPartBuilder(MultipartEntityBuilder builder, AbstractFile abstractFile, final String partKey) {
 
-            if ("application/json".equals(contentType)) {
+		if (abstractFile.is(StructrTraits.FILE)) {
 
-                final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-                response.setProperty(new GenericProperty<>("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+			final File file = (File) abstractFile;
+			InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
+			builder.addPart(partKey, inputStreamBody);
 
-            } else {
+		} else if (abstractFile.is(StructrTraits.FOLDER)) {
 
-                response.setProperty(new StringProperty("body"), responseBody);
-            }
+			final Folder folder = (Folder) abstractFile;
+			for (File folderFile : folder.getFiles()) {
+				builder = addInputStreamToMultiPartBuilder(builder, folderFile, partKey);
+			}
+		}
 
-            response.setProperty(new IntProperty("status"), statusCode);
+		return builder;
+	}
 
-            final GraphObjectMap map = new GraphObjectMap();
+	private MultipartEntityBuilder addPartToBuilder(MultipartEntityBuilder builder, final String partKey, final Object partValue) throws UnsupportedEncodingException {
 
-            for (final Map.Entry<String, String> entry : responseData.entrySet()) {
+		if (partValue instanceof Iterable) {
 
-                map.put(new StringProperty(entry.getKey()), entry.getValue());
-            }
+			for (Object collectionPart : (Iterable) partValue) {
+				builder = addPartToBuilder(builder, partKey, collectionPart);
+			}
 
-            response.setProperty(new StringProperty("headers"), map);
+		} else if (partValue instanceof NodeInterface n) {
 
-            return response;
+			builder = this.addInputStreamToMultiPartBuilder(builder, n.as(AbstractFile.class), partKey);
 
-        } catch (IllegalArgumentException e) {
+		} else if (partValue != null) {
 
-            logParameterError(caller, sources, e.getMessage(), ctx.isJavaScriptContext());
-            return usage(ctx.isJavaScriptContext());
-        }
-    }
+			builder.addPart(partKey, new StringBody(partValue.toString(), ContentType.create("text/plain", "UTF-8")));
+		}
 
-    @Override
-    public String usage(boolean inJavaScriptContext) {
-        return (inJavaScriptContext ? ERROR_MESSAGE_POST_JS : ERROR_MESSAGE_POST);
-    }
+		return builder;
+	}
 
-    @Override
-    public String shortDescription() {
-        return "Sends an HTTP POST request to the given URL and returns the response body";
-    }
+	private Map<String, Object> postMultiPart(final String address, final Map<String, Object> parts, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
-    private MultipartEntityBuilder addInputStreamToMultiPartBuilder(MultipartEntityBuilder builder, AbstractFile abstractFile, final String partKey) {
+		final Map<String, Object> responseData = new HashMap<>();
 
-        if (abstractFile instanceof File) {
+		try {
 
-            final File file = (File) abstractFile;
-            InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
-            builder.addPart(partKey, inputStreamBody);
+			final URI uri      = new URL(address).toURI();
+			final HttpPost req = new HttpPost(uri);
 
-        } else if (abstractFile instanceof Folder) {
+			MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 
-            final Folder folder = (Folder) abstractFile;
-            for (File folderFile : folder.getFiles()) {
-               builder = addInputStreamToMultiPartBuilder(builder, folder, partKey);
-            }
-        }
+			CloseableHttpClient client = HttpHelper.getClient(req, DEFAULT_CHARSET, null, null, null, null, null, null, headers, false, validateCertificates);
 
-        return builder;
-    }
+			for (Map.Entry<String, Object> entry : parts.entrySet()) {
 
-    private MultipartEntityBuilder addPartToBuilder(MultipartEntityBuilder builder, final String partKey, final Object partValue) throws UnsupportedEncodingException {
+				final String partKey   = entry.getKey();
+				final Object partValue = entry.getValue();
 
-        if (partValue instanceof ArrayList) {
+				 builder = addPartToBuilder(builder, partKey, partValue);
+			}
 
-            for (Object collectionPart : (ArrayList) partValue) {
-                builder = addPartToBuilder(builder, partKey, collectionPart);
-            }
+			HttpEntity reqEntity = builder.build();
+			req.setEntity(reqEntity);
 
-        } else if (partValue instanceof AbstractFile) {
+			final CloseableHttpResponse response = client.execute(req);
 
-            builder = this.addInputStreamToMultiPartBuilder(builder, (AbstractFile) partValue, partKey);
+			String content = IOUtils.toString(response.getEntity().getContent(), HttpHelper.charset(response));
 
-        } else {
+			content = HttpHelper.skipBOMIfPresent(content);
 
-            builder.addPart(partKey, new StringBody((String) partValue));
-        }
+			responseData.put(HttpHelper.FIELD_BODY, content);
+			responseData.put(HttpHelper.FIELD_STATUS, Integer.toString(response.getStatusLine().getStatusCode()));
+			responseData.put(HttpHelper.FIELD_HEADERS, HttpHelper.getHeadersAsMap(response));
 
-        return builder;
-    }
+		} catch (final Throwable t) {
 
-    private Map<String, String> postMultiPart(final ActionContext ctx, final String address, final Map<String, Object> parts, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
+			logger.error("Unable to issue POST request to address {}, {}", address, t.getMessage());
+			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
+		}
 
-        final Map<String, String> responseData = new HashMap<>();
+		return responseData;
+	}
 
-        try {
-            final URL url = new URL(address);
-            HttpPost httppost = new HttpPost(url.toURI());
-            MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+	// ----- documentation -----
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("url, partsMap [, responseContentType]");
+	}
 
-            CloseableHttpClient client = HttpHelper.getClient(httppost, "UTF-8", null, null, null, null, null, null, ctx.getHeaders(), false, validateCertificates);
+	@Override
+	public List<Parameter> getParameters() {
 
-            for (Map.Entry<String, Object> entry : parts.entrySet()) {
-                final String partKey = entry.getKey();
-                final Object partValue = entry.getValue();
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("partsMap", "map with multipart parts (type, content)"),
+			Parameter.optional("responseContentType", "expected content type of the response body")
+		);
+	}
 
-                 builder = addPartToBuilder(builder, partKey, partValue);
-            }
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${POST_multiPart(URL, partsMap [, responseContentType])}. Example: ${POST_multiPart('http://localhost:8082/structr/upload', { name: \"Test\", file: first(find(\"AbstractFile\", \"name\", \"TestFile.txt\")) })}"),
+			Usage.javaScript("Usage: ${{ $.POSTMultiPart(URL, partsMap[, responseContentType]) }}. Example: ${{ $.POSTMultiPart('http://localhost:8082/structr/rest/folders', { name: \"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")[0] }) }}")
+		);
+	}
 
-            HttpEntity reqEntity = builder.build();
-            httppost.setEntity(reqEntity);
+	@Override
+	public String getShortDescription() {
+		return "Sends a multi-part HTTP POST request to the given URL and returns the response body.";
+	}
 
-            final CloseableHttpResponse response = client.execute(httppost);
+	@Override
+	public String getLongDescription() {
+		return """
+			This function can be used in a script to make a multi-part HTTP POST request **from within the Structr Server**, triggered by a frontend control like a button etc.
 
-            String content = IOUtils.toString(response.getEntity().getContent(), HttpHelper.charset(response));
+			The `POST()` function will return a response object containing the response headers, body and status code. The object has the following structure:
 
-            content = HttpHelper.skipBOMIfPresent(content);
+			| Field | Description | Type |
+			| --- | --- | --- |
+			status | HTTP status of the request | Integer |
+			headers | Response headers | Map |
+			body | Response body | Map or String |
 
-            responseData.put("body", content);
+			The configMap parameter can be used to configure the timeout and redirect behaviour (e.g. config = { timeout: 60, redirects: true } ). By default there is not timeout and redirects are not followed.
+			""";
+	}
 
-            responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
-            for (final Header header : response.getAllHeaders()) {
-
-                responseData.put(header.getName(), header.getValue());
-            }
-
-        } catch (final Throwable t) {
-
-            logger.error("Unable to issue POST request to address {}, {}", new Object[] { address, t.getMessage() });
-            throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
-        }
-
-        return responseData;
-    }
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `POST()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls."
+		);
+	}
 }

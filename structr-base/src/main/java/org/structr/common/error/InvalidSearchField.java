@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,12 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates an invalid search field.
- *
- *
  */
 public class InvalidSearchField extends SemanticErrorToken {
 
-	public InvalidSearchField(final String type, final PropertyKey key) {
-		super(type, key, "invalid_search_key");
+	public InvalidSearchField(final String type, final String propertyKey) {
+		super(type, propertyKey, "invalid_search_key");
 	}
 }

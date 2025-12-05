@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,4 +21,5 @@ package org.structr.rest.common;
 public interface StatsCallback {
 
 	void recordStatsValue(final String key, final String source, final long milliseconds);
+	void recordStatsValue(final String key, final String source, final long milliseconds, final boolean aggregateOnly);
 }

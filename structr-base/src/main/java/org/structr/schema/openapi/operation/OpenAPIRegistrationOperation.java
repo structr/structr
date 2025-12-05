@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.schema.openapi.operation;
 
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -58,9 +59,9 @@ public class OpenAPIRegistrationOperation extends LinkedHashMap<String, Object> 
 			new OpenAPIRequestResponse(
 				"Request body",
 				new OpenAPIObjectSchema(
-					new OpenAPIPrimitiveSchema("E-mail address of new user", "eMail", "string")
+					new OpenAPIPrimitiveSchema("E-mail address of new user", PrincipalTraitDefinition.EMAIL_PROPERTY, "string")
 				),
-				Map.of("eMail", "new-user@example.com")
+				Map.of(PrincipalTraitDefinition.EMAIL_PROPERTY, "new-user@example.com")
 			),
 
 			// responses

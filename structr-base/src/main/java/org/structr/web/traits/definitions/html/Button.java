@@ -1,0 +1,78 @@
+/*
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.web.traits.definitions.html;
+
+import org.structr.common.PropertyView;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitsInstance;
+
+import java.util.Map;
+import java.util.Set;
+
+public class Button extends GenericHtmlElementTraitDefinition {
+
+	public static final String AUTOFOCUS_PROPERTY      = getPrefixedHTMLAttributeName("autofocus");
+	public static final String DISABLED_PROPERTY       = getPrefixedHTMLAttributeName("disabled");
+	public static final String FORM_PROPERTY           = getPrefixedHTMLAttributeName("form");
+	public static final String FORMACTION_PROPERTY     = getPrefixedHTMLAttributeName("formaction");
+	public static final String FORMENCTYPE_PROPERTY    = getPrefixedHTMLAttributeName("formenctype");
+	public static final String FORMMETHOD_PROPERTY     = getPrefixedHTMLAttributeName("formmethod");
+	public static final String FORMNOVALIDATE_PROPERTY = getPrefixedHTMLAttributeName("formnovalidate");
+	public static final String FORMTARGET_PROPERTY     = getPrefixedHTMLAttributeName("formtarget");
+	public static final String TYPE_PROPERTY           = getPrefixedHTMLAttributeName("type");
+	public static final String VALUE_PROPERTY          = getPrefixedHTMLAttributeName("value");
+
+	public Button() {
+		super(StructrTraits.BUTTON);
+	}
+
+	@Override
+	public Set<PropertyKey> createPropertyKeys(TraitsInstance traitsInstance) {
+
+		final PropertyKey<String> autofocusProperty      = new StringProperty(AUTOFOCUS_PROPERTY);
+		final PropertyKey<String> disabledProperty       = new StringProperty(DISABLED_PROPERTY);
+		final PropertyKey<String> formProperty           = new StringProperty(FORM_PROPERTY);
+		final PropertyKey<String> formactionProperty     = new StringProperty(FORMACTION_PROPERTY);
+		final PropertyKey<String> formenctypeProperty    = new StringProperty(FORMENCTYPE_PROPERTY);
+		final PropertyKey<String> formmethodProperty     = new StringProperty(FORMMETHOD_PROPERTY);
+		final PropertyKey<String> formnovalidateProperty = new StringProperty(FORMNOVALIDATE_PROPERTY);
+		final PropertyKey<String> formtargetProperty     = new StringProperty(FORMTARGET_PROPERTY);
+		final PropertyKey<String> typeProperty           = new StringProperty(TYPE_PROPERTY);
+		final PropertyKey<String> valueProperty          = new StringProperty(VALUE_PROPERTY);
+
+		return newSet(
+			autofocusProperty, disabledProperty, formProperty, formactionProperty, formenctypeProperty,
+			formmethodProperty, formnovalidateProperty, formtargetProperty, typeProperty, valueProperty
+		);
+	}
+
+	@Override
+	public Map<String, Set<String>> getViews() {
+
+		return Map.of(
+			PropertyView.Html,
+			newSet(
+					AUTOFOCUS_PROPERTY, DISABLED_PROPERTY, FORM_PROPERTY, FORMACTION_PROPERTY, FORMENCTYPE_PROPERTY,
+					FORMMETHOD_PROPERTY, FORMNOVALIDATE_PROPERTY, FORMTARGET_PROPERTY, TYPE_PROPERTY, VALUE_PROPERTY
+			)
+		);
+	}
+}

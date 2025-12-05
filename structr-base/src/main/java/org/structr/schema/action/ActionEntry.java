@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,6 @@
 package org.structr.schema.action;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.schema.CodeSource;
-import org.structr.schema.SourceFile;
-import org.structr.schema.SourceLine;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -43,7 +40,6 @@ public class ActionEntry implements Comparable<ActionEntry> {
 	private boolean doExport                     = false;
 	private boolean overrides                    = false;
 	private boolean callSuper                    = false;
-	private CodeSource codeSource                = null;
 	private String returnType                    = null;
 	private String call                          = null;
 	private String name                          = null;
@@ -88,6 +84,12 @@ public class ActionEntry implements Comparable<ActionEntry> {
 			this.name = "afterModification";
 			this.type = Actions.Type.AfterSave;
 			positionOffset = 12;
+
+		} else if (sourceName.startsWith("___onNodeCreation")) {
+
+			this.name = "onNodeCreation";
+			this.type = Actions.Type.OnNodeCreation;
+			positionOffset = 17;
 
 		} else if (sourceName.startsWith("___onCreate")) {
 
@@ -147,10 +149,6 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.call = value;
 	}
 
-	public void setCodeSource(final CodeSource codeSource) {
-		this.codeSource = codeSource;
-	}
-
 	public void setReturnType(final String returnType) {
 		this.returnType = returnType;
 	}
@@ -205,62 +203,6 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 	public boolean isStatic() {
 		return isStatic;
-	}
-
-	public void getSource(final SourceFile sourceFile, final String objVariable, final String securityContextVariable, final boolean includeModifications) {
-		getSource(sourceFile, objVariable, securityContextVariable, false, includeModifications);
-	}
-
-	public void getSource(final SourceFile sourceFile, final String objVariable, final boolean includeParameters, final boolean includeModifications) {
-
-		getSource(sourceFile, objVariable, "arg0", includeParameters, includeModifications);
-	}
-
-	public void getSource(final SourceFile sourceFile, final String objVariable, final String securityContextVariable, final boolean includeParameters, final boolean includeModifications) {
-
-		if (Actions.Type.Java.equals(type)) {
-
-			if (StringUtils.isNotBlank(call)) {
-
-				final SourceLine line = sourceFile.line(codeSource, call);
-
-				final String trimmed = call.trim();
-				if (!trimmed.endsWith(";") &&  !trimmed.endsWith("}")) {
-
-					line.append(";");
-				}
-			}
-
-			if (!"void".equals(returnType) && (StringUtils.isBlank(call) || Actions.Type.Custom.equals(getType()))) {
-
-				sourceFile.line(codeSource, "return null;");
-			}
-
-		} else {
-
-			final String methodName = this.type.equals(Actions.Type.Custom) ? this.name : this.type.getLogName();
-			final SourceLine line   = sourceFile.line(codeSource, Actions.class.getSimpleName());
-			line.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", ");
-			line.append("SchemaMethod.getCachedSourceCode(\"");
-			line.append(codeSource.getUuid());
-			line.append("\")");
-
-			if (includeParameters) {
-				line.append(", parameters");
-			}
-
-			line.append(", \"");
-			line.append(methodName);
-			line.append("\"");
-
-			if (includeModifications) {
-				line.append(", arg2");
-			}
-
-			line.append(", \"");
-			line.append(codeSource.getUuid());
-			line.append("\");");
-		}
 	}
 
 	@Override

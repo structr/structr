@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,31 +18,34 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GetWCSDataFunction extends AbstractGeoserverFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWCSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: get_wcs_data(baseUrl, coverageId, boundingBox, min, max)";
+	public static final String ERROR_MESSAGE = "usage: getWcsData(baseUrl, coverageId, boundingBox, min, max)";
 
 	@Override
 	public String getName() {
-		return "get_wcs_data";
+		return "getWcsData";
 	}
 
 	@Override
-	public String getSignature() {
-		return "baseUrl, coverageId, bBox, min, max";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("baseUrl, coverageId, bBox, min, max");
 	}
 
 	@Override
@@ -84,12 +87,18 @@ public class GetWCSDataFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Reads coverage data from a WCS endpoint and returns it";
+	public String getShortDescription() {
+		return "Reads coverage data from a WCS endpoint and returns it.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

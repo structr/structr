@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,21 +22,24 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
+import org.structr.docs.Example;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class GetCacheValueFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET_CACHE_VALUE    = "Usage: ${get_cache_value(cacheKey)}. Example: ${get_cache_value('mykey')}";
-	public static final String ERROR_MESSAGE_GET_CACHE_VALUE_JS = "Usage: ${{ Structr.get_cache_value(cacheKey); }}. Example: ${{ Structr.get_cache_value('mykey'); }}";
-
 	@Override
 	public String getName() {
-		return "get_cache_value";
+		return "getCacheValue";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override
@@ -48,7 +51,7 @@ public class GetCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
-			logger.warn("get_cache_value() is deprecated and will be removed in a future version.");
+			logger.warn("getCacheValue() is deprecated and will be removed in a future version.");
 			return CacheExpression.getCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
@@ -60,12 +63,36 @@ public class GetCacheValueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return inJavaScriptContext ? ERROR_MESSAGE_GET_CACHE_VALUE_JS : ERROR_MESSAGE_GET_CACHE_VALUE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getCacheValue(cacheKey)}. Example: ${getCacheValue('mykey')}"),
+			Usage.javaScript("Usage: ${{ $.getCacheValue(cacheKey); }}. Example: ${{ $.getCacheValue('mykey'); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Retrieves the cached value for the given key. Returns null if no cached value exists.";
+	public String getShortDescription() {
+		return "Retrieves the cached value for the given key.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Returns null if there is no stored value for the given key or if the stored value is expired.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getCacheValue('externalResult')}"),
+				Example.javaScript("${{ $.getCacheValue('externalResult') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "cache key")
+		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,20 +26,19 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Localization;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.LocalizationTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class LocalizeFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_LOCALIZE    = "Usage: ${localize(key[, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}";
-	public static final String ERROR_MESSAGE_LOCALIZE_JS = "Usage: ${{Structr.localize(key[, domain])}}. Example ${{Structr.localize('HELLO_WORLD', 'myDomain')}}";
 
 	@Override
 	public String getName() {
@@ -47,8 +46,8 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key [, domain ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("keyOrKeys [, domain ]");
 	}
 
 	@Override
@@ -60,9 +59,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 			final String domain = (sources.length == 1) ? null : sources[1].toString();
 
-			if (sources[0] instanceof List) {
-
-				final List toLocalizeList = (List)sources[0];
+			if (sources[0] instanceof List toLocalizeList) {
 
 				return getLocalizedList(ctx, caller, toLocalizeList, domain);
 
@@ -71,7 +68,6 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 				final String toLocalize = sources[0].toString();
 
 				return getLocalization(ctx, caller, toLocalize, domain);
-
 			}
 
 		} catch (ArgumentNullException pe) {
@@ -105,18 +101,77 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOCALIZE_JS : ERROR_MESSAGE_LOCALIZE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${localize(keyOrKeys [, domain])}. Example ${localize('HELLO_WORLD', 'myDomain')}"),
+			Usage.javaScript("Usage: ${{ $.localize(keyOrKeys [, domain]); }}. Example ${{ $.localize('HELLO_WORLD', 'myDomain'); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a (cached) Localization result for the given key and optional domain";
+	public String getShortDescription() {
+		return "Returns a (cached) Localization result for the given key and optional domain.";
 	}
 
-	public static List getLocalizedList(final ActionContext ctx, final Object caller, final List<String> keyList, final String domain) throws FrameworkException {
+	@Override
+	public String getLongDescription() {
+		return """
+				The `localize()` function can be used to localize a key or a list of keys. It uses the current `locale` (see keyword locale) to search for nodes of type `Localization` in the database. This lookup works in multiple steps. If a Localization object is found, the process is stopped and the result returned. If no localization is found, the search key itself is returned.
 
-		final ArrayList<GraphObjectMap> resultList = new ArrayList();
+				1. find localization with exact match on key, given domain and full locale
+				2. find localization with exact match on key, no domain and full locale
+				3. find localization with exact match on key, given domain and language part of locale only
+				4. find localization with exact match on key, no domain and language part of locale  only
+				5. If defined and active via structr.conf, restart steps 1-4 with the fallback locale:
+					- `%s` = enable/disable use of the fallback locale
+					- `%s` = the fallback locale
+
+				If after step 4 no localization is found, the input parameters are logged if the configuration entry `%s` in structr.conf is enabled.
+
+				If the first parameter is a single key, the return value is a string. If it is a collection of keys, the return value is a list of objects with keys "name" and "localizedName".
+				""".formatted(Settings.useFallbackLocale.getKey(), Settings.fallbackLocale.getKey(), Settings.logMissingLocalizations.getKey());
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("keyOrKeys", "string or list of keys to localize"),
+				Parameter.optional("domain", "localization domain to use for lookup")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${localize('Hello', 'Formal')}", "Salutation for the current locale in the 'Formal' domain"),
+				Example.html("""
+					<input type="text" name="username" placeholder="${localize('username')}...">
+
+					// if the current locale is en_US
+					<input type="text" name="username" placeholder="Username...">
+
+					// if the current locale is de_DE
+					<input type="text" name="username" placeholder="Benutzername...">
+					""", "HTML input field with a localized placeholder"),
+				Example.javaScript("""
+						${{
+							$.localize(['Hello', 'Goodbye']);
+
+							/*
+								// if the current locale is en_US
+								[{name: "Hello", localizedName: "Hi"}, {name: "Goodbye", localizedName: "Bye"}]
+
+								// if the current locale is de_DE
+								[{name: "Hello", localizedName: "Hallo"}, {name: "Goodbye", localizedName: "Auf Wiedersehen"}]
+							*/
+						}}
+						""", "Localization of multiple keys at once")
+		);
+	}
+
+	public static List<GraphObjectMap> getLocalizedList(final ActionContext ctx, final Object caller, final List<String> keyList, final String domain) throws FrameworkException {
+
+		final ArrayList<GraphObjectMap> resultList = new ArrayList<>();
 
 		for (final String key : keyList) {
 
@@ -195,14 +250,12 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 					}
 				}
 
-				if (value != null) {
-
-					cacheValue(cacheKey, value);
-
-				} else {
+				if (value == null) {
 
 					value = requestedKey;
 				}
+
+				cacheValue(cacheKey, value);
 			}
 		}
 
@@ -224,7 +277,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		final String fullLocale   = locale.toString();
 		final String lang         = locale.getLanguage();
 		final String finalDomain  = (requestedDomain == null) ? "" : requestedDomain;
-		Localization result = null;
+		NodeInterface result      = null;
 
 		// find localization with exact key, domain and (full) locale
 		if (result == null) { result = getLocalizationFromDatabase(requestedKey, finalDomain, fullLocale); }
@@ -242,7 +295,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 		if (result != null) {
 
-			value = result.getProperty(StructrApp.key(Localization.class, "localizedName"));
+			value = result.getProperty(result.getTraits().key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 		}
 
 		ctx.getContextStore().addRequestedLocalization(caller, requestedKey, finalDomain, fullLocale, result);
@@ -283,15 +336,17 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		localizationCache.put(cacheKey, value);
 	}
 
-	private static Localization getLocalizationFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
+	private static NodeInterface getLocalizationFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
 
-		final PropertyKey<String> domainKey        = StructrApp.key(Localization.class, "domain");
-		final PropertyKey<String> localeKey        = StructrApp.key(Localization.class, "locale");
+		final Traits traits                 = Traits.of(StructrTraits.LOCALIZATION);
+		final PropertyKey<String> nameKey   = traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+		final PropertyKey<String> domainKey = traits.key(LocalizationTraitDefinition.DOMAIN_PROPERTY);
+		final PropertyKey<String> localeKey = traits.key(LocalizationTraitDefinition.LOCALE_PROPERTY);
 
-		final List<Localization> localizations = StructrApp.getInstance().nodeQuery(Localization.class)
-			.and(Localization.name,   key)
-			.and(domainKey, domain)
-			.and(localeKey, locale)
+		final List<NodeInterface> localizations = StructrApp.getInstance().nodeQuery(StructrTraits.LOCALIZATION)
+			.key(nameKey,   key)
+			.key(domainKey, domain)
+			.key(localeKey, locale)
 			.getAsList();
 
 		// nothing found
@@ -312,7 +367,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	private static String getLocalizedNameFromDatabase(final String key, final String domain, final String locale) throws FrameworkException {
 
-		final Localization localization = getLocalizationFromDatabase(key, domain, locale);
+		final NodeInterface localization = getLocalizationFromDatabase(key, domain, locale);
 
 		// nothing found
 		if (localization == null) {
@@ -320,7 +375,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		}
 
 		// return first
-		return localization.getProperty(StructrApp.key(Localization.class, "localizedName"));
+		return localization.getProperty(localization.getTraits().key(LocalizationTraitDefinition.LOCALIZED_NAME_PROPERTY));
 	}
 
 }

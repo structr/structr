@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,69 +18,56 @@
  */
 package org.structr.web.entity.event;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
-import java.net.URI;
+import java.util.Map;
 
 public interface ActionMapping extends NodeInterface {
 
-	static class Impl { static {
+	String getEvent();
+	String getAction();
+	String getMethod();
+	String getFlow();
+	String getDataType();
+	String getIdExpression();
+	String getOptions();
 
-		final JsonSchema schema               = SchemaService.getDynamicSchema();
-		final JsonObjectType type             = schema.addType("ActionMapping");
-		final JsonObjectType parameterMapping = schema.addType("ParameterMapping");
-		final JsonObjectType domNode          = schema.addType("DOMNode");
-		final JsonObjectType domElement       = schema.addType("DOMElement");
+	String getDialogType();
+	String getDialogTitle();
+	String getDialogText();
 
-		//type.setIsAbstract();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ActionMapping"));
-		type.setExtends(URI.create("#/definitions/NodeInterface"));
+	void setAction(final String action) throws FrameworkException;
+	void setMethod(final String method) throws FrameworkException;
+	void setSuccessBehaviour(final String successBehaviour) throws FrameworkException;
+	void setFailureBehaviour(final String failureBehaviour) throws FrameworkException;
 
-		type.relate(domElement,       "TRIGGERED_BY",   Cardinality.ManyToMany, "triggeredActions",   "triggerElements");
-		type.relate(domNode,          "SUCCESS_TARGET", Cardinality.ManyToMany,"reloadingActions","successTargets");
-		type.relate(domNode,          "FAILURE_TARGET", Cardinality.ManyToMany,"failureActions",  "failureTargets");
-		type.relate(parameterMapping, "PARAMETER",      Cardinality.OneToMany, "actionMapping",   "parameterMappings");
-		type.relate(domNode,          "SUCCESS_NOTIFICATION_ELEMENT", Cardinality.ManyToMany,"successNotificationActions",   "successNotificationElements");
-		type.relate(domNode,          "FAILURE_NOTIFICATION_ELEMENT", Cardinality.ManyToMany,"failureNotificationActions", "failureNotificationElements");
+	Iterable<ParameterMapping> getParameterMappings();
+	Iterable<DOMElement> getTriggerElements();
+	Iterable<DOMNode> getSuccessTargets();
+	Iterable<DOMNode> getFailureTargets();
+	Iterable<DOMNode> getSuccessNotificationElements();
+	Iterable<DOMNode> getFailureNotificationElements();
 
-		type.addViewProperty(PropertyView.Ui, "triggerElements");
-		type.addViewProperty(PropertyView.Ui, "successTargets");
-		type.addViewProperty(PropertyView.Ui, "failureTargets");
-		type.addViewProperty(PropertyView.Ui, "parameterMappings");
-		type.addViewProperty(PropertyView.Ui, "successNotificationElements");
-		type.addViewProperty(PropertyView.Ui, "failureNotificationElements");
+	String getSuccessNotifications();
+	String getSuccessBehaviour();
+	String getSuccessPartial();
+	String getSuccessURL();
+	String getSuccessEvent();
+	String getSuccessNotificationsPartial();
+	String getSuccessNotificationsEvent();
+	Integer getSuccessNotificationsDelay();
 
-		type.addStringProperty("event",            PropertyView.Ui).setHint("DOM event which triggers the action");
-		type.addStringProperty("action",           PropertyView.Ui).setHint("Action which will be triggered");
-		type.addStringProperty("method",           PropertyView.Ui).setHint("Name of method to execute when triggered action is 'method'");
-		type.addStringProperty("dataType",         PropertyView.Ui).setHint("Data type for create action");
-		type.addStringProperty("idExpression",     PropertyView.Ui).setHint("Script expression that evaluates to the id of the object the method should be executed on");
+	String getFailureNotifications();
+	String getFailureBehaviour();
+	String getFailurePartial();
+	String getFailureURL();
+	String getFailureEvent();
+	String getFailureNotificationsPartial();
+	String getFailureNotificationsEvent();
+	Integer getFailureNotificationsDelay();
 
-		type.addStringProperty("successNotifications",        PropertyView.Ui).setHint("Notifications after successful execution of action");
-		type.addStringProperty("successNotificationsPartial", PropertyView.Ui).setHint("CSS selector for partial to display as success notification");
-		type.addStringProperty("successNotificationsEvent",   PropertyView.Ui).setHint("Event to raise for success notifications");
-
-		type.addStringProperty("failureNotifications",        PropertyView.Ui).setHint("Notifications after failed execution of action");
-		type.addStringProperty("failureNotificationsPartial", PropertyView.Ui).setHint("CSS selector for partial to display as failure notification");
-		type.addStringProperty("failureNotificationsEvent",   PropertyView.Ui).setHint("Event to raise for failure notifications");
-
-		type.addStringProperty("successBehaviour", PropertyView.Ui).setHint("Behaviour after successful execution of action");
-		type.addStringProperty("successPartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on success");
-		type.addStringProperty("successURL",       PropertyView.Ui).setHint("URL to navigate to on success");
-		type.addStringProperty("successEvent",     PropertyView.Ui).setHint("Event to raise on success");
-
-
-		type.addStringProperty("failureBehaviour", PropertyView.Ui).setHint("Behaviour after failed execution of action");
-		type.addStringProperty("failurePartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on failure");
-		type.addStringProperty("failureURL",       PropertyView.Ui).setHint("URL to navigate to on failure");
-		type.addStringProperty("failureEvent",     PropertyView.Ui).setHint("Event to raise on failure");
-
-	}}
-
-
+	NodeInterface cloneActionMapping(final Map<String, DOMNode> mapOfClonedNodes) throws FrameworkException;
 }

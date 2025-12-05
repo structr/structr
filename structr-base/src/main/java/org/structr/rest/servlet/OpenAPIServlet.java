@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,9 +33,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
@@ -241,7 +242,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		for (final StructrTypeDefinition type : schema.getTypeDefinitions()) {
 
-			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI())) {
+			if (type.isSelected(tag) && (StringUtils.isNotBlank(tag) && type.includeInOpenAPI() && !type.isServiceClass())) {
 
 				String summary = type.getSummary();
 				if (StringUtils.isBlank(summary)) {
@@ -274,7 +275,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		map.putAll(definitions.serializeOpenAPI(map, tag));
 
 		// base classes
-		map.put("AbstractNode", new OpenAPIStructrTypeSchemaOutput(AbstractNode.class, PropertyView.Public, 0));
+		map.put(StructrTraits.NODE_INTERFACE, new OpenAPIStructrTypeSchemaOutput(StructrTraits.NODE_INTERFACE, PropertyView.Public, 0));
+		map.put(StructrTraits.USER,          new OpenAPIStructrTypeSchemaOutput(StructrTraits.USER,          PropertyView.Public, 0));
 
 		// base responses for GET and PUT,POST operations
 		Map<String, Object> getResponseBaseSchema = new HashMap<>();
@@ -339,12 +341,12 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		map.put("UsernameLoginBody", new OpenAPIObjectSchema("Requestbody for login or token creation requests with username and password.",
 				new OpenAPIPrimitiveSchema("Username of user to log in.", "name",     "string"),
-				new OpenAPIPrimitiveSchema("Password of the user.",       "password", "string")
+				new OpenAPIPrimitiveSchema("Password of the user.",       PrincipalTraitDefinition.PASSWORD_PROPERTY, "string")
 		));
 
 		map.put("EMailLoginBody", new OpenAPIObjectSchema("Requestbody for login or token creation requests with eMail and password.",
-				new OpenAPIPrimitiveSchema("eMail of user to log in.", "eMail",    "string"),
-				new OpenAPIPrimitiveSchema("Password of the user.",    "password", "string")
+				new OpenAPIPrimitiveSchema("eMail of user to log in.", PrincipalTraitDefinition.EMAIL_PROPERTY,    "string"),
+				new OpenAPIPrimitiveSchema("Password of the user.",    PrincipalTraitDefinition.PASSWORD_PROPERTY, "string")
 		));
 
 		map.put("RefreshTokenLoginBody", new OpenAPIObjectSchema("Requestbody for login or token creation requests with refresh_token.",
@@ -378,7 +380,6 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			paths.putAll(new OpenAPIMaintenanceOperationSetNodeProperties());
 			paths.putAll(new OpenAPIMaintenanceOperationSetRelationshipProperties());
 			paths.putAll(new OpenAPIMaintenanceOperationSetUuid());
-			paths.putAll(new OpenAPIMaintenanceOperationSnapshot());
 			paths.putAll(new OpenAPIMaintenanceOperationSync());
 
 			// Note: if you change / add something here, please also update the docs online!
@@ -491,7 +492,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 		parameters.put("page",               new OpenAPIQueryParameter("_page",     "Page number of the results to fetch.", Map.of("type", "integer", "default", 1)));
 		parameters.put("pageSize",           new OpenAPIQueryParameter("_pageSize", "Page size of result pages.",           Map.of("type", "integer")));
-		parameters.put("inexactSearch",      new OpenAPIQueryParameter("_loose",    "Use inexact search",                   Map.of("type", "boolean", "default", false)));
+		parameters.put("inexactSearch",      new OpenAPIQueryParameter("_inexact",  "Use inexact search",                   Map.of("type", "boolean", "default", false)));
 		parameters.put("outputNestingDepth", new OpenAPIQueryParameter("_outputNestingDepth",     "Depth in the graph of the JSON output rendering. Does not work with the all view.", Map.of("type", "integer", "default", 3)));
 
 		return parameters;

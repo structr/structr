@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -48,11 +48,11 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 	private QueryTimer queryTimer             = null;
 	private BoltDatabaseService db            = null;
 	private ResultCursor cursor               = null;
-	private AdvancedCypherQuery query         = null;
+	private CypherQuery query                 = null;
 	private Throwable throwable               = null;
 	private boolean isClosed                  = false;
 
-	public IterableQueueingRecordConsumer(final BoltDatabaseService db, final AdvancedCypherQuery query) {
+	public IterableQueueingRecordConsumer(final BoltDatabaseService db, final CypherQuery query) {
 
 		this.queryTimer = query.getQueryTimer();
 		this.query      = query;
@@ -61,7 +61,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 	public void start() {
 
-		final String statement = query.getStatement(true);
+		final String statement = query.getStatement();
 
 		if (queryTimer != null) {
 			queryTimer.started(statement);
@@ -70,7 +70,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 		final SessionTransaction tx = db.getCurrentTransaction();
 
 		tx.setIsPing(query.getQueryContext().isPing());
-		tx.collectRecords(statement, query.getParameters(), this);
+		tx.collectRecords(query, this);
 
 		started.set(true);
 
@@ -170,7 +170,7 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 				final SessionTransaction tx = db.getCurrentTransaction(false);
 				if (tx != null && !tx.isClosed()) {
 
-					tx.collectRecords(query.getStatement(true), query.getParameters(), this);
+					tx.collectRecords(query, this);
 				}
 			}
 
@@ -181,15 +181,13 @@ public class IterableQueueingRecordConsumer implements Iterable<Record>, Iterato
 
 				logger.warn("#######################################################################################################");
 				logger.warn("IterableQueueingRecordConsumer waited for 1 minute, aborting");
-				logger.warn("statement:  {}", query.getStatement(true));
+				logger.warn("statement:  {}", query.getStatement());
 				logger.warn("parameters: {}", query.getParameters());
 				logger.warn("throwable:  {}", throwable);
 				logger.warn("finished:   {}", finished.get());
 				logger.warn("added:      {}", added.get());
 				logger.warn("queue:      {}", queue);
 				logger.warn("#######################################################################################################");
-
-				query.setTimeoutViolated();
 
 				return false;
 			}

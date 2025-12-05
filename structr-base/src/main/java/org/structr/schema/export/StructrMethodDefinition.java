@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,11 +32,17 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
+import org.structr.core.graph.MigrationService;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
-import org.structr.schema.openapi.operation.OpenAPIGlobalSchemaMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
+import org.structr.schema.openapi.operation.OpenAPIUserDefinedFunctionOperation;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -55,7 +61,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrMethodDefinition.class.getName());
 
-	private final Set<String> OpenAPIMethodNameBlacklist      = Set.of("onCreate", "onSave", "onDelete", "afterCreate");
 	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
 	private final List<String> exceptions                     = new LinkedList<>();
 	private final Set<String> tags                            = new TreeSet<>();
@@ -65,7 +70,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean doExport                                  = false;
 	private boolean callSuper                                 = false;
 	private boolean isStatic                                  = false;
+	private boolean isPrivate                                 = false;
+	private boolean returnRawResult                           = false;
 	private JsonType parent                                   = null;
+	private String httpVerb                                   = "POST";
 	private String returnType                                 = null;
 	private String openAPIReturnType                          = null;
 	private String codeType                                   = null;
@@ -125,7 +133,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	public String getUniqueName() {
-		return name + "." + this.parameters.size();
+		return name;
 	}
 
 	@Override
@@ -233,6 +241,39 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
+	@Override
+	public JsonMethod setIsPrivate(final boolean isPrivate) {
+		this.isPrivate = isPrivate;
+		return this;
+	}
+
+	@Override
+	public boolean returnRawResult() {
+		return returnRawResult;
+	}
+
+	@Override
+	public JsonMethod setReturnRawResult(final boolean returnRawResult) {
+		this.returnRawResult = returnRawResult;
+		return this;
+	}
+
+	@Override
+	public JsonMethod setHttpVerb(final String httpVerb) {
+		this.httpVerb = httpVerb;
+		return this;
+	}
+
+	@Override
+	public String getHttpVerb() {
+		return httpVerb;
+	}
+
+	@Override
 	public boolean overridesExisting() {
 		return overridesExisting;
 	}
@@ -315,42 +356,58 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
-		int index                               = 0;
+		final Traits traits                = Traits.of(StructrTraits.SCHEMA_METHOD);
+		final PropertyMap updateProperties = new PropertyMap();
+		SchemaMethod method                = null;
+		int index                          = 0;
 
-		getOrCreateProperties.put(SchemaMethod.name,                  getName());
-		getOrCreateProperties.put(SchemaMethod.signature,             getSignature());
-		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
-		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
-		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
-		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
-		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
-		getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
-		getOrCreateProperties.put(SchemaMethod.doExport,              doExport());
+		for (final SchemaMethod m : schemaNode.getSchemaMethodsByName(getName())) {
 
-		SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(getOrCreateProperties).getFirst();
-		if (method == null) {
+			if (getSignature().equals(m.getSignature())) {
 
-			method = app.create(SchemaMethod.class, getOrCreateProperties);
+				method = m;
+				break;
+			}
 		}
 
-		updateProperties.put(SchemaMethod.summary,               getSummary());
-		updateProperties.put(SchemaMethod.description,           getDescription());
-		updateProperties.put(SchemaMethod.source,                getSource());
-		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
-		updateProperties.put(SchemaMethod.isStatic,              isStatic());
-		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
-		updateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
+		if (method == null) {
+
+			final PropertyMap getOrCreateProperties = new PropertyMap();
+			getOrCreateProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),                  getName());
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.SIGNATURE_PROPERTY),             getSignature());
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY),              getCodeType());
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_TYPE_PROPERTY),            getReturnType());
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.SCHEMA_NODE_PROPERTY),            schemaNode);
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.EXCEPTIONS_PROPERTY),            listToArray(getExceptions()));
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.OVERRIDES_EXISTING_PROPERTY),     overridesExisting());
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.CALL_SUPER_PROPERTY),             callSuper());
+			getOrCreateProperties.put(traits.key(SchemaMethodTraitDefinition.DO_EXPORT_PROPERTY),              doExport());
+
+			method = app.create(StructrTraits.SCHEMA_METHOD, getOrCreateProperties).as(SchemaMethod.class);
+		}
+
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.SUMMARY_PROPERTY),               getSummary());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY),           getDescription());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.SOURCE_PROPERTY),                getSource());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_PART_OF_BUILT_IN_SCHEMA_PROPERTY), true);
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY),              isStatic());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY),             isPrivate());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.RETURN_RAW_RESULT_PROPERTY),       returnRawResult());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY),              getHttpVerb());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.INCLUDE_IN_OPEN_API_PROPERTY),      includeInOpenAPI());
+		updateProperties.put(traits.key(SchemaMethodTraitDefinition.OPEN_API_RETURN_TYPE_PROPERTY),     getOpenAPIReturnType());
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
-		final String[] existingTagsArray = method.getProperty(SchemaMethod.tags);
+		final String[] existingTagsArray = method.getTags();
 
 		if (existingTagsArray != null) {
 
 			mergedTags.addAll(Arrays.asList(existingTagsArray));
 		}
-		updateProperties.put(SchemaMethod.tags, mergedTags.toArray(new String[0]));
+
+		if (!mergedTags.isEmpty()) {
+			updateProperties.put(traits.key(SchemaMethodTraitDefinition.TAGS_PROPERTY), listToArray(mergedTags));
+		}
 
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
@@ -427,6 +484,24 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.isStatic = (Boolean)_isStatic;
 		}
 
+		final Object _isPrivate = source.get(JsonSchema.KEY_IS_PRIVATE);
+		if (_isPrivate != null && _isPrivate instanceof Boolean) {
+
+			this.isPrivate = (Boolean)_isPrivate;
+		}
+
+		final Object _returnRawResult = source.get(JsonSchema.KEY_RETURN_RAW_RESULT);
+		if (_returnRawResult != null && _returnRawResult instanceof Boolean) {
+
+			this.returnRawResult = (Boolean)_returnRawResult;
+		}
+
+		final Object _httpVerb = source.get(JsonSchema.KEY_HTTP_VERB);
+		if (_httpVerb != null && _httpVerb instanceof String) {
+
+			this.httpVerb = (String)_httpVerb;
+		}
+
 		final Object _overridesExisting = source.get(JsonSchema.KEY_OVERRIDES_EXISTING);
 		if (_overridesExisting != null && _overridesExisting instanceof Boolean) {
 
@@ -486,19 +561,22 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		this.schemaMethod = method;
 
 		setName(method.getName());
-		setSource(method.getProperty(SchemaMethod.source));
-		setSummary(method.getProperty(SchemaMethod.summary));
-		setDescription(method.getProperty(SchemaMethod.description));
-		setCodeType(method.getProperty(SchemaMethod.codeType));
-		setReturnType(method.getProperty(SchemaMethod.returnType));
-		setCallSuper(method.getProperty(SchemaMethod.callSuper));
-		setIsStatic(method.getProperty(SchemaMethod.isStatic));
-		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
-		setDoExport(method.getProperty(SchemaMethod.doExport));
-		setIncludeInOpenAPI(method.getProperty(SchemaMethod.includeInOpenAPI));
-		setOpenAPIReturnType(method.getProperty(SchemaMethod.openAPIReturnType));
+		setSource(method.getSource());
+		setSummary(method.getSummary());
+		setDescription(method.getDescription());
+		setCodeType(method.getCodeType());
+		setReturnType(method.getReturnType());
+		setCallSuper(method.callSuper());
+		setIsStatic(method.isStaticMethod());
+		setIsPrivate(method.isPrivateMethod());
+		setReturnRawResult(method.returnRawResult());
+		setHttpVerb(method.getHttpVerb());
+		setOverridesExisting(method.overridesExisting());
+		setDoExport(method.doExport());
+		setIncludeInOpenAPI(method.includeInOpenAPI());
+		setOpenAPIReturnType(method.getOpenAPIReturnType());
 
-		final String[] exceptionArray = method.getProperty(SchemaMethod.exceptions);
+		final String[] exceptionArray = method.getExceptions();
 		if (exceptionArray != null) {
 
 			for (final String fqcn : exceptionArray) {
@@ -506,7 +584,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			}
 		}
 
-		for (final SchemaMethodParameter param : method.getProperty(SchemaMethod.parameters)) {
+		for (final SchemaMethodParameter param : method.getParameters()) {
 
 			final StructrParameterDefinition parameter = StructrParameterDefinition.deserialize(this, param);
 			if (parameter != null) {
@@ -519,7 +597,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			return Integer.valueOf(p1.getIndex()).compareTo(p2.getIndex());
 		});
 
-		final String[] tagArray = method.getProperty(SchemaMethod.tags);
+		final String[] tagArray = method.getTags();
 		if (tagArray != null) {
 
 			this.tags.addAll(Arrays.asList(tagArray));
@@ -539,6 +617,9 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
+		map.put(JsonSchema.KEY_IS_PRIVATE, isPrivate);
+		map.put(JsonSchema.KEY_RETURN_RAW_RESULT, returnRawResult);
+		map.put(JsonSchema.KEY_HTTP_VERB, httpVerb);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
 		map.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);
@@ -586,27 +667,75 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		final Map<String, Object> operations = new LinkedHashMap<>();
 
-		if (!OpenAPIMethodNameBlacklist.contains(getName())) {
+		if (includeInOpenAPI()) {
 
-			if (isStatic) {
+			final SchemaMethod method = this.getSchemaMethod();
 
-				operations.put("/" + getParent().getName() + "/" + getName() + "/{view}", Map.of("post", new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+			final boolean isLifecycleMethod = method.isLifecycleMethod();
+			final boolean isTypeMethod      = (parent != null);
 
+			if (!isLifecycleMethod) {
 
-			} else {
+				final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
 
-				if (parent != null) {
+				if (!isPrivate()) {
 
-					operations.put("/" + getParent().getName() + "/{uuid}/" + getName() + "/{view}", Map.of("post", new OpenAPIMethodOperation(this, parentType, viewNames)));
+					if (isTypeMethod) {
 
-				} else {
+						if (isStatic()) {
 
-					operations.put("/maintenance/globalSchemaMethods/" + getName(), Map.of("post", new OpenAPIGlobalSchemaMethodOperation(this)));
+							// send empty viewNames set so the method spec does not include the {view} parameter
+							operations.put(createPath(verb, true, false), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, Set.of())));
+
+						} else {
+
+							// send empty viewNames set so the method spec does not include the {view} parameter
+							operations.put(createPath(verb, false, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, Set.of())));
+
+						}
+
+					} else {
+
+						final String path = "/" + getName();
+
+						operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
+					}
 				}
 			}
 		}
 
 		return operations;
+	}
+
+	public String createPath(final String verb, final boolean isStatic, final boolean includeView) {
+
+		final StringBuilder pathBuilder = new StringBuilder("/");
+
+		pathBuilder.append(getParent().getName());
+
+		if (!isStatic) {
+			pathBuilder.append("/{uuid}");
+		}
+
+		pathBuilder.append("/");
+		pathBuilder.append(getName());
+
+		// GET calls take their arguments from the URL
+		if ("get".equals(verb)) {
+
+			for (final JsonParameter param : this.getParameters()) {
+
+				pathBuilder.append("/{");
+				pathBuilder.append(param.getName());
+				pathBuilder.append("}");
+			}
+		}
+
+		if (includeView) {
+			pathBuilder.append("/{view}");
+		}
+
+		return pathBuilder.toString();
 	}
 
 	public boolean isSelected(final String tag) {
@@ -696,9 +825,36 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		return schema;
 	}
 
+	public List<Map<String, Object>> getOpenAPIRequestParameters(final StructrMethodDefinition method, final Set<String> viewNames) {
+
+		final String verb                    = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+		final List<Map<String, Object>> list = new LinkedList<>();
+
+		if (!method.isStatic()) {
+
+			list.add(new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true));
+		}
+
+		if ("get".equals(verb)) {
+
+			for (final JsonParameter param : this.getParameters()) {
+
+				list.add(new OpenAPIPathParameter(param.getName(), param.getDescription(), Map.of("type", param.getType()), true));
+			}
+		}
+
+		if (!viewNames.isEmpty()) {
+			list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false));
+		}
+
+		return list;
+	}
+
 	public Map<String, Object> getOpenAPIRequestBody() {
 
-		if (!getParameters().isEmpty()) {
+		final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+
+		if (!"get".equals(verb) && !getParameters().isEmpty()) {
 			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null, false);
 		}
 
@@ -719,9 +875,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			} catch (Throwable ignore) {}
 
 			return new OpenAPIResultSchema(schemaFromJsonString, false);
-			/*return new OpenAPIRequestResponse("The request was executed successfully.",
-
-			);*/
 
 		} else {
 
@@ -731,6 +884,11 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	// ----- static methods -----
 	static StructrMethodDefinition deserialize(final StructrTypeDefinition parent, final String name, final Map<String, Object> source) {
+
+		if (MigrationService.methodShouldBeRemoved(parent.getName(), name, (String) source.get(SchemaMethodTraitDefinition.CODE_TYPE_PROPERTY))) {
+
+			return null;
+		}
 
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(parent, name);
 

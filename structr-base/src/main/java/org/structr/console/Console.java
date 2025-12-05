@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,8 @@
 package org.structr.console;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.SyntaxErrorException;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
@@ -33,9 +35,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
+import org.structr.core.script.polyglot.config.ScriptConfig;
+import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.TraitsManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.CommandLineUtils;
@@ -47,11 +53,14 @@ import java.util.*;
 
 public class Console {
 
+	private static Logger logger = LoggerFactory.getLogger(Console.class);
+
 	public enum ConsoleMode {
 		Cypher, JavaScript, StructrScript, AdminShell, REST
 	};
 
 	private final Map<ConsoleMode, TabCompletionProvider> tabCompletionProviders = new HashMap<>();
+	private final TraitsInstance traitsInstance;
 	private ConsoleMode mode                                                     = null;
 	private ActionContext actionContext                                          = null;
 	private String username                                                      = null;
@@ -59,14 +68,19 @@ public class Console {
 
 	public Console(final SecurityContext securityContext, final ConsoleMode consoleMode, final Map<String, Object> parameters) {
 
-		this.actionContext = new ActionContext(securityContext, parameters);
-		this.mode          = consoleMode;
+		this.actionContext  = new ActionContext(securityContext, parameters);
+		this.traitsInstance = TraitsManager.getCurrentInstance();
+		this.mode           = consoleMode;
 
 		tabCompletionProviders.put(ConsoleMode.Cypher,        new CypherTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.JavaScript,    new JavaScriptTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.StructrScript, new StructrScriptTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.AdminShell,    new AdminTabCompletionProvider());
 		tabCompletionProviders.put(ConsoleMode.REST,          new RestTabCompletionProvider());
+	}
+
+	public boolean hasStillTheSameTraitsInstance() {
+		return TraitsManager.getCurrentInstance().isSameAs(traitsInstance);
 	}
 
 	public String runForTest(final String line) throws FrameworkException {
@@ -228,7 +242,11 @@ public class Console {
 		try (final Tx tx = app.tx()) {
 
 			final long t0                  = System.currentTimeMillis();
-			final List<GraphObject> result = Iterables.toList(app.query(line, Collections.emptyMap()));
+
+			final NativeQueryCommand nqc = app.command(NativeQueryCommand.class);
+			nqc.setRunInNewTransaction(true);
+
+			final List<GraphObject> result = Iterables.toList(nqc.execute(line));
 			final long t1                  = System.currentTimeMillis();
 			final int size                 = result.size();
 			final int maxResults           = Settings.CypherConsoleMaxResults.getValue();
@@ -239,7 +257,7 @@ public class Console {
 
 			if (size <= maxResults) {
 
-				writable.print(Functions.get("to_json").apply(actionContext, null, new Object[] { result } ));
+				writable.print(Functions.get("toJson").apply(actionContext, null, new Object[] { result } ));
 
 			} else {
 
@@ -252,6 +270,7 @@ public class Console {
 		} catch (SyntaxErrorException see) {
 
 			writable.println("Unexpected syntax error in console command. " + see.getMessage());
+			logger.error("Unexpected syntax error in console command. {}", see.getMessage());
 		}
 
 	}
@@ -294,8 +313,13 @@ public class Console {
 
 		try (final Tx tx = StructrApp.getInstance(actionContext.getSecurityContext()).tx()) {
 
-			Snippet script = new Snippet("interactive script, line ", line, false);
-			Object extractedValue = Scripting.evaluateJavascript(actionContext, null, script);
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.keepContextOpen(true)
+					.build();
+
+			Snippet script = new Snippet("console, interactive script", line, false);
+			script.setCodeSource(line);
+			Object extractedValue = Scripting.evaluateScript(actionContext, null, "js", script, scriptConfig);
 
 			if (!extractedValue.toString().isEmpty()) {
 

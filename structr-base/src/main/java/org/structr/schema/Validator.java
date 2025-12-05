@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,11 @@
 package org.structr.schema;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.graph.NodeInterface;
+import org.structr.core.GraphObject;
 
 /**
  */
-public interface Validator {
+public interface Validator<T extends GraphObject> {
 
-	boolean isValid(final NodeInterface node, final ErrorBuffer errorBuffer);
+	boolean isValid(final T obj, final ErrorBuffer errorBuffer);
 }

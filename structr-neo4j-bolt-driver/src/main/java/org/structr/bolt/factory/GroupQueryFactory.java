@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -41,14 +41,12 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 	@Override
 	public boolean createQuery(final QueryPredicate predicate, final AdvancedCypherQuery query, final boolean isFirst) {
 
-		if (predicate instanceof GroupQuery) {
-
-			final GroupQuery group   = (GroupQuery)predicate;
+		if (predicate instanceof GroupQuery group) {
 
 			// Filter type predicates since they require special handling
 			final List<QueryPredicate> predicateList               = group.getQueryPredicates();
-			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> { return p instanceof TypeQuery; }).collect(Collectors.toList());
-			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> { return !(p instanceof TypeQuery); }).collect(Collectors.toList());
+			final List<QueryPredicate> typePredicates              = predicateList.stream().filter((p) -> p instanceof TypeQuery).collect(Collectors.toList());
+			final List<QueryPredicate> attributeAndGroupPredicates = predicateList.stream().filter((p) -> !(p instanceof TypeQuery)).collect(Collectors.toList());
 
 			// Apply all type queries first as they affect as different part of the query expression
 			for (final QueryPredicate p : typePredicates) {
@@ -65,23 +63,23 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 				for (QueryPredicate p : attributeAndGroupPredicates) {
 
-					if (p instanceof GroupQuery) {
+					if (p instanceof GroupQuery g) {
 
-						final List<QueryPredicate> containedPredicates = ((GroupQuery)p).getQueryPredicates();
-						if (containedPredicates.size() > 0) {
+						nonEmptyGroup = !g.isEmpty();
 
-							nonEmptyGroup = true;
-						}
 					} else {
+
 						allChildrenAreGroups = false;
 					}
 				}
 
 				if (!(allChildrenAreGroups && !nonEmptyGroup)) {
-					checkOccur(query, predicate.getOccurrence(), isFirst);
+					checkOperation(query, group.getOperation(), isFirst);
 				}
 
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
+				final boolean createGroup = attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup);
+
+				if (createGroup) {
 					query.beginGroup();
 				}
 
@@ -91,25 +89,43 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 
 				while (it.hasNext()) {
 
-					if (index.createQuery(it.next(), query, firstWithinGroup)) {
+					if (!firstWithinGroup) {
+
+						switch (group.getOperation()) {
+
+							case NOT:
+								query.and();
+								query.not();
+								break;
+							case AND:
+								query.and();
+								break;
+							case OR:
+								query.or();
+								break;
+						}
+					}
+
+					if (index.createQuery(it.next(), query, true)) {
 
 						firstWithinGroup = false;
 					}
 				}
 
-				if (attributeAndGroupPredicates.size() > 1 && !(allChildrenAreGroups && !nonEmptyGroup)) {
+				if (createGroup) {
 					query.endGroup();
 				}
 
 				if (allChildrenAreGroups && !nonEmptyGroup) {
+
 					return false;
+
 				} else {
+
 					return true;
 				}
 
 			}
-
-			return false;
 		}
 
 		return false;

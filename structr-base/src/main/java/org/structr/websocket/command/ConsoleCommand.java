@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,20 @@
  */
 package org.structr.websocket.command;
 
+import com.drew.lang.Charsets;
 import org.apache.commons.io.output.ByteArrayOutputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.helper.VersionHelper;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.console.tabcompletion.TabCompletionResult;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 import org.structr.util.Writable;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -68,20 +72,29 @@ public class ConsoleCommand extends AbstractCommand {
 		final String sessionId = webSocketData.getSessionId();
 		logger.debug("CONSOLE received from session {}", sessionId);
 
-		Console console = getWebSocket().getConsole(ConsoleMode.JavaScript);
+		final String  line                   = webSocketData.getNodeDataStringValue(LINE_KEY);
+		final String  mode                   = webSocketData.getNodeDataStringValue(MODE_KEY);
+		final Boolean completion             = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
+		final ByteArrayOutputStream out      = new ByteArrayOutputStream();
+		final OutputStreamWritable writeable = new OutputStreamWritable(out);
 
-		final String  line       = webSocketData.getNodeDataStringValue(LINE_KEY);
-		final String  mode       = webSocketData.getNodeDataStringValue(MODE_KEY);
-		final Boolean completion = webSocketData.getNodeDataBooleanValue(COMPLETION_KEY);
+		final Pair<Console, Boolean> consoleAndChangedFlag = getWebSocket().getConsole((StringUtils.isNotBlank(mode) ? ConsoleMode.valueOf(mode) : ConsoleMode.JavaScript));
+		final Console console                              = consoleAndChangedFlag.getKey();
+		final Boolean hasChanged                           = consoleAndChangedFlag.getValue();
 
-		if (StringUtils.isNotBlank(mode)) {
-			console    = getWebSocket().getConsole(ConsoleMode.valueOf(mode));
-		}
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		OutputStreamWritable writeable = new OutputStreamWritable(out);
+			tx.prefetchHint("Websocket ConsoleCommand");
 
-		try {
+			if (hasChanged) {
+
+				writeable.println("");
+				writeable.println("");
+				writeable.println("----- Note: console was reloaded because the schema has changed ----- ");
+				writeable.println("");
+				writeable.println("");
+			}
+
 			if (Boolean.TRUE.equals(completion)) {
 
 				final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
@@ -114,6 +127,8 @@ public class ConsoleCommand extends AbstractCommand {
 						.build(), true);
 			}
 
+			tx.success();
+
 		} catch (final FrameworkException ex) {
 
 			logger.debug("Error while executing console line {}", line, ex);
@@ -125,7 +140,7 @@ public class ConsoleCommand extends AbstractCommand {
 					.data(MODE_KEY, console.getMode())
 					.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
 					.data(IS_JSON_KEY, true)
-					.message(message)
+					.message(hasChanged ? out.toString(Charsets.UTF_8) + message : message)
 					.build(), true);
 
 		} catch (final IOException ex) {

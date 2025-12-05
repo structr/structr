@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,57 +27,128 @@ import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.rest.resource.MaintenanceParameterResource;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class MaintenanceModeCommand extends NodeServiceCommand implements MaintenanceCommand {
 
-    private static final Logger logger                     = LoggerFactory.getLogger(MaintenanceModeCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MaintenanceModeCommand.class.getName());
 
-    static {
+	static {
 
-        MaintenanceParameterResource.registerMaintenanceCommand("maintenanceMode", MaintenanceModeCommand.class);
-    }
+	}
 
-    @Override
-    public void execute(Map<String, Object> parameters) throws FrameworkException {
+	@Override
+	public void execute(Map<String, Object> parameters) throws FrameworkException {
 
-        final String action = (String) parameters.get("action");
-        boolean success     = false;
+		final String action = (String) parameters.get("action");
+		boolean success = false;
 
-        if ("enable".equals(action)) {
+		if ("enable".equals(action)) {
 
-            success = Services.getInstance().setMaintenanceMode(true);
+			success = Services.getInstance().setMaintenanceMode(true);
 
-        } else if ("disable".equals(action)) {
+		} else if ("disable".equals(action)) {
 
-            success = Services.getInstance().setMaintenanceMode(false);
+			success = Services.getInstance().setMaintenanceMode(false);
 
-        } else {
+		} else {
 
-            logger.warn("Unsupported action '{}'", action);
-        }
+			logger.warn("Unsupported action '{}'", action);
+		}
 
-        if (success) {
+		if (success) {
 
-            final Map<String, Object> msgData = new HashMap();
-            msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
-            msgData.put("enabled",                           Settings.MaintenanceModeEnabled.getValue());
-            msgData.put("baseUrl",                           ActionContext.getBaseUrl(securityContext.getRequest(), true));
-            TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
-        }
-    }
+			final Map<String, Object> msgData = new HashMap();
+			msgData.put(MaintenanceCommand.COMMAND_TYPE_KEY, "MAINTENANCE");
+			msgData.put("enabled", Settings.MaintenanceModeEnabled.getValue());
+			msgData.put("baseUrl", ActionContext.getBaseUrl(securityContext.getRequest(), true));
+			TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
+		}
+	}
 
-    @Override
-    public boolean requiresEnclosingTransaction() {
-        return false;
-    }
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return false;
+	}
 
-    @Override
-    public boolean requiresFlushingOfCaches() {
-        return false;
-    }
+	@Override
+	public boolean requiresFlushingOfCaches() {
+		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "maintenanceMode";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Enables or disables the maintenance mode.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		When the maintenance mode is started, the following services are shut down:
+
+		- FtpService
+		- HttpService
+		- SSHService
+		- AgentService
+		- CronService
+		- DirectoryWatchService
+		- LDAPService
+		- MailService
+
+		After a short delay, the following services are restarted on different ports:
+		- FtpService
+		- HttpService
+		- SSHService
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("action", "`enable` or `disable`")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Active processes will keep running until they are finished. If for example a cron job is running, it will not be halted. Only the services are stopped so no NEW processes are started."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
+	}
 }

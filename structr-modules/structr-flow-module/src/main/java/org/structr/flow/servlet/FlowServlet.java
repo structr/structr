@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.PropertyView;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
@@ -36,8 +37,13 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.flow.impl.FlowContainer;
+import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.servlet.JsonRestServlet;
 
@@ -46,6 +52,7 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -58,18 +65,13 @@ public class FlowServlet extends JsonRestServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		ResultStream result             = null;
 
 		setCustomResponseHeaders(response);
 
 		try {
 
 			final Map<String, Object> flowParameters = new HashMap<>();
-			final Iterable<Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
-
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -86,18 +88,21 @@ public class FlowServlet extends JsonRestServlet {
 			final App app = StructrApp.getInstance(securityContext);
 
 			// evaluate constraints and measure query time
-			double queryTimeStart    = System.nanoTime();
+			double queryTimeStart = System.nanoTime();
 
 			try (final Tx tx = app.tx()) {
 
-				final String flowName = request.getPathInfo().substring(1);
-				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, flowName).getFirst() : null;
+				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
+				final String flowName             = request.getPathInfo().substring(1);
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
 
-				if (flow != null) {
+				tx.prefetchHint("Flow " + flowName);
 
-					flowResult = flow.evaluate(securityContext, flowParameters);
+				if (flowNode != null) {
 
-					result = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
+					final FlowContainer flow          = flowNode.as(FlowContainer.class);
+					final Object flowResult           = flow.evaluate(securityContext, flowParameters);
+					ResultStream result               =  new PagingIterable<>("FlowContainer " + flow.getUuid(), List.of(flowResult));
 
 					if (returnContent) {
 
@@ -107,7 +112,7 @@ public class FlowServlet extends JsonRestServlet {
 						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-						processResult(securityContext, request, response, result, depth, false);
+						processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
 					}
 
 					response.setStatus(HttpServletResponse.SC_OK);
@@ -148,11 +153,11 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final String view, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
 
 		final App app                          = StructrApp.getInstance(securityContext);
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
-		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(propertyView, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
+		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(view, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
 
 		// isolate write output
 		try (final Tx tx = app.tx()) {
@@ -172,7 +177,7 @@ public class FlowServlet extends JsonRestServlet {
 
 	@Override
 	public String getModuleName() {
-		return "api-builder";
+		return "flow";
 	}
 
 	@Override
@@ -182,9 +187,9 @@ public class FlowServlet extends JsonRestServlet {
 
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		ResultStream result             = null;
 
 		setCustomResponseHeaders(response);
 
@@ -195,11 +200,7 @@ public class FlowServlet extends JsonRestServlet {
 
 		try {
 
-			final Iterable<Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
-
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -220,14 +221,15 @@ public class FlowServlet extends JsonRestServlet {
 
 			try (final Tx tx = app.tx()) {
 
-				final String flowName = request.getPathInfo().substring(1);
-				final FlowContainer flow = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, flowName).getFirst() : null;
+				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
+				final String flowName             = request.getPathInfo().substring(1);
+				final NodeInterface flowNode      = flowName.length() > 0 ? StructrApp.getInstance(securityContext).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, flowName).getFirst() : null;
 
-				if (flow != null) {
+				if (flowNode != null) {
 
-					flowResult = flow.evaluate(securityContext, flowParameters);
-
-					result = new PagingIterable<>("FlowContainer " + flow.getUuid(), flowResult);
+					final FlowContainer flow          = flowNode.as(FlowContainer.class);
+					final Object flowResult           = flow.evaluate(securityContext, flowParameters);
+					final ResultStream result         = new PagingIterable<>("FlowContainer " + flow.getUuid(), List.of(flowResult));
 
 					// timing..
 					double queryTimeEnd = System.nanoTime();
@@ -235,7 +237,7 @@ public class FlowServlet extends JsonRestServlet {
 					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-					processResult(securityContext, request, response, result, depth, false);
+					processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
 
 					response.setStatus(HttpServletResponse.SC_OK);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,13 +30,16 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -44,17 +47,14 @@ import java.util.*;
 
 public class ToExcelFunction extends Function<Object, Object> {
 
-	public static final String ERROR_MESSAGE_TO_EXCEL    = "Usage: ${to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${to_excel(find('Page'), 'ui')}";
-	public static final String ERROR_MESSAGE_TO_EXCEL_JS = "Usage: ${{Structr.to_excel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}}. Example: ${{Structr.to_excel(Structr.find('Page'), 'ui'))}}";
-
 	@Override
 	public String getName() {
-		return "to_excel";
+		return "toExcel";
 	}
 
 	@Override
-	public String getSignature() {
-		return "nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]");
 	}
 
 	@Override
@@ -101,7 +101,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 						if (properties.size() == 0) {
 
-							logger.info("to_excel(): Unable to create Excel if list of properties is empty - returning empty Excel");
+							logger.info("toExcel(): Unable to create Excel if list of properties is empty - returning empty Excel");
 							return "";
 						}
 
@@ -116,7 +116,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
 			if (nodes.size() == 0 && propertyView != null) {
 
-				logger.info("to_excel(): Unable to create Excel if no nodes are given - returning empty Excel");
+				logger.info("toExcel(): Unable to create Excel if no nodes are given - returning empty Excel");
 				return "";
 			}
 
@@ -131,7 +131,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 			} catch (Throwable t) {
 
-				logger.warn("to_excel(): Exception occurred", t);
+				logger.warn("toExcel(): Exception occurred", t);
 				return "";
 			}
 
@@ -143,13 +143,88 @@ public class ToExcelFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_EXCEL_JS : ERROR_MESSAGE_TO_EXCEL);
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]])}. Example: ${toExcel(find('Page'), 'ui')}"),
+				Usage.javaScript("Usage: ${{ $.toExcel(nodes, propertiesOrView[, includeHeader[, localizeHeader[, headerLocalizationDomain[, maxCellLength[, overflowMode]]]]]); }}. Example: ${{ $.toExcel($.find('Page'), 'ui')); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Creates Excel from given data";
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("nodes", "Collection of objects (these objects can be database nodes or javascript objects)"),
+				Parameter.mandatory("propertiesOrView", "Name of a view (e.g. ui or public) or a collection of property names (e.g. `merge('id', 'name')` in StructrScript or `['id', 'name']` in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used."),
+				Parameter.optional("includeHeader", "Switch indicating if a header row should be printed (default: `true`)"),
+				Parameter.optional("localizeHeader", "Switch indicating if the column names in the header should be localized (default: `false`)"),
+				Parameter.optional("headerLocalizationDomain", "lookup domain for localization of header names"),
+				Parameter.optional("maxCellLength", "maximum length after which content cells are truncated"),
+				Parameter.optional("overflowMode",
+						"Controls how content that is longer than maxCellLength is handled (affects content-rows only - the header remains untouched)"
+								+ "<p>`t`: Truncates the content at maxCellLength<br>"
+								+ "`o` (default): Overflows the remaining text after maxCellLength into a cell comment. (This is restricted to 32767 bytes by Excel)</p>"
+								+ "Any other value is used as is as a cell comment. This is useful to display a message like \"The content of this cell has been truncated\".")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Creates Excel from given data.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Returns XLSX string representation of the given collection of objects with the configured header view/columns.";
+	}
+
+	@Override
+	public List<Example>getExamples() {
+		return List.of(
+				Example.structrScript("${setContent(create('File', 'name', 'newDocument.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}", "Excel file with view 'public' of user list."),
+				Example.structrScript("""
+				${
+					(
+						setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"'),
+						toExcel(find('User'), 'public')
+					)
+				}
+				""", "Downloadable dynamic file containing the list of users in StructrScript. (See note regarding content-type)"),
+				Example.javaScript("""
+				${{
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"');
+					$.print($.toExcel($.find('User'), 'public'));
+				}}
+				""", "Downloadable dynamic file with view 'public' of user list of users in JavaScript. (See note regarding content-type)"),
+				Example.javaScript("""
+				${{
+					$.setResponseHeader('Content-Disposition', 'attachment; filename="users-truncated.xlsx"');
+					$.print($.toExcel($.find('User'), 'excelView', true, false, '', 1000, 't'));
+				}}
+				""", "Downloadable dynamic file with view 'excelView' of user list where headers are included but not localized and all cells are truncated after 1000 characters. (See note regarding content-type)")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The output of this function is a complete excel file, so the complete data must be contained in the `nodes` parameter and can not be appended later on",
+			"This function is intended to be used in conjunction with the `setContent()` function or in a dynamic file",
+			"**IMPORTANT**: The dynamic file should have the charset `ISO-8859-1` specified in its `contentType` (e.g. `application/octet-stream; charset=ISO-8859-1`)",
+			"The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.",
+			"If a view is given, the (optionally localized) property names of that view are used as header row",
+			"If a collection of properties is given, these (optionally localized) property names are used as a header row",
+			"**IMPORTANT**: If you are creating Excel document from a dynamic file, make sure that there are no extraneous whitespaces after the dynamic script content. This is very hard to find and Excel will warn the user that the created file is corrupt and has to be repaired!",
+			"""
+				Limitations: Structr is creating `EXCEL2007` spreadsheets. The following limitations are taken directly from the [documentation](https://poi.apache.org/apidocs/org/apache/poi/ss/SpreadsheetVersion.html):
+					- Maximum length of text cell contents is 32767
+					- Maximum length of text cell comments is 32767
+					- The total number of available rows is 1M (2^20)
+					- The total number of available columns is 16K (2^14)
+					- The maximum number of arguments to a function is 255
+					- Number of conditional format conditions on a cell is unlimited (actually limited by available memory in Excel)
+					- Number of cell styles is 64000
+				"""
+		);
 	}
 
 	public Workbook writeExcel(final List list, final String propertyView, final List<String> properties, final boolean includeHeader, final boolean localizeHeader, final String headerLocalizationDomain, final Locale locale, final Integer maxCellLength, final String overflowMode) throws IOException {
@@ -185,7 +260,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 							try {
 								value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 							} catch (FrameworkException fex) {
-								logger.warn("to_excel(): Exception", fex);
+								logger.warn("toExcel(): Exception", fex);
 							}
 						}
 
@@ -208,7 +283,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 						try {
 							value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 						} catch (FrameworkException fex) {
-							logger.warn("to_excel(): Exception", fex);
+							logger.warn("toExcel(): Exception", fex);
 						}
 					}
 
@@ -259,7 +334,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					for (final String colName : properties) {
 
-						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
+						final PropertyKey key = graphObj.getTraits().key(colName);
 						final Object value    = graphObj.getProperty(key);
 						cell                  = currentRow.createCell(cellCount++);
 
@@ -309,7 +384,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 		} else if (value instanceof Date) {
 
-			result = DatePropertyParser.format((Date) value, DateProperty.getDefaultFormat());
+			result = DatePropertyGenerator.format((Date) value, DateProperty.getDefaultFormat());
 
 		} else {
 

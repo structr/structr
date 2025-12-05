@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import org.structr.api.Prefetcher;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -27,27 +28,28 @@ import org.structr.core.StructrTransactionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *
  *
  */
-public class Tx implements AutoCloseable {
+public class Tx implements AutoCloseable, Prefetcher {
 
 	private final AtomicBoolean guard       = new AtomicBoolean(false);
 	private SecurityContext securityContext = null;
-	private boolean success                 = false;
 	private boolean doValidation            = true;
 	private boolean doCallbacks             = true;
 	private boolean doNotifications         = true;
+	private String prefetchHint             = null;
 
 	public Tx(final SecurityContext securityContext) {
 		this(securityContext, true, true);
 	}
 
 	public Tx(final SecurityContext securityContext, final boolean doValidation, final boolean doCallbacks) {
-		this(securityContext, doValidation, doCallbacks, ((securityContext == null) ? false : securityContext.doTransactionNotifications()));
+		this(securityContext, doValidation, doCallbacks, (securityContext != null && securityContext.doTransactionNotifications()));
 	}
 
 	public Tx(final SecurityContext securityContext, final boolean doValidation, final boolean doCallbacks, final boolean doNotifications) {
@@ -66,9 +68,37 @@ public class Tx implements AutoCloseable {
 	}
 
 	public void success() throws FrameworkException {
-
 		TransactionCommand.commitTx(securityContext, doValidation);
-		success = true;
+	}
+
+	@Override
+	public void prefetchHint(final String hint) {
+		TransactionCommand.getCurrentTransaction().prefetchHint(hint);
+		this.prefetchHint = hint;
+	}
+
+	@Override
+	public void prefetch(final String type1, final String type2, final Set<String> keys) {
+		TransactionCommand.getCurrentTransaction().prefetch(type1, type2, keys);
+	}
+
+	@Override
+	public void prefetch(final String query, final Set<String> keys) {
+		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
+	}
+
+	@Override
+	public void prefetch(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys) {
+		TransactionCommand.getCurrentTransaction().prefetch(query, outgoingKeys, incomingKeys);
+	}
+
+	@Override
+	public void prefetch2(final String query, final Set<String> outgoingKeys, final Set<String> incomingKeys, final String id) {
+		TransactionCommand.getCurrentTransaction().prefetch2(query, outgoingKeys, incomingKeys, id);
+	}
+
+	public void setIsPing(final boolean isPing) {
+		TransactionCommand.getCurrentTransaction().setIsPing(isPing);
 	}
 
 	@Override
@@ -76,7 +106,7 @@ public class Tx implements AutoCloseable {
 
 		final ModificationQueue modificationQueue = TransactionCommand.finishTx();
 
-		if (success && guard.compareAndSet(false, true)) {
+		if (guard.compareAndSet(false, true) && (modificationQueue == null || modificationQueue.transactionWasSuccessful())) {
 
 			final List<Long> ids = new ArrayList<>();
 			boolean hasChanges   = false;

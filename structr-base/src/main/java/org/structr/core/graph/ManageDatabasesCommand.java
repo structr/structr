@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,11 +30,11 @@ import org.structr.api.service.DatabaseConnection;
 import org.structr.api.service.ServiceResult;
 import org.structr.common.error.*;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
-import org.structr.core.property.GenericProperty;
+import org.structr.docs.*;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static org.structr.api.service.DatabaseConnection.*;
@@ -237,8 +237,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 				Settings.ConnectionUser.getPrefixedSetting(prefix).unregister();
 				Settings.ConnectionPassword.getPrefixedSetting(prefix).unregister();
 				Settings.TenantIdentifier.getPrefixedSetting(prefix).unregister();
-				Settings.RelationshipCacheSize.getPrefixedSetting(prefix).unregister();
-				Settings.NodeCacheSize.getPrefixedSetting(prefix).unregister();
 				Settings.UuidCacheSize.getPrefixedSetting(prefix).unregister();
 				Settings.ForceResultStreaming.getPrefixedSetting(prefix).unregister();
 
@@ -261,7 +259,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 		} else {
 
-			throw new FrameworkException(422, "Please supply the name of the connection to remove.", new EmptyPropertyToken("Connection", AbstractNode.name));
+			throw new FrameworkException(422, "Please supply the name of the connection to remove.", new EmptyPropertyToken("Connection", "name"));
 		}
 	}
 
@@ -295,8 +293,6 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		settings.put(KEY_USERNAME,                Settings.ConnectionUser.getPrefixedValue(prefix));
 		settings.put(KEY_PASSWORD,                Settings.ConnectionPassword.getPrefixedValue(prefix));
 		settings.put(KEY_TENANT_IDENTIFIER,       Settings.TenantIdentifier.getPrefixedValue(prefix));
-		settings.put(KEY_RELATIONSHIP_CACHE_SIZE, Settings.RelationshipCacheSize.getPrefixedValue(prefix));
-		settings.put(KEY_NODE_CACHE_SIZE,         Settings.NodeCacheSize.getPrefixedValue(prefix));
 		settings.put(KEY_UUID_CACHE_SIZE,         Settings.UuidCacheSize.getPrefixedValue(prefix));
 		settings.put(KEY_FORCE_STREAMING,         Settings.ForceResultStreaming.getPrefixedValue(prefix));
 
@@ -347,7 +343,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 		if (StringUtils.isEmpty((String)data.get(KEY_NAME))) {
-			errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("name")));
+			errorBuffer.add(new EmptyPropertyToken("Connection", "name"));
 		}
 
 		final String name    = (String)data.get(KEY_NAME);
@@ -357,14 +353,14 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 		data.put(KEY_NAME,        cleaned);
 
 		// connection cannot be named "default"
-		if ("default".equals((String) data.get(KEY_NAME))) {
-			errorBuffer.add(new UniqueToken("Connection", new GenericProperty("name"), "default"));
+		if ("default".equals(data.get(KEY_NAME))) {
+			errorBuffer.add(new UniqueToken("Connection", "name", "default", null, null));
 		}
 
 		if (!nameOnly) {
 
 			if (StringUtils.isEmpty((String) data.get(KEY_URL))) {
-				errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("url")));
+				errorBuffer.add(new EmptyPropertyToken("Connection", "url"));
 			}
 
 			try {
@@ -374,36 +370,87 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 				if (driverClassString != null) {
 
-					databaseService = (DatabaseService) Class.forName((String) driverClassString).newInstance();
+					databaseService = (DatabaseService) Class.forName((String) driverClassString).getDeclaredConstructor().newInstance();
 
 				} else {
 
-					databaseService = (DatabaseService) Class.forName("org.structr.bolt.BoltDatabaseService").newInstance();
+					databaseService = (DatabaseService) Class.forName("org.structr.bolt.BoltDatabaseService").getDeclaredConstructor().newInstance();
 				}
 
 				if (databaseService == null) {
 
-					errorBuffer.add(new SemanticErrorToken("Driver", new GenericProperty("driver"), "driver_not_found"));
+					errorBuffer.add(new SemanticErrorToken("Driver", "driver", "driver_not_found"));
 
 				} else {
 
 					if (databaseService.supportsFeature(DatabaseFeature.AuthenticationRequired)) {
 
 						if (StringUtils.isEmpty((String) data.get(KEY_USERNAME))) {
-							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("username")));
+							errorBuffer.add(new EmptyPropertyToken("Connection", "username"));
 						}
 
 						if (StringUtils.isEmpty((String) data.get(KEY_PASSWORD))) {
-							errorBuffer.add(new EmptyPropertyToken("Connection", new GenericProperty("password")));
+							errorBuffer.add(new EmptyPropertyToken("Connection", "password"));
 						}
 					}
 				}
 
-			} catch (ClassNotFoundException|InstantiationException|IllegalAccessException ex) {
-				errorBuffer.add(new SemanticErrorToken("Driver", new GenericProperty("driver"), "driver_error"));
+			} catch (ClassNotFoundException|InstantiationException|IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+				errorBuffer.add(new SemanticErrorToken("Driver", "driver", "driver_error"));
 			}
 		}
 
 		return errorBuffer;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return "";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

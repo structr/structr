@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,23 +19,26 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.importer.Importer;
 
-public class ImportHtmlFunction extends UiAdvancedFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_IMPORT_HTML    = "Usage: ${import_html(parent, html)}. Example: ${import_html(this, '<div></div>')}";
-	public static final String ERROR_MESSAGE_IMPORT_HTML_JS = "Usage: ${{Structr.importHtml(parent, html)}}. Example: ${{Structr.importHtml(this, '<div></div>')}}";
+public class ImportHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "import_html";
+		return "importHtml";
 	}
 
 	@Override
-	public String getSignature() {
-		return "parent, html";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("parent, html");
 	}
 
 	@Override
@@ -43,13 +46,12 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-		if (sources[0] instanceof DOMElement) {
+		if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_ELEMENT)) {
 
-			final DOMElement parent = (DOMElement) sources[0];
+			final DOMElement parent = n.as(DOMElement.class);
 
-			if (sources[1] instanceof String) {
+			if (sources[1] instanceof String source) {
 
-				final String source     = (String) sources[1];
 				final Importer importer = new Importer(ctx.getSecurityContext(), source, null, null, false, false, false, false);
 
 				/*
@@ -73,12 +75,20 @@ public class ImportHtmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_IMPORT_HTML_JS : ERROR_MESSAGE_IMPORT_HTML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${importHtml(parent, html)}. Example: ${importHtml(this, '<div></div>')}"),
+			Usage.javaScript("Usage: ${{Structr.importHtml(parent, html)}}. Example: ${{Structr.importHtml(this, '<div></div>')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Imports HTML source code into an element";
+	public String getShortDescription() {
+		return "Imports HTML source code into an element.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

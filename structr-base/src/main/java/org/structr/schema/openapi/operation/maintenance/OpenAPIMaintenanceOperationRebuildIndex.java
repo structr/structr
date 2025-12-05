@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,38 +38,37 @@ public class OpenAPIMaintenanceOperationRebuildIndex extends LinkedHashMap<Strin
 
         operations.put("post", new OpenAPIOperation(
 
-                // summary
-                "Rebuilds the internal indexes",
+			// summary
+			"Rebuilds the internal indexes",
 
-                // description
-		"Removes all objects from the index and adds them again with all properties that have the indexed flag set."
-	      + " This command can be used to update the indexes when adding new indexed properties to existing nodes.",
+			// description
+			"Removes all objects from the index and adds them again with all properties that have the indexed flag set." +
+			" This command can be used to update the indexes when adding new indexed properties to existing nodes.",
 
-                // operation ID
-                "rebuildIndex",
+			// operation ID
+			"rebuildIndex",
 
-                // tags
-                Set.of("Maintenance commands (admin only)"),
+			// tags
+			Set.of("Maintenance commands (admin only)"),
 
-                // parameters
-                null,
+			// parameters
+			null,
 
-                // request body
-                new OpenAPIRequestResponse(
-                        "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain node type",              "type",    "string"),
-                        	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain relationship type",      "relType", "string"),
-                        	new OpenAPIPrimitiveSchema("Rebuild the index only for nodes, or only for relationships", "mode",    "string", null, "nodesOnly", Map.of(0, "nodesOnly", 1, "relsOnly"), false)
-                        )
-                ),
+			// request body
+			new OpenAPIRequestResponse(
+					"Request body",
+				new OpenAPIObjectSchema(
+						new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain node type",              "type",    "string"),
+						new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain relationship type",      "relType", "string"),
+						new OpenAPIPrimitiveSchema("Rebuild the index only for nodes, or only for relationships", "mode",    "string", null, "nodesOnly", Map.of(0, "nodesOnly", 1, "relsOnly"), false)
+				)
+			),
 
-                // responses
-                Map.of(
-                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
-                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-                )
+			// responses
+			Map.of(
+					"200", new OpenAPISchemaReference("#/components/responses/ok"),
+					"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
+			)
         ));
-
     }
 }

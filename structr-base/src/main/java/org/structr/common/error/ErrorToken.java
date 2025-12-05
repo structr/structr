@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ import com.google.gson.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -31,65 +32,111 @@ import java.util.Map;
  */
 public abstract class ErrorToken {
 
-	private String property = null;
-	private String type     = null;
-	private Object detail   = null;
-	private String token    = null;
-	private Object value    = null;
+	protected final Map<String, Object> data = new LinkedHashMap<>();
 
-	public ErrorToken(final String type, final String property, final String token, final Object detail) {
-		this.type     = type;
-		this.property = property;
-		this.token    = token;
-		this.detail   = detail;
+	public ErrorToken(final String token) {
+		data.put("token", token);
 	}
 
-	public ErrorToken(final String type, final String property, final String token, final Object detail, final Object value) {
-		this.type     = type;
-		this.property = property;
-		this.token    = token;
-		this.detail   = detail;
-		this.value    = value;
+	public ErrorToken with(final String key, final Object value) {
+		data.put(key, value);
+		return this;
+	}
+
+	public ErrorToken with(final String key1, final Object value1, final String key2, final Object value2) {
+
+		data.put(key1, value1);
+		data.put(key2, value2);
+
+		return this;
+	}
+
+	public ErrorToken with(final String key1, final Object value1, final String key2, final Object value2, final String key3, final Object value3) {
+
+		data.put(key1, value1);
+		data.put(key2, value2);
+		data.put(key3, value3);
+
+		return this;
+	}
+
+	public ErrorToken with(final String key1, final Object value1, final String key2, final Object value2, final String key3, final Object value3, final String key4, final Object value4) {
+
+		data.put(key1, value1);
+		data.put(key2, value2);
+		data.put(key3, value3);
+		data.put(key4, value4);
+
+		return this;
+	}
+
+	public ErrorToken with(final String key1, final Object value1, final String key2, final Object value2, final String key3, final Object value3, final String key4, final Object value4, final String key5, final Object value5) {
+
+		data.put(key1, value1);
+		data.put(key2, value2);
+		data.put(key3, value3);
+		data.put(key4, value4);
+		data.put(key5, value5);
+
+		return this;
+	}
+
+	public ErrorToken withType(final String type) {
+		return with("type", type);
+	}
+
+	public ErrorToken withProperty(final String property) {
+		return with("property", property);
+	}
+
+	public ErrorToken withDetail(final Object detail) {
+		return with("detail", detail);
+	}
+
+	public ErrorToken withValue(final Object value) {
+		return with("value", value);
 	}
 
 	public String getProperty() {
-		return property;
+		return (String)data.get("property");
 	}
 
 	public String getType() {
-		return type;
+		return (String)data.get("type");
 	}
 
 	public String getToken() {
-		return token;
+		return (String)data.get("token");
 	}
 
 	public Object getDetail() {
-		return detail;
+		return data.get("detail");
 	}
 
 	public Object getValue() {
-		return value;
+		return data.get("value");
 	}
 
 	public void setValue(final Object value) {
-		this.value = value;
+		data.put("value", value);
 	}
 
 	public JsonObject toJSON() {
 
 		final JsonObject token = new JsonObject();
 
-		token.add("type",     getStringOrNull(getType()));
-		token.add("property", getStringOrNull(getProperty()));
+		for (final String key : data.keySet()) {
 
-		// optional value
-		addIfNonNull(token, "value",  getObjectOrNull(getValue()));
+			addIfNonNull(token, key, getObjectOrNull(data.get(key)));
+		}
 
-		token.add("token",    getStringOrNull(getToken()));
-
-		// optional detail
-		addIfNonNull(token, "detail", getObjectOrNull(getDetail()));
+		/*
+		addIfNonNull(token, "type",     getStringOrNull(getType()));
+		addIfNonNull(token, "property", getStringOrNull(getProperty()));
+		addIfNonNull(token, "value",    getObjectOrNull(getValue()));
+		addIfNonNull(token, "token",    getStringOrNull(getToken()));
+		addIfNonNull(token, "detail",   getObjectOrNull(getDetail()));
+		*/
 
 		return token;
 	}
@@ -99,29 +146,34 @@ public abstract class ErrorToken {
 
 		final StringBuilder buf = new StringBuilder();
 
+		final String type = getType();
 		if (type != null) {
 
 			buf.append(type);
 		}
 
+		final String property = getProperty();
 		if (property != null) {
 
 			buf.append(".");
 			buf.append(property);
 		}
 
+		final Object value = getValue();
 		if (value != null) {
 
 			buf.append(" ");
 			buf.append(value);
 		}
 
+		final String token = getToken();
 		if (token != null) {
 
 			buf.append(" ");
 			buf.append(token);
 		}
 
+		final Object detail = getDetail();
 		if (detail != null) {
 
 			buf.append(" ");
@@ -140,7 +192,6 @@ public abstract class ErrorToken {
 		}
 	}
 
-
 	protected JsonElement getStringOrNull(final String source) {
 
 		if (source != null) {
@@ -154,10 +205,9 @@ public abstract class ErrorToken {
 
 		if (source != null) {
 
-			if (source instanceof Iterable) {
+			if (source instanceof Iterable iterable) {
 
-				final Iterable iterable = (Iterable)source;
-				final JsonArray array   = new JsonArray();
+				final JsonArray array = new JsonArray();
 
 				for (final Object o : iterable) {
 					array.add(getObjectOrNull(o));
@@ -166,9 +216,9 @@ public abstract class ErrorToken {
 				return array;
 			}
 
-			if (source instanceof Map) {
+			if (source instanceof Map sourceMap) {
 
-				final Map<String, Object> map = (Map)source;
+				final Map<String, Object> map = sourceMap;
 				final JsonObject object       = new JsonObject();
 
 				for (final String key : map.keySet()) {
@@ -180,10 +230,9 @@ public abstract class ErrorToken {
 				return object;
 			}
 
-			if (source instanceof PropertyMap) {
+			if (source instanceof PropertyMap map) {
 
-				final PropertyMap map    = (PropertyMap)source;
-				final JsonObject object       = new JsonObject();
+				final JsonObject object = new JsonObject();
 
 				for (final PropertyKey key : map.keySet()) {
 
@@ -195,16 +244,20 @@ public abstract class ErrorToken {
 				return object;
 			}
 
-			if (source instanceof String) {
-				return new JsonPrimitive((String)source);
+			if (source instanceof PropertyKey key) {
+				return new JsonPrimitive(key.jsonName());
 			}
 
-			if (source instanceof Number) {
-				return new JsonPrimitive((Number)source);
+			if (source instanceof String string) {
+				return new JsonPrimitive(string);
 			}
 
-			if (source instanceof Boolean) {
-				return new JsonPrimitive((Boolean)source);
+			if (source instanceof Number number) {
+				return new JsonPrimitive(number);
+			}
+
+			if (source instanceof Boolean bool) {
+				return new JsonPrimitive(bool);
 			}
 
 			return new JsonPrimitive(source.toString());

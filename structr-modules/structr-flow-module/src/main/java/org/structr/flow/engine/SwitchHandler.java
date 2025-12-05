@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,44 +18,37 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.DataSource;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.Switch;
+import org.structr.flow.impl.FlowDataSource;
+import org.structr.flow.impl.FlowNode;
 import org.structr.flow.impl.FlowSwitch;
 import org.structr.flow.impl.FlowSwitchCase;
 
-public class SwitchHandler implements FlowHandler<Switch> {
+public class SwitchHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(Context context, Switch flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode switchElement) throws FlowException {
 
-		if (flowElement instanceof FlowSwitch) {
+		final FlowDataSource _ds = switchElement.getDataSource();
+		if (_ds != null) {
 
-			FlowSwitch switchElement = (FlowSwitch)flowElement;
+			final Iterable<FlowSwitchCase> cases = switchElement.as(FlowSwitch.class).getCases();
+			final Object data                    = _ds.get(context);
 
-			DataSource _ds = switchElement.getProperty(FlowSwitch.dataSource);
-			if (_ds != null) {
+			if (cases != null) {
 
-				Object data = _ds.get(context);
+				for (FlowSwitchCase switchCase : cases) {
 
-				Iterable<FlowSwitchCase> cases = switchElement.getProperty(FlowSwitch.cases);
+					final String caseValue = switchCase.getSwitchCase();
 
-				if (cases != null) {
+					if (caseValue != null && data != null && caseValue.equals(data.toString())) {
 
-					for (FlowSwitchCase switchCase : cases) {
-
-						final Object caseValue = switchCase.getProperty(FlowSwitchCase.switchCase);
-						if (caseValue != null && data != null && caseValue.equals(data.toString())) {
-
-							return switchCase.getProperty(FlowSwitchCase.next);
-						}
+						return switchCase.next();
 					}
 				}
 			}
-
 		}
 
-		return flowElement.next();
+		return switchElement.next();
 	}
 }

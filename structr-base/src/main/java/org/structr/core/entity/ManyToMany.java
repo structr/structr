@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,14 +23,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.Notion;
-import org.structr.core.notion.RelationshipNotion;
 
 /**
  *
  *
  */
-public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterface> extends AbstractRelationship<S, T> implements Relation<S, T, ManyStartpoint<S>, ManyEndpoint<T>> {
+public abstract class ManyToMany extends AbstractRelation implements Relation<ManyStartpoint, ManyEndpoint> {
 
 	@Override
 	public Multiplicity getSourceMultiplicity() {
@@ -43,23 +41,25 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public ManyStartpoint<S> getSource() {
-		return new ManyStartpoint<>(this);
+	public ManyStartpoint getSource() {
+
+		if (getSourceProperty() == null) {
+
+			throw new RuntimeException("Invalid schema setup: missing StartNode(s) property for " + getType() + " in " + getTargetType());
+		}
+
+		return new ManyStartpoint(this, getSourceProperty().jsonName());
 	}
 
 	@Override
-	public ManyEndpoint<T> getTarget() {
-		return new ManyEndpoint<>(this);
-	}
+	public ManyEndpoint getTarget() {
 
-	@Override
-	public int getCascadingDeleteFlag() {
-		return Relation.NONE;
-	}
+		if (getTargetProperty() == null) {
 
-	@Override
-	public int getAutocreationFlag() {
-		return Relation.NONE;
+			throw new RuntimeException("Invalid schema setup: missing EndNode(s) property for " + getType() + " in " + getSourceType());
+		}
+
+		return new ManyEndpoint(this, getTargetProperty().jsonName());
 	}
 
 	@Override
@@ -80,23 +80,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public Notion getEndNodeNotion() {
-		return new RelationshipNotion(getTargetIdProperty());
-
-	}
-
-	@Override
-	public Notion getStartNodeNotion() {
-		return new RelationshipNotion(getSourceIdProperty());
-	}
-
-	@Override
-	public Direction getDirectionForType(final Class<? extends NodeInterface> type) {
-		return super.getDirectionForType(getSourceType(), getTargetType(), type);
-	}
-
-	@Override
-	public Class getOtherType(final Class type) {
+	public String getOtherType(final String type) {
 
 		switch (getDirectionForType(type)) {
 
@@ -109,12 +93,7 @@ public abstract class ManyToMany<S extends NodeInterface, T extends NodeInterfac
 	}
 
 	@Override
-	public boolean isHidden() {
-		return false;
-	}
-
-	@Override
-	public boolean isInternal() {
-		return false;
+	public Direction getDirectionForType(String type) {
+		return getDirectionForType(getSourceType(), getTargetType(), type);
 	}
 }

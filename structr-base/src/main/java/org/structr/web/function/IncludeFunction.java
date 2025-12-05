@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,12 +29,19 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,17 +54,14 @@ import java.util.List;
  */
 public class IncludeFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include(name)}. Example: ${include(\"Main Template\")}";
-	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.include(name)}}. Example: ${{Structr.include(\"Main Template\")}}";
-
 	@Override
 	public String getName() {
 		return "include";
 	}
 
 	@Override
-	public String getSignature() {
-		return "name [, collection, dataKey]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name [, collection, dataKey]");
 	}
 
 	@Override
@@ -72,11 +76,10 @@ public class IncludeFunction extends UiCommunityFunction {
 				return null;
 			}
 
-			final PropertyKey<DOMNode> sharedCompKey = StructrApp.key(DOMNode.class, "sharedComponent");
+			final PropertyKey<DOMNode> sharedCompKey = Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.SHARED_COMPONENT_PROPERTY);
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
-			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
-
+			final List<NodeInterface> nodeList       = app.nodeQuery(StructrTraits.DOM_NODE).name((String)sources[0]).getAsList();
 
 			RenderContext innerCtx = null;
 			boolean useBuffer      = false;
@@ -93,6 +96,10 @@ public class IncludeFunction extends UiCommunityFunction {
 				useBuffer = false;
 			}
 
+			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+				innerCtx.getBuffer().append("<structr:include data-caller-id=\"").append(caller.toString()).append("\">");
+			}
+
 			/**
 			 * Nodes can be included via their name property These nodes MUST: 1. be unique in name 2. NOT be in the trash => have an ownerDocument AND a parent (public
 			 * users are not allowed to see the __ShadowDocument__ ==> this check must either be made in a superuser-context OR the __ShadowDocument could be made public?)
@@ -105,24 +112,22 @@ public class IncludeFunction extends UiCommunityFunction {
 			 * - If a DOMNode has "syncedNodes" it MUST BE a shared component - If a DOMNodes "sharedComponent" is set it MUST BE AN INSTANCE of a shared component => Can
 			 * we safely ignore these? I THINK SO!
 			 */
-			for (final DOMNode n : nodeList) {
+			for (final NodeInterface n : nodeList) {
 
-				if (n.inTrash()) {
-					continue;
-				}
+				final DOMNode domNode = n.as(DOMNode.class);
 
-				// IGNORE everything that REFERENCES a shared component!
-				if (n.getProperty(sharedCompKey) == null) {
+				// IGNORE everything that REFERENCES a shared component! (or is in the trash)
+				if (n.getProperty(sharedCompKey) == null && !domNode.inTrash()) {
 
 					// the DOMNode is either a shared component OR a named node in the pages tree
 					if (node == null) {
 
-						node = n;
+						node = domNode;
 
 					} else {
 
 						// ERROR: we have found multiple DOMNodes with the same name
-						logger.warn("Ambiguous node name \"" + ((String)sources[0]) + "\" (nodes found: " + StringUtils.join(nodeList, ", ") + ")");
+						logger.warn(getName() + "(): Ambiguous node name '" + sources[0] + "' (" + StringUtils.join(nodeList, ", ") + ")");
 						return "";
 					}
 				}
@@ -143,23 +148,63 @@ public class IncludeFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INCLUDE_JS : ERROR_MESSAGE_INCLUDE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${include(name [, collection, dataKey])}. Example: ${include('Main Template')}"),
+			Usage.javaScript("Usage: ${{ $.include(name); }}. Example: ${{ $.include('Main Template'); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Includes the content of the node with the given name (optionally as a repeater element)";
+	public String getShortDescription() {
+		return "Loads the element with the given name and renders its HTML representation into the output buffer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
+		
+		Possible nodes **MUST**:
+		1. have a unique name
+		2. NOT be in the trash
+
+		Possible nodes **CAN**:
+		1. be somewhere in the pages tree
+		2. be in the Shared Components
+
+		See also `includeChild()` and `render()`.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("name", "name of the node (and subtree) to include"),
+			Parameter.optional("collection", "collection to repeat over"),
+			Parameter.optional("dataKey", "dataKey to use in Repeater")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${include('Main Menu')}", "Render the contents of the Shared Component \"Main Menu\" into the output buffer"),
+			Example.structrScript("${include('Item Template', find('Item'), 'item')}", "Render the contents of the Shared Component \"Item Template\" once for every Item node in the database")
+		);
 	}
 
 	protected String renderNode(final SecurityContext securityContext, final ActionContext ctx, final RenderContext innerCtx, final Object[] sources, final App app, final DOMNode node, final boolean useBuffer) throws FrameworkException {
 
 		if (node != null) {
 
-			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String ) {
+			DOMNode.prefetchDOMNodes(node.getUuid());
+
+			if (sources.length == 3 && sources[1] instanceof Iterable && sources[2] instanceof String dataKey) {
 
 				final Iterable<GraphObject> iterable = FunctionDataSource.map((Iterable)sources[1]);
-				final String dataKey                 = (String)sources[2];
 
 				innerCtx.setListSource(iterable);
 				node.renderNodeList(securityContext, innerCtx, 0, dataKey);
@@ -169,26 +214,21 @@ public class IncludeFunction extends UiCommunityFunction {
 				node.render(innerCtx, 0);
 			}
 
-			if (innerCtx.appLibRendered()) {
-				((RenderContext)ctx).setAppLibRendered(true);
-			}
-
 		} else {
 
-			final File file = app.nodeQuery(File.class).andName((String)sources[0]).getFirst();
+			final NodeInterface fileNode = app.nodeQuery(StructrTraits.FILE).name((String)sources[0]).getFirst();
+			if (fileNode != null) {
 
-			if (file != null) {
-
-				final String name        = file.getProperty(NodeInterface.name);
+				final File file          = fileNode.as(File.class);
+				final String name        = file.getName();
 				final String contentType = file.getContentType();
 				final String charset     = StringUtils.substringAfterLast(contentType, "charset=");
 				final String extension   = StringUtils.substringAfterLast(name, ".");
 
 				if (contentType == null || StringUtils.isBlank(extension)) {
 
-					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					logger.warn("No valid file type detected. Please make sure {} has a valid content type set or file extension. Parameters: {}", name, getParametersAsString(sources));
 					return "No valid file type detected. Please make sure " + name + " has a valid content type set or file extension.";
-
 				}
 
 				if (contentType.startsWith("text/css")) {
@@ -222,13 +262,15 @@ public class IncludeFunction extends UiCommunityFunction {
 
 				} else {
 
-					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", new Object[] { name, getParametersAsString(sources) });
+					logger.warn("Don't know how to render content type or extension of {}. Parameters: {}", name, getParametersAsString(sources));
 					return "Don't know how to render content type or extension of  " + name + ".";
 
 				}
-
 			}
+		}
 
+		if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+			innerCtx.getBuffer().append("</structr:include>");
 		}
 
 		if (useBuffer) {
@@ -241,9 +283,5 @@ public class IncludeFunction extends UiCommunityFunction {
 			// output needs to be returned as a function result
 			return StringUtils.join(innerCtx.getBuffer().getQueue(), "");
 		}
-	}
-
-	public static boolean isRenderContext (final ActionContext ctx) {
-		return (ctx instanceof RenderContext);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,36 +20,57 @@ package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ApplicationStoreGetKeysFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS    = "Usage: ${application_store_get_keys()}. Example: ${application_store_get_keys()}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS_JS = "Usage: ${{ $.application_store_get_keys(); }}. Example: ${{ $.application_store_get_keys(); }}";
-
 	@Override
 	public String getName() {
-		return "application_store_get_keys";
+		return "applicationStoreGetKeys";
 	}
 
 	@Override
-	public String getSignature() {
-		return "";
+	public List<Signature> getSignatures() {
+		// empty signature (no parameters)
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
-
 		return Services.getInstance().getApplicationStore().keySet();
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS_JS : ERROR_MESSAGE_APPLICATION_STORE_GET_KEYS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${applicationStoreGetKeys()}. Example: ${applicationStoreGetKeys()}"),
+			Usage.javaScript("Usage: ${{ $.applicationStoreGetKeys(); }}. Example: ${{ $.applicationStoreGetKeys(); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Lists all keys stored in the application level store.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The application store can be used to store data in-memory as long as the instance is running. You can use it to store primitive data and objects / arrays. Do NOT use the application store to store nodes or relationships since those are transaction-bound and cannot be cached.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

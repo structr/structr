@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,18 +29,24 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.resource.LoginResource;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
+import org.structr.web.traits.definitions.dom.PageTraitDefinition;
 
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.
@@ -68,7 +74,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			try {
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
+				response.getOutputStream().write(fex.getMessage().getBytes(StandardCharsets.UTF_8));
 
 			} catch (IOException ioex) {
 
@@ -99,9 +105,8 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			if (securityContext != null) {
 
-				final LoginResource loginResource = getLoginResource();
-
-				if (loginResource.checkAndConfigure(getUriPart(), securityContext, request)) {
+				final RESTCallHandler loginResource = getLoginResource(request);
+				if (loginResource != null) {
 
 					final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -116,7 +121,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 						}
 					}
 
-					final RestMethodResult result = loginResource.doPost(properties);
+					final RestMethodResult result = loginResource.doPost(securityContext, properties);
 
 					// send HTTP headers and redirect
 					for (final Entry<String, String> entry : result.getHeaders().entrySet()) {
@@ -166,23 +171,23 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 		return "login";
 	}
 
-	protected LoginResource getLoginResource() {
-		return new LoginResource();
+	protected RESTCallHandler getLoginResource(final HttpServletRequest request) throws FrameworkException {
+		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), StructrTraits.USER);
 	}
 
 	// ----- private methods -----
 	private String getRedirectPage(final HttpServletRequest request, final Integer statusCode) throws FrameworkException {
 
-		final Page errorPage = StructrApp.getInstance().nodeQuery(Page.class).and(StructrApp.key(Page.class, "showOnErrorCodes"), statusCode.toString(), false).getFirst();
-		if (errorPage != null && HtmlServlet.isVisibleForSite(request, errorPage)) {
+		final NodeInterface errorPage = StructrApp.getInstance().nodeQuery(StructrTraits.PAGE).key(Traits.of(StructrTraits.PAGE).key(PageTraitDefinition.SHOW_ON_ERROR_CODES_PROPERTY), statusCode.toString(), false).getFirst();
+		if (errorPage != null && HtmlServlet.isVisibleForSite(request, errorPage.as(Page.class))) {
 
-			final String path = errorPage.getPagePath();
+			final String path = errorPage.as(Page.class).getPagePath();
 			if (path != null) {
 
-				return path + "?status=" + statusCode.toString();
+				return path + "?status=" + statusCode;
 			}
 
-			return "/" + errorPage.getName() + "?status=" + statusCode.toString();
+			return "/" + errorPage.getName() + "?status=" + statusCode;
 		}
 
 		return "/";

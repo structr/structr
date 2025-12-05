@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,12 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
-public class AndFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_AND = "Usage: ${and(bool1, bool2)}. Example: ${and(\"true\", \"true\")}";
+public class AndFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -31,8 +32,8 @@ public class AndFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "bool1, bool2, ...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("bool1, bool2, ...");
 	}
 
 	@Override
@@ -75,12 +76,45 @@ public class AndFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_AND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${and(b1, b2, ...)}. Example: ${and('true', 'true')}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the conjunction of the given arguments";
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("expressions...", "list of expressions to evaluate")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Returns the logical AND result of the given boolean expressions.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function takes two or more arguments and ANDs them together, returning `true` if all the expressions evaluate to true, and `false` otherwise.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${and(true, false)}", "true && false = false")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (the && operator)."
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

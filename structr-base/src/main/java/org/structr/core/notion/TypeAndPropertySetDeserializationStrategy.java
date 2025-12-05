@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.IdNotFoundToken;
 import org.structr.common.error.PropertiesNotFoundToken;
 import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
@@ -32,9 +33,14 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -46,30 +52,30 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 	private static final Logger logger = LoggerFactory.getLogger(TypeAndPropertySetDeserializationStrategy.class.getName());
 
 	protected RelationProperty relationProperty = null;
-	protected PropertyKey[] propertyKeys        = null;
-	protected boolean createIfNotExisting       = false;
+	protected final Set<String> propertyKeys;
+	protected final boolean createIfNotExisting;
 
-	public TypeAndPropertySetDeserializationStrategy(PropertyKey... propertyKeys) {
+	public TypeAndPropertySetDeserializationStrategy(final Set<String> propertyKeys) {
 		this(false, propertyKeys);
 	}
 
-	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, PropertyKey... propertyKeys) {
+	public TypeAndPropertySetDeserializationStrategy(boolean createIfNotExisting, Set<String> propertyKeys) {
 
 		this.createIfNotExisting = createIfNotExisting;
-		this.propertyKeys = propertyKeys;
+		this.propertyKeys        = propertyKeys;
 
-		if (propertyKeys == null || propertyKeys.length == 0) {
+		if (propertyKeys == null || propertyKeys.isEmpty()) {
 			throw new IllegalStateException("TypeAndPropertySetDeserializationStrategy must contain at least one property.");
 		}
 	}
 
 	@Override
-	public void setRelationProperty(RelationProperty<S> relationProperty) {
+	public void setRelationProperty(final RelationProperty relationProperty) {
 		this.relationProperty = relationProperty;
 	}
 
 	@Override
-	public T deserialize(final SecurityContext securityContext, final Class<T> type, final S source, final Object context) throws FrameworkException {
+	public T deserialize(final SecurityContext securityContext, final String type, final S source, final Object context) throws FrameworkException {
 
 		if (source instanceof Map) {
 
@@ -77,20 +83,20 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			return deserialize(securityContext, type, attributes);
 		}
 
-		if (source != null && type.isAssignableFrom(source.getClass())) {
+		if (source instanceof NodeInterface) {
 			return (T) source;
 		}
 
-		if (source != null && source instanceof String && Settings.isValidUuid((String) source)) {
+		if (source instanceof String uuid && Settings.isValidUuid(uuid)) {
 
-			return getTypedResult((T)StructrApp.getInstance(securityContext).getNodeById((String) source), type);
+			return getTypedResult((T)StructrApp.getInstance(securityContext).getNodeById(uuid), type, uuid);
 
 		}
 
 		return null;
 	}
 
-	private T deserialize(final SecurityContext securityContext, Class<T> type, final PropertyMap attributes) throws FrameworkException {
+	private T deserialize(final SecurityContext securityContext, String type, final PropertyMap attributes) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 
@@ -99,9 +105,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			final List<T> result = new LinkedList<>();
 
 			// Check if properties contain the UUID attribute
-			if (attributes.containsKey(GraphObject.id)) {
+			if (attributes.containsKey(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY))) {
 
-				result.add((T)app.getNodeById(attributes.get(GraphObject.id)));
+				result.add((T)app.getNodeById(attributes.get(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY))));
 
 			} else {
 
@@ -109,8 +115,8 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 				boolean attributesComplete = true;
 
 				// Check if all property keys of the PropertySetNotion are present
-				for (PropertyKey key : propertyKeys) {
-					attributesComplete &= attributes.containsKey(key);
+				for (String key : propertyKeys) {
+					attributesComplete &= attributes.containsKey(Traits.of(type).key(key));
 				}
 
 				if (attributesComplete) {
@@ -126,7 +132,9 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 						}
 					}
 
-					result.addAll(app.nodeQuery(type).and(searchAttributes).getAsList());
+					for (final NodeInterface n : app.nodeQuery(type).key(searchAttributes).getResultStream()) {
+						result.add((T)n);
+					}
 
 				}
 			}
@@ -141,10 +149,10 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 					if (createIfNotExisting) {
 
 						// create node and return it
-						T newNode = app.create(type, attributes);
+						NodeInterface newNode = app.create(type, attributes);
 						if (newNode != null) {
 
-							return newNode;
+							return (T)newNode;
 						}
 					}
 
@@ -154,7 +162,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 				case 1:
 
-					final T relatedNode = getTypedResult(result.get(0), type);
+					final T relatedNode = getTypedResult(result.get(0), type, null);
 					if (!attributes.isEmpty()) {
 
 						// set properties on related node?
@@ -167,21 +175,26 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 					errorMessage = "Found " + size + " nodes for given type and properties, property set is ambiguous";
 					logger.error(errorMessage +
-						". This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type.getName(), size);
+						". This is often due to wrong modeling, or you should consider creating a uniquness constraint for " + type, size);
 
 					break;
 			}
 
-			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type.getSimpleName(), null, attributes));
+			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type, null, attributes));
 		}
 
 		return null;
 	}
 
-	private T getTypedResult(final T obj, Class<T> type) throws FrameworkException {
+	private T getTypedResult(final T obj, String type, final String uuid) throws FrameworkException {
 
-		if (!type.isAssignableFrom(obj.getClass())) {
-			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getSimpleName(), null, type.getSimpleName()));
+		if (obj == null) {
+
+			throw new FrameworkException(404, "No " + type + " with UUID " + uuid + " found.", new IdNotFoundToken(type, uuid));
+		}
+
+		if (obj != null && !obj.getTraits().contains(type)) {
+			throw new FrameworkException(422, "Node type mismatch", new TypeToken(type, null, type));
 		}
 
 		return obj;

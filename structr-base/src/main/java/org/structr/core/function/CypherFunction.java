@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,16 +26,17 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
-import org.structr.core.graph.Tx;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class CypherFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}";
-	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${{Structr.cypher(query)}}. Example ${{Structr.cypher('MATCH (n) RETURN n')}}";
 
 	@Override
 	public String getName() {
@@ -43,14 +44,14 @@ public class CypherFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "query [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("query [, parameterMap, runInNewTransaction]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		try(final Tx tx = StructrApp.getInstance().tx()) {
+		try {
 
 			if (sources.length < 1) {
 				throw ArgumentCountException.tooFew(sources.length, 1);
@@ -62,7 +63,7 @@ public class CypherFunction extends CoreFunction {
 			final Map<String, Object> params = new LinkedHashMap<>();
 			final String query = sources[0].toString();
 
-			boolean dontFlushCaches = false;
+			boolean runInNewTransaction = (sources.length > 2 && sources[2] instanceof Boolean && (Boolean)sources[2]);
 
 			// parameters?
 			if (sources.length > 1) {
@@ -70,38 +71,19 @@ public class CypherFunction extends CoreFunction {
 				if (sources[1] instanceof Map) {
 
 					params.putAll((Map)sources[1]);
-
-					if (sources.length > 2 && sources[2] instanceof Boolean) {
-						dontFlushCaches = ((boolean)sources[2]);
-					}
-
 				} else if (sources[1] instanceof GraphObjectMap) {
 
 					params.putAll(((GraphObjectMap)sources[1]).toMap());
-
-					if (sources.length > 2 && sources[2] instanceof Boolean) {
-						dontFlushCaches = ((boolean)sources[2]);
-					}
-
 				} else {
 
-					int parameter_count = sources.length;
+					int parameterCount = sources.length;
 
-					if (parameter_count % 2 == 0) {
+					if (parameterCount % 2 == 0) {
 
-						// count indicates trailing parameter. If this is a boolean, interpret it as dontFlushCaches flag. otherwise throw error
-						if (sources[parameter_count - 1] instanceof Boolean) {
-
-							dontFlushCaches = ((boolean)sources[parameter_count - 1]);
-							parameter_count--;
-
-						} else {
-
-							throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
-						}
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 					}
 
-					for (int c = 1; c < parameter_count; c += 2) {
+					for (int c = 1; c < parameterCount; c += 2) {
 
 						params.put(sources[c].toString(), sources[c + 1]);
 					}
@@ -109,14 +91,9 @@ public class CypherFunction extends CoreFunction {
 			}
 
 			final NativeQueryCommand nqc = StructrApp.getInstance(ctx.getSecurityContext()).command(NativeQueryCommand.class);
+			nqc.setRunInNewTransaction(runInNewTransaction);
 
-			if (Boolean.TRUE.equals(dontFlushCaches)) {
-				nqc.setDontFlushCachesIfKeywordsInQuery(dontFlushCaches);
-			}
-
-			tx.success();
-			final Iterable result = nqc.execute(query, params);
-			return result;
+			return nqc.execute(query, params);
 
 		} catch (ArgumentNullException pe) {
 
@@ -129,21 +106,62 @@ public class CypherFunction extends CoreFunction {
 			return usage(ctx.isJavaScriptContext());
 		} catch (SyntaxErrorException ex) {
 
-			throw new FrameworkException(422, "%s: SyntaxError (Cause: %s)".formatted(getReplacement(), ex.getMessage()));
+			throw new FrameworkException(422, "%s: SyntaxError (Cause: %s)".formatted(getDisplayName(), ex.getMessage()));
 		} catch (UnknownClientException ex) {
 
-			throw new FrameworkException(422, "%s: UnknownClientException (Cause: %s)".formatted(getReplacement(), ex.getMessage()));
+			throw new FrameworkException(422, "%s: UnknownClientException (Cause: %s)".formatted(getDisplayName(), ex.getMessage()));
 		}
+    }
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${cypher(query)}. Example ${cypher('MATCH (n) RETURN n')}"),
+			Usage.javaScript("Usage: ${{ $.cypher(query); }}. Example ${{ $.cypher('MATCH (n) RETURN n'); }}")
+		);
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CYPHER_JS : ERROR_MESSAGE_CYPHER);
+	public String getShortDescription() {
+		return "Executes the given Cypher query directly on the database and returns the results as Structr entities.";
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the result of the given Cypher query";
+	public String getLongDescription() {
+		return "Structr will automatically convert all query results into the corresponding Structr objects, i.e. Neo4j nodes will be instantiated to Structr node entities, Neo4j relationships will be instantiated to Structr relationship entities, and maps will converted into Structr maps that can be accessed using the dot notation (`map.entry.subentry`).";
 	}
 
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("query", "query to execute"),
+			Parameter.optional("parameters", "map to supply parameters for the variables in the query"),
+			Parameter.optional("runInNewTransaction", "whether the Cypher query should be run in a new transaction - see notes about the implications of that flag")
+
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${cypher('MATCH (n:User) RETURN n')}", "Run a simple query"),
+			Example.javaScript("""
+			${{
+				let query = "MATCH (user:User) WHERE user.name = $userName RETURN user";
+				let users = $.cypher(query, {userName: 'admin'});
+			}}
+			""", "Run a query with variables in it")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"If the `runInNewTransaction` parameter is set to `true`, the query runs in a new transaction, **which means that you cannot access use objects created in the current context due to transaction isolation**.",
+			"The `cypher()` function always returns a collection of objects, even if `LIMIT 1` is specified!",
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
+	}
 }

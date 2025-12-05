@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,13 +22,15 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class LastFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_LAST = "Usage: ${last(collection)}. Example: ${last(this.children)}";
 
 	@Override
 	public String getName() {
@@ -36,8 +38,8 @@ public class LastFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override
@@ -47,16 +49,14 @@ public class LastFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof Iterable) {
+			if (sources[0] instanceof List l && !l.isEmpty()) {
 
-				final Iterable iterable = (Iterable)sources[0];
-				return Iterables.last(iterable);
+				return l.get(l.size() - 1);
 			}
 
-			if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
+			if (sources[0] instanceof Iterable i) {
 
-				final List list = (List)sources[0];
-				return list.get(list.size() - 1);
+				return Iterables.last(i);
 			}
 
 			if (sources[0].getClass().isArray()) {
@@ -83,12 +83,32 @@ public class LastFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_LAST;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${last(collection)}. Example: ${last(this.children)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the last element of the given collection";
+	public String getShortDescription() {
+		return "Returns the last element of the given collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function is often used in conjunction with `find()`. See also `first()` and `nth()`.";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return  List.of(
+			Parameter.mandatory("collection", "collection to return last element of")
+		);
 	}
 }

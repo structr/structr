@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,9 @@ package org.structr.core.function.search;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 /**
  */
@@ -38,7 +38,7 @@ public class StartsWithPredicate extends AbstractPredicate {
 	}
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
 
 		/***
 		 * The predicate can be used in two different ways.
@@ -50,7 +50,7 @@ public class StartsWithPredicate extends AbstractPredicate {
 
 			if (key != null) {
 
-				final PropertyKey k = StructrApp.key(type, key);
+				final PropertyKey k = type.key(key);
 				if (k != null) {
 
 					query.startsWith(k, value, exact);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,122 +18,136 @@
  */
 package org.structr.storage.util;
 
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.*;
 
 public class VirtualFileChannel extends FileChannel {
-    private final SeekableByteChannel internalChannel;
 
-    public VirtualFileChannel(final SeekableByteChannel internalChannel) {
-        this.internalChannel = internalChannel;
-    }
+	private final SeekableByteChannel internalChannel;
+	private final AbstractFile actualFile;
 
-    @Override
-    public int read(ByteBuffer dst) throws IOException {
-        return internalChannel.read(dst);
-    }
+	public VirtualFileChannel(final AbstractFile actualFile, final SeekableByteChannel internalChannel) {
 
-    @Override
-    public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
-        long bytesRead = 0;
-        internalChannel.position(offset);
-        internalChannel.truncate(length);
+		this.internalChannel = internalChannel;
+		this.actualFile      = actualFile;
+	}
 
-        for (ByteBuffer buff : dsts) {
-            bytesRead += internalChannel.read(buff);
-        }
+	@Override
+	public int read(ByteBuffer dst) throws IOException {
+		return internalChannel.read(dst);
+	}
 
-        return bytesRead;
-    }
+	@Override
+	public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
+		long bytesRead = 0;
+		internalChannel.position(offset);
+		internalChannel.truncate(length);
 
-    @Override
-    public int write(ByteBuffer src) throws IOException {
-        return internalChannel.write(src);
-    }
+		for (ByteBuffer buff : dsts) {
+			bytesRead += internalChannel.read(buff);
+		}
 
-    @Override
-    public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
-        // ToDo: Validate correct behaviour
-        long bytesWritten = 0;
-        internalChannel.position(offset);
-        internalChannel.truncate(length);
+		return bytesRead;
+	}
 
-        for (ByteBuffer buff : srcs) {
-            bytesWritten += internalChannel.write(buff);
-        }
+	@Override
+	public int write(ByteBuffer src) throws IOException {
+		return internalChannel.write(src);
+	}
 
-        return bytesWritten;
-    }
+	@Override
+	public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
+		// ToDo: Validate correct behaviour
+		long bytesWritten = 0;
+		internalChannel.position(offset);
+		internalChannel.truncate(length);
 
-    @Override
-    public long position() throws IOException {
-        return internalChannel.position();
-    }
+		for (ByteBuffer buff : srcs) {
+			bytesWritten += internalChannel.write(buff);
+		}
 
-    @Override
-    public FileChannel position(long newPosition) throws IOException {
-        internalChannel.position(newPosition);
-        return this;
-    }
+		return bytesWritten;
+	}
 
-    @Override
-    public long size() throws IOException {
-        return internalChannel.size();
-    }
+	@Override
+	public long position() throws IOException {
+		return internalChannel.position();
+	}
 
-    @Override
-    public FileChannel truncate(long size) throws IOException {
-        internalChannel.truncate(size);
-        return this;
-    }
+	@Override
+	public FileChannel position(long newPosition) throws IOException {
+		internalChannel.position(newPosition);
+		return this;
+	}
 
-    @Override
-    public void force(boolean metaData) throws IOException {
-        // can't force seekablebytechannel
-        throw new IOException("Operation not supported");
-    }
+	@Override
+	public long size() throws IOException {
+		return internalChannel.size();
+	}
 
-    @Override
-    public long transferTo(long position, long count, WritableByteChannel target) throws IOException {
-        throw new IOException("Operation not supported");
-    }
+	@Override
+	public FileChannel truncate(long size) throws IOException {
+		internalChannel.truncate(size);
+		return this;
+	}
 
-    @Override
-    public long transferFrom(ReadableByteChannel src, long position, long count) throws IOException {
-        throw new IOException("Operation not supported");
-    }
+	@Override
+	public void force(boolean metaData) throws IOException {
+		// can't force seekablebytechannel
+		//throw new IOException("Operation not supported");
+	}
 
-    @Override
-    public int read(ByteBuffer dst, long position) throws IOException {
-        internalChannel.position(position);
-        return read(dst);
-    }
+	@Override
+	public long transferTo(long position, long count, WritableByteChannel target) throws IOException {
+		throw new IOException("Operation not supported");
+	}
 
-    @Override
-    public int write(ByteBuffer src, long position) throws IOException {
-        internalChannel.position(position);
-        return write(src);
-    }
+	@Override
+	public long transferFrom(ReadableByteChannel src, long position, long count) throws IOException {
+		throw new IOException("Operation not supported");
+	}
 
-    @Override
-    public MappedByteBuffer map(MapMode mode, long position, long size) throws IOException {
-        throw new IOException("Operation not supported");
-    }
+	@Override
+	public int read(ByteBuffer dst, long position) throws IOException {
+		internalChannel.position(position);
+		return read(dst);
+	}
 
-    @Override
-    public FileLock lock(long position, long size, boolean shared) throws IOException {
-        throw new IOException("Operation not supported");
-    }
+	@Override
+	public int write(ByteBuffer src, long position) throws IOException {
+		internalChannel.position(position);
+		return write(src);
+	}
 
-    @Override
-    public FileLock tryLock(long position, long size, boolean shared) throws IOException {
-        throw new IOException("Operation not supported");
-    }
+	@Override
+	public MappedByteBuffer map(MapMode mode, long position, long size) throws IOException {
+		throw new IOException("Operation not supported");
+	}
 
-    @Override
-    protected void implCloseChannel() throws IOException {
-        internalChannel.close();
-    }
+	@Override
+	public FileLock lock(long position, long size, boolean shared) throws IOException {
+		throw new IOException("Operation not supported");
+	}
+
+	@Override
+	public FileLock tryLock(long position, long size, boolean shared) throws IOException {
+		throw new IOException("Operation not supported");
+	}
+
+	@Override
+	protected void implCloseChannel() throws IOException {
+
+		if (internalChannel != null) {
+			internalChannel.close();
+		}
+
+		if (actualFile != null) {
+			actualFile.as(File.class).notifyUploadCompletion();
+		}
+	}
 }

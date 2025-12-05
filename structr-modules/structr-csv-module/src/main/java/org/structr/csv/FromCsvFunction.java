@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,10 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.csv.QuoteMode;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.StringReader;
@@ -32,17 +36,15 @@ import java.util.Map;
 
 public class FromCsvFunction extends CsvFunction {
 
-	public static final String ERROR_MESSAGE_FROM_CSV    = "Usage: ${from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]])}. Example: ${from_csv('COL1;COL2;COL3\none;two;three')}";
-	public static final String ERROR_MESSAGE_FROM_CSV_JS = "Usage: ${{Structr.from_csv(source[, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]])}}. Example: ${{Structr.from_csv('COL1;COL2;COL3\none;two;three')}}";
 
 	@Override
 	public String getName() {
-		return "from_csv";
+		return "fromCsv";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source [, delimiterChar[, quoteChar[, recordSeparator[, header[, escapeChar]]]]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source [, delimiterChar = ';' [, quoteChar = '\"' [, recordSeparator = '\\n' [, header [, escapeChar = '\\\\' ]]]]]");
 	}
 
 	@Override
@@ -97,7 +99,7 @@ public class FromCsvFunction extends CsvFunction {
 
 			} catch (Throwable t) {
 
-				logException(t, "{}: Exception for parameter: {}", new Object[] { getReplacement(), getParametersAsString(sources) });
+				logException(t, "{}(): Encountered exception '{}' for input: {}", new Object[] { getName(), t.getMessage(), getParametersAsString(sources) });
 			}
 
 			return "";
@@ -110,12 +112,64 @@ public class FromCsvFunction extends CsvFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_CSV_JS : ERROR_MESSAGE_FROM_CSV);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${fromCsv(source[, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}. Example: ${fromCsv('COL1;COL2;COL3\none;two;three')}"),
+			Usage.javaScript("Usage: ${{Structr.fromCsv(source [, delimiterChar [, quoteChar [, recordSeparator [, header [, escapeChar ]]]]])}}. Example: ${{Structr.fromCsv('COL1;COL2;COL3\none;two;three')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Parses the given CSV string and returns a list objects";
+	public String getShortDescription() {
+		return "Parses the given CSV string and returns a list of objects.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "If the parameter `headerList` is not supplied, it is assumed that the first line of the CSV is a header and those header values are used as property names. If the parameter is supplied, the given values are used as property names and the first line is read as data.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("source", "CSV source text to parse"),
+			Parameter.optional("delimiterChar", "delimiter char to use, defaults to ;"),
+			Parameter.optional("quoteChar", "quote char to use, defaults to '\"'"),
+			Parameter.optional("recordSeparator", "record separator, defaults to '\\n'"),
+			Parameter.optional("header", "collection of strings that are used as column names"),
+			Parameter.optional("escapeChar", "escape char, defaults to '\\\\")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+
+			Example.javaScript("""
+			${{
+				let result = $.fromCsv('COL1;COL2;COL3\\nline1:one;line1:two;line1:three\\nline2:one;line2:two;line2:three');
+
+				let firstRow    = result[0];
+				let firstColumn = firstRow.COL1;
+			}}
+			""", "Parse a CSV string and access the first column"),
+
+			Example.javaScript("""
+			${{
+				let file = $.find('File', { name: 'test.csv' })[0];
+				let data = $.fromCsv($.getContent(file)));
+
+				$.log(data[0].name);
+			}}
+			""", "Parse a CSV file and work with the data")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of();
 	}
 }

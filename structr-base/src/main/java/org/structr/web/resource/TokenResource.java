@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.web.resource;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
@@ -27,145 +28,158 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
-public class TokenResource extends LoginResource {
 
-    @Override
-    public String getErrorMessage() {
-        return JWTHelper.TOKEN_ERROR_MSG;
-    }
+public class TokenResource extends ExactMatchEndpoint {
 
-    @Override
-    public String getUriPart() {
-        return "token";
-    }
+	public TokenResource() {
+		super(RESTParameter.forStaticString("token", true, "_token"));
+	}
 
-    @Override
-    public String getResourceSignature() {
-        return "_token";
-    }
+	@Override
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new TokenResourceHandler(call);
+	}
 
-    @Override
-    protected Principal getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
+	private class TokenResourceHandler extends LoginResourceHandler {
 
-        Principal user = null;
+		public TokenResourceHandler(final RESTCall call) {
+			super(call);
+		}
 
-        user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
+		@Override
+		public String getErrorMessage() {
+			return JWTHelper.TOKEN_ERROR_MSG;
+		}
 
-        boolean isFromRefreshToken = false;
+		@Override
+		protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
-        if (user == null) {
+			Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
-            String refreshToken = getRefreshToken(propertySet);
+			boolean isFromRefreshToken = false;
 
-            if (refreshToken != null) {
+			if (user == null) {
 
-                user = JWTHelper.getPrincipalForRefreshToken(refreshToken);
-                isFromRefreshToken = true;
+				String refreshToken = getRefreshToken(securityContext, propertySet);
 
-            }
-        }
+				if (refreshToken != null) {
 
-        if (user != null) {
+					user = JWTHelper.getPrincipalForRefreshToken(refreshToken);
+					isFromRefreshToken = true;
 
-            final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
+				}
+			}
 
-            if (twoFactorAuthenticationSuccessOrNotNecessary) {
+			if (user != null) {
 
-                if (isFromRefreshToken == false) {
+				final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
 
-                    AuthHelper.updateLastLoginDate(user);
-                    AuthHelper.sendLoginNotification(user, securityContext.getRequest());
-                }
+				if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
-                return user;
-            }
-        }
+					if (!isFromRefreshToken) {
 
-        return null;
-    }
+						AuthHelper.updateLastLoginDate(user);
+						AuthHelper.sendLoginNotification(user, securityContext.getRequest());
+					}
 
-    @Override
-    protected RestMethodResult doLogin(SecurityContext securityContext, Principal user) throws FrameworkException {
-        Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
+					return user;
+				}
+			}
 
-        logger.info("Token creation successful: {}", user);
+			return null;
+		}
 
-        RuntimeEventLog.token("Token creation successful", Map.of("id", user.getUuid(), "name", user.getName()));
+		@Override
+		protected RestMethodResult doLogin(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
-        user.setSecurityContext(securityContext);
+			final Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
 
-        // make logged in user available to caller
-        securityContext.setCachedUser(user);
-        tokenMap.put("token_type", "Bearer");
+			logger.info("Token creation successful: {}", user);
 
-        return createRestMethodResult(securityContext, tokenMap);
-    }
+			RuntimeEventLog.token("Token creation successful", Map.of("id", user.getUuid(), "name", user.getName()));
 
-    private String getRefreshToken(Map<String, Object> propertySet) {
+			user.setSecurityContext(securityContext);
 
-        String refreshToken = (String) propertySet.get("refresh_token");
-        if (refreshToken != null) {
-            return refreshToken;
-        }
+			// make logged in user available to caller
+			securityContext.setCachedUser(user);
+			tokenMap.put("token_type", "Bearer");
 
-        if (this.request == null) {
-            return null;
-        }
+			return createRestMethodResult(securityContext, tokenMap);
+		}
 
-        final Cookie[] cookies = request.getCookies();
+		private String getRefreshToken(final SecurityContext securityContext, final Map<String, Object> propertySet) {
 
-        if (cookies != null) {
+			String refreshToken = (String)propertySet.get("refresh_token");
+			if (refreshToken != null) {
 
-            for (Cookie cookie : request.getCookies()) {
+				return refreshToken;
+			}
 
-                if (StringUtils.equals(cookie.getName(), "refresh_token")) {
+			final HttpServletRequest request = securityContext.getRequest();
+			if (request == null) {
+				return null;
+			}
 
-                    return cookie.getValue();
-                }
-            }
-        }
+			final Cookie[] cookies = request.getCookies();
+			if (cookies != null) {
 
-        if (refreshToken == null) {
-            return request.getHeader("refresh_token");
-        }
-        return refreshToken;
-    }
+				for (Cookie cookie : request.getCookies()) {
 
-    private RestMethodResult createRestMethodResult(SecurityContext securityContext, Map<String, String> tokenMap) {
-        RestMethodResult returnedMethodResult = new RestMethodResult(200);
-        returnedMethodResult.addContent(tokenMap);
+					if (StringUtils.equals(cookie.getName(), "refresh_token")) {
 
-        final HttpServletResponse response = securityContext.getResponse();
+						return cookie.getValue();
+					}
+				}
+			}
 
-        if (response != null) {
-            final int tokenMaxAge = Settings.JWTExpirationTimeout.getValue();
-            final int refreshMaxAge = Settings.JWTRefreshTokenExpirationTimeout.getValue();
+			if (refreshToken == null) {
+				return request.getHeader("refresh_token");
+			}
 
-            final Cookie tokenCookie = new Cookie("access_token", tokenMap.get("access_token"));
-            tokenCookie.setPath("/");
-            tokenCookie.setHttpOnly(false);
-            tokenCookie.setMaxAge(tokenMaxAge * 60);
+			return refreshToken;
+		}
 
-            final Cookie refreshCookie = new Cookie("refresh_token", tokenMap.get("refresh_token"));
-            refreshCookie.setHttpOnly(true);
-            refreshCookie.setMaxAge(refreshMaxAge * 60);
+		private RestMethodResult createRestMethodResult(final SecurityContext securityContext, final Map<String, String> tokenMap) {
 
-            if (Settings.ForceHttps.getValue() || securityContext.getRequest().isSecure()) {
+			RestMethodResult returnedMethodResult = new RestMethodResult(200);
+			returnedMethodResult.addContent(tokenMap);
 
-                tokenCookie.setSecure(true);
-                refreshCookie.setSecure(true);
-            }
+			final HttpServletResponse response = securityContext.getResponse();
+			if (response != null) {
 
-            response.addCookie(tokenCookie);
-            response.addCookie(refreshCookie);
-        }
+				final int tokenMaxAge = Settings.JWTExpirationTimeout.getValue();
+				final int refreshMaxAge = Settings.JWTRefreshTokenExpirationTimeout.getValue();
 
-        return returnedMethodResult;
-    }
+				final Cookie tokenCookie = new Cookie("access_token", tokenMap.get("access_token"));
+				tokenCookie.setPath("/");
+				tokenCookie.setHttpOnly(false);
+				tokenCookie.setMaxAge(tokenMaxAge * 60);
+
+				final Cookie refreshCookie = new Cookie("refresh_token", tokenMap.get("refresh_token"));
+				refreshCookie.setHttpOnly(true);
+				refreshCookie.setMaxAge(refreshMaxAge * 60);
+
+				if (Settings.ForceHttps.getValue() || securityContext.getRequest().isSecure()) {
+
+					tokenCookie.setSecure(true);
+					refreshCookie.setSecure(true);
+				}
+
+				response.addCookie(tokenCookie);
+				response.addCookie(refreshCookie);
+			}
+
+			return returnedMethodResult;
+		}
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,29 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.AssertException;
+import org.structr.api.config.Settings;
+import org.structr.common.AccessControllable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.script.polyglot.function.GrantFunction;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
@@ -60,35 +59,33 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	}
 
 	@Override
-	public Object getMember(String key) {
+	public Object getMember(final String key) {
 
-		if (node instanceof AbstractNode) {
+		if (node instanceof NodeInterface nodeInterface) {
 
 			switch (key) {
 
 				case "id":
 					return this.node.getUuid();
 
-				case "name":
-					return ((AbstractNode)this.node).getName();
-
 				case "owner":
-					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getOwnerNode());
+					final AccessControllable ac = nodeInterface.as(AccessControllable.class);
+					return PolyglotWrapper.wrap(actionContext, ac.getOwnerNode());
 
 				case "_path":
-					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getPath(actionContext.getSecurityContext()));
+					return PolyglotWrapper.wrap(actionContext, nodeInterface.getPath(actionContext.getSecurityContext()));
 
 				case "createdDate":
-					return ((AbstractNode)this.node).getCreatedDate();
+					return PolyglotWrapper.wrap(actionContext, this.node.getCreatedDate());
 
 				case "lastModifiedDate":
-					return ((AbstractNode)this.node).getLastModifiedDate();
+					return PolyglotWrapper.wrap(actionContext, this.node.getLastModifiedDate());
 
 				case "visibleToPublicUsers":
-					return ((AbstractNode)this.node).getVisibleToPublicUsers();
+					return this.node.isVisibleToPublicUsers();
 
 				case "visibleToAuthenticatedUsers":
-					return ((AbstractNode)this.node).getVisibleToAuthenticatedUsers();
+					return this.node.isVisibleToAuthenticatedUsers();
 			}
 		}
 
@@ -99,83 +96,32 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			// Lookup method, if it's not in cache
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(node.getClass());
-			if (methods.containsKey(key) && !Modifier.isStatic(methods.get(key).getModifiers())) {
+			final AbstractMethod method = Methods.resolveMethod(node.getTraits(), key);
+			if (method != null) {
 
-				final Method method = methods.get(key);
+				// dont call static methods here, but warn instead
+				if (method.isStatic()) {
 
-				final ProxyExecutable executable = arguments -> {
-
-					try {
-
-						int paramCount = method.getParameterCount();
-
-						if (paramCount == 0) {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node));
-
-						} else if (paramCount == 1) {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
-
-						} else if (paramCount == 2 && arguments.length == 0) {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), new HashMap<String, Object>()));
-
-						} else if (arguments.length == 0) {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
-
-						} else {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
-						}
-
-					} catch (IllegalArgumentException ex) {
-
-						throw new RuntimeException(new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
-
-					} catch (IllegalAccessException ex) {
-
-						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-
-					} catch (InvocationTargetException ex) {
-
-						if (ex.getTargetException() instanceof FrameworkException) {
-
-							throw new RuntimeException(ex.getTargetException());
-
-						} else if (ex.getTargetException() instanceof AssertException) {
-
-							throw ((AssertException)ex.getTargetException());
-						}
-
-						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-					}
-
+					// At this point method is guaranteed to be static since earlier isStatic check was true
+					logger.warn("Tried calling a static type method in a non-static way on a type instance.");
 					return null;
+				}
 
-				};
-
-				return executable;
-
-			} else if (methods.containsKey(key)) {
-
-				// At this point method is guaranteed to be static since earlier isStatic check was true
-				logger.warn("Tried calling a static type method in a non-static way on a type instance.");
-				return null;
-
-			} else if (key.equals("grant")) {
-
-				// grant() on GraphObject needs special handling
-				return new GrantFunction(actionContext, node);
+				return method.getProxyExecutable(actionContext, node);
 			}
 
-			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+			final Traits traits = node.getTraits();
+
+			if (traits == null) {
+				return null;
+			}
+
+			final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+			final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(key) : traits.key(key));
 
 			if (propKey != null) {
 
-				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
+				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.isArray())) {
 
 					// RelationshipProperty needs special binding
 					// ArrayProperty values need synchronized ProxyArrays as well
@@ -206,7 +152,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
 			}
 
-			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
+			//return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
+			return null;
 		}
 	}
 
@@ -217,10 +164,28 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			return ((GraphObjectMap) node).toMap().keySet().toArray();
 
-		} else if (node != null){
+		} else if (node != null) {
 
-			return node.getPropertyKeys("all").stream().map(PropertyKey::dbName).toArray();
+			final List<String> members = new LinkedList<>();
+
+			final Set<PropertyKey> keys = node.getPropertyKeys("all");
+			if (keys != null) {
+
+				members.addAll(keys.stream().map(k -> k.jsonName()).collect(Collectors.toList()));
+			}
+
+			for (final Map.Entry<String, AbstractMethod> entry : Methods.getAllMethods(node.getTraits()).entrySet()) {
+
+				final AbstractMethod method = entry.getValue();
+				if (method != null && !method.isPrivate()) {
+
+					members.add(entry.getKey());
+				}
+			}
+
+			return members.toArray();
 		}
+
 		return null;
 	}
 
@@ -235,15 +200,10 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			if (node != null) {
 
-				// Special handling for grant-Function
-				if (key.equals("grant")) {
-					return true;
-				}
+				final Traits traits       = node.getTraits();
+				final boolean hasProperty = (traits != null && traits.hasKey(key)) || Settings.AllowUnknownPropertyKeys.getValue(false);
 
-				final Class type = node.getClass();
-
-				PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key);
-				return StructrApp.getConfiguration().getExportedMethodsForType(type).containsKey(key) || (propKey != null && !(propKey instanceof GenericProperty<?>));
+				return hasProperty || Methods.resolveMethod(traits, key) != null;
 
 			} else {
 
@@ -265,26 +225,39 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			try {
 
-				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false);
+				final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? node.getTraits().keyOrGenericProperty(key) : node.getTraits().key(key));
 
-				if (propKey != null && unwrappedValue != null && !propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
+				// fixme: how to compare types here?
+				if (propKey != null) {
 
-					final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext());
+					if (!(propKey instanceof GenericProperty)) {
 
-					if (inputConverter != null) {
+						if (unwrappedValue != null && !propKey.valueType().equals(unwrappedValue.getClass().getSimpleName())) {
 
-						try {
+							final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext(), false);
 
-							unwrappedValue = inputConverter.convert(unwrappedValue);
+							if (inputConverter != null) {
 
-						} catch (ClassCastException ex) {
+								try {
 
-							throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+									unwrappedValue = inputConverter.convert(unwrappedValue);
+
+								} catch (ClassCastException ex) {
+
+									throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
+								}
+							}
 						}
 					}
-				}
 
-				node.setProperty(propKey, unwrappedValue);
+					node.setProperty(propKey, unwrappedValue);
+
+				} else {
+
+					// key does not exist and generic property is not desired => log warning
+					logger.warn("Unknown property {}.{}, value will not be set.", node.getType(), key);
+				}
 
 			} catch (FrameworkException ex) {
 
@@ -295,23 +268,36 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public boolean removeMember(String key) {
-		final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
 
-		if (node instanceof GraphObjectMap) {
+		final boolean isGraphObjectMap = (node instanceof GraphObjectMap);
+		final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || isGraphObjectMap;
+
+		final Traits traits       = node.getTraits();
+		final PropertyKey propKey = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(key) : traits.key(key));
+
+		if (isGraphObjectMap) {
 
 			if (((GraphObjectMap) node).containsKey(propKey)) {
 
 				((GraphObjectMap) node).remove(propKey);
 				return true;
+
 			} else {
 
 				return false;
 			}
+
 		} else {
 
 			try {
 
 				node.removeProperty(propKey);
+
+				if (propKey instanceof GenericProperty) {
+
+					return true;
+				}
+
 			} catch (FrameworkException ex) {
 
 				throw new RuntimeException(ex);

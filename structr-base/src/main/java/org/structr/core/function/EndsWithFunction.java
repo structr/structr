@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,20 +19,23 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class EndsWithFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_ENDS_WITH = "Usage: ${ends_with(string, suffix)}. Example: ${ends_with(locale, \"de\")}";
-
 	@Override
 	public String getName() {
-		return "ends_with";
+		return "endsWith";
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, suffix";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str, suffix");
 	}
 
 	@Override
@@ -55,12 +58,28 @@ public class EndsWithFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ENDS_WITH;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${$.endsWith(string, suffix)}. Example: ${$.endsWith(locale, \"de\")}"),
+			Usage.structrScript("Usage: ${endsWith(string, suffix)}. Example: ${endsWith(locale, \"de\")}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the given string ends with the given suffix";
+	public String getShortDescription() {
+		return "Returns true if the given string ends with the given suffix.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("string", "string to check"),
+			Parameter.mandatory("suffix", "suffix to check")
+		);
 	}
 }

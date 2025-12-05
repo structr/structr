@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,6 @@
  */
 package org.structr.web.entity.dom;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
-
 /**
  * Shadow document.
  *
@@ -33,13 +27,4 @@ import java.net.URI;
  *
  */
 public interface ShadowDocument extends Page {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ShadowDocument");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ShadowDocument"));
-		type.setExtends(URI.create("#/definitions/Page"));
-	}}
 }

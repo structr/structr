@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,26 @@
  */
 package org.structr.core.function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.docs.Example;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RandomUUIDFunction extends CoreFunction {
 
-	private static final Logger logger       = LoggerFactory.getLogger(RandomUUIDFunction.class);
-	public static final String ERROR_MESSAGE = "Usage: ${random_uuid()}.";
-
 	@Override
 	public String getName() {
-		return "random_uuid";
+		return "randomUuid";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -45,12 +46,36 @@ public class RandomUUIDFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${randomUuid()}."),
+			Usage.javaScript("Usage: ${{ $.randomUuid() }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a random UUID";
+	public String getShortDescription() {
+		return "Returns a random UUID.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "New in v3.6: Returns a new random UUID, a string with 32 characters [0-9a-f].";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${random_uuid()}"),
+				Example.javaScript("""
+						${{
+						    const newId = $.randomUuid();
+						    return newId;
+						}}
+						""")
+		);
+	}
+
+
+
 }

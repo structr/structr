@@ -18,13 +18,11 @@ See [https://structr.com/product/benefits](https://structr.com/product/benefits)
 
 See [https://structr.com/product/features](https://structr.com/product/features).
 
-## Download
-
-Download the official binary packages from [https://structr.com/resources/download](https://structr.com/resources/download).
+## Installation
 
 There are docker images available on [https://hub.docker.com/r/structr/structr/](https://hub.docker.com/r/structr/structr/).
 
-A more versatile setup is described here: [https://github.com/structr/docker-setup](https://github.com/structr/docker-setup)
+The mostly automatized installation is found here: [https://github.com/structr/docker-setup](https://github.com/structr/docker-setup)
 
 ## Licensing
 
@@ -33,10 +31,6 @@ Structr is dual licensed under the GPLv3/AGPLv3 and a commercial license. To use
 ## Documentation
 
 The documentation can be found at [https://docs.structr.com/docs](https://docs.structr.com/docs).
-
-## Installation and Setup
-
-Prerequisites are the GraalVM 11 JDK. See [https://docs.structr.com/docs/running-structr#installation](https://docs.structr.com/docs/running-structr#installation) for instructions on how to install and start Structr.
 
 ## First Login
 
@@ -54,4 +48,4 @@ You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https
 
 ## Copyright and License
 
-Copyright 2010-2023 Structr GmbH
+Copyright 2010-2025 Structr GmbH

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,8 +25,8 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NativeQueryCommand;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 
@@ -48,7 +48,7 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -58,14 +58,14 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	}
 
 	@Override
-	public Iterable<GraphObject> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<GraphObject> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<GraphObject> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, Predicate<GraphObject> predicate) {
+	public Iterable<GraphObject> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (obj instanceof AbstractNode) {
+		if (obj instanceof NodeInterface) {
 
 			try {
 
@@ -89,6 +89,11 @@ public class CypherQueryProperty extends AbstractReadOnlyProperty<Iterable<Graph
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,14 @@
  */
 package org.structr.bolt;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Relationship;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -33,9 +37,9 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
+	public String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query) {
 
-		final StringBuilder buf       = new StringBuilder();
+		final StringBuilder buf = new StringBuilder();
 		final String tenantIdentifier = db.getTenantIdentifier();
 
 		buf.append("MATCH (");
@@ -45,6 +49,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			buf.append(tenantIdentifier);
 		}
 
+		final String sourceTypeLabel = query.getSourceType();
 		if (sourceTypeLabel != null) {
 			buf.append(":");
 			buf.append(sourceTypeLabel);
@@ -64,6 +69,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			buf.append(tenantIdentifier);
 		}
 
+		final String targetTypeLabel = query.getTargetType();
 		if (targetTypeLabel != null) {
 			buf.append(":");
 			buf.append(targetTypeLabel);
@@ -105,7 +111,43 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public Iterable<Relationship> getResult(final AdvancedCypherQuery query) {
+	public Map<Relationship, Double> fulltextQuery(final String indexName, final String searchString) {
+
+		final String tenantIdentifier        = db.getTenantIdentifier();
+		final Map<String, Object> parameters = new LinkedHashMap<>();
+		final SessionTransaction tx          = db.getCurrentTransaction();
+
+		parameters.put("indexName", indexName);
+		parameters.put("searchValue", searchString);
+
+		final String statement;
+
+		if (StringUtils.isNotBlank(tenantIdentifier)) {
+
+			statement = "CALL db.index.fulltext.queryRelationships($indexName, $searchValue) YIELD relationship, score MATCH (:" + tenantIdentifier + ")-[relationship]-(:" + tenantIdentifier + ") RETURN relationship, score";
+
+		} else {
+
+			statement = "CALL db.index.fulltext.queryRelationships($indexName, $searchValue) YIELD relationship, score RETURN relationship, score";
+		}
+
+		final SimpleCypherQuery query              = new SimpleCypherQuery(statement, parameters);
+		final Iterable<Map<String, Object>> result = tx.run(query);
+		final Map<Relationship, Double> nodes      = new LinkedHashMap<>();
+
+		for (final Map<String, Object> entry : result) {
+
+			final Relationship relationship = (Relationship) entry.get("relationship");
+			final Double score              = (Double) entry.get("score");
+
+			nodes.put(relationship, score);
+		}
+
+		return nodes;
+	}
+
+	@Override
+	public Iterable<Relationship> getResult(final CypherQuery query) {
 		return Iterables.map(new RelationshipRelationshipMapper(db), Iterables.map(new RecordRelationshipMapper(db), new LazyRecordIterable(db, query)));
 	}
 }

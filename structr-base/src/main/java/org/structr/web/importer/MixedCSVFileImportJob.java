@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,18 +23,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.ContextStore;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.traits.Traits;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
@@ -42,6 +42,7 @@ import org.structr.web.entity.File;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -124,7 +125,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 				final Map<String, RelationProperty> relKeyCache = new LinkedHashMap<>();
 				final Character fieldSeparator                  = delimiter.charAt(0);
 				final Character quoteCharacter                  = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable              = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
+				final Iterable<JsonInput> iterable              = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, StandardCharsets.UTF_8), fieldSeparator, quoteCharacter, range, reverse(importMappings), strictQuotes);
 				final Iterator<JsonInput> iterator              = iterable.iterator();
 				int chunks                                      = 0;
 				int ignoreCount                                 = 0;
@@ -140,9 +141,9 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 						while (iterator.hasNext() && count++ < commitInterval) {
 
-							final List<StringTuple> tuples            = new LinkedList<>();
-							final Map<String, GraphObject> rowObjects = new LinkedHashMap<>();
-							final JsonInput row                       = iterator.next();
+							final List<StringTuple> tuples              = new LinkedList<>();
+							final Map<String, NodeInterface> rowObjects = new LinkedHashMap<>();
+							final JsonInput row                         = iterator.next();
 
 							for (final Entry<String, Object> entry : mixedMappings.entrySet()) {
 
@@ -152,8 +153,8 @@ public class MixedCSVFileImportJob extends FileImportJob {
 								final Map<String, Object> inputData  = new LinkedHashMap<>();
 								final String typeName                = (String)data.get("name");
 								final PropertyMap searchAttributes   = new PropertyMap();
-								final Class type                     = StructrApp.getConfiguration().getNodeEntityClass(typeName);
-								GraphObject newObject                = null;
+								final Traits type                    = Traits.of(typeName);
+								NodeInterface newObject              = null;
 
 								// select only mapped propertiers
 								for (final String keyName : properties.values()) {
@@ -161,7 +162,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 								}
 
 								// transform properties using actual type and input converters etc.
-								final PropertyMap transformedData = PropertyMap.inputTypeToJavaType(threadContext, type, inputData);
+								final PropertyMap transformedData = PropertyMap.inputTypeToJavaType(threadContext, typeName, inputData);
 
 								// check if the transformed data contains keys with uniqueness constraints
 								for (final PropertyKey key : transformedData.keySet()) {
@@ -174,13 +175,13 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 								// search for object before creating it again
 								if (!searchAttributes.isEmpty()) {
-									newObject = app.nodeQuery(type).and(searchAttributes).getFirst();
+									newObject = app.nodeQuery(typeName).key(searchAttributes).getFirst();
 								}
 
 								// create new object if it doesn't exist yet
 								if (newObject == null) {
 
-									newObject = app.create(type, transformedData);
+									newObject = app.create(typeName, transformedData);
 									overallCount++;
 								}
 
@@ -209,8 +210,8 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 								if (relKey != null) {
 
-									final GraphObject obj1 = rowObjects.get(tuple.left);
-									final GraphObject obj2 = rowObjects.get(tuple.right);
+									final NodeInterface obj1 = rowObjects.get(tuple.left);
+									final NodeInterface obj2 = rowObjects.get(tuple.right);
 
 									switch (relKey.getDirectionKey()) {
 
@@ -271,13 +272,13 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 	private RelationProperty findRelationshipKey(final String type1, final String type2) {
 
-		final Class class1 = StructrApp.getConfiguration().getNodeEntityClass(type1);
-		final Class class2 = StructrApp.getConfiguration().getNodeEntityClass(type2);
-		PropertyKey relKey = null;
+		final Traits class1 = Traits.of(type1);
+		final Traits class2 = Traits.of(type2);
+		PropertyKey relKey  = null;
 
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(class1, PropertyView.All)) {
+		for (final PropertyKey key : class1.getAllPropertyKeys()) {
 
-			if (class2.equals(key.relatedType())) {
+			if (class2.getName().equals(key.relatedType())) {
 
 				relKey = key;
 				break;
@@ -286,9 +287,9 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 		if (relKey == null) {
 
-			for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(class2, PropertyView.All)) {
+			for (final PropertyKey key : class2.getAllPropertyKeys()) {
 
-				if (class1.equals(key.relatedType())) {
+				if (class1.getName().equals(key.relatedType())) {
 
 					relKey = key;
 					break;

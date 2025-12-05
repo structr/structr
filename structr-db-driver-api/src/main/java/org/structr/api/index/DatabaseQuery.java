@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,22 +25,22 @@ public interface DatabaseQuery {
 	/**
 	 * Indicates AND conjunction with the next predicate.
 	 */
-	public void and();
+	void and();
 
 	/**
 	 * Indicates OR conjunction with the next predicate.
 	 */
-	public void or();
+	void or();
 
 	/**
 	 * Indicates negation of the next predicate.
 	 */
-	public void not();
+	void not();
 
 	/**
 	 * Indicates AND conjunction and negation of the next predicate.
 	 */
-	public void andNot();
+	void andNot();
 
 	void sort(final SortOrder sortOrder);
 }

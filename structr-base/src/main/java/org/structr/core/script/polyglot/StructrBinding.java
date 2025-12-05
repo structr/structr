@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,27 +23,36 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.CaseHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 import org.structr.core.function.Functions;
-import org.structr.core.script.polyglot.function.*;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.script.polyglot.function.CacheFunction;
+import org.structr.core.script.polyglot.function.DoAsFunction;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
+import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
 import org.structr.core.script.polyglot.wrappers.*;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Set;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
 
-	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
-	private final GraphObject entity;
-	private final ActionContext actionContext;
+	private final static Logger logger  = LoggerFactory.getLogger(StructrBinding.class);
+	private Value methodParameters      = null;
+	private ActionContext actionContext;
+	private GraphObject entity;
 
 	public StructrBinding(final ActionContext actionContext, final GraphObject entity) {
 
@@ -51,92 +60,134 @@ public class StructrBinding implements ProxyObject {
 		this.entity        = entity;
 	}
 
+	public ActionContext getActionContext() {
+		return actionContext;
+	}
+
+	public void setActionContext(final ActionContext actionContext) {
+		this.actionContext = actionContext;
+	}
+
+	public GraphObject getEntity() {
+		return entity;
+	}
+
+	public void setEntity(final GraphObject entity) {
+		this.entity = entity;
+	}
+
 	@Override
 	public Object getMember(String name) {
 
 		switch (name) {
+
 			case "get":
 				return getGetFunctionWrapper();
+
 			case "this":
 				return wrap(actionContext, entity);
+
 			case "me":
-				return wrap(actionContext,actionContext.getSecurityContext().getUser(false));
+				return wrap(actionContext, actionContext.getSecurityContext().getUser(false));
+
+			case "now":
+				return wrap(actionContext, new Date()); //ZonedDateTime.now();
+
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
-			case "batch":
-				logger.warn("The batch() function has been renamed to doInNewTransaction() to better communicate the semantics. Using batch() is deprecated as it will be removed in future versions.");
+
 			case "do_in_new_transaction":
 			case "doInNewTransaction":
 				return new DoInNewTransactionFunction(actionContext, entity);
-			case "include_js":
-			case "includeJs":
-				return new IncludeJSFunction(actionContext);
+
 			case "do_privileged":
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
+
 			case "do_as":
 			case "doAs":
 				return new DoAsFunction(actionContext);
+
 			case "request":
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
+
 			case "session":
 				return new HttpSessionWrapper(actionContext, actionContext.getSecurityContext().getSession());
+
 			case "cache":
 				return new CacheFunction(actionContext, entity);
+
 			case "vars":
 			case "requestStore":
 				return new PolyglotProxyMap(actionContext, actionContext.getRequestStore());
+
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
+
 			case "methodParameters":
+			case "arguments":
+			case "args":
+				if (methodParameters != null) {
+					return methodParameters;
+				}
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
+
 			case "globalSchemaMethods":
-				return new GlobalSchemaMethodWrapper(actionContext);
+
+				// TODO: remove in first stable release after 6.0
+				final String deprecationWarning = "Using deprecated \"$.globalSchemaMethods\" to call a user-defined function, please call it using \"$.\" directly. Support for this will be dropped in the near future.";
+				TransactionCommand.simpleBroadcastDeprecationWarning("SCRIPTING", "Deprecation warning", deprecationWarning);
+				logger.warn(deprecationWarning);
+
+				return new UserDefinedFunctionWrapper(actionContext);
+
+			case "_functions":
+
+				return new FunctionBinding(actionContext, entity);
+
 			default:
-				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+
+				// look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
+
+					return method.getProxyExecutable(actionContext, null);
+				}
+
+				// look for built-in function with the given name first (because it is fast)
+				//Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
+				Function<Object, Object> func = Functions.get(CaseHelper.toCamelCase(name));
 				if (func != null) {
 
 					return new FunctionWrapper(actionContext, entity, func);
 				}
 
+				// check if a named constant exists
 				if (actionContext.getConstant(name) != null) {
-					return wrap(actionContext,actionContext.getConstant(name));
+					return wrap(actionContext, actionContext.getConstant(name));
 				}
 
+				// check request store
 				if (actionContext.getRequestStore().containsKey(name)) {
 					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
-				final EvaluationHints hints = new EvaluationHints();
-				Object structrScriptResult  = null;
+				// static type?
+				if (Traits.exists(name)) {
+					return new StaticTypeWrapper(actionContext, Traits.of(name));
+				}
 
 				try {
 
-					structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
+					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, new EvaluationHints(), 1, 1));
 
 				} catch (FrameworkException ex) {
 
 					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
 				}
-
-				if (structrScriptResult != null) {
-
-					if (structrScriptResult instanceof Class) {
-
-						// Try to do a static class lookup as last resort
-						final Class clazz = (Class)structrScriptResult;
-						if (clazz != null) {
-
-							return new StaticTypeWrapper(actionContext, clazz);
-						}
-
-					}
-
-					return structrScriptResult;
-				}
-
-				return null;
 		}
+
+		return null;
 	}
 
 	@Override
@@ -145,9 +196,7 @@ public class StructrBinding implements ProxyObject {
 		keys.add("this");
 		keys.add("me");
 		keys.add("predicate");
-		keys.add("batch");
 		keys.add("doInNewTransaction");
-		keys.add("includeJs");
 		keys.add("doPrivileged");
 		keys.add("request");
 		keys.add("session");
@@ -164,7 +213,14 @@ public class StructrBinding implements ProxyObject {
 
 	@Override
 	public void putMember(String key, Value value) {
+	}
 
+	public void setMethodParameters(final Value methodParameters) {
+		this.methodParameters = methodParameters;
+	}
+
+	public Value getMethodParameters() {
+		return methodParameters;
 	}
 
 	private ProxyExecutable getGetFunctionWrapper() {
@@ -182,7 +238,10 @@ public class StructrBinding implements ProxyObject {
 						return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
 					}
 
-					return PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1));
+					final Object value = actionContext.evaluate(entity, args[0].toString(), null, null, 0, new EvaluationHints(), 1, 1);
+
+					return PolyglotWrapper.wrap(actionContext, value);
+
 				} else if (args.length > 1) {
 
 					final Function<Object, Object> function = Functions.get("get");

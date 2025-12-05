@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,9 +28,13 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -38,7 +42,6 @@ import java.util.Map;
 
 public class GetFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET        = "Usage: ${get(entity, propertyKey)}. Example: ${get(this, \"children\")}";
 	public static final String ERROR_MESSAGE_GET_ENTITY = "Cannot evaluate first argument to entity, must be entity or single element list of entities.";
 
 	@Override
@@ -47,8 +50,8 @@ public class GetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, propertyName";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("entity, propertyName");
 	}
 
 	@Override
@@ -111,14 +114,14 @@ public class GetFunction extends CoreFunction {
 
 			if (dataObject != null) {
 
-				final Class type = dataObject.getClass();
-
+				final Traits traits = dataObject.getTraits();
 				final boolean useGenericPropertyForUnknownKeys = Settings.AllowUnknownPropertyKeys.getValue(false) || dataObject instanceof GraphObjectMap;
 
-				final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(type, keyName, useGenericPropertyForUnknownKeys);
+				final PropertyKey key = (useGenericPropertyForUnknownKeys ? traits.keyOrGenericProperty(keyName) : traits.key(keyName));
+
 				if (key != null) {
 
-					final PropertyConverter inputConverter = key.inputConverter(securityContext);
+					final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 					Object value = dataObject.getProperty(key);
 
 					if (inputConverter != null) {
@@ -130,7 +133,7 @@ public class GetFunction extends CoreFunction {
 				} else {
 
 					// key does not exist and generic property is not desired => log warning
-					logger.warn("get(): Unknown property {}.{}, value will not be returned. [{}]", type.getSimpleName(), keyName, dataObject.getUuid());
+					logger.warn("get(): Unknown property {}.{}, value will not be returned. [{}]", traits.getName(), keyName, dataObject.getUuid());
 				}
 
 				return "";
@@ -153,12 +156,51 @@ public class GetFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_GET;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${get(entity, propertyKey)}. Example: ${get(this, 'children')}"),
+			Usage.javaScript("Usage: ${{ $.get(entity, propertyKey) }}. Example: ${{ $.get($.this, 'children')}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the value with the given name of the given entity, or an empty string";
+	public String getShortDescription() {
+		return "Returns the value with the given name of the given entity, or an empty string.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Returns the value for the given property key from the given entity. 
+		This function will print an error message if the first parameter is null / not accessible. 
+		See `getOrNull()` for a more tolerant get method.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("${get(page, 'name')}"),
+				Example.structrScript("${{ $.get(page, 'name') }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The result value of the get() method can differ from the result value of property access using the dot notation (`get(this, 'name')` vs `this.name`) for certain property types (e.g. date properties), because get() converts the property value to its output representation.",
+				"That means that a Date object will be formatted into a string when fetched via `get(this, 'date')`, whereas `this.date` will return an actual date object."
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "node or object"),
+				Parameter.mandatory("propertyKey", "requested property name")
+				);
+	}
+
 }

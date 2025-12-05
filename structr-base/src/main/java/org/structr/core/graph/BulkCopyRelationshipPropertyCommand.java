@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,11 +56,11 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 			public boolean handleGraphObject(SecurityContext securityContext, AbstractRelationship rel) {
 
 				// Treat only "our" rels
-				if(rel.getProperty(GraphObject.id) != null) {
+				if(rel.getUuid() != null) {
 
-					final Class type                    = rel.getClass();
-					final PropertyKey destPropertyKey   = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, destKey);
-					final PropertyKey sourcePropertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, sourceKey);
+					final Traits traits                 = rel.getTraits();
+					final PropertyKey destPropertyKey   = traits.key(destKey);
+					final PropertyKey sourcePropertyKey = traits.key(sourceKey);
 
 					try {
 						// copy properties
@@ -66,7 +68,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 
 					} catch (FrameworkException fex) {
 
-						logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", new Object[] { sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage() } );
+						logger.warn("Unable to copy relationship property {} of relationship {} to {}: {}", sourcePropertyKey, rel.getUuid(), destPropertyKey, fex.getMessage());
 					}
 				}
 
@@ -95,5 +97,59 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "copyRelationshipProperties";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Copies relationship properties from one key to another.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("sourceKey", "source key"),
+			Parameter.mandatory("destKey", "destination key")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

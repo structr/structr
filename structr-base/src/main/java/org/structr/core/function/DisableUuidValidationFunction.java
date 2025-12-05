@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,24 +19,26 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
  */
 public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_DISABLE_UUID_VALIDATION    = "Usage: ${disable_uuid_validation()}";
-	public static final String ERROR_MESSAGE_DISABLE_UUID_VALIDATION_JS = "Usage: ${Structr.disableUuidValidation()}";
-
 	@Override
 	public String getName() {
-		return "disable_uuid_validation";
+		return "disableUuidValidation";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -48,13 +50,27 @@ public class DisableUuidValidationFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DISABLE_UUID_VALIDATION_JS : ERROR_MESSAGE_DISABLE_UUID_VALIDATION);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${disableUuidValidation()}"),
+			Usage.javaScript("Usage: ${Structr.disableUuidValidation()}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Disables the validation of user-supplied UUIDs when creating objects. (Note: this is a performance optimization for large imports, use at your own risk!)";
+	public List<String> getNotes() {
+		return List.of(
+			"This is a performance optimization for large imports, use at your own risk!"
+		);
 	}
 
+	@Override
+	public String getShortDescription() {
+		return "Disables the validation of user-supplied UUIDs when creating objects.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

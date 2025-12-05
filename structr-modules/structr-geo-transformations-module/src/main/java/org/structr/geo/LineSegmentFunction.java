@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,18 +18,21 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.referencing.GeodeticCalculator;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.awt.geom.Point2D;
+import java.util.List;
 
 public class LineSegmentFunction extends GeoFunction {
 
@@ -38,12 +41,12 @@ public class LineSegmentFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "line_segment";
+		return "lineSegment";
 	}
 
 	@Override
-	public String getSignature() {
-		return "point, azimuth, length";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("point, azimuth, length");
 	}
 
 	@Override
@@ -93,12 +96,18 @@ public class LineSegmentFunction extends GeoFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a line segment with start point, azimuth and length";
+	public String getShortDescription() {
+		return "Returns a line segment with start point, azimuth and length.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

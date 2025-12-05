@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,26 +20,23 @@ package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
+import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class HttpPutFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_PUT    = "Usage: ${PUT(URL, body [, contentType, charset])}. Example: ${PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}";
-	public static final String ERROR_MESSAGE_PUT_JS = "Usage: ${{Structr.PUT(URL, body [, contentType, charset])}}. Example: ${{Structr.PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}";
-
 	@Override
 	public String getName() {
 		return "PUT";
-	}
-
-	@Override
-	public String getSignature() {
-		return "url, body [, contentType, charset ]";
 	}
 
 	@Override
@@ -64,36 +61,30 @@ public class HttpPutFunction extends UiAdvancedFunction {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
+			final Map<String, Object> responseData = HttpHelper.put(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
 
-			final int statusCode = Integer.parseInt(responseData.get("status"));
-			responseData.remove("status");
-
-			final String responseBody = responseData.get("body");
-			responseData.remove("body");
+			final String responseBody = responseData.get(HttpHelper.FIELD_BODY) != null ? (String) responseData.get(HttpHelper.FIELD_BODY) : null;
 
 			final GraphObjectMap response = new GraphObjectMap();
 
 			if ("application/json".equals(contentType)) {
 
 				final FromJsonFunction fromJsonFunction = new FromJsonFunction();
-				response.setProperty(new StringProperty("body"), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
+				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), fromJsonFunction.apply(ctx, caller, new Object[]{responseBody}));
 
 			} else {
 
-				response.setProperty(new StringProperty("body"), responseBody);
+				response.setProperty(new StringProperty(HttpHelper.FIELD_BODY), responseBody);
 			}
 
-			response.setProperty(new IntProperty("status"), statusCode);
+			// Set status and headers
+			final int statusCode = Integer.parseInt(responseData.get(HttpHelper.FIELD_STATUS) != null ? responseData.get(HttpHelper.FIELD_STATUS).toString() : "0");
+			response.setProperty(new IntProperty(HttpHelper.FIELD_STATUS), statusCode);
 
-			final GraphObjectMap map = new GraphObjectMap();
+			if (responseData.containsKey(HttpHelper.FIELD_HEADERS) && responseData.get(HttpHelper.FIELD_HEADERS) instanceof Map map) {
 
-			for (final Map.Entry<String, String> entry : responseData.entrySet()) {
-
-				map.put(new StringProperty(entry.getKey()), entry.getValue());
+				response.setProperty(new GenericProperty<Map<String, String>>(HttpHelper.FIELD_HEADERS), GraphObjectMap.fromMap(map));
 			}
-
-			response.setProperty(new StringProperty("headers"), map);
 
 			return response;
 
@@ -105,12 +96,60 @@ public class HttpPutFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PUT_JS : ERROR_MESSAGE_PUT);
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("url, body [, contentType, charset ]");
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sends an HTTP PUT request to the given URL and returns the response body";
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("url", "URL to connect to"),
+			Parameter.optional("body", "request body (JSON data)"),
+			Parameter.optional("contentType", "content type of the request body"),
+			Parameter.optional("charset", "charset of the request body"),
+			Parameter.optional("username", "username for the connection"),
+			Parameter.optional("password", "password for the connection"),
+			Parameter.optional("configMap", "JSON object for request configuration, supports `timeout` in seconds, `redirects` with true or false to follow redirects")
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${PUT(URL, body [, contentType, charset])}. Example: ${PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}"),
+			Usage.javaScript("Usage: ${{Structr.PUT(URL, body [, contentType, charset])}}. Example: ${{Structr.PUT('http://localhost:8082/structr/rest/folders/6aa10d68569d45beb384b42a1fc78c50', '{name:\"Test\"}', 'application/json', 'utf-8')}}")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Sends an HTTP PUT request with an optional content type to the given URL and returns the response headers and body.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+			This function can be used in a script to make an HTTP PUT request **from within the Structr Server**, triggered by a frontend control like a button etc.
+
+			The `PUT()` function will return a response object with the following structure:
+
+			| Field | Description | Type |
+			| --- | --- | --- |
+			status | HTTP status of the request | Integer |
+			headers | Response headers | Map |
+			body | Response body | Map or String |
+			""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The `PUT()` function will **not** be executed in the security context of the current user. The request will be made **by the Structr server**, without any user authentication or additional information. If you want to access external protected resources, you will need to authenticate the request using `addHeader()` (see the related articles for more information).",
+			"As of Structr 6.0, it is possible to restrict HTTP calls based on a whitelist setting in structr.conf, `application.httphelper.urlwhitelist`. However the default behaviour in Structr is to allow all outgoing calls.",
+			"`contentType` is the expected response content type. If you need to define the request content type, use `addHeader('Content-Type', 'your-content-type-here')`",
+			"If the MIME type of the response is `application/json`, the `body` field will contain the mapped response as a Structr object that can be accessed using the dot notation (e.g. `result.body.resultCount`). Otherwise, the body field will contain the response as a string.  (see the related articles for more information)"
+
+		);
 	}
 }

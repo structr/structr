@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -52,14 +54,14 @@ public class InsertCommand extends AbstractCommand {
 
 		if (parentId != null) {
 
-			DOMNode parentNode        = (DOMNode) getNode(parentId);
-			DOMNode nodeToInsert      = null;
+			NodeInterface parentNode   = getNode(parentId);
+			NodeInterface nodeToInsert = null;
 
 			try {
 
 				PropertyMap nodeProperties = PropertyMap.inputTypeToJavaType(securityContext, webSocketData.getNodeData() );
 
-				nodeToInsert = app.create(DOMNode.class, nodeProperties);
+				nodeToInsert = app.create(StructrTraits.DOM_NODE, nodeProperties);
 
 			} catch (FrameworkException fex) {
 
@@ -73,7 +75,7 @@ public class InsertCommand extends AbstractCommand {
 				try {
 
 					PropertyMap relProperties = PropertyMap.inputTypeToJavaType(securityContext, relData);
-					app.create(parentNode, nodeToInsert, parentNode.getChildLinkType(), relProperties);
+					app.create(parentNode, nodeToInsert, parentNode.as(DOMNode.class).getChildLinkType(), relProperties);
 
 				} catch (FrameworkException t) {
 

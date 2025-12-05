@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,15 +20,19 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
-public class SearchFunction extends AbstractQueryFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_SEARCH    = "Usage: ${search(type, key, value)}. Example: ${search(\"User\", \"name\", \"abc\")}";
-	public static final String ERROR_MESSAGE_SEARCH_JS = "Usage: ${{Structr.search(type, key, value)}}. Example: ${{Structr.search(\"User\", \"name\", \"abc\")}}";
+public class SearchFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getName() {
@@ -36,8 +40,8 @@ public class SearchFunction extends AbstractQueryFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, options...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type, options...");
 	}
 
 	@Override
@@ -57,21 +61,26 @@ public class SearchFunction extends AbstractQueryFunction {
 				throw new IllegalArgumentException();
 			}
 
-			final ConfigurationProvider config    = StructrApp.getConfiguration();
-			final Query query                     = StructrApp.getInstance(securityContext).nodeQuery();
+			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery().and();
 
 			applyQueryParameters(securityContext, query);
 
-			Class type = null;
+			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
 				final String typeString = sources[0].toString();
-				type = config.getNodeEntityClass(typeString);
 
-				if (type != null) {
+				if (StructrTraits.GRAPH_OBJECT.equals(typeString)) {
 
-					query.andTypes(type);
+					throw new FrameworkException(422, "Type GraphObject not supported in search(), please use type NodeInterface to search for nodes of all types.");
+				}
+
+				if (Traits.exists(typeString)) {
+
+					type = Traits.of(typeString);
+
+					query.types(type);
 
 				} else {
 
@@ -104,12 +113,52 @@ public class SearchFunction extends AbstractQueryFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SEARCH_JS : ERROR_MESSAGE_SEARCH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${search(type, key, value)}."),
+			Usage.javaScript("Usage: ${{Structr.search(type, key, value)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		The `search()` method is very similar to `find()`, except that it is case-insensitive / inexact. It returns a collection of entities, 
+		which can be empty if none of the existing nodes or relationships matches the given search parameters.
+		`search()` accepts several different parameter combinations, whereas the first parameter is always the name of 
+		the type to retrieve from the database. The second parameter can either be a map (e.g. a result from nested function calls)
+		or a list of (key, value) pairs. Calling `search()` with only a single parameter will return all the nodes of the  
+		given type (which might be dangerous if there are many of them in the database).
+		
+		For more examples see `find()`.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+				// For this example, we assume that there are three users in the database: [admin, tester1, tester2]
+				${search('User')}
+				> [7379af469cd645aebe1a3f8d52b105bd, a05c044697d648aefe3ae4589af305bd, 505d0d469cd645aebe1a3f8d52b105bd]
+				${search('User', 'name', 'test')}
+				> [a05c044697d648aefe3ae4589af305bd, 505d0d469cd645aebe1a3f8d52b105bd]
+				"""),
+				Example.javaScript("${{ $.search('User', 'name', 'abc')} }")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("type", "type to return (includes inherited types"),
+				Parameter.optional("predicates", "list of predicates"),
+				Parameter.optional("uuid", "uuid, makes the function return **a single object**")
+		);
 	}
 }

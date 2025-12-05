@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -183,7 +183,7 @@ public class PolyglotProxyArray implements ProxyArray {
 
 			try {
 
-				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
+				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext(), false).convert(list));
 
 			} catch (FrameworkException ex) {
 

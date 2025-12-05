@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,9 +26,9 @@ import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.Aggregation;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.*;
 
@@ -43,21 +43,21 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 
 	private Aggregation aggregation = null;
 
-	public AggregatorProperty(String name, Aggregation aggregator) {
+	public AggregatorProperty(final String name, final Aggregation aggregator) {
 		super(name);
 
 		this.aggregation = aggregator;
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject currentObject, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public Iterable<T> getProperty(final SecurityContext securityContext, final GraphObject currentObject, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if(currentObject != null && currentObject instanceof AbstractNode) {
+		if(currentObject != null && currentObject instanceof NodeInterface) {
 
 			NodeInterface sourceNode  = (NodeInterface)currentObject;
 			List<NodeInterface> nodes = new LinkedList<>();
@@ -106,18 +106,23 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 	}
 
 	@Override
-	public Class relatedType() {
-		return AbstractNode.class;
+	public String relatedType() {
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return NodeInterface.class;
 	}
 
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

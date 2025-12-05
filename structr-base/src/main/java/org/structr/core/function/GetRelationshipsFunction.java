@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,8 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -30,23 +34,20 @@ import java.util.List;
 
 public class GetRelationshipsFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS    = "Usage: ${get_relationships(entity1, entity2 [, relType])}. Example: ${get_relationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)";
-	public static final String ERROR_MESSAGE_GET_RELATIONSHIPS_JS = "Usage: ${{Structr.get_relationships(entity1, entity2 [, relType])}}. Example: ${{Structr.get_relationships(Structr.get('me'), user, 'FOLLOWS')}}  (ignores direction of the relationship)";
-
 	@Override
 	public String getName() {
-		return "get_relationships";
+		return "getRelationships";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target [, relType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final List<AbstractRelationship> list = new ArrayList<>();
+		final List<RelationshipInterface> list = new ArrayList<>();
 
 		try {
 
@@ -71,7 +72,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 
 			if (sources.length == 2) {
 
-				for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -88,7 +89,7 @@ public class GetRelationshipsFunction extends CoreFunction {
 				// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 				final String relType = (String)sources[2];
 
-				for (final AbstractRelationship rel : sourceNode.getRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -117,12 +118,38 @@ public class GetRelationshipsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_RELATIONSHIPS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getRelationships(entity1, entity2 [, relType])}. Example: ${getRelationships(me, user, 'FOLLOWS')}  (ignores direction of the relationship)"),
+			Usage.javaScript("Usage: ${{$.getRelationships(entity1, entity2 [, relType])}}. Example: ${{$.getRelationships($.get('me'), user, 'FOLLOWS')}}  (ignores direction of the relationship)")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the relationships of the given entity with an optional relationship type";
+	public String getShortDescription() {
+		return "Returns the relationships of the given entity with an optional relationship type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getRelationships(me, page)}"),
+				Example.javaScript("${{ $.getRelationships($.me, $.page) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("from", "source node"),
+				Parameter.mandatory("to", "target node"),
+				Parameter.optional("relType", "relationship type")
+		);
 	}
 }

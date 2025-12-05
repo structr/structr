@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,13 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
-public class IntFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_INT = "Usage: ${int(parameter)}. Example: ${int(this.numericalStringValue)} or ${int(5.8)}";
+
+public class IntFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +35,8 @@ public class IntFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override
@@ -78,12 +80,41 @@ public class IntFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_INT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${int(parameter)}. Example: ${int(this.numericalStringValue)} or ${int(5.8)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Converts the given string to an integer";
+	public String getShortDescription() {
+		return "Tries to convert the given object into an integer value.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("input", "input value to convert to an integer, can be string or floating-point number")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${int(5.8)}", "Convert a floating-point value into an integer"),
+			Example.structrScript("${int('35.8')}", "Convert a string into an integer")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

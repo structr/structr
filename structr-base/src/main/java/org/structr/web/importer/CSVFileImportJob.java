@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,11 +29,13 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
@@ -41,6 +43,7 @@ import org.structr.web.entity.File;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Iterator;
@@ -135,26 +138,28 @@ public class CSVFileImportJob extends FileImportJob {
 				final ResultTransformer mapper     = builder.createMapping(app, targetType, importTypeName, importMappings, transforms);
 
 				IMPORT_TYPE currentImportType = IMPORT_TYPE.NODE;
-				Class targetEntityType        = StructrApp.getConfiguration().getNodeEntityClass(targetType);
+				Traits targetEntityType       = Traits.of(targetType);
 
-				Class relSourceType = null;
-				Class relTargetType = null;
 				if (targetEntityType == null) {
-					targetEntityType  = StructrApp.getConfiguration().getRelationshipEntityClass(targetType);
+					throw new FrameworkException(422, "Could not find type for '" + targetType + "'!");
+				}
+
+				String relSourceType = null;
+				String relTargetType = null;
+
+				if (targetEntityType.isRelationshipType()) {
+
 					currentImportType = IMPORT_TYPE.REL;
 
-					final Relation template = (Relation)targetEntityType.newInstance();
+					final Relation template = targetEntityType.getRelation();
+
 					relSourceType = template.getSourceType();
 					relTargetType = template.getTargetType();
-
-					if (targetEntityType == null) {
-						throw new FrameworkException(422, "Could not find type for '" + targetType + "'!");
-					}
 				}
 
 				final Character fieldSeparator     = delimiter.charAt(0);
 				final Character quoteCharacter     = StringUtils.isNotEmpty(quoteChar) ? quoteChar.charAt(0) : null;
-				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, "utf-8"), targetEntityType, fieldSeparator, quoteCharacter, range, reverse(importMappings), rfc4180Mode, strictQuotes);
+				final Iterable<JsonInput> iterable = CsvHelper.cleanAndParseCSV(threadContext, new InputStreamReader(is, StandardCharsets.UTF_8), targetEntityType.getName(), fieldSeparator, quoteCharacter, range, reverse(importMappings), rfc4180Mode, strictQuotes);
 				final Iterator<JsonInput> iterator = iterable.iterator();
 				int chunks                         = 0;
 				int ignoreCount                    = 0;
@@ -185,18 +190,18 @@ public class CSVFileImportJob extends FileImportJob {
 
 							} else {
 
-								mapper.transformInput(threadContext, targetEntityType, input);
+								mapper.transformInput(threadContext, targetEntityType.getName(), input);
 
 								if (currentImportType.equals(IMPORT_TYPE.NODE)) {
 
-									final PropertyMap properties = PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input);
+									final PropertyMap properties = PropertyMap.inputTypeToJavaType(threadContext, targetEntityType.getName(), input);
 
 									if (distinct) {
 
 										// check for existing object and ignore import
-										if (app.nodeQuery(targetEntityType).and(properties).getFirst() == null) {
+										if (app.nodeQuery(targetEntityType.getName()).key(properties).getFirst() == null) {
 
-											app.create(targetEntityType, properties);
+											app.create(targetEntityType.getName(), properties);
 											overallCount++;
 
 										} else {
@@ -206,16 +211,16 @@ public class CSVFileImportJob extends FileImportJob {
 
 									} else {
 
-										app.create(targetEntityType, properties);
+										app.create(targetEntityType.getName(), properties);
 										overallCount++;
 									}
 
 								} else {
 
-									final AbstractNode sourceNode = (AbstractNode)app.get(relSourceType, (String)input.get("sourceId"));
-									final AbstractNode targetNode = (AbstractNode)app.get(relTargetType, (String)input.get("targetId"));
+									final NodeInterface sourceNode = app.getNodeById(relSourceType, (String)input.get(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY));
+									final NodeInterface targetNode = app.getNodeById(relTargetType, (String)input.get(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY));
 
-									app.create(sourceNode, targetNode, targetEntityType, PropertyMap.inputTypeToJavaType(threadContext, targetEntityType, input));
+									app.create(sourceNode, targetNode, targetEntityType.getName(), PropertyMap.inputTypeToJavaType(threadContext, targetEntityType.getName(), input));
 									overallCount++;
 								}
 							}
@@ -244,7 +249,9 @@ public class CSVFileImportJob extends FileImportJob {
 			} finally {
 
 				try {
+
 					builder.removeMapping(app, targetType, importTypeName);
+
 				} catch (FrameworkException ex) {
 					logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
 				}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,20 +20,19 @@ package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
-import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
-import java.util.function.Predicate;
 
 public abstract class ContextFactory {
 
-	private static String debuggerPath        = "/structr/scripting/remotedebugger/";
+	private static final String debuggerPath        = "/structr/scripting/remotedebugger/";
 	private static String currentDebuggerUUID = "";
 	private static Engine engine              = buildEngine();
 
@@ -42,21 +41,36 @@ public abstract class ContextFactory {
 				.engine(engine)
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
-				// TODO: Add config switch to toggle Host Class Lookup
-				//.allowHostClassLookup(new StructrClassPredicate())
-				.fileSystem(new PolyglotFilesystem())
-				.allowIO(true)
+				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s))
+				.allowIO(AccessProvider.getIOAccessConfig())
 				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
 				.option("js.ecmascript-version", "latest")
 				.option("js.temporal", "true");
 
+	// Python context builder
+	private static final Context.Builder pythonBuilder = Context.newBuilder("python")
+			.engine(engine)
+			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
+			.allowHostAccess(AccessProvider.getHostAccessConfig())
+			.allowIO(AccessProvider.getIOAccessConfig())
+			.allowExperimentalOptions(true)
+			.option("python.CoreHome", "/.python/core")
+			.option("python.PythonHome", "/.python/.venv")
+			.option("python.StdLibHome", "/.python/lib/std")
+			.option("python.CAPI", "/.python/lib/c")
+			.option("python.ForceImportSite", "true")
+			.option("python.Executable", "/.python/.venv/bin/python")
+			.option("python.PosixModuleBackend", "java")
+			.option("python.NoUserSiteFlag", "true");
+
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
 				.engine(engine)
-				.allowAllAccess(true)
-				.allowHostAccess(AccessProvider.getHostAccessConfig());
-				//.allowHostClassLookup(new StructrClassPredicate());
+				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
+				.allowHostAccess(AccessProvider.getHostAccessConfig())
+				.allowIO(AccessProvider.getIOAccessConfig())
+				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s));
 
 	public static String getDebuggerPath() {
 
@@ -75,6 +89,7 @@ public abstract class ContextFactory {
 
 					genericBuilder.engine(engine);
 					jsBuilder.engine(engine);
+					pythonBuilder.engine(engine);
 				}
 			});
 		}
@@ -93,10 +108,10 @@ public abstract class ContextFactory {
 			currentDebuggerUUID = java.util.UUID.randomUUID().toString();
 
 			engineBuilder
-					// TODO: Add configurable chrome debug
 					.option("inspect", "4242")
 					.option("inspect.Path", getDebuggerPath())
 					.option("inspect.Suspend", "false");
+
 		}
 
 		return engineBuilder.build();
@@ -107,38 +122,46 @@ public abstract class ContextFactory {
 	}
 
 	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
+		return getContext(language, actionContext, entity, true);
+	}
+
+	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity, final boolean allowEntityOverride) throws FrameworkException {
 
 		switch (language) {
+
 			case "js":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity), allowEntityOverride);
+
 			case "python":
-			case "R":
-				return getAndUpdateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity));
+				return getOrCreateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity), allowEntityOverride);
+
 			default:
 				throw new FrameworkException(500, "Could not initialize context for language: " + language);
 		}
 	}
 
-	private static Context getAndUpdateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc) throws FrameworkException {
+	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
 
 		Context storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
 
-		if (actionContext != null && storedContext != null) {
-
-			storedContext = updateBindings(storedContext, language, actionContext, entity);
-			actionContext.putScriptingContext(language, storedContext);
-
-		} else {
+		if (actionContext != null && storedContext == null) {
 
 			try {
 
 				storedContext = contextCreationFunc.call();
+				updateBindings(storedContext, language, actionContext, entity);
 				actionContext.putScriptingContext(language, storedContext);
 
 			} catch (Exception ex) {
 
+				LoggerFactory.getLogger(ContextFactory.class).error("Unexpected exception while initializing language context for language \"{}\".", language, ex);
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
 			}
+		} else if (actionContext != null && allowEntityOverride) {
+
+			// If binding exists in context, ensure entity is up to date
+			final StructrBinding structrBinding = storedContext.getBindings(language).getMember("Structr").asProxyObject();
+			structrBinding.setEntity(entity);
 		}
 
 		return  storedContext;
@@ -146,6 +169,11 @@ public abstract class ContextFactory {
 
 	private static Context buildJSContext(final ActionContext actionContext, final GraphObject entity) {
 		return updateBindings(jsBuilder.build(), "js", actionContext, entity);
+	}
+
+	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
+		Context ctx = pythonBuilder.build();
+		return updateBindings(ctx, "python", actionContext, entity);
 	}
 
 	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
@@ -163,15 +191,5 @@ public abstract class ContextFactory {
 		}
 
 		return context;
-	}
-
-	private static class StructrClassPredicate implements Predicate<String> {
-		// Allows manually selected Structr classes to be accessed from scripting contexts
-
-		@Override
-		public boolean test(String s) {
-			//return s.startsWith("org.structr.api.config.Settings");
-			return false;
-		}
 	}
 }

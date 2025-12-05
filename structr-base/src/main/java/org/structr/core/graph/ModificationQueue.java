@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,10 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.RelType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -52,21 +50,23 @@ public class ModificationQueue {
 
 	private static final Logger logger = LoggerFactory.getLogger(ModificationQueue.class.getName());
 
-	private final ConcurrentSkipListMap<String, GraphObjectModificationState> modifications = new ConcurrentSkipListMap<>();
-	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
-	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
-	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
-	private final Set<Long> ids                                                             = new LinkedHashSet<>();
-	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
-	private boolean doUpateChangelogIfEnabled                                               = true;
-	private CallbackCounter counter                                                         = null;
-	private boolean hasChanges                                                              = false;
-	private long changelogUpdateTime                                                        = 0L;
-	private long outerCallbacksTime                                                         = 0L;
-	private long innerCallbacksTime                                                         = 0L;
-	private long postProcessingTime                                                         = 0L;
-	private long validationTime                                                             = 0L;
-	private long indexingTime                                                               = 0L;
+	private final ConcurrentSkipListMap<Long, GraphObjectModificationState> nodeModifications   = new ConcurrentSkipListMap<>();
+	private final ConcurrentSkipListMap<Long, GraphObjectModificationState> relModifications    = new ConcurrentSkipListMap<>();
+	private final Collection<ModificationEvent> modificationEvents                              = new ArrayDeque<>(1000);
+	private final Map<String, TransactionPostProcess> postProcesses                             = new LinkedHashMap<>();
+	private final Set<String> alreadyPropagated                                                 = new LinkedHashSet<>();
+	private final Set<Long> ids                                                                 = new LinkedHashSet<>();
+	private final Set<String> synchronizationKeys                                               = new TreeSet<>();
+	private boolean doUpateChangelogIfEnabled                                                   = true;
+	private boolean transactionWasSuccessful                                                    = false;
+	private CallbackCounter counter                                                             = null;
+	private boolean hasChanges                                                                  = false;
+	private long changelogUpdateTime                                                            = 0L;
+	private long outerCallbacksTime                                                             = 0L;
+	private long innerCallbacksTime                                                             = 0L;
+	private long postProcessingTime                                                             = 0L;
+	private long validationTime                                                                 = 0L;
+	private long indexingTime                                                                   = 0L;
 
 	public ModificationQueue(final long transactionId, final String threadName) {
 		this.counter = new CallbackCounter(logger, transactionId, threadName);
@@ -83,7 +83,7 @@ public class ModificationQueue {
 	}
 
 	public int getSize() {
-		return modifications.size();
+		return nodeModifications.size() + relModifications.size();
 	}
 
 	public boolean doInnerCallbacks(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
@@ -112,7 +112,7 @@ public class ModificationQueue {
 
 		innerCallbacksTime = System.currentTimeMillis() - t0;
 		if (innerCallbacksTime > 1000) {
-			logger.info("{} ms ({} modifications)", innerCallbacksTime, modifications.size());
+			logger.info("{} ms ({} modifications)", innerCallbacksTime, getSize());
 		}
 
 		return true;
@@ -124,11 +124,6 @@ public class ModificationQueue {
 
 		// do validation and indexing
 		for (final GraphObjectModificationState state : getSortedModifications()) {
-
-			PropertyContainer container = state.getGraphObject().getPropertyContainer();
-			if (container.isStale()) {
-				continue;
-			}
 
 			// do callback according to entry state
 			boolean res = state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation, counter);
@@ -144,7 +139,7 @@ public class ModificationQueue {
 		long t = System.currentTimeMillis() - t0;
 		if (t > 1000) {
 
-			logger.info("doValidation: {} ms ({} modifications)   ({} ms validation - {} ms indexing)", t, modifications.size(), validationTime, indexingTime);
+			logger.info("doValidation: {} ms ({} modifications)   ({} ms validation - {} ms indexing)", t, getSize(), validationTime, indexingTime);
 		}
 
 		return true;
@@ -174,13 +169,18 @@ public class ModificationQueue {
 		long t0 = System.currentTimeMillis();
 
 		// copy modifications, do after transaction callbacks
-		for (GraphObjectModificationState state : modifications.values()) {
+		for (GraphObjectModificationState state : nodeModifications.values()) {
+			state.doOuterCallback(securityContext, counter);
+		}
+
+		// copy modifications, do after transaction callbacks
+		for (GraphObjectModificationState state : relModifications.values()) {
 			state.doOuterCallback(securityContext, counter);
 		}
 
 		outerCallbacksTime = System.currentTimeMillis() - t0;
 		if (outerCallbacksTime > 3000) {
-			logger.info("doOutCallbacks: {} ms ({} modifications)", outerCallbacksTime, modifications.size());
+			logger.info("doOutCallbacks: {} ms ({} modifications)", outerCallbacksTime, getSize());
 		}
 	}
 
@@ -236,11 +236,13 @@ public class ModificationQueue {
 
 	public void clear() {
 
+		setTransactionWasSuccessful(false);
 		hasChanges = false;
 
 		// clear collections afterwards
 		alreadyPropagated.clear();
-		modifications.clear();
+		nodeModifications.clear();
+		relModifications.clear();
 		modificationEvents.clear();
 		ids.clear();
 	}
@@ -297,14 +299,6 @@ public class ModificationQueue {
 		getState(node).modifySecurity();
 	}
 
-	public void modifyLocation(NodeInterface node) {
-
-		this.ids.add(node.getNode().getId().getId());
-		this.hasChanges = true;
-
-		getState(node).modifyLocation();
-	}
-
 	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
 
 		this.ids.add(node.getNode().getId().getId());
@@ -352,6 +346,14 @@ public class ModificationQueue {
 		final NodeInterface sourceNode = relationship.getSourceNodeAsSuperUser();
 		final NodeInterface targetNode = relationship.getTargetNodeAsSuperUser();
 
+		if (sourceNode != null) {
+			sourceNode.setSecurityContext(relationship.getSecurityContext());
+		}
+
+		if (targetNode != null) {
+			targetNode.setSecurityContext(relationship.getSecurityContext());
+		}
+
 		modifyEndNodes(user, sourceNode, targetNode, relationship, true);
 
 		if (Settings.ChangelogEnabled.getValue() || Settings.UserChangelogEnabled.getValue()) {
@@ -378,7 +380,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Node node) {
 
-		final GraphObjectModificationState state = modifications.get(hash(node));
+		final GraphObjectModificationState state = nodeModifications.get(hash(node));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -389,7 +391,7 @@ public class ModificationQueue {
 
 	public boolean isDeleted(final Relationship rel) {
 
-		final GraphObjectModificationState state = modifications.get(hash(rel));
+		final GraphObjectModificationState state = relModifications.get(hash(rel));
 		if (state != null) {
 
 			return state.isDeleted() || state.isPassivelyDeleted();
@@ -422,7 +424,7 @@ public class ModificationQueue {
 
 		for (GraphObjectModificationState state : getSortedModifications()) {
 
-			for (PropertyKey k : state.getModifiedProperties().keySet()) {
+			for (final PropertyKey k : state.getModifiedProperties().keySet()) {
 
 				if (k.equals(key) && graphObject.getUuid().equals(state.getGraphObject().getUuid()) ) {
 
@@ -454,12 +456,9 @@ public class ModificationQueue {
 
 		for (GraphObjectModificationState state : getSortedModifications()) {
 
-			for (PropertyKey key : state.getModifiedProperties().keySet()) {
+			for (final PropertyKey key : state.getModifiedProperties().keySet()) {
 
-				if (!modifiedKeys.contains(key)) {
-
-					modifiedKeys.add(key);
-				}
+				modifiedKeys.add(key);
 			}
 		}
 
@@ -500,6 +499,7 @@ public class ModificationQueue {
 	private void addLocalProperties(final GraphObjectMap map, final PropertyMap data) {
 
 		data.getRawMap().forEach((key, value) -> {
+
 			if ( !(key instanceof RelationProperty) ) {
 				map.put(key, value);
 			}
@@ -541,49 +541,50 @@ public class ModificationQueue {
 
 			final RelationshipType relType = rel.getRelType();
 
-			if (RelType.OWNS.equals(relType)) {
+			if ("OWNS".equals(relType.name())) {
 
 				modifyOwner(startNode);
 				modifyOwner(endNode);
-				return;
 			}
 
-			if (RelType.SECURITY.equals(relType)) {
+			if ("SECURITY".equals(relType.name())) {
 
 				modifySecurity(startNode);
 				modifySecurity(endNode);
-				return;
 			}
 
-			final Relation relation  = Relation.getInstance((Class)rel.getClass());
-			final PropertyKey source = relation.getSourceProperty();
-			final PropertyKey target = relation.getTargetProperty();
-			final Object sourceValue = source != null && source.isCollection() ? new LinkedList<>() : null;
-			final Object targetValue = target != null && target.isCollection() ? new LinkedList<>() : null;
+			final Relation relation  = rel.getTraits().getRelation();
+			if (relation != null) {
 
-			modify(user, startNode, target, null, targetValue);
-			modify(user, endNode, source, null, sourceValue);
+				final PropertyKey source = relation.getSourceProperty();
+				final PropertyKey target = relation.getTargetProperty();
+				final Object sourceValue = source != null && source.isCollection() ? new LinkedList<>() : null;
+				final Object targetValue = target != null && target.isCollection() ? new LinkedList<>() : null;
 
-			if (source != null && target != null) {
+				modify(user, startNode, target, null, targetValue);
+				modify(user, endNode, source, null, sourceValue);
 
-				if (isDeletion) {
+				if (source != null && target != null) {
 
-					// update removed properties
-					getState(startNode).remove(target, endNode);
-					getState(endNode).remove(source, startNode);
+					if (isDeletion) {
+
+						// update removed properties
+						getState(startNode).remove(target, endNode);
+						getState(endNode).remove(source, startNode);
+
+					} else {
+
+
+						// update added properties
+						getState(startNode).add(target, endNode);
+						getState(endNode).add(source, startNode);
+					}
 
 				} else {
 
-
-					// update added properties
-					getState(startNode).add(target, endNode);
-					getState(endNode).add(source, startNode);
+					// dont log so much..
+					//logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
 				}
-
-			} else {
-
-				// dont log so much..
-				//logger.warn("No properties registered for {}: source: {}, target: {}", rel.getClass(), source, target);
 			}
 		}
 	}
@@ -594,13 +595,13 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final NodeInterface node, final boolean checkPropagation) {
 
-		String hash = hash(node.getNode());
-		GraphObjectModificationState state = modifications.get(hash);
+		long hash = hash(node.getNode());
+		GraphObjectModificationState state = nodeModifications.get(hash);
 
 		if (state == null && !(checkPropagation && alreadyPropagated.contains(hash))) {
 
 			state = new GraphObjectModificationState(node);
-			modifications.put(hash, state);
+			nodeModifications.put(hash, state);
 			modificationEvents.add(state);
 		}
 
@@ -613,30 +614,33 @@ public class ModificationQueue {
 
 	private GraphObjectModificationState getState(final RelationshipInterface rel, final boolean create) {
 
-		String hash = hash(rel.getRelationship());
-		GraphObjectModificationState state = modifications.get(hash);
+		long hash = hash(rel.getRelationship());
+		GraphObjectModificationState state = relModifications.get(hash);
 
 		if (state == null && create) {
 
 			state = new GraphObjectModificationState(rel);
-			modifications.put(hash, state);
+			relModifications.put(hash, state);
 			modificationEvents.add(state);
 		}
 
 		return state;
 	}
 
-	private String hash(final Node node) {
-		return "N" + node.getId();
+	private long hash(final Node node) {
+		return node.getId().getId();
 	}
 
-	private String hash(final Relationship rel) {
-		return "R" + rel.getId();
+	private long hash(final Relationship rel) {
+		return rel.getId().getId();
 	}
 
 	private List<GraphObjectModificationState> getSortedModifications() {
 
-		final List<GraphObjectModificationState> state = new LinkedList<>(modifications.values());
+		final List<GraphObjectModificationState> state = new LinkedList<>();
+
+		state.addAll(nodeModifications.values());
+		state.addAll(relModifications.values());
 
 		Collections.sort(state, (a, b) -> {
 
@@ -655,5 +659,13 @@ public class ModificationQueue {
 		});
 
 		return state;
+	}
+
+	public boolean transactionWasSuccessful() {
+		return transactionWasSuccessful;
+	}
+
+	public void setTransactionWasSuccessful(final boolean transactionWasSuccessful) {
+		this.transactionWasSuccessful = transactionWasSuccessful;
 	}
 }

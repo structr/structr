@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,23 +18,17 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Abstract base class for semantic error tokens.
- *
  *
  */
 public class SemanticErrorToken extends ErrorToken {
 
-	public SemanticErrorToken(final String type, final PropertyKey propertyKey, final String token) {
-		this(type, propertyKey, token, null, null);
-	}
-	public SemanticErrorToken(final String type, final PropertyKey propertyKey, final String token, final Object detail) {
-		this(type, propertyKey, token, detail, null);
-	}
+	public SemanticErrorToken(final String type, final String propertyKey, final String token) {
 
-	public SemanticErrorToken(final String type, final PropertyKey propertyKey, final String token, final Object detail, final Object value) {
-		super(type, propertyKey != null ? propertyKey.jsonName() : null, token, detail, value);
+		super(token);
+
+		withType(type);
+		withProperty(propertyKey);
 	}
 }

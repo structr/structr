@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,35 +20,27 @@ package org.structr.web.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.SchemaNode;
-import org.structr.schema.Schema;
+import org.structr.core.property.Property;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.parser.PropertyDefinition;
-import org.structr.schema.parser.PropertySourceGenerator;
+import org.structr.schema.parser.PropertyGenerator;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
-
-import java.util.Map;
 
 /**
  *
  *
  */
-public class ThumbnailPropertySourceGenerator extends PropertySourceGenerator {
+public class ThumbnailPropertySourceGenerator extends PropertyGenerator {
 
 	static {
 
-		SchemaHelper.parserMap.put(Type.Thumbnail, ThumbnailPropertySourceGenerator.class);
+		SchemaHelper.generatorMap.put(Type.Thumbnail, (e, t, p) -> new ThumbnailPropertySourceGenerator(e, t, p));
 	}
 
 	public ThumbnailPropertySourceGenerator(final ErrorBuffer errorBuffer, final String className, final PropertyDefinition params) {
 		super(errorBuffer, className, params);
-	}
-
-	@Override
-	public String getPropertyType() {
-		return ThumbnailProperty.class.getSimpleName();
 	}
 
 	@Override
@@ -57,21 +49,17 @@ public class ThumbnailPropertySourceGenerator extends PropertySourceGenerator {
 	}
 
 	@Override
-	public String getUnqualifiedValueType() {
-		return "Thumbnail";
+	protected Object getDefaultValue() {
+		return null;
 	}
 
 	@Override
-	public String getPropertyParameters() {
-		return "";
+	protected Property newInstance() throws FrameworkException {
+		return new ThumbnailProperty(source.getPropertyName()).format(source.getFormat());
 	}
 
 	@Override
-	public Type getKey() {
+	public Type getPropertyType() {
 		return Type.Thumbnail;
-	}
-
-	@Override
-	public void parseFormatString(final Map<String, SchemaNode> schemaNodes, final Schema entity, final String expression) throws FrameworkException {
 	}
 }

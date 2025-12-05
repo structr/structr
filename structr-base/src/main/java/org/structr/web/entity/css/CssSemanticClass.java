@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,28 +18,7 @@
  */
 package org.structr.web.entity.css;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
 
 public interface CssSemanticClass extends NodeInterface {
-
-	static class Impl { static {
-
-		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		final JsonObjectType semanticClass = schema.addType("CssSemanticClass");
-		final JsonObjectType selector      = schema.addType("CssSelector");
-
-		semanticClass.setImplements(URI.create("https://structr.org/v1.1/definitions/CssSemanticClass"));
-		semanticClass.setCategory("html");
-
-		semanticClass.relate(selector, "MAPS_TO", Cardinality.ManyToMany, "semanticClasses", "selectors");
-
-		semanticClass.addViewProperty(PropertyView.Ui, "selectors");
-	}}
 }

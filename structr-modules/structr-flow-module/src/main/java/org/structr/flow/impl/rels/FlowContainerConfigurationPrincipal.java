@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,27 +20,40 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.ManyToOne;
-import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowContainerConfiguration;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-public class FlowContainerConfigurationPrincipal extends ManyToOne<FlowContainerConfiguration, Principal> implements PermissionPropagation {
+public class FlowContainerConfigurationPrincipal extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowContainerConfiguration> getSourceType() {
-		return FlowContainerConfiguration.class;
+	public FlowContainerConfigurationPrincipal() {
+		super(StructrTraits.FLOW_CONTAINER_CONFIGURATION_PRINCIPAL);
 	}
 
 	@Override
-	public Class<Principal> getTargetType() {
-		return Principal.class;
+	public String getSourceType() {
+		return StructrTraits.FLOW_CONTAINER_CONFIGURATION;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return "Principal";
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "BELONGS_TO";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
 	}
 
 	@Override
@@ -51,6 +64,11 @@ public class FlowContainerConfigurationPrincipal extends ManyToOne<FlowContainer
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

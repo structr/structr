@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,35 +20,55 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.Relation;
-import org.structr.flow.impl.FlowKeyValue;
-import org.structr.flow.impl.FlowObjectDataSource;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
-public class FlowKeyValueObjectInput extends ManyToOne<FlowKeyValue, FlowObjectDataSource> implements PermissionPropagation {
+public class FlowKeyValueObjectInput extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowKeyValue> getSourceType() {
-		return FlowKeyValue.class;
+	public FlowKeyValueObjectInput() {
+		super(StructrTraits.FLOW_KEY_VALUE_OBJECT_INPUT);
 	}
 
 	@Override
-	public Class<FlowObjectDataSource> getTargetType() {
-		return FlowObjectDataSource.class;
+	public String getSourceType() {
+		return StructrTraits.FLOW_KEY_VALUE;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.FLOW_OBJECT_DATA_SOURCE;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "KEY_VALUE_SOURCE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
 	}
 
 	@Override
 	public int getAutocreationFlag() {
 		return Relation.ALWAYS;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

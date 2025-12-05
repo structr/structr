@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a property value must match a given expression.
  *
@@ -27,7 +25,11 @@ import org.structr.core.property.PropertyKey;
  */
 public class MatchToken extends SemanticErrorToken {
 
-	public MatchToken(final String type, final PropertyKey propertyKey, final String expression, final Object value) {
-		super(type, propertyKey, "must_match", expression, value);
+	public MatchToken(final String type, final String propertyKey, final String description, final Object value) {
+
+		super(type, propertyKey, "must_match");
+
+		withDetail(description);
+		withValue(value);
 	}
 }

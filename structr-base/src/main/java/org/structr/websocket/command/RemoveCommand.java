@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,11 +24,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -62,14 +65,14 @@ public class RemoveCommand extends AbstractCommand {
 
 			if (node != null) {
 
-				if (node instanceof DOMNode) {
+				if (node.is(StructrTraits.DOM_NODE)) {
 
 					// Use new DOM interface
-					DOMNode domNode = (DOMNode) node;
+					DOMNode domNode = node.as(DOMNode.class);
 
 					try {
 
-						domNode.getParentNode().removeChild(domNode);
+						domNode.getParent().removeChild(domNode);
 
 						// remove pageId from node and all children ("move to trash")
 						RemoveCommand.recursivelyRemoveNodesFromPage(domNode, securityContext);
@@ -93,7 +96,7 @@ public class RemoveCommand extends AbstractCommand {
 					try {
 
 						// Old style: Delete all incoming CONTAINS rels
-						for (AbstractRelationship rel : node.getIncomingRelationships()) {
+						for (RelationshipInterface rel : node.getIncomingRelationships()) {
 
 							if ("CONTAINS".equals(rel.getType())) {
 
@@ -102,6 +105,9 @@ public class RemoveCommand extends AbstractCommand {
 						}
 
 						TransactionCommand.registerNodeCallback(node, callback);
+
+						// send success
+						getWebSocket().send(webSocketData, true);
 
 					} catch (Throwable t) {
 
@@ -134,9 +140,10 @@ public class RemoveCommand extends AbstractCommand {
 
 		// Remove node from page
 		final PropertyMap changedProperties = new PropertyMap();
+		final Traits traits                 = Traits.of(StructrTraits.DOM_NODE);
 
-		changedProperties.put(StructrApp.key(DOMNode.class, "syncedNodes"), Collections.EMPTY_LIST);
-		changedProperties.put(StructrApp.key(DOMNode.class, "pageId"),      null);
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.SYNCED_NODES_PROPERTY), Collections.EMPTY_LIST);
+		changedProperties.put(traits.key(DOMNodeTraitDefinition.PAGE_ID_PROPERTY),      null);
 
 		parent.setProperties(securityContext, changedProperties);
 

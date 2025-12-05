@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
+import org.structr.core.traits.Traits;
 import org.structr.util.Writable;
 
 import java.io.IOException;
@@ -51,6 +52,8 @@ public abstract class NodeServiceCommand extends Command {
 	protected final Map<String, String> customHeaders = new LinkedHashMap();
 	protected SecurityContext securityContext         = null;
 	private Writable logWritable                      = null;
+
+	protected NodeServiceCommand() { }
 
 	public Map<String, String> getCustomHeaders () {
 		return customHeaders;
@@ -285,11 +288,11 @@ public abstract class NodeServiceCommand extends Command {
 
 		if (nodeType != null) {
 
-			final Class entityType = StructrApp.getConfiguration().getNodeEntityClass(nodeType);
-			if (entityType != null) {
+			final Traits traits = Traits.of(nodeType);
+			if (traits != null) {
 
 
-				return StructrApp.getInstance().nodeQuery(entityType);
+				return StructrApp.getInstance().nodeQuery(nodeType);
 			}
 		}
 
@@ -304,10 +307,10 @@ public abstract class NodeServiceCommand extends Command {
 
 		if (relationshipType != null) {
 
-			final Class entityType = StructrApp.getConfiguration().getRelationshipEntityClass(relationshipType);
-			if (entityType != null) {
+			final Traits traits = Traits.of(relationshipType);
+			if (traits != null) {
 
-				return StructrApp.getInstance().relationshipQuery(entityType);
+				return StructrApp.getInstance().relationshipQuery(relationshipType);
 			}
 		}
 
@@ -321,7 +324,9 @@ public abstract class NodeServiceCommand extends Command {
 	// create uuid producer that fills the queue
 	static {
 
-		boolean replaceDashes = Settings.UUIDv4CreateCompact.getValue();
+		boolean createCompactUUIDsSettings = Settings.UUIDv4CreateCompact.getValue();
+		final String configuredUUIDFormat  = Settings.UUIDv4AllowedFormats.getValue();
+		boolean replaceDashes              = Settings.POSSIBLE_UUID_V4_FORMATS.without_dashes.toString().equals(configuredUUIDFormat) || (Settings.POSSIBLE_UUID_V4_FORMATS.both.toString().equals(configuredUUIDFormat) && createCompactUUIDsSettings);
 
 		Thread uuidProducer = new Thread(new Runnable() {
 

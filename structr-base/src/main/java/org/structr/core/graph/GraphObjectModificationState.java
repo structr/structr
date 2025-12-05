@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 import java.util.*;
 
@@ -43,7 +45,7 @@ import java.util.*;
 public class GraphObjectModificationState implements ModificationEvent {
 
 	private static final Logger LOGGER                          = LoggerFactory.getLogger(GraphObjectModificationState.class);
-	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(new String[] { "id", "sessionIds", "localStorage", "salt", "password", "twoFactorSecret" } ));
+	private static final Set<String> hiddenPropertiesInAuditLog = new HashSet<>(Arrays.asList(GraphObjectTraitDefinition.ID_PROPERTY, PrincipalTraitDefinition.SESSION_IDS_PROPERTY, "localStorage", PrincipalTraitDefinition.SALT_PROPERTY, PrincipalTraitDefinition.PASSWORD_PROPERTY, PrincipalTraitDefinition.TWO_FACTOR_SECRET_PROPERTY));
 
 	public static final int STATE_DELETED =                    1;
 	public static final int STATE_MODIFIED =                   2;
@@ -51,9 +53,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 	public static final int STATE_DELETED_PASSIVELY =          8;
 	public static final int STATE_OWNER_MODIFIED =            16;
 	public static final int STATE_SECURITY_MODIFIED =         32;
-	public static final int STATE_LOCATION_MODIFIED =         64;
-	public static final int STATE_PROPAGATING_MODIFICATION = 128;
-	public static final int STATE_PROPAGATED_MODIFICATION =  256;
 
 	private final long timestamp                              = System.nanoTime();
 	private final Map<String, Object> addedRemoteProperties   = new HashMap<>();
@@ -140,33 +139,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	}
 
-	public void propagatedModification() {
-
-		int statusBefore = status;
-
-		status |= STATE_PROPAGATED_MODIFICATION;
-
-		if (status != statusBefore) {
-			modified = true;
-		}
-	}
-
-	public void modifyLocation() {
-
-		int statusBefore = status;
-
-		status |= STATE_LOCATION_MODIFIED | STATE_PROPAGATING_MODIFICATION;
-
-		if (status != statusBefore) {
-			modified = true;
-		}
-	}
-
 	public void modifySecurity() {
 
 		int statusBefore = status;
 
-		status |= STATE_SECURITY_MODIFIED | STATE_PROPAGATING_MODIFICATION;
+		status |= STATE_SECURITY_MODIFIED;
 
 		if (status != statusBefore) {
 			modified = true;
@@ -177,7 +154,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		int statusBefore = status;
 
-		status |= STATE_OWNER_MODIFIED | STATE_PROPAGATING_MODIFICATION;
+		status |= STATE_OWNER_MODIFIED;
 
 		if (status != statusBefore) {
 			modified = true;
@@ -188,7 +165,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 		int statusBefore = status;
 
-		status |= STATE_CREATED | STATE_PROPAGATING_MODIFICATION;
+		status |= STATE_CREATED;
 
 		if (status != statusBefore) {
 			modified = true;
@@ -197,11 +174,11 @@ public class GraphObjectModificationState implements ModificationEvent {
 		updateCache();
 	}
 
-	public void modify(final Principal user, final PropertyKey key, final Object previousValue, final Object newValue) {
+	public <T> void modify(final Principal user, final PropertyKey<T> key, final T previousValue, final T newValue) {
 
 		int statusBefore = status;
 
-		status |= STATE_MODIFIED | STATE_PROPAGATING_MODIFICATION;
+		status |= STATE_MODIFIED;
 
 		// store previous value
 		if (key != null) {
@@ -298,7 +275,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 6: // created, modified => only creation callback will be called
 				counter.onCreate();
-				object.onCreation(securityContext, errorBuffer);
+				object.onCreation(object.getSecurityContext(), errorBuffer);
 				break;
 
 			case 5: // created, deleted => no callback
@@ -306,22 +283,22 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 			case 4: // created => creation callback
 				counter.onCreate();
-				object.onCreation(securityContext, errorBuffer);
+				object.onCreation(object.getSecurityContext(), errorBuffer);
 				break;
 
 			case 3: // modified, deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(object.getSecurityContext(), errorBuffer, removedProperties);
 				break;
 
 			case 2: // modified => modification callback
 				counter.onSave();
-				object.onModification(securityContext, errorBuffer, modificationQueue);
+				object.onModification(object.getSecurityContext(), errorBuffer, modificationQueue);
 				break;
 
 			case 1: // deleted => deletion callback
 				counter.onDelete();
-				object.onDeletion(securityContext, errorBuffer, removedProperties);
+				object.onDeletion(object.getSecurityContext(), errorBuffer, removedProperties);
 				break;
 
 			case 0:	// no action, no callback
@@ -396,24 +373,6 @@ public class GraphObjectModificationState implements ModificationEvent {
 	 * @param securityContext
 	 */
 	public void doOuterCallback(final SecurityContext securityContext, final CallbackCounter counter) throws FrameworkException {
-
-		if ((status & (STATE_DELETED | STATE_DELETED_PASSIVELY)) == 0) {
-
-			if ((status & STATE_LOCATION_MODIFIED) == STATE_LOCATION_MODIFIED) {
-				counter.locationModified();
-				object.locationModified(securityContext);
-			}
-
-			if ((status & STATE_SECURITY_MODIFIED) == STATE_SECURITY_MODIFIED) {
-				counter.securityModified();
-				object.securityModified(securityContext);
-			}
-
-			if ((status & STATE_OWNER_MODIFIED) == STATE_OWNER_MODIFIED) {
-				counter.ownerModified();
-				object.ownerModified(securityContext);
-			}
-		}
 
 		// examine only the last 4 bits here
 		switch (status & 0x000f) {
@@ -492,7 +451,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 				obj.add("val",      toElement(newValue));
 
 				if (Settings.ChangelogEnabled.getValue()) {
-					changeLog.append(obj.toString());
+					changeLog.append(obj);
 					changeLog.append("\n");
 				}
 
@@ -527,7 +486,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("relDir",   toElement(direction));
 			obj.add("target",   toElement(object));
 
-			changeLog.append(obj.toString());
+			changeLog.append(obj);
 			changeLog.append("\n");
 		}
 	}
@@ -549,7 +508,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			obj.add("target",   toElement(targetUuid));
 
 			if (Settings.ChangelogEnabled.getValue()) {
-				changeLog.append(obj.toString());
+				changeLog.append(obj);
 				changeLog.append("\n");
 			}
 
@@ -583,9 +542,9 @@ public class GraphObjectModificationState implements ModificationEvent {
 				if (changeLog.length() > 0 && verb.equals(Verb.create)) {
 					// ensure that node creation appears first in the log
 					changeLog.insert(0, "\n");
-					changeLog.insert(0, obj.toString());
+					changeLog.insert(0, obj);
 				} else {
-					changeLog.append(obj.toString());
+					changeLog.append(obj);
 					changeLog.append("\n");
 				}
 			}
@@ -760,7 +719,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 
 	@Override
 	public Map<String, Object> getData(final SecurityContext securityContext) throws FrameworkException {
-		return PropertyMap.javaTypeToInputType(securityContext, object.getClass(), modifiedProperties);
+		return PropertyMap.javaTypeToInputType(securityContext, object.getType(), modifiedProperties);
 	}
 
 	@Override

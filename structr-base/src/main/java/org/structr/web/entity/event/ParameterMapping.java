@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,41 +18,25 @@
  */
 package org.structr.web.entity.event;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
 
-import java.net.URI;
+import java.util.Map;
 
 public interface ParameterMapping extends NodeInterface {
 
-	static class Impl { static {
+	ActionMapping getActionMapping();
 
-		final JsonSchema schema       = SchemaService.getDynamicSchema();
-		final JsonObjectType type     = schema.addType("ParameterMapping");
-		final JsonObjectType elem     = schema.addType("DOMElement");
+	DOMElement getInputElement();
 
-		//type.setIsAbstract();
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ParameterMapping"));
-		type.setExtends(URI.create("#/definitions/NodeInterface"));
+	String getParameterType();
+	String getParameterName();
+	String getConstantValue();
+	String getScriptExpression();
+	String getMethodResult();
+	String getFlowResult();
 
-		type.addStringProperty("parameterType",        PropertyView.Ui).setHint("Type of this parameter, e.g. user input, constant value, page-param, pagesize-param, result of a script expression, method call or flow...");
-		// user-input, constant-value, page-param, pagesize-param, script-expression, method-result, flow-result
-
-		type.addStringProperty("parameterName",        PropertyView.Ui).setHint("Parameter name");
-		type.addStringProperty("constantValue",        PropertyView.Ui).setHint("Constant value");
-		type.addStringProperty("scriptExpression",     PropertyView.Ui).setHint("Script expression to be evaluated to result value");
-		type.addStringProperty("methodResult",         PropertyView.Ui).setHint("Method to be evaluated to result value");
-		type.addStringProperty("flowResult",           PropertyView.Ui).setHint("Flow to be evaluated to result value");
-
-		type.relate(elem, "INPUT_ELEMENT",   Cardinality.ManyToOne,"parameterMappings",  "inputElement");
-
-		type.addViewProperty(PropertyView.Ui, "inputElement");
-
-	}}
-
-
+	NodeInterface cloneParameterMapping(final Map<String, DOMNode> mapOfClonedNodes) throws FrameworkException;
 }

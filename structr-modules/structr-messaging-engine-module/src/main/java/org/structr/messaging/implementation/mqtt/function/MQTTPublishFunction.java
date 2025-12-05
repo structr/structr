@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,28 +21,30 @@ package org.structr.messaging.implementation.mqtt.function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MQTTPublishFunction extends MessagingModuleFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(MQTTPublishFunction.class.getName());
 
-	public static final String ERROR_MESSAGE_MQTTPUBLISH    = "Usage: ${mqtt_publish(client, topic, message)}. Example ${mqtt_publish(client, 'myTopic', 'myMessage')}";
-	public static final String ERROR_MESSAGE_MQTTPUBLISH_JS = "Usage: ${{Structr.mqtt_publish(client, topic, message)}}. Example ${{Structr.mqtt_publish(client, topic, message)}}";
-
 	@Override
 	public String getName() {
-		return "mqtt_publish";
+		return "mqttPublish";
 	}
 
 	@Override
-	public String getSignature() {
-		return "client, topic, message";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("client, topic, message");
 	}
 
 	@Override
-	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+
 		if (sources != null && sources.length == 3 && sources[0] != null && sources[1] != null && sources[2] != null) {
 
 			MQTTClient client = null;
@@ -56,7 +58,7 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			MQTTClient.sendMessage(client, sources[1].toString(), sources[2].toString(), ctx.getSecurityContext());
+			client.sendMessage(ctx.getSecurityContext(), sources[1].toString(), sources[2].toString());
 
 		} else {
 
@@ -67,12 +69,20 @@ public class MQTTPublishFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTPUBLISH_JS : ERROR_MESSAGE_MQTTPUBLISH);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mqttPublish(client, topic, message)}. Example ${mqttPublish(client, 'myTopic', 'myMessage')}"),
+			Usage.javaScript("Usage: ${{Structr.mqttPublish(client, topic, message)}}. Example ${{Structr.mqttPublish(client, topic, message)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Publishes message on given mqtt client with given topic.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,14 @@ import org.structr.api.graph.Node;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeFactory;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class InstantiateFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_INSTANTIATE = "Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}";
+public class InstantiateFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
@@ -34,8 +37,8 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "node";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("node");
 	}
 
 	@Override
@@ -50,7 +53,7 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 				throw new IllegalArgumentException();
 			}
 
-			return new NodeFactory<>(ctx.getSecurityContext()).instantiate((Node)sources[0]);
+			return new NodeFactory(ctx.getSecurityContext()).instantiate((Node)sources[0]);
 
 		} catch (ArgumentNullException pe) {
 
@@ -65,12 +68,28 @@ public class InstantiateFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_INSTANTIATE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.instantiate(node); }}. Example: ${{ $.instantiate(result.node); }}"),
+			Usage.structrScript("Usage: ${instantiate(node)}. Example: ${instantiate(result.node)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Instantiates the given Neo4j node into a Structr node";
+	public String getShortDescription() {
+		return "Converts the given raw Neo4j entity to a Structr entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "You can use this function to convert raw Neo4j entities from a `cypher()` result into Structr entities.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("entity", "entity to instantiate")
+		);
 	}
 }

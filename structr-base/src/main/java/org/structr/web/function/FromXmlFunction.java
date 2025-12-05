@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,21 +19,23 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FromXmlFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_FROM_XML    = "Usage: ${from_xml(source)}. Example: ${from_xml('<entry>0</entry>')}";
-	public static final String ERROR_MESSAGE_FROM_XML_JS = "Usage: ${{Structr.from_xml(src)}}. Example: ${{Structr.from_xml('<entry>0</entry>')}}";
-
 	@Override
 	public String getName() {
-		return "from_xml";
+		return "fromXml";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source");
 	}
 
 	@Override
@@ -66,12 +68,28 @@ public class FromXmlFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_FROM_XML_JS : ERROR_MESSAGE_FROM_XML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${fromXml(source)}. Example: ${fromXml('<entry>0</entry>')}"),
+			Usage.javaScript("Usage: ${{Structr.fromXml(src)}}. Example: ${{Structr.fromXml('<entry>0</entry>')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Parses the given XML and returns a JSON representation of the XML";
+	public String getShortDescription() {
+		return "Parses the given XML and returns a JSON string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function parses the given XML and returns a JSON representation of the XML which can be further processed using `fromJson()` or `JSON.parse()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("source", "XML source to parse")
+		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,24 +24,27 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GetWFSDataFunction extends AbstractGeoserverFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWFSDataFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: get_wfs_data(baseUrl, version, typeName [, parameterString ])";
+	public static final String ERROR_MESSAGE = "usage: getWfsData(baseUrl, version, typeName [, parameterString ])";
 
 	@Override
 	public String getName() {
-		return "get_wfs_data";
+		return "getWfsData";
 	}
 
 	@Override
-	public String getSignature() {
-		return "baseUrl, version, typeName, [, params ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("baseUrl, version, typeName, [, params ]");
 	}
 
 	@Override
@@ -82,12 +85,18 @@ public class GetWFSDataFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads features from a WFS endpoint and returns geometries.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

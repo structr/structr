@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,12 +27,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.function.ChangelogFunction;
+import org.structr.docs.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,10 +47,10 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 	@Override
 	public void execute(final Map<String, Object> properties) throws FrameworkException {
 
-		final long nodeCount = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(), 1000, "MigrateChangeLog", new BulkGraphOperation<AbstractNode>() {
+		final long nodeCount = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(), 1000, "MigrateChangeLog", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+			public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 				handleObject(node);
 				return true;
@@ -91,9 +92,8 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 		if (propertyContainer.hasProperty(changeLogName)) {
 
 			final Object changeLogSource   = propertyContainer.getProperty(changeLogName);
-			if (changeLogSource instanceof String) {
+			if (changeLogSource instanceof String existingChangeLog) {
 
-				final String existingChangeLog = (String)changeLogSource;
 				if (StringUtils.isNotBlank(existingChangeLog)) {
 
 					if (writeChangelogToDisk(obj, existingChangeLog)) {
@@ -116,16 +116,16 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 				final String uuid           = obj.getUuid();
 				final String typeFolderName = obj.isNode() ? "n" : "r";
 				final File file             = ChangelogFunction.getChangeLogFileOnDisk(typeFolderName, uuid, true);
-				final StringBuilder buf     = new StringBuilder();
 
 				// prepend existing data
-				buf.append(changeLogValue);
 
-				// read file data
-				buf.append(FileUtils.readFileToString(file, "utf-8"));
+				String buf = changeLogValue +
+
+					// read file data
+					FileUtils.readFileToString(file, "utf-8");
 
 				// write concatenated data
-				FileUtils.write(file, buf.toString(), "utf-8", false);
+				FileUtils.write(file, buf, "utf-8", false);
 
 				return true;
 			}
@@ -137,5 +137,56 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 		}
 
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return "";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

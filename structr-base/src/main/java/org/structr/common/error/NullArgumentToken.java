@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a property value may not be null.
  *
@@ -27,7 +25,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class NullArgumentToken extends SemanticErrorToken {
 
-	public NullArgumentToken(final String type, final PropertyKey key) {
-		super(type, key, "may_not_be_null");
+	public NullArgumentToken(final String type, final String propertyKey) {
+		super(type, propertyKey, "may_not_be_null");
 	}
 }

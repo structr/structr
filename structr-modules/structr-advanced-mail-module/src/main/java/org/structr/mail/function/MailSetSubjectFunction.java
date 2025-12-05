@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,15 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_set_subject(subject)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${Structr.mail_set_subject(subject)}";
+public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 	public MailSetSubjectFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -37,8 +39,8 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "subject";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("subject");
 	}
 
 	@Override
@@ -60,12 +62,27 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_set_subject(subject)}"),
+			Usage.javaScript("Usage: ${{ $.mailSetSubject(subject) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the subject of the current mail";
+	public String getShortDescription() {
+		return "Overwrites/Sets the subject of the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("subject", "subject of the mail")
+		);
 	}
 }

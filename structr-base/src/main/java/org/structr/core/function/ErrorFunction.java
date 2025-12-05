@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,13 +21,15 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class ErrorFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_ERROR = "Usage: ${error(property, token[, detail])}. Example: ${error(\"name\", \"already_taken\"[, \"Another node with that name already exists\"])}";
+public class ErrorFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
@@ -35,20 +37,18 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "propertyName, errorToken [, errorMessage]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("propertyName, errorToken [, errorMessage]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		Class entityType = GraphObject.class;
-		String type      = "GraphObject";
+		String type = StructrTraits.GRAPH_OBJECT;
 
-		if (caller != null && caller instanceof GraphObject) {
+		if (caller != null && caller instanceof GraphObject o) {
 
-			entityType = caller.getClass();
-			type = ((GraphObject) caller).getType();
+			type = o.getType();
 		}
 
 		try {
@@ -60,15 +60,13 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 			switch (sources.length) {
 
 				case 2: {
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, (String)sources[0]);
-					ctx.raiseError(422, new SemanticErrorToken(type, key, (String)sources[1]));
+					ctx.raiseError(422, new SemanticErrorToken(type, (String)sources[0], (String)sources[1]));
 
 					break;
 				}
 
 				case 3: {
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, (String)sources[0]);
-					ctx.raiseError(422, new SemanticErrorToken(type, key, (String)sources[1], sources[2]));
+					ctx.raiseError(422, new SemanticErrorToken(type, (String)sources[0], (String)sources[1]).withDetail(sources[2]));
 
 					break;
 				}
@@ -89,13 +87,46 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ERROR;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${$.error(cause, token[, detail])}. Example: ${$.error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}"),
+			Usage.structrScript("Usage: ${error(cause, token[, detail])}. Example: ${error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Signals an error to the caller";
+	public String getShortDescription() {
+		return "Stores error tokens in the current context causing the transaction to fail at the end of the request.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return """
+		This function allows you to store error tokens in the current context without aborting the execution flow. Errors that have accumulated in the error buffer can be fetched with `getErrors()` and cleared with either `clearError()` or `clearErrors()`.
+
+		If there are still error tokens in the error buffer at the end of the transaction, the transaction is rolled back. If the calling context was an HTTP request, the HTTP status code 422 Unprocessable Entity will be sent to the client together with the error tokens.
+
+		This function is mainly used in entity callback functions like `onCreate()` or `onSave()` to allow the user to implement custom validation logic.
+
+		If you want to abort the execution flow immediately, use `assert()`.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("cause", "cause of the error, e.g. a property name or other error message"),
+			Parameter.mandatory("errorToken", "arbitrary string that represents the error, will end up in the `token` field of the response"),
+			Parameter.optional("detail", "more detailed description of the error for humans to read")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See also `getErrors()`, `clearError()`, `clearErrors()` and `assert()`."
+		);
+	}
 }

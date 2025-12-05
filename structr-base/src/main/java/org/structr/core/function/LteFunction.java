@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,16 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class LteFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_LTE = "Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), \"Equal to or less than two\", \"More than two\")}";
 
 	@Override
 	public String getName() {
@@ -31,8 +36,8 @@ public class LteFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
 	@Override
@@ -42,12 +47,33 @@ public class LteFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_LTE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${lte(value1, value2)}. Example: ${if(lte(this.children, 2), 'Equal to or less than two', 'More than two')}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the first argument is less or equal to the second argument";
+	public String getShortDescription() {
+		return "Returns true if the first argument is less that or equal to the second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value"),
+			Parameter.mandatory("value2", "second value")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

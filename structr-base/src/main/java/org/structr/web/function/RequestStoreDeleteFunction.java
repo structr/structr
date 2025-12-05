@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,21 +21,24 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_REQUEST_STORE_DELETE    = "Usage: ${request_store_delete(key)}. Example: ${request_store_delete(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_REQUEST_STORE_DELETE_JS = "Usage: ${{ $.request_store_delete(key); }}. Example: ${{ $.request_store_delete(\"do_not_track\"); }}";
-
 	@Override
 	public String getName() {
-		return "request_store_delete";
+		return "requestStoreDelete";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override
@@ -62,12 +65,36 @@ public class RequestStoreDeleteFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_DELETE_JS : ERROR_MESSAGE_REQUEST_STORE_DELETE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${requestStoreDelete(key)}."),
+			Usage.javaScript("Usage: ${{ $.requestStoreDelete(key); }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Removes a stored value from the request level store.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${requestStoreDelete('do_no_track')}"),
+				Example.javaScript("${{ $.requestStoreDelete('do_not_track'); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "key to remove")
+				);
 	}
 }

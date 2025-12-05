@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,13 +34,14 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.*;
 import org.structr.schema.SchemaHelper;
 
 import java.io.*;
 import java.lang.reflect.Array;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -166,9 +167,9 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			final NodeFactory nodeFactory         = new NodeFactory(SecurityContext.getSuperUserInstance());
 			final RelationshipFactory relFactory  = new RelationshipFactory(SecurityContext.getSuperUserInstance());
-			final Set<AbstractNode> nodes         = new HashSet<>();
-			final Set<AbstractRelationship> rels  = new HashSet<>();
-			boolean conditionalIncludeFiles = includeFiles;
+			final Set<NodeInterface> nodes        = new HashSet<>();
+			final Set<RelationshipInterface> rels = new HashSet<>();
+			boolean conditionalIncludeFiles       = includeFiles;
 
 			if (query != null) {
 
@@ -179,13 +180,13 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				for (final GraphObject obj : StructrApp.getInstance().query(query, null)) {
 
 					if (obj.isNode()) {
-						nodes.add((AbstractNode)obj.getSyncNode());
+						nodes.add(obj.getSyncNode());
 					} else {
-						rels.add((AbstractRelationship)obj.getSyncRelationship());
+						rels.add(obj.getSyncRelationship());
 					}
 				}
 
-				logger.info("Query returned {} nodes and {} relationships.", new Object[] { nodes.size(), rels.size() } );
+				logger.info("Query returned {} nodes and {} relationships.", nodes.size(), rels.size());
 
 			} else {
 
@@ -338,7 +339,6 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 	 * string value of the given object and a space character for human readability.
 	 *
 	 * @param outputStream
-	 * @param obj
 	 */
 	public static void serializeData(DataOutputStream outputStream, byte[] data) throws IOException {
 
@@ -462,12 +462,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 					if (filesToInclude != null) {
 
-						includeFile = false;
-
-						if  (filesToInclude.contains(fileName)) {
-
-							includeFile = true;
-						}
+						includeFile = filesToInclude.contains(fileName);
 					}
 
 					if (includeFile) {
@@ -494,12 +489,12 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 	}
 
-	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream,  final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
+	private static void exportDatabase(final ZipOutputStream zos, final OutputStream outputStream, final Iterable<? extends NodeInterface> nodes, final Iterable<? extends RelationshipInterface> relationships) throws IOException, FrameworkException {
 
 		// start database zip entry
 		final ZipEntry dbEntry        = new ZipEntry(STRUCTR_ZIP_DB_NAME);
 		final DataOutputStream dos    = new DataOutputStream(outputStream);
-		final String uuidPropertyName = GraphObject.id.dbName();
+		final String uuidPropertyName = "id";
 		int nodeCount                 = 0;
 		int relCount                  = 0;
 
@@ -508,14 +503,14 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (NodeInterface nodeObject : nodes) {
 
 			// skip schema
-			if (nodeObject instanceof SchemaReloadingNode) {
+			if (nodeObject.is(StructrTraits.SCHEMA_RELOADING_NODE)) {
 				continue;
 			}
 
 			final Node node = nodeObject.getNode();
 
 			// ignore non-structr nodes
-			if (node.hasProperty(GraphObject.id.dbName())) {
+			if (node.hasProperty(uuidPropertyName)) {
 
 				outputStream.write('N');
 
@@ -539,7 +534,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 			final Relationship rel = relObject.getRelationship();
 
 			// ignore non-structr nodes
-			if (rel.hasProperty(GraphObject.id.dbName())) {
+			if (rel.hasProperty(uuidPropertyName)) {
 
 				final Node startNode = rel.getStartNode();
 				final Node endNode   = rel.getEndNode();
@@ -574,10 +569,18 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		// finish db entry
 		zos.closeEntry();
 
-		logger.info("Exported {} nodes and {} rels", new Object[] { nodeCount, relCount } );
+		logger.info("Exported {} nodes and {} rels", nodeCount, relCount);
 	}
 
 	private static void importDirectory(ZipInputStream zis, ZipEntry entry) throws IOException {
+
+		// Fix ZIP slip security problem
+		final Path checkPath = Path.of(entry.getName());
+
+		if (!checkPath.normalize().equals(checkPath) || checkPath.isAbsolute()) {
+
+			throw new RuntimeException("Refusing to extract unsafe ZIP entry " + entry.getName());
+		}
 
 		if (entry.isDirectory()) {
 
@@ -622,7 +625,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		final Set<String> labels                  = new LinkedHashSet<>();
 		final DataInputStream dis                 = new DataInputStream(new BufferedInputStream(zis));
 		final long internalBatchSize              = batchSize != null ? batchSize : 200;
-		final String uuidPropertyName             = GraphObject.id.dbName();
+		final String uuidPropertyName             = "id";
 		double t0                                 = System.nanoTime();
 		EntityCreation currentObject              = null;
 		String currentKey                         = null;
@@ -630,7 +633,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		long totalNodeCount                       = 0;
 		long totalRelCount                        = 0;
 
-		labels.add(NodeInterface.class.getSimpleName());
+		labels.add(org.structr.core.graph.NodeInterface.class.getSimpleName());
 
 		// add tenant identifier to all nodes
 		if (graphDb.getTenantIdentifier() != null) {
@@ -731,7 +734,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 											currentObject.put(currentKey, obj);
 
 											// set type label
-											if (currentObject instanceof NodeCreation && NodeInterface.type.dbName().equals(currentKey)) {
+											if (currentObject instanceof NodeCreation && "type".equals(currentKey)) {
 
 												((NodeCreation)currentObject).addLabel((String) obj);
 											}
@@ -762,7 +765,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				totalNodeCount += nodeCount;
 				totalRelCount  += relCount;
 
-				logger.info("Imported {} nodes and {} rels, committing transaction..", new Object[] { totalNodeCount, totalRelCount } );
+				logger.info("Imported {} nodes and {} rels, committing transaction..", totalNodeCount, totalRelCount);
 
 				tx.success();
 			}
@@ -826,7 +829,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case 14:
 			case 15:
-				return new String(deserializeData(inputStream), "UTF-8");
+				return new String(deserializeData(inputStream), StandardCharsets.UTF_8);
 
 				// this doesn't work with very long strings
 				//return inputStream.readUTF();
@@ -880,7 +883,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			case 14:
 			case 15:
-				serializeData(outputStream, ((String)value).getBytes("UTF-8"));
+				serializeData(outputStream, ((String)value).getBytes(StandardCharsets.UTF_8));
 
 				// this doesn't work with very long strings
 				//outputStream.writeUTF((String)value);
@@ -891,6 +894,57 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 				outputStream.writeBoolean((boolean)value);
 				break;
 		}
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return "";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 
 	static class NodeCreation extends EntityCreation {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,12 +23,12 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.Indexable;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.docs.*;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -113,10 +113,10 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			info("Starting (re-)indexing all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 1000, "RebuildNodeIndex", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 1000, "RebuildNodeIndex", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(final SecurityContext securityContext, final AbstractNode node) {
+			public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface node) {
 
 				node.addToIndex();
 
@@ -124,7 +124,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 
 			@Override
-			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final AbstractNode node) {
+			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface node) {
 				logger.warn("Unable to index node {}: {}", node, t.getMessage());
 			}
 
@@ -178,10 +178,10 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 
 	private long rebuildFulltextIndex() {
 
-		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery(Indexable.class), 1000, "RebuildFulltextIndex", new BulkGraphOperation<Indexable>() {
+		final long count = bulkGraphOperation(securityContext, StructrApp.getInstance().nodeQuery("Indexable"), 1000, "RebuildFulltextIndex", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(final SecurityContext securityContext, final Indexable indexable) throws FrameworkException {
+			public boolean handleGraphObject(final SecurityContext securityContext, final NodeInterface indexable) throws FrameworkException {
 
 				StructrApp.getInstance().getFulltextIndexer().addToFulltextIndex(indexable);
 
@@ -189,7 +189,7 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 			}
 
 			@Override
-			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final Indexable rel) {
+			public void handleThrowable(final SecurityContext securityContext, final Throwable t, final NodeInterface rel) {
 				logger.warn("Unable to build fulltext index for {}: {}", rel.getUuid(), t.getMessage());
 			}
 
@@ -202,5 +202,60 @@ public class BulkRebuildIndexCommand extends NodeServiceCommand implements Maint
 		info("Rebuilding fulltext index done.");
 
 		return count;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "rebuildIndex";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Rebuilds the internal indexes, either for nodes, or for relationships, or for both.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Rebuilding the index means that all objects are first removed from the index and then added to the index again with all properties that have the `indexed` flag set.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.optional("type", "limit the execution to the given node type"),
+			Parameter.optional("relType", "limit the execution to the given relationship"),
+			Parameter.optional("mode", "`nodesOnly` or `relsOnly` to rebuild the index only for nodes or relationships")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

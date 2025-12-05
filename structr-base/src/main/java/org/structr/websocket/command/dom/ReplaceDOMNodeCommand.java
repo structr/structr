@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,12 +18,12 @@
  */
 package org.structr.websocket.command.dom;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.w3c.dom.DOMException;
 
 import java.util.Map;
 
@@ -100,7 +100,7 @@ public class ReplaceDOMNodeCommand extends AbstractCommand {
 			try {
 				parentNode.replaceChild(newNode, oldNode);
 
-			} catch (DOMException dex) {
+			} catch (FrameworkException dex) {
 
 				// send DOM exception
 				getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);

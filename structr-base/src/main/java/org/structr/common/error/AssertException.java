@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,12 +20,16 @@ package org.structr.common.error;
 
 import com.google.gson.*;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Exception to be thrown when an unlicensed scripting function is encountered.
  */
 public class AssertException extends RuntimeException implements JsonException {
 
-	private int statusCode = 422;
+	private final Map<String, String> headers = new LinkedHashMap<>();
+	private int statusCode                    = 422;
 
 	public AssertException(final String message, final int statusCode) {
 
@@ -37,6 +41,11 @@ public class AssertException extends RuntimeException implements JsonException {
 	@Override
 	public int getStatus() {
 		return statusCode;
+	}
+
+	@Override
+	public Map<String, String> headers() {
+		return headers;
 	}
 
 	@Override

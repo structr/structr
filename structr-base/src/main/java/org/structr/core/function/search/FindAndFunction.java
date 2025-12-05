@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,13 +20,13 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.CoreFunction;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FindAndFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_AND = "Usage: ${and(predicate, ...). Example: ${find('Group', and(equals('name', 'Test')))}";
 
 	@Override
 	public String getName() {
@@ -54,13 +54,21 @@ public class FindAndFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_AND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.and(predicates...) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.equals('name', 'Test'))) }}"),
+			Usage.structrScript("Usage: ${and(predicate, ...). Example: ${find('Group', and(equals('name', 'Test')))}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a query predicate that can be used with find() or search().";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override
@@ -69,8 +77,8 @@ public class FindAndFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("predicates");
 	}
 
 	// ----- private methods -----

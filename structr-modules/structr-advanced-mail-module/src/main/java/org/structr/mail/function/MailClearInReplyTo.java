@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,14 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailClearInReplyTo extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_clear_in_reply_to()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_clear_in_reply_to() }}";
+public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
 	public MailClearInReplyTo(final AdvancedMailModule parent) {
 		super(parent);
@@ -37,8 +38,8 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -51,12 +52,27 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_clear_in_reply_to()}"),
+			Usage.javaScript("Usage: ${{ $.mailClearInReplyTo() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Removes the In-Reply-To from the current mail";
+	public String getShortDescription() {
+		return "Removes the `In-Reply-To` header from the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Indicates that the current mail is not a reply to a message. This function automatically clears the `In-Reply-To` header of the mail.";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mail_set_in_reply_to()`)"
+		);
 	}
 }

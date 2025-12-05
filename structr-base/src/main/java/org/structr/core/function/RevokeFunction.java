@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,23 +18,27 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class RevokeFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_REVOKE    = "Usage: ${revoke(principal, node, permissions)}. Example: ${revoke(me, this, 'write, delete'))}";
-	public static final String ERROR_MESSAGE_REVOKE_JS = "Usage: ${{Structr.revoke(principal, node, permissions)}}. Example: ${{Structr.revoke(Structr.('me'), Structr.this, 'write, delete'))}}";
 
 	@Override
 	public String getName() {
@@ -42,8 +46,8 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "user, node, permissions";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("user, node, permissions");
 	}
 
 	@Override
@@ -53,7 +57,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof Principal)) {
+			if (!(sources[0] instanceof NodeInterface n && n.is(StructrTraits.PRINCIPAL))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
@@ -61,7 +65,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to revoke rights for the SuperUser!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof AbstractNode)) {
+			} else if (!(sources[1] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 
@@ -71,8 +75,8 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Principal principal         = (Principal)sources[0];
-				final AbstractNode node           = (AbstractNode)sources[1];
+				final NodeInterface principal     = (NodeInterface)sources[0];
+				final NodeInterface node          = (NodeInterface)sources[1];
 				final Set<Permission> permissions = new HashSet();
 				final String[] parts              = ((String)sources[2]).split("[,]+");
 
@@ -95,7 +99,7 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 				}
 
 				if (permissions.size() > 0) {
-					node.revoke(permissions, principal, ctx.getSecurityContext());
+					node.as(AccessControllable.class).revoke(permissions, principal.as(Principal.class), ctx.getSecurityContext());
 				}
 			}
 
@@ -112,12 +116,51 @@ public class RevokeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REVOKE_JS : ERROR_MESSAGE_REVOKE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${revoke(principal, node, permissions)}."),
+			Usage.javaScript("Usage: ${{Structr.revoke(principal, node, permissions)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Revokes the given permissions on the given entity from a user";
+	public String getShortDescription() {
+		return "Revokes the given permissions on the given entity from a user.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		This function modifies the security relationship between the first two parameters. 
+		Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. 
+		The permissions are passed in as a comma-separated list (see the examples below). 
+		The return value is the empty string. See also `grant()` and `isAllowed()`.""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${revoke(me, node1, 'read')}
+						${revoke(me, node2, 'read, write')}
+						${revoke(me, node3, 'read, write, delete')}
+						${revoke(me, node4, 'read, write, delete, accessControl')}
+						"""),
+				Example.javaScript("""
+						${{ $.revoke($.me, node1, 'read') }}
+						${{ $.revoke($.me, node2, 'read, write') }}
+						${{ $.revoke($.me, node3, 'read, write, delete') }}
+						${{ $.revoke($.me, node4, 'read, write, delete, accessControl') }}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("principal", "User or Group node"),
+				Parameter.mandatory("node", "node to revoke permissions"),
+				Parameter.mandatory("permissions", "comma seperated permission string of `read`, `write`, `delete`, `accessControl`")
+				);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,12 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -28,46 +33,56 @@ import java.util.List;
 
 public class AncestorTypesFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_ANCESTOR_TYPES    = "Usage: ${ancestor_types(type[, blacklist])}. Example ${ancestor_types('User')}";
-	public static final String ERROR_MESSAGE_ANCESTOR_TYPES_JS = "Usage: ${Structr.ancestor_types(type[, blacklist])}. Example ${Structr.ancestor_types('User')}";
-
 	@Override
 	public String getName() {
-		return "ancestor_types";
+		return "ancestorTypes";
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, blacklist ]";
-	}
-
-	@Override
-	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
 
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			final String typeName = sources[0].toString();
-			final ArrayList<String> ancestorTypes = new ArrayList();
+			if (!Traits.exists(typeName)) {
 
-			Class type = SchemaHelper.getEntityClassForRawType(typeName);
+				throw new FrameworkException(422, new StringBuilder(getName()).append("(): Type '").append(typeName).append("' not found.").toString());
+			}
+
+			final Traits type                     = Traits.of(typeName);
+			final ArrayList<String> ancestorTypes = new ArrayList();
+			final List<String> blackList          = new ArrayList(Arrays.asList(typeName, StructrTraits.NODE_INTERFACE, StructrTraits.PROPERTY_CONTAINER, StructrTraits.GRAPH_OBJECT, StructrTraits.ACCESS_CONTROLLABLE));
+
+			if (sources.length == 2) {
+
+				if (sources[1] instanceof List) {
+
+					blackList.addAll((List)sources[1]);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Expected 'blacklist' parameter to be of type List.").toString());
+				}
+			}
 
 			if (type != null) {
 
-				while (type != null && !type.equals(Object.class)) {
+				if (type.isServiceClass() == false) {
 
-					ancestorTypes.add(type.getSimpleName());
-					type = type.getSuperclass();
+					ancestorTypes.addAll(type.getAllTraits());
+					ancestorTypes.removeAll(blackList);
+
+				} else {
+
+					throw new FrameworkException(422, new StringBuilder(getName()).append("(): Not applicable to service class '").append(type.getName()).append("'.").toString());
 				}
 
 			} else {
 
 				logger.warn("{}(): Type not found: {}" + (caller != null ? " (source of call: " + caller.toString() + ")" : ""), getName(), sources[0]);
 			}
-
-			final List<String> blackList = (sources.length == 2) ? (List)sources[1] : Arrays.asList("AbstractNode");
-			ancestorTypes.removeAll(blackList);
 
 			return ancestorTypes;
 
@@ -79,12 +94,42 @@ public class AncestorTypesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ANCESTOR_TYPES_JS : ERROR_MESSAGE_ANCESTOR_TYPES);
+	public String getShortDescription() {
+		return "Returns the list of parent types of the given type **including** the type itself.";
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the names of the parent classes of the given type";
+	public String getLongDescription() {
+		return "The blacklist of type names can be extended by passing a list as the second parameter. If omitted, the function uses the following blacklist: [AccessControllable, GraphObject, NodeInterface, PropertyContainer].";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type to fetch ancestor types for"),
+			Parameter.optional("blacklist", "blacklist to remove unwanted types from result")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${ancestorTypes('MyType')}", "Return all ancestor types of MyType"),
+			Example.structrScript("${ancestorTypes('MyType', merge('MyOtherType))}", "Remove MyOtherType from the returned result")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type [, blacklist ]");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ancestorTypes(type[, blacklist])}. Example ${ancestorTypes('User', merge('Principal'))}"),
+			Usage.javaScript("Usage: ${{ $.ancestorTypes(type[, blacklist])}. Example ${{ $.ancestorTypes('User', ['Principal']) }}")
+		);
 	}
 }

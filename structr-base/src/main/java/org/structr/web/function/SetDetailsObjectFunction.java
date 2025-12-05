@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,22 +19,25 @@
 package org.structr.web.function;
 
 import org.structr.core.GraphObject;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 
-public class SetDetailsObjectFunction extends UiCommunityFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT    = "Usage: ${set_details_object(obj)}. Example: ${set_details_object(this)}";
-	public static final String ERROR_MESSAGE_SET_DETAILS_OBJECT_JS = "Usage: ${{Structr.setDetailsObject(obj)}}. Example: ${{Structr.setDetailsObject(Structr.this)}}";
+public class SetDetailsObjectFunction extends UiCommunityFunction {
 
 	@Override
 	public String getName() {
-		return "set_details_object";
+		return "setDetailsObject";
 	}
 
 	@Override
-	public String getSignature() {
-		return "obj";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("obj");
 	}
 
 	@Override
@@ -69,12 +72,37 @@ public class SetDetailsObjectFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_DETAILS_OBJECT_JS : ERROR_MESSAGE_SET_DETAILS_OBJECT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setDetailsObject(obj)}."),
+			Usage.javaScript("Usage: ${{$.setDetailsObject(obj)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the given object as the detail object";
+	public String getShortDescription() {
+		return "Allows overriding the `current` keyword with a given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setDetailsObject(first(find('User')))}"),
+				Example.javaScript("${{ $.setDetailsObject($.first($.find('User')))}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "entity to be linked to `current`")
+				);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -77,6 +77,11 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public String typeName() {
 		return "String";
 	}
@@ -117,7 +122,7 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	}
 
 	@Override
-	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, String> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new PropertyConverter<Object, String>(securityContext) {
 
 			@Override

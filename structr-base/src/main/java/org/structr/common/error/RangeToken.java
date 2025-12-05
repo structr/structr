@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,16 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  *
  *
  */
 public class RangeToken extends SemanticErrorToken {
 
-	public RangeToken(final String type, final PropertyKey key, final String rangeDefinition) {
-		super(type, key, "must_be_in_range", rangeDefinition);
+	public RangeToken(final String type, final String propertyKey, final String rangeDefinition) {
+
+		super(type, propertyKey, "must_be_in_range");
+
+		withDetail(rangeDefinition);
 	}
 }

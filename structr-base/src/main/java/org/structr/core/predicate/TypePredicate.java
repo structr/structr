@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
-import org.structr.core.entity.AbstractNode;
 
 /**
  * A node predicate that evaluates to <b>true</b> if the type of the given node
@@ -42,9 +41,9 @@ public class TypePredicate implements Predicate<Node> {
 	@Override
 	public boolean accept(Node node) {
 
-		if(node.hasProperty(AbstractNode.type.dbName())) {
+		if(node.hasProperty("type")) {
 
-			String value = (String)node.getProperty(AbstractNode.type.dbName());
+			String value = (String)node.getProperty("type");
 
 			logger.debug("Type property: {}, expected {}", new Object[] { value, type } );
 

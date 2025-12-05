@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,6 @@ public class StringQuery extends AbstractNativeQuery<Boolean> {
 
 	@Override
 	Boolean execute(final SessionTransaction tx) {
-		return tx.getBoolean(query, parameters);
+		return tx.getBoolean(new SimpleCypherQuery(query, parameters));
 	}
 }

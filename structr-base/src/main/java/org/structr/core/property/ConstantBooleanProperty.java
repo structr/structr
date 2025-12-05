@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,7 +38,6 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	public ConstantBooleanProperty(final String name, final boolean constantValue) {
 
 		super(name);
-		systemInternal();
 		readOnly();
 
 		this.constantValue = constantValue;
@@ -56,7 +55,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	@Override
 	public Boolean getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
-		if (declaringClass.isAssignableFrom(obj.getClass())) {
+		if (obj.getTraits().contains(declaringTrait.getLabel())) {
 			return this.constantValue;
 		}
 
@@ -65,21 +64,11 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 
 	@Override
 	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final Boolean value) throws FrameworkException {
-		throw new FrameworkException(422, "Unable to change value of a constant property", new ReadOnlyPropertyToken(obj.getType(), this));
+		throw new FrameworkException(422, "Unable to change value of constant property ‛" + jsonName() + "‛", new ReadOnlyPropertyToken(obj.getType(), jsonName()));
 	}
 
 	@Override
-	public boolean isReadOnly() {
-		return true;
-	}
-
-	@Override
-	public boolean isSystemInternal() {
-		return true;
-	}
-
-	@Override
-	public boolean isIndexed() {
+	public boolean isArray() {
 		return false;
 	}
 
@@ -109,7 +98,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	}
 
 	@Override
-	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Boolean> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 

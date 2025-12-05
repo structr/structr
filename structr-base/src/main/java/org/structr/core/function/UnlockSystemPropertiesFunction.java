@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,22 +21,18 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE    = "Usage: ${unlock_system_properties_once(node)}. Example ${unlock_system_properties_once(this)}";
-	public static final String ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE_JS = "Usage: ${{Structr.unlock_system_properties_once(node)}}. Example ${{Structr.unlock_system_properties_once(Structr.get('this'))}}";
-
 	@Override
 	public String getName() {
-		return "unlock_system_properties_once";
-	}
-
-	@Override
-	public String getSignature() {
-		return null;
+		return "unlockSystemPropertiesOnce";
 	}
 
 	@Override
@@ -46,9 +42,9 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof AbstractNode) {
+			if (sources[0] instanceof NodeInterface n) {
 
-				((AbstractNode)sources[0]).unlockSystemPropertiesOnce();
+				n.unlockSystemPropertiesOnce();
 				return "";
 
 			} else {
@@ -70,13 +66,27 @@ public class UnlockSystemPropertiesFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE_JS : ERROR_MESSAGE_UNLOCK_SYSTEM_PROPERTIES_ONCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${unlockSystemPropertiesOnce(node)}. Example ${unlockSystemPropertiesOnce(this)}"),
+			Usage.javaScript("Usage: ${{Structr.unlockSystemPropertiesOnce(node)}}. Example ${{Structr.unlockSystemPropertiesOnce(Structr.get('this'))}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Unlocks any system property for a single access";
+	public String getShortDescription() {
+		return "Unlocks any system property for a single access.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override

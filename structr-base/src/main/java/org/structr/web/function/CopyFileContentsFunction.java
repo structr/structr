@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,32 +20,35 @@ package org.structr.web.function;
 
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.FileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS = "Usage: ${ copy_file_contents(sourceFile, targetFile) }";
-	public static final String ERROR_MESSAGE_COPY_FILE_CONTENTS_JS = "Usage: ${{ Structr.copy_file_contents(sourceFile, targetFile); }}";
-
 	@Override
 	public String getName() {
-		return "copy_file_contents";
+		return "copyFileContents";
 	}
 
 	@Override
-	public String getSignature() {
-		return "sourceFile, destinationFile";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("sourceFile, destinationFile");
 	}
 
 	@Override
@@ -58,23 +61,24 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 			final Object toCopy       = sources[0];
 			final Object toBeReplaced = sources[1];
 
-			if (toCopy instanceof File && toBeReplaced instanceof File) {
+			if (toCopy instanceof NodeInterface source && toBeReplaced instanceof NodeInterface target && source.is(StructrTraits.FILE) && target.is(StructrTraits.FILE)) {
 
-				File nodeToCopy = (File) toCopy;
-				File nodeToBeReplaced = (File) toBeReplaced;
+				File nodeToCopy       = source.as(File.class);
+				File nodeToBeReplaced = target.as(File.class);
 
 				try (final InputStream is = StorageProviderFactory.getStorageProvider(nodeToCopy).getInputStream(); final OutputStream os = StorageProviderFactory.getStorageProvider(nodeToBeReplaced).getOutputStream()) {
 
 					IOUtils.copy(is, os);
 
-					final PropertyKey<Integer> versionKey = StructrApp.key(File.class, "version");
-					final PropertyKey<Long> checksumKey   = StructrApp.key(File.class, "checksum");
-					final PropertyKey<Long> sizeKey       = StructrApp.key(File.class, "size");
-					final PropertyMap changedProperties   = new PropertyMap();
+					final PropertyKey<Integer> versionKey    = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.VERSION_PROPERTY);
+					final PropertyKey<Long> checksumKey      = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CHECKSUM_PROPERTY);
+					final PropertyKey<Long> sizeKey          = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.SIZE_PROPERTY);
+					final PropertyKey<String> contentTypeKey = Traits.of(StructrTraits.FILE).key(FileTraitDefinition.CONTENT_TYPE_PROPERTY);
+					final PropertyMap changedProperties      = new PropertyMap();
 
 					changedProperties.put(checksumKey, FileHelper.getChecksum(nodeToBeReplaced));
 					changedProperties.put(versionKey, 0);
-					changedProperties.put(new StringProperty("contentType"), nodeToCopy.getProperty(new StringProperty("contentType")));
+					changedProperties.put(contentTypeKey, nodeToCopy.getProperty(contentTypeKey));
 
 					long fileSize = FileHelper.getSize(nodeToBeReplaced);
 					if (fileSize > 0) {
@@ -107,12 +111,28 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_COPY_FILE_CONTENTS_JS : ERROR_MESSAGE_COPY_FILE_CONTENTS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ copyFileContents(sourceFile, targetFile) }"),
+			Usage.javaScript("Usage: ${{ Structr.copyFileContents(sourceFile, targetFile); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Creates a copy of the file content linked to the given File entity and links it to the other File entity.";
+	public String getShortDescription() {
+		return "Copies the content of sourceFile to targetFile and updates the meta-data accordingly.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("sourceFile", "source file to copy content from"),
+			Parameter.mandatory("targetFile", "target file to copy content to")
+		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,19 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.config.Settings;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class EncryptFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_ENCRYPT    = "Usage: ${encrypt(value[, key])}";
-	public static final String ERROR_MESSAGE_ENCRYPT_JS = "Usage: ${{Structr.encrypt(value[, key])}}";
+public class EncryptFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
@@ -34,8 +38,8 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value [, key]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value [, key]");
 	}
 
 	@Override
@@ -96,12 +100,38 @@ public class EncryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ENCRYPT_JS : ERROR_MESSAGE_ENCRYPT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${encrypt(value[, key])}"),
+			Usage.javaScript("Usage: ${{Structr.encrypt(value[, key])}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Encrypts the given string with a secret key from structr.conf or argument 2";
+	public String getShortDescription() {
+		return "Encrypts the given string using AES and returns the ciphertext encoded in base 64.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function either uses the internal global encryption key from the '" + Settings.GlobalSecret.getKey() + "' setting in structr.conf, or the optional second parameter.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("text", "text to encrypt"),
+			Parameter.optional("secret", "secret key")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${set(this, 'encryptedString', encrypt('example string'))}", "Encrypt a string with the global encryption key from structr.conf"),
+			Example.structrScript("${set(this, 'encryptedString', encrypt('example string', 'secret key'))}", "Encrypt a string with the key 'secret key'")
+		);
 	}
 }

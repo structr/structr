@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,13 +22,15 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
 
 public class FirstFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_FIRST = "Usage: ${first(collection)}. Example: ${first(this.children)}";
 
 	@Override
 	public String getName() {
@@ -36,8 +38,8 @@ public class FirstFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override
@@ -47,13 +49,12 @@ public class FirstFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			if (sources[0] instanceof Iterable) {
-
-				return Iterables.first((Iterable)sources[0]);
+			if (sources[0] instanceof List list && !list.isEmpty()) {
+				return list.get(0);
 			}
 
-			if (sources[0] instanceof List && !((List)sources[0]).isEmpty()) {
-				return ((List)sources[0]).get(0);
+			if (sources[0] instanceof Iterable it) {
+				return Iterables.first(it);
 			}
 
 			if (sources[0].getClass().isArray()) {
@@ -79,12 +80,36 @@ public class FirstFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_FIRST;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.first(collection); }}. Example: ${{ $.first($.this.children); }}"),
+			Usage.structrScript("Usage: ${first(collection)}. Example: ${first(this.children)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the first element of the given collection";
+	public String getShortDescription() {
+		return "Returns the first element of the given collection.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function is often used in conjunction with `find()` to return the first result of a query. See also `last()` and `nth()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "collection to return first element of")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${first(find('User'))}", "Return the first of the existing users")
+		);
 	}
 }

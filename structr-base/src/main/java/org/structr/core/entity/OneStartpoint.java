@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,29 +24,35 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint implements Source<Relationship, S> {
+public class OneStartpoint extends AbstractEndpoint implements Source<Relationship, NodeInterface> {
 
-	private Relation<S, ?, OneStartpoint<S>, ?> relation = null;
+	private Relation<OneStartpoint, ?> relation = null;
 
-	public OneStartpoint(final Relation<S, ?, OneStartpoint<S>, ?> relation) {
+	public OneStartpoint(final Relation<OneStartpoint, ?> relation, final String propertyName) {
+
+		super(propertyName);
+
 		this.relation = relation;
 	}
 
 	@Override
-	public S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
+	public NodeInterface get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		final NodeFactory<S> nodeFactory = new NodeFactory<>(securityContext);
-		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
+		final NodeFactory nodeFactory = new NodeFactory(securityContext);
+		final Relationship rel        = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
 			return nodeFactory.instantiate(rel.getStartNode(), rel.getId());
@@ -56,26 +62,33 @@ public class OneStartpoint<S extends NodeInterface> extends AbstractEndpoint imp
 	}
 
 	@Override
-	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final S sourceNode) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeInterface targetNode, final NodeInterface sourceNode) throws FrameworkException {
 
 		final PropertyMap properties         = new PropertyMap();
-		final S actualSourceNode             = (S)unwrap(securityContext, relation.getClass(), sourceNode, properties);
-		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
+		final NodeInterface actualSourceNode = unwrap(securityContext, relation.getType(), sourceNode, properties);
+		final NodeInterface actualTargetNode = unwrap(securityContext, relation.getType(), targetNode, properties);
 
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
 		if (actualSourceNode != null && actualTargetNode != null) {
 
+			final Traits sourceType = Traits.of(relation.getSourceType());
+			final Traits type       = actualSourceNode.getTraits();
+
+			if (!SearchCommand.isTypeAssignableFromOtherType(sourceType, type)) {
+				throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), sourceType.getName()));
+			}
+
 			final String storageKey            = actualSourceNode.getName() + relation.name() + actualTargetNode.getName();
-			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), storageKey);
+			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getType(), storageKey);
 
 			if (notionProperties != null) {
 
 				properties.putAll(notionProperties);
 			}
 
-			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getClass(), properties);
+			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getType(), properties);
 		}
 
 		return null;

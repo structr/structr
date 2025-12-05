@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,8 +34,6 @@ public class GoogleAuthClient extends AbstractOAuth2Client {
 	public GoogleAuthClient(final HttpServletRequest request) {
 
 		super(request, authServer);
-
-		System.out.println("Initializing google oauth client");
 
 		service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,12 +24,15 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class ConfigFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_CONFIG    = "Usage: ${config(keyFromStructrConf[, \"default\"])}. Example: ${config(\"base.path\")}";
-	public static final String ERROR_MESSAGE_CONFIG_JS = "Usage: ${{Structr.config(keyFromStructrConf[, \"default\"])}}. Example: ${{Structr.config(\"base.path\")}}";
+public class ConfigFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
@@ -37,8 +40,8 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "configKey [, defaultValue ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("configKey [, defaultValue ]");
 	}
 
 	@Override
@@ -55,12 +58,11 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 			if (setting == null) {
 
 				setting = Settings.getCaseSensitiveSetting(configKey);
-
 			}
 
 			if (setting != null) {
 
-				if (setting.equals(Settings.SuperUserPassword)) {
+				if (setting.isProtected()) {
 
 					return Principal.HIDDEN;
 
@@ -87,12 +89,41 @@ public class ConfigFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CONFIG_JS : ERROR_MESSAGE_CONFIG);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${config(keyFromStructrConf[, \"default\"])}. Example: ${config(\"base.path\")}"),
+			Usage.javaScript("Usage: ${{Structr.config(keyFromStructrConf[, \"default\"])}}. Example: ${{Structr.config(\"base.path\")}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the structr.conf value with the given key";
+	public String getShortDescription() {
+		return "Returns the configuration value associated with the given key from structr.conf.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function can be used to read values from the configuration file and use it to configure frontend behaviour, default values etc. The optional second parameter is the default value to be returned if the configuration key is not present.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("key", "key to read from structr.conf"),
+			Parameter.optional("defaultValue", "default value to use if the configuration key is not present")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return super.getExamples();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"For security reasons the superuser password can not be read with this function."
+		);
 	}
 }

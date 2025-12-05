@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,28 +27,26 @@ import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 
-/**
- *
- */
 public class Context {
 
-	private Map<String,Object> data  			= new HashMap<>();
-	private Map<String,Object> store 			= new HashMap<>();
-	private Map<String,Object> parameters 		= new HashMap<>();
-	private Map<String,Object> currentData 		= new HashMap<>();
-	private Queue<Future> forkPromises			= new ConcurrentLinkedQueue<>();
-	private GraphObject thisObject   			= null;
-	private Object result            			= null;
-	private FlowError error          			= null;
+	private Map<String, Object> data        = new HashMap<>();
+	private Map<String, Object> store       = new HashMap<>();
+	private Map<String, Object> parameters  = new HashMap<>();
+	private Map<String, Object> currentData = new HashMap<>();
+	private Queue<Future> forkPromises      = new ConcurrentLinkedQueue<>();
+	private GraphObject thisObject          = null;
+	private Object result                   = null;
+	private FlowError error                 = null;
 
 	public Context() {}
 
 	public Context(final Context context) {
-		this.thisObject = context.thisObject;
-		this.data = deepCopyMap(context.data);
-		this.store = deepCopyMap(context.store);
-		this.parameters = deepCopyMap(context.parameters);
-		this.currentData = deepCopyMap(context.currentData);
+
+		this.thisObject   = context.thisObject;
+		this.data         = deepCopyMap(context.data);
+		this.store        = deepCopyMap(context.store);
+		this.parameters   = deepCopyMap(context.parameters);
+		this.currentData  = deepCopyMap(context.currentData);
 		this.forkPromises = deepCopyQueue(context.forkPromises);
 	}
 
@@ -141,51 +139,59 @@ public class Context {
 	}
 
 	public ActionContext getActionContext(final SecurityContext securityContext, final FlowBaseNode node) {
-		ActionContext ctx = new ActionContext(securityContext);
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final String uuid       = node.getUuid();
 
 		ctx.setDisableVerboseExceptionLogging(true);
 
-		if(this.data.get(node.getUuid()) != null) {
-			ctx.setConstant("data", this.data.get(node.getUuid()));
+		if(this.data.get(uuid) != null) {
+
+			ctx.setConstant("data", this.data.get(uuid));
+
 		} else {
+
 			ctx.setConstant("data", null);
 		}
-		if(this.currentData.get(node.getUuid()) != null) {
-			ctx.setConstant("currentData", this.currentData.get(node.getUuid()));
+
+		if(this.currentData.get(uuid) != null) {
+
+			ctx.setConstant("currentData", this.currentData.get(uuid));
+
 		} else {
+
 			ctx.setConstant("currentData", null);
 		}
+
 		return ctx;
 	}
 
-	public void deepCopy(Context context) {
-		this.thisObject = context.thisObject;
-		this.data = deepCopyMap(context.data);
-		this.store = deepCopyMap(context.store);
-		this.parameters = deepCopyMap(context.parameters);
-		this.currentData = deepCopyMap(context.currentData);
-		this.result = context.result;
-		this.error = context.error;
-		this.forkPromises = deepCopyQueue(context.forkPromises);
-	}
+	private <Q> Queue<Q> deepCopyQueue(final Queue<Q> q) {
 
-	private <Q> Queue<Q> deepCopyQueue(Queue<Q> q) {
-		Queue<Q> newQ = new ConcurrentLinkedQueue<>();
+		final Queue<Q> newQ = new ConcurrentLinkedQueue<>();
 		for (Q o : q) {
+
 			newQ.add(o);
 		}
+
 		return newQ;
 	}
 
-	private Map<String, Object> deepCopyMap(Map<String,Object> map) {
-		Map<String,Object> result = new HashMap<>();
+	private Map<String, Object> deepCopyMap(final Map<String,Object> map) {
+
+		final Map<String,Object> result = new HashMap<>();
 
 		for(Map.Entry<String, Object> entry : map.entrySet()) {
+
 			if (entry.getValue() instanceof Map) {
 				result.put(entry.getKey(), deepCopyMap((Map)entry.getValue()));
+
 			} else if (entry.getValue() instanceof List) {
+
 				result.put(entry.getKey(), deepCopyList((List)entry.getValue()));
+
 			} else {
+
 				result.put(entry.getKey(), entry.getValue());
 			}
 
@@ -195,11 +201,13 @@ public class Context {
 	}
 
 	private List<Object> deepCopyList(List<Object> list) {
-		List<Object> result = new ArrayList<>();
+
+		final List<Object> result = new ArrayList<>();
 
 		for (Object o : list) {
 			result.add(o);
 		}
+
 		return result;
 	}
 

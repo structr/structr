@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,29 +24,35 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.TypeToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 
 /**
  *
  *
  */
-public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint implements Target<Relationship, T> {
+public class OneEndpoint extends AbstractEndpoint implements Target<Relationship, NodeInterface> {
 
-	private Relation<?, T, ?, OneEndpoint<T>> relation = null;
+	private Relation<?, OneEndpoint> relation = null;
 
-	public OneEndpoint(final Relation<?, T, ?, OneEndpoint<T>> relation) {
+	public OneEndpoint(final Relation<?, OneEndpoint> relation, final String propertyName) {
+
+		super(propertyName);
+
 		this.relation = relation;
 	}
 
 	@Override
-	public T get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
+	public NodeInterface get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate) {
 
-		final NodeFactory<T> nodeFactory = new NodeFactory<>(securityContext);
-		final Relationship rel           = getRawSource(securityContext, node.getNode(), predicate);
+		final NodeFactory nodeFactory = new NodeFactory(securityContext);
+		final Relationship rel        = getRawSource(securityContext, node.getNode(), predicate);
 
 		if (rel != null) {
 			return nodeFactory.instantiate(rel.getEndNode(), rel.getId());
@@ -56,19 +62,27 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 	}
 
 	@Override
-	public Object set(final SecurityContext securityContext, final NodeInterface sourceNode, final T targetNode) throws FrameworkException {
+	public Object set(final SecurityContext securityContext, final NodeInterface sourceNode, final NodeInterface targetNode) throws FrameworkException {
 
 		final PropertyMap properties         = new PropertyMap();
-		final NodeInterface actualTargetNode = (NodeInterface)unwrap(securityContext, relation.getClass(), targetNode, properties);
-		final T actualSourceNode             = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
+		final String relationshipType        = relation.getType();
+		final NodeInterface actualTargetNode = unwrap(securityContext, relationshipType, targetNode, properties);
+		final NodeInterface actualSourceNode = unwrap(securityContext, relationshipType, sourceNode, properties);
 
 		// let relation check multiplicity
 		relation.ensureCardinality(securityContext, actualSourceNode, actualTargetNode);
 
 		if (actualSourceNode != null && actualTargetNode != null) {
 
+			final Traits targetType = Traits.of(relation.getTargetType());
+			final Traits type       = actualTargetNode.getTraits();
+
+			if (!SearchCommand.isTypeAssignableFromOtherType(targetType, type)) {
+				throw new FrameworkException(422, "Node type mismatch", new TypeToken(type.getName(), getPropertyName(), targetType.getName()));
+			}
+
 			final String storageKey            = actualSourceNode.getName() + relation.name() + actualTargetNode.getName();
-			final PropertyMap notionProperties = getNotionProperties(securityContext, relation.getClass(), storageKey);
+			final PropertyMap notionProperties = getNotionProperties(securityContext, relationshipType, storageKey);
 
 			if (notionProperties != null) {
 
@@ -76,7 +90,7 @@ public class OneEndpoint<T extends NodeInterface> extends AbstractEndpoint imple
 			}
 
 			// create new relationship
-			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relation.getClass(), properties);
+			return StructrApp.getInstance(securityContext).create(actualSourceNode, actualTargetNode, relationshipType, properties);
 		}
 
 		return null;

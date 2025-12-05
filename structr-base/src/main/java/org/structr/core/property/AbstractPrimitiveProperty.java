@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,12 +29,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.schema.Transformer;
 
 import java.util.HashMap;
@@ -54,7 +55,6 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	protected SecurityContext securityContext = null;
 	protected GraphObject entity              = null;
-
 
 	public AbstractPrimitiveProperty(final String name) {
 		super(name);
@@ -81,11 +81,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		final PropertyContainer propertyContainer = obj.getPropertyContainer();
 		if (propertyContainer != null) {
 
-			// this may throw a java.lang.IllegalStateException: Relationship[<id>] has been deleted in this tx
-			if (propertyContainer.hasProperty(dbName())) {
-
-				value = propertyContainer.getProperty(dbName());
-			}
+			value = propertyContainer.getProperty(dbName());
 		}
 
 		if (applyConverter) {
@@ -99,13 +95,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 				} catch (Throwable t) {
 
-					logger.warn("Unable to convert property {} of type {}: {}", new Object[] {
-						dbName(),
-						getClass().getSimpleName(),
-						t
-					});
-					logger.warn("", t);
-
+					logger.warn("Unable to convert property {} of type {}: {}", dbName(), getClass().getSimpleName(), t);
 				}
 			}
 		}
@@ -127,7 +117,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			value = defaultValue();
 		}
 
-		return (T)value;
+		return (T) value;
 	}
 
 	@Override
@@ -166,35 +156,35 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 			// notify only non-system properties
 
 			// collect modified properties
-			if (obj instanceof AbstractNode) {
+			if (obj instanceof NodeInterface) {
 
 				if (!unvalidated) {
 
 					TransactionCommand.nodeModified(
 						securityContext.getCachedUser(),
-						(AbstractNode)obj,
+						(NodeInterface)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
 					);
 				}
 
-				internalSystemPropertiesUnlocked = ((AbstractNode) obj).internalSystemPropertiesUnlocked;
+				internalSystemPropertiesUnlocked = obj.systemPropertiesUnlocked();
 
-			} else if (obj instanceof AbstractRelationship) {
+			} else if (obj instanceof RelationshipInterface rel) {
 
 				if (!unvalidated) {
 
 					TransactionCommand.relationshipModified(
 						securityContext.getCachedUser(),
-						(AbstractRelationship)obj,
+						(RelationshipInterface)obj,
 						AbstractPrimitiveProperty.this,
 						propertyContainer.hasProperty(dbName()) ? propertyContainer.getProperty(dbName()) : null,
 						value
 					);
 				}
 
-				internalSystemPropertiesUnlocked = ((AbstractRelationship) obj).internalSystemPropertiesUnlocked;
+				internalSystemPropertiesUnlocked = rel.systemPropertiesUnlocked();
 			}
 
 			// catch all sorts of errors and wrap them in a FrameworkException
@@ -239,7 +229,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -324,10 +314,10 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 						modifiedById = user.getUuid();
 					}
 
-					propertyContainer.setProperty(AbstractNode.lastModifiedBy.dbName(), modifiedById);
+					propertyContainer.setProperty(GraphObjectTraitDefinition.LAST_MODIFIED_BY_PROPERTY, modifiedById);
 				}
 
-				propertyContainer.setProperty(AbstractNode.lastModifiedDate.dbName(), System.currentTimeMillis());
+				propertyContainer.setProperty(GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY, System.currentTimeMillis());
 			}
 
 
@@ -342,7 +332,9 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 		try {
 
-			return (Transformer)Class.forName(fqcn).newInstance();
+			final Class clazz = Class.forName(fqcn);
+
+			return (Transformer)clazz.getConstructor().newInstance();
 
 		} catch (Throwable t) {
 		}

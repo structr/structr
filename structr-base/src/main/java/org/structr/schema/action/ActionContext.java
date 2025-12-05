@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,32 +20,32 @@ package org.structr.schema.action;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.core.traits.Traits;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 
 /**
@@ -55,18 +55,20 @@ import java.util.*;
 public class ActionContext {
 
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
-	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
 	// Regular members
-	private final Map<String, Context> scriptingContexts = new HashMap<>();
-	private ContextStore temporaryContextStore           = new ContextStore();
+	private Map<String, Context> scriptingContexts       = new HashMap<>();
+	private final ContextStore temporaryContextStore     = new ContextStore();
+	private final StringBuilder outputBuffer             = new StringBuilder();
 	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
-	private StringBuilder outputBuffer                   = new StringBuilder();
 	private Locale locale                                = Locale.getDefault();
+	private AbstractMethod currentMethod                 = null;
 	private SecurityContext securityContext              = null;
 	private Predicate predicate                          = null;
 	private boolean disableVerboseExceptionLogging       = false;
 	private boolean javaScriptContext                    = false;
+
+	public int level = 0;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -123,12 +125,10 @@ public class ActionContext {
 
 	public Object getReferencedProperty(final GraphObject entity, final String initialRefKey, final Object initialData, final int depth, final EvaluationHints hints, final int row, final int column) throws FrameworkException {
 
-		final String DEFAULT_VALUE_SEP = "!";
-
 		// split
-		final String[] refs  = StringUtils.split(initialRefKey, DEFAULT_VALUE_SEP);
+		final String[] refs  = StringUtils.split(initialRefKey, "!");
 		final String refKey  = refs[0];
-		final String[] parts = refKey.split("[\\.]+");
+		final String[] parts = StringUtils.split(refKey, ".");
 		Object _data         = initialData;
 		String defaultValue  = null;
 
@@ -139,8 +139,20 @@ public class ActionContext {
 		// walk through template parts
 		for (int i = 0; i < parts.length; i++) {
 
-			String key = parts[i];
-			_data      = evaluate(entity, key, _data, null, i+depth, hints, row, column);
+			final String key = parts[i];
+
+			if (_data instanceof NodeInterface n) {
+
+				_data = n.evaluate(this, key, null, hints, row, column);
+
+			} else if (_data instanceof GraphObject obj) {
+
+				_data = obj.evaluate(this, key, null, hints, row, column);
+
+			} else {
+
+				_data = evaluate(entity, key, _data, null, i+depth, hints, row, column);
+			}
 
 			// stop evaluation on null
 			if (_data == null) {
@@ -267,14 +279,14 @@ public class ActionContext {
 				}
 
 				// HttpSession
-				if (data instanceof HttpSession) {
+				if (data instanceof HttpSessionWrapper sessionWrapper) {
 
 					if (StringUtils.isNotBlank(key)) {
 
 						hints.reportExistingKey(key);
 
 						// use "user." prefix to separate user and system data
-						value = ((HttpSession) data).getAttribute(SESSION_ATTRIBUTE_PREFIX + key);
+						value = sessionWrapper.getMember(key);
 					}
 				}
 
@@ -287,23 +299,22 @@ public class ActionContext {
 
 				if (data != null) {
 
-					if (data instanceof GraphObject) {
+					if (data instanceof GraphObject graphObject) {
 
-						value = ((GraphObject) data).evaluate(this, key, defaultValue, hints, row, column);
+						value = graphObject.evaluate(this, key, defaultValue, hints, row, column);
 
-					} else if (data instanceof Class) {
+					} else if (data instanceof Traits traits) {
 
-						// static method?
-						final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType((Class) data);
-						if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
+						final AbstractMethod method = Methods.resolveMethod(traits, key);
+						if (method != null) {
 
 							hints.reportExistingKey(key);
 
 							final ContextStore contextStore = getContextStore();
-							final Map<String, Object> parameters = contextStore.getTemporaryParameters();
-							final Method method = methods.get(key);
+							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
+							final Arguments arguments       = NamedArguments.fromMap(temp);
 
-							return AbstractNode.invokeMethod(securityContext, method, null, parameters, hints);
+							return method.execute(securityContext, null, arguments, hints);
 						}
 
 					} else {
@@ -345,7 +356,7 @@ public class ActionContext {
 							case "session":
 								if (securityContext.getRequest() != null) {
 									hints.reportExistingKey(key);
-									return securityContext.getRequest().getSession(false);
+									return new HttpSessionWrapper(new ActionContext(securityContext), securityContext.getRequest().getSession(false));
 								}
 								break;
 
@@ -370,7 +381,6 @@ public class ActionContext {
 
 						// 2. keywords which require a request
 						final HttpServletRequest request = securityContext.getRequest();
-
 						if (request != null) {
 
 							switch (key) {
@@ -411,7 +421,6 @@ public class ActionContext {
 
 						// 3. keywords which require a response
 						final HttpServletResponse response = securityContext.getResponse();
-
 						if (response != null) {
 
 							switch (key) {
@@ -442,7 +451,7 @@ public class ActionContext {
 
 						case "now":
 							hints.reportExistingKey(key);
-							return this.isJavaScriptContext() ? new Date() : DatePropertyParser.format(new Date(), Settings.DefaultDateFormat.getValue());
+							return this.isJavaScriptContext() ? new Date() : DatePropertyGenerator.format(new Date(), Settings.DefaultDateFormat.getValue());
 
 						case "this":
 							hints.reportExistingKey(key);
@@ -467,11 +476,11 @@ public class ActionContext {
 							// Do the (slow) class check only if key value starts with uppercase character or could have a package path
 							if (StringUtils.isNotEmpty(key) && (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, "."))) {
 
-								final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
-								if (type != null) {
+								if (Traits.exists(key)) {
 
 									hints.reportExistingKey(key);
-									return type;
+
+									return Traits.of(key);
 								}
 							}
 
@@ -516,54 +525,6 @@ public class ActionContext {
 		}
 
 		return null;
-	}
-
-	public static String getBaseUrl() {
-		return getBaseUrl(null);
-	}
-
-	public static String getBaseUrl(final HttpServletRequest request) {
-		return getBaseUrl(request, false);
-	}
-
-	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
-
-		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
-
-		if (StringUtils.isNotEmpty(baseUrlOverride)) {
-			return baseUrlOverride;
-		}
-
-		final StringBuilder sb = new StringBuilder("http");
-
-		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
-		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
-		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
-
-		if (httpsEnabled) {
-			sb.append("s");
-		}
-
-		sb.append("://");
-		sb.append(name);
-
-		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
-		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
-			sb.append(":").append(port);
-		}
-
-		return sb.toString();
-	}
-
-	public static String getRemoteAddr(HttpServletRequest request) {
-
-		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
-
-		if (remoteAddress == null) {
-			return request.getRemoteAddr();
-		}
-
-		return remoteAddress;
 	}
 
 	public void print(final Object[] objects, final Object caller) {
@@ -622,10 +583,6 @@ public class ActionContext {
 		return this.securityContext.getContextStore();
 	}
 
-	public Source getJavascriptLibraryCode(String fileName) {
-		return this.securityContext.getJavascriptLibraryCode(fileName);
-	}
-
 	public Context getScriptingContext(final String language) {
 		return scriptingContexts.get(language);
 	}
@@ -634,8 +591,76 @@ public class ActionContext {
 		scriptingContexts.put(language, context);
 	}
 
+	public void removeScriptingContextByValue(final Context context) {
+		scriptingContexts.entrySet().removeIf(entry -> entry.getValue().equals(context));
+	}
+
+	public void setScriptingContexts(final Map<String, Context> contexts) {
+		scriptingContexts = contexts;
+	}
+
+	public Map<String,Context> getScriptingContexts() {
+		return scriptingContexts;
+	}
+
 	public boolean isRenderContext() {
 		return false;
+	}
 
+	public void setCurrentMethod(final AbstractMethod currentMethod) {
+		this.currentMethod = currentMethod;
+	}
+
+	public AbstractMethod getCurrentMethod() {
+		return currentMethod;
+	}
+
+	// ----- public static methods -----
+	public static String getBaseUrl() {
+		return getBaseUrl(null);
+	}
+
+	public static String getBaseUrl(final HttpServletRequest request) {
+		return getBaseUrl(request, false);
+	}
+
+	public static String getBaseUrl(final HttpServletRequest request, final boolean forceConfigForPort) {
+
+		final String baseUrlOverride = Settings.BaseUrlOverride.getValue();
+
+		if (StringUtils.isNotEmpty(baseUrlOverride)) {
+			return baseUrlOverride;
+		}
+
+		final StringBuilder sb = new StringBuilder("http");
+
+		final Boolean httpsEnabled       = Settings.HttpsEnabled.getValue();
+		final String name                = (request != null) ? request.getServerName() : Settings.ApplicationHost.getValue();
+		final Integer port               = (request != null && forceConfigForPort != true) ? request.getServerPort() : ((httpsEnabled) ? Settings.getSettingOrMaintenanceSetting(Settings.HttpsPort).getValue() : Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
+
+		if (httpsEnabled) {
+			sb.append("s");
+		}
+
+		sb.append("://");
+		sb.append(name);
+
+		// we need to specify the port if (protocol = HTTPS and port != 443 OR protocol = HTTP and port != 80)
+		if ( (httpsEnabled && port != 443) || (!httpsEnabled && port != 80) ) {
+			sb.append(":").append(port);
+		}
+
+		return sb.toString();
+	}
+
+	public static String getRemoteAddr(HttpServletRequest request) {
+
+		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+
+		if (remoteAddress == null) {
+			return request.getRemoteAddr();
+		}
+
+		return remoteAddress;
 	}
 }

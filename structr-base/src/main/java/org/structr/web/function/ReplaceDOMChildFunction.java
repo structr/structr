@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,8 @@ package org.structr.web.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.DOMNodeContent;
 import org.structr.web.entity.dom.DOMElement;
@@ -28,19 +30,18 @@ import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.structr.websocket.command.RemoveCommand;
 
-public class ReplaceDOMChildFunction extends UiAdvancedFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_REPLACE_DOM_CHILD    = "Usage: ${replace_dom_child(parent, child, html)}. Example: ${replace_dom_child(this, child, html)}";
-	public static final String ERROR_MESSAGE_REPLACE_DOM_CHILD_JS = "Usage: ${{Structr.replaceDomChild(parent, child, html)}}. Example: ${{Structr.replaceDomChild(this, child, html)}}";
+public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "replace_dom_child";
+		return "replaceDomChild";
 	}
 
 	@Override
-	public String getSignature() {
-		return "parent, child, html";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("parent, child, html");
 	}
 
 	@Override
@@ -56,13 +57,21 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REPLACE_DOM_CHILD_JS : ERROR_MESSAGE_REPLACE_DOM_CHILD);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${replaceDomChild(parent, child, html)}. Example: ${replaceDomChild(this, child, html)}"),
+			Usage.javaScript("Usage: ${{Structr.replaceDomChild(parent, child, html)}}. Example: ${{Structr.replaceDomChild(this, child, html)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Replaces a node from the DOM with new HTML";
+	public String getShortDescription() {
+		return "Replaces a node from the DOM with new HTML.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static DOMNode apply(final SecurityContext securityContext, final DOMElement parent, final DOMNode child, final String htmlSource) throws FrameworkException {
@@ -82,7 +91,7 @@ public class ReplaceDOMChildFunction extends UiAdvancedFunction {
 			// remove child
 			parent.removeChild(child);
 
-			final DOMNode newChild = importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+			final DOMNode newChild = importer.createChildNodes(parent, parent.getOwnerDocument(), true).as(DOMNode.class);
 
 			// store existing content
 			content.moveTo(newChild);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,22 +24,23 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 public class GetCookieFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_GET_COOKIE    = "Usage: ${get_cookie(name)}. Example: ${get_cookie('cartId')}";
-	public static final String ERROR_MESSAGE_GET_COOKIE_JS = "Usage: ${{Structr.getCookie(name)}}. Example: ${{Structr.getCookie('cartId')}}";
-
 	@Override
 	public String getName() {
-		return "get_cookie";
+		return "getCookie";
 	}
 
 	@Override
-	public String getSignature() {
-		return "name";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override
@@ -88,12 +89,20 @@ public class GetCookieFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_COOKIE_JS : ERROR_MESSAGE_GET_COOKIE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getCookie(name)}. Example: ${getCookie('cartId')}"),
+			Usage.javaScript("Usage: ${{Structr.getCookie(name)}}. Example: ${{Structr.getCookie('cartId')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the requested cookie if it exists";
+	public String getShortDescription() {
+		return "Returns the requested cookie if it exists.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

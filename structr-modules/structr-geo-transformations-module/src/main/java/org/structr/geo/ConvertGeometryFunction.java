@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,34 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
+import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ConvertGeometryFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE = "Usage: convert_geometry(sourceCRS, destCRS, geometry)";
+	private static final String ERROR_MESSAGE = "Usage: convertGeometry(sourceCRS, destCRS, geometry)";
 	private static final Logger logger        = LoggerFactory.getLogger(ConvertGeometryFunction.class.getName());
 
 	@Override
 	public String getName() {
-		return "convert_geometry";
+		return "convertGeometry";
 	}
 
 	@Override
-	public String getSignature() {
-		return "sourceCRS, destCRS, geometry";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("sourceCRS, destCRS, geometry");
 	}
 
 	@Override
@@ -80,12 +84,18 @@ public class ConvertGeometryFunction extends GeoFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Converts the given geometry from source CRS to destination CRS";
+	public String getShortDescription() {
+		return "Converts the given geometry from source CRS to destination CRS.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,18 +18,19 @@
  */
 package org.structr.schema.export;
 
+import org.structr.api.schema.JsonCountProperty;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper;
 
-
-
-
-public class StructrCountProperty extends StructrStringProperty {
+public class StructrCountProperty extends StructrLongProperty implements JsonCountProperty {
 
 	public StructrCountProperty(StructrTypeDefinition parent, String name) {
 		super(parent, name);
@@ -44,10 +45,11 @@ public class StructrCountProperty extends StructrStringProperty {
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.propertyType, SchemaHelper.Type.Count.name());
-		properties.put(SchemaProperty.format, getFormat());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), SchemaHelper.Type.Count.name());
+		properties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), getFormat());
 	
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

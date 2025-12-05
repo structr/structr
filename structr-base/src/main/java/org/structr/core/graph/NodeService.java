@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,10 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 
 import java.io.File;
 
@@ -44,14 +47,13 @@ import java.io.File;
  */
 public class NodeService implements SingletonService {
 
-	private static final Logger logger      = LoggerFactory.getLogger(NodeService.class.getName());
-	private StructrServices servicesParent  = null;
-	private DatabaseService databaseService = null;
-	private Index<Node> nodeIndex           = null;
-	private Index<Relationship> relIndex    = null;
-	private String filesPath                = null;
-	private boolean isInitialized           = false;
-	private CountResult initialCount        = null;
+	private static final Logger logger                            = LoggerFactory.getLogger(NodeService.class.getName());
+	private StructrServices servicesParent                        = null;
+	private DatabaseService databaseService                       = null;
+	private Index<Node> nodeIndex                                 = null;
+	private Index<Relationship> relIndex                          = null;
+	private String filesPath                                      = null;
+	private boolean isInitialized                                 = false;
 
 	@Override
 	public void injectArguments(Command command) {
@@ -66,14 +68,14 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		this.servicesParent = services;
 
 		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
 		String errorMessage         = null;
 
-		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
+		databaseService = (DatabaseService)Class.forName(databaseDriver).getDeclaredConstructor().newInstance();
 		if (databaseService != null) {
 
 			if (databaseService.initialize(serviceName, services.getVersion(), services.getInstanceName())) {
@@ -92,8 +94,8 @@ public class NodeService implements SingletonService {
 				// index creation transaction
 				try ( final Transaction tx = databaseService.beginTx() ) {
 
-					nodeIndex = databaseService.nodeIndex();
-					relIndex  = databaseService.relationshipIndex();
+					nodeIndex     = databaseService.nodeIndex();
+					relIndex      = databaseService.relationshipIndex();
 
 					tx.success();
 
@@ -194,19 +196,19 @@ public class NodeService implements SingletonService {
 
 	public CountResult getInitialCounts() {
 
-		if (initialCount == null) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			final CountResult result = databaseService.getNodeAndRelationshipCount();
 
-				initialCount = databaseService.getNodeAndRelationshipCount();
-				tx.success();
+			tx.success();
 
-			} catch (Throwable t) {
-				logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
-			}
+			return result;
+
+		} catch (Throwable t) {
+			logger.warn("Unable to count number of nodes and relationships: {}", t.getMessage());
 		}
 
-		return initialCount;
+		return null;
 	}
 
 	public CountResult getCurrentCounts() {
@@ -215,45 +217,47 @@ public class NodeService implements SingletonService {
 
 	public void createAdminUser() {
 
-		if (Boolean.TRUE.equals(Settings.InitialAdminUserCreate.getValue())) {
+		if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
 
-			if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
+			// do two very quick count queries to determine the number of Structr nodes in the database
+			final CountResult count           = getInitialCounts();
+			final long nodeCount              = count.getNodeCount();
+			final boolean hasApplicationNodes = nodeCount > 0;
 
-				// do two very quick count queries to determine the number of Structr nodes in the database
-				final CountResult count           = getInitialCounts();
-				final long nodeCount              = count.getNodeCount();
-				final boolean hasApplicationNodes = nodeCount > 0;
+			if (!hasApplicationNodes) {
 
-				if (!hasApplicationNodes) {
+				if (Boolean.TRUE.equals(Settings.InitialAdminUserCreate.getValue())) {
 
-					logger.info("Creating initial user..");
+					logger.info("Creating initial user...");
 
-					final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
-					if (userType != null) {
+					final Traits userTraits = Traits.of(StructrTraits.USER);
+					if (userTraits != null) {
 
 						final App app = StructrApp.getInstance();
 
 						try (final Tx tx = app.tx()) {
 
-							app.create(userType,
-								new NodeAttribute<>(StructrApp.key(userType, "name"),     Settings.InitialAdminUserName.getValue()),
-								new NodeAttribute<>(StructrApp.key(userType, "password"), Settings.InitialAdminUserPassword.getValue()),
-								new NodeAttribute<>(StructrApp.key(userType, "isAdmin"),  true)
+							app.create(StructrTraits.USER,
+									new NodeAttribute<>(userTraits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), Settings.InitialAdminUserName.getValue()),
+									new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), Settings.InitialAdminUserPassword.getValue()),
+									new NodeAttribute<>(userTraits.key(PrincipalTraitDefinition.IS_ADMIN_PROPERTY), true)
 							);
 
 							tx.success();
 
 						} catch (Throwable t) {
 
+							t.printStackTrace();
+
 							logger.warn("Unable to create initial user: {}", t.getMessage());
 						}
 					}
+
+				} else {
+
+					logger.info("Not creating initial user, as per configuration");
 				}
 			}
-
-		} else {
-
-			logger.info("Not creating initial user, as per configuration");
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,12 +20,15 @@ package org.structr.core.function;
 
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class AssertFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE    = "Usage: ${assert(condition, statusCode, message)}. Example: ${assert(empty(str), 422, 'str must be empty!')}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.assert(condition, statusCode, message);}}. Example: ${{Structr.assert(empty(str), 422, 'str must be empty!');}}";
+public class AssertFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +36,8 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "condition, statusCode, message";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("condition, statusCode, message");
 	}
 
 	@Override
@@ -68,20 +71,53 @@ public class AssertFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
+	public List<Usage> getUsages() {
 
-		if (inJavaScriptContext) {
-
-			return ERROR_MESSAGE_JS;
-		}
-		return ERROR_MESSAGE;
+		return List.of(
+			Usage.structrScript("Usage: ${assert(condition, statusCode, message)}. Example: ${assert(empty(str), 422, 'str must be empty!')}"),
+			Usage.javaScript("Usage: ${{Structr.assert(condition, statusCode, message);}}. Example: ${{Structr.assert(empty(str), 422, 'str must be empty!');}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Aborts the current request if the given condition evaluates to false.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return """
+		This function allows you to check a precondition and abort the execution flow immediately if the condition is not satisfied, sending a customized error code and error message to the caller, along with all the error tokens that have accumulated in the error buffer.
+		
+		If you want to collect errors (e.g in a validation function), use `error()` which allows you to store error tokens in the context without aborting the execution flow.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("condition", "condition to evaluate"),
+			Parameter.mandatory("statusCode", "statusCode to send **if the condition evaluates to `false`**"),
+			Parameter.mandatory("message", "error message to send **if the condition evaluates to `false`**")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.javaScript("$.assert($.me.name == 'admin', 422, 'Only admin users are allowed to access this resource.')", "Make sure only admin users can continue here")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See also `getErrors()`, `clearError()`, `clearErrors()` and `error()`.",
+			"Only works in schema methods, not in page rendering."
+		);
+	}
 
 	// ----- private methods -----
 	private boolean toBoolean(final Object[] args, final int index) {

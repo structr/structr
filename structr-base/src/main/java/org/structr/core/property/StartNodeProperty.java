@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipStartNodeConverter;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 
@@ -46,7 +48,7 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
@@ -56,13 +58,18 @@ public class StartNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
 	public String typeName() {
-		return null;
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
-		return null;
+		return NodeInterface.class;
 	}
 
 	@Override

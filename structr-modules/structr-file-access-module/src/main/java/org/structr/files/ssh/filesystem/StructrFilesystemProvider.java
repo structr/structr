@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -67,7 +67,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized FileChannel newFileChannel(final Path path, final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-		return new VirtualFileChannel(newByteChannel(path, options, attrs));
+		return new VirtualFileChannel(null, newByteChannel(path, options, attrs));
 	}
 
 	@Override

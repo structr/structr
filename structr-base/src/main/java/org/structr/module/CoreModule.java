@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,25 +19,122 @@
 package org.structr.module;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.*;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.TraitDefinition;
+import org.structr.core.traits.definitions.*;
+import org.structr.core.traits.relationships.*;
+import org.structr.web.function.ScheduleFunction;
 
 import java.util.Set;
 
-/**
- *
- */
 public class CoreModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
+
+		final TraitDefinition propertyContainer     = new PropertyContainerTraitDefinition();
+		final TraitDefinition graphObject           = new GraphObjectTraitDefinition();
+		final TraitDefinition accessControllable    = new AccessControllableTraitDefinition();
+
+		final TraitDefinition nodeInterface         = new NodeInterfaceTraitDefinition();
+		final TraitDefinition relationshipInterface = new RelationshipInterfaceTraitDefinition();
+
+		// common base types for nodes and relationships
+		StructrTraits.registerTrait(propertyContainer);
+		StructrTraits.registerTrait(graphObject);
+		StructrTraits.registerTrait(accessControllable);
+
+		StructrTraits.registerTrait(new PrincipalOwnsNodeDefinition());
+		StructrTraits.registerTrait(new SecurityRelationshipDefinition());
+
+		StructrTraits.registerTrait(relationshipInterface);
+
+		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_OWNS_NODE,                   StructrTraits.PRINCIPAL_OWNS_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SECURITY,                              StructrTraits.SECURITY);
+
+		StructrTraits.registerTrait(nodeInterface);
+
+		StructrTraits.registerBaseType(propertyContainer);
+		StructrTraits.registerBaseType(graphObject);
+		StructrTraits.registerBaseType(accessControllable);
+
+		// relationship traits
+		StructrTraits.registerTrait(new PrincipalSchemaGrantRelationshipDefinition());
+		StructrTraits.registerTrait(new GroupContainsPrincipalDefinition());
+		StructrTraits.registerTrait(new SchemaExcludedViewPropertyDefinition());
+		StructrTraits.registerTrait(new SchemaGrantSchemaNodeRelationshipDefinition());
+		StructrTraits.registerTrait(new SchemaMethodParametersDefinition());
+		StructrTraits.registerTrait(new SchemaNodeExtendsSchemaNodeDefinition());
+		StructrTraits.registerTrait(new SchemaNodeMethodDefinition());
+		StructrTraits.registerTrait(new SchemaNodePropertyDefinition());
+		StructrTraits.registerTrait(new SchemaNodeViewDefinition());
+		StructrTraits.registerTrait(new SchemaRelationshipSourceNodeDefinition());
+		StructrTraits.registerTrait(new SchemaRelationshipTargetNodeDefinition());
+		StructrTraits.registerTrait(new SchemaViewPropertyDefinition());
+
+		// relationship types
+		StructrTraits.registerRelationshipType(StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP,   StructrTraits.PRINCIPAL_SCHEMA_GRANT_RELATIONSHIP);
+		StructrTraits.registerRelationshipType(StructrTraits.GROUP_CONTAINS_PRINCIPAL,              StructrTraits.GROUP_CONTAINS_PRINCIPAL);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY,         StructrTraits.SCHEMA_EXCLUDED_VIEW_PROPERTY);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP, StructrTraits.SCHEMA_GRANT_SCHEMA_NODE_RELATIONSHIP);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_METHOD_PARAMETERS,              StructrTraits.SCHEMA_METHOD_PARAMETERS);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_EXTENDS_SCHEMA_NODE,       StructrTraits.SCHEMA_NODE_EXTENDS_SCHEMA_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_METHOD,                    StructrTraits.SCHEMA_NODE_METHOD);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_PROPERTY,                  StructrTraits.SCHEMA_NODE_PROPERTY);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_NODE_VIEW,                      StructrTraits.SCHEMA_NODE_VIEW);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE,       StructrTraits.SCHEMA_RELATIONSHIP_SOURCE_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE,       StructrTraits.SCHEMA_RELATIONSHIP_TARGET_NODE);
+		StructrTraits.registerRelationshipType(StructrTraits.SCHEMA_VIEW_PROPERTY,                  StructrTraits.SCHEMA_VIEW_PROPERTY);
+
+		StructrTraits.registerNodeType(StructrTraits.NODE_INTERFACE, StructrTraits.NODE_INTERFACE);
+		StructrTraits.registerRelationshipType(StructrTraits.RELATIONSHIP_INTERFACE, StructrTraits.RELATIONSHIP_INTERFACE);
+
+		StructrTraits.registerTrait(new PrincipalTraitDefinition());
+		StructrTraits.registerTrait(new GroupTraitDefinition());
+		StructrTraits.registerTrait(new LocalizationTraitDefinition());
+		StructrTraits.registerTrait(new LocationTraitDefinition());
+		StructrTraits.registerTrait(new MailTemplateTraitDefinition());
+		StructrTraits.registerTrait(new SessionDataNodeTraitDefinition());
+		StructrTraits.registerTrait(new SchemaReloadingNodeTraitDefinition());
+		StructrTraits.registerTrait(new SchemaGrantTraitDefinition());
+		StructrTraits.registerTrait(new AbstractSchemaNodeTraitDefinition());
+		StructrTraits.registerTrait(new SchemaNodeTraitDefinition());
+		StructrTraits.registerTrait(new SchemaMethodTraitDefinition());
+		StructrTraits.registerTrait(new SchemaMethodParameterTraitDefinition());
+		StructrTraits.registerTrait(new SchemaRelationshipNodeTraitDefinition());
+		StructrTraits.registerTrait(new SchemaPropertyTraitDefinition());
+		StructrTraits.registerTrait(new SchemaViewTraitDefinition());
+		StructrTraits.registerTrait(new CorsSettingTraitDefinition());
+		StructrTraits.registerTrait(new ResourceAccessTraitDefinition(StructrTraits.RESOURCE_ACCESS));
+		StructrTraits.registerTrait(new SessionDataNodeTraitDefinition());
+
+		// node types
+		StructrTraits.registerNodeType(StructrTraits.GENERIC_NODE);
+		StructrTraits.registerNodeType(StructrTraits.PRINCIPAL,                StructrTraits.PRINCIPAL);
+		StructrTraits.registerNodeType(StructrTraits.GROUP,                    StructrTraits.PRINCIPAL, StructrTraits.GROUP);
+		StructrTraits.registerNodeType(StructrTraits.LOCALIZATION,             StructrTraits.LOCALIZATION);
+		StructrTraits.registerNodeType(StructrTraits.LOCATION,                 StructrTraits.LOCATION);
+		StructrTraits.registerNodeType(StructrTraits.MAIL_TEMPLATE,            StructrTraits.MAIL_TEMPLATE);
+		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        StructrTraits.SESSION_DATA_NODE);
+		StructrTraits.registerNodeType(StructrTraits.SCHEMA_GRANT,             StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_GRANT);
+		StructrTraits.registerNodeType(StructrTraits.ABSTRACT_SCHEMA_NODE,     StructrTraits.ABSTRACT_SCHEMA_NODE);
+		StructrTraits.registerNodeType(StructrTraits.SCHEMA_NODE,              StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.ABSTRACT_SCHEMA_NODE, StructrTraits.SCHEMA_NODE);
+		StructrTraits.registerNodeType(StructrTraits.SCHEMA_METHOD,            StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_METHOD);
+		StructrTraits.registerNodeType(StructrTraits.SCHEMA_METHOD_PARAMETER,  StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_METHOD_PARAMETER);
+		StructrTraits.registerNodeType(StructrTraits.SCHEMA_RELATIONSHIP_NODE, StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.ABSTRACT_SCHEMA_NODE, StructrTraits.SCHEMA_RELATIONSHIP_NODE);
+		StructrTraits.registerNodeType(StructrTraits.SCHEMA_PROPERTY,          StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_PROPERTY);
+		StructrTraits.registerNodeType(StructrTraits.SCHEMA_VIEW,              StructrTraits.SCHEMA_RELOADING_NODE, StructrTraits.SCHEMA_VIEW);
+		StructrTraits.registerNodeType(StructrTraits.CORS_SETTING,             StructrTraits.CORS_SETTING);
+		StructrTraits.registerNodeType(StructrTraits.RESOURCE_ACCESS,          StructrTraits.RESOURCE_ACCESS);
+		StructrTraits.registerNodeType(StructrTraits.SESSION_DATA_NODE,        StructrTraits.SESSION_DATA_NODE);
+
 	}
 
 	@Override
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
+		Functions.put(licenseManager, new RollbackTransactionFunction());
 		Functions.put(licenseManager, new RemoteCypherFunction());
 		Functions.put(licenseManager, new CypherFunction());
 		Functions.put(licenseManager, new MD5Function());
@@ -113,15 +210,12 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new FirstFunction());
 		Functions.put(licenseManager, new LastFunction());
 		Functions.put(licenseManager, new NthFunction());
-		Functions.put(licenseManager, new GetCounterFunction());
-		Functions.put(licenseManager, new IncCounterFunction());
-		Functions.put(licenseManager, new ResetCounterFunction());
 		Functions.put(licenseManager, new MergePropertiesFunction());
-		Functions.put(licenseManager, new KeysFunction());
-		Functions.put(licenseManager, new ValuesFunction());
 		Functions.put(licenseManager, new TimerFunction());
 		Functions.put(licenseManager, new StrReplaceFunction());
 		Functions.put(licenseManager, new SearchFunction());
+		Functions.put(licenseManager, new SearchFulltextFunction());
+		Functions.put(licenseManager, new SearchRelationshipsFulltextFunction());
 		Functions.put(licenseManager, new IncomingFunction());
 		Functions.put(licenseManager, new OutgoingFunction());
 		Functions.put(licenseManager, new HasRelationshipFunction());
@@ -135,7 +229,6 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new PrintFunction());
 		Functions.put(licenseManager, new LogFunction());
 		Functions.put(licenseManager, new StackDumpFunction());
-		Functions.put(licenseManager, new DebugFunction());
 		Functions.put(licenseManager, new FindFunction());
 		Functions.put(licenseManager, new GetOrCreateFunction());
 		Functions.put(licenseManager, new CreateOrUpdateFunction());
@@ -149,11 +242,20 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new HMACFunction());
 		Functions.put(licenseManager, new OneFunction());
 		Functions.put(licenseManager, new HashFunction());
+		Functions.put(licenseManager, new PrefetchFunction());
+		Functions.put(licenseManager, new AddLabelsFunction());
+		Functions.put(licenseManager, new RemoveLabelsFunction());
+		Functions.put(licenseManager, new ScheduleFunction());
+		Functions.put(licenseManager, new GetErrorsFunction());
+		Functions.put(licenseManager, new ClearErrorsFunction());
+		Functions.put(licenseManager, new ClearErrorFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());
-		Functions.put(licenseManager, new DeleteCacheValueFunction());
 		Functions.put(licenseManager, new InvalidateCacheValueFunction());
+
+		Functions.put(licenseManager, new SetLogLevelFunction());
+		Functions.put(licenseManager, new IsValidUuidFunction());
 
 		// ----- BEGIN functions with side effects -----
 		Functions.put(licenseManager, new SetFunction());
@@ -174,23 +276,6 @@ public class CoreModule implements StructrModule {
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

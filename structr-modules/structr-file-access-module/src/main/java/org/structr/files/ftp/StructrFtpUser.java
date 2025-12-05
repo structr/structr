@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,7 +29,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.web.entity.Folder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +44,7 @@ public class StructrFtpUser implements User {
 	private final Principal structrUser;
 	private SecurityContext securityContext;
 
-	public StructrFtpUser(final SecurityContext securityContext, final org.structr.web.entity.User structrUser) {
+	public StructrFtpUser(final SecurityContext securityContext, final Principal structrUser) {
 		this.securityContext = securityContext;
 		this.structrUser     = structrUser;
 	}
@@ -53,7 +52,7 @@ public class StructrFtpUser implements User {
 	@Override
 	public String getName() {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			final String name = structrUser.getProperty(org.structr.web.entity.User.name);
+			final String name = structrUser.getName();
 			tx.success();
 			return name;
 		} catch (Exception fex) { }
@@ -141,7 +140,7 @@ public class StructrFtpUser implements User {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final String homeDir = ((org.structr.web.entity.User)structrUser).getHomeDirectory().getProperty(Folder.name);
+			final String homeDir = structrUser.as(org.structr.web.entity.User.class).getHomeDirectory().getName();
 
 			tx.success();
 

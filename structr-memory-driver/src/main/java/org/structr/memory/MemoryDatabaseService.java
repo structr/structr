@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,19 +19,19 @@
 package org.structr.memory;
 
 import org.structr.api.*;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.*;
 import org.structr.api.index.Index;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
+import org.structr.memory.index.MemoryFulltextNodeIndex;
 import org.structr.memory.index.MemoryNodeIndex;
 import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.*;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  */
@@ -42,6 +42,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
 	private MemoryNodeIndex nodeIndex                                   = null;
+	private MemoryFulltextNodeIndex fulltextIndex                       = null;
 
 	@Override
 	public boolean initialize(final String serviceName, final String version, final String instance) {
@@ -50,18 +51,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 	@Override
 	public void shutdown() {
-	}
-
-	@Override
-	public void clearCaches() {
-	}
-
-	@Override
-	public void removeNodeFromCache(final Identity id) {
-	}
-
-	@Override
-	public void removeRelationshipFromCache(final Identity id) {
 	}
 
 	@Override
@@ -101,30 +90,35 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	@Override
 	public Node createNode(final String type, final Set<String> labels, final Map<String, Object> properties) {
 
-		final MemoryTransaction tx = getCurrentTransaction();
-		final MemoryIdentity id    = new MemoryIdentity(true, type);
-		final MemoryNode newNode   = new MemoryNode(this, id);
-		final String tenantId      = getTenantIdentifier();
+		final MemoryTransaction tx  = getCurrentTransaction();
+		final MemoryIdentity id     = new MemoryIdentity(true, type);
+		final MemoryNode newNode    = new MemoryNode(this, id);
+		final String tenantId       = getTenantIdentifier();
+		final Set<String> allLabels = new LinkedHashSet<>();
 
 		// base type is always a label
-		newNode.addLabel(type, false);
+		allLabels.add(type);
+		//newNode.addLabel(type, false);
 
 		// add tenant identifier here
 		if (tenantId != null) {
 
-			newNode.addLabel(tenantId, false);
+			allLabels.add(tenantId);
+			//newNode.addLabel(tenantId, false);
 		}
 
 		// add labels
 		if (labels != null) {
 
-			for (final String label : labels) {
-				newNode.addLabel(label, false);
-			}
+			allLabels.addAll(labels);
 		}
+
+		// bulk add labels
+		newNode.addLabels(allLabels, false);
 
 		tx.create(newNode);
 
+		newNode.setProperty("type", type);
 		newNode.setProperties(properties);
 
 		return newNode;
@@ -136,10 +130,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		final Node newNode         = createNode(type, labels, nodeProperties);
 		final Node owner           = getNodeById(ownerId);
 
-		final Relationship ownsRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, forName(RelationshipType.class, "OWNS"));
+		final Relationship ownsRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("OWNS"));
 		ownsRelationship.setProperties(ownsProperties);
 
-		final Relationship securityRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, forName(RelationshipType.class, "SECURITY"));
+		final Relationship securityRelationship = createRelationship((MemoryNode)owner, (MemoryNode)newNode, getRelationshipType("SECURITY"));
 		securityRelationship.setProperties(securityProperties);
 
 		return new NodeWithOwnerResult(newNode, securityRelationship, ownsRelationship);
@@ -187,16 +181,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void deleteNodesByLabel(final String label) {
-
-		final MemoryTransaction tx = getCurrentTransaction();
-		for (final Node node : getNodesByLabel(label)) {
-
-			tx.delete((MemoryNode)node);
-		}
-	}
-
-	@Override
 	public Iterable<Relationship> getAllRelationships() {
 		return Iterables.map(r -> r, getFilteredRelationships(null));
 	}
@@ -234,7 +218,8 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly) {
+	public void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList) {
+		// no indexes here..
 	}
 
 	@Override
@@ -319,6 +304,10 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		return Map.of();
 	}
 
+	@Override
+	public void flushCaches() {
+	}
+
 	// ----- graph repository methods -----
 	public Relationship createRelationship(final MemoryNode sourceNode, final MemoryNode targetNode, final RelationshipType relType) {
 
@@ -330,7 +319,7 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		final MemoryRelationship newRelationship = new MemoryRelationship(this, id, relType, (MemoryIdentity)sourceNode.getId(), (MemoryIdentity)targetNode.getId());
 
 		// base type is always a label
-		newRelationship.addLabel(relType.name());
+		newRelationship.addLabels(Set.of(relType.name()));
 
 		tx.create(newRelationship);
 
@@ -411,6 +400,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 		tx.delete(rel);
 	}
 
+	public boolean logQueries() {
+		return Settings.CypherDebugLogging.getValue();
+	}
+
+	public boolean logPingQueries() {
+		return Settings.CypherDebugLoggingPing.getValue();
+	}
+
 	MemoryTransaction getCurrentTransaction() throws NotInTransactionException {
 		return getCurrentTransaction(true);
 	}
@@ -475,11 +472,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService {
 
 	void updateCache(final MemoryRelationship relationship) {
 		relationships.updateCache(relationship);
-	}
-
-	@Override
-	public Identity identify(long id) {
-		return null;
 	}
 
 	// ----- nested classes -----

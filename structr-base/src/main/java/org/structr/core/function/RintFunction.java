@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,13 +21,18 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Random;
 
 public class RintFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_RINT = "Usage: ${rint(bound)}. Example: ${rint(1000)}";
 
 	@Override
 	public String getName() {
@@ -35,8 +40,8 @@ public class RintFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "bound";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("bound");
 	}
 
 	@Override
@@ -73,12 +78,40 @@ public class RintFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_RINT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${rint(bound)}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a random integer in the given range";
+	public String getShortDescription() {
+		return "Returns a random integer in the given range.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Returns a random integer value between 0 (inclusive) and the `bound` parameter (exclusive).";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${rint(bound)}"),
+				Example.javaScript("${{ $.rint(bound) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("bound", "end of random number range (exclusive)")
+				);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
@@ -106,7 +105,7 @@ public class FileUploadHandler {
 		try {
 
 			file.unlockSystemPropertiesOnce();
-			file.setProperty(StructrApp.key(File.class, "size"), size);
+			file.setSize(size);
 
 		} catch (FrameworkException ex) {
 

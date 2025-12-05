@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,23 +22,32 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.config.ScriptConfig;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 /**
  *
@@ -54,6 +63,7 @@ public class Actions {
 
 	public enum Type {
 
+		OnNodeCreation("onNodeCreation","SecurityContext securityContext", "securityContext", "onNodeCreation", SecurityContext.class),
 		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer", "onCreate", SecurityContext.class, ErrorBuffer.class),
 		AfterCreate("afterCreation","SecurityContext securityContext", "securityContext", "afterCreate", SecurityContext.class),
 		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue", "onSave", SecurityContext.class, ErrorBuffer.class, ModificationQueue.class),
@@ -85,8 +95,8 @@ public class Actions {
 			return logName;
 		}
 
-		public String getSignature() {
-			return signature;
+		public List<Signature> getSignatures() {
+			return Signature.forAllScriptingLanguages(signature);
 		}
 
 		public String getParameters() {
@@ -99,15 +109,6 @@ public class Actions {
 	}
 
 	// ----- public static methods -----
-	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName, final ModificationQueue modificationEvents, final String codeSource) throws FrameworkException, UnlicensedScriptException {
-
-		final Map<String, Object> parameters = new LinkedHashMap<>();
-
-		parameters.put("modifications", modificationEvents.getModifications(entity));
-
-		return execute(securityContext, entity, source, parameters, methodName, codeSource);
-	}
-
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final String methodName) throws FrameworkException, UnlicensedScriptException {
 		return execute(securityContext, entity, source, methodName, null);
 	}
@@ -117,6 +118,14 @@ public class Actions {
 	}
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
+		final ScriptConfig scriptConfig = ScriptConfig.builder()
+				.wrapJsInMain(Settings.WrapJSInMainFunction.getValue(false))
+				.build();
+
+		return execute(securityContext, entity, source, parameters, methodName, codeSource, scriptConfig);
+	}
+
+	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource, final ScriptConfig scriptConfig) throws FrameworkException, UnlicensedScriptException {
 
 		final ContextStore store = securityContext.getContextStore();
 		final Map<String, Object> previousParams = store.getTemporaryParameters();
@@ -124,16 +133,25 @@ public class Actions {
 		store.setTemporaryParameters(new HashMap<>());
 
 		final ActionContext context = new ActionContext(securityContext, parameters);
-		final Object result         = Scripting.evaluate(context, entity, source, methodName, codeSource);
+		context.setCurrentMethod(scriptConfig.getCurrentMethod());
 
-		store.setTemporaryParameters(previousParams);
+		try {
 
-		// check for errors raised by scripting
-		if (context.hasError()) {
-			throw new FrameworkException(422, "Server-side scripting error", context.getErrorBuffer());
+			final Object result = Scripting.evaluate(context, entity, source, methodName, codeSource, scriptConfig);
+
+			// check for errors raised by scripting
+			if (context.hasError()) {
+				throw new FrameworkException(422, "Server-side scripting error", context.getErrorBuffer());
+			}
+
+			return result;
+		} catch (AssertException e) {
+
+			throw new FrameworkException(e.getStatus(), e.getMessage(), context.getErrorBuffer());
+		} finally {
+
+			store.setTemporaryParameters(previousParams);
 		}
-
-		return result;
 	}
 
 	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
@@ -153,28 +171,30 @@ public class Actions {
 		CachedMethod cachedSource = methodCache.get(key);
 		if (cachedSource == null) {
 
-			// we might want to introduce caching here at some point in the future..
-			// Cache can be invalidated when the schema is rebuilt for example..
-
-			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).andName(key).getAsList();
+			final List<NodeInterface> methods = StructrApp.getInstance().nodeQuery(StructrTraits.SCHEMA_METHOD).name(key).getAsList();
 			if (methods.isEmpty()) {
 
 				if (!NOTIFICATION_LOGIN.equals(key) && !NOTIFICATION_LOGOUT.equals(key)) {
+
 					logger.warn("Tried to call method {} but no SchemaMethod entity was found.", key);
+
+					throw new FrameworkException(422, "Cannot execute user-defined function " + key + ": function not found.");
 				}
 
 			} else {
 
-				for (final SchemaMethod method : methods) {
+				for (final NodeInterface node : methods) {
+
+					final SchemaMethod method = node.as(SchemaMethod.class);
 
 					// only call methods that are NOT part of a schema node
-					final AbstractSchemaNode entity = method.getProperty(SchemaMethod.schemaNode);
+					final AbstractSchemaNode entity = method.getSchemaNode();
 					if (entity == null) {
 
-						final String source = method.getProperty(SchemaMethod.source);
+						final String source = method.getSource();
 						if (source != null) {
 
-							cachedSource = new CachedMethod(source, method.getName(), method.getUuid());
+							cachedSource = new CachedMethod(source, method.getName(), method.getUuid(), method.returnRawResult(), method.wrapJsInMain());
 
 							// store in cache
 							methodCache.put(key, cachedSource);
@@ -194,28 +214,44 @@ public class Actions {
 		}
 
 		if (cachedSource != null) {
-			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource);
+
+			final ScriptConfig scriptConfig = ScriptConfig.builder()
+					.wrapJsInMain(cachedSource.wrapJsInMain)
+					.build();
+
+			if (cachedSource.shouldReturnRawResult) {
+
+				securityContext.enableReturnRawResult();
+			}
+
+			return Actions.execute(securityContext, null, "${" + StringUtils.strip(cachedSource.sourceCode) + "}", parameters, cachedSource.name, cachedSource.uuidOfSource, scriptConfig);
 		}
 
 		return null;
 	}
 
 	public static void clearCache() {
+		FunctionProperty.clearCache();
+		Methods.clearMethodCache();
 		methodCache.clear();
 	}
 
 	// ----- nested classes -----
 	private static class CachedMethod {
 
-		public String sourceCode   = null;
-		public String uuidOfSource = null;
-		public String name         = null;
+		public final String sourceCode;
+		public final String uuidOfSource;
+		public final String name;
+		public final boolean wrapJsInMain;
+		public final boolean shouldReturnRawResult;
 
-		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource) {
+		public CachedMethod(final String sourceCode, final String name, final String uuidOfSource, final boolean shouldReturnRawResult, final boolean  wrapJsInMain) {
 
-			this.sourceCode   = sourceCode;
-			this.uuidOfSource = uuidOfSource;
-			this.name         = name;
+			this.sourceCode            = sourceCode;
+			this.uuidOfSource          = uuidOfSource;
+			this.name                  = name;
+			this.shouldReturnRawResult = shouldReturnRawResult;
+			this.wrapJsInMain          = wrapJsInMain;
 		}
 	}
 }

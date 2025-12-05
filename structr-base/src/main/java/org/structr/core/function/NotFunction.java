@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,13 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class NotFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NOT = "Usage: ${not(bool)}. Example: ${not(\"true\")}";
 
 	@Override
 	public String getName() {
@@ -33,8 +35,8 @@ public class NotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "bool";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("bool");
 	}
 
 	@Override
@@ -60,12 +62,45 @@ public class NotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_NOT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${not(bool)}. Example: ${not(me.isAdmin)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Negates the given argument";
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("expression", "boolean expression to negate")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Returns the logical negation given boolean expression.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function takes a single arguments and returns the negation of its boolean value.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${not(true)}", "Return false")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function is only available in StructrScript because there is a native language feature in JavaScript that does the same (the ! operator)."
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

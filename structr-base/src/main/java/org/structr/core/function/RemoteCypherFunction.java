@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
@@ -40,19 +42,16 @@ import java.util.Map.Entry;
 
 public class RemoteCypherFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_CYPHER    = "Usage: ${remote_cypher(url, username, password, query)}. Example ${remote_cypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}";
-	public static final String ERROR_MESSAGE_CYPHER_JS = "Usage: ${{Structr.remoteCypher(url, username, password query)}}. Example ${{Structr.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}}";
-
 	private static final FixedSizeCache<String, Driver> driverCache = new FixedSizeCache<>("Driver Cache", 10);
 
 	@Override
 	public String getName() {
-		return "remote_cypher";
+		return "remoteCypher";
 	}
 
 	@Override
-	public String getSignature() {
-		return "url, username, password, query [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("url, username, password, query [, parameterMap ]");
 	}
 
 	@Override
@@ -103,13 +102,21 @@ public class RemoteCypherFunction extends CoreFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CYPHER_JS : ERROR_MESSAGE_CYPHER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${remoteCypher(url, username, password, query)}. Example ${remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}"),
+			Usage.javaScript("Usage: ${{Structr.remoteCypher(url, username, password query)}}. Example ${{Structr.remoteCypher('bolt://database.url', 'user', 'password', 'MATCH (n) RETURN n')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the result of the given Cypher query against a remote instance";
+	public String getShortDescription() {
+		return "Returns the result of the given Cypher query against a remote instance.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 

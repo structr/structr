@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.core.app;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.AgentService;
@@ -32,29 +33,25 @@ import org.structr.api.service.Service;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.ContentAnalyzer;
-import org.structr.common.fulltext.DummyContentAnalyzer;
 import org.structr.common.fulltext.DummyFulltextIndexer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
-import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Relation;
 import org.structr.core.graph.*;
+import org.structr.core.graph.search.FulltextSearchCommand;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.IOException;
-import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  * Stateful facade for accessing the Structr core layer.
@@ -65,11 +62,11 @@ public class StructrApp implements App {
 	private static final Logger logger      = LoggerFactory.getLogger(StructrApp.class);
 
 	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
-	private static final Map<URI, Class> schemaIdMap            = new LinkedHashMap<>();
-	private static final Map<Class, URI> typeIdMap              = new LinkedHashMap<>();
+	private static final Map<URI, String> schemaIdMap           = new HashMap<>();
+	private static final Map<String, URI> typeIdMap             = new HashMap<>();
 	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
 	private static FixedSizeCache<String, Identity> relUuidMap  = null;
-	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
+	private final Map<String, Object> appContextStore           = new HashMap<>();
 	private RelationshipFactory relFactory                      = null;
 	private NodeFactory nodeFactory                             = null;
 	private DatabaseService graphDb                             = null;
@@ -78,67 +75,67 @@ public class StructrApp implements App {
 	private StructrApp(final SecurityContext securityContext) {
 
 		this.securityContext = securityContext;
-		this.relFactory      = new RelationshipFactory<>(securityContext);
-		this.nodeFactory     = new NodeFactory<>(securityContext);
+		this.relFactory      = new RelationshipFactory(securityContext);
+		this.nodeFactory     = new NodeFactory(securityContext);
 	}
 
 	// ----- public methods -----
 	@Override
-	public <T extends NodeInterface> T create(final Class<T> type, final String name) throws FrameworkException {
-		return create(type, new NodeAttribute(key(type, "name"), name));
+	public NodeInterface create(final String type, final String name) throws FrameworkException {
+		return create(type, new NodeAttribute(Traits.of(type).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
 	}
 
 	@Override
-	public <T extends NodeInterface> T create(final Class<T> type, final PropertyMap source) throws FrameworkException {
+	public NodeInterface create(final String type, final PropertyMap source) throws FrameworkException {
 
 		if (type == null) {
 			throw new FrameworkException(422, "Empty type (null). Please supply a valid class name in the type property.");
 		}
 
-		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
-		final PropertyMap properties       = new PropertyMap(source);
-		String finalType                   = type.getSimpleName();
+		final CreateNodeCommand command = command(CreateNodeCommand.class);
+		final PropertyMap properties    = new PropertyMap(source);
+		String finalType                = type;
 
 		// try to identify the actual type from input set (creation wouldn't work otherwise anyway)
-		final String typeFromInput = properties.get(NodeInterface.type);
+		final String typeFromInput = properties.get(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY));
 		if (typeFromInput != null) {
 
-			Class actualType = StructrApp.getConfiguration().getNodeEntityClass(typeFromInput);
+			final Traits actualType = Traits.of(typeFromInput);
 			if (actualType == null) {
 
 				// overwrite type information when creating a node (adhere to type specified by resource!)
-				properties.put(AbstractNode.type, type.getSimpleName());
+				properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type);
 
-			} else if (actualType.isInterface() || Modifier.isAbstract(actualType.getModifiers())) {
+			} else if (actualType.isInterface() || actualType.isAbstract()) {
 
-				throw new FrameworkException(422, "Invalid abstract type " + type.getSimpleName() + ", please supply a non-abstract class name in the type property");
+				throw new FrameworkException(422, "Invalid abstract type " + type + ", please supply a non-abstract class name in the type property");
 
 			} else {
 
-				finalType = actualType.getSimpleName();
+				finalType = actualType.getName();
 			}
 		}
 
 		// set type
-		properties.put(AbstractNode.type, finalType);
+		properties.put(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), finalType);
 
 		return command.execute(properties);
 	}
 
 	@Override
-	public <T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException {
+	public NodeInterface create(final String type, final NodeAttribute<?>... attributes) throws FrameworkException {
 
 		final List<NodeAttribute<?>> attrs = new LinkedList<>(Arrays.asList(attributes));
-		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
+		final CreateNodeCommand command    = command(CreateNodeCommand.class);
 
 		// add type information when creating a node
-		attrs.add(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
+		attrs.add(new NodeAttribute(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.TYPE_PROPERTY), type));
 
 		return command.execute(attrs);
 	}
 
 	@Override
-	public <T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException {
+	public void deleteAllNodesOfType(final String type) throws FrameworkException {
 
 		final DeleteNodeCommand cmd = command(DeleteNodeCommand.class);
 		boolean hasMore             = true;
@@ -148,7 +145,7 @@ public class StructrApp implements App {
 			// will be set to true below if at least one result was processed
 			hasMore = false;
 
-			for (final T t : this.nodeQuery(type).pageSize(Settings.FetchSize.getValue()).page(1).getAsList()) {
+			for (final NodeInterface t : this.nodeQuery(type).pageSize(Settings.FetchSize.getValue()).page(1).getAsList()) {
 
 				cmd.execute(t);
 				hasMore = true;
@@ -162,12 +159,12 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
+	public RelationshipInterface create(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
 		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType);
 	}
 
 	@Override
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
+	public RelationshipInterface create(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties) throws FrameworkException {
 		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType, properties);
 	}
 
@@ -182,7 +179,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public NodeInterface getNodeById(final Class type, final String uuid) throws FrameworkException {
+	public NodeInterface getNodeById(final String type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
 			return null;
@@ -191,26 +188,34 @@ public class StructrApp implements App {
 		final Identity nodeId = getNodeFromCache(uuid);
 		if (nodeId == null) {
 
-			final Query query = nodeQuery().uuid(uuid);
+			final Query<NodeInterface> query = nodeQuery();
+			QueryGroup<NodeInterface> and    = query.and();
+
+			and.uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
-				query.andType(type);
+				and.type(type);
 			}
 
-			final GraphObject entity = query.getFirst();
+			final NodeInterface entity = query.getFirst();
 			if (entity != null) {
 
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				nodeUuidMap.put(uuid, container.getId());
-				return (NodeInterface)entity;
+				return entity;
 			}
 
 		} else {
 
 			try {
-				return nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+
+				final NodeInterface node = nodeFactory.instantiate(getDatabaseService().getNodeById(nodeId));
+				if (node != null && (type == null || node.is(type))) {
+
+					return node;
+				}
 
 			} catch (NotFoundException ignore) {
 				nodeUuidMap.remove(uuid);
@@ -226,7 +231,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public RelationshipInterface getRelationshipById(final Class type, final String uuid) throws FrameworkException {
+	public RelationshipInterface getRelationshipById(final String type, final String uuid) throws FrameworkException {
 
 		if (uuid == null) {
 			return null;
@@ -235,24 +240,26 @@ public class StructrApp implements App {
 		final Identity id = getRelFromCache(uuid);
 		if (id == null) {
 
-			final Query query = relationshipQuery().uuid(uuid);
+			final QueryGroup<RelationshipInterface> query = relationshipQuery().and().uuid(uuid);
 
 			// set type for faster query
 			if (type != null) {
-				query.andType(type);
+
+				query.type(type);
+
 			} else {
 
-				logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time. Please examine the following stack trace and amend.");
+				logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				Thread.dumpStack();
 			}
 
-			final GraphObject entity = query.getFirst();
+			final RelationshipInterface entity = query.getFirst();
 			if (entity != null) {
 
 				final PropertyContainer container = entity.getPropertyContainer();
 
 				relUuidMap.put(uuid, container.getId());
-				return (RelationshipInterface)entity;
+				return entity;
 			}
 
 		} else {
@@ -269,25 +276,13 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends GraphObject> T get(final Class<T> type, final String uuid) throws FrameworkException {
+	public Map<RelationshipInterface, Double> getRelationshipsFromFulltextIndex(final String indexName, final String searchTerm, int pageSize, int page) throws FrameworkException {
+		return command(FulltextSearchCommand.class).getRelationships(indexName, searchTerm, pageSize, page);
+	}
 
-		if (type != null) {
-
-			if (NodeInterface.class.isAssignableFrom(type)) {
-
-				return (T)getNodeById(type, uuid);
-
-			} else if (RelationshipInterface.class.isAssignableFrom(type)) {
-
-				return (T)getRelationshipById(type, uuid);
-
-			} else {
-
-				throw new IllegalStateException("Invalid type " + type + ", cannot be used in query.");
-			}
-		}
-
-		return null;
+	@Override
+	public Map<NodeInterface, Double> getNodesFromFulltextIndex(final String indexName, final String searchTerm, int page, int pageSize) throws FrameworkException {
+		return command(FulltextSearchCommand.class).getNodes(indexName, searchTerm, pageSize, page);
 	}
 
 	@Override
@@ -296,8 +291,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type) {
-		return command(SearchNodeCommand.class).andTypes(type);
+	public QueryGroup<NodeInterface> nodeQuery(final String type) {
+		return command(SearchNodeCommand.class).and().type(type);
 	}
 
 	@Override
@@ -306,8 +301,8 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T extends RelationshipInterface> Query<T> relationshipQuery(final Class<T> type) {
-		return command(SearchRelationshipCommand.class).andType(type);
+	public QueryGroup<RelationshipInterface> relationshipQuery(final String type) {
+		return command(SearchRelationshipCommand.class).and().type(type);
 	}
 
 	@Override
@@ -360,7 +355,7 @@ public class StructrApp implements App {
 
 	@Override
 	public <T extends Command & MaintenanceCommand> void maintenance(final Class<T> commandClass, final Map<String, Object> propertySet) throws FrameworkException {
-		((MaintenanceCommand)Services.getInstance().command(securityContext, commandClass)).execute(propertySet);
+		Services.getInstance().command(securityContext, commandClass).execute(propertySet);
 	}
 
 	@Override
@@ -397,19 +392,6 @@ public class StructrApp implements App {
 		return new DummyFulltextIndexer();
 	}
 
-	@Override
-	public ContentAnalyzer getContentAnalyzer(final Object... params) {
-
-		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
-		final StructrModule module               = modules.get("text-search");
-
-		if (module != null && module instanceof ContentAnalyzer) {
-			return (ContentAnalyzer)module;
-		}
-
-		return new DummyContentAnalyzer();
-	}
-
 	// ----- public static methods ----
 	/**
 	 * Constructs a new stateful App instance, initialized with a superuser security context
@@ -417,9 +399,13 @@ public class StructrApp implements App {
 	 * @return superuser app instance
 	 */
 	public static App getInstance() {
+
+		/*
 		if (Thread.currentThread().isInterrupted()) {
 			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
 		}
+		*/
+
 		return new StructrApp(SecurityContext.getSuperUserInstance());
 	}
 
@@ -431,16 +417,23 @@ public class StructrApp implements App {
 	 * @return app instance
 	 */
 	public static App getInstance(final SecurityContext securityContext) {
+
+		/*
 		if (Thread.currentThread().isInterrupted()) {
 			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
 		}
+		*/
+
 		return new StructrApp(securityContext);
 	}
 
 	public static ConfigurationProvider getConfiguration() {
+		/*
 		if (Thread.currentThread().isInterrupted()) {
 			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
 		}
+		*/
+
 		return Services.getInstance().getConfigurationProvider();
 	}
 
@@ -448,7 +441,7 @@ public class StructrApp implements App {
 		return typeIdMap.get(type);
 	}
 
-	public static Class resolveSchemaId(final URI uri) {
+	public static String resolveSchemaId(final URI uri) {
 		return schemaIdMap.get(uri);
 	}
 
@@ -467,10 +460,7 @@ public class StructrApp implements App {
 		}
 	}
 
-	public static <T> PropertyKey<T> key(final Class type, final String name) {
-		return StructrApp.key(type, name, true);
-	}
-
+	/*
 	public static <T> PropertyKey<T> key(final Class type, final String name, final boolean logMissing) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
@@ -486,8 +476,7 @@ public class StructrApp implements App {
 
 			} else {
 
-				// next try: interface created from SchemaNode (org.structr.dynamic)
-				final Class iface = config.getInterfaces().get("org.structr.dynamic." + type.getSimpleName());
+				final Class iface = config.getInterfaces().get(type.getSimpleName());
 				if (iface != null) {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);
@@ -530,6 +519,7 @@ public class StructrApp implements App {
 
 		return key;
 	}
+	*/
 
 	@Override
 	public void invalidateCache(){
@@ -556,27 +546,48 @@ public class StructrApp implements App {
 
 	public static void initializeSchemaIds() {
 
-		final Map<String, Class> interfaces = StructrApp.getConfiguration().getInterfaces();
+		/*
+		final Map<String, Class> interfaces                                = StructrApp.getConfiguration().getInterfaces();
+		final Map<String, Class<? extends NodeInterface>> nodeTypes        = StructrApp.getConfiguration().getNodeEntities();
+		final Map<String, Class<? extends RelationshipInterface>> relTypes = StructrApp.getConfiguration().getRelationshipEntities();
 
 		// refresh schema IDs
 		schemaIdMap.clear();
 		typeIdMap.clear();
 
-		// add Structr interfaces here
 		for (final Class type : interfaces.values()) {
 
 			// only register node types
-			if (type.isInterface() && NodeInterface.class.isAssignableFrom(type) && !type.getName().startsWith("org.structr.dynamic.")) {
+			if (!type.getName().startsWith("org.structr.dynamic.")) {
 
 				registerType(type);
 			}
 		}
+
+		for (final Class type : nodeTypes.values()) {
+
+			// only register node types
+			if (!type.getName().startsWith("org.structr.dynamic.")) {
+
+				registerType(type);
+			}
+		}
+
+		for (final Class type : relTypes.values()) {
+
+			// only register node types
+			if (!type.getName().startsWith("org.structr.dynamic.")) {
+
+				registerType(type);
+			}
+		}
+		*/
 	}
 
 	// ----- private static methods -----
-	private static void registerType(final Class type) {
+	private static void registerType(final String type) {
 
-		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type.getSimpleName())));
+		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type)));
 
 		logger.debug("Registering type {} with {}", type, id);
 

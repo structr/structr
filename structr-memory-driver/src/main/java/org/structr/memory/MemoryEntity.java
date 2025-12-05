@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,6 @@
  */
 package org.structr.memory;
 
-import org.structr.api.NotFoundException;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.ChangeAwareMap;
@@ -26,7 +25,7 @@ import org.structr.api.util.ChangeAwareMap;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,7 +36,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public abstract class MemoryEntity implements PropertyContainer {
 
-	private final Map<Long, ChangeAwareMap> txData = new LinkedHashMap<>();
+	private final Map<String, Object> dataCache    = new HashMap<>();
+	private final Map<Long, ChangeAwareMap> txData = new HashMap<>();
 	private final ChangeAwareMap data              = new ChangeAwareMap();
 	private final Set<String> labels               = new LinkedHashSet<>();
 	private ReentrantLock lock                     = new ReentrantLock();
@@ -113,23 +113,22 @@ public abstract class MemoryEntity implements PropertyContainer {
 	}
 
 	@Override
-	public boolean isStale() {
-		return false;
-	}
-
-	@Override
 	public boolean isDeleted() {
 		return false;
 	}
 
-	public void addLabel(final String label) {
-		addLabel(label, true);
+	public Map<String, Object> getCache() {
+		return dataCache;
 	}
 
-	void addLabel(final String label, final boolean updateCache) {
+	public void addLabels(final Set<String> labels) {
+		addLabels(labels, true);
+	}
+
+	void addLabels(final Set<String> labels, final boolean updateCache) {
 
 		lock();
-		labels.add(label);
+		this.labels.addAll(labels);
 
 		if (updateCache) {
 			updateCache();
@@ -188,18 +187,22 @@ public abstract class MemoryEntity implements PropertyContainer {
 		unlock();
 	}
 
-	void lock() {
+	MemoryEntity lock() {
 
 		if (!lock.isHeldByCurrentThread()) {
 			lock.lock();
 		}
+
+		return this;
 	}
 
-	void unlock() {
+	MemoryEntity unlock() {
 
 		if (lock.isHeldByCurrentThread()) {
 			lock.unlock();
 		}
+
+		return this;
 	}
 
 	// ----- package-private methods -----
@@ -263,16 +266,6 @@ public abstract class MemoryEntity implements PropertyContainer {
 		// read-only access does not need a transaction
 		final MemoryTransaction tx = db.getCurrentTransaction(!read);
 		if (tx != null) {
-
-			if (tx.isDeleted(id)) {
-				tx.isDeleted(id);
-				throw new NotFoundException("Entity with ID " + id + " not found.");
-			}
-
-			if (!tx.exists(id)) {
-				tx.exists(id);
-				throw new NotFoundException("Entity with ID " + id + " not found.");
-			}
 
 			final long transactionId = tx.getTransactionId();
 			ChangeAwareMap copy      = txData.get(transactionId);

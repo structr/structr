@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -69,15 +69,11 @@ public class NodeAttribute<T> {
 	@Override
 	public String toString() {
 
-		StringBuilder buf = new StringBuilder();
+		String buf = (key != null ? key.dbName() : "[null]") +
+			"=" +
+			value;
 
-		buf.append("NodeAttribute('");
-		buf.append(key != null ? key.dbName() : "[null]");
-		buf.append("', '");
-		buf.append(value);
-		buf.append("')");
-
-		return buf.toString();
+		return buf;
 	}
 
 	@Override
@@ -94,7 +90,7 @@ public class NodeAttribute<T> {
 	public boolean equals(Object obj) {
 
 		if(obj instanceof NodeAttribute) {
-			return ((NodeAttribute)obj).hashCode() == hashCode();
+			return obj.hashCode() == hashCode();
 		}
 
 		return false;

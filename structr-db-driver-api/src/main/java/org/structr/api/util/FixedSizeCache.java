@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,8 @@
 package org.structr.api.util;
 
 import org.apache.commons.collections4.map.LRUMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,12 +34,12 @@ import java.util.Map;
  */
 public class FixedSizeCache<K, V> {
 
-	private LRUMap<K, V> cache          = null;
-	private String name                 = null;
+	private LRUMap<K, V> cache = null;
+	private String name        = null;
 
 	public FixedSizeCache(final String name, final int maxSize) {
 
-		this.cache       = new InvalidatingLRUMap<>(maxSize);
+		this.cache       = new LRUMap<>(maxSize);
 		this.name        = name;
 	}
 
@@ -83,25 +77,5 @@ public class FixedSizeCache<K, V> {
 
 	public synchronized boolean containsKey(final K key) {
 		return cache.containsKey(key);
-	}
-
-	// ----- nested classes -----
-	private static class InvalidatingLRUMap<K, V> extends LRUMap<K, V> {
-
-		public InvalidatingLRUMap(final int maxSize) {
-			super(maxSize, true);
-		}
-
-		@Override
-		protected boolean removeLRU(final LinkEntry<K, V> entry) {
-
-			final V value = entry.getValue();
-			if (value != null && value instanceof Cachable) {
-
-				((Cachable)value).onRemoveFromCache();
-			}
-
-			return true;
-		}
 	}
 }

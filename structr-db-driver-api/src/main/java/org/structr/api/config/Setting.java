@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,8 @@ public abstract class Setting<T> {
 
 	protected SettingsGroup group                = null;
 	protected boolean isDynamic                  = false;
+	protected boolean isModified                 = false;
+	protected boolean isProtected                = false;
 	protected T defaultValue                     = null;
 	protected String category                    = null;
 	protected String key                         = null;
@@ -144,6 +146,8 @@ public abstract class Setting<T> {
 
 			changeHandler.execute(this, oldValue, value);
 		}
+
+		isModified = changed;
 	}
 
 	public void setDefaultValue(final T value) {
@@ -151,11 +155,24 @@ public abstract class Setting<T> {
 	}
 
 	public boolean isModified() {
-		return (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
+		return isModified || (defaultValue != null && !defaultValue.equals(value)) || (defaultValue == null && value != null);
+	}
+
+	public void setIsModified(final boolean isModified) {
+		this.isModified = isModified;
 	}
 
 	public boolean isDynamic() {
 		return isDynamic;
+	}
+
+	public Setting setIsProtected() {
+		this.isProtected = true;
+		return this;
+	}
+
+	public boolean isProtected() {
+		return this.isProtected;
 	}
 
 	public void setIsDynamic(boolean isDynamic) {
@@ -177,16 +194,35 @@ public abstract class Setting<T> {
 		Settings.unregisterSetting(this);
 	}
 
+	// ----- private methods -----
+	private String getCalculatedComment() {
+
+		if (getComment() != null) {
+
+			return getComment();
+
+		} else if (getKey().endsWith(".cronExpression")) {
+
+			return Settings.CRON_EXPRESSION_INFO_HTML;
+		}
+
+		return null;
+	}
+
 	// ----- protected methods -----
 	protected void renderLabel(final Tag group) {
 
-		final Tag label = group.block("label");
+		final Tag label           = group.block("label");
+		final String finalComment = getCalculatedComment();
 
-		if (getComment() != null) {
-			label.attr(new Attr("class", "bold basis-full sm:basis-auto sm:min-w-128 has-comment"));
-			label.attr(new Attr("data-comment", getComment()));
+		if (finalComment != null) {
+
+			label.attr(new Attr("class", "font-bold basis-full sm:basis-auto sm:min-w-128 has-comment"));
+			label.attr(new Attr("data-comment", finalComment));
+
 		} else {
-			label.attr(new Attr("class", "bold basis-full sm:basis-auto sm:min-w-128"));
+
+			label.attr(new Attr("class", "font-bold basis-full sm:basis-auto sm:min-w-128"));
 		}
 
 		label.text(getKey());
@@ -196,7 +232,7 @@ public abstract class Setting<T> {
 
 		if (isModified()) {
 
-			final Tag icon = group.block("svg").css("reset-key cursor-pointer hover:opacity-100 icon-red ml-4 opacity-60").attr(new Attr("width", 16), new Attr("height", 16), new Attr("data-key", getKey())).block("use").attr(new Attr("href", "#interface_delete_circle"));
+			final Tag icon = group.block("svg").css("reset-key cursor-pointer hover:opacity-100 icon-red ml-4 opacity-60 flex-shrink-0").attr(new Attr("width", 16), new Attr("height", 16), new Attr("data-key", getKey())).block("use").attr(new Attr("href", "#interface_delete_circle"));
 
 			if (isDynamic()) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,9 +24,12 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.schema.action.ActionContext;
 
@@ -39,17 +42,14 @@ import java.util.Map;
 
 public class ToCsvFunction extends CsvFunction {
 
-	public static final String ERROR_MESSAGE_TO_CSV    = "Usage: ${to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}. Example: ${to_csv(find('Page'), 'ui')}";
-	public static final String ERROR_MESSAGE_TO_CSV_JS = "Usage: ${{Structr.to_csv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}. Example: ${{Structr.to_csv(Structr.find('Page'), 'ui'))}}";
-
 	@Override
 	public String getName() {
-		return "to_csv";
+		return "toCsv";
 	}
 
 	@Override
-	public String getSignature() {
-		return "nodes, propertiesOrView [, delimiterChar, quoteChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("nodes, propertiesOrView [, delimiterChar, quoteChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain ]");
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class ToCsvFunction extends CsvFunction {
 
 						if (properties.size() == 0) {
 
-							logger.info("to_csv(): Unable to create CSV if list of properties is empty - returning empty CSV");
+							logger.info("toCsv(): Unable to create CSV if list of properties is empty - returning empty CSV");
 							return "";
 						}
 
@@ -108,7 +108,7 @@ public class ToCsvFunction extends CsvFunction {
 			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
 			if (nodes.size() == 0 && propertyView != null) {
 
-				logger.info("to_csv(): Can not create CSV if no nodes are given - returning empty CSV");
+				logger.info("toCsv(): Can not create CSV if no nodes are given - returning empty CSV");
 				return "";
 			}
 
@@ -119,7 +119,7 @@ public class ToCsvFunction extends CsvFunction {
 
 			} else if (quoteChar.length() > 1) {
 
-				logger.info("to_csv(): quoteChar is more than one character ('{}'), first character will be used ('{}')", quoteChar, quoteChar.charAt(0));
+				logger.info("toCsv(): quoteChar is more than one character ('{}'), first character will be used ('{}')", quoteChar, quoteChar.charAt(0));
 			}
 
 			// validate/fix delimiterChar parameter
@@ -129,7 +129,7 @@ public class ToCsvFunction extends CsvFunction {
 
 			} else if (delimiterChar.length() > 1) {
 
-				logger.info("to_csv(): delimiterChar is more than one character ('{}'), first character will be used ('{}')", delimiterChar, delimiterChar.charAt(0));
+				logger.info("toCsv(): delimiterChar is more than one character ('{}'), first character will be used ('{}')", delimiterChar, delimiterChar.charAt(0));
 			}
 
 			try {
@@ -142,7 +142,7 @@ public class ToCsvFunction extends CsvFunction {
 
 			} catch (Throwable t) {
 
-				logger.warn("to_csv(): Exception occurred", t);
+				logger.warn("toCsv(): Exception occurred", t);
 				return "";
 			}
 
@@ -154,14 +154,57 @@ public class ToCsvFunction extends CsvFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_CSV_JS : ERROR_MESSAGE_TO_CSV);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}."),
+			Usage.javaScript("Usage: ${{Structr.toCsv(nodes, propertiesOrView[, delimiterChar[, quoteChar[, recordSeparator[, includeHeader[, localizeHeader[, headerLocalizationDomain]]]])}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a CSV representation of the given nodes";
+	public String getShortDescription() {
+		return "Returns a CSV representation of the given nodes.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${toCsv(find('Page'), 'ui')}"),
+				Example.javaScript("${{ $.toCsv($.find('Page'), 'ui')) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("nodes", "A collection of objects (these objects can be database nodes or javascript objects)"),
+				Parameter.optional("propertiesOrView","The name of a view (e.g. ui or public) or a collection of property names (e.g. merge('id', 'name') in StructrScript or ['id', 'name'] in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used."),
+				Parameter.optional("delimiterChar","A single character used as the column separator. (If more than one character is supplied, only the first character is used without raising an error) (default: `;`)"),
+				Parameter.optional("quoteChar","A single character used as the quote character. (If more than one character is supplied, only the first character is used without raising an error) (default (`\"`)"),
+				Parameter.optional("recordSeparator","The separator between the records (recommended usage is \n, \r or \r\n) (default: `\n`)"),
+				Parameter.optional("includeHeader","Switch indicating if a header row should be printed (default `true`)"),
+				Parameter.optional("localizeHeader","Switch indicating if the column names in the header should be localized (default: `false`)"),
+				Parameter.optional("headerLocalizationDomain","Optional header localization domain")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"If the column values contain the quote character, a `\\` is prepended before that instance of the quote character",
+				"All instances of `\n` or `\r` in the column values are replaced by `\\n` and `\\r` respectively so we can guarantee that only intended newlines (i.e. the record separator) occurr inside the produced CSV",
+				"The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.",
+				"If a view is given, the (optionally localized) property names of that view are used as header row",
+				"If a collection of properties is given, these (optionally localized) property names are used as a header row"
+		);
+	}
+
+
 
 	public static void writeCsv(
 			final ResultStream result,
@@ -215,7 +258,7 @@ public class ToCsvFunction extends CsvFunction {
 							try {
 								value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 							} catch (FrameworkException fex) {
-								logger.warn("to_csv(): Exception", fex);
+								logger.warn("toCsv(): Exception", fex);
 							}
 						}
 
@@ -233,7 +276,7 @@ public class ToCsvFunction extends CsvFunction {
 						try {
 							value = LocalizeFunction.getLocalization(locale, value, headerLocalizationDomain);
 						} catch (FrameworkException fex) {
-							logger.warn("to_csv(): Exception", fex);
+							logger.warn("toCsv(): Exception", fex);
 						}
 					}
 
@@ -274,13 +317,13 @@ public class ToCsvFunction extends CsvFunction {
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
 
-				} else if (obj instanceof GraphObject) {
-
-					final GraphObject graphObj = (GraphObject)obj;
+				} else if (obj instanceof GraphObject graphObj) {
 
 					for (final String colName : properties) {
-						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
-						final Object value = graphObj.getProperty(key);
+
+						final PropertyKey key = graphObj.getTraits().key(colName);
+						final Object value    = graphObj.getProperty(key);
+
 						isFirstCol = appendColumnString(row, value, isFirstCol, quoteChar, delimiterChar);
 					}
 

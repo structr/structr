@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,11 +20,13 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class FindContainsFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_CONTAINS_FIND = "Usage: ${contains(key, value). Example: ${find('Group', and(contains('name', 'Test')))}";
+public class FindContainsFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
@@ -64,13 +66,21 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CONTAINS_FIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.contains('name', 'Test'))) }}"),
+			Usage.structrScript("Usage: ${contains(key, value). Example: ${find('Group', and(contains('name', 'Test')))}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a query predicate that can be used with find() or search().";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override
@@ -79,7 +89,7 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 }

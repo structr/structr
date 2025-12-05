@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,15 @@
 package org.structr.messaging;
 
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
+import org.structr.messaging.traits.definitions.MessageClientTraitDefinition;
+import org.structr.messaging.traits.definitions.MessageSubscriberTraitDefinition;
 import org.structr.schema.action.ActionContext;
-import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
@@ -34,24 +36,27 @@ import java.util.List;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
-public class SimpleMessagingTest extends StructrUiTest {
+public class SimpleMessagingTest extends MessagingTestBase  {
 
 	@Test
 	public void test01() {
 
 		try(final Tx tx = app.tx()) {
 
-			MessageClient client1 = app.create(MessageClient.class, "client1");
-			MessageSubscriber sub = app.create(MessageSubscriber.class, "sub");
+			final List<MessageSubscriber> subList = new ArrayList<>();
+			final MessageClient client1           = app.create(StructrTraits.MESSAGE_CLIENT, "client1").as(MessageClient.class);
+			final MessageSubscriber sub           = app.create(StructrTraits.MESSAGE_SUBSCRIBER, "sub").as(MessageSubscriber.class);
+			final Traits subscriberTraits         = Traits.of(StructrTraits.MESSAGE_SUBSCRIBER);
+			final Traits clientTraits             = Traits.of(StructrTraits.MESSAGE_CLIENT);
 
-			List<MessageSubscriber> subList = new ArrayList<>();
 			subList.add(sub);
 
-			client1.setProperty(StructrApp.key(MessageClient.class, "subscribers"), subList);
-			sub.setProperty(StructrApp.key(MessageSubscriber.class, "topic"), "test");
-			sub.setProperty(StructrApp.key(MessageSubscriber.class, "callback"), "set(this, 'name', retrieve('message'))");
+			client1.setProperty(clientTraits.key(MessageClientTraitDefinition.SUBSCRIBERS_PROPERTY), subList);
 
-			Scripting.replaceVariables(new ActionContext(securityContext, null), client1, "${{Structr.log('Sending message'); Structr.get('this').sendMessage('test','testmessage');}}");
+			sub.setProperty(subscriberTraits.key(MessageSubscriberTraitDefinition.TOPIC_PROPERTY),    "test");
+			sub.setProperty(subscriberTraits.key(MessageSubscriberTraitDefinition.CALLBACK_PROPERTY), "set(this, 'name', retrieve('message'))");
+
+			Scripting.replaceVariables(new ActionContext(securityContext, null), client1, "${{Structr.log('Sending message'); Structr.get('this').sendMessage({ topic: 'test', message: 'testmessage' });}}");
 
 			assertEquals("testmessage", sub.getName());
 

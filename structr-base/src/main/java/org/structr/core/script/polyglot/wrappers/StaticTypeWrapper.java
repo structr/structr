@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,102 +18,34 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.AssertException;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 public class StaticTypeWrapper implements ProxyObject {
 
 	private final static Logger logger = LoggerFactory.getLogger(StaticTypeWrapper.class);
-	private final App app;
-	private final Class referencedClass;
 	private final ActionContext actionContext;
+	private final Traits traits;
 
-	public StaticTypeWrapper(final ActionContext actionContext, final Class referencedClass) {
+	public StaticTypeWrapper(final ActionContext actionContext, final Traits traits) {
 
 		this.actionContext = actionContext;
-		this.app = StructrApp.getInstance();
-		this.referencedClass = referencedClass;
+		this.traits        = traits;
 	}
 
 	@Override
-	public Object getMember(String key) {
+	public Object getMember(final String key) {
 
-		final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(referencedClass);
-		if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
+		final AbstractMethod method = Methods.resolveMethod(traits, key);
+		if (method != null && method.isStatic()) {
 
-			Method method = methods.get(key);
-
-			final ProxyExecutable executable = arguments -> {
-
-				try {
-
-					int paramCount = method.getParameterCount();
-
-					if (paramCount == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null));
-
-					} else if (paramCount == 1) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
-
-					} else if (paramCount == 2 && arguments.length == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext(), new HashMap<String, Object>()));
-
-					} else if (arguments.length == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
-
-					} else {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
-					}
-
-				} catch (IllegalArgumentException ex) {
-
-					throw new RuntimeException(new FrameworkException(422, "Tried to call method \"" + method.getName() + "\" with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
-
-				} catch (IllegalAccessException ex) {
-
-					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-
-				} catch (InvocationTargetException ex) {
-
-					if (ex.getTargetException() instanceof FrameworkException) {
-
-						throw new RuntimeException(ex.getTargetException());
-
-					} else if (ex.getTargetException() instanceof AssertException) {
-
-						throw ((AssertException)ex.getTargetException());
-					}
-
-					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-				}
-
-				return null;
-
-			};
-
-			return executable;
+			return method.getProxyExecutable(actionContext, null);
 		}
 
 		return null;
@@ -125,11 +57,11 @@ public class StaticTypeWrapper implements ProxyObject {
 	}
 
 	@Override
-	public boolean hasMember(String key) {
+	public boolean hasMember(final String key) {
 		return true;
 	}
 
 	@Override
-	public void putMember(String key, Value value) {
+	public void putMember(final String key, final Value value) {
 	}
 }

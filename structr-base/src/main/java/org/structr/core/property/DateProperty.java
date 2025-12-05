@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,11 +24,14 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.core.converter.TemporalDateConverter;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -88,7 +91,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 	}
 
 	@Override
-	public PropertyConverter<?, Date> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Date> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 
@@ -107,20 +110,25 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			try {
 
-				return Long.parseLong(value.toString());
+				return Long.valueOf(value.toString());
 
 			} catch (Throwable t) {
 			}
 
 			try {
 
-				return DatePropertyParser.parse(value.toString(), format).getTime();
+				return DatePropertyGenerator.parse(value.toString(), format).getTime();
 
 			} catch (Throwable t) {
 			}
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	private class DatabaseConverter extends PropertyConverter<Date, Long> {
@@ -164,27 +172,34 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			if (source != null) {
 
-				if (source instanceof Date) {
+				final Date convertedDate = TemporalDateConverter.convert(source);
 
-					return (Date)source;
+				if (convertedDate != null) {
 
+					return convertedDate;
+				} else if (source instanceof Long l) {
+
+					return Date.from(Instant.ofEpochMilli(l));
 				} else if (source instanceof String) {
 
 					if (StringUtils.isNotBlank((String)source)) {
 
-						Date result = DatePropertyParser.parse((String)source, format);
+						Date result = DatePropertyGenerator.parse((String)source, format);
 
 						if (result != null) {
 							return result;
 						}
 
-						throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+						throw new PropertyInputParsingException(
+							jsonName(),
+							new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source)
+						);
 
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Unnkown input type for date property " + jsonName() + ": " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source));
 
 				}
 			}
@@ -195,7 +210,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 		@Override
 		public String revert(Date source) throws FrameworkException {
 
-			return DatePropertyParser.format(source, format);
+			return DatePropertyGenerator.format(source, format);
 		}
 
 	}

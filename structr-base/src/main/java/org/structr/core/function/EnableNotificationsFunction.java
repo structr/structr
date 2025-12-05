@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,24 +19,26 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
  */
 public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS    = "Usage: ${enable_notifications()}";
-	public static final String ERROR_MESSAGE_ENABLE_NOTIFICATIONS_JS = "Usage: ${Structr.enableNotifications()}";
-
 	@Override
 	public String getName() {
-		return "enable_notifications";
+		return "enableNotifications";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -48,13 +50,20 @@ public class EnableNotificationsFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ENABLE_NOTIFICATIONS_JS : ERROR_MESSAGE_ENABLE_NOTIFICATIONS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${enableNotifications()}"),
+			Usage.javaScript("Usage: ${Structr.enableNotifications()}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Enables the Websocket notifications in the Structr Ui for the current transaction";
+	public String getShortDescription() {
+		return "Enables the Websocket broadcast notifications in the Structr Backend Ui for the current transaction.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "This function can be used to re-enable the Websocket broadcast notifications disabled by the `disableNotifications()` function.";
+	}
 }

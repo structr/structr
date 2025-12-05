@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
@@ -54,7 +53,7 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<Iterab
 			String nodeId = securityContext.getRequest().getParameter(parameterName);
 			if (nodeId != null) {
 
-				AbstractNode node = (AbstractNode) StructrApp.getInstance(securityContext).getNodeById(nodeId);
+				NodeInterface node = StructrApp.getInstance(securityContext).getNodeById(nodeId);
 				if (node != null) {
 
 					List<GraphObject> graphData = new LinkedList<>();

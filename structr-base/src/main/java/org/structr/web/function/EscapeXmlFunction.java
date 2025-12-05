@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,28 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class EscapeXmlFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_ESCAPE_XML    = "Usage: ${escape_xml(string)}. Example: ${escape_xml(\"test & test\")}";
-	public static final String ERROR_MESSAGE_ESCAPE_XML_JS = "Usage: ${{Structr.escape_xml(string)}}. Example: ${{Structr.escape_xml(\"test & test\")}}";
-
 	@Override
 	public String getName() {
-		return "escape_xml";
+		return "escapeXml";
 	}
 
 	@Override
-	public String getSignature() {
-		return "string";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override
@@ -61,12 +64,46 @@ public class EscapeXmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ESCAPE_XML_JS : ERROR_MESSAGE_ESCAPE_XML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${escapeXml(text)}. Example: ${escapeXml('test & test')}"),
+			Usage.javaScript("Usage: ${{ $.escapeXml(text)}}. Example: ${{ $.escapeXml('test & test')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Replaces XML characters with their corresponding XML entities";
+	public String getShortDescription() {
+		return "Replaces XML characters with their corresponding XML entities.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("text", "text to escape")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${escapeXml('This is a \"test\" & another \"test\"')} => This is a &quot;test&quot; &amp; another &quot;test&quot;")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"Supports only the five basic XML entities (gt, lt, quot, amp, apos).",
+			"Does not support DTDs or external entities.",
+			"Unicode characters greater than 0x7f are currently escaped to their numerical \\u equivalent. This may change in future releases."
+		);
 	}
 }

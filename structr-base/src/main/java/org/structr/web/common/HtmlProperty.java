@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,19 +27,12 @@ import org.structr.core.property.StringProperty;
  */
 public class HtmlProperty extends StringProperty {
 	
-	private String originalName = null;
-	
 	public HtmlProperty(String name) {
 		super(PropertyView.Html.concat(name));
-		this.originalName = name;
 	}
 	
 	@Override
 	public String typeName() {
 		return "String";
-	}
-	
-	public String getOriginalName() {
-		return originalName;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,24 +21,27 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.dom.DOMNode;
 
-public class GetSourceFunction extends UiAdvancedFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_GET_SOURCE    = "Usage: ${get_source(element, editMode)}. Example: ${get_source(this, 1)}";
-	public static final String ERROR_MESSAGE_GET_SOURCE_JS = "Usage: ${{Structr.getSource(element, editMode)}}. Example: ${{Structr.getSource(this, 1)}}";
+public class GetSourceFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "get_source";
+		return "getSource";
 	}
 
 	@Override
-	public String getSignature() {
-		return "element, editMode";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("element, editMode");
 	}
 
 	@Override
@@ -48,10 +51,9 @@ public class GetSourceFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			if (sources[0] instanceof DOMNode && sources[1] instanceof Number) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE) && sources[1] instanceof Number editMode) {
 
-				final DOMNode node    = (DOMNode)sources[0];
-				final Number editMode = (Number)sources[1];
+				final DOMNode node    = n.as(DOMNode.class);
 				final EditMode mode   = RenderContext.editMode(Integer.toString(editMode.intValue()));
 				final String content  = node.getContent(mode);
 
@@ -72,12 +74,20 @@ public class GetSourceFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_SOURCE_JS : ERROR_MESSAGE_GET_SOURCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getSource(element, editMode)}. Example: ${getSource(this, 1)}"),
+			Usage.javaScript("Usage: ${{Structr.getSource(element, editMode)}}. Example: ${{Structr.getSource(this, 1)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns the rendered HTML content for the given element.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

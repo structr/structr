@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,23 +24,19 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.action.JavaScriptSource;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,11 +74,12 @@ public class SecurityContext {
 	private boolean doInnerCallbacks                      = true;
 	private boolean isReadOnlyTransaction                 = false;
 	private boolean doMultiThreadedJsonOutput             = false;
+	private boolean returnRawResult                       = false;
+	private boolean ignoreMissingNodesInDeserialization   = false;
 	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
 	private int serializationDepth                        = -1;
 
 
-	private final Map<String, Source> libraryCache = new HashMap<>();
 	private final Map<String, QueryRange> ranges   = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs        = new ConcurrentHashMap<>();
 	private AccessMode accessMode                  = AccessMode.Frontend;
@@ -112,7 +109,7 @@ public class SecurityContext {
 	/*
 	 * Alternative constructor for stateful context, e.g. WebSocket
 	 */
-	private SecurityContext(Principal user, HttpServletRequest request, AccessMode accessMode) {
+	private SecurityContext(final Principal user, final HttpServletRequest request, final AccessMode accessMode) {
 
 		this(request);
 
@@ -120,7 +117,7 @@ public class SecurityContext {
 		this.accessMode = accessMode;
 	}
 
-	private SecurityContext(HttpServletRequest request) {
+	private SecurityContext(final HttpServletRequest request) {
 
 		this.request = request;
 
@@ -181,7 +178,7 @@ public class SecurityContext {
 					customView = new LinkedHashSet<>();
 
 					final String properties = matcher.group(1);
-					final String[] parts    = properties.split("[,]+");
+					final String[] parts    = StringUtils.split(properties, ",");
 
 					for (final String part : parts) {
 
@@ -205,12 +202,12 @@ public class SecurityContext {
 			final String rangeSource = request.getHeader("Range");
 			if (rangeSource != null) {
 
-				final String[] rangeParts = rangeSource.split("[;]+");
+				final String[] rangeParts = StringUtils.split(rangeSource, ";");
 				final int rangeCount      = rangeParts.length;
 
 				for (int i = 0; i < rangeCount; i++) {
 
-					final String[] parts = rangeParts[i].split("[=]+");
+					final String[] parts = StringUtils.split(rangeParts[i], "=");
 					if (parts.length == 2) {
 
 						final String identifier = parts[0].trim();
@@ -224,7 +221,7 @@ public class SecurityContext {
 
 							} else {
 
-								final String[] valueParts = valueRange.split("[-]+");
+								final String[] valueParts = StringUtils.split(valueRange, "-");
 								if (valueParts.length == 2) {
 
 									String startString = valueParts[0].trim();
@@ -255,6 +252,7 @@ public class SecurityContext {
 		}
 	}
 
+	/*
 	public static void clearResourceFlag(final String resource, long flag) {
 
 		final String name     = SchemaHelper.normalizeEntityName(resource);
@@ -270,6 +268,7 @@ public class SecurityContext {
 
 		resourceFlags.put(name, flags);
 	}
+	*/
 
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
 		return new SuperUserSecurityContext(request);
@@ -287,21 +286,22 @@ public class SecurityContext {
 		return new SecurityContext(user, request, accessMode);
 	}
 
-	public void removeForbiddenNodes(List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
+	public void removeForbiddenNodes(final List<? extends GraphObject> nodes, final boolean includeHidden, final boolean publicOnly) {
 
 		boolean readableByUser = false;
 
 		for (Iterator<? extends GraphObject> it = nodes.iterator(); it.hasNext();) {
 
-			GraphObject obj = it.next();
+			final GraphObject obj = it.next();
 
-			if (obj instanceof AbstractNode) {
+			if (obj.isNode()) {
 
-				AbstractNode n = (AbstractNode) obj;
+				final NodeInterface node = (NodeInterface) obj;
+				final AccessControllable ac = node.as(AccessControllable.class);
 
-				readableByUser = n.isGranted(Permission.read, this);
+				readableByUser = ac.isGranted(Permission.read, this);
 
-				if (!(readableByUser && includeHidden && (n.isVisibleToPublicUsers() || !publicOnly))) {
+				if (!(readableByUser && includeHidden && (node.isVisibleToPublicUsers() || !publicOnly))) {
 
 					it.remove();
 				}
@@ -433,7 +433,7 @@ public class SecurityContext {
 		return defaultValue;
 	}
 
-	public static long getResourceFlags(String resource) {
+	public static long getResourceFlags(final String resource) {
 
 		final String name     = SchemaHelper.normalizeEntityName(resource);
 		final Long flagObject = resourceFlags.get(name);
@@ -460,14 +460,14 @@ public class SecurityContext {
 
 		Principal user = getUser(false);
 
-		return ((user != null) && (user instanceof SuperUser || user.isAdmin()));
+		return user != null && user.isAdmin();
 	}
 
 	public boolean isSuperUserSecurityContext () {
 		return false;
 	}
 
-	public boolean isVisible(AccessControllable node) {
+	public boolean isVisible(final GraphObject node) {
 
 		switch (accessMode) {
 
@@ -514,7 +514,7 @@ public class SecurityContext {
 			return true;
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	public MergeMode getRemoteCollectionMergeMode() {
@@ -522,7 +522,7 @@ public class SecurityContext {
 	}
 
 	// ----- private methods -----
-	private boolean isVisibleInBackend(AccessControllable node) {
+	private boolean isVisibleInBackend(final GraphObject node) {
 
 		if (isVisibleInFrontend(node)) {
 
@@ -545,12 +545,12 @@ public class SecurityContext {
 		}
 
 		// SuperUser may always see the node
-		if (user instanceof SuperUser) {
+		if (user.isAdmin()) {
 
 			return true;
 		}
 
-		return node.isGranted(Permission.read, this);
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	/**
@@ -562,13 +562,10 @@ public class SecurityContext {
 	 * It should *not* be used to check accessibility of child nodes because
 	 * it might send a 401 along with a request for basic authentication.
 	 *
-	 * For those, use
-	 * {@link SecurityContext#isReadable(org.structr.core.entity.AbstractNode, boolean, boolean)}
-	 *
 	 * @param node
 	 * @return isVisible
 	 */
-	private boolean isVisibleInFrontend(AccessControllable node) {
+	private boolean isVisibleInFrontend(final GraphObject node) {
 
 		if (node == null) {
 
@@ -584,15 +581,8 @@ public class SecurityContext {
 		// Fetch already logged-in user, if present (don't try to login)
 		final Principal user = getUser(false);
 
-		if (user != null) {
-
-			final Principal owner = node.getOwnerNode();
-
-			// owner is always allowed to do anything with its nodes
-			if (user.equals(node) || user.equals(owner) || Iterables.toList(user.getParents()).contains(owner)) {
-
-				return true;
-			}
+		if (user != null && user.isAdmin()) {
+			return true;
 		}
 
 		// Public nodes are visible to non-auth users only
@@ -610,7 +600,20 @@ public class SecurityContext {
 			}
 		}
 
-		return node.isGranted(Permission.read, this);
+		if (user != null) {
+
+			final Principal owner         = node.as(AccessControllable.class).getOwnerNode();
+			final NodeInterface ownerNode = owner != null ? owner : null;
+			final NodeInterface userNode  = user;
+
+			// owner is always allowed to do anything with its nodes
+			if (userNode.equals(node) || userNode.equals(ownerNode) || Iterables.toList(user.getParents()).contains(owner)) {
+
+				return true;
+			}
+		}
+
+		return node.as(AccessControllable.class).isGranted(Permission.read, this);
 	}
 
 	public void setRequest(HttpServletRequest request) {
@@ -706,13 +709,19 @@ public class SecurityContext {
 
 		if (cachedUser != null) {
 
-			// Priority 2: User locale
-			final String userLocaleString = cachedUser.getLocale();
-			if (userLocaleString != null) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				userHasLocaleString = true;
-				locale = Locale.forLanguageTag(userLocaleString.replaceAll("_", "-"));
-			}
+				// Priority 2: User locale
+				final String userLocaleString = cachedUser.getLocale();
+				if (userLocaleString != null) {
+
+					userHasLocaleString = true;
+					locale = Locale.forLanguageTag(userLocaleString.replaceAll("_", "-"));
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {}
 		}
 
 		if (request != null) {
@@ -854,6 +863,14 @@ public class SecurityContext {
 		this.uuidWasSetManually = wasSet;
 	}
 
+	public boolean ignoreMissingNodesInDeserialization() {
+		return ignoreMissingNodesInDeserialization;
+	}
+
+	public void setIgnoreMissingNodesInDeserialization(final boolean value) {
+		this.ignoreMissingNodesInDeserialization = value;
+	}
+
 	public String getSessionId() {
 
 		// return session id for HttpSession if present
@@ -939,70 +956,16 @@ public class SecurityContext {
 		return softLimit;
 	}
 
-	public Source getJavascriptLibraryCode(String fileName) {
+	public boolean returnRawResult() {
+		return returnRawResult;
+	}
 
-		synchronized (libraryCache) {
+	public void enableReturnRawResult() {
+		this.returnRawResult = true;
+	}
 
-			Source cachedSource = libraryCache.get(fileName);
-			if (cachedSource == null) {
-
-				final StringBuilder buf = new StringBuilder();
-				final App app           = StructrApp.getInstance();
-				String language         = "js";
-
-				try (final Tx tx = app.tx()) {
-
-					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-							.and(JavaScriptSource.name, fileName)
-							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
-							.getAsList();
-
-					if (jsFiles.isEmpty()) {
-
-						logger.warn("No JavaScript library file found with fileName: {}", fileName );
-
-					} else if (jsFiles.size() > 1) {
-
-						logger.warn("Multiple JavaScript library files found with fileName: {}. This may cause problems!", fileName );
-					}
-
-					for (final JavaScriptSource jsLibraryFile : jsFiles) {
-
-						final String contentType = jsLibraryFile.getContentType();
-						if (contentType != null) {
-
-							final String lowerCaseContentType = contentType.toLowerCase();
-
-							language = Source.findLanguage(lowerCaseContentType);
-
-							if ("text/javascript".equals(lowerCaseContentType) || "application/javascript".equals(lowerCaseContentType) || "application/javascript+module".equals(lowerCaseContentType)) {
-
-								buf.append(jsLibraryFile.getJavascriptLibraryCode());
-
-							} else {
-
-								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript, application/javascript or application/javascript+module for ES modules.", new Object[] { jsLibraryFile.getName(), contentType } );
-							}
-
-						} else {
-
-							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
-						}
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					logger.warn("", fex);
-				}
-
-				cachedSource = Source.create(language, buf.toString());
-
-				libraryCache.put(fileName, cachedSource);
-			}
-
-			return cachedSource;
-		}
+	public void disableReturnRawResult() {
+		this.returnRawResult = false;
 	}
 
 	// ----- static methods -----
@@ -1055,8 +1018,7 @@ public class SecurityContext {
 		}
 
 		@Override
-		public boolean isVisible(AccessControllable node) {
-
+		public boolean isVisible(final GraphObject node) {
 			return true;
 		}
 

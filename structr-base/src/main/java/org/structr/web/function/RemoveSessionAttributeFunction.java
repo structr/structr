@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,23 +23,26 @@ import jakarta.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 
 public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE    = "Usage: ${remove_session_attribute(key)}. Example: ${remove_session_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.remove_session_attribute(key)}}. Example: ${{Structr.remove_session_attribute(\"do_not_track\")}}";
-
 	@Override
 	public String getName() {
-		return "remove_session_attribute";
+		return "removeSessionAttribute";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override
@@ -50,11 +53,13 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final HttpSession session = ctx.getSecurityContext().getSession();
+			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
-				session.removeAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+
+				sessionWrapper.removeMember(sources[0].toString());
 			} else {
-				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+				logger.warn("{}: No session available to remvoe session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
 			return "";
@@ -72,12 +77,37 @@ public class RemoveSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE_JS : ERROR_MESSAGE_REMOVE_SESSION_ATTRIBUTE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${removeSessionAttribute(key)}. Example: "),
+			Usage.javaScript("Usage: ${{$.removeSessionAttribute(key)}}. Example: $")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Remove key/value pair from the user session.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+				Example.structrScript("${removeSessionAttribute('do_no_track')}"),
+				Example.javaScript("${{ $.removeSessionAttribute('do_not_track') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "key to remove from session")
+				);
 	}
 }

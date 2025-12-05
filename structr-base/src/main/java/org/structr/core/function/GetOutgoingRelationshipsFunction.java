@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,9 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -31,23 +34,20 @@ import java.util.List;
 
 public class GetOutgoingRelationshipsFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS    = "Usage: ${get_outgoing_relationships(from, to [, relType])}. Example: ${get_outgoing_relationships(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS = "Usage: ${{Structr.get_outgoing_relationships(from, to [, relType])}}. Example: ${{Structr.get_outgoing_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
-
 	@Override
 	public String getName() {
-		return "get_outgoing_relationships";
+		return "getOutgoingRelationships";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target [, relType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final List<AbstractRelationship> list = new ArrayList<>();
+		final List<RelationshipInterface> list = new ArrayList<>();
 
 		try {
 
@@ -56,13 +56,13 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 			final Object source = sources[0];
 			final Object target = sources[1];
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = null;
+			NodeInterface sourceNode = null;
+			NodeInterface targetNode = null;
 
-			if (source instanceof AbstractNode && target instanceof AbstractNode) {
+			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-				sourceNode = (AbstractNode)source;
-				targetNode = (AbstractNode)target;
+				sourceNode = (NodeInterface)source;
+				targetNode = (NodeInterface)target;
 
 			} else {
 
@@ -72,7 +72,7 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 
 			if (sources.length == 2) {
 
-				for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getOutgoingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -89,7 +89,7 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 				// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 				final String relType = (String)sources[2];
 
-				for (final AbstractRelationship rel : sourceNode.getOutgoingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getOutgoingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -117,12 +117,40 @@ public class GetOutgoingRelationshipsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_OUTGOING_RELATIONSHIPS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getOutgoingRelationships(from, to [, relType])}. Example: ${getOutgoingRelationships(me, user, 'FOLLOWS')}"),
+			Usage.javaScript("Usage: ${{$.getOutgoingRelationships(from, to [, relType])}}. Example: ${{$.getOutgoingRelationships(Structr.get('me'), user, 'FOLLOWS')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the outgoing relationships of the given entity with an optional relationship type";
+	public String getShortDescription() {
+		return "Returns the outgoing relationships of the given entity with an optional relationship type.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getOutgoingRelationships(page, me)}"),
+				Example.javaScript("${{ $.getOutgoingRelationships($.page, $.me) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("from", "source node"),
+				Parameter.mandatory("to", "target node"),
+				Parameter.optional("relType", "relationship type")
+		);
+	}
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,63 +23,53 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.RelationshipEndNodeConverter;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 
 import java.util.Map;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A property that returns the end node of a relationship.
- *
- *
  */
 public class EndNodeProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	public EndNodeProperty(final String name) {
-
 		super(name);
-
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
-
 		return databaseConverter(securityContext, null);
-
 	}
 
 	@Override
 	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
-
 		return new RelationshipEndNodeConverter(securityContext, entity);
-
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext) {
-
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return null;
-
 	}
 
 	@Override
 	public Object fixDatabaseProperty(final Object value) {
-
 		return null;
+	}
 
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override
 	public String typeName() {
-
-		return null;
+		return StructrTraits.NODE_INTERFACE;
 	}
 
 	@Override
 	public Class valueType() {
-		return null;
+		return NodeInterface.class;
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,15 +20,18 @@ package org.structr.core.function.search;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_AROUND_FIND = "Usage: ${within_distance(latitude, longitude, meters). Example: ${find('Location', and(within_distance(51, 7, 10)))}";
-
 	@Override
 	public String getName() {
-		return "find.within_distance";
+		return "find.withinDistance";
 	}
 
 	@Override
@@ -58,13 +61,21 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_AROUND_FIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.predicate.withinDistance(latitude, longitude, meters) }}. Example: ${{ $.find('Location', $.predicate.and($.predicate.withinDistance(51, 7, 10))) }}"),
+			Usage.structrScript("Usage: ${withinDistance(latitude, longitude, meters). Example: ${find('Location', and(withinDistance(51, 7, 10)))}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Returns a query predicate that can be used with find() or search().";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override
@@ -73,7 +84,16 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("latitude, longitude, distance");
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("latitude", "latitude of the center point"),
+			Parameter.mandatory("longitude", "longitude of the center point"),
+			Parameter.mandatory("distance", "circumference of the circle around the center point")
+		);
 	}
 }

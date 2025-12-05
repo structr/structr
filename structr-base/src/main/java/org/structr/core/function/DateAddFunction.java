@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,26 +21,29 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.converter.TemporalDateConverter;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 public class DateAddFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${date_add(this.createdDate, 1, -1, 0, 0, 0, 0)}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}}. Example: ${{Structr.date_add(Structr.this.createdDate, 1, -1, 0, 0, 0, 0)}}";
-
 	@Override
 	public String getName() {
-		return "date_add";
+		return "dateAdd";
 	}
 
 	@Override
-	public String getSignature() {
-		return "date, years[, months[, days[, hours[, minutes[, seconds]]]]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("date, years[, months[, days[, hours[, minutes[, seconds]]]]]");
 	}
 
 	@Override
@@ -62,14 +65,19 @@ public class DateAddFunction extends CoreFunction {
 
 			} else {
 
-				try {
-					// parse with format from IS
-					date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
+				date = TemporalDateConverter.convert(sources[0]);
 
-				} catch (ParseException ex) {
+				if (date == null) {
 
-					logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getReplacement(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources) });
-					return "";
+					try {
+						// parse with format from IS
+						date = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").parse(sources[0].toString());
+
+					} catch (ParseException ex) {
+
+						logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[]{getDisplayName(), sources[0].toString(), "yyyy-MM-dd'T'HH:mm:ssZ", caller, getParametersAsString(sources)});
+						return "";
+					}
 				}
 			}
 
@@ -103,7 +111,7 @@ public class DateAddFunction extends CoreFunction {
 			if (sources[index] instanceof Number) {
 				return ((Number)sources[index]).intValue();
 			} else {
-				logger.warn("{}: Parameter \"{}\" must be integer! Provided: {} - using 0 as value. (Parameters: {})", getReplacement(), name, sources[index], getParametersAsString(sources));
+				logger.warn("{}: Parameter \"{}\" must be integer! Provided: {} - using 0 as value. (Parameters: {})", getDisplayName(), name, sources[index], getParametersAsString(sources));
 			}
 		}
 
@@ -111,12 +119,50 @@ public class DateAddFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DATE_FORMAT_JS : ERROR_MESSAGE_DATE_FORMAT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${dateAdd(this.createdDate, 1, -1, 0, 0, 0, 0)}"),
+			Usage.javaScript("Usage: ${{ $.dateAdd(date, years[, months[, days[, hours[, minutes[, seconds]]]]]); }}. Example: ${{ $.dateAdd($.this.createdDate, 1, -1, 0, 0, 0, 0); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Adds the given values to a date";
+	public String getShortDescription() {
+		return "Adds the given values to a date.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The result is returned as new date object, leaving the original date untouched.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("date", "date to manipulate"),
+				Parameter.mandatory("years", "number of years to add"),
+				Parameter.optional("months", "number of months to add"),
+				Parameter.optional("days", "number of days to add"),
+				Parameter.optional("hours", "number of hours to add"),
+				Parameter.optional("minutes", "number of minutes to add"),
+				Parameter.optional("seconds", "number of seconds to add")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The `date` parameter accepts actual date objects, numbers (interpreted as ms after 1970) and strings (formatted as `yyyy-MM-dd'T'HH:mm:ssZ`)",
+				"All other parameters must be provided as numbers"
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${dateAdd(now, 1)}", "Adds one year to the current date"),
+				Example.structrScript("${dateAdd(now, 0, 0, 7)}", "Adds one week to the current date"),
+				Example.structrScript("${dateAdd(now, 0, 0, -7)}", "Subtracts one week from the current date")
+		);
 	}
 }

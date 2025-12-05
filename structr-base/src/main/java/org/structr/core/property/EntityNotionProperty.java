@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,17 +21,17 @@ package org.structr.core.property;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
+import org.structr.core.traits.Traits;
 
 import java.util.Collections;
 import java.util.Map;
@@ -49,17 +49,21 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 
 	private static final Logger logger = LoggerFactory.getLogger(EntityNotionProperty.class.getName());
 
-	private Property<S> entityProperty = null;
-	private Notion<S, T> notion        = null;
+	private final String baseType;
+	private final String relatedType;
+	private final String basePropertyName;
+	private final Notion<S, T> notion;
 
-	public EntityNotionProperty(final String name, final Property<S> base, final Notion<S, T> notion) {
+	public EntityNotionProperty(final String name, final String baseType, final String basePropertyName, final String relatedType, final Notion<S, T> notion) {
 
 		super(name);
 
-		this.notion = notion;
-		this.entityProperty   = base;
+		this.notion           = notion;
+		this.baseType         = baseType;
+		this.relatedType      = relatedType;
+		this.basePropertyName = basePropertyName;
 
-		notion.setType(base.relatedType());
+		notion.setType(relatedType);
 	}
 
 	@Override
@@ -88,29 +92,32 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<T, ?> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return null;
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, boolean applyConverter) {
 		return getProperty(securityContext, obj, applyConverter, null);
 	}
 
 	@Override
-	public T getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
+	public T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		try {
+
+			final PropertyKey<S> entityProperty = Traits.of(baseType).key(basePropertyName);
+
 			return notion.getAdapterForGetter(securityContext).adapt(entityProperty.getProperty(securityContext, obj, applyConverter, predicate));
 
 		} catch (FrameworkException fex) {
@@ -122,7 +129,9 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public Object setProperty(SecurityContext securityContext, GraphObject obj, T value) throws FrameworkException {
+	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException {
+
+		final PropertyKey<S> entityProperty = Traits.of(baseType).key(basePropertyName);
 
 		if (value != null) {
 
@@ -135,13 +144,13 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public Class relatedType() {
-		return entityProperty.relatedType();
+	public String relatedType() {
+		return relatedType;
 	}
 
 	@Override
 	public Class valueType() {
-		return relatedType();
+		return null;
 	}
 
 	@Override
@@ -150,8 +159,16 @@ public class EntityNotionProperty<S extends NodeInterface, T> extends Property<T
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, T searchValue, boolean exactMatch, final Query query) {
-		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), entityProperty, searchValue, occur, exactMatch);
+	public boolean isArray() {
+		return false;
+	}
+
+	@Override
+	public SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query) {
+
+		final PropertyKey<S> entityProperty = Traits.of(baseType).key(basePropertyName);
+
+		return new GraphSearchAttribute(notion.getPrimaryPropertyKey(), entityProperty, searchValue, exactMatch);
 	}
 
 	@Override

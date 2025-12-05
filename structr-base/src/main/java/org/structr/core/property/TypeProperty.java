@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,15 +25,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
+import org.structr.core.traits.Traits;
 
 import java.util.*;
 
 /**
- *
- *
  */
 public class TypeProperty extends StringProperty {
 
@@ -45,7 +42,7 @@ public class TypeProperty extends StringProperty {
 		readOnly();
 		indexed();
 		writeOnce();
-
+		nodeIndexOnly();
 	}
 
 	@Override
@@ -53,41 +50,24 @@ public class TypeProperty extends StringProperty {
 
 		super.setProperty(securityContext, obj, value);
 
-		if (obj instanceof NodeInterface) {
+		if (obj instanceof NodeInterface node) {
 
-			final Class type = StructrApp.getConfiguration().getNodeEntityClass(value);
+			final Traits traits = Traits.of(value);
 
-			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), (NodeInterface)obj, type, true);
+			TypeProperty.updateLabels(StructrApp.getInstance().getDatabaseService(), node, traits, true);
 		}
 
 		return null;
 	}
 
-	public static Set<String> getLabelsForType(final Class type) {
-
-		final Set<String> result = new LinkedHashSet<>();
-
-		// collect new labels
-		for (final Class supertype : SearchCommand.typeAndAllSupertypes(type)) {
-
-			final String supertypeName = supertype.getName();
-
-			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-				result.add(supertype.getSimpleName());
-			}
-		}
-
-		return result;
-	}
-
-	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Class inputType, final boolean removeUnused) {
+	public static void updateLabels(final DatabaseService graphDb, final NodeInterface node, final Traits inputType, final boolean removeUnused) {
 
 		final Set<String> intersection = new LinkedHashSet<>();
 		final Set<String> toRemove     = new LinkedHashSet<>();
 		final Set<String> toAdd        = new LinkedHashSet<>();
 		final Node dbNode              = node.getNode();
 		final List<String> labels      = Iterables.toList(dbNode.getLabels());
-		Class singleLabelType          = inputType;
+		Traits typeCandidate           = inputType;
 
 		// include optional tenant identifier when modifying labels
 		final String tenantIdentifier = graphDb.getTenantIdentifier();
@@ -98,16 +78,16 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// initialize type property from single label on unknown nodes
-		if (node instanceof GenericNode && labels.size() == 1 && !dbNode.hasProperty("type")) {
+		if (node instanceof NodeInterface && labels.size() == 1 && !dbNode.hasProperty("type")) {
 
 			final String singleLabelTypeName = labels.get(0);
-			final Class typeCandidate        = StructrApp.getConfiguration().getNodeEntityClass(singleLabelTypeName);
 
-			if (typeCandidate != null) {
-				singleLabelType = typeCandidate;
+			if (Traits.exists(singleLabelTypeName)) {
+
+				typeCandidate = Traits.of(singleLabelTypeName);
+
+				dbNode.setProperty("type", singleLabelTypeName);
 			}
-
-			dbNode.setProperty("type", labels.get(0));
 		}
 
 		// collect labels that are already present on a node
@@ -116,14 +96,7 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// collect new labels
-		for (final Class supertype : SearchCommand.typeAndAllSupertypes(singleLabelType)) {
-
-			final String supertypeName = supertype.getName();
-
-			if (supertypeName.startsWith("org.structr.") || supertypeName.startsWith("com.structr.")) {
-				toAdd.add(supertype.getSimpleName());
-			}
-		}
+		toAdd.addAll(typeCandidate.getLabels());
 
 		// calculate intersection
 		intersection.addAll(toAdd);
@@ -142,8 +115,9 @@ public class TypeProperty extends StringProperty {
 		}
 
 		// add difference
-		for (final String add : toAdd) {
-			dbNode.addLabel(add);
+		if (!toAdd.isEmpty()) {
+
+			dbNode.addLabels(toAdd);
 		}
 	}
 

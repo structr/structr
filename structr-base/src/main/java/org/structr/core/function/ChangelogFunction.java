@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,11 +33,15 @@ import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.EndNodeProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
@@ -54,19 +58,11 @@ import java.util.Map;
 
 public class ChangelogFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_CHANGELOG = "Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}";
-	public static final String ERROR_MESSAGE_CHANGELOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false[, filterObject]])}}. Example: ${{Structr.changelog(Structr.get('current'), false, {verb:\"change\", timeTo: new Date()}))}}";
-
 	private static final Logger logger = LoggerFactory.getLogger(ChangelogFunction.class.getName());
 
 	@Override
 	public String getName() {
 		return "changelog";
-	}
-
-	@Override
-	public String getSignature() {
-		return "entity [, resolve=false [, filterKey, filterValue ]... ]";
 	}
 
 	@Override
@@ -138,13 +134,84 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CHANGELOG_JS : ERROR_MESSAGE_CHANGELOG);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}"),
+			Usage.javaScript("Usage: ${{ $.changelog(entity[, resolve=false[, filterObject]]); }}. Example: ${{ $.changelog($.current, false, {verb:'change', timeTo: new Date()})); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the changelog object";
+	public String getShortDescription() {
+		return "Returns the changelog for a given entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		The `resolve` parameter controls if remote entities are resolved. Every changelog entry which has a `target` will be resolved as `targetObj` (if the remote entity still exists in the database).
+
+		**Filtering**
+		All filter options are chained using the boolean AND operator. Only changelog entries matching all of the specified filters will be returned.
+		For filter keys which can occurr more than once, the filter values are combined using the boolean OR operator (see examples 1 and 2)
+
+		| Filter Key | Applicable Changelog verbs (\\*) | Changelog Entry will be returned if | max. occurrences |
+		|---|---|---|---|
+		| timeFrom (\\*\\*) | create, delete, link, unlink, change | `timeFrom` <= `time` of the entry | 1 (\\*\\*\\*) |
+		| timeTo (\\*\\*) | create, delete, link, unlink, change | `timeTo` >= `time` of the entry | 1 (\\*\\*\\*) |
+		| verb | create, delete, link, unlink, change | `verb` of the entry matches at least one of the verbs | n (\\*\\*\\*\\*) |
+		| userId | create, delete, link, unlink, change | `userId` of the entry matches at least one of the userIds     | n (\\*\\*\\*\\*) |
+		| userName | create, delete, link, unlink, change | `userName` of the entry matches at least one of the userNames | n (\\*\\*\\*\\*) |
+		| relType | link, unlink | `rel` of the entry matches at least one of the relTypes | n (\\*\\*\\*\\*) |
+		| relDir | link, unlink | `relDir` of the entry matches the given relDir | 1 (\\*\\*\\*) |
+		| target | create, delete, link, unlink | `target` of the entry matches at least one of the targets     | n (\\*\\*\\*\\*) |
+		| key | change | `key` of the entry matches at least one of the keys | n (\\*\\*\\*\\*) |
+
+		(\\*) If a filter parameter is supplied, only changelog entries can be returned to which it is applicable. (e.g. combining `key` and `relType` can never yield a result as they are mutually exclusive)
+		(\\*\\*) timeFrom/timeTo can be specified as a Long (time in ms since epoch), as a JavaScript Date object, or as a String with the format `yyyy-MM-dd'T'HH:mm:ssZ`
+		(\\*\\*\\*) The last supplied parameter takes precedence over the others
+		(\\*\\*\\*\\*) The way we supply multiple occurrences of a keyword can differ from StructrScript to JavaScript
+		""";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of(
+			Signature.structrScript("entity [, resolve=false [, filterKey, filterValue ]... ]"),
+			Signature.structrScript("uuid [, resolve=false [, filterKey, filterValue ]... ]"),
+			Signature.javaScript("entity [, resolve=false [, filterKey, filterValue ]... ]"),
+			Signature.javaScript("uuid [, resolve=false [, filterKey, filterValue ]... ]")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("entityOrUUID", "entity to fetch changelog for"),
+			Parameter.optional("resolve", "whether remote entities are resolved and returned"),
+			Parameter.optional("filterKey", "filter key, see above table"),
+			Parameter.optional("filterValue", "filter value, see above table")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${changelog(node, false, 'verb', 'link')}", "Return all changelog entries with verb=link"),
+			Example.javaScript("${{ $.changelog(node, false, {verb: ['link', 'unlink']}); }}", "Return all changelog entries with verb=(link OR unlink)"),
+			Example.javaScript("${{ $.changelog(node, false, {verb: ['link', 'unlink'], 'relType': 'OWNS'}); }}", "Return all changelog entries with (rel=OWNS) AND (verb=(link OR unlink))"),
+			Example.javaScript("${{ $.changelog(node, false, {verb: ['link', 'unlink'], 'target': '<NODEID>'}); }}", "Return all changelog entries with (target=<NODEID>) AND (verb=(link OR unlink))")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"The Changelog has to be enabled for this function to work properly. This can be done via the `application.changelog.enabled` key in configuration file structr.conf",
+			"The `prev` and `val` keys in the `change` event contain JSON encoded elements since they can be strings or arrays.",
+			"In a StructrScript environment parameters are passed as pairs of `'filterKey1', 'filterValue1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
 	}
 
 	private String getChangelogForObject (final Object obj) throws IOException {
@@ -290,19 +357,19 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 		private boolean _isUserCentricChangelog = false;
 
 		// Properties for the changelog entries
-		private final Property<String>  changelog_verb                        = new StringProperty("verb");
-		private final Property<String>  changelog_time                        = new StringProperty("time");
-		private final Property<String>  changelog_userId                      = new StringProperty("userId");
-		private final Property<String>  changelog_userName                    = new StringProperty("userName");
-		private final Property<String>  changelog_target                      = new StringProperty("target");
-		private final Property<AbstractNode> changelog_targetObj              = new EndNodeProperty<>("targetObj");
-		private final Property<String>  changelog_rel                         = new StringProperty("rel");
-		private final Property<String>  changelog_relId                       = new StringProperty("relId");
-		private final Property<String>  changelog_relDir                      = new StringProperty("relDir");
-		private final Property<String>  changelog_key                         = new StringProperty("key");
-		private final Property<String>  changelog_prev                        = new StringProperty("prev");
-		private final Property<String>  changelog_val                         = new StringProperty("val");
-		private final Property<String>  changelog_type                        = new StringProperty("type");
+		private final Property<String>  changelogVerb                        = new StringProperty("verb");
+		private final Property<String>  changelogTime                        = new StringProperty("time");
+		private final Property<String>  changelogUserId                      = new StringProperty("userId");
+		private final Property<String>  changelogUserName                    = new StringProperty("userName");
+		private final Property<String>  changelogTarget                      = new StringProperty("target");
+		private final Property<NodeInterface> changelogTargetObj             = new EndNodeProperty<>("targetObj");
+		private final Property<String>  changelogRel                         = new StringProperty("rel");
+		private final Property<String>  changelogRelId                       = new StringProperty("relId");
+		private final Property<String>  changelogRelDir                      = new StringProperty("relDir");
+		private final Property<String>  changelogKey                         = new StringProperty("key");
+		private final Property<String>  changelogPrev                        = new StringProperty("prev");
+		private final Property<String>  changelogVal                         = new StringProperty("val");
+		private final Property<String>  changelogType                        = new StringProperty("type");
 
 		public void setIsUserCentricChangelog(final boolean userCentric) {
 			_isUserCentricChangelog = userCentric;
@@ -420,22 +487,22 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 					final GraphObjectMap obj = new GraphObjectMap();
 
-					obj.put(changelog_verb, verb);
-					obj.put(changelog_time, time);
+					obj.put(changelogVerb, verb);
+					obj.put(changelogTime, time);
 
 					if (!_isUserCentricChangelog) {
-						obj.put(changelog_userId, userId);
-						obj.put(changelog_userName, userName);
+						obj.put(changelogUserId, userId);
+						obj.put(changelogUserName, userName);
 					}
 
 					switch (verb) {
 						case "create":
 						case "delete":
-							obj.put(changelog_target, target);
-							obj.put(changelog_type, type);
+							obj.put(changelogTarget, target);
+							obj.put(changelogType, type);
 
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, resolveTarget(target));
+								obj.put(changelogTargetObj, resolveTarget(target));
 							}
 
 							list.add(obj);
@@ -444,13 +511,13 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 						case "link":
 						case "unlink":
-							obj.put(changelog_rel, relType);
-							obj.put(changelog_relId, relId);
-							obj.put(changelog_relDir, relDir);
-							obj.put(changelog_target, target);
+							obj.put(changelogRel, relType);
+							obj.put(changelogRelId, relId);
+							obj.put(changelogRelDir, relDir);
+							obj.put(changelogTarget, target);
 
 							if (_resolveTargets) {
-								obj.put(changelog_targetObj, resolveTarget(target));
+								obj.put(changelogTargetObj, resolveTarget(target));
 							}
 
 							list.add(obj);
@@ -458,15 +525,15 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 							break;
 
 						case "change":
-							obj.put(changelog_key, key);
-							obj.put(changelog_prev, _gson.toJson(jsonObj.get("prev")));
-							obj.put(changelog_val, _gson.toJson(jsonObj.get("val")));
+							obj.put(changelogKey, key);
+							obj.put(changelogPrev, _gson.toJson(jsonObj.get("prev")));
+							obj.put(changelogVal, _gson.toJson(jsonObj.get("val")));
 
 							if (_isUserCentricChangelog) {
 
-								obj.put(changelog_target, target);
+								obj.put(changelogTarget, target);
 								if (_resolveTargets) {
-									obj.put(changelog_targetObj, resolveTarget(target));
+									obj.put(changelogTargetObj, resolveTarget(target));
 								}
 							}
 

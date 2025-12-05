@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,16 +20,12 @@ package org.structr.common;
 
 /**
  * Simple class to hold parameters for thumbnail generation.
- *
- *
  */
 public class ThumbnailParameters {
 
 	private final int maxWidth;
 	private final int maxHeight;
 	private final boolean cropToFit;
-
-	//~--- constructors ---------------------------------------------------
 
 	public ThumbnailParameters(final int maxWidth, final int maxHeight, final boolean cropToFit) {
 
@@ -38,24 +34,15 @@ public class ThumbnailParameters {
 		this.cropToFit = cropToFit;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	public int getMaxWidth() {
-
 		return maxWidth;
-
 	}
 
 	public int getMaxHeight() {
-
 		return maxHeight;
-
 	}
 
 	public boolean getCropToFit() {
-
 		return cropToFit;
-
 	}
-
 }

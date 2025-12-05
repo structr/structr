@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,23 +19,25 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Date;
+import java.util.List;
 
 public class ToDateFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_TO_DATE    = "Usage: ${to_date(value)}. Example: ${to_date(1473201885000)}";
-	public static final String ERROR_MESSAGE_TO_DATE_JS = "Usage: ${{Structr.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}";
-
 	@Override
 	public String getName() {
-		return "to_date";
+		return "toDate";
 	}
 
 	@Override
-	public String getSignature() {
-		return "number";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("number");
 	}
 
 	@Override
@@ -75,13 +77,36 @@ public class ToDateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TO_DATE_JS : ERROR_MESSAGE_TO_DATE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${toDate(value)}. Example: ${toDate(1473201885000)}"),
+			Usage.javaScript("Usage: ${{$.toDate(value)}}. Example: ${{Structr.toDate(1473201885000)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Converts the given number to a date";
+	public String getShortDescription() {
+		return "Converts the given number to a date.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The number is interpreted as UNIX timestamp (milliseconds from Jan. 1, 1970).";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${toDate(1585504800000)}"),
+				Example.javaScript("${{ $.toDate(1585504800000) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("number", "unix timestamp")
+		);
 	}
 
 }

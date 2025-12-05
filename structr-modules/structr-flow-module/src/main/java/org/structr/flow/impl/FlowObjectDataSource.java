@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,52 +18,28 @@
  */
 package org.structr.flow.impl;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.View;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.flow.api.KeyValue;
-import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowKeyValueObjectInput;
+import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.flow.traits.definitions.FlowKeyValueTraitDefinition;
+import org.structr.flow.traits.definitions.FlowObjectDataSourceTraitDefinition;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-/**
- *
- */
 public class FlowObjectDataSource extends FlowDataSource {
 
-	private static final Logger logger = LoggerFactory.getLogger(FlowObjectDataSource.class);
+	public FlowObjectDataSource(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
+	}
 
-	public static final Property<Iterable<FlowKeyValue>> keyValueSources = new StartNodes<>("keyValueSources", FlowKeyValueObjectInput.class);
+	public final Iterable<FlowKeyValue> getKeyValueSources() {
 
-	public static final View defaultView = new View(FlowObjectDataSource.class, PropertyView.Public, keyValueSources);
-	public static final View uiView      = new View(FlowObjectDataSource.class, PropertyView.Ui,     keyValueSources);
+		final Iterable<NodeInterface> nodes = wrappedObject.getProperty(traits.key(FlowObjectDataSourceTraitDefinition.KEY_VALUE_SOURCES_PROPERTY));
 
-	@Override
-	public Object get(final Context context) throws FlowException {
+		return Iterables.map(n -> n.as(FlowKeyValue.class), nodes);
+	}
 
-		final Map<String, Object> result = new LinkedHashMap<>();
+	public void setKeyValueSources(final Iterable<FlowKeyValue> keyValueSources) throws FrameworkException {
 
-		for (final FlowKeyValue _keySource : getProperty(keyValueSources)) {
-
-			final Object item = _keySource.get(context);
-			if (item != null && item instanceof KeyValue) {
-
-				final KeyValue keyValue = (KeyValue)item;
-
-				result.put(keyValue.getKey(), keyValue.getValue());
-
-			} else {
-
-				logger.warn("KeyValue source {} of {} returned invalid value {}", _keySource.getUuid(), getUuid(), item);
-			}
-		}
-
-		return result;
+		wrappedObject.setProperty(traits.key(FlowObjectDataSourceTraitDefinition.KEY_VALUE_SOURCES_PROPERTY), keyValueSources);
 	}
 }

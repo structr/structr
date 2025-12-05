@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,23 +21,24 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Locale;
 
 public class SetLocaleFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SET_LOCALE    = "Usage: ${set_locale(locale)}. Example: ${set_locale('de_DE')}";
-	public static final String ERROR_MESSAGE_SET_LOCALE_JS = "Usage: ${{Structr.setLocale(locale)}}. Example: ${{Structr.setLocale('de_DE');}}";
-
 	@Override
 	public String getName() {
-		return "set_locale";
+		return "setLocale";
 	}
 
 	@Override
-	public String getSignature() {
-		return "locale";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("locale");
 	}
 
 	@Override
@@ -69,12 +70,30 @@ public class SetLocaleFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_LOCALE_JS : ERROR_MESSAGE_SET_LOCALE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setLocale(locale)}. Example: ${setLocale('de_DE')}"),
+			Usage.javaScript("Usage: ${{ $.setLocale(locale); }}. Example: ${{ $.setLocale('de_DE'); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the locale in the current context to the given value.";
+	public String getShortDescription() {
+		return "Sets the locale for the current request.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+        This function gives granular control of the current locale and directly influences the result of date parsing and formatting functions as well as the results of calls to localize().
+
+        For page rendering and REST requests, the builtin request parameter `_locale` can be used to set the locale for the whole request.
+        """;
+	}
+
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${ (setLocale('de_DE'), dateFormat(now, 'E')) }", "Get name of current weekday in german.")
+		);
 	}
 }

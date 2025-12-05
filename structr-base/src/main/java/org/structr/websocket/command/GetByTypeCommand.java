@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,24 +18,20 @@
  */
 package org.structr.websocket.command;
 
-import com.drew.lang.Iterables;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.Image;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-
-import java.util.List;
 
 /**
  * Websocket command to a list of nodes by type.
@@ -67,9 +63,9 @@ public class GetByTypeCommand extends AbstractCommand {
 			final String rawType                   = webSocketData.getNodeDataStringValue(TYPE_KEY);
 			final String properties                = webSocketData.getNodeDataStringValue(PROPERTIES_KEY);
 			final boolean includeHidden            = webSocketData.getNodeDataBooleanValue(INCLUDE_HIDDEN_KEY);
-			final Class type                       = SchemaHelper.getEntityClassForRawType(rawType);
+			final Traits traits                    = Traits.of(rawType);
 
-			if (type == null) {
+			if (traits == null) {
 				getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 				return;
 			}
@@ -84,11 +80,15 @@ public class GetByTypeCommand extends AbstractCommand {
 			final int page           = webSocketData.getPage();
 
 
-			final Query query = StructrApp.getInstance(securityContext).nodeQuery(type).includeHidden(includeHidden);
+			final QueryGroup query = StructrApp.getInstance(securityContext).nodeQuery()
+				.includeHidden(includeHidden)
+				.page(page)
+				.pageSize(pageSize)
+				.and().type(rawType);
 
 			if (sortKey != null) {
 
-				final PropertyKey sortProperty = StructrApp.key(type, sortKey);
+				final PropertyKey sortProperty = traits.key(sortKey);
 				if (sortProperty != null) {
 
 					query.sort(sortProperty, "desc".equals(sortOrder));
@@ -96,20 +96,11 @@ public class GetByTypeCommand extends AbstractCommand {
 			}
 
 			// for image lists, suppress thumbnails
-			if (type.equals(Image.class)) {
-				query.and(StructrApp.key(Image.class, "isThumbnail"), false);
+			if (traits.contains(StructrTraits.IMAGE)) {
+				query.key(traits.key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), false);
 			}
 
-			// do search
-			final ResultStream result    = query.getResultStream();
-			final List<GraphObject> list = Iterables.toList(result);
-
-			// save raw result count
-			int resultCountBeforePaging = result.calculateTotalResultCount(null, securityContext.getSoftLimit(pageSize));
-
-			// set full result list
-			webSocketData.setResult(list);
-			webSocketData.setRawResultCount(resultCountBeforePaging);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);
@@ -120,11 +111,7 @@ public class GetByTypeCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
 		}
-
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

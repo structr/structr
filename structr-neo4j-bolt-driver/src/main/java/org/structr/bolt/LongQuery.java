@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,6 +29,6 @@ public class LongQuery extends AbstractNativeQuery<Long> {
 
 	@Override
 	Long execute(final SessionTransaction tx) {
-		return tx.getLong(query, parameters);
+		return tx.getLong(new SimpleCypherQuery(query, parameters));
 	}
 }

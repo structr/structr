@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,20 +22,19 @@ import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
+import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  *
@@ -44,14 +43,17 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	private final Map<String, Object> data = new LinkedHashMap<>();
 	private GraphObject         wrappedObj = null;
-	private boolean isNode                 = true;
+	private final Traits traits;
+	private final boolean isNode;
 
-	public CreationContainer(final boolean isNode) {
+	public CreationContainer(final Traits traits, final boolean isNode) {
+		this.traits = traits;
 		this.isNode = isNode;
 	}
 
-	public CreationContainer(final GraphObject obj) {
+	public CreationContainer(final Traits traits, final GraphObject obj) {
 		this.wrappedObj = obj;
+		this.traits     = traits;
 		this.isNode     = obj.isNode();
 	}
 
@@ -72,6 +74,25 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	@Override
 	public String getUuid() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void clearCaches() {
+	}
+
+	@Override
+	public Traits getTraits() {
+		return traits;
+	}
+
+	@Override
+	public <T> T as(final Class<T> type) {
+		return null;
+	}
+
+	@Override
+	public boolean is(final String type) {
+		return false;
 	}
 
 	@Override
@@ -96,6 +117,11 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	@Override
 	public PropertyContainer getPropertyContainer() {
 		return this;
+	}
+
+	@Override
+	public Set<PropertyKey> getFullPropertySet() {
+		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
@@ -137,13 +163,13 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public <T> Comparable getComparableProperty(PropertyKey<T> key) {
+	public void removeProperty(PropertyKey key) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
-	public void removeProperty(PropertyKey key) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	public boolean systemPropertiesUnlocked() {
+		return false;
 	}
 
 	@Override
@@ -152,8 +178,33 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
+	public void lockSystemProperties() {
+
+	}
+
+	@Override
+	public boolean readOnlyPropertiesUnlocked() {
+		return false;
+	}
+
+	@Override
 	public void unlockReadOnlyPropertiesOnce() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
+	}
+
+	@Override
+	public void lockReadOnlyProperties() {
+
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext) {
+		return true;
+	}
+
+	@Override
+	public boolean isGranted(Permission permission, SecurityContext securityContext, boolean isCreation) {
+		return true;
 	}
 
 	@Override
@@ -217,6 +268,39 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
+	public boolean isVisibleToPublicUsers() {
+		return true;
+	}
+
+	@Override
+	public boolean isVisibleToAuthenticatedUsers() {
+		return true;
+	}
+
+	@Override
+	public boolean isHidden() {
+		return false;
+	}
+
+	@Override
+	public void setHidden(final boolean hidden) throws FrameworkException {
+	}
+
+	@Override
+	public Date getCreatedDate() {
+		return null;
+	}
+
+	@Override
+	public Date getLastModifiedDate() {
+		return null;
+	}
+
+	@Override
+	public void setLastModifiedDate(final Date date) throws FrameworkException {
+	}
+
+	@Override
 	public void indexPassiveProperties() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
@@ -236,11 +320,6 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 		}
 
 		return Function.numberOrString(defaultValue);
-	}
-
-	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
@@ -317,18 +396,8 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public boolean isStale() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public boolean isDeleted() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public Class getEntityType() {
-		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override

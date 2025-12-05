@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,19 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Geometry;
+import org.geotools.api.coverage.processing.Operation;
+import org.geotools.api.parameter.ParameterValueGroup;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.processing.CoverageProcessor;
-import org.opengis.coverage.processing.Operation;
-import org.opengis.parameter.ParameterValueGroup;
+import org.locationtech.jts.geom.Geometry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import javax.media.jai.Histogram;
@@ -42,16 +44,16 @@ import java.util.Map;
 public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 
 	private static final Logger logger       = LoggerFactory.getLogger(GetWCSHistogramFunction.class.getName());
-	public static final String ERROR_MESSAGE = "usage: get_wcs_histogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])";
+	public static final String ERROR_MESSAGE = "usage: getWcsHistogram(baseUrl, coverageId, boundingBox, [numBins, lowValue])";
 
 	@Override
 	public String getName() {
-		return "get_wcs_histogram";
+		return "getWcsHistogram";
 	}
 
 	@Override
-	public String getSignature() {
-		return "baseUrl, coverageId, bBox [, bins, lowValue ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("baseUrl, coverageId, bBox [, bins, lowValue ]");
 	}
 
 	@Override
@@ -151,12 +153,18 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Reads coverage data from a WCS endpoint and returns it";
+	public String getShortDescription() {
+		return "Reads coverage data from a WCS endpoint and returns it.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

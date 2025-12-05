@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.SearchCommand;
 
 import java.util.Set;
 
@@ -35,21 +34,17 @@ import java.util.Set;
  */
 public class OtherNodeTypeFilter implements Predicate<Relationship> {
 
-	private Set<String> subtypes                 = null;
-	private Predicate<GraphObject> nodePredicate = null;
-	private NodeFactory nodeFactory              = null;
-	private Node thisNode                        = null;
+	private final String desiredType;
+	private final Predicate<GraphObject> nodePredicate;
+	private final NodeFactory nodeFactory;
+	private final Node thisNode;
 
-	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType) {
-		this(securityContext, thisNode, desiredType, null);
-	}
-
-	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final Class desiredType, final Predicate<GraphObject> nodePredicate) {
+	public OtherNodeTypeFilter(final SecurityContext securityContext, final Node thisNode, final String desiredType, final Predicate<GraphObject> nodePredicate) {
 
 		this.nodePredicate = nodePredicate;
 		this.nodeFactory   = new NodeFactory(securityContext);
 		this.thisNode      = thisNode;
-		this.subtypes      = SearchCommand.getAllSubtypesAsStringSet(desiredType.getSimpleName());
+		this.desiredType   = desiredType;
 	}
 
 	@Override
@@ -60,8 +55,9 @@ public class OtherNodeTypeFilter implements Predicate<Relationship> {
 		// check predicate if exists
 		if (otherNode != null && (nodePredicate == null || nodePredicate.accept(otherNode))) {
 
-			final Class otherNodeType                              = otherNode.getClass();
-			final boolean desiredTypeIsAssignableFromOtherNodeType = subtypes.contains(otherNodeType.getSimpleName());
+			final Set<String> otherNodeLabels = otherNode.getTraits().getLabels();
+			
+			final boolean desiredTypeIsAssignableFromOtherNodeType = otherNodeLabels.contains(desiredType);
 
 			return desiredTypeIsAssignableFromOtherNodeType;
 		}

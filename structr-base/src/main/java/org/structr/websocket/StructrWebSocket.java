@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,28 +20,31 @@ package org.structr.websocket;
 
 import com.google.gson.Gson;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
-import org.eclipse.jetty.io.EofException;
+import org.apache.commons.lang3.tuple.Pair;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
 import org.eclipse.jetty.io.QuietException;
+import org.eclipse.jetty.session.ManagedSession;
 import org.eclipse.jetty.util.StaticException;
 import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.SyntaxErrorException;
+import org.structr.api.UnknownClientException;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DatabaseServiceNotAvailableException;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
-import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.script.AlreadyLoggedAssertException;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.entity.File;
@@ -52,9 +55,9 @@ import org.structr.websocket.command.PingCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.nio.channels.ClosedChannelException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -62,7 +65,7 @@ import java.util.concurrent.TimeoutException;
 /**
  *
  */
-public class StructrWebSocket implements WebSocketListener {
+public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrWebSocket.class.getName());
 	private static final Map<String, Class> commandSet = new LinkedHashMap<>();
@@ -78,8 +81,6 @@ public class StructrWebSocket implements WebSocketListener {
 	private Console console                        = null;
 	private Boolean timedOut                       = false;
 
-	public StructrWebSocket() {}
-
 	public StructrWebSocket(final WebsocketController syncController, final Gson gson, final Authenticator authenticator) {
 
 		this.uploads        = new LinkedHashMap<>();
@@ -89,19 +90,31 @@ public class StructrWebSocket implements WebSocketListener {
 	}
 
 	public void setRequest(final HttpServletRequest request) {
-		this.request = request;
+
+		if (this.request == null) {
+			this.request = request;
+		}
 	}
 
 	@Override
-	public void onWebSocketConnect(final Session session) {
+	public void onWebSocketOpen(final Session session) {
 
 		logger.debug("New connection with protocol {}", session.getProtocolVersion());
 
 		final Services services = Services.getInstance();
-		if (!services.isInitialized()) {
+		int count = 0;
 
-			logger.warn("Ignoring new websocket connection: {}", services.getUnavailableMessage());
-			return;
+		while (!services.isInitialized()) {
+
+			try { Thread.sleep(1000); } catch (Throwable t) { }
+
+			if (count++ > 10) {
+
+				logger.warn("Ignoring new websocket connection: {}", services.getUnavailableMessage());
+
+				session.close();
+				return;
+			}
 		}
 
 		this.session = session;
@@ -115,7 +128,7 @@ public class StructrWebSocket implements WebSocketListener {
 	@Override
 	public void onWebSocketClose(final int closeCode, final String message) {
 
-		logger.debug("Connection closed with closeCode {} and message {}", new Object[]{closeCode, message});
+		logger.debug("Connection closed with closeCode {} and message {}", closeCode, message);
 
 		final Services services = Services.getInstance();
 		if (!services.isInitialized()) {
@@ -127,6 +140,8 @@ public class StructrWebSocket implements WebSocketListener {
 		final App app = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
+
+			tx.prefetchHint("Websocket close");
 
 			this.session = null;
 
@@ -144,9 +159,13 @@ public class StructrWebSocket implements WebSocketListener {
 		} catch (FrameworkException fex) {
 
 			logger.error("Error while closing connection: {}", fex.getMessage());
-
 		}
+	}
 
+	@Override
+	public void onWebSocketError(Throwable t) {
+
+		handleWebSocketException(t);
 	}
 
 	@Override
@@ -182,10 +201,16 @@ public class StructrWebSocket implements WebSocketListener {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
+				tx.prefetchHint("Websocket command auth " + command);
+
+				final boolean isPing = "PING".equals(command);
+
+				tx.setIsPing(isPing);
+
 				if (sessionIdFromMessage != null) {
 
-					// try to authenticated this connection by sessionId
-					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), command.equals("PING"));
+					// try to authenticate this connection by sessionId
+					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), isPing);
 				}
 
 				// we only permit LOGIN commands if authentication based on sessionId was not successful
@@ -207,15 +232,18 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} catch (FrameworkException t) {
 
-				logger.warn("Unable to parse message.", t);
+				logger.warn(t.getMessage());
 
+			} catch (UnknownClientException uclex) {
+
+				logger.warn(uclex.getMessage());
 			}
 
 			// process message
 			try {
 
 
-				AbstractCommand abstractCommand = (AbstractCommand) type.newInstance();
+				AbstractCommand abstractCommand = (AbstractCommand) type.getDeclaredConstructor().newInstance();
 
 				abstractCommand.setWebSocket(this);
 				abstractCommand.setSession(session);
@@ -225,7 +253,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 					if (securityContext != null) {
 
-						final HttpSession session = SessionHelper.getSessionBySessionId(securityContext.getSessionId());
+						final org.eclipse.jetty.server.Session session = SessionHelper.getSessionBySessionId(securityContext.getSessionId());
 
 						if (session != null) {
 
@@ -233,9 +261,9 @@ public class StructrWebSocket implements WebSocketListener {
 
 							try {
 								// Workaround to update lastAccessedTime() in Jetty's session via reflection
-								final Method accessMethod = ((org.eclipse.jetty.server.session.Session) session).getClass().getDeclaredMethod("access", long.class);
+								final Method accessMethod = session.getClass().getDeclaredMethod("access", long.class);
 								accessMethod.setAccessible(true);
-								accessMethod.invoke((org.eclipse.jetty.server.session.Session) session, System.currentTimeMillis());
+								accessMethod.invoke(session, System.currentTimeMillis());
 
 							} catch (Exception ex) {
 								logger.error("Access to method Session.access() via reflection failed: ", ex);
@@ -250,9 +278,18 @@ public class StructrWebSocket implements WebSocketListener {
 
 					try (final Tx tx = app.tx(true, true, true)) {
 
+						// enable prefetching for websockets
+						tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+
+						if (abstractCommand instanceof PingCommand) {
+
+							tx.setIsPing(true);
+						}
+
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						abstractCommand.processMessage(webSocketData);
 
@@ -264,9 +301,12 @@ public class StructrWebSocket implements WebSocketListener {
 
 					try (final Tx tx = app.tx(true, true, true)) {
 
+						tx.prefetchHint("Websocket " + abstractCommand.getClass().getSimpleName() + " " + webSocketData.getCommand() + " " + webSocketData.getNodeDataStringValue("type"));
+
 						// store authenticated-Flag in webSocketData
 						// so the command can access it
 						webSocketData.setSessionValid(isAuthenticated());
+						webSocketData.setSecurityContext(securityContext);
 
 						// commit transaction
 						tx.success();
@@ -277,40 +317,29 @@ public class StructrWebSocket implements WebSocketListener {
 
 				}
 
+			} catch (UnknownClientException uclex) {
+
+				logger.warn(uclex.getMessage());
+
 			} catch (Throwable t) {
 
-				if (t instanceof SyntaxErrorException see) {
-
-					logger.error(see.getMessage());	
-				} else {
+				if (!(t instanceof SyntaxErrorException) && !(t instanceof AlreadyLoggedAssertException)) {
 
 					t.printStackTrace();
 				}
 
-				try (final Tx tx = app.tx(true, true, true)) {
+				// send 400 Bad Request
+				if (t instanceof FrameworkException) {
 
-					// send 400 Bad Request
-					if (t instanceof FrameworkException) {
+					final FrameworkException fex = (FrameworkException)t;
 
-						final FrameworkException fex = (FrameworkException)t;
+					send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
 
-						send(MessageBuilder.status().code(fex.getStatus()).message(fex.toString()).jsonErrorObject(fex.toJSON()).callback(webSocketData.getCallback()).build(), true);
+				} else {
 
-					} else {
+					send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
 
-						send(MessageBuilder.status().code(400).message(t.toString()).build(), true);
-
-					}
-
-					// commit transaction
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					logger.warn("Unable to send websocket result: {}", fex.getMessage());
 				}
-
-				return;
-
 			}
 
 		} else {
@@ -318,10 +347,7 @@ public class StructrWebSocket implements WebSocketListener {
 			logger.warn("Unknown command {}", command);
 
 			// send 400 Bad Request
-			send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
-
-			return;
-
+			send(MessageBuilder.status().code(400).message("Unknown command '" + command + "'").build(), true);
 		}
 	}
 
@@ -358,6 +384,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try (final Tx tx = StructrApp.getInstance(securityContext).tx(true, true, true)) {
 
+			tx.prefetchHint("Websocket send " + message.getCommand());
+
 			if (message.getCode() == 0) {
 				// default is: 200 OK
 				message.setCode(200);
@@ -366,53 +394,36 @@ public class StructrWebSocket implements WebSocketListener {
 			final String msg = gson.toJson(message, WebSocketMessage.class);
 
 			logger.debug("################### Private message: {}", message.getCommand());
-			logger.debug("############################################################ SENDING \n{}", msg);
+			logger.debug("############################################################ SENDING \n{}", message.getCommand().equals("SERVER_LOG") ? msg.substring(0, 60) + "... # server log truncated" : msg);
 
 			// Clear custom view here. This is necessary because the security context is reused for all websocket frames.
 			if (securityContext != null) {
 				securityContext.clearCustomView();
 			}
 
-			if (session != null && session.getRemote() != null) {
+			if (session != null) {
 
-				try {
-
-					session.getRemote().sendString(msg);
-				} catch (ClosedChannelException t) {
-
-					logger.debug("Unable to send websocket message to remote client: Client closed connection before message was sent successfully.");
-				}
+				session.sendText(msg, null);
 
 			} else {
 
 				logger.warn("Unable to send websocket message - either no session or no remote.");
+
+				syncController.unregisterClient(this);
 			}
 
 			tx.success();
 
-		} catch (EofException ex) {
-
-			logger.warn("Unable to send websocket message to remote client: Connection might have been terminated before all content was delivered.");
-
 		} catch (Throwable t) {
 
-			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
-				// ignore exceptions which (by jettys standards) should be handled less verbosely
-			} else if (t.getCause() instanceof TimeoutException) {
-				// also ignore timeoutexceptions
-			} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
-				// also ignore simple "Closed" exception
-			} else {
-
-				logger.warn("Unable to send websocket message to remote client: {}", t);
-			}
+			handleWebSocketException(t);
 		}
 	}
 
 	// ----- file handling -----
-	public void createFileUploadHandler(File file) {
+	public void createFileUploadHandler(final File file) {
 
-		final String uuid = file.getProperty(GraphObject.id);
+		final String uuid = file.getUuid();
 
 		uploads.put(uuid, new FileUploadHandler(file, securityContext, true));
 	}
@@ -428,9 +439,10 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try {
 
-			File file = (File) StructrApp.getInstance(securityContext).getNodeById(uuid);
+			NodeInterface fileNode = StructrApp.getInstance(securityContext).getNodeById(uuid);
+			if (fileNode != null && fileNode.is(StructrTraits.FILE)) {
 
-			if (file != null) {
+				final File file = fileNode.as(File.class);
 
 				newHandler = new FileUploadHandler(file, securityContext, false);
 
@@ -462,18 +474,15 @@ public class StructrWebSocket implements WebSocketListener {
 
 	private void authenticate(final String sessionId, final boolean isPing) {
 
-		final Services services = Services.getInstance();
-		final String nodeName   = services.getNodeName();
-		final Principal user    = AuthHelper.getPrincipalForSessionId(sessionId, isPing);
-
+		final Principal user = AuthHelper.getPrincipalForSessionId(sessionId, isPing);
 		if (user != null) {
 
 			try {
 
 				synchronized (this) {
 
-					final HttpSession session  = SessionHelper.getSessionBySessionId(sessionId);
-					final boolean sessionValid = !SessionHelper.isSessionTimedOut(session);
+					final ManagedSession session  = SessionHelper.getSessionBySessionId(sessionId);
+					final boolean sessionValid = session == null || !SessionHelper.isSessionTimedOut(SessionHandler.ServletSessionApi.wrapSession(session));
 
 					//logger.info("[{}]: session from cache: {}, valid? {}", nodeName, session, sessionValid);
 
@@ -507,7 +516,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try {
 
-			final AbstractCommand msg = (AbstractCommand) command.newInstance();
+			final AbstractCommand msg = (AbstractCommand) command.getDeclaredConstructor().newInstance();
 
 			commandSet.put(msg.getCommand(), command);
 
@@ -563,19 +572,29 @@ public class StructrWebSocket implements WebSocketListener {
 		this.console = null;
 	}
 
-	public Console getConsole(final ConsoleMode mode) {
+	public Pair<Console, Boolean> getConsole(final ConsoleMode mode) {
 
 		if (this.securityContext != null) {
 
 			if (this.console != null) {
 
-				return this.console;
+				if (this.console.hasStillTheSameTraitsInstance()) {
+
+					// return console and false because the traits instance has not changed
+					return Pair.of(this.console, false);
+
+				} else {
+
+					// return console and true because the traits instance has changed
+					this.console = new Console(securityContext, mode, null);
+					return Pair.of(this.console, true);
+				}
 
 			} else {
 
+				// return console and false because there was no console in the context before
 				this.console = new Console(securityContext, mode, null);
-				return this.console;
-
+				return Pair.of(this.console, false);
 			}
 		}
 
@@ -596,13 +615,23 @@ public class StructrWebSocket implements WebSocketListener {
 		timedOut = false;
 	}
 
-	@Override
-	public void onWebSocketBinary(final byte[] bytes, int i, int i1) {
-		throw new UnsupportedOperationException("Not supported yet.");
-	}
+	private void handleWebSocketException(Throwable t) {
 
-	@Override
-	public void onWebSocketError(final Throwable t) {
-		logger.debug("Error in StructrWebSocket occurred", t);
+		if (QuietException.isQuiet(t)) {
+			// ignore exceptions which (by jettys standards) should be handled less verbosely
+		} else if (t.getCause() instanceof TimeoutException) {
+			// also ignore timeoutexceptions
+		} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
+			// also ignore simple "Closed" exception
+		} else if (t instanceof EOFException && t.getMessage().equals("Reset cancel_stream_error")) {
+			// also ignore EOFExceptions that happen on page close
+		} else if (t instanceof java.nio.channels.ClosedChannelException && t.getMessage() == null) {
+			// only debug-log ClosedChannelException for "Session Closed" which is thrown by WebSocketSessionState.onEof
+			logger.debug("Caught ClosedChannelException exception", t);
+		} else {
+
+			logger.warn("Unable to send websocket message to remote client: {}", t.getMessage());
+
+		}
 	}
 }

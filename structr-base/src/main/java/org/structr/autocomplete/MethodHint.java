@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,16 @@
 package org.structr.autocomplete;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.*;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class MethodHint extends AbstractHint {
 
 	protected String openAPISummary     = "No OpenAPI summary";
 	protected String openAPIDescription = "No OpenAPI description";
+	protected final String name;
 
 	public MethodHint(final String name, final String summary, final String description) {
 
@@ -39,17 +44,22 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public String getDocumentation() {
-		return "**Summary**: " + openAPISummary + "\n\n" + "**Description**: " + openAPIDescription;
+	public List<String> createMarkdownDocumentation() {
+
+		// this is the place where we assemble the hint text
+		final List<String> buf = new LinkedList<>();
+
+		buf.add("**Summary**");
+		buf.add(openAPISummary);
+		buf.add("");
+		buf.add("**Description**");
+		buf.add(openAPIDescription);
+
+		return buf;
 	}
 
 	@Override
 	public String getDisplayName() {
-		return getName() + "()";
-	}
-
-	@Override
-	public String getReplacement() {
 		return getName() + "()";
 	}
 
@@ -59,7 +69,48 @@ public class MethodHint extends AbstractHint {
 	}
 
 	@Override
-	public String getType() {
-		return "Method";
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return null;
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+		);
+	}
+
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Method;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,15 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
-public class SubstringFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_SUBSTRING = "Usage: ${substring(string, start [, length ])}. Example: ${substring(this.name, 19, 3)}";
+public class SubstringFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +37,8 @@ public class SubstringFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, start [, length ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str, start [, length ]");
 	}
 
 	@Override
@@ -69,12 +73,49 @@ public class SubstringFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SUBSTRING;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.substring(string, start [, length ]) }}."),
+			Usage.structrScript("Usage: ${substring(string, start [, length ])}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the substring of the given string";
+	public String getShortDescription() {
+		return "Returns the substring of the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Returns a portion with the given length of the given string, starting from the given start index. 
+		If no length parameter is given or the length would exceed the string length (calculated from the start index), the rest of the string is returned.
+		""";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${substring('This is my test', 2)}
+						> is is my test
+						${substring('This is my test', 8, 2)}
+						> my
+						${substring('This is my test', 8, 100)}
+						> my test
+						"""),
+				Example.javaScript("${{ $.substring('This is my test', 2) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "URL to connect to"),
+				Parameter.mandatory("start", "URL to connect to"),
+				Parameter.optional("length", "length of string from start")
+				);
 	}
 }

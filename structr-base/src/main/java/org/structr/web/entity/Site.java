@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,37 +18,12 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
 
 public interface Site extends NodeInterface {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("Site");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Site"));
-		type.setCategory("ui");
-
-		type.addStringProperty("hostname", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addIntegerProperty("port",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
-
-		type.addPropertyGetter("hostname", String.class);
-		type.addPropertyGetter("port",     Integer.class);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Ui, "pages");
-
-		type.addViewProperty(PropertyView.Public, "pages");
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
-
 	String getHostname();
 	Integer getPort();
+
+	Iterable<NodeInterface> getPages();
 }

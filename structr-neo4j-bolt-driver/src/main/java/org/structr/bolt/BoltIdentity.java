@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,12 +24,14 @@ import org.structr.api.graph.Identity;
  */
 public class BoltIdentity implements Identity {
 
-	private long id = -1L;
+	private final long id;
 
 	public BoltIdentity(final long id) {
-		this.id = id;
+
+		this.id  = id;
 	}
 
+	@Override
 	public long getId() {
 		return id;
 	}

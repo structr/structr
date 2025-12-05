@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,23 +19,25 @@
 package org.structr.web.function;
 
 import org.structr.core.scheduler.JobQueueManager;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class JobInfoFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_JOB_INFO    = "Usage: ${job_info(jobId)}. Example: ${job_info(1)}";
-	public static final String ERROR_MESSAGE_JOB_INFO_JS = "Usage: ${{Structr.job_info(jobId)}}. Example: ${{Structr.job_info(1}}";
-
 	@Override
 	public String getName() {
-		return "job_info";
+		return "jobInfo";
 	}
 
 	@Override
-	public String getSignature() {
-		return "jobId";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("jobId");
 	}
 
 	@Override
@@ -45,7 +47,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			if (!(sources[0] instanceof Number)) {
-				throw new IllegalArgumentException("job_info(): JobId must be numeric");
+				throw new IllegalArgumentException("jobInfo(): JobId must be numeric");
 			}
 
 			final Long jobId = ((Number)sources[0]).longValue();
@@ -53,7 +55,7 @@ public class JobInfoFunction extends UiAdvancedFunction {
 			final Map<String, Object> jobInfo = JobQueueManager.getInstance().jobInfo(jobId);
 
 			if (jobInfo == null) {
-				logger.warn("job_info(): Job with ID {} not found", jobId);
+				logger.warn("jobInfo(): Job with ID {} not found", jobId);
 				return false;
 			}
 
@@ -67,12 +69,64 @@ public class JobInfoFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JOB_INFO : ERROR_MESSAGE_JOB_INFO_JS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${jobInfo(jobId)}. Example: ${jobInfo(1)}"),
+			Usage.javaScript("Usage: ${{Structr.jobInfo(jobId)}}. Example: ${{Structr.jobInfo(1)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns job information for the given job id - if the job does not exist, false is returned";
+	public String getShortDescription() {
+		return "Returns information about the job with the given job ID.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		If the job does not exist (anymore) the function returns `false`.
+
+		For **script jobs** the returned information is:
+
+		| Key | Value |
+		| --- | --- |
+		| `jobId` | The job ID |
+		| `jobtype` | The job type |
+		| `username` | The username of the user who started the job |
+		| `status` | The current status of the job |
+		| `jobName` | The name of the script job |
+		| `exception` | <p>**If an exception was caught** during the execution, an exception object containing:</p><p></p><p>`message` : The message of the exception</p><p>`cause` : The cause of the exception</p><p>`stacktrace` : The stacktrace of the exception |
+
+		For **file import** the returned information is:
+
+		| Key | Value |
+		| --- | --- |
+		| `jobId` | The job ID |
+		| `jobtype` | The job type |
+		| `username` | The username of the user who started the job |
+		| `status` | The current status of the job |
+		| `fileUuid` | The UUID of the imported file |
+		| `filepath` | The path of the imported file |
+		| `filesize` | The size of the imported file |
+		| `processedChunks` | The number of chunks already processed |
+		| `processedObjects` | The number of objects already processed |
+		| `exception` | <p>**If an exception was caught** during the execution, an exception object containing:</p><p></p><p>`message` : The message of the exception</p><p>`cause` : The cause of the exception</p><p>`stacktrace` : The stacktrace of the exception |
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("jobId", "ID of the job to query")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${jobInfo(1)}", "Return information about the job with ID 1")
+		);
 	}
 }

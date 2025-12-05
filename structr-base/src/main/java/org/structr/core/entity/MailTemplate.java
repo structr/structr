@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,40 +18,13 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonType;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
-
-/**
- *
- */
 
 public interface MailTemplate extends NodeInterface {
 
-	static class Impl { static {
-
-		final JsonType type = SchemaService.getDynamicSchema().addType("MailTemplate");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/MailTemplate"));
-		type.setCategory("core");
-
-		type.addStringProperty("text",   PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("locale", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-
-		type.addPropertyGetter("text", String.class);
-		type.addPropertyGetter("locale", String.class);
-		type.addPropertySetter("locale", String.class);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-
-	}}
-
 	String getText();
 	String getLocale();
+	String getDescription();
 	void setLocale(final String locale) throws FrameworkException;
 }

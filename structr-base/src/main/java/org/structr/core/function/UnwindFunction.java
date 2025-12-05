@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,10 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -26,16 +30,14 @@ import java.util.List;
 
 public class UnwindFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_UNWIND = "Usage: ${unwind(list1, ...)}. Example: ${unwind(this.children)}";
-
 	@Override
 	public String getName() {
 		return "unwind";
 	}
 
 	@Override
-	public String getSignature() {
-		return "list1, list2, ...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("list1, list2, ...");
 	}
 
 	@Override
@@ -77,12 +79,50 @@ public class UnwindFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_UNWIND;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.unwind(list1, ...) }}."),
+			Usage.structrScript("Usage: ${unwind(list1, ...)}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Converts a list of lists into a flat list";
+	public String getShortDescription() {
+		return "Converts a list of lists into a flat list.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Combines the given nested collections into to a single, "flat" collection. 
+		This method is the reverse of `extract()` and can be used to flatten collections of related nodes that were 
+		created with nested `extract()` calls etc. It is often used in conjunction with the `find()` method like in the example below.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${unwind(this.children)}"),
+				Example.javaScript("""
+						${{ $.unwind([[1,2,3],4,5,[6,7,8]])}}
+						> [1, 2, 3, 4, 5, 6, 7, 8]
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("collections", "collection(s) to unwind")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"`unwind()` is quite similar to `merge()`. The big difference is that `unwind()` filters out empty collections."
+		);
+	}
+
 }

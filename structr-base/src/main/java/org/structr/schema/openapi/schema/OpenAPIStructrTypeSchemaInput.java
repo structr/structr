@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,8 @@
  */
 package org.structr.schema.openapi.schema;
 
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrTypeDefinition;
 
 import java.util.LinkedHashMap;
@@ -53,21 +52,20 @@ public class OpenAPIStructrTypeSchemaInput extends TreeMap<String, Object> {
 		}, viewName);
 	}
 
-	public OpenAPIStructrTypeSchemaInput(final Class type, final String viewName, final int level) {
+	public OpenAPIStructrTypeSchemaInput(final Traits type, final String viewName, final int level) {
 
 		if (level > 3) {
 			return;
 		}
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
-		final String typeName                = type.getSimpleName();
+		final String typeName                = type.getName();
 
 		put("type",        "object");
 		put("description", typeName);
 		put("properties",  properties);
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Set<PropertyKey> keys        = config.getPropertySet(type, viewName);
+		final Set<PropertyKey> keys = type.getPropertyKeysForView(viewName);
 
 		if (keys != null && !keys.isEmpty()) {
 

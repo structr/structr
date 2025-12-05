@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,25 +21,22 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.util.Base64;
+import java.util.List;
 
 public class Base64EncodeFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_BASE64ENCODE = "Usage: ${base64encode(text[, scheme[, charset]])}. Example: ${base64encode(\"Check out http://structr.com\")}";
-	public static final String ERROR_MESSAGE_BASE64ENCODE_JS = "Usage: ${{Structr.base64encode(text[, scheme[, charset]])}}. Example: ${{Structr.base64encode(\"Check out http://structr.com\")}}";
 
 	@Override
 	public String getName() {
 		return "base64encode";
-	}
-
-	@Override
-	public String getSignature() {
-		return "text [, scheme, charset ]";
 	}
 
 	@Override
@@ -102,12 +99,53 @@ public class Base64EncodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_BASE64ENCODE_JS : ERROR_MESSAGE_BASE64ENCODE);
+	public String getShortDescription() {
+		return "Encodes the given string and returns a base64-encoded string.";
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Encodes the given string and returns a base64-encoded string";
+	public String getLongDescription() {
+		return """
+		Valid values for `scheme` are `basic` (default), `url` and `mime`. The following explanation of the encoding schemes is taken directly from https://docs.oracle.com/javase/8/docs/api/java/util/Base64.html
+		
+		**Basic**
+		Uses "The Base64 Alphabet" as specified in Table 1 of RFC 4648 and RFC 2045 for encoding and decoding operation. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
+		
+		**URL and Filename safe**
+		Uses the "URL and Filename safe Base64 Alphabet" as specified in Table 2 of RFC 4648 for encoding and decoding. The encoder does not add any line feed (line separator) character. The decoder rejects data that contains characters outside the base64 alphabet.
+		
+		**MIME**
+		Uses the "The Base64 Alphabet" as specified in Table 1 of RFC 2045 for encoding and decoding operation. The encoded output must be represented in lines of no more than 76 characters each and uses a carriage return '\\r' followed immediately by a linefeed '\\n' as the line separator. No line separator is added to the end of the encoded output. All line separators or other characters not found in the base64 alphabet table are ignored in decoding operation.
+		""";
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("text [, scheme, charset ]");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${base64encode(text[, scheme[, charset]])}. Example: ${base64encode(\"Check out http://structr.com\")}"),
+			Usage.javaScript("Usage: ${{Structr.base64encode(text[, scheme[, charset]])}}. Example: ${{Structr.base64encode(\"Check out http://structr.com\")}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("base64Text", "text to encode"),
+			Parameter.optional("scheme", "encoding scheme, `url`, `mime` or `basic`, defaults to `basic`"),
+			Parameter.optional("charset", "charset to use, defaults to UTF-8")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${base64encode(\"Check out https://structr.com\")}", "Encode a string")
+		);
 	}
 }

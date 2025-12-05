@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,10 +23,7 @@ import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
-import org.structr.memory.index.predicate.NotPredicate;
-import org.structr.memory.index.predicate.NullPredicate;
-import org.structr.memory.index.predicate.RangePredicate;
-import org.structr.memory.index.predicate.ValuePredicate;
+import org.structr.memory.index.predicate.*;
 
 public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
@@ -39,18 +36,19 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		if (predicate instanceof ComparisonQuery) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
+			//checkOperation(query, predicate.getOperation(), isFirst);
 
-			final ComparisonQuery comparisonQuery     = (ComparisonQuery)predicate;
-			final Comparable value                    = (Comparable)getReadValue(comparisonQuery.getSearchValue());
-			final ComparisonQuery.Operation operation = comparisonQuery.getOperation();
-			final String name                         = predicate.getName();
+			final ComparisonQuery comparisonQuery       = (ComparisonQuery)predicate;
+			final Comparable value                      = (Comparable)getReadValue(comparisonQuery.getSearchValue());
+			final ComparisonQuery.Comparison comparison = comparisonQuery.getComparison();
+			final String name                           = predicate.getName();
+			final Class type                            = null;
 
-			if (value == null && operation == null) {
+			if (value == null && comparison == null) {
 				return false;
 			}
 
-			switch (operation) {
+			switch (comparison) {
 				case equal:
 					query.addPredicate(new ValuePredicate(name, value));
 					return true;
@@ -60,19 +58,19 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 					break;
 
 				case greater:
-					query.addPredicate(new RangePredicate<>(name, value, null, predicate.getType()).setStartInclusive(false));
+					query.addPredicate(new RangePredicate<>(name, value, null, type).setStartInclusive(false));
 					break;
 
 				case greaterOrEqual:
-					query.addPredicate(new RangePredicate<>(name, value, null, predicate.getType()));
+					query.addPredicate(new RangePredicate<>(name, value, null, type));
 					break;
 
 				case less:
-					query.addPredicate(new RangePredicate<>(name, null, value, predicate.getType()).setEndInclusive(false));
+					query.addPredicate(new RangePredicate<>(name, null, value, type).setEndInclusive(false));
 					break;
 
 				case lessOrEqual:
-					query.addPredicate(new RangePredicate<>(name, null, value, predicate.getType()));
+					query.addPredicate(new RangePredicate<>(name, null, value, type));
 					break;
 
 				case isNull:
@@ -84,31 +82,32 @@ public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 					return true;
 
 				case startsWith:
-					//operationString = "STARTS WITH";
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString(), true, false));
 					break;
 
 				case endsWith:
-					//operationString = "ENDS WITH";
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString(), false, false));
 					break;
 
 				case contains:
-					//operationString = "CONTAINS";
+					query.addPredicate(new StringContainsPredicate(name, value.toString(), false));
 					break;
 
 				case caseInsensitiveStartsWith:
-					//operationString = "STARTS WITH";
-					//query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
-					return true;
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString().toLowerCase(), true, true));
+					break;
 
 				case caseInsensitiveEndsWith:
-					//operationString = "ENDS WITH";
-					//query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
-					return true;
+					query.addPredicate(new StartsOrEndsWithPredicate(name, value.toString().toLowerCase(), false, true));
+					break;
 
 				case caseInsensitiveContains:
-					//operationString = "CONTAINS";
-					//query.addSimpleParameter(name, operationString, value.toString().toLowerCase(), true, true);
-					return true;
+					query.addPredicate(new StringContainsPredicate(name, value.toString().toLowerCase(), true));
+					break;
+
+				case matches:
+					query.addPredicate(new RegexPredicate(name, value.toString()));
+					break;
 			}
 		}
 

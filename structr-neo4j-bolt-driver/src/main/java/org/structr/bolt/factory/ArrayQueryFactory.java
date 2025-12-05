@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,7 +34,7 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// add label of declaring class for the given property name
 		// to select the correct index
@@ -51,11 +51,11 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 
 			if (predicate.isExactMatch()) {
 
-				query.addListParameter(name, "=", value);
+				query.addSimpleParameter(name, "=", value);
 
 			} else {
 
-				query.addListParameter(name, "=~", "(?i).*" + escape(value) + ".*");
+				query.addListParameter(name, "=", value);
 			}
 		}
 

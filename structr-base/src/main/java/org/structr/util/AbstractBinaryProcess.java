@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 
 import java.io.IOException;
@@ -40,8 +41,9 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 	private CopyingStreamReader stdOut        = null;
 	private OutputStream out                  = null;
 	private StreamReader stdErr               = null;
-	private String cmd                        = null;
 	private int exitCode                      = -1;
+
+	private Settings.SCRIPT_PROCESS_LOG_STYLE logBehaviour = Settings.SCRIPT_PROCESS_LOG_STYLE.get(Settings.LogScriptProcessCommandLine.getValue());
 
 	public AbstractBinaryProcess(final SecurityContext securityContext, final OutputStream out) {
 
@@ -53,21 +55,30 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 	public abstract T processExited(final int exitCode);
 	public abstract void preprocess();
 
+	public StringBuilder getLogLine() {
+		return getCommandLine();
+	}
+
+	private boolean shouldLogCommandWhenExecuting() {
+		return (getLogBehaviour() != Settings.SCRIPT_PROCESS_LOG_STYLE.NOTHING);
+	}
+
 	@Override
 	public T call() {
 
 		try {
-			// allow preprocessing
+
 			preprocess();
 
 			final StringBuilder commandLine = getCommandLine();
 			if (commandLine != null) {
 
-				cmd = commandLine.toString();
+				String[] args = {"/bin/sh", "-c", commandLine.toString()};
 
-				String[] args = {"/bin/sh", "-c", cmd};
+				if (shouldLogCommandWhenExecuting()) {
 
-				logger.info("Executing {}", cmd);
+					logger.info("Executing {}", getLogLine().toString());
+				}
 
 				Process proc = Runtime.getRuntime().exec(args);
 
@@ -78,7 +89,7 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 				stdOut.start();
 				stdErr.start();
 
-				exitCode = proc.waitFor();
+				setExitCode(proc.waitFor());
 			}
 
 		} catch (IOException | InterruptedException ex) {
@@ -89,18 +100,30 @@ public abstract class AbstractBinaryProcess<T> implements Callable<T> {
 		running.set(false);
 
 		// debugging output
-		if (exitCode != 0) {
-			logger.warn("Process {} exited with exit code {}, error stream:\n{}\n", new Object[] { cmd, exitCode, stdErr.getBuffer() } );
+		if (exitCode() != 0) {
+			logger.warn("Process '{}' exited with exit code {}, error stream:\n{}\n", getLogLine().toString(), exitCode(), stdErr.getBuffer());
 		}
 
-		return processExited(exitCode);
+		return processExited(exitCode());
 	}
 
 	protected String errorStream() {
 		return stdErr.getBuffer();
 	}
 
-	protected int exitCode() {
+	private int exitCode() {
 		return exitCode;
+	}
+
+	private void setExitCode(final int exitCode) {
+		this.exitCode = exitCode;
+	}
+
+	public void setLogBehaviour(final int logBehaviour) {
+		this.logBehaviour = Settings.SCRIPT_PROCESS_LOG_STYLE.get(logBehaviour);
+	}
+
+	public Settings.SCRIPT_PROCESS_LOG_STYLE getLogBehaviour() {
+		return this.logBehaviour;
 	}
 }

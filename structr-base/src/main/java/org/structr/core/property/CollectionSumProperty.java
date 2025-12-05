@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,7 +51,7 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	}
 
 	@Override
-	public Class relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
@@ -71,7 +71,7 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 	}
 
 	@Override
-	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> pred) {
+	public S getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		int     intSum    = 0;
 		long    longSum   = 0L;
@@ -82,7 +82,7 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 		for (T collectionObj : obj.getProperty(collectionKey)) {
 
-			if (predicate != null && !predicate.accept(collectionObj)) {
+			if (this.predicate != null && !this.predicate.accept(collectionObj)) {
 				continue;
 			}
 
@@ -122,6 +122,11 @@ public class CollectionSumProperty<T extends NodeInterface, S extends Number> ex
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

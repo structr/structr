@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,7 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
@@ -107,12 +107,12 @@ public class PdfServlet extends HtmlServlet {
 	}
 
 	@Override
-	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement, final long requestStartTime) throws IOException {
+	protected void renderAsyncOutput(final HttpServletRequest request, final HttpServletResponse response, final App app, final RenderContext renderContext, final DOMNode rootElement, final long requestStartTime) throws IOException {
 
 		final AsyncContext async = request.startAsync();
 		final ServletOutputStream out = async.getResponse().getOutputStream();
 		final AtomicBoolean finished = new AtomicBoolean(false);
-		final DOMNode rootNode = rootElement;
+		final DOMNode rootNode       = rootElement;
 
 		setCustomResponseHeaders(response);
 
@@ -124,7 +124,11 @@ public class PdfServlet extends HtmlServlet {
 			@Override
 			public void run() {
 
+				String name = "unknown";
+
 				try (final Tx tx = app.tx()) {
+
+					name = rootNode.getName();
 
 					// render
 					rootNode.render(renderContext, 0);
@@ -134,7 +138,7 @@ public class PdfServlet extends HtmlServlet {
 
 				} catch (Throwable t) {
 
-					logger.warn("Error while rendering page {}: {}", rootNode.getName(), t.getMessage());
+					logger.warn("Error while rendering page {}: {}", name, t.getMessage());
 					logger.warn(ExceptionUtils.getStackTrace(t));
 
 					try {

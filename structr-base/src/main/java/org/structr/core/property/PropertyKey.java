@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,14 +20,14 @@ package org.structr.core.property;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
+import org.structr.core.traits.Trait;
 
 import java.util.Comparator;
 import java.util.Map;
@@ -83,6 +83,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	Property<T> indexed();
 
 	/**
+	 * Use this method to mark an indexed property to be created
+	 * for nodes only.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	Property<T> nodeIndexOnly();
+
+	/**
 	 * Use this method to indicate that a property key can change its value
 	 * without setProperty() being called directly on it. This method causes
 	 * the given property to be indexed at the end of a transaction instead
@@ -95,6 +103,14 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	Property<T> passivelyIndexed();
 
 	Property<T> indexedWhenEmpty();
+
+	/**
+	 * Use this method to mark an indexed property to be indexed
+	 * in a fulltext index.
+	 *
+	 * @return the Property to satisfy the builder pattern
+	 */
+	Property<T> fulltextIndexed();
 
 	/**
 	 * Returns the desired type name that will be used in the error message if a
@@ -116,7 +132,7 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 *
 	 * @return relatedType
 	 */
-	Class relatedType();
+	String relatedType();
 
 	/**
 	 * Returns the format value for this property.
@@ -154,11 +170,27 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	String writeFunction();
 
 	/**
+	 * Returns the readFunctionWrapJS value for this property.
+	 *
+	 * @return readFunctionWrapJS
+	 */
+	Boolean readFunctionWrapJS();
+
+	/**
+	 * Returns the writeFunctionWrapJS value for this property.
+	 *
+	 * @return writeFunctionWrapJS
+	 */
+	Boolean writeFunctionWrapJS();
+
+	/**
 	 * Returns the cachingEnabled value for this property.
 	 *
 	 * @return cachingEnabled
 	 */
 	boolean cachingEnabled();
+
+	boolean serializationDisabled();
 
 	/**
 	 * Returns the openAPIReturnType value for this property.
@@ -170,21 +202,21 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext);
 	PropertyConverter<T, ?> databaseConverter(final SecurityContext securityContext, final GraphObject entity);
-	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext);
+	PropertyConverter<?, T> inputConverter(final SecurityContext securityContext, final boolean fromString);
 	Object fixDatabaseProperty(final Object value);
 
 	boolean requiresSynchronization();
 	String getSynchronizationKey();
 
-	void setDeclaringClass(final Class declaringClass);
-	Class getDeclaringClass();
+	void setDeclaringTrait(final Trait declaringTrait);
+	Trait getDeclaringTrait();
 	String getSourceUuid();
 
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter);
 	T getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate);
 	Object setProperty(final SecurityContext securityContext, final GraphObject obj, final T value) throws FrameworkException;
 
-	void registrationCallback(final Class<GraphObject> entityType);
+	void registrationCallback(final Trait entityType);
 
 	/**
 	 * Indicates whether this property is an unvalidated property or not.
@@ -234,6 +266,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean isIndexed();
 
 	/**
+	 * Indicates whether this property is indexed on nodes only.
+	 *
+	 * @return isIndexed
+	 */
+	boolean isNodeIndexOnly();
+
+	/**
 	 * Indicates whether this property is indexed. The difference to the
 	 * above method is, that the value for indexing will be obtained at
 	 * the end of the transaction, so you can use this method to achieve
@@ -254,6 +293,13 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean isIndexedWhenEmpty();
 
 	/**
+	 * Indicates whether this property is indexed in a fulltext index.
+	 *
+	 * @return isIndexedWhenEmpty
+	 */
+	boolean isFulltextIndexed();
+
+	/**
 	 * Indicates whether this property represents a collection or a single
 	 * value in the JSON output.
 	 *
@@ -265,6 +311,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * Indicates whether the value associated with this property is
 	 * validated for uniqueness.
 	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
+	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
 	boolean isUnique();
@@ -273,6 +323,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * Indicates whether the value associated with this property is
 	 * validated for uniqueness in a compound index.
 	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
+	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
 	boolean isCompound();
@@ -280,6 +334,10 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	/**
 	 * Indicates whether the value associated with this property is
 	 * may not be null.
+	 *
+	 * Note: this method does not add or implement the actual
+	 * validation, you need to add a custom IsValid lifecycle
+	 * method to the trait definition!
 	 *
 	 * @return whether this property value is validated for uniqueness
 	 */
@@ -291,13 +349,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	 * @return whether this property is dynamic
 	 */
 	boolean isDynamic();
-
-	/**
-	 * Indicates whether this property is a part of the internal Structr schema.
-	 *
-	 * @return whether this property is a part of the internal Structr schema
-	 */
-	boolean isPartOfBuiltInSchema();
+	boolean isAbstract();
+	boolean isArray();
 
 	/**
 	 * Returns the lucene sort type of this property.
@@ -327,8 +380,8 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	boolean isPropertyTypeIndexable();
 	boolean isPropertyValueIndexable(final Object value);
 
-	SearchAttribute getSearchAttribute(final SecurityContext securityContext, final Occurrence occur, final T searchValue, final boolean exactMatch, final Query query);
-	void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final Query query) throws FrameworkException;
+	SearchAttribute getSearchAttribute(final SecurityContext securityContext, final T searchValue, final boolean exactMatch, final QueryGroup query);
+	void extractSearchableAttribute(final SecurityContext securityContext, final HttpServletRequest request, final boolean exactMatch, final QueryGroup query) throws FrameworkException;
 	T convertSearchValue(final SecurityContext securityContext, final String requestParameter) throws FrameworkException;
 
 	/**
@@ -339,23 +392,30 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	int getProcessingOrderPosition();
 
 	PropertyKey<T> defaultValue(final T defaultValue);
+	PropertyKey<T> setIsAbstract(final boolean isAbstract);
 	PropertyKey<T> notNull(final boolean notNull);
 	PropertyKey<T> unique(final boolean unique);
 	PropertyKey<T> format(final String format);
 	PropertyKey<T> typeHint(final String typeHint);
-	PropertyKey<T> partOfBuiltInSchema();
 	PropertyKey<T> dynamic();
 	PropertyKey<T> readFunction(final String readFunction);
 	PropertyKey<T> writeFunction(final String writeFunction);
+	PropertyKey<T> writeFunctionWrapJS(final boolean wrap);
+	PropertyKey<T> readFunctionWrapJS(final boolean wrap);
 	PropertyKey<T> cachingEnabled(final boolean enabled);
 	PropertyKey<T> openAPIReturnType(final String openAPIReturnType);
 	PropertyKey<T> transformators(final String... transformators);
 
 	Comparator<GraphObject> sorted(final boolean descending);
 
+	// ----- documentation -----
+	PropertyKey<T> description(final String description);
+	String getDescription();
+
 	// ----- OpenAPI -----
 	Object getExampleValue(final String type, final String viewName);
 	Map<String, Object> describeOpenAPIOutputSchema(final String type, final String viewName);
 	Map<String, Object> describeOpenAPIOutputType(final String type, final String viewName, final int level);
 	Map<String, Object> describeOpenAPIInputType(final String type, final String viewName, final int level);
+
 }

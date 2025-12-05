@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,26 +19,28 @@
 package org.structr.messaging.implementation.mqtt.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.schema.action.ActionContext;
 
-public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE    = "Usage: ${mqtt_unsubscribe(client, topic)}. Example ${mqtt_unsubscribe(client, 'myTopic')}";
-	public static final String ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS = "Usage: ${{Structr.mqtt_unsubscribe(client, topic)}}. Example ${{Structr.mqtt_unsubscribe(client, topic)}}";
+public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mqtt_unsubscribe";
+		return "mqttUnsubscribe";
 	}
 
 	@Override
-	public String getSignature() {
-		return "client, topic";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("client, topic");
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
+
 		if (sources != null && sources.length == 2 && sources[0] != null && sources[1] != null) {
 
 			MQTTClient client = null;
@@ -52,7 +54,7 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 				return "";
 			}
 
-			MQTTClient.unsubscribeTopic(client, sources[1].toString());
+			client.unsubscribeTopic(ctx.getSecurityContext(), sources[1].toString());
 
 		} else {
 
@@ -63,12 +65,20 @@ public class MQTTUnsubscribeTopicFunction extends MessagingModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_MQTTUNSUBSCRIBE_JS : ERROR_MESSAGE_MQTTUNSUBSCRIBE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mqttUnsubscribe(client, topic)}. Example ${mqttUnsubscribe(client, 'myTopic')}"),
+			Usage.javaScript("Usage: ${{Structr.mqttUnsubscribe(client, topic)}}. Example ${{Structr.mqttUnsubscribe(client, topic)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Unsubscribes given topic on given mqtt client.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

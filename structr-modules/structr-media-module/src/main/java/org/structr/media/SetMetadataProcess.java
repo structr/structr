@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -85,7 +85,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 			return null;
 		}
 
-		final StringBuilder commandLine = new StringBuilder("avconv -y -i ");
+		final StringBuilder commandLine = new StringBuilder("ffmpeg -y -i ");
 		//final String diskFilePath       = inputVideo.getDiskFilePath(securityContext);
 
 		// build command line from builder options

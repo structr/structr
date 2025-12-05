@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,50 +18,89 @@
  */
 package org.structr.bolt;
 
+import org.structr.api.graph.Direction;
+import org.structr.api.graph.RelationshipType;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
+import org.structr.api.util.QueryHistogram;
+import org.structr.api.util.QueryTimer;
 
-import java.util.LinkedHashMap;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
  */
 class SimpleCypherQuery implements CypherQuery {
 
-	private final Map<String, Object> params = new LinkedHashMap<>();
-	private final QueryContext queryContext  = new QueryContext();
-	private String base                      = null;
-	private int pageSize                     = 0;
-	private int page                         = 0;
+	private final QueryContext queryContext = new QueryContext();
+	private Map<String, Object> params      = null;
+	private QueryTimer queryTimer           = null;
+	private String type                     = null;
+	private String statement                = null;
+	private String relationshipType         = null;
+	private boolean outgoing                = false;
 
-	public SimpleCypherQuery(final String base) {
+	public SimpleCypherQuery(final StringBuilder buf) {
+		this(buf.toString(), new TreeMap<>());
+	}
 
-		this.pageSize = 100000;
-		this.base     = base;
+	public SimpleCypherQuery(final StringBuilder buf, final Map<String, Object> parameters) {
+		this(buf.toString(), parameters);
+	}
+
+	public SimpleCypherQuery(final String statement) {
+		this(statement, new TreeMap<>());
+	}
+
+	public SimpleCypherQuery(final String statement, final Map<String, Object> parameters) {
+
+		this.statement = statement;
+		this.params    = parameters;
+	}
+
+	@Override
+	public boolean equals(final Object other) {
+		return hashCode() == other.hashCode();
+	}
+
+	@Override
+	public int hashCode() {
+
+		int hashCode = 31 + getStatement().hashCode();
+
+		for (final Map.Entry<String, Object> p : getParameters().entrySet()) {
+
+			final Object value = p.getValue();
+			if (value != null) {
+
+				if (value.getClass().isArray()) {
+
+					hashCode = 31 * hashCode + Arrays.deepHashCode((Object[]) value);
+
+				} else {
+
+					hashCode = 31 * hashCode + value.hashCode();
+				}
+			}
+		}
+
+		return hashCode;
 	}
 
 	@Override
 	public void nextPage() {
-		page++;
 	}
 
 	@Override
 	public int pageSize() {
-		return this.pageSize;
+		return Integer.MAX_VALUE;
 	}
 
 	@Override
-	public String getStatement(final boolean paged) {
-
-		final StringBuilder buf = new StringBuilder(base);
-
-		buf.append(" SKIP ");
-		buf.append(page * pageSize);
-		buf.append(" LIMIT ");
-		buf.append(pageSize);
-
-		return buf.toString();
+	public String getStatement() {
+		return statement;
 	}
 
 	@Override
@@ -92,5 +131,37 @@ class SimpleCypherQuery implements CypherQuery {
 	@Override
 	public QueryContext getQueryContext() {
 		return queryContext;
+	}
+
+	@Override
+	public QueryTimer getQueryTimer() {
+
+		if (queryTimer == null) {
+			queryTimer = QueryHistogram.newTimer();
+		}
+
+		return queryTimer;
+	}
+
+	public void storeRelationshipInfo(final String type, final RelationshipType relationshipType, final Direction direction) {
+
+		if (relationshipType != null) {
+
+			this.type             = type;
+			this.relationshipType = relationshipType.name();
+			this.outgoing         = Direction.OUTGOING.equals(direction);
+		}
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public String getRelationshipType() {
+		return relationshipType;
+	}
+
+	public boolean isOutgoing() {
+		return outgoing;
 	}
 }

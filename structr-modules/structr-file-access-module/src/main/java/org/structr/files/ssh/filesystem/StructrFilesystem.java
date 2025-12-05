@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.files.ssh.filesystem.path.StructrRootPath;
 import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
+import org.structr.files.ssh.filesystem.path.file.StructrFilesRootPath;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -50,7 +50,7 @@ public class StructrFilesystem extends FileSystem {
 	public StructrFilesystem(final SecurityContext securityContext) {
 
 		this.provider        = new StructrFilesystemProvider();
-		this.root            = new StructrRootPath(this);
+		this.root            = new StructrFilesRootPath(this);
 		this.securityContext = securityContext;
 	}
 
@@ -86,8 +86,6 @@ public class StructrFilesystem extends FileSystem {
 
 	@Override
 	public Iterable<FileStore> getFileStores() {
-
-		logger.info("x");
 
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
@@ -164,19 +162,19 @@ public class StructrFilesystem extends FileSystem {
 
 	@Override
 	public PathMatcher getPathMatcher(final String syntaxAndPattern) {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public UserPrincipalLookupService getUserPrincipalLookupService() {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 
 	@Override
 	public WatchService newWatchService() throws IOException {
-		logger.info("x");
+		
 		throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 	}
 

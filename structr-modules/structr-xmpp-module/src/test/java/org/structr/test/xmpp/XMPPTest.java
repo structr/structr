@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,34 +19,27 @@
 package org.structr.test.xmpp;
 
 import io.restassured.RestAssured;
-import io.restassured.filter.log.ResponseLoggingFilter;
-import org.jivesoftware.smack.packet.Presence;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.User;
-import org.structr.xmpp.XMPPClient;
+import org.structr.xmpp.traits.definitions.XMPPClientTraitDefinition;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 
-/**
- */
 public class XMPPTest extends StructrUiTest {
 
 	@Test
 	public void testMQTT() {
 
-		final Class clientType = StructrApp.getConfiguration().getNodeEntityClass("XMPPClient");
+		final String clientType   = StructrTraits.XMPP_CLIENT;
+		final Traits clientTraits = Traits.of(clientType);
 
 		try (final Tx tx = app.tx()) {
 
-			app.create(User.class,
-				new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
-				new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
-			);
+			createAdminUser();
 
 			tx.success();
 
@@ -57,12 +50,12 @@ public class XMPPTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(clientType,
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppUsername"),  "username"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppPassword"),  "password"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppService"),   "service"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppHost"),      "host"),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "xmppPort"),      12345),
-				new NodeAttribute<>(StructrApp.key(XMPPClient.class, "presenceMode"),  Presence.Mode.available)
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_USERNAME_PROPERTY),  "username"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_PASSWORD_PROPERTY),  "password"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_SERVICE_PROPERTY),   "service"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_HOST_PROPERTY),      "host"),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.XMPP_PORT_PROPERTY),      12345),
+				new NodeAttribute<>(clientTraits.key(XMPPClientTraitDefinition.PRESENCE_MODE_PROPERTY),  "available")
 			);
 
 			tx.success();
@@ -74,12 +67,11 @@ public class XMPPTest extends StructrUiTest {
 		// use RestAssured to check file
 		RestAssured
 			.given()
-			.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.header("X-User", "admin")
-			.header("X-Password", "admin")
+			.header(X_USER_HEADER, ADMIN_USERNAME)
+			.header(X_PASSWORD_HEADER, ADMIN_PASSWORD)
 			.expect()
 			.statusCode(200)
-			.body("result[0].type",                  equalTo("XMPPClient"))
+			.body("result[0].type",                  equalTo(clientType))
 			.body("result[0].isEnabled",             equalTo(false))
 			.body("result[0].isConnected",           equalTo(false))
 			.body("result[0].xmppUsername",          equalTo("username"))
@@ -89,7 +81,7 @@ public class XMPPTest extends StructrUiTest {
 			.body("result[0].xmppPort",              equalTo(12345))
 			.body("result[0].presenceMode",          equalTo("available"))
 			.when()
-			.get("/XMPPClient");
+			.get("/" + clientType);
 	}
 
 }

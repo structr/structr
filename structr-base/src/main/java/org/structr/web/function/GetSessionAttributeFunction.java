@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,25 +23,30 @@ import jakarta.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 
 public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key)}. Example: ${get_session_attribute(\"do_no_track\")}";
-	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";
-
 	private int retryCount = 0;
 
 	@Override
 	public String getName() {
-		return "get_session_attribute";
+		return "getSessionAttribute";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override
@@ -52,11 +57,12 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final HttpSession session = ctx.getSecurityContext().getSession();
+			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
-				return session.getAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()));
+				return PolyglotWrapper.unwrap(ctx, sessionWrapper.getMember(sources[0].toString()));
 			} else {
-				logger.warn("{}: No session available to get session attribute from! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+				logger.warn("{}: No session available to get session attribute from! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
 			return null;
@@ -82,12 +88,37 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS : ERROR_MESSAGE_GET_SESSION_ATTRIBUTE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getSessionAttribute(key)}. Example: ${getSessionAttribute('doNoTrack')}"),
+			Usage.javaScript("Usage: ${{ $.getSessionAttribute(key)}}. Example: ${{ $.getSessionAttribute('doNotTrack')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Retrieve a value for the given key from the user session.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "stored key of user session")
+				);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getSessionAttribute('doNotTrack')}"),
+				Example.javaScript("${{ $.getSessionAttribute('doNotTrack') }}")
+		);
+	}
+
 }

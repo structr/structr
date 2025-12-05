@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,12 +19,14 @@
 package org.structr.mail;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
+import org.structr.core.traits.StructrTraits;
+import org.structr.mail.entity.traits.definitions.EMailMessageTraitDefinition;
+import org.structr.mail.entity.traits.definitions.MailboxTraitDefinition;
+import org.structr.mail.entity.traits.definitions.relationship.EMailMessageHAS_ATTACHMENTFile;
+import org.structr.mail.entity.traits.definitions.relationship.MailboxCONTAINS_EMAILMESSAGESEMailMessage;
 import org.structr.mail.function.*;
 import org.structr.module.StructrModule;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
@@ -32,7 +34,20 @@ import java.util.Set;
 public class AdvancedMailModule implements StructrModule {
 
 	@Override
-	public void onLoad(final LicenseManager licenseManager) {
+	public void onLoad() {
+
+		StructrTraits.registerTrait(new EMailMessageHAS_ATTACHMENTFile());
+		StructrTraits.registerTrait(new MailboxCONTAINS_EMAILMESSAGESEMailMessage());
+
+		StructrTraits.registerRelationshipType(StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE,             StructrTraits.EMAIL_MESSAGE_HAS_ATTACHMENT_FILE);
+		StructrTraits.registerRelationshipType(StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE, StructrTraits.MAILBOX_CONTAINS_EMAIL_MESSAGES_EMAIL_MESSAGE);
+
+		StructrTraits.registerTrait(new EMailMessageTraitDefinition());
+		StructrTraits.registerTrait(new MailboxTraitDefinition());
+
+		StructrTraits.registerNodeType(StructrTraits.EMAIL_MESSAGE, StructrTraits.EMAIL_MESSAGE);
+		StructrTraits.registerNodeType(StructrTraits.MAILBOX,       StructrTraits.MAILBOX);
+
 	}
 
 	@Override
@@ -81,28 +96,11 @@ public class AdvancedMailModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
 		return null;
-	}
-
-	@Override
-	public void insertImportStatements(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public void insertSourceCode(final AbstractSchemaNode schemaNode, final SourceFile buf) {
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(final AbstractSchemaNode schemaNode) {
-		return null;
-	}
-
-	@Override
-	public void insertSaveAction(final AbstractSchemaNode schemaNode, final SourceFile buf, final Actions.Type type) {
 	}
 }

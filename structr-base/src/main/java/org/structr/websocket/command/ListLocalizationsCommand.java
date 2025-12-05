@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
-import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -30,6 +29,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
@@ -38,6 +38,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -45,7 +46,7 @@ import java.util.Map;
  */
 public class ListLocalizationsCommand extends AbstractCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(ListActiveElementsCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(ListLocalizationsCommand.class.getName());
 
 	static {
 
@@ -67,9 +68,10 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, false)) {
 
-			final Page page                = app.get(Page.class, id);
+			final NodeInterface pageNode = app.getNodeById(StructrTraits.PAGE, id);
+			if (pageNode != null) {
 
-			if (page != null) {
+				final Page page = pageNode.as(Page.class);
 
 				// using this, we differentiate in the localize() function how to proceed
 				securityContext.setAccessMode(AccessMode.Backend);
@@ -79,11 +81,14 @@ public class ListLocalizationsCommand extends AbstractCommand {
 
 				if (queryString != null) {
 
-					String[] parts = StringUtils.split(queryString, "&");
+					String[] parts                     = StringUtils.split(queryString, "&");
 					Map<String, String[]> parameterMap = new HashMap();
+
 					for (String p : parts) {
+
 						String[] kv = StringUtils.split(p, "=");
 						if (kv.length > 1) {
+
 							parameterMap.put(kv[0], new String[]{kv[1]});
 						}
 					}
@@ -91,10 +96,18 @@ public class ListLocalizationsCommand extends AbstractCommand {
 					getWebSocket().getRequest().getParameterMap().putAll(parameterMap);
 				}
 
+				/* CHM 17.11.2025: this fixes the Localization tab but not 100%
 				// after the query string so it is overwritten (if present)
-				getWebSocket().getRequest().getParameterMap().put(RequestKeywords.Locale.toString(), new String[]{ locale });
+				final StructrWebSocket websocket = getWebSocket();
+				final HttpServletRequest request = websocket.getRequest();
+				final Map<String, String[]> map  = request.getParameterMap();
+
+				map.put(RequestKeywords.Locale.toString(), new String[]{ locale });
 
 				rCtx.setLocale(securityContext.getEffectiveLocale());
+				*/
+
+				rCtx.setLocale(Locale.forLanguageTag(locale));
 
 				if (detailsObjectId != null) {
 
@@ -112,7 +125,7 @@ public class ListLocalizationsCommand extends AbstractCommand {
 					}
 				}
 
-				Page.render(page, rCtx, 0);
+				page.render(rCtx, 0);
 
 				final List<GraphObjectMap> result = rCtx.getContextStore().getRequestedLocalizations();
 

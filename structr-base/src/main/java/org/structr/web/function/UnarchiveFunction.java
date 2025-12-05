@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,18 +20,24 @@ package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+
+import java.util.List;
 
 public class UnarchiveFunction extends UiAdvancedFunction {
-
-	public static final String ERROR_MESSAGE_UNARCHIVE    = "Usage: ${unarchive(archiveFile [, parentFolder])}. Example: ${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}";
-	public static final String ERROR_MESSAGE_UNARCHIVE_JS = "Usage: ${{$.unarchive(archiveFile [, parentFolder])}}. Example: ${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}";
 
 	@Override
 	public String getName() {
@@ -39,8 +45,8 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "file, [, parentFolder ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("file, [, parentFolder ]");
 	}
 
 	@Override
@@ -48,35 +54,34 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 
 
 		if (sources == null || sources.length < 1 || sources.length > 2
-				|| (sources[0] != null && !(sources[0] instanceof File)
-				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof Folder)))) {
+				|| (sources[0] != null && !(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))
+				|| (sources.length == 2 && sources[1] != null && !(sources[1] instanceof NodeInterface n && n.is(StructrTraits.FOLDER))))) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
-
 		try {
-			final File archiveFile    = (File) sources[0];
-			Folder parentFolder;
+
+			final File archiveFile = ((NodeInterface)sources[0]).as(File.class);
+			Folder parentFolder = null;
 
 			if (sources.length == 2 && sources[1] != null) {
 
-				parentFolder = (Folder) sources[2];
+				parentFolder = ((NodeInterface) sources[2]).as(Folder.class);
 
 			} else {
 
 				final PropertyMap props = new PropertyMap();
-				props.put(StructrApp.key(Folder.class, "name"), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
-				props.put(StructrApp.key(Folder.class, "parent"), archiveFile.getParent());
+				props.put(Traits.of(StructrTraits.FOLDER).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), StringUtils.substringBeforeLast(archiveFile.getName(), "."));
+				props.put(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.PARENT_PROPERTY), archiveFile.getParent());
 
 				// Create folder with same name (without extension) and in same folder as file
-				parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(Folder.class, props);
+				//parentFolder = StructrApp.getInstance(ctx.getSecurityContext()).create(StructrTraits.FOLDER, props).as(Folder.class);
 			}
 
-			FileHelper.unarchive(ctx.getSecurityContext(), (File) sources[0], parentFolder == null ? null : parentFolder.getUuid());
+			FileHelper.unarchive(ctx.getSecurityContext(), archiveFile, parentFolder == null ? null : parentFolder.getUuid());
 
 		} catch (final Exception e) {
 
@@ -86,15 +91,51 @@ public class UnarchiveFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
+	public List<Usage> getUsages() {
 
-		return (inJavaScriptContext ? ERROR_MESSAGE_UNARCHIVE_JS : ERROR_MESSAGE_UNARCHIVE);
+		return List.of(
+			Usage.structrScript("Usage: ${unarchive(archiveFile [, parentFolder])}."),
+			Usage.javaScript("Usage: ${{$.unarchive(archiveFile [, parentFolder])}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-
+	public String getShortDescription() {
 		return "Unarchives given file to an optional parent folder.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		The `unarchive()` function takes two parameter. 
+		The first parameter is a file object that is linked to an archive file, the second (optional) 
+		parameter points to an existing parent folder. If no parent folder is given, a new subfolder with the 
+		same name as the archive (without extension) is created. 
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${unarchive(first(find('File', 'name', 'archive.zip')), first(find('Folder', 'name', 'parent')) )}"),
+				Example.javaScript("${{ $.unarchive($.first($.find('File', 'name', 'archive.zip')), $.first($.find('Folder', 'name', 'parent')) )}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("archiveFile", "file node"),
+				Parameter.optional("parentFolder", "parent folder node")
+				);
+	}
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"The supported file types are ar, arj, cpio, dump, jar, tar, zip and 7z."
+		);
+	}
+
 
 }

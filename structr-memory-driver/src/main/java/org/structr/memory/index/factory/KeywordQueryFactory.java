@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -65,7 +65,7 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 		final Object value     = getReadValue(predicate.getValue());
 		final String name      = predicate.getName();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// only String properties can be used for inexact search
 		if (predicate.isExactMatch() || !isString) {
@@ -86,9 +86,14 @@ public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		} else {
 
+
 			if (value != null && isString) {
 
-				query.addPredicate(new StringContainsPredicate(name, (String)value));
+				query.addPredicate(new StringContainsPredicate(name, (String)value, !predicate.isExactMatch()));
+
+			} else if ("".equals(predicate.getValue()) && isString) {
+
+				query.addPredicate(new StringContainsPredicate(name, "", !predicate.isExactMatch()));
 
 			} else {
 

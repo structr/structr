@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,9 +21,12 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -31,23 +34,20 @@ import java.util.List;
 
 public class GetIncomingRelationshipsFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS    = "Usage: ${get_incoming_relationships(from, to [, relType])}. Example: ${get_incoming_relationships(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS = "Usage: ${{Structr.get_incoming_relationships(from, to [, relType])}}. Example: ${{Structr.get_incoming_relationships(Structr.get('me'), user, 'FOLLOWS')}}";
-
 	@Override
 	public String getName() {
-		return "get_incoming_relationships";
+		return "getIncomingRelationships";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target [, relType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final List<AbstractRelationship> list = new ArrayList<>();
+		final List<RelationshipInterface> list = new ArrayList<>();
 
 		try {
 
@@ -56,13 +56,13 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 			final Object source = sources[0];
 			final Object target = sources[1];
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = null;
+			NodeInterface sourceNode = null;
+			NodeInterface targetNode = null;
 
-			if (source instanceof AbstractNode && target instanceof AbstractNode) {
+			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-				sourceNode = (AbstractNode)source;
-				targetNode = (AbstractNode)target;
+				sourceNode = (NodeInterface) source;
+				targetNode = (NodeInterface) target;
 
 			} else {
 
@@ -72,14 +72,14 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 
 			if (sources.length == 2) {
 
-				for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getIncomingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
 
 					// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
 					if (s != null && t != null
-						&& s.equals(targetNode) && t.equals(sourceNode)) {
+							&& s.equals(targetNode) && t.equals(sourceNode)) {
 						list.add(rel);
 					}
 				}
@@ -87,17 +87,17 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 			} else if (sources.length == 3) {
 
 				// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
-				final String relType = (String)sources[2];
+				final String relType = (String) sources[2];
 
-				for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getIncomingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
 
 					// We need to check if current user can see source and target node which is often not the case for OWNS or SECURITY rels
 					if (s != null && t != null
-						&& rel.getRelType().name().equals(relType)
-						&& s.equals(targetNode) && t.equals(sourceNode)) {
+							&& rel.getRelType().name().equals(relType)
+							&& s.equals(targetNode) && t.equals(sourceNode)) {
 						list.add(rel);
 					}
 				}
@@ -117,12 +117,39 @@ public class GetIncomingRelationshipsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS_JS : ERROR_MESSAGE_GET_INCOMING_RELATIONSHIPS);
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${getIncomingRelationships(from, to [, relType])}. Example: ${getIncomingRelationships(me, user, 'FOLLOWS')}"),
+				Usage.javaScript("Usage: ${{$.getIncomingRelationships(from, to [, relType])}}. Example: ${{$.getIncomingRelationships($.me, user, 'FOLLOWS')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the incoming relationships of the given entity with an optional relationship type";
+	public String getShortDescription() {
+		return "Returns all incoming relationships between the given nodes, with an optional qualifying relationship type.";
+	}
+
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getIncomingRelationships(page, me)}"),
+				Example.javaScript("${{ $.getIncomingRelationships($.page, $.me) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("from", "source node"),
+				Parameter.mandatory("to", "target node"),
+				Parameter.optional("relType", "relationship type")
+		);
 	}
 }

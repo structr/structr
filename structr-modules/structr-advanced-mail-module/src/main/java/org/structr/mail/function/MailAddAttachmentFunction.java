@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,21 +19,24 @@
 package org.structr.mail.function;
 
 import org.apache.commons.mail.EmailAttachment;
-import org.structr.common.AdvancedMailContainer;
-import org.structr.common.DynamicMailAttachment;
 import org.structr.common.error.FrameworkException;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.net.MalformedURLException;
+import java.util.List;
 
 public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_attachment(file[, name])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_attachment(file[, name]) }}";
 
 	public MailAddAttachmentFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -41,12 +44,12 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_attachment";
+		return "mailAddAttachment";
 	}
 
 	@Override
-	public String getSignature() {
-		return "file [, name ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("file [, name ]");
 	}
 
 	@Override
@@ -58,9 +61,9 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 			final AdvancedMailContainer amc = ctx.getAdvancedMailContainer();
 
-			if (sources[0] instanceof File) {
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-				final File fileNode = (File)sources[0];
+				final File fileNode = n.as(File.class);
 				final String attachmentName = (sources.length == 2) ? sources[1].toString() : fileNode.getName();
 
 				try {
@@ -83,13 +86,40 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mailAddAttachment(file[, name])}"),
+			Usage.javaScript("Usage: ${{ Structr.mailAddAttachment(file[, name]) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Adds an attachment file and an optional file name to the current mail";
+	public String getShortDescription() {
+		return "Adds an attachment with an optional file name to the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+			Adds a file as an attachment to the mail. The `name` parameter can be used to send the file with a different name than the filename in the virtual filesystem.
+			
+			If the given file is a dynamic file, it will be evaluated at the time the mail is being sent.
+			""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("file", "file node from the virtual filesystem"),
+				Parameter.optional("name", "file name of attachment (defaults to the actual file name if omitted)")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more attachments."
+		);
 	}
 
 	public static void addAttachment(final AdvancedMailContainer amc, final File fileNode) throws MalformedURLException {

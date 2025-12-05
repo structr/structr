@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,15 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
-public class UpperFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_UPPER = "Usage: ${upper(string)}. Example: ${upper(this.nickName)}";
+public class UpperFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +37,8 @@ public class UpperFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str");
 	}
 
 	@Override
@@ -59,12 +63,35 @@ public class UpperFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_UPPER;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.upper(string) }}. "),
+			Usage.structrScript("Usage: ${upper(string)}. ")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the uppercase value of its parameter";
+	public String getShortDescription() {
+		return "Returns the uppercase value of its parameter.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${upper(this.nickName)}"),
+				Example.javaScript("${{ $.upper($.this.nickName) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("str", "given string")
+				);
 	}
 }

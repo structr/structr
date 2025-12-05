@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,36 @@
  */
 package org.structr.geo;
 
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.api.geometry.Position;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.geometry.Position2D;
 import org.geotools.referencing.CRS;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class LatLonToUTMFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE = "Usage: ${lat_lon_to_utm(latitude, longitude)}. Example: ${lat_lon_to_utm(41.3445, 7.35)}";
+	private static final String ERROR_MESSAGE = "Usage: ${latLonToUtm(latitude, longitude)}. Example: ${latLonToUtm(41.3445, 7.35)}";
 	private static final Logger logger        = LoggerFactory.getLogger(LatLonToUTMFunction.class.getName());
 	private static final String UTMzdlChars   = "CDEFGHJKLMNPQRSTUVWXX";
 
 	@Override
 	public String getName() {
-		return "lat_lon_to_utm";
+		return "latLonToUtm";
 	}
 
 	@Override
-	public String getSignature() {
-		return "latitude, longitude";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("latitude, longitude");
 	}
 
 	@Override
@@ -82,8 +88,8 @@ public class LatLonToUTMFunction extends GeoFunction {
 					final CoordinateReferenceSystem src = CRS.decode("EPSG:4326");
 					final CoordinateReferenceSystem dst = CRS.decode(epsg.toString());
 					final MathTransform transform       = CRS.findMathTransform(src, dst, true);
-					final DirectPosition sourcePt       = new DirectPosition2D(lat, lon);
-					final DirectPosition targetPt       = transform.transform(sourcePt, null);
+					final Position sourcePt             = new Position2D(lat, lon);
+					final Position targetPt             = transform.transform(sourcePt, null);
 					final String code                   = dst.getName().getCode();
 					final int pos                       = code.lastIndexOf(" ") + 1;
 					final String zoneName               = code.substring(pos, code.length() - 1);
@@ -121,13 +127,44 @@ public class LatLonToUTMFunction extends GeoFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts the given latitude/longitude coordinates into an UTM string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("latitude", "latitude of the desired UTM result"),
+			Parameter.mandatory("longitude", "longitude of the desired UTM result")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			${{
+				let latitude  = 53.85499997165232;
+				let longitude = 8.081674915658844;
+
+				// result: "32U 439596 5967780"
+				let utmString = $.latLonToUtm(latitude, longitude);
+			}}
+			""", "Convert a lat/lon pair to UTM")
+		);
 	}
 
 	// ----- private methods -----

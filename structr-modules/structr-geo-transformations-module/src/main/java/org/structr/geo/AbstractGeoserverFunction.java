@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,14 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Coordinate;
-import com.vividsolutions.jts.geom.Geometry;
 import org.apache.commons.io.IOUtils;
+import org.geotools.api.coverage.Coverage;
+import org.geotools.api.feature.Feature;
+import org.geotools.api.feature.GeometryAttribute;
+import org.geotools.api.feature.Property;
+import org.geotools.api.feature.simple.SimpleFeature;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.grid.io.AbstractGridFormat;
 import org.geotools.coverage.grid.io.GridCoverage2DReader;
@@ -28,22 +33,18 @@ import org.geotools.coverage.grid.io.GridFormatFinder;
 import org.geotools.coverage.processing.Operations;
 import org.geotools.data.simple.SimpleFeatureCollection;
 import org.geotools.data.simple.SimpleFeatureIterator;
-import org.geotools.factory.Hints;
 import org.geotools.geometry.jts.JTS;
-import org.geotools.gml3.v3_2.GMLConfiguration;
 import org.geotools.process.raster.PolygonExtractionProcess;
 import org.geotools.referencing.CRS;
-import org.geotools.xml.Parser;
+import org.geotools.util.factory.Hints;
+import org.geotools.xsd.Configuration;
+import org.geotools.xsd.Parser;
+import org.geotools.xsd.XMLConfiguration;
 import org.jaitools.numeric.Range;
 import org.json.JSONObject;
 import org.json.XML;
-import org.opengis.coverage.Coverage;
-import org.opengis.feature.Feature;
-import org.opengis.feature.GeometryAttribute;
-import org.opengis.feature.Property;
-import org.opengis.feature.simple.SimpleFeature;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.common.HttpHelper;
 
@@ -153,7 +154,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 			while (it.hasNext()) {
 
 				final SimpleFeature f = it.next();
-				final Object obj      = f.getAttribute("the_geom");
+				final Object obj      = f.getAttribute("theGeom");
 
 				if (obj instanceof Geometry) {
 
@@ -189,10 +190,10 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 				try (final InputStream is = connection.getInputStream()) {
 
-					final GMLConfiguration config  = new GMLConfiguration();
-					final List<Feature> features   = new LinkedList<>();
-					final Parser parser            = new Parser(config);
-					final Object result            = parser.parse(is);
+					final Configuration config   = new XMLConfiguration();
+					final List<Feature> features = new LinkedList<>();
+					final Parser parser          = new Parser(config);
+					final Object result          = parser.parse(is);
 
 					if (result instanceof Map) {
 

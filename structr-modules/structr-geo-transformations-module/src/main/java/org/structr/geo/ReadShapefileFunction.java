@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,10 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Geometry;
-import com.vividsolutions.jts.geom.GeometryFactory;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.geotools.api.referencing.FactoryException;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
 import org.geotools.data.PrjFileReader;
 import org.geotools.data.shapefile.dbf.DbaseFileHeader;
 import org.geotools.data.shapefile.dbf.DbaseFileReader;
@@ -30,9 +31,8 @@ import org.geotools.data.shapefile.shp.ShapefileReader;
 import org.geotools.data.shapefile.shp.ShapefileReader.Record;
 import org.geotools.geometry.jts.JTS;
 import org.geotools.referencing.CRS;
-import org.opengis.referencing.FactoryException;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -40,6 +40,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.IOException;
@@ -54,12 +56,12 @@ public class ReadShapefileFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "read_shapefile";
+		return "readShapefile";
 	}
 
 	@Override
-	public String getSignature() {
-		return "filename";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("filename");
 	}
 
 	@Override
@@ -174,13 +176,19 @@ public class ReadShapefileFunction extends GeoFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Reads a shapefile from a Structr path and returns it as a list of WKT strings.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	// ----- private methods -----
@@ -208,7 +216,7 @@ public class ReadShapefileFunction extends GeoFunction {
 			} catch (FactoryException ex) {
 				logger.error("", ex);
 			}
-		}
+        }
 
 		return null;
 	}

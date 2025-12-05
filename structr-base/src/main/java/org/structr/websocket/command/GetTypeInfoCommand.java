@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,14 +24,14 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Websocket command to retrieve type information from the schema.
  *
@@ -62,10 +62,10 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 		final App app = StructrApp.getInstance(securityContext);
 
-		final SchemaNode typeNode;
+		final NodeInterface typeNode;
 		try {
-			typeNode = app.nodeQuery(SchemaNode.class).andName(type).getFirst();
 
+			typeNode = app.nodeQuery(StructrTraits.SCHEMA_NODE).name(type).getFirst();
 			if (typeNode != null) {
 
 				webSocketData.setResult(Arrays.asList(typeNode));
@@ -80,7 +80,6 @@ public class GetTypeInfoCommand extends AbstractCommand {
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "GET_TYPE_INFO";

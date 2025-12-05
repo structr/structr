@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,13 @@
  */
 package org.structr.web.property;
 
-import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertySetNotion;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+
+import java.util.Set;
 
 /**
  * Convenience wrapper for (id, name) tuple.
@@ -30,6 +34,6 @@ import org.structr.core.notion.PropertySetNotion;
 public class UiNotion extends PropertySetNotion {
 
 	public UiNotion() {
-		super(GraphObject.id, AbstractNode.name);
+		super(Set.of(Traits.of(StructrTraits.GRAPH_OBJECT).key(GraphObjectTraitDefinition.ID_PROPERTY), Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)));
 	}
 }

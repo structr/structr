@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,9 +21,8 @@ package org.structr.rest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -38,29 +37,22 @@ public class RestMethodResult {
 
 	private static final Logger logger = LoggerFactory.getLogger(RestMethodResult.class.getName());
 
-	private boolean serializeSingleObjectAsCollection = Settings.ForceArrays.getValue(false);
 	private Map<String, String> headers               = null;
 	private List<Object> content                      = null;
 	private Object nonGraphObjectResult               = null;
 	private int responseCode                          = 0;
 	private String message                            = null;
-	private Integer overridenResultCount              = null;
+	private Integer overriddenResultCount             = null;
 
 	public RestMethodResult(final int responseCode) {
-		this.headers      = new LinkedHashMap<>();
+		this.headers      = new HashMap<>();
 		this.responseCode = responseCode;
 	}
 
 	public RestMethodResult(final int responseCode, final String message) {
-		headers           = new LinkedHashMap<>();
+		headers           = new HashMap<>();
 		this.message      = message;
 		this.responseCode = responseCode;
-	}
-
-	public RestMethodResult(final int responseCode, final boolean serializeSingleObjectAsCollection) {
-		this.headers                           = new LinkedHashMap<>();
-		this.responseCode                      = responseCode;
-		this.serializeSingleObjectAsCollection = serializeSingleObjectAsCollection;
 	}
 
 	public void addHeader(final String key, final String value) {
@@ -100,12 +92,12 @@ public class RestMethodResult {
 		return nonGraphObjectResult;
 	}
 
-	public void setOverridenResultCount(final int resultCount) {
-		this.overridenResultCount = resultCount;
+	public void setOverriddenResultCount(final int resultCount) {
+		this.overriddenResultCount = resultCount;
 	}
 
-	public Integer getOverridenResultCount() {
-		return this.overridenResultCount;
+	public Integer getOverriddenResultCount() {
+		return this.overriddenResultCount;
 	}
 
 	// ----- public static methods -----

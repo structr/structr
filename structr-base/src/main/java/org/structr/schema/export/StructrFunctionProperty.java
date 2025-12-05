@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,9 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper.Type;
 
 import java.util.Map;
@@ -37,11 +40,13 @@ import java.util.Map;
  */
 public class StructrFunctionProperty extends StructrDynamicProperty implements JsonFunctionProperty {
 
-	protected Boolean cachingEnabled	= false;
-	protected String readFunction  		= null;
-	protected String writeFunction 		= null;
-	protected String contentType   		= null;
-	protected String openAPIReturnType	= null;
+	protected Boolean cachingEnabled	                   = false;
+	protected String readFunction  		                   = null;
+	protected String writeFunction 		                   = null;
+	protected boolean writeFunctionWrapJS                  = true;
+	protected boolean readFunctionWrapJS                   = true;
+	protected String contentType                           = null;
+	protected String openAPIReturnType	                   = null;
 
 	public StructrFunctionProperty(final StructrTypeDefinition parent, final String name) {
 
@@ -49,15 +54,15 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	}
 
 	@Override
+	public String getType() {
+		return "function";
+	}
+
+	@Override
 	public JsonFunctionProperty setReadFunction(final String readFunction) {
 
 		this.readFunction = readFunction;
 		return this;
-	}
-
-	@Override
-	public String getType() {
-		return "function";
 	}
 
 	@Override
@@ -75,6 +80,28 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	@Override
 	public String getWriteFunction() {
 		return writeFunction;
+	}
+
+	@Override
+	public JsonFunctionProperty setWriteFunctionWrapJS(boolean wrap) {
+		this.writeFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
+	public Boolean getWriteFunctionWrapJS() {
+		return this.writeFunctionWrapJS;
+	}
+
+	@Override
+	public JsonFunctionProperty setReadFunctionWrapJS(boolean wrap) {
+		this.readFunctionWrapJS = wrap;
+		return this;
+	}
+
+	@Override
+	public Boolean getReadFunctionWrapJS() {
+		return this.readFunctionWrapJS;
 	}
 
 	@Override
@@ -126,6 +153,9 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 		if (writeFunction != null) {
 			map.put(JsonSchema.KEY_WRITE_FUNCTION, writeFunction);
 		}
+
+		map.put(JsonSchema.KEY_WRITE_FUNCTION_WRAP_JS, writeFunctionWrapJS);
+		map.put(JsonSchema.KEY_READ_FUNCTION_WRAP_JS, readFunctionWrapJS);
 
 		if (openAPIReturnType != null) {
 			map.put(JsonSchema.KEY_OPENAPI_RETURN_TYPE, openAPIReturnType);
@@ -212,6 +242,9 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 
 		setReadFunction(property.getReadFunction());
 		setWriteFunction(property.getWriteFunction());
+		setReadFunctionWrapJS(property.getReadFunctionWrapJS());
+		setWriteFunctionWrapJS(property.getWriteFunctionWrapJS());
+
 		setIsCachingEnabled(property.isCachingEnabled());
 		setContentType(property.getSourceContentType());
 		setOpenAPIReturnType(property.getOpenAPIReturnType());
@@ -221,11 +254,12 @@ public class StructrFunctionProperty extends StructrDynamicProperty implements J
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits           = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap properties  = new PropertyMap();
 
-		properties.put(SchemaProperty.readFunction,  readFunction);
-		properties.put(SchemaProperty.writeFunction, writeFunction);
-		properties.put(SchemaProperty.isCachingEnabled, cachingEnabled);
+		properties.put(traits.key(SchemaPropertyTraitDefinition.READ_FUNCTION_PROPERTY),  readFunction);
+		properties.put(traits.key(SchemaPropertyTraitDefinition.WRITE_FUNCTION_PROPERTY), writeFunction);
+		properties.put(traits.key(SchemaPropertyTraitDefinition.IS_CACHING_ENABLED_PROPERTY), cachingEnabled);
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

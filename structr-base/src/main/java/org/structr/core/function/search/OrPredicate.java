@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,44 +18,44 @@
  */
 package org.structr.core.function.search;
 
+import org.structr.api.search.Operation;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
-import org.structr.core.app.StructrApp;
+import org.structr.core.app.QueryGroup;
+import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.Traits;
 
 /**
  */
 public class OrPredicate extends AbstractPredicate {
 
 	@Override
-	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey propertyKey, final Query query, final boolean exact) throws FrameworkException {
+	public void configureQuery(final SecurityContext securityContext, final Traits type, final PropertyKey propertyKey, final QueryGroup query, final boolean exact) throws FrameworkException {
+
+		final SearchAttributeGroup orGroup = new SearchAttributeGroup(securityContext, query, Operation.OR);
 
 		for (final SearchParameter p : parameters) {
 
-			final PropertyKey key = StructrApp.key(type, p.getKey(), true);
+			final PropertyKey key = type.key(p.getKey());
 			if (key != null) {
 
 				final Object value = p.getValue();
 
 				// check if value is predicate...
-				if (value instanceof SearchFunctionPredicate) {
+				if (value instanceof SearchFunctionPredicate predicate) {
 
-					query.or();
-					((SearchFunctionPredicate)value).configureQuery(securityContext, type, key, query, p.isExact());
-					query.parent();
+					predicate.configureQuery(securityContext, type, key, orGroup, exact && p.isExact());
 
 				} else {
 
 					if (p.isEmptyPredicate()) {
 
-						query.or();
-						query.blank(key);
-						query.parent();
+						orGroup.blank(key);
 
 					} else {
 
-						query.or(key, value, p.isExact());
+						orGroup.key(key, value, exact && p.isExact());
 					}
 				}
 			}
@@ -63,10 +63,12 @@ public class OrPredicate extends AbstractPredicate {
 
 		for (final SearchFunctionPredicate p : predicates) {
 
-			query.or();
-			p.configureQuery(securityContext, type, propertyKey, query, exact);
-			query.parent();
+			p.configureQuery(securityContext, type, propertyKey, orGroup, exact);
 		}
 
+		// only add group if it is not empty!
+		if (!orGroup.isEmpty()) {
+			query.add(orGroup);
+		}
 	}
 }

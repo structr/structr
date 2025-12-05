@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,14 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${ mail_reset_manual_config() }";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_reset_manual_config() }}";
+public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	public MailResetManualConfigFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -33,12 +34,12 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_reset_manual_config";
+		return "mailResetManualConfig";
 	}
 
 	@Override
-	public String getSignature() {
-			return "";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -58,12 +59,20 @@ public class MailResetManualConfigFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${ mailResetManual_config() }"),
+			Usage.javaScript("Usage: ${{ $.mailResetManualConfig() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Resets a manual SMTP configuration for the current mail";
+	public String getShortDescription() {
+		return "Resets a manual SMTP configuration for the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function removes the configuration change made by using the `mail_set_manual_config(...)`.";
 	}
 }

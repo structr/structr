@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,22 +21,25 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
 public class StrReplaceFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_STR_REPLACE = "Usage: ${str_replace(subject, search, replacement)}. Example: ${str_replace(\"Hello Wrlod!\", \"Wrlod\", \"World\")}";
-
 	@Override
 	public String getName() {
-		return "str_replace";
+		return "strReplace";
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, substring, replacement";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str, substring, replacement");
 	}
 
 	@Override
@@ -65,12 +68,38 @@ public class StrReplaceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_STR_REPLACE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.strReplace(subject, search, replacement) }}."),
+			Usage.structrScript("Usage: ${strReplace(subject, search, replacement)}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Replaces each substring of the subject that matches the given regular expression with the given replacement.";
+	public String getShortDescription() {
+		return "Replaces **each** substring of the subject that matches the given regular expression with the given replacement.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${strReplace('Hello Wrlod!', 'Wrlod', 'World')}"),
+				Example.javaScript("${{ $.strReplace('Hello Wrlod!', 'Wrlod', 'World') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("subject", "subject string"),
+				Parameter.mandatory("search", "search string"),
+				Parameter.mandatory("replacement", "replacement string")
+				);
 	}
 }

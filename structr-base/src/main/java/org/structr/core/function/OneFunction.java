@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,17 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
  */
 public class OneFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_ONE = "Usage: ${one(number, oneValue, otherValue)}. Example: ${one(this.children.size, 'child', 'children')}";
 
 	@Override
 	public String getName() {
@@ -34,8 +37,8 @@ public class OneFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "number, oneValue, otherValue";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("number, oneValue, otherValue");
 	}
 
 	@Override
@@ -53,13 +56,24 @@ public class OneFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_ONE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${one(number, oneValue, otherValue)}. Example: ${one(this.children.size, 'child', 'children')}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Checks if a number is equal to 1, returns the oneValue if yes, the otherValue if no.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
 }

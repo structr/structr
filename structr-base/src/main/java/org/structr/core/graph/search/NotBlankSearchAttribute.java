@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.search.NotEmptyQuery;
-import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 
@@ -44,12 +43,15 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 	}
 
 	@Override
-	public boolean includeInResult(GraphObject entity) {
+	public boolean includeInResult(final GraphObject entity) {
 
-		Occurrence occur = getOccurrence();
-		T nodeValue      = entity.getProperty(getKey());
+		throw new RuntimeException("Not implemented");
 
-		if (occur.equals(Occurrence.FORBIDDEN)) {
+		/*
+		final Operation operation = getOperation();
+		final T nodeValue         = entity.getProperty(getKey());
+
+		if (operation.equals(Operation.NOT)) {
 
 			// reverse
 			return nodeValue == null;
@@ -58,5 +60,7 @@ public class NotBlankSearchAttribute<T> extends EmptySearchAttribute<T> {
 
 			return nodeValue != null;
 		}
+
+		 */
 	}
 }

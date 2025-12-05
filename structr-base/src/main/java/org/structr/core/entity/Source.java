@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,10 +31,12 @@ import org.structr.core.graph.NodeInterface;
  */
 public interface Source<R, S> {
 
-	public S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate);
+	S get(final SecurityContext securityContext, final NodeInterface node, final Predicate<GraphObject> predicate);
 
-	public Object set(final SecurityContext securityContext, final NodeInterface node, final S value) throws FrameworkException;
+	Object set(final SecurityContext securityContext, final NodeInterface node, final S value) throws FrameworkException;
 
-	public R getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
-	public boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
+	R getRawSource(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
+	boolean hasElements(final SecurityContext securityContext, final Node dbNode, final Predicate<GraphObject> predicate);
+
+	String getPropertyName();
 }

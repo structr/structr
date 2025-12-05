@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,13 +22,19 @@ import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.DynamicMailAttachment;
-import org.structr.common.MailHelper;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.common.helper.DynamicMailAttachment;
+import org.structr.common.helper.MailHelper;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.util.ArrayList;
@@ -38,16 +44,14 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 	private static final Logger logger = LoggerFactory.getLogger(SendHtmlMailFunction.class.getName());
 
-	public static final String ERROR_MESSAGE_SEND_HTML_MAIL = "Usage: ${send_html_mail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files])}.";
-
 	@Override
 	public String getName() {
-		return "send_html_mail";
+		return "sendHtmlMail";
 	}
 
 	@Override
-	public String getSignature() {
-		return "fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]");
 	}
 
 	@Override
@@ -65,28 +69,30 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 			final String htmlContent = sources[5].toString();
 			final String textContent = sources[6].toString();
 
-			List<File> fileNodes = null;
+			List<NodeInterface> fileNodes = null;
 			List<DynamicMailAttachment> attachments = new ArrayList<>();
 
 			try {
 
-				if (sources.length == 8 && sources[7] instanceof List && ((List) sources[7]).size() > 0 && ((List) sources[7]).get(0) instanceof File) {
+				if (sources.length == 8 && sources[7] instanceof List list && list.size() > 0 && list.get(0) instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-					fileNodes = (List<File>) sources[7];
+					fileNodes = list;
 
-					for (File fileNode : fileNodes) {
+					for (final NodeInterface fileNode : fileNodes) {
 
+						final File file                        = fileNode.as(File.class);
 						final DynamicMailAttachment attachment = new DynamicMailAttachment();
-						attachment.setName(fileNode.getProperty(File.name));
+
+						attachment.setName(file.getName());
 						attachment.setDisposition(EmailAttachment.ATTACHMENT);
 
-						if (fileNode.isTemplate()) {
+						if (file.isTemplate()) {
 
-							attachment.setDataSource(fileNode);
+							attachment.setDataSource(file);
 
 						} else {
 
-							attachment.setDataSource(StorageProviderFactory.getStorageProvider(fileNode));
+							attachment.setDataSource(StorageProviderFactory.getStorageProvider(file));
 						}
 
 						attachments.add(attachment);
@@ -114,12 +120,51 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SEND_HTML_MAIL;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.sendHtmlMail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files]) }}."),
+			Usage.structrScript("Usage: ${sendHtmlMail(fromAddress, fromName, toAddress, toName, subject, htmlContent, textContent [, files])}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sends an HTML e-mail";
+	public String getShortDescription() {
+		return "Sends an HTML email.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Attachments must be provided as a list, even when only a single file is included.",
+				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
+				"Emails are sent based on the SMTP configuration defined in structr.conf.",
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mailBegin()`."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("fromAddress", "sender address"),
+				Parameter.mandatory("fromName", "sender name"),
+				Parameter.mandatory("toAddress", "recipient address"),
+				Parameter.mandatory("toName", "recipient name"),
+				Parameter.mandatory("subject", "subject"),
+				Parameter.mandatory("htmlContent", "HTML content"),
+				Parameter.mandatory("textContent", "text content"),
+				Parameter.optional("files", "collection of file nodes to send as attachments")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to <b>Structr</b>!', 'Hi User, welcome to Structr!', find('File', 'name', 'welcome-to-structr.pdf')))}")
+		);
 	}
 }

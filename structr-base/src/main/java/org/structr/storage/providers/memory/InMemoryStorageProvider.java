@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,11 +20,11 @@ package org.structr.storage.providers.memory;
 
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.slf4j.LoggerFactory;
-import org.structr.core.app.StructrApp;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.*;
 import java.nio.channels.SeekableByteChannel;
@@ -33,7 +33,6 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.structr.web.entity.StorageConfiguration;
 
 public class InMemoryStorageProvider extends AbstractStorageProvider {
 
@@ -60,7 +59,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public String getContentType() {
-		return getAbstractFile().getProperty(StructrApp.key(File.class, "contentType"));
+		return getAbstractFile().as(File.class).getContentType();
 	}
 
 	@Override

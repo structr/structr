@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,29 +20,30 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.EnumProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.SchemaHelper;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 public class EnumInfoFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_ENUM_INFO    = "Usage: ${enum_info(type, enumProperty[, raw])}. Example ${enum_info('Document', 'documentType')}";
-	public static final String ERROR_MESSAGE_ENUM_INFO_JS = "Usage: ${Structr.enum_info(type, enumProperty[, raw])}. Example ${Structr.enum_info('Document', 'documentType')}";
-
 	@Override
 	public String getName() {
-		return "enum_info";
+		return "enumInfo";
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, propertyName [, raw]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type, propertyName [, raw]");
 	}
 
 	@Override
@@ -55,33 +56,27 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 			final String typeName         = sources[0].toString();
 			final String enumPropertyName = sources[1].toString();
 			final boolean rawList         = (sources.length == 3) ? Boolean.parseBoolean(sources[2].toString()) : false;
-			final Class type              = SchemaHelper.getEntityClassForRawType(typeName);
+			final Traits type             = Traits.of(typeName);
 
 			if (type != null) {
 
-				final PropertyKey key = StructrApp.key(type, enumPropertyName);
+				final PropertyKey key = type.key(enumPropertyName);
 				if (key != null) {
 
 					if (key instanceof EnumProperty) {
 
 						final EnumProperty enumProperty = (EnumProperty)key;
-						final Class enumType            = enumProperty.getEnumType();
-						final Object[] enumConstants    = enumType.getEnumConstants();
-						final List<String> valueList    = new ArrayList<>();
-
-						for (final Object constant : enumConstants) {
-							valueList.add(constant.toString());
-						}
+						final Set<String> enumConstants = enumProperty.getEnumConstants();
 
 						if (rawList) {
 
-							return valueList;
+							return enumConstants;
 
 						} else {
 
 							final ArrayList<GraphObjectMap> resultList = new ArrayList();
 
-							for (final String value : valueList) {
+							for (final String value : enumConstants) {
 
 								final GraphObjectMap valueMap = new GraphObjectMap();
 								resultList.add(valueMap);
@@ -119,12 +114,53 @@ public class EnumInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ENUM_INFO_JS : ERROR_MESSAGE_ENUM_INFO);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${enumInfo(type, enumProperty[, raw])}. Example ${enumInfo('Document', 'documentType')}"),
+			Usage.javaScript("Usage: ${{ $.enumInfo(type, enumProperty[, raw])}}. Example ${{ $.enumInfo('Document', 'documentType')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the enum values as an array";
+	public String getShortDescription() {
+		return "Returns the possible values of an enum property.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		The default behaviour of this function is to return a list of objects with a single `value` entry that contains the enum value, so it can be used in a repeater to configure HTML select dropdowns etc:
+		
+		```
+		[ { value: 'ExampleEnum1' }, { value: 'ExampleEnum2' }, { value: 'ExampleEnum3' } ]
+		```
+		
+		If the `raw` parameter is set to `true`, a simple list will be returned:
+		```
+		[ 'ExampleEnum1', 'ExampleEnum2', 'ExampleEnum3' } ]
+		```
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("type", "type on which the property is defined"),
+			Parameter.mandatory("propertyName", "name of the property"),
+			Parameter.optional("raw", "whether to return a raw list of enum values or a list of objects")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.html("""
+			<select>
+				<option data-structr-meta-data-key="activityType" data-structr-meta-function-query="enumInfo('Activity', 'activityType')">${activityType.value}</option>
+			</select>
+			""", "Configure an HTML select element with the enum options of a property")
+		);
 	}
 }

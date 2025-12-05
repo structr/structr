@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,24 +20,27 @@ package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
  */
 public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_SET_PRIVILEGED    = "Usage: ${set_privileged(entity, propertyKey, value)}. Example: ${set_privileged(this, \"email\", lower(this.email))}";
-	public static final String ERROR_MESSAGE_SET_PRIVILEGED_JS = "Usage: ${{Structr.setPrvileged(entity, propertyKey, value)}}. Example: ${{Structr.setPrivileged(Structr.this, \"email\", lower(Structr.this.email))}}";
-
 	@Override
 	public String getName() {
-		return "set_privileged";
+		return "setPrivileged";
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity, parameterMap";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("entity, parameterMap");
 	}
 
 	@Override
@@ -64,13 +67,53 @@ public class SetPrivilegedFunction extends AdvancedScriptingFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_PRIVILEGED_JS : ERROR_MESSAGE_SET_PRIVILEGED);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setPrivileged(entity, propertyKey, value)}."),
+			Usage.javaScript("Usage: ${{$.setPrivileged(entity, propertyKey, value)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the given key/value pair(s) on the given entity with super-user privileges";
+	public String getShortDescription() {
+		return "Sets the given key/value pair(s) on the given entity with super-user privileges.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${ setPrivileged(page, 'accessCount', '2')}"),
+				Example.javaScript("${{ $.setPrivileged($.page, 'accessCount', '2')} }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("entity", "URL to connect to"),
+				Parameter.mandatory("map", "parameterMap (only JavaScript)"),
+				Parameter.mandatory("key1", "key1 (only StructrScript)"),
+				Parameter.mandatory("value1", "value for key1 (only StructrScript)"),
+				Parameter.mandatory("key2", "key2 (only JavaScript)"),
+				Parameter.mandatory("value2", "value for key1 (only StructrScript)"),
+				Parameter.mandatory("keyN", "keyN (only JavaScript)"),
+				Parameter.mandatory("valueN", "value for keyN (only StructrScript)")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+				"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+		);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,24 +20,27 @@ package org.structr.web.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.command.RemoveCommand;
 
-public class RemoveDOMChildFunction extends UiAdvancedFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_REMOVE_DOM_CHILD    = "Usage: ${remove_dom_child(parent, child)}. Example: ${remove_dom_child(this, child)}";
-	public static final String ERROR_MESSAGE_REMOVE_DOM_CHILD_JS = "Usage: ${{Structr.removeDomChild(parent, child)}}. Example: ${{Structr.removeDomChild(this, child)}}";
+public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "remove_dom_child";
+		return "removeDomChild";
 	}
 
 	@Override
-	public String getSignature() {
-		return "parent, child";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("parent, child");
 	}
 
 	@Override
@@ -45,13 +48,13 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 
 		assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-		if (sources[0] instanceof DOMElement) {
+		if (sources[0] instanceof NodeInterface n1 && n1.is(StructrTraits.DOM_ELEMENT)) {
 
-			final DOMElement parent = (DOMElement) sources[0];
+			final DOMElement parent = n1.as(DOMElement.class);
 
-			if (sources[1] instanceof DOMElement) {
+			if (sources[1] instanceof NodeInterface n2 && n2.is(StructrTraits.DOM_NODE)) {
 
-				final DOMNode child = (DOMNode) sources[1];
+				final DOMNode child = n2.as(DOMNode.class);
 
 				RemoveDOMChildFunction.apply(ctx.getSecurityContext(), parent, child);
 			}
@@ -61,13 +64,21 @@ public class RemoveDOMChildFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REMOVE_DOM_CHILD_JS : ERROR_MESSAGE_REMOVE_DOM_CHILD);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${removeDomChild(parent, child)}. Example: ${removeDomChild(this, child)}"),
+			Usage.javaScript("Usage: ${{Structr.removeDomChild(parent, child)}}. Example: ${{Structr.removeDomChild(this, child)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Removes a node from the DOM";
+	public String getShortDescription() {
+		return "Removes a node from the DOM.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	public static void apply(final SecurityContext securityContext, final DOMElement parent, final DOMNode child) throws FrameworkException {

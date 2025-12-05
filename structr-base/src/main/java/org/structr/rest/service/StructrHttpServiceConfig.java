@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,33 +24,22 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.core.auth.Authenticator;
-import org.structr.rest.ResourceProvider;
-import org.structr.schema.compiler.NodeExtender;
 
-import java.util.Set;
+import java.lang.reflect.InvocationTargetException;
+
 
 /**
- *
  *
  */
 public class StructrHttpServiceConfig {
 
-	private static final Logger logger            = LoggerFactory.getLogger(StructrHttpServiceConfig.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrHttpServiceConfig.class.getName());
 
-	private String defaultPropertyView                = PropertyView.Public;
-	private ResourceProvider resourceProvider         = null;
-	private Class authenticatorClass                  = null;
-	private boolean userAutoCreate                    = false;
-	private boolean userAutoLogin                     = false;
-	private int outputNestingDepth                    = 3;
-
-	public ResourceProvider getResourceProvider() {
-		return resourceProvider;
-	}
-
-	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
-	}
+	private String defaultPropertyView = PropertyView.Public;
+	private Class authenticatorClass   = null;
+	private boolean userAutoCreate     = false;
+	private boolean userAutoLogin      = false;
+	private int outputNestingDepth     = 3;
 
 	public String getDefaultPropertyView() {
 		return defaultPropertyView;
@@ -60,37 +49,12 @@ public class StructrHttpServiceConfig {
 		return outputNestingDepth;
 	}
 
-	public void initializeFromSettings(final String servletName, final Set<ResourceProvider> resourceProviders) throws InstantiationException, IllegalAccessException {
+	public void initializeFromSettings(final String servletName) throws InstantiationException, IllegalAccessException {
 
-		final String resourceProviderKeyName = "resourceprovider";
 		final String authenticatorKeyName    = "authenticator";
 		final String defaultPropertyKeyName  = "defaultview";
 		final String nestingDepthKeyName     = "outputdepth";
-
-		final String resourceProviderValue   = Settings.getOrCreateStringSetting(servletName, resourceProviderKeyName).getValue();
 		final String authenticatorValue      = Settings.getOrCreateStringSetting(servletName, authenticatorKeyName).getValue();
-
-		if (StringUtils.isBlank(resourceProviderValue)) {
-
-			logger.error("Missing resource provider key {}.resourceprovider in configuration file.", servletName);
-
-			throw new IllegalStateException("No resource provider set for servlet " + servletName);
-
-		} else {
-
-			final Class<ResourceProvider> providerClass = loadClass(resourceProviderValue);
-			if (providerClass != null) {
-
-				resourceProvider = providerClass.newInstance();
-				resourceProviders.add(resourceProvider);
-
-			} else {
-
-				logger.error("Unable to initialize resource provider for servlet {}, no resource provider found. Please check structr.conf for a valid resource provider class.", servletName);
-
-				throw new IllegalStateException("No resource provider available for servlet " + servletName);
-			}
-		}
 
 		if (StringUtils.isBlank(authenticatorValue)) {
 
@@ -122,11 +86,10 @@ public class StructrHttpServiceConfig {
 		}
 
 		try {
-			authenticator = (Authenticator) authenticatorClass.newInstance();
+			authenticator = (Authenticator) authenticatorClass.getDeclaredConstructor().newInstance();
 
-		} catch (InstantiationException | IllegalAccessException t) {
-
-			logger.error("Unable to instantiate authenticator {}: {}", new Object[] { authenticatorClass, t.getMessage() } );
+		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+			logger.error("Unable to instantiate authenticator {}: {}", new Object[] { authenticatorClass, ex.getMessage() } );
 		}
 
 		return authenticator;
@@ -135,28 +98,12 @@ public class StructrHttpServiceConfig {
 	// ----- private methods -----
 	private Class loadClass(final String name) {
 
-		ClassLoader loader = NodeExtender.getClassLoader();
-		Class loadedClass  = null;
-
-		if (loader == null) {
-			loader = getClass().getClassLoader();
-		}
-
 		try {
 
-			loadedClass = Class.forName(name, true, loader);
+			return Class.forName(name);
 
 		} catch (Throwable ignore) {}
 
-		if (loadedClass == null) {
-
-			try {
-
-				loadedClass = Class.forName(name);
-
-			} catch (Throwable ignore) {}
-		}
-
-		return loadedClass;
+		return null;
 	}
 }

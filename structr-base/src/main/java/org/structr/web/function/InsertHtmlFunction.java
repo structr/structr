@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,49 +20,58 @@ package org.structr.web.function;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 
-public class InsertHtmlFunction extends UiAdvancedFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_INSERT_HTML    = "Usage: ${insert_html(parent, html)}. Example: ${insert_html(this, html)}";
-	public static final String ERROR_MESSAGE_INSERT_HTML_JS = "Usage: ${{Structr.insertHtml(parent, html)}}. Example: ${{Structr.insertHtml(this, html)}}";
+public class InsertHtmlFunction extends UiAdvancedFunction {
 
 	@Override
 	public String getName() {
-		return "insert_html";
+		return "insertHtml";
 	}
 
 	@Override
-	public String getSignature() {
-		return "parent, html";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("parent, html");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, Object[] sources) throws FrameworkException {
 
-		assertArrayHasMinLengthAndTypes(sources, 2, DOMElement.class, String.class);
+		assertArrayHasMinLengthAndTypes(sources, 2, NodeInterface.class, String.class);
 
-		final DOMElement parent = (DOMElement) sources[0];
-		final String html       = (String) sources[1];
+		final NodeInterface parent = (NodeInterface)sources[0];
+		final String html          = (String) sources[1];
 
 		return InsertHtmlFunction.apply(ctx.getSecurityContext(), parent, html);
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INSERT_HTML_JS : ERROR_MESSAGE_INSERT_HTML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${insertHtml(parent, html)}. Example: ${insertHtml(this, html)}"),
+			Usage.javaScript("Usage: ${{Structr.insertHtml(parent, html)}}. Example: ${{Structr.insertHtml(this, html)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Inserts a new HTML subtree into the DOM";
+	public String getShortDescription() {
+		return "Inserts a new HTML subtree into the DOM.";
 	}
 
-	public static DOMNode apply(final SecurityContext securityContext, final DOMElement parent, final String htmlSource) throws FrameworkException {
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	public static DOMNode apply(final SecurityContext securityContext, final NodeInterface parent, final String htmlSource) throws FrameworkException {
 
 		final Importer importer = new Importer(securityContext, htmlSource, null, null, false, false, false, false);
 
@@ -71,6 +80,8 @@ public class InsertHtmlFunction extends UiAdvancedFunction {
 
 		importer.parse(true);
 
-		return importer.createChildNodes(parent, parent.getOwnerDocument(), true);
+		final DOMNode domNodeParent = parent.as(DOMNode.class);
+
+		return importer.createChildNodes(domNodeParent, domNodeParent.getOwnerDocument(), true);
 	}
 }

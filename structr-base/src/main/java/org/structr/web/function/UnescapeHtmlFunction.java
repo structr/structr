@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,25 +18,28 @@
  */
 package org.structr.web.function;
 
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class UnescapeHtmlFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_UNESCAPE_HTML    = "Usage: ${unescape_html(text)}. Example: ${unescape_html(\"test &amp; test\")}";
-	public static final String ERROR_MESSAGE_UNESCAPE_HTML_JS = "Usage: ${{Structr.unescape_html(text)}}. Example: ${{Structr.unescape_html(\"test &amp; test\")}}";
-
 	@Override
 	public String getName() {
-		return "unescape_html";
+		return "unescapeHtml";
 	}
 
 	@Override
-	public String getSignature() {
-		return "text";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("text");
 	}
 
 	@Override
@@ -46,7 +49,7 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return StringEscapeUtils.unescapeHtml(sources[0].toString());
+			return StringEscapeUtils.unescapeHtml4(sources[0].toString());
 
 		} catch (ArgumentNullException pe) {
 
@@ -61,12 +64,35 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_UNESCAPE_HTML_JS : ERROR_MESSAGE_UNESCAPE_HTML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${unescapeHtml(text)}."),
+			Usage.javaScript("Usage: ${{Structr.unescapeHtml(text)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Relaces escaped HTML entities with the actual characters, e.g. &lt; with <";
+	public String getShortDescription() {
+		return "Reverses the effect of `escape_html()`.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Relaces escaped HTML entities with the actual characters, e.g. &lt; with <.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${unescapeHtml('test &amp; test')}"),
+				Example.javaScript("${{Structr.unescapeHtml('test &amp; test')}}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("string", "escaped string")
+				);
 	}
 }

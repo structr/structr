@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,17 @@
  */
 package org.structr.mail.function;
 
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.docs.Example;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailGetErrorFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_get_error()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_get_error() }}";
+public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 
 	public MailGetErrorFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -38,8 +40,8 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -51,12 +53,39 @@ public class MailGetErrorFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_get_error()}"),
+			Usage.javaScript("Usage: ${{ $.mailGetError() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the last error message (or null if no error has occured)";
+	public String getShortDescription() {
+		return "Returns the last error message (or null if no error has occurred).";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+						
+							$.mail_begin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+							$.mail_add_to('another-user@example.com');
+							$.mail_send();
+
+							if ($.mail_has_error()) {
+								// react to error here
+								$.log($.mail_get_error());
+							}
+						}}
+						""", "Log the error message when sending a mail failed")
+		);
 	}
 }

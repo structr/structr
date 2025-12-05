@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,11 +27,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.Widget;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
@@ -62,36 +65,20 @@ public abstract class AbstractCommand {
 	}
 
 	public Page getPage(final String id) {
-
-		final AbstractNode node = getNode(id);
-
-		if (node != null && node instanceof Page) {
-
-			return (Page) node;
-		}
-
-		return null;
+		return getNodeAs(id, Page.class, StructrTraits.PAGE);
 	}
 
 	public DOMNode getDOMNode(final String id) {
-
-		final AbstractNode node = getNode(id);
-
-		if (node != null && node instanceof DOMNode) {
-
-			return (DOMNode) node;
-		}
-
-		return null;
+		return getNodeAs(id, DOMNode.class, StructrTraits.DOM_NODE);
 	}
 
-	public Widget getWidget(final String id) {
+	public <T> T getNodeAs(final String id, final Class<T> type, final String traitName) {
 
-		final AbstractNode node = getNode(id);
+		final NodeInterface node = getNode(id);
 
-		if (node != null && node instanceof Widget) {
+		if (node != null && node.is(traitName)) {
 
-			return (Widget) node;
+			return node.as(type);
 		}
 
 		return null;
@@ -104,7 +91,6 @@ public abstract class AbstractCommand {
 	 * @return the graph object
 	 */
 	public GraphObject getGraphObject(final String id) {
-
 		return getGraphObject(id, null);
 	}
 
@@ -121,9 +107,9 @@ public abstract class AbstractCommand {
 	 */
 	public GraphObject getGraphObject(final String id, final String nodeId) {
 
-		if (isValidUuid(id)) {
+		if (Settings.isValidUuid(id)) {
 
-			final AbstractNode node = getNode(id);
+			final NodeInterface node = getNode(id);
 			if (node != null) {
 
 				return node;
@@ -131,10 +117,10 @@ public abstract class AbstractCommand {
 			} else {
 
 				if (nodeId == null) {
-					logger.warn("Relationship access by UUID is deprecated and not supported by Neo4j, this can take a very long time.");
+					logger.warn("Relationship access by UUID can take a very long time. Please examine the following stack trace and amend.");
 				}
 
-				final AbstractRelationship rel = getRelationship(id, nodeId);
+				final RelationshipInterface rel = getRelationship(id, nodeId);
 				if (rel != null) {
 
 					return rel;
@@ -155,14 +141,14 @@ public abstract class AbstractCommand {
 	 * @param id
 	 * @return the node
 	 */
-	public AbstractNode getNode(final String id) {
+	public NodeInterface getNode(final String id) {
 
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
-		final App app = StructrApp.getInstance(securityContext);
+		final App app                         = StructrApp.getInstance(securityContext);
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode) app.getNodeById(id);
+			final NodeInterface node = app.getNodeById(id);
 
 			tx.success();
 
@@ -181,14 +167,11 @@ public abstract class AbstractCommand {
 	 *
 	 * This avoids the performance issues of getRelationshipById due to missing index support.
 	 *
-	 * If nodeId is null, the method falls back to {@link getRelationship(id)}.
-	 *
-	 *
 	 * @param id
 	 * @param nodeId
 	 * @return the node
 	 */
-	public AbstractRelationship getRelationship(final String id, final String nodeId) {
+	public RelationshipInterface getRelationship(final String id, final String nodeId) {
 
 		if (id == null) {
 			return null;
@@ -203,9 +186,9 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node = (AbstractNode) app.getNodeById(nodeId);
+			final NodeInterface node = app.getNodeById(nodeId);
 
-			for (final AbstractRelationship rel : node.getRelationships()) {
+			for (final RelationshipInterface rel : node.getRelationships()) {
 
 				if (rel.getUuid().equals(id)) {
 					return rel;
@@ -229,7 +212,7 @@ public abstract class AbstractCommand {
 	 * @param id
 	 * @return the node
 	 */
-	public AbstractRelationship getRelationship(final String id) {
+	public RelationshipInterface getRelationship(final String id) {
 
 		if (id == null) {
 			return null;
@@ -240,7 +223,7 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			final AbstractRelationship rel = (AbstractRelationship) app.getRelationshipById(id);
+			final RelationshipInterface rel = app.getRelationshipById(id);
 
 			tx.success();
 
@@ -269,20 +252,12 @@ public abstract class AbstractCommand {
 	 * @param sourceNode
 	 * @param targetNode
 	 */
-	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) {
+	protected void moveChildNodes(final DOMNode sourceNode, final DOMNode targetNode) throws FrameworkException {
 
-		DOMNode child = (DOMNode) sourceNode.getFirstChild();
-
-		while (child != null) {
-
-			DOMNode next = (DOMNode) child.getNextSibling();
+		for (final DOMNode child : sourceNode.getChildren()) {
 
 			targetNode.appendChild(child);
-
-			child = next;
-
 		}
-
 	}
 
 	/**
@@ -301,21 +276,23 @@ public abstract class AbstractCommand {
 
 		try (final Tx tx = app.tx()) {
 
-			ShadowDocument doc = app.nodeQuery(ShadowDocument.class).includeHidden().getFirst();
+			NodeInterface doc = app.nodeQuery(StructrTraits.SHADOW_DOCUMENT).includeHidden().getFirst();
 			if (doc == null) {
 
 				final PropertyMap properties = new PropertyMap();
-				properties.put(AbstractNode.type, ShadowDocument.class.getSimpleName());
-				properties.put(AbstractNode.name, "__ShadowDocument__");
-				properties.put(AbstractNode.hidden, true);
-				properties.put(AbstractNode.visibleToAuthenticatedUsers, true);
+				final Traits traits          = Traits.of(StructrTraits.SHADOW_DOCUMENT);
 
-				doc = app.create(ShadowDocument.class, properties);
+				properties.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY), traits.getName());
+				properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "__ShadowDocument__");
+				properties.put(traits.key(NodeInterfaceTraitDefinition.HIDDEN_PROPERTY), true);
+				properties.put(traits.key(GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY), true);
+
+				doc = app.create(StructrTraits.SHADOW_DOCUMENT, properties);
 			}
 
 			tx.success();
 
-			return doc;
+			return doc.as(ShadowDocument.class);
 
 		} catch (FrameworkException fex) {
 			logger.warn("Unable to create container for shared components: {}", fex.getMessage());
@@ -344,10 +321,5 @@ public abstract class AbstractCommand {
 			securityContext.setDoTransactionNotifications(notify);
 		}
 
-	}
-
-	// ----- private methods -----
-	private static boolean isValidUuid(final String id) {
-		return Settings.isValidUuid(id);
 	}
 }

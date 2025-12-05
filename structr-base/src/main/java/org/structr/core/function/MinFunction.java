@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,15 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class MinFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_MIN = "Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}";
+public class MinFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +37,8 @@ public class MinFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
 	@Override
@@ -48,7 +52,7 @@ public class MinFunction extends CoreFunction {
 
 		} catch (NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 			return usage(ctx.isJavaScriptContext());
 
 		} catch (ArgumentNullException pe) {
@@ -64,12 +68,33 @@ public class MinFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_MIN;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${min(value1, value2)}. Example: ${min(this.children, 5)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the smaller value of the given arguments";
+	public String getShortDescription() {
+		return "Returns the smaller of the given values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function tries to convert its arguments into numerical values, i.e. you can use strings as arguments. See also `max()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("value1", "first value to compare"),
+			Parameter.mandatory("value2", "second value to compare")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

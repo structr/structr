@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,24 +21,26 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class HasIncomingRelationshipFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP    = "Usage: ${has_incoming_relationship(from, to [, relType])}. Example: ${has_incoming_relationship(me, user, 'FOLLOWS')}";
-	public static final String ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS = "Usage: ${{Structr.has_incoming_relationship(from, to [, relType])}}. Example: ${{Structr.has_incoming_relationship(Structr.get('me'), user, 'FOLLOWS')}}";
-
 	@Override
 	public String getName() {
-		return "has_incoming_relationship";
+		return "hasIncomingRelationship";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target [, relType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source, target [, relType ]");
 	}
 
 	@Override
@@ -51,13 +53,13 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 			final Object source = sources[0];
 			final Object target = sources[1];
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = null;
+			NodeInterface sourceNode = null;
+			NodeInterface targetNode = null;
 
-			if (source instanceof AbstractNode && target instanceof AbstractNode) {
+			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-				sourceNode = (AbstractNode)source;
-				targetNode = (AbstractNode)target;
+				sourceNode = (NodeInterface)source;
+				targetNode = (NodeInterface)target;
 
 			} else {
 
@@ -67,7 +69,7 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 
 			if (sources.length == 2) {
 
-				for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getIncomingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -84,7 +86,7 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 				// dont try to create the relClass because we would need to do that both ways!!! otherwise it just fails if the nodes are in the "wrong" order (see tests:890f)
 				final String relType = (String)sources[2];
 
-				for (final AbstractRelationship rel : sourceNode.getIncomingRelationships()) {
+				for (final RelationshipInterface rel : sourceNode.getIncomingRelationships()) {
 
 					final NodeInterface s = rel.getSourceNode();
 					final NodeInterface t = rel.getTargetNode();
@@ -112,12 +114,38 @@ public class HasIncomingRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP_JS : ERROR_MESSAGE_HAS_INCOMING_RELATIONSHIP);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${hasIncomingRelationship(from, to [, relType])}."),
+			Usage.javaScript("Usage: ${{$.hasIncomingRelationship(from, to [, relType])}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the given entity has incoming relationships of the given type";
+	public String getShortDescription() {
+		return "Returns true if the given entity has incoming relationships of the given type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Returns a boolean value indicating whether **at least one** incoming relationship exists between the given entities, with an optional qualifying relationship type. See also `incoming()`, `outgoing()`, `has_relationship()` and `has_outgoing_relationship()`.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${hasIncomingRelationship(me, page, 'OWNS')}"),
+				Example.javaScript("${{ $.hasIncomingRelationship($.me, $.page, 'OWNS') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("from", "entity the relationship goes from"),
+				Parameter.mandatory("to", "entity the relationship goes to"),
+				Parameter.optional("relType", "type of relationship")
+				);
 	}
 }

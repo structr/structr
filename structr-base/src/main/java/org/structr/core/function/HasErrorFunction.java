@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,21 +19,23 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class HasErrorFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_HAS_ERROR    = "Usage: ${has_error()}";
-	public static final String ERROR_MESSAGE_HAS_ERROR_JS = "Usage: ${{ Structr.has_error() }}";
-
 	@Override
 	public String getName() {
-		return "has_error";
+		return "hasError";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -43,13 +45,20 @@ public class HasErrorFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return inJavaScriptContext ? ERROR_MESSAGE_HAS_ERROR_JS : ERROR_MESSAGE_HAS_ERROR;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${hasError()}"),
+			Usage.javaScript("Usage: ${{ $.hasError() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Allows checking if an error occurred in the scripting context";
+	public String getShortDescription() {
+		return "Allows checking if an error has been raised in the scripting context.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

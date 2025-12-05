@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,46 +18,65 @@
  */
 package org.structr.web.function;
 
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ClearHeadersFunction extends UiAdvancedFunction {
 
-    public static final String ERROR_MESSAGE_CLEAR_HEADERS = "Usage: ${clear_headers()}. Example: ${clear_headers()}";
-    public static final String ERROR_MESSAGE_CLEAR_HEADERS_JS = "Usage: ${{Structr.clear_headers()}}. Example: ${{Structr.clear_headers()}}";
+	@Override
+	public String getName() {
+		return "clearHeaders";
+	}
 
-    @Override
-    public String getName() {
-        return "clear_headers";
-    }
+	@Override
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
+	}
 
-    @Override
-    public String getSignature() {
-        return null;
-    }
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-    @Override
-    public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
+		if (sources == null || sources.length == 0) {
 
-        if (sources == null || sources.length == 0) {
+			ctx.clearHeaders();
+			return "";
 
-            ctx.clearHeaders();
-            return "";
+		} else {
 
-        } else {
+			logParameterError(caller, sources, ctx.isJavaScriptContext());
+		}
 
-            logParameterError(caller, sources, ctx.isJavaScriptContext());
-        }
+		return usage(ctx.isJavaScriptContext());
+	}
 
-        return usage(ctx.isJavaScriptContext());
-    }
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${clearHeaders()}. Example: ${clearHeaders()}"),
+			Usage.javaScript("Usage: ${{ $.clearHeaders()}}. Example: ${{ $.clearHeaders()}}")
+		);
+	}
 
-    @Override
-    public String usage(boolean inJavaScriptContext) {
-        return (inJavaScriptContext ? ERROR_MESSAGE_CLEAR_HEADERS_JS : ERROR_MESSAGE_CLEAR_HEADERS);
-    }
+	@Override
+	public String getShortDescription() {
+		return "Clears headers for the next HTTP request.";
+	}
 
-    @Override
-    public String shortDescription() {
-        return "Clears headers for the next request";
-    }
+	@Override
+	public String getLongDescription() {
+		return """
+		Removes all headers previously set with `addHeader()` in the same request. This function is a helper for the HTTP request functions that make HTTP requests **from within the Structr Server**, triggered by a frontend control like a button etc.
+		""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This is important if multiple calls to the family of HTTP functions is made in the same request to clear the headers in between usages to prevent sending the wrong headers in subsequent requests."
+		);
+	}
 }

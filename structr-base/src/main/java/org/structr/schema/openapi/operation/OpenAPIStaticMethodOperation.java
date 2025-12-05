@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,9 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
-import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -72,9 +70,7 @@ public class OpenAPIStaticMethodOperation extends OpenAPIOperation {
 				// tags
 				Set.of(method.getParent().getName()),
 
-				List.of(
-						new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), true)
-				),
+				method.getOpenAPIRequestParameters(method, viewNames),
 
 				// request body
 				method.getOpenAPIRequestBody(),

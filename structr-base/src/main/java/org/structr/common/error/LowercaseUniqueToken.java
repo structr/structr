@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a given property value is already present in the database and
  * may only occur once.
@@ -28,7 +26,10 @@ import org.structr.core.property.PropertyKey;
  */
 public class LowercaseUniqueToken extends SemanticErrorToken {
 
-	public LowercaseUniqueToken(final String type, final PropertyKey key, final String val) {
-		super(type, key, "already_taken_lowercase", val);
+	public LowercaseUniqueToken(final String type, final String propertyKey, final String val) {
+
+		super(type, propertyKey, "already_taken_lowercase");
+
+		withDetail(val);
 	}
 }

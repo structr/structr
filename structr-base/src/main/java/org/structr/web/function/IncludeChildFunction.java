@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,12 +25,16 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,17 +42,14 @@ import java.util.List;
  */
 public class IncludeChildFunction extends IncludeFunction {
 
-	public static final String ERROR_MESSAGE_INCLUDE    = "Usage: ${include_child(name)}. Example: ${include_child(\"Child Node\")}";
-	public static final String ERROR_MESSAGE_INCLUDE_JS = "Usage: ${{Structr.includeChild(name)}}. Example: ${{Structr.includeChild(\"Child Node\")}}";
-
 	@Override
 	public String getName() {
-		return "include_child";
+		return "includeChild";
 	}
 
 	@Override
-	public String getSignature() {
-		return "name [, collection, dataKey]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name [, collection, dataKey]");
 	}
 
 	@Override
@@ -71,48 +72,35 @@ public class IncludeChildFunction extends IncludeFunction {
 			final SecurityContext securityContext    = ctx.getSecurityContext();
 			final App app                            = StructrApp.getInstance(securityContext);
 			final RenderContext innerCtx             = new RenderContext((RenderContext)ctx);
-			final List<DOMNode> nodeList             = app.nodeQuery(DOMNode.class).andName((String)sources[0]).getAsList();
-
-			DOMNode node = null;
 
 			// Are we are in a Template node?
-			if (caller instanceof Template) {
+			if (caller instanceof NodeInterface n && n.is(StructrTraits.TEMPLATE)) {
 
-				final Template templateNode = (Template) caller;
-
-				// Retrieve direct children and other nodes
-
-				final List<DOMNode> children = new ArrayList<>();
-
-				for (final DOMNode n : nodeList) {
-
-					// Filter out nodes in trash
-					if (n.inTrash()) {
-						continue;
-					}
-
-					final DOMNode parentNode = n.getParent();
-					if (parentNode != null && parentNode.equals(templateNode)) {
-						children.add(n);
-					}
-
+				if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+					innerCtx.getBuffer().append("<structr:include-child data-caller-id=\"").append(caller.toString()).append("\">");
 				}
 
-				if (children.size() == 1) {
+				final Template templateNode                = n.as(Template.class);
+				final List<NodeInterface> childrenWithName = templateNode.treeGetChildren().stream().filter(ni -> (sources[0]).equals(ni.as(DOMNode.class).getName())).toList();
+				final int childrenWithNameCount            = childrenWithName.size();
+
+				if (childrenWithNameCount == 1) {
 
 					// Exactly one child found => use this node
+					return renderNode(securityContext, ctx, innerCtx, sources, app, childrenWithName.getFirst().as(DOMNode.class), true);
 
-					node = children.get(0);
-
-				} else if (children.size() > 1) {
+				} else if (childrenWithNameCount > 1) {
 
 					// More than one child node found => error
-					logger.warn("Error: Found more than one child node with name \"" + ((String) sources[0]) + "\" (total child nodes found by this name: " + StringUtils.join(children, ", ") + ")");
-					return "";
+					logger.warn(getName() + "(): Ambiguous child node name '" + sources[0] + "' (" + StringUtils.join(childrenWithName, ", ") + ")");
 				}
+
+			} else {
+
+				logger.warn(getName() + "(): Can only be used in a template context.");
 			}
 
-			return renderNode(securityContext, ctx, innerCtx, sources, app, node, true);
+			return "";
 
 		} catch (ArgumentNullException pe) {
 
@@ -127,13 +115,43 @@ public class IncludeChildFunction extends IncludeFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_INCLUDE_JS : ERROR_MESSAGE_INCLUDE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${includeChild(name)}. Example: ${includeChild('Child Node')}"),
+			Usage.javaScript("Usage: ${{Structr.includeChild(name)}}. Example: ${{Structr.includeChild('Child Node')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Includes the content of the node with the given name (optionally as a repeater element)";
+	public String getShortDescription() {
+		return "Loads a template's child element with the given name and renders its HTML representation into the output buffer.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return """
+		Nodes can be included via their `name` property. When used with an optional collection and data key argument, the included HTML element will be rendered as a Repeater Element.
+		
+		See also `include()` and `render()`.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${includeChild('Child1')}", "Render the contents of the child node named \"Child1\" into the output buffer"),
+			Example.structrScript("${includeChild('Item Template', find('Item'), 'item')}", "Render the contents of the child node named \"Item Template\" once for every Item node in the database")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"Works only during page rendering in Template nodes.",
+			"Child nodes must be direct children of the template node.",
+			"Underneath the template node, child node names MUST be unique in order for `includeChild()` to work."
+		);
+	}
 }

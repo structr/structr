@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,9 +21,6 @@ package org.structr.flow.api;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowError;
 
-/**
- *
- */
 public class FlowResult {
 
 	private FlowError error = null;

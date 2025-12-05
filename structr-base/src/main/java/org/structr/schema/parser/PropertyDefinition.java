@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,15 +18,13 @@
  */
 package org.structr.schema.parser;
 
-import org.structr.schema.CodeSource;
 import org.structr.schema.SchemaHelper.Type;
 
-public interface PropertyDefinition extends CodeSource {
+public interface PropertyDefinition {
 
+	String getClassName();
 	String getPropertyName();
 	Type getPropertyType();
-	String getRawSource();
-	String getSource();
 	String getDbName();
 	String getFormat();
 	String getTypeHint();
@@ -37,14 +35,22 @@ public interface PropertyDefinition extends CodeSource {
 	boolean isCompound();
 	boolean isUnique();
 	boolean isIndexed();
+	boolean isFulltext();
 	boolean isReadOnly();
-	boolean isPartOfBuiltInSchema();
 	boolean isCachingEnabled();
+	boolean isAbstract();
 	String getDefaultValue();
 	String getContentType();
 	String getReadFunction();
 	String getWriteFunction();
+	boolean getReadFunctionWrapJS();
+	boolean getWriteFunctionWrapJS();
+
+	boolean isSerializationDisabled();
 	String getOpenAPIReturnType();
 	String[] getTransformators();
 	String[] getValidators();
+
+	String getMultiplicity(final String baseProperty);
+	String getRelatedType(final String baseProperty);
 }

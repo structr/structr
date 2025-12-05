@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.memory;
 
 import org.structr.api.NotInTransactionException;
+import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
@@ -74,6 +75,16 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 		return relType;
 	}
 
+	@Override
+	public Direction getDirectionForNode(final Node node) {
+
+		if (sourceNode.getId() == node.getId().getId()) {
+			return Direction.OUTGOING;
+		}
+
+		return Direction.INCOMING;
+	}
+
 	public MemoryIdentity getSourceNodeIdentity() {
 		return sourceNode;
 	}
@@ -86,6 +97,11 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 	public void delete(boolean deleteRelationships) throws NotInTransactionException {
 		db.delete(this);
 
+	}
+
+	@Override
+	public boolean isNode() {
+		return false;
 	}
 
 	public boolean isEqualTo(final MemoryRelationship rel) {
@@ -126,7 +142,7 @@ public class MemoryRelationship extends MemoryEntity implements Relationship {
 		sourceNode = MemoryIdentity.loadFromStorage(in);
 		targetNode = MemoryIdentity.loadFromStorage(in);
 
-		relType = db.forName(RelationshipType.class, in.readUTF());
+		relType = db.getRelationshipType(in.readUTF());
 	}
 
 	@Override

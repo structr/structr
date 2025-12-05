@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,11 +24,11 @@ import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
 import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
@@ -53,7 +53,8 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 	public Iterable<GraphObject> getData(final ActionContext actionContext, final NodeInterface referenceNode) throws FrameworkException {
 
 		final RenderContext renderContext = (RenderContext) actionContext;
-		final PropertyKey<String> key     = StructrApp.key(referenceNode.getClass(), propertyName);
+		final Traits traits               = referenceNode.getTraits();
+		final PropertyKey<String> key     = traits.key(propertyName);
 
 		final String functionQuery = referenceNode.getProperty(key);
 		if (StringUtils.isBlank(functionQuery)) {

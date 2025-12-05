@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -118,7 +118,7 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return new ServiceResult(true);
 	}
 
@@ -245,7 +245,7 @@ public class AgentService extends Thread implements RunnableService {
 
 					try {
 
-						Agent supportedAgent     = supportedAgentClass.newInstance();
+						Agent supportedAgent     = supportedAgentClass.getDeclaredConstructor().newInstance();
 						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
 						if (supportedTaskClass.equals(taskClass)) {
@@ -262,7 +262,7 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass != null) {
 
 			try {
-				agent = (Agent) agentClass.newInstance();
+				agent = (Agent) agentClass.getDeclaredConstructor().newInstance();
 
 			} catch (Throwable ignore) {}
 		}
@@ -319,6 +319,6 @@ public class AgentService extends Thread implements RunnableService {
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
-		return "agents";
+		return "core";
 	}
 }

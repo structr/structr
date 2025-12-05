@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,11 @@ class MapResultWrapper implements Map<String, Object> {
 		this.wrapper = new MixedResultWrapper<>(db);
 		this.source  = source;
 		this.db      = db;
+	}
+
+	@Override
+	public String toString() {
+		return source.toString();
 	}
 
 	@Override

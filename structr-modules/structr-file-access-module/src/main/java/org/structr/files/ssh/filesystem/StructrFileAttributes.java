@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,17 +21,16 @@ package org.structr.files.ssh.filesystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.attribute.*;
@@ -43,7 +42,7 @@ import java.util.*;
 public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 
 	private static final Logger logger              = LoggerFactory.getLogger(StructrFileAttributes.class.getName());
-	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "owner", "dos", "basic", "posix", "permissions" } ));
+	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList("owner", "dos", "basic", "posix", "permissions"));
 
 	private SecurityContext securityContext = null;
 	private AbstractFile file               = null;
@@ -65,7 +64,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Principal fileOwner = file.getOwnerNode();
+			final Principal fileOwner = file.as(AccessControllable.class).getOwnerNode();
 			if (fileOwner == null) {
 
 				owner = securityContext.getUser(false)::getName;
@@ -92,10 +91,10 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Principal owner = file.getOwnerNode();
+			final Principal owner = file.as(AccessControllable.class).getOwnerNode();
 			if (owner != null) {
 
-				groups.addAll(Iterables.toList(owner.getGroups()));
+				groups.addAll(Iterables.toList(owner.getParents()));
 			}
 
 			tx.success();
@@ -130,7 +129,6 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		}
 
 		return time;
-
 	}
 
 	@Override
@@ -172,7 +170,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isRegularFile = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isRegularFile = file instanceof File;
+			isRegularFile = file.is(StructrTraits.FILE);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -191,7 +189,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 		boolean isDirectory = false;
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-			isDirectory = file instanceof Folder;
+			isDirectory = file.is(StructrTraits.FOLDER);
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);
@@ -222,7 +220,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			if (file instanceof File) {
+			if (file.is(StructrTraits.FILE)) {
 
 				final Number s = StorageProviderFactory.getStorageProvider(file).size();
 				if (s != null) {
@@ -267,7 +265,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		if (file != null) {
 
-			if (file instanceof Folder) {
+			if (file.is(StructrTraits.FOLDER)) {
 				permissions.add(PosixFilePermission.OWNER_EXECUTE);
 			}
 
@@ -278,7 +276,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.OTHERS_READ);
 					permissions.add(PosixFilePermission.OTHERS_WRITE);
 
-					if (file instanceof Folder) {
+					if (file.is(StructrTraits.FOLDER)) {
 						permissions.add(PosixFilePermission.OTHERS_EXECUTE);
 					}
 				}
@@ -288,7 +286,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 					permissions.add(PosixFilePermission.GROUP_READ);
 					permissions.add(PosixFilePermission.GROUP_WRITE);
 
-					if (file instanceof Folder) {
+					if (file.is(StructrTraits.FOLDER)) {
 						permissions.add(PosixFilePermission.GROUP_EXECUTE);
 					}
 				}
@@ -326,59 +324,66 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 	public Map<String, Object> toMap(final String filter) {
 
 		final Map<String, Object> map = new HashMap<>();
-		final String prefix           = filter.substring(0, filter.indexOf(":"));
-		final GroupPrincipal group    = group();
-		final UserPrincipal owner     = owner();
 
-		if ("dos".equals(prefix)) {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			map.put("hidden", isHidden());
-			map.put("archive", isArchive());
-			map.put("system", isSystem());
-			map.put("readonly", isReadOnly());
-		}
+			final String prefix = filter.substring(0, filter.indexOf(":"));
+			final GroupPrincipal group = group();
+			final UserPrincipal owner = owner();
 
-		if (!"owner".equals(prefix)) {
+			if ("dos".equals(prefix)) {
 
-			map.put("lastModifiedTime", lastModifiedTime());
-			map.put("lastAccessTime", lastAccessTime());
-			map.put("creationTime", creationTime());
-			map.put("size", size());
-			map.put("isRegularFile", isRegularFile());
-			map.put("isDirectory", isDirectory());
-			map.put("isSymbolicLink", isSymbolicLink());
-			map.put("isOther", isOther());
-			map.put("fileKey", fileKey());
-		}
-
-		// POSIX properties
-		if ("posix".equals(prefix)) {
-
-			map.put("permissions", permissions());
-
-			if (group != null) {
-				map.put("group", group.getName());
+				map.put("hidden", isHidden());
+				map.put("archive", isArchive());
+				map.put("system", isSystem());
+				map.put("readonly", isReadOnly());
 			}
 
-			if (owner != null) {
-				map.put("owner", owner.getName());
+			if (!"owner".equals(prefix)) {
 
-				// set group to owner
-				if (group == null) {
-					map.put("group", owner.getName());
+				map.put("lastModifiedTime", lastModifiedTime());
+				map.put("lastAccessTime", lastAccessTime());
+				map.put("creationTime", creationTime());
+				map.put("size", size());
+				map.put("isRegularFile", isRegularFile());
+				map.put("isDirectory", isDirectory());
+				map.put("isSymbolicLink", isSymbolicLink());
+				map.put("isOther", isOther());
+				map.put("fileKey", fileKey());
+			}
+
+			// POSIX properties
+			if ("posix".equals(prefix)) {
+
+				map.put("permissions", permissions());
+
+				if (group != null) {
+					map.put("group", group.getName());
+				}
+
+				if (owner != null) {
+					map.put("owner", owner.getName());
+
+					// set group to owner
+					if (group == null) {
+						map.put("group", owner.getName());
+					}
 				}
 			}
-		}
 
-		// permissions only
-		if ("permissions".equals(prefix)) {
+			// permissions only
+			if ("permissions".equals(prefix)) {
 
-			map.put("permissions", permissions());
-		}
+				map.put("permissions", permissions());
+			}
 
-		if ("owner".equals(prefix) && owner != null) {
+			if ("owner".equals(prefix) && owner != null) {
 
-			map.put("owner", owner().getName());
+				map.put("owner", owner().getName());
+			}
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
 		}
 
 		return map;
@@ -420,8 +425,8 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			file.setProperty(AbstractNode.visibleToAuthenticatedUsers, perms.contains(PosixFilePermission.GROUP_READ));
-			file.setProperty(AbstractNode.visibleToPublicUsers,        perms.contains(PosixFilePermission.OTHERS_READ));
+			file.setVisibleToAuthenticatedUsers(perms.contains(PosixFilePermission.GROUP_READ));
+			file.setVisibleToPublicUsers(perms.contains(PosixFilePermission.OTHERS_READ));
 
 			tx.success();
 

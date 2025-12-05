@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,16 @@
 package org.structr.web.common;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+import org.structr.web.traits.definitions.dom.DOMNodeTraitDefinition;
 
 import java.util.*;
 
@@ -50,7 +53,7 @@ public class DOMNodeContent {
 			final PropertyMap dataProperties = new PropertyMap();
 
 			// data-widget-elements indicates that the child elements should be preserved
-			data.putSlotElements((List<DOMNode>)source.getChildNodes());
+			data.putSlotElements(Iterables.toList(source.getChildren()));
 
 			// store data properties for slots
 			for (final PropertyKey key : source.getDataPropertyKeys()) {
@@ -117,7 +120,7 @@ public class DOMNodeContent {
 			if (data != null) {
 
 				// remove existing?
-				target.setProperty(StructrApp.key(DOMNode.class, "children"), Collections.EMPTY_LIST);
+				target.setProperty(Traits.of(StructrTraits.DOM_NODE).key(DOMNodeTraitDefinition.CHILDREN_PROPERTY), Collections.EMPTY_LIST);
 
 				// add
 				final List<DOMNode> children = data.getNextSlotElements();

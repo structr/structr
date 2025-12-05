@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,11 +25,10 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * Websocket command to retrieve a single graph object by id.
- *
- *
  *
  */
 public class GetCommand extends AbstractCommand {
@@ -55,11 +54,12 @@ public class GetCommand extends AbstractCommand {
 		}
 
 		final GraphObject graphObject = getGraphObject(webSocketData.getId(), nodeId);
-
-
 		if (graphObject != null) {
 
 			webSocketData.setResult(Arrays.asList(graphObject));
+
+			// prefetching test
+			//SearchCommand.prefetch(graphObject.getClass(), webSocketData.getId());
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);
@@ -70,6 +70,8 @@ public class GetCommand extends AbstractCommand {
 			// Not necessary to send a 404 here
 			//getWebSocket().send(MessageBuilder.status().code(404).build(), true);
 
+			webSocketData.setResult(List.of());
+			getWebSocket().send(webSocketData, true);
 		}
 	}
 

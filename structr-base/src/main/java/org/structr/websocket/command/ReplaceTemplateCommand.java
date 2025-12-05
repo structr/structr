@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,9 @@ package org.structr.websocket.command;
 
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
@@ -70,7 +72,7 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 		}
 
 		// check if parent node with given ID exists
-		final Template newTemplate = (Template) getNode(newTemplateId);
+		final Template newTemplate = getNodeAs(newTemplateId, Template.class, StructrTraits.TEMPLATE);
 
 		if (newTemplate == null) {
 
@@ -94,17 +96,18 @@ public class ReplaceTemplateCommand extends AbstractCommand {
 
 			// 1: Clone new template into tree			
 			final DOMNode newClonedTemplate = CloneComponentCommand.cloneComponent(newTemplate, templateToBeReplaced.getParent());
+			final DOMNode parent            = templateToBeReplaced.getParent();
 			
 			// 2: Move new template before existing template
-			DOMNode.insertBefore(templateToBeReplaced.getParent(), newClonedTemplate, templateToBeReplaced);
+			parent.insertBefore(newClonedTemplate, templateToBeReplaced);
 
 			// 3: Move child nodes from existing template to new template
-			for (final DOMNode child : templateToBeReplaced.getAllChildNodes()) {
-				newClonedTemplate.appendChild(child);
+			for (final NodeInterface child : templateToBeReplaced.getAllChildNodes()) {
+				newClonedTemplate.appendChild(child.as(DOMNode.class));
 			}
 			
 			// 4: Remove old template node
-			DOMNode.removeChild(templateToBeReplaced.getParent(), templateToBeReplaced);
+			parent.removeChild(templateToBeReplaced);
 			
 			TransactionCommand.registerNodeCallback(newClonedTemplate, callback);
 

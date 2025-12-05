@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,24 +20,26 @@ package org.structr.files.ssh;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.sshd.common.channel.Channel;
-import org.apache.sshd.server.*;
+import org.apache.sshd.server.Environment;
+import org.apache.sshd.server.ExitCallback;
+import org.apache.sshd.server.Signal;
+import org.apache.sshd.server.SignalListener;
 import org.apache.sshd.server.channel.ChannelSession;
 import org.apache.sshd.server.command.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.AccessMode;
-import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.VersionHelper;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.console.tabcompletion.TabCompletionResult;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.util.Writable;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
 
 import java.io.*;
@@ -111,7 +113,11 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 			final App app = StructrApp.getInstance();
 			try (final Tx tx = app.tx()) {
 
-				user = app.nodeQuery(User.class).andName(userName).getFirst();
+				final NodeInterface userNode = app.nodeQuery(StructrTraits.USER).name(userName).getFirst();
+				if (userNode != null && userNode.is(StructrTraits.USER)) {
+
+					user = userNode.as(User.class);
+				}
 
 				tx.success();
 
@@ -136,7 +142,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 		final String terminalType = env.getEnv().get("TERM");
 		if (terminalType != null) {
 
-			if (terminalType.startsWith("xterm") || terminalType.startsWith("vt100") || terminalType.startsWith("vt220")) {
+			if (terminalType.startsWith("xterm") || terminalType.startsWith("xterm-256color") || terminalType.startsWith("vt100") || terminalType.startsWith("vt220")) {
 
 				term = new XTermTerminalEmulator(in, out, this);
 
@@ -144,8 +150,6 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 				logger.warn("Unsupported terminal type {}, aborting.", terminalType);
 			}
-
-			logger.warn("No terminal type provided, aborting.", terminalType);
 		}
 
 		if (term != null) {
@@ -272,36 +276,28 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 		final StringBuilder buffer = new StringBuilder();
 
-		buffer.append("\u001b[1m");
-		buffer.append(console.getPrompt());
+		final App app = StructrApp.getInstance();
+		try (Tx tx = app.tx()) {
+			buffer.append("\u001b[1m");
+			buffer.append(console.getPrompt());
 
-		if (insideOfBlockOrStructure() && lastBlockChars.length() > 0) {
-			buffer.append(lastBlockChars.charAt(lastBlockChars.length() - 1));
-		} else {
-			buffer.append("/");
+			if (insideOfBlockOrStructure() && lastBlockChars.length() > 0) {
+				buffer.append(lastBlockChars.charAt(lastBlockChars.length() - 1));
+			} else {
+				buffer.append("/");
+			}
+
+			buffer.append(">");
+			buffer.append("\u001b[0m");
+			buffer.append(" ");
+
+			tx.success();
+		} catch (FrameworkException ex) {
+
+			logger.error("Unexpected exception", ex);
 		}
-
-		buffer.append(">");
-		buffer.append("\u001b[0m");
-		buffer.append(" ");
 
 		return buffer.toString();
-	}
-
-	public boolean isAllowed(final AbstractFile file, final Permission permission, final boolean explicit) {
-
-		if (file == null) {
-			return false;
-		}
-
-		final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
-
-		if (Permission.read.equals(permission) && !explicit) {
-
-			return file.isVisibleToAuthenticatedUsers() || file.isVisibleToPublicUsers() || file.isGranted(permission, securityContext);
-		}
-
-		return file.isGranted(permission, securityContext);
 	}
 
 	// ----- private methods -----

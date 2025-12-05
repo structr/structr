@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,21 +20,18 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class AbbrFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_ABBR    = "Usage: ${abbr(longString, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}";
-	public static final String ERROR_MESSAGE_ABBR_JS = "Usage: ${{Structr.abbr(longString, maxLength[, abbr = '…'])}}. Example: ${{Structr.abbr(this.title, 20)}}";
+public class AbbrFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
 		return "abbr";
-	}
-
-	@Override
-	public String getSignature() {
-		return "str, maxLength[, abbr = '…']";
 	}
 
 	@Override
@@ -68,7 +65,7 @@ public class AbbrFunction extends CoreFunction {
 
 		} catch (final NumberFormatException nfe) {
 
-			logException(nfe, "{}: NumberFormatException in \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] { getReplacement(), caller, sources[1], getParametersAsString(sources) });
+			logException(nfe, "{}: NumberFormatException in \"{}\". Can not parse \"{}\" as Integer. Returning original string. Parameters: {}", new Object[] { getDisplayName(), caller, sources[1], getParametersAsString(sources) });
 
 			return sources[0];
 
@@ -78,16 +75,38 @@ public class AbbrFunction extends CoreFunction {
 
 			return usage(ctx.isJavaScriptContext());
 		}
-
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ABBR_JS : ERROR_MESSAGE_ABBR);
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("string, maxLength[, abbr = '…']");
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Abbreviates the given string to the given length and appends the abbreviation (default = '…')";
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("string", "string to abbreviate"),
+			Parameter.optional("maxLength", "maximum length of the returned string (including the ellipsis at the end)"),
+			Parameter.optional("abbr", "last character(s) of the returned string after abbreviation")
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${abbr(string, maxLength[, abbr = '…'])}. Example: ${abbr(this.title, 20)}"),
+			Usage.javaScript("Usage: ${{Structr.abbr(string, maxLength[, abbr = '…'])}}. Example: ${{Structr.abbr(this.title, 20)}}")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Abbreviates the given string at the last space character before the maximum length is reached.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The remaining characters are replaced with the ellipsis character (…) or the given `abbr` parameter.";
 	}
 }

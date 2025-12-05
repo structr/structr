@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,12 +35,12 @@ public class ArrayQueryFactory extends KeywordQueryFactory {
 		final Object value = getReadValue(predicate.getValue());
 		final String name  = predicate.getName();
 
-		checkOccur(query, predicate.getOccurrence(), isFirst);
+		//checkOperation(query, predicate.getOperation(), isFirst);
 
 		// interesting fact: the query engine separates array values and calls createQuery for
 		// each of the components separately, so the value here is never an array.
 		
-		query.addPredicate(new ArrayPropertyPredicate(name, value));
+		query.addPredicate(new ArrayPropertyPredicate(name, value, predicate.isExactMatch()));
 
 		return true;
 	}

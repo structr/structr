@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,10 +24,10 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.entity.StorageConfiguration;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSHelper {
 
@@ -45,7 +45,7 @@ public class LocalFSHelper {
 	public java.io.File getFileOnDisk(final AbstractFile thisFile, final boolean create) {
 
 		final Folder parentFolder = thisFile.getParent();
-		return getFileOnDisk(parentFolder, (File) thisFile, create);
+		return getFileOnDisk(parentFolder, thisFile.as(File.class), create);
 	}
 
 	public java.io.File getFileOnDisk(final Folder parentFolder, final File file, final boolean create) {
@@ -57,7 +57,7 @@ public class LocalFSHelper {
 			final AbstractFile configSupplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
 			final Path relativeParentPath     = parentFolder != null ? Path.of(configSupplier.getPath()).relativize(Path.of(parentFolder.getPath())) : Path.of("/");
 
-			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getProperty(File.name));
+			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getName());
 			final java.io.File fileOnDisk     = new java.io.File(fullPath);
 
 			fileOnDisk.getParentFile().mkdirs();

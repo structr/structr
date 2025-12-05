@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,17 +18,18 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
-import org.structr.flow.api.Store;
+import org.structr.flow.impl.FlowNode;
+import org.structr.flow.impl.FlowStore;
 
-public class StoreHandler implements FlowHandler<Store> {
+public class StoreHandler implements FlowHandler {
 
 
 	@Override
-	public FlowElement handle(Context context, Store flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode flowElement) throws FlowException {
 
-		flowElement.handleStorage(context);
+		flowElement.as(FlowStore.class).handleStorage(context);
+
 		return flowElement.next();
 	}
 }

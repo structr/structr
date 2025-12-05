@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,18 +22,24 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.CreateNodeCommand;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,24 +99,23 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 			logger.info("mkdir() Folder");
 
-			AbstractFile existing = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newPath);
+			NodeInterface existing = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), newPath);
 			if (existing != null) {
 				logger.warn("File {} already exists.", newPath);
 				return false;
 			}
 
-			final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
+			final NodeInterface parentFolder = FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
+			final Traits traits              = Traits.of(StructrTraits.FOLDER);
 
 			try {
-				Folder newFolder = (Folder) app.command(CreateNodeCommand.class).execute(
-					new NodeAttribute(AbstractNode.type, Folder.class.getSimpleName()),
-					new NodeAttribute(AbstractNode.owner, owner.getStructrUser()),
-					new NodeAttribute(AbstractNode.name, getName())
-				);
 
-				if (parentFolder != null) {
-					newFolder.setParent(parentFolder);
-				}
+				NodeInterface newFolder = app.command(CreateNodeCommand.class).execute(
+					new NodeAttribute(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),   StructrTraits.FOLDER),
+					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY),  owner.getStructrUser()),
+					new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   getName()),
+					new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parentFolder)
+				);
 
 			} catch (FrameworkException ex) {
 				logger.error("", ex);
@@ -140,15 +145,15 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 			if (structrFile == null) {
 
-				final Folder parentFolder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
+				final NodeInterface parentFolder = FileHelper.getFileByAbsolutePath(securityContext, StringUtils.substringBeforeLast(newPath, "/"));
 
 				try {
-					structrFile = FileHelper.createFile(securityContext, new byte[0], null, File.class, getName(), false);
-					structrFile.setProperty(AbstractNode.type, File.class.getSimpleName());
-					structrFile.setProperty(AbstractNode.owner, owner.getStructrUser());
+					structrFile = FileHelper.createFile(securityContext, new byte[0], null, StructrTraits.FILE, getName(), false).as(AbstractFile.class);
+
+					structrFile.as(AccessControllable.class).setOwner(owner.getStructrUser());
 
 					if (parentFolder != null) {
-						structrFile.setParent(parentFolder);
+						structrFile.setParent(parentFolder.as(Folder.class));
 					}
 
 				} catch (FrameworkException ex) {
@@ -159,7 +164,7 @@ public class FileOrFolder extends AbstractStructrFtpFile {
 
 			tx.success();
 
-			return ((File) structrFile).getOutputStream();
+			return structrFile.as(File.class).getOutputStream();
 
 		} catch (FrameworkException fex) {
 			logger.error(null, fex);

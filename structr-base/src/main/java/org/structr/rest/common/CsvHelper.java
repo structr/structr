@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,9 +18,8 @@
  */
 package org.structr.rest.common;
 
-import com.opencsv.CSVParser;
-import com.opencsv.CSVReader;
-import com.opencsv.RFC4180Parser;
+import com.opencsv.*;
+import com.opencsv.exceptions.CsvValidationException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,8 +27,8 @@ import org.structr.api.util.RangesIterator;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.traits.Traits;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -42,28 +41,43 @@ public class CsvHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvHelper.class);
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range) throws FrameworkException, IOException {
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final String type, final Character fieldSeparator, final Character quoteCharacter, final String range) throws FrameworkException, IOException {
 		return cleanAndParseCSV(securityContext, input, type, fieldSeparator, quoteCharacter, range, null, false, true);
 	}
 
-	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final Class type, final Character fieldSeparator, final Character quoteCharacter, final String range, final Map<String, String> propertyMapping, final boolean rfc4180Mode, final boolean strictQuotes) throws FrameworkException, IOException {
+	public static Iterable<JsonInput> cleanAndParseCSV(final SecurityContext securityContext, final Reader input, final String type, final Character fieldSeparator, final Character quoteCharacter, final String range, final Map<String, String> propertyMapping, final boolean rfc4180Mode, final boolean strictQuotes) throws FrameworkException, IOException {
 
 		final CSVReader reader;
 
 		if (rfc4180Mode) {
 
-			reader = new CSVReader(input, 0, new RFC4180Parser());
+			reader = new CSVReaderBuilder(input).withCSVParser(new RFC4180Parser()).build();
 
 		} else if (quoteCharacter == null) {
 
-			reader = new CSVReader(input, fieldSeparator);
+			reader = new CSVReaderBuilder(input).withCSVParser(new CSVParserBuilder().withSeparator(fieldSeparator).build()).build();
 
 		} else {
 
-			reader = new CSVReader(input, fieldSeparator, quoteCharacter, strictQuotes);
+			reader = new CSVReaderBuilder(input)
+				.withCSVParser(
+					new CSVParserBuilder()
+					.withSeparator(fieldSeparator)
+						.withQuoteChar(quoteCharacter)
+						.withStrictQuotes(strictQuotes)
+					.build()
+				).build();
 		}
 
-		final String[] propertyNames = reader.readNext();
+		final String[] propertyNames;
+		try {
+
+			propertyNames = reader.readNext();
+
+		} catch (CsvValidationException e) {
+
+			throw new FrameworkException(422, "CSS validation error: " + e.getMessage());
+		}
 
 		CsvHelper.checkPropertyNames(securityContext, propertyNames);
 
@@ -72,7 +86,7 @@ public class CsvHelper {
 			@Override
 			public Iterator<JsonInput> iterator() {
 
-				final Iterator<JsonInput> iterator = new CsvIterator(reader,  propertyNames, propertyMapping, type, securityContext.getUser(false).getName());
+				final Iterator<JsonInput> iterator = new CsvIterator(reader,  propertyNames, propertyMapping, type, securityContext.getCachedUserName());
 
 				if (StringUtils.isNotBlank(range)) {
 
@@ -92,14 +106,30 @@ public class CsvHelper {
 
 		if (quoteCharacter == null) {
 
-			reader = new CSVReader(input, fieldSeparator);
+			reader = new CSVReaderBuilder(input).withCSVParser(new CSVParserBuilder().withSeparator(fieldSeparator).build()).build();
 
 		} else {
 
-			reader = new CSVReader(input, fieldSeparator, quoteCharacter, strictQuotes);
+			reader = new CSVReaderBuilder(input)
+				.withCSVParser(
+					new CSVParserBuilder()
+						.withSeparator(fieldSeparator)
+						.withQuoteChar(quoteCharacter)
+						.withStrictQuotes(strictQuotes)
+						.build()
+				).build();
 		}
 
-		final String[] propertyNames = reader.readNext();
+		final String[] propertyNames;
+
+		try {
+
+			propertyNames = reader.readNext();
+
+		} catch (CsvValidationException e) {
+
+			throw new FrameworkException(422, "CSS validation error: " + e.getMessage());
+		}
 
 		CsvHelper.checkPropertyNames(securityContext, propertyNames);
 
@@ -108,7 +138,7 @@ public class CsvHelper {
 			@Override
 			public Iterator<JsonInput> iterator() {
 
-				final Iterator<JsonInput> iterator = new MixedCsvIterator(reader,  propertyNames, propertyMapping, securityContext.getUser(false).getName());
+				final Iterator<JsonInput> iterator = new MixedCsvIterator(reader,  propertyNames, propertyMapping, securityContext.getCachedUserName());
 
 				if (StringUtils.isNotBlank(range)) {
 
@@ -139,7 +169,7 @@ public class CsvHelper {
 				data.put("type",     "CSV_IMPORT_WARNING");
 				data.put("title",    "CSV Import Warning");
 				data.put("text",     message);
-				data.put("username", securityContext.getUser(false).getName());
+				data.put("username", securityContext.getCachedUserName());
 
 				TransactionCommand.simpleBroadcastGenericMessage(data);
 			}
@@ -149,7 +179,7 @@ public class CsvHelper {
 	// ----- private methods -----
 	private static ArrayList<String> extractArrayContentsFromArray (final String value, final String propertyName) throws IOException {
 
-		final CSVParser arrayParser              = new CSVParser(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS, DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS);
+		final CSVParser arrayParser              = new CSVParserBuilder().withSeparator(DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS).withQuoteChar(DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS).build();
 		final ArrayList<String> extractedStrings = new ArrayList();
 
 		extractedStrings.addAll(Arrays.asList(arrayParser.parseLine(stripArrayBracketsFromString(value, propertyName))));
@@ -185,9 +215,9 @@ public class CsvHelper {
 		private String[] propertyNames              = null;
 		private String userName                     = null;
 		private String[] fields                     = null;
-		private Class type                          = null;
+		private String type                         = null;
 
-		public CsvIterator(final CSVReader reader, final String[] propertyNames, final Map<String, String> propertMapping, final Class type, final String userName) {
+		public CsvIterator(final CSVReader reader, final String[] propertyNames, final Map<String, String> propertMapping, final String type, final String userName) {
 
 			this.propertyMapping = propertMapping;
 			this.propertyNames   = propertyNames;
@@ -212,8 +242,8 @@ public class CsvHelper {
 
 				return fields != null && fields.length > 0;
 
-			} catch (IOException ioex) {
-				logger.warn("", ioex);
+			} catch (Throwable t) {
+				logger.warn("Error reading CSV data", t);
 			}
 
 			return false;
@@ -223,6 +253,7 @@ public class CsvHelper {
 		public JsonInput next() {
 
 			try {
+				final Traits traits       = Traits.of(type);
 				final JsonInput jsonInput = new JsonInput();
 				final int len             = fields.length;
 
@@ -240,7 +271,7 @@ public class CsvHelper {
 						targetKey = propertyMapping.get(key);
 					}
 
-					if (StructrApp.getConfiguration().getPropertyKeyForJSONName(type, targetKey).isCollection()) {
+					if (traits.contains(targetKey) && traits.key(targetKey).isCollection()) {
 
 						// if the current property is a collection, split it into its parts
 						jsonInput.add(key, extractArrayContentsFromArray(fields[i], key));
@@ -316,8 +347,8 @@ public class CsvHelper {
 
 				return fields != null && fields.length > 0;
 
-			} catch (IOException ioex) {
-				logger.warn("", ioex);
+			} catch (Throwable t) {
+				logger.warn("Error reading CSV data", t);
 			}
 
 			return false;

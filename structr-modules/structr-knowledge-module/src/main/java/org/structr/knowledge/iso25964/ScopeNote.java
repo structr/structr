@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,23 +18,14 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.knowledge.iso25964.relationship.ThesaurusConcepthasScopeNoteScopeNote;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface ScopeNote extends Note {
+public class ScopeNote extends Note {
 
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ScopeNote");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ScopeNote"));
-		type.setExtends(URI.create("#/definitions/Note"));
-	}}
+	public static final Property<ThesaurusConcept> conceptProperty = new StartNode<>("concept", ThesaurusConcepthasScopeNoteScopeNote.class);
 }

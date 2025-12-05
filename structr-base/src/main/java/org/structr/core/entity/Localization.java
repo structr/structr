@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,85 +18,18 @@
  */
 package org.structr.core.entity;
 
-import org.structr.api.schema.JsonType;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
 
 public interface Localization extends NodeInterface {
 
-	static class Impl { static {
+	String getLocalizedName();
+	String getLocale();
+	String getDomain();
 
-		final JsonType type = SchemaService.getDynamicSchema().addType("Localization");
+	boolean isImported();
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Localization"));
-		type.setCategory("core");
-
-		type.addStringProperty("localizedName", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("domain",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("locale",        PropertyView.Public, PropertyView.Ui).setRequired(true).setIndexed(true);
-		type.addBooleanProperty("imported",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
-
-		type.overrideMethod("onCreation",     true, "org.structr.core.entity.Localization.onCreation(this, arg0, arg1);");
-		type.overrideMethod("onModification", true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
-		type.overrideMethod("onDeletion",     true, "org.structr.core.function.LocalizeFunction.invalidateCache();");
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
-
-	public static void onCreation(final Localization localization, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		localization.setProperty(visibleToPublicUsers, true);
-		localization.setProperty(visibleToAuthenticatedUsers, true);
-
-		LocalizeFunction.invalidateCache();
-	}
-
-	/*
-	@Override
-	public boolean onCreation(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-
-		if (super.onCreation(securityContext, errorBuffer)) {
-
-			setProperty(visibleToPublicUsers, true);
-			setProperty(visibleToAuthenticatedUsers, true);
-
-			LocalizeFunction.invalidateCache();
-
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean onModification(final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		if (super.onModification(securityContext, errorBuffer, modificationQueue)) {
-
-			LocalizeFunction.invalidateCache();
-			return true;
-		}
-
-		return false;
-	}
-
-	@Override
-	public boolean isValid(final ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		valid &= ValidationHelper.isValidStringNotBlank(this, Localization.name, errorBuffer);
-		valid &= ValidationHelper.isValidStringNotBlank(this, Localization.locale, errorBuffer);
-
-		return valid;
-	}
-	*/
+	void setLocalizedName(final String localizedName) throws FrameworkException;
+	void setLocale(final String locale) throws FrameworkException;
+	void setDomain(final String domain) throws FrameworkException;
 }

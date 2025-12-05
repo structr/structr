@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,12 +21,15 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class StoreFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_STORE    = "Usage: ${store(key, value)}. Example: ${store('tmpUser', this.owner)}";
-	public static final String ERROR_MESSAGE_STORE_JS = "Usage: ${{Structr.store(key, value)}}. Example: ${{Structr.store('tmpUser', Structr.get('this').owner)}}";
+public class StoreFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -34,8 +37,8 @@ public class StoreFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "key, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
@@ -70,12 +73,41 @@ public class StoreFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_STORE_JS : ERROR_MESSAGE_STORE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${store(key, value)}."),
+			Usage.javaScript("Usage: ${{$.store(key, value)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Stores the given value with the given key in the temporary store";
+	public String getShortDescription() {
+		return "Stores the given value in the current request context under the given key.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		This function can be used to temporarily save the results of a computation step etc. and is often used to provide 
+		some sort of "variables" in the scripting context. See `retrieve()` for the inverse operation.
+		""";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${store('users', find('User'))}"),
+				Example.javaScript("${{ $.store('users', $.find('User')) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "given key"),
+				Parameter.mandatory("value", "value to store")
+				);
 	}
 }

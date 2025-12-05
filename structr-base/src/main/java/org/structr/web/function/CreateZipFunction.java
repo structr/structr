@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,36 +21,41 @@ package org.structr.web.function;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
+import java.util.List;
 
 public class CreateZipFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_CREATE_ZIP    = "Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip(\"archive\", find(\"File\"))}";
-	public static final String ERROR_MESSAGE_CREATE_ZIP_JS = "Usage: ${{Structr.createZip(archiveFileName, files [, password [, encryptionMethod ] ])}}. Example: ${{Structr.createZip(\"archive\", Structr.find(\"File\"))}}";
-
 	@Override
 	public String getName() {
-		return "create_zip";
+		return "createZip";
 	}
 
 	@Override
-	public String getSignature() {
-		return "archiveFileName, files [, password [, encryptionMethod ] ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("archiveFileName, files [, password [, encryptionMethod ] ]");
 	}
 
 	@Override
 	public Object apply(ActionContext ctx, Object caller, Object[] sources) throws FrameworkException {
 
-		if (sources == null || sources.length < 1 || sources[0] == null || sources[1] == null || !(sources[1] instanceof File || sources[1] instanceof Folder || sources[1] instanceof Collection)) {
+		if (sources == null || sources.length < 1 || sources[0] == null || sources[1] == null || !(sources[1] instanceof NodeInterface || sources[1] instanceof Collection)) {
 
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
@@ -83,7 +88,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		if (sources.length > 3 && sources[3] != null && sources[3] instanceof String) {
 
 			encryptionMethodString = (String) sources[3];
-			encryptionMethod       = "aes".equals(encryptionMethodString.toLowerCase()) ? EncryptionMethod.AES : EncryptionMethod.ZIP_STANDARD;
+			encryptionMethod       = "aes".equalsIgnoreCase(encryptionMethodString) ? EncryptionMethod.AES : EncryptionMethod.ZIP_STANDARD;
 		}
 
 		try {
@@ -102,23 +107,23 @@ public class CreateZipFunction extends UiAdvancedFunction {
 				zipFile = new ZipFile(name);
 			}
 
-			zipFile.setCharset(Charset.forName("UTF-8"));
+			zipFile.setCharset(StandardCharsets.UTF_8);
 
-			if (sources[1] instanceof File) {
+			if (sources[1] instanceof NodeInterface n && n.is(StructrTraits.FILE)) {
 
-				File file = (File) sources[1];
-				addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
+				File file = n.as(File.class);
+				addFileToZipArchive(file.getName(), file, zipFile, params);
 
-			} else if (sources[1] instanceof Folder) {
+			} else if (sources[1] instanceof NodeInterface n && n.is(StructrTraits.FOLDER)) {
 
-				Folder folder = (Folder) sources[1];
+				Folder folder = n.as(Folder.class);
 
-				addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
-				addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
+				addFilesToArchive(folder.getName() + "/", folder.getFiles(), zipFile, params);
+				addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zipFile, params);
 
-			} else if (sources[1] instanceof Collection) {
+			} else if (sources[1] instanceof Iterable) {
 
-				final Collection filesOrFolders = (Collection) sources[1];
+				final List<GraphObject> filesOrFolders = Iterables.toList((Iterable) sources[1]);
 
 				if (filesOrFolders.isEmpty()) {
 
@@ -128,18 +133,20 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 				} else {
 
-					for (Object fileOrFolder : filesOrFolders) {
+					for (GraphObject fileOrFolder : filesOrFolders) {
 
-						if (fileOrFolder instanceof File) {
+						if (fileOrFolder.is(StructrTraits.FILE)) {
 
-							File file = (File) fileOrFolder;
-							addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
+							final File file = fileOrFolder.as(File.class);
 
-						} else if (fileOrFolder instanceof Folder) {
+							addFileToZipArchive(file.getName(), file, zipFile, params);
 
-							Folder folder = (Folder) fileOrFolder;
-							addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
-							addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
+						} else if (fileOrFolder.is(StructrTraits.FOLDER)) {
+
+							final Folder folder = fileOrFolder.as(Folder.class);
+
+							addFilesToArchive(folder.getName() + "/", folder.getFiles(), zipFile, params);
+							addFoldersToArchive(folder.getName() + "/", folder.getFolders(), zipFile, params);
 
 						} else {
 
@@ -166,15 +173,78 @@ public class CreateZipFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-
-		return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_ZIP_JS : ERROR_MESSAGE_CREATE_ZIP);
+	public String getShortDescription() {
+		return "Creates and returns a ZIP archive with the given files (and folders).";
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getLongDescription() {
+		return "This function creates a ZIP archive with the given files and folder and stores it as a File with the given name in Structr's filesystem. The second parameter can be either a single file, a single folder or a list of files and folders, but all of the objects must be Structr entities. If the third parameter is set, the resulting archive will be encrypted with the given password.";
+	}
 
-		return "Create a ZIP archive file with the given files and folders.";
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("archiveFileName", "name of the resulting archive (without the .zip suffix)"),
+			Parameter.mandatory("filesOrFolders", "file, folder or list thereof to add to the archive"),
+			Parameter.optional("password", "password to encrypt the resulting ZIP file"),
+			Parameter.optional("encryptionType", "encryptionType to encrypt the resulting ZIP file, e.g. 'aes'")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${createZip('logs', find('Folder', 'name', 'logs'))}", "Create an archive named `logs.zip` with the contents of all Structr Folders named \"logs\""),
+			Example.javaScript("""
+			${{
+				// find a single folder with an absolute path
+				let folders = $.find('Folder', { path: '/data/logs' }));
+				if (folders.length > 0) {
+
+					// use the first folder here
+					let archive = $.createZip('logs', folders[0]);
+				}
+			}}
+			""", "Create an archive named `logs.zip` with the contents of exactly one Structr Folder"),
+			Example.javaScript("""
+			${{
+				// find all the folders with the name "logs"
+				let folders = $.find('Folder', { name: 'logs' }));
+				let archive = $.createZip('logs', folders);
+			}}
+			""", "Create an archive named `logs.zip` with the contents of all Structr Folders named \\\"logs\\\""),
+			Example.javaScript("""
+			${{
+				let parentFolder = $.getOrCreate('Folder', { name: 'archives' });
+				let files        = $.methodParameters.files;
+				let name         = $.methodParameters.name;
+
+				let archive = $.createZip(name, files);
+
+				archive.parent = parentFolder;
+			}}
+			""", "Create an archive and put it in a specific parent folder")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Creates and returns a ZIP archive with the given name (first parameter), containing the given files/folders (second parameter).",
+			"By setting a password as the optional third parameter, the ZIP file will be encrypted.",
+			"If the optional fourth parameter is `aes` or `AES`, the ZIP file will be encrypted with the AES256 method."
+		);
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+
+		return List.of(
+			Usage.structrScript("Usage: ${create_zip(archiveFileName, files [, password [, encryptionMethod ] ])}. Example: ${create_zip(\"archive\", find(\"File\"))}"),
+			Usage.javaScript("Usage: ${{ $.createZip(archiveFileName, files [, password [, encryptionMethod ] ]); }}. Example: ${{ $.createZip(\"archive\", Structr.find(\"File\")); }}")
+		);
 	}
 
 	private void addFileToZipArchive(final String path, final File file, final ZipFile zipFile, final ZipParameters params) throws IOException {
@@ -189,7 +259,7 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		for (final File fileForArchive : list) {
 
 			params.setFileNameInZip(fileForArchive.getName());
-			addFileToZipArchive(path + fileForArchive.getProperty(AbstractFile.name), fileForArchive, zipFile, params);
+			addFileToZipArchive(path + fileForArchive.getName(), fileForArchive, zipFile, params);
 		}
 	}
 
@@ -197,8 +267,8 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 		for (final Folder folder : list) {
 
-			addFilesToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
-			addFoldersToArchive(path + folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
+			addFilesToArchive(path + folder.getName() + "/", folder.getFiles(), zipFile, params);
+			addFoldersToArchive(path + folder.getName() + "/", folder.getFolders(), zipFile, params);
 		}
 	}
 }

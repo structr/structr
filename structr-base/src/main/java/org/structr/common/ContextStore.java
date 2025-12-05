@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,10 @@ package org.structr.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.entity.Localization;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.GenericProperty;
 
 import java.util.*;
@@ -205,7 +206,7 @@ public class ContextStore {
 	}
 
 	// --- Localizations ---
-	public void addRequestedLocalization(final Object node, final String key, final String domain, final String locale, final Localization localization) {
+	public void addRequestedLocalization(final Object node, final String key, final String domain, final String locale, final NodeInterface localization) {
 
 		final GenericProperty keyKey    = new GenericProperty("key");
 		final GenericProperty domainKey = new GenericProperty("domain");

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,13 @@ package org.structr.api;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
+import org.structr.api.graph.RelationshipType;
 import org.structr.api.index.Index;
-import org.structr.api.index.IndexConfig;
+import org.structr.api.index.NewIndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -47,13 +49,9 @@ public interface DatabaseService {
 	 */
 	boolean initialize(final String serviceName, final String version, final String instanceName);
 	void shutdown();
-	void clearCaches();
-	void removeNodeFromCache(final Identity id);
-	void removeRelationshipFromCache(final Identity id);
 	void cleanDatabase();
-	void deleteNodesByLabel(final String label);
 
-	<X> X forName(final Class<X> type, final String name);
+	RelationshipType getRelationshipType(final String name);
 
 	Transaction beginTx();
 	Transaction beginTx(boolean forceNew);
@@ -82,7 +80,7 @@ public interface DatabaseService {
 	Iterable<Relationship> getRelationshipsByType(final String type);
 
 	String getTenantIdentifier();
-	String getInternalTimestamp();
+	String getInternalTimestamp(final long millisOffset, final long nanoOffset);
 	String getErrorMessage();
 
 	public Map<String, Map<String, Integer>> getCachesInfo();
@@ -90,16 +88,17 @@ public interface DatabaseService {
 	// ----- index -----
 	Index<Node> nodeIndex();
 	Index<Relationship> relationshipIndex();
-	void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfig, final Map<String, Map<String, IndexConfig>> removedClasses, final boolean createOnly);
+	void updateIndexConfiguration(final List<NewIndexConfig> indexConfigList);
 	boolean isIndexUpdateFinished();
 
 	// utils
 	CountResult getNodeAndRelationshipCount();
-	Identity identify(final long id);
 
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);
 	<T> T execute(final NativeQuery<T> nativeQuery, final Transaction tx);
 	<T> NativeQuery<T> query(final Object query, final Class<T> resultType);
 	boolean supportsFeature(final DatabaseFeature feature, final Object...  parameters);
+
+	void flushCaches();
 }

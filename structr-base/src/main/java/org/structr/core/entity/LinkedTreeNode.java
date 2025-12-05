@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,9 @@ package org.structr.core.entity;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 
 import java.util.List;
 import java.util.Set;
@@ -28,24 +30,26 @@ import java.util.Set;
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.
  */
-public interface LinkedTreeNode<T extends NodeInterface> extends LinkedListNode<T> {
+public interface LinkedTreeNode {
 
-	public <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> Class<R> getChildLinkType();
-	public PropertyKey<Integer> getPositionProperty();
-
-	public T treeGetParent();
-	public void treeAppendChild(final T childElement) throws FrameworkException;
-	public void treeInsertBefore(final T newChild, final T refChild) throws FrameworkException;
-	public void treeInsertAfter(final T newChild, final T refChild) throws FrameworkException;
-	public void treeRemoveChild(final T childToRemove) throws FrameworkException;
-	public void treeReplaceChild(final T newChild, final T oldChild) throws FrameworkException;
-	public T treeGetFirstChild();
-	public T treeGetLastChild();
-	public T treeGetChild(final int position);
-	public int treeGetChildPosition(final T child);
-	public List<T> treeGetChildren();
-	public int treeGetChildCount();
-	public <R extends Relation<T, T, OneStartpoint<T>, ManyEndpoint<T>>> List<R> treeGetChildRelationships();
-
-	public Set<T> getAllChildNodes();
+	String getChildLinkType();
+	PropertyKey<Integer> getPositionProperty();
+	NodeInterface treeGetParent();
+	void treeAppendChild(final NodeInterface childElement) throws FrameworkException;
+	void treeInsertBefore(final NodeInterface newChild, final NodeInterface refChild) throws FrameworkException;
+	void treeInsertAfter(final NodeInterface newChild, final NodeInterface refChild) throws FrameworkException;
+	void treeRemoveChild(final NodeInterface childToRemove) throws FrameworkException;
+	void treeReplaceChild(final NodeInterface newChild, final NodeInterface oldChild) throws FrameworkException;
+	NodeInterface treeGetFirstChild();
+	NodeInterface treeGetLastChild();
+	NodeInterface treeGetChild(final int position);
+	int treeGetChildPosition(final NodeInterface child);
+	List<NodeInterface> treeGetChildren();
+	int treeGetChildCount();
+	List<RelationshipInterface> treeGetChildRelationships();
+	void ensureCorrectChildPositions() throws FrameworkException;
+	void linkChildren(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException;
+	void linkChildren(final NodeInterface startNode, final NodeInterface endNode, final PropertyMap properties) throws FrameworkException;
+	void unlinkChildren(final NodeInterface startNode, final NodeInterface endNode) throws FrameworkException;
+	Set<NodeInterface> getAllChildNodes();
 }

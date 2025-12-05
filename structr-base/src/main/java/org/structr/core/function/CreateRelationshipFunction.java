@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,27 +25,29 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class CreateRelationshipFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP    = "Usage: ${create_relationship(from, to, relType)}. Example: ${create_relationship(me, user, 'FOLLOWS')} (Relationshiptype has to exist)";
-	public static final String ERROR_MESSAGE_CREATE_RELATIONSHIP_JS = "Usage: ${{Structr.create_relationship(from, to, relType)}}. Example: ${{Structr.create_relationship(Structr.get('me'), user, 'FOLLOWS')}} (Relationshiptype has to exist)";
-
 	@Override
 	public String getName() {
-		return "create_relationship";
+		return "createRelationship";
 	}
 
 	@Override
-	public String getSignature() {
-		return "from, to, relType [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("from, to, relType [, parameterMap ]");
 	}
 
 	@Override
@@ -59,13 +61,13 @@ public class CreateRelationshipFunction extends CoreFunction {
 			final Object target = sources[1];
 			final String relType = (String)sources[2];
 
-			AbstractNode sourceNode = null;
-			AbstractNode targetNode = null;
+			NodeInterface sourceNode = null;
+			NodeInterface targetNode = null;
 
-			if (source instanceof AbstractNode && target instanceof AbstractNode) {
+			if (source instanceof NodeInterface && target instanceof NodeInterface) {
 
-				sourceNode = (AbstractNode)source;
-				targetNode = (AbstractNode)target;
+				sourceNode = (NodeInterface)source;
+				targetNode = (NodeInterface)target;
 
 			} else {
 
@@ -73,40 +75,39 @@ public class CreateRelationshipFunction extends CoreFunction {
 				return "Error: entities are not nodes.";
 			}
 
-			final Class relClass = StructrApp.getConfiguration().getRelationClassForCombinedType(sourceNode.getType(), relType, targetNode.getType());
+			final Traits traits = Traits.ofRelationship(sourceNode.getType(), relType, targetNode.getType());
+			if (traits != null) {
 
-			if (relClass != null) {
-
+				final String relationshipTypeName     = traits.getName();
 				final SecurityContext securityContext = ctx.getSecurityContext();
-				final ConfigurationProvider config = StructrApp.getConfiguration();
 				PropertyMap propertyMap;
 
 				// extension for native javascript objects
 				if (sources.length == 4 && sources[3] instanceof Map) {
 
-					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relClass, (Map)sources[3]);
+					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relationshipTypeName, (Map)sources[3]);
 
 				} else if (sources.length == 4 && sources[3] instanceof GraphObjectMap) {
 
-					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relClass, ((GraphObjectMap)sources[3]).toMap());
+					propertyMap = PropertyMap.inputTypeToJavaType(securityContext, relationshipTypeName, ((GraphObjectMap)sources[3]).toMap());
 
 				} else {
 
 					propertyMap               = new PropertyMap();
-					final int parameter_count = sources.length;
+					final int parameterCount = sources.length;
 
-					if (parameter_count % 2 == 0) {
+					if (parameterCount % 2 == 0) {
 
-						throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+						throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 					}
 
-					for (int c = 3; c < parameter_count; c += 2) {
+					for (int c = 3; c < parameterCount; c += 2) {
 
-						final PropertyKey key = StructrApp.key(relClass, sources[c].toString());
+						final PropertyKey key = traits.key(sources[c].toString());
 
 						if (key != null) {
 
-							final PropertyConverter inputConverter = key.inputConverter(securityContext);
+							final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 							Object value = sources[c + 1];
 
 							if (inputConverter != null) {
@@ -119,7 +120,7 @@ public class CreateRelationshipFunction extends CoreFunction {
 					}
 				}
 
-				return StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relClass, propertyMap);
+				return StructrApp.getInstance(sourceNode.getSecurityContext()).create(sourceNode, targetNode, relationshipTypeName, propertyMap);
 
 			} else {
 
@@ -140,12 +141,48 @@ public class CreateRelationshipFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_RELATIONSHIP_JS : ERROR_MESSAGE_CREATE_RELATIONSHIP);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${createRelationship(fromNode, toNode, relationshipType)}. Example: ${createRelationship(me, user, 'FOLLOWS')}"),
+			Usage.javaScript("Usage: ${{ $.createRelationship(fromNode, toNode, relationshipType)}}. Example: ${{ $.createRelationship(Structr.get('me'), user, 'FOLLOWS')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Creates a relationship of the given type between two entities";
+	public String getShortDescription() {
+		return "Creates and returns relationship of the given type between two entities.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("fromNode", "start node of the new relationship"),
+			Parameter.mandatory("toNode", "end node of the new relationship"),
+			Parameter.mandatory("relationshipType", "relationship type to create")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the fourth parameter.",
+			"The relationshipType is the literal name of the relationship that you see between two nodes in the schema editor, e.g. \"FOLLOWS\" or \"HAS\"."
+		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,11 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -27,7 +32,6 @@ import java.util.List;
 
 public class SizeFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SIZE = "Usage: ${size(collection)}. Example: ${size(this.children)}";
 
 	@Override
 	public String getName() {
@@ -35,8 +39,8 @@ public class SizeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "collection";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("collection");
 	}
 
 	@Override
@@ -75,12 +79,43 @@ public class SizeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SIZE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${size(collection)}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the size of the given collection";
+	public String getShortDescription() {
+		return "Returns the size of the given collection.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${size(page.children)}"),
+				Example.structrScript("${size(merge('a', 'b', 'c'))}"),
+				Example.javaScript("${{ return $.size([1, 2, 3, 5, 8]); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("collection", "collection to count")
+				);
+	}
+
+
 }

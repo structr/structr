@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,13 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.GraphObject;
-
 /**
  * Indicates that a given ID could not be found.
- *
  *
  */
 public class IdNotFoundToken extends PropertyNotFoundToken {
 
 	public IdNotFoundToken(final String type, final Object value) {
-		super(type, GraphObject.id, value);
+		super(type, "id", value);
 	}
 }

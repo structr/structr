@@ -10,11 +10,16 @@
 	<artifactId>structr-geo-transformations-module</artifactId>
 	<packaging>jar</packaging>
 
-	<properties>
-		<geotools.version>19.4</geotools.version>
-	</properties>
+    <properties>
+        <geotools.version>32.4</geotools.version>
+    </properties>
 
 	<repositories>
+		<repository>
+			<id>central</id>
+			<name>Central Repository</name>
+			<url>https://repo.maven.apache.org/maven2</url>
+		</repository>
 		<repository>
 			<id>osgeo</id>
 			<name>Open Source Geospatial Foundation Repository</name>
@@ -34,9 +39,13 @@
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
-			<artifactId>gt-opengis</artifactId>
+			<artifactId>gt-main</artifactId>
 			<version>${geotools.version}</version>
-			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.geotools</groupId>
+			<artifactId>gt-opengis</artifactId>
+			<version>29.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -50,19 +59,8 @@
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>io.rest-assured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<optional>true</optional>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>commons-io</groupId>
 			<artifactId>commons-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-data</artifactId>
-			<version>${geotools.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -71,24 +69,18 @@
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
-			<artifactId>gt-geotiff</artifactId>
+			<artifactId>gt-process-raster</artifactId>
 			<version>${geotools.version}</version>
 			<exclusions>
 				<exclusion>
-					<groupId>it.geosolutions.imageio-ext</groupId>
-					<artifactId>imageio-ext-tiff</artifactId>
+					<groupId>org.glassfish.jaxb</groupId>
+					<artifactId>txw2</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>com.sun.istack</groupId>
+					<artifactId>istack-commons-runtime</artifactId>
 				</exclusion>
 			</exclusions>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-process</artifactId>
-			<version>${geotools.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-process-raster</artifactId>
-			<version>${geotools.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>
@@ -96,8 +88,8 @@
 			<version>${geotools.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.geotools</groupId>
-			<artifactId>gt-wfs-ng</artifactId>
+			<groupId>org.geotools.xsd</groupId>
+			<artifactId>gt-xsd-core</artifactId>
 			<version>${geotools.version}</version>
 		</dependency>
 	</dependencies>
@@ -116,7 +108,7 @@
 							</manifestEntries>
 						</manifestSection>
 					</archive>
-					<outputDirectory>${structr.lib.directory}</outputDirectory>
+<!--					<outputDirectory>${structr.lib.directory}</outputDirectory>-->
 				</configuration>
 			</plugin>
 		</plugins>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.web.entity.Widget;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.traits.definitions.WidgetTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -37,7 +41,7 @@ import org.structr.websocket.message.WebSocketMessage;
  */
 public class CreateLocalWidgetCommand extends AbstractCommand {
 
-	private static final Logger logger     = LoggerFactory.getLogger(CreateLocalWidgetCommand.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(CreateLocalWidgetCommand.class.getName());
 
 	static {
 
@@ -65,25 +69,24 @@ public class CreateLocalWidgetCommand extends AbstractCommand {
 
 		// check if parent node with given ID exists
 		DOMNode node = getDOMNode(id);
-
 		if (node == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Node not found").build(), true);
 
 			return;
-
 		}
 
 		try {
 
 			// convertFromInput
-			PropertyMap properties = new PropertyMap();
+			final PropertyMap properties = new PropertyMap();
+			final Traits traits          = Traits.of(StructrTraits.WIDGET);
 
-			properties.put(AbstractNode.type, Widget.class.getSimpleName());
-			properties.put(AbstractNode.name, name);
-			properties.put(StructrApp.key(Widget.class, "source"), source);
+			properties.put(traits.key(GraphObjectTraitDefinition.TYPE_PROPERTY),   StructrTraits.WIDGET);
+			properties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),   name);
+			properties.put(traits.key(WidgetTraitDefinition.SOURCE_PROPERTY), source);
 
-			final Widget widget = app.create(Widget.class, properties);
+			final Widget widget = app.create(StructrTraits.WIDGET, properties).as(Widget.class);
 
 			TransactionCommand.registerNodeCallback(widget, callback);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -39,7 +39,7 @@ public abstract class AbstractDirectoryStream implements DirectoryStream<Path> {
 	@Override
 	public Iterator<Path> iterator() {
 
-		return new Iterator<Path>() {
+		return new Iterator<>() {
 
 			final List<Path> copy = new ArrayList<>(paths);
 			int index             = 0;

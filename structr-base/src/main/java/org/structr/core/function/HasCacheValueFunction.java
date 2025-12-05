@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,21 +22,24 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.parser.CacheExpression;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class HasCacheValueFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_HAS_CACHE_VALUE    = "Usage: ${has_cache_value(cacheKey)}. Example: ${has_cache_value('mykey')}";
-	public static final String ERROR_MESSAGE_HAS_CACHE_VALUE_JS = "Usage: ${{ Structr.has_cache_value(cacheKey); }}. Example: ${{ Structr.has_cache_value('mykey'); }}";
-
 	@Override
 	public String getName() {
-		return "has_cache_value";
+		return "hasCacheValue";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key");
 	}
 
 	@Override
@@ -48,7 +51,7 @@ public class HasCacheValueFunction extends CoreFunction {
 
 			final String cacheKey = sources[0].toString();
 
-			logger.warn("has_cache_value() is deprecated and will be removed in a future version.");
+			logger.warn("hasCacheValue() is deprecated and will be removed in a future version.");
 			return CacheExpression.hasCachedValue(cacheKey);
 
 		} catch (ArgumentNullException | ArgumentCountException pe) {
@@ -60,12 +63,59 @@ public class HasCacheValueFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return inJavaScriptContext ? ERROR_MESSAGE_HAS_CACHE_VALUE_JS : ERROR_MESSAGE_HAS_CACHE_VALUE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${hasCacheValue(cacheKey)}."),
+			Usage.javaScript("Usage: ${{ $.hasCacheValue(cacheKey); }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Checks if a cached value exists for the given key";
+	public String getShortDescription() {
+		return "Checks if a cached value exists for the given key.";
+	}
+
+	@Override
+	public String getLongDescription() {
+
+		return """
+		Checks if a cached value exists for the given key. Returns false if there is no stored value for the given key or if the stored value is expired.
+		This function is especially useful if the result of a JavaScript function should be cached (see Example 2).
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${hasCacheValue('externalResult')}"),
+				Example.javaScript("""
+						${{
+							let myComplexFunction = function() {
+								// computation... for brevity just return a date string
+								return new Date().toString();
+							};
+							let cacheKey = 'myKey';
+							if ($.hasCacheValue(cacheKey)) {
+								// retrieve cached value
+								let cacheValue = $.getCacheValue(cacheKey);
+								// ...
+								// ...
+							} else {
+								// cache the result of a complex function
+								let cacheResult = $.cache(cacheKey, 30, myComplexFunction());
+								// ...
+								// ...
+							}
+						}}
+						""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "cache key")
+		);
 	}
 }

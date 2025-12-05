@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,28 +20,55 @@ package org.structr.flow.impl.rels;
 
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
-import org.structr.common.PermissionPropagation;
-import org.structr.core.entity.ManyToOne;
-import org.structr.flow.impl.FlowNode;
+import org.structr.core.entity.Relation;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.definitions.AbstractRelationshipTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipBaseTraitDefinition;
 
-/**
- *
- */
-public class FlowNodes extends ManyToOne<FlowNode, FlowNode> implements PermissionPropagation {
+public class FlowNodes extends AbstractRelationshipTraitDefinition implements RelationshipBaseTraitDefinition {
 
-	@Override
-	public Class<FlowNode> getSourceType() {
-		return FlowNode.class;
+	public FlowNodes() {
+		super(StructrTraits.FLOW_NODES);
 	}
 
 	@Override
-	public Class<FlowNode> getTargetType() {
-		return FlowNode.class;
+	public String getSourceType() {
+		return StructrTraits.FLOW_NODE;
 	}
 
 	@Override
-	public String name() {
+	public String getTargetType() {
+		return StructrTraits.FLOW_NODE;
+	}
+
+	@Override
+	public String getRelationshipType() {
 		return "NEXT_FLOW_NODE";
+	}
+
+	@Override
+	public Relation.Multiplicity getSourceMultiplicity() {
+		return Relation.Multiplicity.Many;
+	}
+
+	@Override
+	public Relation.Multiplicity getTargetMultiplicity() {
+		return Relation.Multiplicity.One;
+	}
+
+	@Override
+	public int getCascadingDeleteFlag() {
+		return 0;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return 0;
+	}
+
+	@Override
+	public boolean isInternal() {
+		return false;
 	}
 
 	@Override

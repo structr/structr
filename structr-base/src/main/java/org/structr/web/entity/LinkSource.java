@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,50 +18,14 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.schema.SchemaService;
-import org.structr.web.entity.dom.DOMElement;
-
-import java.net.URI;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.
  */
-public interface LinkSource extends DOMElement {
-
-	static class Impl { static {
-
-		final JsonSchema schema       = SchemaService.getDynamicSchema();
-		final JsonObjectType type     = schema.addType("LinkSource");
-		final JsonObjectType linkable = (JsonObjectType)schema.getType("Linkable");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/LinkSource"));
-		type.setExtends(URI.create("#/definitions/DOMElement"));
-		type.setCategory("ui");
-
-		type.overrideMethod("getLinkable", false, "return getProperty(linkableProperty);");
-
-		type.addMethod("setLinkable")
-			.setSource("setProperty(linkableProperty, (Linkable)linkable);")
-			.addException(FrameworkException.class.getName())
-			.addParameter("linkable", "org.structr.web.entity.Linkable");
-
-		final JsonReferenceType rel = type.relate(linkable, "LINK", Cardinality.ManyToOne, "linkingElements", "linkable");
-
-		type.addIdReferenceProperty("linkableId", rel.getTargetProperty());
-		linkable.addIdReferenceProperty("linkingElementsIds", rel.getSourceProperty());
-
-		// view configuration
-		type.addViewProperty(PropertyView.Ui, "children");
-		type.addViewProperty(PropertyView.Ui, "linkable");
-		type.addViewProperty(PropertyView.Ui, "linkableId");
-	}}
+public interface LinkSource extends NodeInterface {
 
 	Linkable getLinkable();
-	void setLinkable(final Linkable linkable) throws FrameworkException;
+	Object setLinkable(final Linkable linkable) throws FrameworkException;
 }

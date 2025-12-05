@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,16 +21,19 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 public class FormUrlEncodeFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_URLENCODE = "Usage: ${formurlencode(object)}. Example: ${formurlencode(data)}";
 
 	@Override
 	public String getName() {
@@ -38,8 +41,8 @@ public class FormUrlEncodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "object";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("object");
 	}
 
 	@Override
@@ -75,13 +78,45 @@ public class FormUrlEncodeFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_URLENCODE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.formurlencode(object); }}. Example: ${{ $.formurlencode(data); }}"),
+			Usage.structrScript("Usage: ${formurlencode(object)}. Example: ${formurlencode(data)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Encodes the given object to an application/x-www-form-urlencoded string";
+	public String getShortDescription() {
+		return "Encodes the given object to an application/x-www-form-urlencoded string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function encodes the given object for use in an URL, replacing invalid characters with their valid URL equivalent and joining the key/value pairs with an ampersand.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("object", "object to encode")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("$.formurlencode({name:'admin', p1: 12, apiKey: 'abc123', text:'Text with umläut'}) => name=admin&p1=12&apiKey=abc123&text=Text+with+uml%C3%A4ut")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"This function is best used in a JavaScript context."
+		);
 	}
 
 	// ----- private methods -----

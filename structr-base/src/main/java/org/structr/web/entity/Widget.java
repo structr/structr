@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,6 @@
  */
 package org.structr.web.entity;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.EmptyPropertyToken;
@@ -29,55 +25,35 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.regex.Matcher;
 
-/**
- *
- *
- */
 public interface Widget extends NodeInterface {
 
-	static class Impl { static {
+	ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
 
-		final JsonSchema schema    = SchemaService.getDynamicSchema();
-		final JsonObjectType type  = schema.addType("Widget");
+	String getSource();
+	String getDescription();
+	boolean isWidget();
+	String getTreePath();
+	String getConfiguration();
+	boolean isPageTemplate();
+	String[] getSelectors();
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Widget"));
-		type.setCategory("ui");
+	static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
 
-		type.addStringProperty("source",          PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("description",     PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("configuration",   PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("svgIconPath",     PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("thumbnailPath",   PropertyView.Ui, PropertyView.Public);
-		type.addStringProperty("treePath",        PropertyView.Ui, PropertyView.Public).setIndexed(true);
-		type.addBooleanProperty("isWidget",       PropertyView.Ui, PropertyView.Public).setReadOnly(true).addTransformer(ConstantBooleanTrue.class.getName());
-		type.addStringArrayProperty("selectors",  PropertyView.Ui, PropertyView.Public, "editWidget");
-		type.addBooleanProperty("isPageTemplate", PropertyView.Ui, PropertyView.Public, "editWidget").setIndexed(true);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "name");
-	}}
-
-	static final ThreadLocalMatcher threadLocalTemplateMatcher = new ThreadLocalMatcher("\\[[^\\]]+\\]");
-
-	public static void expandWidget(final SecurityContext securityContext, final Page page, final DOMNode parent, final String baseUrl, final Map<String, Object> parameters, final boolean processDeploymentInfo) throws FrameworkException {
-
-		String _source          = (String)parameters.get("source");
+		String _source = (String) parameters.get("source");
 		ErrorBuffer errorBuffer = new ErrorBuffer();
 
 		if (_source == null) {
 
-			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), StructrApp.key(Widget.class, "source")));
+			errorBuffer.add(new EmptyPropertyToken(Widget.class.getSimpleName(), "source"));
 
 		} else {
 
@@ -89,11 +65,11 @@ public interface Widget extends NodeInterface {
 
 			while (matcher.find()) {
 
-				final String group              = matcher.group();
-				final String source             = group.substring(1, group.length() - 1);
-				final ReplacementInfo info      = new ReplacementInfo(source);
-				String key                      = info.getKey();
-				Object value                    = parameters.get(key);
+				final String group         = matcher.group();
+				final String source        = group.substring(1, group.length() - 1);
+				final ReplacementInfo info = new ReplacementInfo(source);
+				final String key           = info.getKey();
+				final Object value         = parameters.get(key);
 
 				if (value != null) {
 
@@ -127,9 +103,12 @@ public interface Widget extends NodeInterface {
 				final String tableChildElement = importer.getTableChildElement();
 				if (tableChildElement != null) {
 
-					for (final DOMNode child : parent.getAllChildNodes()) {
+					for (final NodeInterface child : parent.getAllChildNodes()) {
+
 						if (child.getType().toLowerCase().equals(tableChildElement)) {
-							parent.appendChild(child);
+
+							parent.appendChild(child.as(DOMNode.class));
+
 						} else {
 							StructrApp.getInstance().delete(child);
 						}
@@ -144,9 +123,9 @@ public interface Widget extends NodeInterface {
 		}
 	}
 
-	public static class ReplacementInfo {
+	class ReplacementInfo {
 
-		private ArrayList<String> options = new ArrayList<>();
+		private final ArrayList<String> options = new ArrayList<>();
 		private String key                = null;
 		private boolean hasOptions        = false;
 

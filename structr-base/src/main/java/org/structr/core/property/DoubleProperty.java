@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,9 +23,11 @@ import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NumberToken;
+import org.structr.common.error.NumberFormatToken;
+import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
 
 import java.util.Map;
 
@@ -52,7 +54,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 		super(jsonName, dbName, defaultValue);
 
-		if (jsonName.equals("latitude") || jsonName.equals("longitude")) {
+		if (jsonName.equals(LocationTraitDefinition.LATITUDE_PROPERTY) || jsonName.equals(LocationTraitDefinition.LONGITUDE_PROPERTY)) {
 
 			// add layer node index and make
 			// this property be indexed at the
@@ -88,7 +90,7 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	}
 
 	@Override
-	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Double> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 
@@ -146,7 +148,10 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), DoubleProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+					);
 				}
 			}
 
@@ -178,6 +183,11 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

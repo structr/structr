@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,14 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class MD5Function extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_MD5 = "Usage: ${md5(string)}. Example: ${md5(this.email)}";
+public class MD5Function extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -34,8 +37,8 @@ public class MD5Function extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "str";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str");
 	}
 
 	@Override
@@ -60,12 +63,28 @@ public class MD5Function extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_MD5;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.md5(string); }}. Example: ${{ $.md5(this.email); }}"),
+			Usage.structrScript("Usage: ${md5(string)}. Example: ${md5(this.email)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the MD5 hash of its parameter";
+	public String getShortDescription() {
+		return "Returns the MD5 hash of a given object.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function converts its argument into a string, creates the 32-character alphanumeric MD5 hash of that string and returns the resulting hash string.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("input", "input object to hash")
+		);
 	}
 }

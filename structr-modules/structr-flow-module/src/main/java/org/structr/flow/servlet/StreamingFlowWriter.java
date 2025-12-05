@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,7 +19,6 @@
 package org.structr.flow.servlet;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.Value;
 import org.structr.rest.serialization.RestWriter;
 import org.structr.rest.serialization.StreamingWriter;
 
@@ -33,7 +32,7 @@ import java.io.Writer;
  */
 public class StreamingFlowWriter extends StreamingWriter {
 
-	public StreamingFlowWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+	public StreamingFlowWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
 		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
 	}
 

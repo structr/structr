@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,35 +18,25 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
+import org.structr.common.View;
+import org.structr.core.property.BooleanProperty;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.Property;
+import org.structr.core.property.StartNode;
+import org.structr.knowledge.iso25964.relationship.SimpleNonPreferredTermUSEPreferredTerm;
+import org.structr.knowledge.iso25964.relationship.ThesaurusConcepthasNonPreferredLabelSimpleNonPreferredTerm;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface SimpleNonPreferredTerm extends NodeInterface {
+public class SimpleNonPreferredTerm extends ThesaurusTerm {
 
-	static class Impl { static {
+	public static final Property<ThesaurusConcept> conceptsProperty = new StartNode<>("concepts", ThesaurusConcepthasNonPreferredLabelSimpleNonPreferredTerm.class);
+	public static final Property<PreferredTerm> preferredTerm       = new EndNode<>("preferredTerm", SimpleNonPreferredTermUSEPreferredTerm.class);
+	public static final Property<Boolean> hiddenProperty            = new BooleanProperty("hidden");
 
-		final JsonSchema schema = SchemaService.getDynamicSchema();
-
-		final JsonObjectType type     = schema.addType("SimpleNonPreferredTerm");
-		final JsonObjectType prefTerm = schema.addType("PreferredTerm");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/SimpleNonPreferredTerm"));
-		type.setExtends(URI.create("#/definitions/ThesaurusTerm"));
-
-		type.addBooleanProperty("hidden", PropertyView.All, PropertyView.Ui).setIndexed(true);
-
-		final JsonReferenceType equivalence = type.relate(prefTerm, "USE", Cardinality.ManyToOne, "preferredTerm", "simpleNonPreferredTerms");
-		equivalence.addStringProperty("role", PropertyView.All, PropertyView.Ui).setIndexed(true);
-
-	}}
+	public static final View uiView = new View(SimpleNonPreferredTerm.class, PropertyView.Ui,
+		hiddenProperty
+	);
 }

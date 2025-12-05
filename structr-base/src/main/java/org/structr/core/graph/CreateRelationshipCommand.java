@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,22 +18,19 @@
  */
 package org.structr.core.graph;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
-import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.Transformation;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.core.traits.definitions.RelationshipInterfaceTraitDefinition;
 
 import java.util.Date;
 import java.util.Map.Entry;
@@ -45,57 +42,71 @@ import java.util.Map.Entry;
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(CreateRelationshipCommand.class.getName());
+	private final PropertyKey<String> idKey                           = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.ID_PROPERTY);
+	private final PropertyKey<String> typeKey                         = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.TYPE_PROPERTY);
+	private final PropertyKey<Date> createdDateKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.CREATED_DATE_PROPERTY);
+	private final PropertyKey<Date> lastModifiedDateKey               = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.LAST_MODIFIED_DATE_PROPERTY);
+	private final PropertyKey<String> createdByKey                    = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.CREATED_BY_PROPERTY);
+	private final PropertyKey<Boolean> visibleToPublicUsersKey        = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_PUBLIC_USERS_PROPERTY);
+	private final PropertyKey<Boolean> visibleToAuthenticatedUsersKey = Traits.key(StructrTraits.GRAPH_OBJECT, GraphObjectTraitDefinition.VISIBLE_TO_AUTHENTICATED_USERS_PROPERTY);
 
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
+	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
 	}
 
-	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
+	public RelationshipInterface execute(final NodeInterface fromNode, final NodeInterface toNode, final String relType, final PropertyMap properties) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, properties);
 	}
 
-	private <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R createRelationship(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap attributes) throws FrameworkException {
+	private RelationshipInterface createRelationship(final NodeInterface fromNode, final NodeInterface toNode, final String entityType, final PropertyMap attributes) throws FrameworkException {
+
+		if (!Traits.exists(entityType)) {
+			throw new FrameworkException(422, "Relationship type " + entityType + " does not exist");
+		}
 
 		// disable updating access time when creating relationships
 		securityContext.disableModificationOfAccessTime();
 
-		final DatabaseService db             = (DatabaseService)this.getArgument("graphDb");
-		final RelationshipFactory<R> factory = new RelationshipFactory(securityContext);
-		final PropertyMap properties         = new PropertyMap(attributes);
-		final PropertyMap toNotify           = new PropertyMap();
-		final CreationContainer tmp          = new CreationContainer(false);
-		final R template                     = (R)Relation.getInstance(relType);
-		final Node startNode                 = fromNode.getNode();
-		final Node endNode                   = toNode.getNode();
-		final Date now                       = new Date();
-		final Principal user                 = securityContext.getCachedUser();
+		final Traits relationshipTraits                = Traits.of(entityType);
+		final PropertyKey<String> internalTimestampKey = relationshipTraits.key(RelationshipInterfaceTraitDefinition.INTERNAL_TIMESTAMP_PROPERTY);
+		final PropertyKey<String> sourceIdKey          = relationshipTraits.key(RelationshipInterfaceTraitDefinition.SOURCE_ID_PROPERTY);
+		final PropertyKey<String> targetIdKey          = relationshipTraits.key(RelationshipInterfaceTraitDefinition.TARGET_ID_PROPERTY);
+		final PropertyKey<String> relTypeKey           = relationshipTraits.key(RelationshipInterfaceTraitDefinition.REL_TYPE_PROPERTY);
+		final DatabaseService db                       = (DatabaseService)this.getArgument("graphDb");
+		final RelationshipFactory factory              = new RelationshipFactory(securityContext);
+		final PropertyMap properties                   = new PropertyMap(attributes);
+		final PropertyMap toNotify                     = new PropertyMap();
+		final Traits traits                            = Traits.of(entityType);
+		final CreationContainer tmp                    = new CreationContainer(traits, false);
+		final Relation relation                        = traits.getRelation();
+		final Date now                                 = new Date();
+		final Principal user                           = securityContext.getCachedUser();
 
-		template.ensureCardinality(securityContext, fromNode, toNode);
+		relation.ensureCardinality(securityContext, fromNode, toNode);
 
 		// date properties need converter
-		AbstractRelationship.internalTimestamp.setProperty(securityContext, tmp, db.getInternalTimestamp());
-		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
-		AbstractRelationship.lastModifiedDate.setProperty(securityContext, tmp, now);
+		internalTimestampKey.setProperty(securityContext, tmp, db.getInternalTimestamp(0, 0));
+		createdDateKey.setProperty(securityContext, tmp, now);
+		lastModifiedDateKey.setProperty(securityContext, tmp, now);
 
 		// set initial properties manually (caution, this can only be used for primitive properties!)
-		tmp.getData().put(GraphObject.id.jsonName(), getNextUuid());
-		tmp.getData().put(GraphObject.type.jsonName(), relType.getSimpleName());
-		tmp.getData().put(AbstractRelationship.relType.jsonName(), template.name());
-		tmp.getData().put(AbstractRelationship.sourceId.jsonName(), fromNode.getUuid());
-		tmp.getData().put(AbstractRelationship.targetId.jsonName(), toNode.getUuid());
-		tmp.getData().put(AbstractRelationship.visibleToPublicUsers.jsonName(), false);
-		tmp.getData().put(AbstractRelationship.visibleToAuthenticatedUsers.jsonName(), false);
+		tmp.getData().put(idKey.dbName(), getNextUuid());
+		tmp.getData().put(typeKey.dbName(), entityType);
+		tmp.getData().put(relTypeKey.dbName(), relation.name());
+		tmp.getData().put(sourceIdKey.dbName(), fromNode.getUuid());
+		tmp.getData().put(targetIdKey.dbName(), toNode.getUuid());
+		tmp.getData().put(visibleToPublicUsersKey.dbName(), false);
+		tmp.getData().put(visibleToAuthenticatedUsersKey.dbName(), false);
 
 		if (user != null) {
-			tmp.getData().put(AbstractRelationship.createdBy.jsonName(), user.getUuid());
+			tmp.getData().put(createdByKey.dbName(), user.getUuid());
 		}
 
 		// move properties to creation container that can be set directly on creation
 		tmp.filterIndexableForCreation(securityContext, properties, tmp, toNotify);
 
 		// collect default values and try to set them on creation
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(relType, PropertyView.All)) {
+		for (final PropertyKey key : traits.getAllPropertyKeys()) {
 
 			if (key instanceof AbstractPrimitiveProperty && !tmp.hasProperty(key.jsonName())) {
 
@@ -108,47 +119,46 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		}
 
 		// create relationship including initial properties
-		final Relationship rel = startNode.createRelationshipTo(endNode, template, tmp.getData());
-		final R newRel         = factory.instantiateWithType(rel, relType, null, true);
+		final Node startNode               = fromNode.getNode();
+		final Node endNode                 = toNode.getNode();
+		final Relationship rel             = startNode.createRelationshipTo(endNode, relation, tmp.getData());
 
-		if (newRel != null) {
+		if (rel != null) {
 
-			// notify transaction handler
-			TransactionCommand.relationshipCreated(user, newRel);
+			final RelationshipInterface newRel = factory.instantiateWithType(rel, null, true);
+			if (newRel != null) {
 
-			securityContext.disableModificationOfAccessTime();
-			newRel.setProperties(securityContext, properties);
+				// notify transaction handler
+				TransactionCommand.relationshipCreated(user, newRel);
+
+				securityContext.disableModificationOfAccessTime();
+				newRel.setProperties(securityContext, properties);
+				securityContext.enableModificationOfAccessTime();
+
+				// ensure modification callbacks are called (necessary for validation)
+				for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {
+
+					final PropertyKey key = entry.getKey();
+					final Object value = entry.getValue();
+
+					if (!key.isUnvalidated()) {
+						TransactionCommand.relationshipModified(securityContext.getCachedUser(), newRel, key, null, value);
+					}
+				}
+
+				properties.clear();
+
+				// ensure indexing of newly created node
+				newRel.addToIndex();
+
+			}
+
+			// enable access time update again for subsequent calls
 			securityContext.enableModificationOfAccessTime();
 
-			// ensure modification callbacks are called (necessary for validation)
-			for (final Entry<PropertyKey, Object> entry : toNotify.entrySet()) {
-
-				final PropertyKey key = entry.getKey();
-				final Object value    = entry.getValue();
-
-				if (!key.isUnvalidated()) {
-					TransactionCommand.relationshipModified(securityContext.getCachedUser(), (AbstractRelationship)newRel, key, null, value);
-				}
-			}
-
-			properties.clear();
-
-			// ensure indexing of newly created node
-			newRel.addToIndex();
-
-			// notify relationship of its creation
-			newRel.onRelationshipCreation();
-
-			// iterate post creation transformations
-			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
-
-				transformation.apply(securityContext, newRel);
-			}
+			return newRel;
 		}
 
-		// enable access time update again for subsequent calls
-		securityContext.enableModificationOfAccessTime();
-
-		return newRel;
+		return null;
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,7 @@ package org.structr.core;
  *
  *
  */
-public interface Decorator<AbstractNode> {
+public interface Decorator<NodeInterface> {
 	
-	public void decorate(AbstractNode t);
+	void decorate(NodeInterface t);
 }

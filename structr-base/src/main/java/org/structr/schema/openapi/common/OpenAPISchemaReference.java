@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,8 +19,7 @@
 package org.structr.schema.openapi.common;
 
 import org.apache.commons.lang3.StringUtils;
-import org.structr.core.app.StructrApp;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
 
@@ -35,11 +34,10 @@ public class OpenAPISchemaReference extends TreeMap<String, Object> {
 		this(reference, null);
 	}
 
-	public OpenAPISchemaReference(final Class type, final String viewName) {
-		ConfigurationProvider configuration = StructrApp.getConfiguration();
-		Set<String> viewNames = configuration.getPropertyViewsForType(type);
+	public OpenAPISchemaReference(final Traits type, final String viewName) {
 
-		final String simpleName = type.getSimpleName();
+		final Set<String> viewNames = type.getViewNames();
+		final String simpleName     = type.getName();
 
 		if (viewName == null || "public".equals(viewName) || !viewNames.contains(viewName)) {
 
@@ -68,7 +66,9 @@ public class OpenAPISchemaReference extends TreeMap<String, Object> {
 		StructrTypeDefinitions.openApiSerializedSchemaTypes.add((name));
 	}
 
-	public OpenAPISchemaReference(String reference, final String viewName) {
+	public OpenAPISchemaReference(final String input, final String viewName) {
+
+		String reference = input;
 
 		if (!StringUtils.startsWith(reference, "#/")) {
 			reference = base + reference;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,7 @@ package org.structr.web.servlet;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.eclipse.jetty.servlets.EventSource;
+import org.eclipse.jetty.ee10.servlets.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -34,11 +34,9 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
-import org.structr.rest.ResourceProvider;
+import org.structr.core.traits.StructrTraits;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.common.StatsCallback;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.entity.User;
@@ -47,40 +45,18 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.regex.Pattern;
 
 
-public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceServlet implements HttpServiceServlet {
+public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSourceServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventSourceServlet.class.getName());
 
 	private static final BlockingDeque<StructrEventSource> eventSources = new LinkedBlockingDeque<>();
 
-	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected StatsCallback stats                                       = null;
 
-	static PropertyKey<String[]> sessionIdsPropertyKey = null;
-	static PropertyKey<Iterable<Principal>> membersKey = null;
-
 	private SecurityContext securityContext;
-
-	@Override
-	public void init() throws ServletException {
-
-		// inject resources
-		final ResourceProvider provider = config.getResourceProvider();
-		if (provider != null) {
-
-			resourceMap.putAll(provider.getResources());
-
-		} else {
-
-			logger.error("Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class");
-		}
-
-		super.init();
-	}
 
 	@Override
 	protected EventSource newEventSource(HttpServletRequest hsr) {
@@ -155,11 +131,11 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	public static void broadcastEvent(final String name, final String data, final boolean authenticated, final boolean anonymous) {
 
-		if (anonymous == true && authenticated == true) {
+		if (anonymous && authenticated) {
 
 			broadcastEvent(name, data);
 
-		} else if (anonymous == true) {
+		} else if (anonymous) {
 
 			// account for multiple open tabs/connections for one sessionIds and save result
 			final Map<String, Boolean> checkedSessionIds = new HashMap<>();
@@ -180,13 +156,13 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 						checkedSessionIds.put(sessionId, false);
 					}
 
-				} else if (shouldReceive == true) {
+				} else if (shouldReceive) {
 
 					es.sendEvent(name, data);
 				}
 			}
 
-		} else if (authenticated == true) {
+		} else if (authenticated) {
 
 			// account for multiple open tabs/connections for one sessionIds and save result
 			final Map<String, Boolean> checkedSessionIds = new HashMap<>();
@@ -207,7 +183,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 						checkedSessionIds.put(sessionId, false);
 					}
 
-				} else if (shouldReceive == true) {
+				} else if (shouldReceive) {
 
 					es.sendEvent(name, data);
 				}
@@ -222,11 +198,13 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 		for (Principal principal : targets) {
 
-			if (principal instanceof User) {
-//			if (User.class.isAssignableFrom(principal.getClass())) {
-				uniqueUsers.add((User)principal);
+			if (principal.is(StructrTraits.USER)) {
+
+				uniqueUsers.add(principal.as(User.class));
+
 			} else {
-				uniqueUsers.addAll(getUniqueUsersForGroup(principal, seenGroups, true));
+
+				uniqueUsers.addAll(getUniqueUsersForGroup(principal.as(Group.class), seenGroups, true));
 			}
 		}
 
@@ -240,27 +218,24 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 		return oneTargetSeen;
 	}
 
-	private static Set<User> getUniqueUsersForGroup(final Principal group, final Set<Principal> seenGroups, final boolean recurse) {
+	private static Set<User> getUniqueUsersForGroup(final Group group, final Set<Principal> seenGroups, final boolean recurse) {
 
 		seenGroups.add(group);
 
 		final Set<User> uniqueUsers = new HashSet<>();
 
-		if (membersKey == null) {
-			membersKey = StructrApp.key(Group.class, "members");
-		}
-
-		for (Principal member : group.getProperty(membersKey)) {
+		for (Principal member : group.getMembers()) {
 
 //			if (User.class.isAssignableFrom(member.getClass())) {
-			if (member instanceof User) {
+			if (member.is(StructrTraits.USER)) {
 
 				uniqueUsers.add((User)member);
 
 			} else if (recurse) {
 
 				if (!seenGroups.contains(member)) {
-					uniqueUsers.addAll(getUniqueUsersForGroup(member, seenGroups, recurse));
+
+					uniqueUsers.addAll(getUniqueUsersForGroup(member.as(Group.class), seenGroups, recurse));
 				}
 			}
 		}
@@ -290,17 +265,9 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	private static boolean shouldReceiveMessage(final StructrEventSource es, final User target) {
 
-		if (sessionIdsPropertyKey == null) {
-			sessionIdsPropertyKey = StructrApp.key(Principal.class, "sessionIds");
-		}
+		final String[] ids = target.getSessionIds();
 
-		final String[] ids = target.getProperty(sessionIdsPropertyKey);
-
-		if (ids != null && Arrays.asList(ids).contains(es.getSessionId())) {
-			return true;
-		}
-
-		return false;
+		return ids != null && Arrays.asList(ids).contains(es.getSessionId());
 	}
 
 	// ---- interface Feature -----

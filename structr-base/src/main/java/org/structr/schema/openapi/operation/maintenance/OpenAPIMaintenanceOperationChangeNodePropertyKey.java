@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,44 +30,43 @@ import java.util.Set;
 
 public class OpenAPIMaintenanceOperationChangeNodePropertyKey extends LinkedHashMap<String, Object> {
 
-    public OpenAPIMaintenanceOperationChangeNodePropertyKey() {
+	public OpenAPIMaintenanceOperationChangeNodePropertyKey() {
 
-        final Map<String, Object> operations = new LinkedHashMap<>();
+		final Map<String, Object> operations = new LinkedHashMap<>();
 
-        put("/maintenance/changeNodePropertyKey", operations);
+		put("/maintenance/changeNodePropertyKey", operations);
 
-        operations.put("post", new OpenAPIOperation(
+		operations.put("post", new OpenAPIOperation(
 
-                // summary
-                "Migrates property values from one property key to another",
+			// summary
+			"Migrates property values from one property key to another",
 
-                // description
-                "This command can for example be used to move all name values to a description property.",
+			// description
+			"This command can for example be used to move all name values to a description property.",
 
-                // operation ID
-                "changeNodePropertyKey",
+			// operation ID
+			"changeNodePropertyKey",
 
-                // tags
-                Set.of("Maintenance commands (admin only)"),
+			// tags
+			Set.of("Maintenance commands (admin only)"),
 
-                // parameters
-                null,
+			// parameters
+			null,
 
-                // request body
-                new OpenAPIRequestResponse(
-                        "Request body",
-			    new OpenAPIObjectSchema(
-                        new OpenAPIPrimitiveSchema("Source key to migrate the value from", "oldKey", "string", null, "surname", false),
-                        new OpenAPIPrimitiveSchema("target key to migrate the value to",   "newKey", "string", null, "lastName", false)
+			// request body
+			new OpenAPIRequestResponse(
+					"Request body",
+                    new OpenAPIObjectSchema(
+                            new OpenAPIPrimitiveSchema("Source key to migrate the value from", "oldKey", "string", null, "surname", false),
+                            new OpenAPIPrimitiveSchema("target key to migrate the value to",   "newKey", "string", null, "lastName", false)
                     )
-                ),
+            ),
 
-                // responses
-                Map.of(
-                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
-                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-                )
-        ));
-
-    }
+			// responses
+			Map.of(
+					"200", new OpenAPISchemaReference("#/components/responses/ok"),
+					"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
+			)
+		));
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,11 @@
  */
 package org.structr.geo;
 
-import org.geotools.geometry.DirectPosition2D;
+import org.geotools.api.geometry.Position;
+import org.geotools.api.referencing.crs.CoordinateReferenceSystem;
+import org.geotools.api.referencing.operation.MathTransform;
+import org.geotools.geometry.Position2D;
 import org.geotools.referencing.CRS;
-import org.opengis.geometry.DirectPosition;
-import org.opengis.referencing.crs.CoordinateReferenceSystem;
-import org.opengis.referencing.operation.MathTransform;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
@@ -30,11 +30,17 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.DoubleProperty;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class UTMToLatLonFunction extends GeoFunction {
 
-	private static final String ERROR_MESSAGE            = "Usage: ${utm_to_lat_lon(utmString)}. Example: ${utm_to_lat_lon('32U 395473 5686479')}";
+	private static final String ERROR_MESSAGE            = "Usage: ${utmToLatLon(utmString)}.";
 	private static final Logger logger                   = LoggerFactory.getLogger(UTMToLatLonFunction.class.getName());
 	private static final String UTMHemisphere            = "SSSSSSSSSSNNNNNNNNNNN";
 	private static final String UTMzdlChars              = "CDEFGHJKLMNPQRSTUVWXX";
@@ -43,12 +49,12 @@ public class UTMToLatLonFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "utm_to_lat_lon";
+		return "utmToLatLon";
 	}
 
 	@Override
-	public String getSignature() {
-		return "utmString";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("utmString");
 	}
 
 	@Override
@@ -112,13 +118,42 @@ public class UTMToLatLonFunction extends GeoFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.javaScript("Usage: ${{ $.utmToLatLon(utmString) }}."),
+				Usage.structrScript("Usage: ${utmToLatLon(utmString)}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Converts the given UTM string to latitude/longitude coordinates.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("""
+						${utmToLatLon('32U 395473 5686479')}
+						> {latitude=53.85499997165232, longitude=8.081674915658844}
+						"""),
+				Example.javaScript("""
+						${{ $.utmToLatLon('32U 395473 5686479') 
+						> {latitude=53.85499997165232, longitude=8.081674915658844}
+						}}""")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("utmString", "UTM location string")
+				);
 	}
 
 	// ----- private methods -----
@@ -192,8 +227,8 @@ public class UTMToLatLonFunction extends GeoFunction {
 			final CoordinateReferenceSystem src = CRS.decode(epsg.toString());
 			final CoordinateReferenceSystem dst = CRS.decode("EPSG:4326");
 			final MathTransform transform       = CRS.findMathTransform(src, dst, true);
-			final DirectPosition sourcePt       = new DirectPosition2D(getDoubleOrNull(east), getDoubleOrNull(north));
-			final DirectPosition targetPt       = transform.transform(sourcePt, null);
+			final Position sourcePt             = new Position2D(getDoubleOrNull(east), getDoubleOrNull(north));
+			final Position targetPt             = transform.transform(sourcePt, null);
 
 			obj.put(latitudeProperty, targetPt.getOrdinate(0));
 			obj.put(longitudeProperty, targetPt.getOrdinate(1));

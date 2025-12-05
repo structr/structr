@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,21 +22,24 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.docs.Language;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class ApplicationStorePutFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT    = "Usage: ${application_store_put(key,value)}. Example: ${application_store_put(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_APPLICATION_STORE_PUT_JS = "Usage: ${{ $.application_store_put(key,value); }}. Example: ${{ $.application_store_put(\"do_not_track\", true); }}";
-
 	@Override
 	public String getName() {
-		return "application_store_put";
+		return "applicationStorePut";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
@@ -61,12 +64,33 @@ public class ApplicationStorePutFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_APPLICATION_STORE_PUT_JS : ERROR_MESSAGE_APPLICATION_STORE_PUT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${applicationStorePut(key,value)}. Example: ${applicationStorePut('doNoTrack', true)}"),
+			Usage.javaScript("Usage: ${{ $.applicationStorePut(key,value); }}. Example: ${{ $.applicationStorePut('doNotTrack', true); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Stores a value in the application level store.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "The application store can be used to store data in-memory as long as the instance is running. You can use it to store primitive data and objects / arrays. Do NOT use the application store to store nodes or relationships since those are transaction-bound and cannot be cached.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("key", "key under which the desired value should be store"),
+			Parameter.mandatory("value", "value to store")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

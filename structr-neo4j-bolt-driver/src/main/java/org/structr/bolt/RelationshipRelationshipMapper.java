@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,6 @@ class RelationshipRelationshipMapper implements Function<org.neo4j.driver.types.
 
 	@Override
 	public Relationship apply(final org.neo4j.driver.types.Relationship t) {
-		return RelationshipWrapper.newInstance(db, t);
+		return db.getCurrentTransaction().getRelationshipWrapper(t);
 	}
 }

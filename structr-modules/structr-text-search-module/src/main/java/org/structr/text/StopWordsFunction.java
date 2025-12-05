@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,24 +21,25 @@ package org.structr.text;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.core.app.StructrApp;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
-public class StopWordsFunction extends Function<Object, Object> {
+import java.util.List;
+import java.util.Set;
 
-	public static final String ERROR_MESSAGE    = "Usage: ${stop_words(language)}. Example: ${stop_words(\"de\")}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{Structr.stopWords(language)}}. Example: ${{Structr.stopWords(\"de\")}}";
+public class StopWordsFunction extends Function<Object, Object> {
 
 	@Override
 	public String getName() {
-		return "stop_words";
+		return "stopWords";
 	}
 
 	@Override
-	public String getSignature() {
-		return "language";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("language");
 	}
 
 	@Override
@@ -48,13 +49,13 @@ public class StopWordsFunction extends Function<Object, Object> {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			final ContentAnalyzer contentAnalyzer = StructrApp.getInstance(ctx.getSecurityContext()).getContentAnalyzer();
-			if (contentAnalyzer != null) {
+			final TextSearchModule module = (TextSearchModule)StructrApp.getConfiguration().getModules().get("text-search");
+			if (module != null) {
 
-				return contentAnalyzer.getStopWords(sources[0].toString());
+				return module.getStopWords(sources[0].toString());
 			}
 
-			return "";
+			return Set.of();
 
 		} catch (ArgumentNullException pe) {
 
@@ -69,13 +70,21 @@ public class StopWordsFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${stopWords(language)}. Example: ${stopWords(\"de\")}"),
+			Usage.javaScript("Usage: ${{Structr.stopWords(language)}}. Example: ${{Structr.stopWords(\"de\")}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns a list of words (for the given language) which can be ignored for NLP purposes";
+	public String getShortDescription() {
+		return "Returns a list of words (for the given language) which can be ignored for NLP purposes.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,38 @@
  */
 package org.structr.autocomplete;
 
-public class KeywordHint extends AbstractHint {
+import org.structr.docs.*;
 
-	public KeywordHint(final String name, final String documentation, final String replacement) {
+import java.util.List;
 
-		this.name          = name;
-		this.documentation = documentation;
-		this.replacement   = replacement;
-	}
+public abstract class KeywordHint extends AbstractHint {
 
-	public void setReplacement(final String replacement) {
-		this.replacement = replacement;
-	}
-
-	public boolean hasComplexReplacement() {
-		return !getName().equals(getReplacement());
+	@Override
+	public final DocumentableType getDocumentableType() {
+		return DocumentableType.Keyword;
 	}
 
 	@Override
-	public String getName() {
-		return name;
+	public List<Parameter> getParameters() {
+		// keywords have no parameters
+		return null;
 	}
 
 	@Override
-	public String getType() {
-		return "Keyword";
+	public List<Signature> getSignatures() {
+		// keywords have no signature
+		return null;
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		// keywords have no usages
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		// keywords are valid for all languages
+		return Language.scriptingLanguages();
 	}
 }

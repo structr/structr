@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,11 +26,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.web.common.FileHelper;
-import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
@@ -51,22 +54,32 @@ public abstract class FtpTest extends StructrFileTestBase {
 	protected User ftpUser;
 
 	protected User createFTPUser(final String username, final String password) throws FrameworkException {
-		PropertyMap props = new PropertyMap();
-		props.put(StructrApp.key(Principal.class, "name"), username);
-		props.put(StructrApp.key(Principal.class, "password"), password);
-		return (User) createTestNodes(User.class, 1, props).get(0);
+
+		final PropertyMap props = new PropertyMap();
+		final Traits traits     = Traits.of(StructrTraits.USER);
+
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), username);
+		props.put(traits.key(PrincipalTraitDefinition.PASSWORD_PROPERTY), password);
+
+		return createTestNodes(StructrTraits.USER, 1, props).get(0).as(User.class);
 	}
 
 	protected Folder createFTPDirectory(final String path, final String name) throws FrameworkException {
-		PropertyMap props = new PropertyMap();
-		props.put(Folder.name, name);
-		props.put(Folder.owner, ftpUser);
-		Folder dir = (Folder) createTestNodes(Folder.class, 1, props).get(0);
+
+		final PropertyMap props = new PropertyMap();
+		final Traits traits     = Traits.of(StructrTraits.FOLDER);
+
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+		props.put(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), ftpUser);
+
+		Folder dir = createTestNodes(StructrTraits.FOLDER, 1, props).get(0).as(Folder.class);
 
 		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(securityContext, path);
-			if (parent != null && parent instanceof Folder) {
-				Folder parentFolder = (Folder) parent;
+
+			NodeInterface parent = FileHelper.getFileByAbsolutePath(securityContext, path);
+			if (parent != null && parent.is(StructrTraits.FOLDER)) {
+
+				Folder parentFolder = parent.as(Folder.class);
 				dir.setParent(parentFolder);
 			}
 		}
@@ -77,16 +90,22 @@ public abstract class FtpTest extends StructrFileTestBase {
 	}
 
 	protected File createFTPFile(final String path, final String name) throws FrameworkException {
-		PropertyMap props = new PropertyMap();
-		props.put(StructrApp.key(File.class, "name"), name);
-		props.put(StructrApp.key(File.class, "size"), 0L);
-		props.put(StructrApp.key(File.class, "owner"), ftpUser);
-		File file = (File) createTestNodes(File.class, 1, props).get(0);
+
+		final PropertyMap props = new PropertyMap();
+		final Traits traits     = Traits.of(StructrTraits.FILE);
+
+		props.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name);
+		props.put(traits.key("size"), 0L);
+		props.put(traits.key(NodeInterfaceTraitDefinition.OWNER_PROPERTY), ftpUser);
+
+		File file = createTestNodes(StructrTraits.FILE, 1, props).get(0).as(File.class);
 
 		if (StringUtils.isNotBlank(path)) {
-			AbstractFile parent = FileHelper.getFileByAbsolutePath(securityContext, path);
-			if (parent != null && parent instanceof Folder) {
-				Folder parentFolder = (Folder) parent;
+
+			NodeInterface parent = FileHelper.getFileByAbsolutePath(securityContext, path);
+			if (parent != null && parent.is(StructrTraits.FOLDER)) {
+
+				Folder parentFolder = parent.as(Folder.class);
 				file.setParent(parentFolder);
 			}
 		}

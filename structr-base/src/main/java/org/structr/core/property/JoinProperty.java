@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,14 +55,14 @@ public class JoinProperty extends StringProperty {
 	}
 
 	@Override
-	public String getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate){
+	public String getProperty(final SecurityContext securityContext, final GraphObject obj, final boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		final ArrayList<Object> arguments = new ArrayList<>();
 
 		for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
 
 			final PropertyKey key                  = it.next();
-			final PropertyConverter inputConverter = key.inputConverter(securityContext);
+			final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 
 			if (inputConverter != null) {
 
@@ -113,7 +113,7 @@ public class JoinProperty extends StringProperty {
 		for (int i=0; i<len; i++) {
 
 			final PropertyKey key                  = keys.get(i);
-			final PropertyConverter inputConverter = key.inputConverter(securityContext);
+			final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 
 			if (inputConverter != null) {
 

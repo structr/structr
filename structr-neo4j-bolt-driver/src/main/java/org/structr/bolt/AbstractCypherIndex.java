@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -31,7 +31,7 @@ import java.util.*;
 /**
  *
  */
-abstract class AbstractCypherIndex<T extends PropertyContainer> extends AbstractIndex<AdvancedCypherQuery, T> {
+abstract class AbstractCypherIndex<T extends PropertyContainer> extends AbstractIndex<CypherQuery, T> {
 
 	public static final Set<Class> INDEXABLE = new HashSet<>(Arrays.asList(new Class[] {
 		String.class,   Boolean.class,   Short.class,   Integer.class,   Long.class,   Character.class,   Float.class,   Double.class,   byte.class,
@@ -42,8 +42,9 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	private final Map<Class, QueryFactory> factories   = new HashMap<>();
 	protected BoltDatabaseService db                   = null;
 
-	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts);
+	public abstract String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query);
 	public abstract String getQuerySuffix(final AdvancedCypherQuery query);
+	public abstract Map<T, Double> fulltextQuery(final String indexName, final String searchString);
 
 	public AbstractCypherIndex(final BoltDatabaseService db) {
 
@@ -81,7 +82,6 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	private void init() {
 
 		factories.put(NotEmptyQuery.class,     new NotEmptyQueryFactory(this));
-		factories.put(FulltextQuery.class,     new KeywordQueryFactory(this));
 		factories.put(SpatialQuery.class,      new SpatialQueryFactory(this));
 		factories.put(GraphQuery.class,        new GraphQueryFactory(this));
 		factories.put(GroupQuery.class,        new GroupQueryFactory(this));

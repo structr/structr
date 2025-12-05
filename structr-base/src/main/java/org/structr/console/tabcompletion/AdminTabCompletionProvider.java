@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,12 +20,10 @@ package org.structr.console.tabcompletion;
 
 import org.structr.common.SecurityContext;
 import org.structr.console.shell.AdminConsoleCommand;
-import org.structr.core.app.StructrApp;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
 /**
  *
@@ -51,9 +49,5 @@ public class AdminTabCompletionProvider extends AbstractTabCompletionProvider {
 		Collections.sort(results);
 
 		return results;
-	}
-
-	private Set<String> getNodeTypes() {
-		return StructrApp.getConfiguration().getNodeEntities().keySet();
 	}
 }

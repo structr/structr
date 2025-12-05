@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,24 +19,26 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 /**
  *
  */
 public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS    = "Usage: ${disable_prevent_duplicate_relationships()}";
-	public static final String ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS_JS = "Usage: ${Structr.disablePreventDuplicateRelationships()}";
-
 	@Override
 	public String getName() {
-		return "disable_prevent_duplicate_relationships";
+		return "disablePreventDuplicateRelationships";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		// empty signature, no parameters
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -48,13 +50,28 @@ public class DisablePreventDuplicateRelationshipsFunction extends AdvancedScript
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS_JS : ERROR_MESSAGE_DISABLE_PREVENT_DUPLICATE_RELATIONSHIPS);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${disablePreventDuplicateRelationships()}"),
+			Usage.javaScript("Usage: ${Structr.disablePreventDuplicateRelationships()}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Disables prevention of duplicate relationships in many-to-many rels in the Structr Backend for the current transaction - USE AT YOUR OWN RISK!";
+	public List<String> getNotes() {
+		return List.of(
+			"USE AT YOUR OWN RISK!"
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Disables the check that prevents the creation of duplicate relationships in the Structr Backend for the current transaction.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -63,7 +63,7 @@ public class FileCleanupVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.warn("Exception while running cleanup at {}: {}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while running cleanup at {}: {}", file.toString(), exc.getMessage());
 		return FileVisitResult.CONTINUE;
 	}
 

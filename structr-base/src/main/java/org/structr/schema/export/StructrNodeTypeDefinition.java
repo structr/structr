@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,9 +25,14 @@ import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.SchemaNodeTraitDefinition;
 
 import java.net.URI;
 import java.util.Map;
@@ -52,10 +57,10 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	@Override
 	public JsonReferenceType relate(URI externalTypeReference) {
 
-		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
+		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			return relate(externalTypeReference, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type.getSimpleName()));
+			return relate(externalTypeReference, SchemaRelationshipNode.getDefaultRelationshipType(getName(), type));
 		}
 
 		throw new IllegalStateException("External reference " + externalTypeReference + " not found.");
@@ -83,11 +88,11 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	@Override
 	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality) {
 
-		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
+		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			final String sourcePropertyName = getPropertyName(type.getSimpleName(), false,  relationship, cardinality);
-			final String targetPropertyName = getPropertyName(type.getSimpleName(), true, relationship, cardinality);
+			final String sourcePropertyName = getPropertyName(type, false, relationship, cardinality);
+			final String targetPropertyName = getPropertyName(type, true,  relationship, cardinality);
 
 			return relate(externalTypeReference, relationship, cardinality, sourcePropertyName, targetPropertyName);
 		}
@@ -117,10 +122,10 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	@Override
 	public JsonReferenceType relate(URI externalTypeReference, String relationship, Cardinality cardinality, String sourceAttributeName, String targetAttributeName) {
 
-		final Class type = StructrApp.resolveSchemaId(externalTypeReference);
+		final String type = StructrApp.resolveSchemaId(externalTypeReference);
 		if (type != null) {
 
-			final String relationshipTypeName           = getName() + relationship + type.getSimpleName();
+			final String relationshipTypeName           = getName() + relationship + type;
 			final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, relationshipTypeName);
 
 			// initialize
@@ -138,6 +143,25 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		}
 
 		throw new IllegalStateException("External reference " + externalTypeReference + " not found.");
+	}
+
+	@Override
+	public JsonReferenceType relate(final Class type, String relationship, Cardinality cardinality, String sourceAttributeName, String targetAttributeName) {
+
+		final String relationshipTypeName           = getName() + relationship + type.getSimpleName();
+		final StructrRelationshipTypeDefinition def = new StructrRelationshipTypeDefinition(root, relationshipTypeName);
+
+		// initialize
+		def.setSourcePropertyName(sourceAttributeName);
+		def.setTargetPropertyName(targetAttributeName);
+		def.setRelationship(relationship);
+		def.setCardinality(cardinality);
+		def.setSourceType(getId());
+		def.setTargetType(StructrApp.getSchemaBaseURI().resolve(getStaticTypeReference(type)));
+
+		root.addType(def);
+
+		return def;
 	}
 
 	@Override
@@ -191,12 +215,37 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 
 	// ----- package methods -----
 	@Override
-	void deserialize(final Map<String, Object> source) {
-		super.deserialize(source);
+	void deserialize(final Map<String, SchemaNode> schemaNodes, final SchemaNode schemaNode) {
+
+		super.deserialize(schemaNodes, schemaNode);
+
+		// moved from abstract schema node
+		this.isInterface                 = schemaNode.isInterface();
+		this.isAbstract                  = schemaNode.isAbstract();
+		this.includeInOpenAPI            = schemaNode.includeInOpenAPI();
+		this.visibleToPublicUsers        = schemaNode.defaultVisibleToPublic();
+		this.visibleToAuthenticatedUsers = schemaNode.defaultVisibleToAuth();
+		this.category                    = schemaNode.getCategory();
+
+		// $extends
+		final Set<String> inheritedTraits = schemaNode.getInheritedTraits();
+		if (inheritedTraits != null) {
+
+			this.inheritedTraits.addAll(inheritedTraits);
+		}
+
+		for (final SchemaGrant grant : schemaNode.getSchemaGrants()) {
+
+			final StructrGrantDefinition newGrant = StructrGrantDefinition.deserialize(this, grant);
+			if (newGrant != null) {
+
+				grants.add(newGrant);
+			}
+		}
 	}
 
 	@Override
-	SchemaNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final PropertyMap createProperties) throws FrameworkException {
+	SchemaNode createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException {
 
 		// re-use existing schema nodes here!
 		final SchemaNode existingNode = schemaNodes.get(name);
@@ -205,9 +254,12 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 			return existingNode;
 		}
 
-		createProperties.put(SchemaNode.name, name);
+		final Traits traits = Traits.of(StructrTraits.SCHEMA_NODE);
 
-		final SchemaNode newNode = app.create(SchemaNode.class, createProperties);
+		createProperties.put(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY),            name);
+		createProperties.put(traits.key(SchemaNodeTraitDefinition.INHERITED_TRAITS_PROPERTY), inheritedTraits.toArray(new String[0]));
+
+		final SchemaNode newNode = app.create(StructrTraits.SCHEMA_NODE, createProperties).as(SchemaNode.class);
 
 		schemaNodes.put(name, newNode);
 
@@ -217,8 +269,7 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 	// ----- private methods -----
 	private String getPropertyName(final String targetTypeName, final boolean outgoing, final String relationshipTypeName, final Cardinality cardinality) {
 
-		final String sourceTypeName   = getName();
-		final String relatedClassName = outgoing ? targetTypeName : sourceTypeName;
+		final String sourceTypeName = getName();
 
 		String _sourceMultiplicity = null;
 		String _targetMultiplicity = null;
@@ -246,6 +297,6 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 				break;
 		}
 
-		return SchemaRelationshipNode.getPropertyName(relatedClassName, root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
+		return SchemaRelationshipNode.getPropertyName(root.getExistingPropertyNames(), outgoing, relationshipTypeName, sourceTypeName, targetTypeName, null, _targetMultiplicity, null, _sourceMultiplicity);
 	}
 }

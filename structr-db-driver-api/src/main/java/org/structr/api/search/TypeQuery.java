@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,6 @@ package org.structr.api.search;
 
 public interface TypeQuery extends QueryPredicate {
 
-	Class getSourceType();
-	Class getTargetType();
+	String getSourceType();
+	String getTargetType();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -42,61 +42,7 @@ import java.util.Map;
 /**
  * This class can handle Schema JSON documents
  */
-public class SchemaJsonImporter extends NodeServiceCommand implements MaintenanceCommand {
-
-	private static final Logger logger = LoggerFactory.getLogger(SchemaJsonImporter.class.getName());
-
-	@Override
-	public void execute(Map<String, Object> attributes) throws FrameworkException {
-
-		final String fileName = (String)attributes.get("file");
-		final String source   = (String)attributes.get("source");
-		final String url      = (String)attributes.get("url");
-
-		if (fileName == null && source == null && url == null) {
-			throw new FrameworkException(422, "Please supply file, url or source parameter.");
-		}
-
-		if (fileName != null && source != null) {
-			throw new FrameworkException(422, "Please supply only one of file, url or source.");
-		}
-
-		if (fileName != null && url != null) {
-			throw new FrameworkException(422, "Please supply only one of file, url or source.");
-		}
-
-		if (url != null && source != null) {
-			throw new FrameworkException(422, "Please supply only one of file, url or source.");
-		}
-
-		try {
-
-			if (fileName != null) {
-
-				try (final InputStream is = new FileInputStream(fileName)) {
-
-
-					SchemaJsonImporter.importSchemaJson(StreamUtils.readAllLines(is));
-				}
-
-			} else if (url != null) {
-
-				try (final InputStream is = new URL(url).openStream()) {
-
-					SchemaJsonImporter.importSchemaJson(StreamUtils.readAllLines(is));
-				}
-
-			} else if (source != null) {
-
-				SchemaJsonImporter.importSchemaJson(source);
-			}
-
-		} catch (IOException ioex) {
-			//iologger.warn("", ex);
-			logger.debug("Filename: " + fileName + ", URL: " + url + ", source: " + source, ioex);
-		}
-	}
-
+public class SchemaJsonImporter {
 
 	public static void importSchemaJson(final String source) throws FrameworkException {
 
@@ -123,15 +69,5 @@ public class SchemaJsonImporter extends NodeServiceCommand implements Maintenanc
 
 			tx.success();
 		}
-	}
-
-	@Override
-	public boolean requiresEnclosingTransaction() {
-		return false;
-	}
-
-	@Override
-	public boolean requiresFlushingOfCaches() {
-		return false;
 	}
 }

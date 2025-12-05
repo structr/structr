@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,13 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class QuotFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_QUOT = "Usage: ${quot(value1, value2)}. Example: ${quot(5, 2)}";
 
 	@Override
 	public String getName() {
@@ -33,8 +35,8 @@ public class QuotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
 	@Override
@@ -50,7 +52,7 @@ public class QuotFunction extends CoreFunction {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 				return nfe.getMessage();
 			}
 
@@ -64,7 +66,7 @@ public class QuotFunction extends CoreFunction {
 
 				} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 					return nfe.getMessage();
 				}
 			}
@@ -79,12 +81,43 @@ public class QuotFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_QUOT;
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${quot(value1, value2)}."),
+				Usage.javaScript("Usage: ${{ $.quot(value1, value2) }}.")
+
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Divides the first argument by the second argument";
+	public String getShortDescription() {
+		return "Divides the first argument by the second argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Returns the quotient of value1 and value2. This method tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${quot(10, 2)}"),
+				Example.javaScript("${{ $.quot(10, 2) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("value1", "Numerical value. Can be also given as string"),
+				Parameter.mandatory("value2", "Numerical value. Can be also given as string")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

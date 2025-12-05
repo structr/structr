@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,14 @@ package org.structr.core.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,16 +35,14 @@ import java.util.Map;
  */
 public class EmptyFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_EMPTY = "Usage: ${empty(string|array|collection)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}";
-
 	@Override
 	public String getName() {
 		return "empty";
 	}
 
 	@Override
-	public String getSignature() {
-		return "value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value");
 	}
 
 	@Override
@@ -79,13 +82,45 @@ public class EmptyFunction extends CoreFunction {
 
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_EMPTY;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.empty(string|array|collection)}}. Example: ${{if($.empty(possibleEmptyString), \"empty\", \"non-empty\")}}"),
+			Usage.structrScript("Usage: ${empty(string|array|collection)}. Example: ${if(empty(possibleEmptyString), \"empty\", \"non-empty\")}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the given value is null or empty";
+	public String getShortDescription() {
+		return "Returns a boolean value that indicates whether the given object is null or empty.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return """
+		This function works for all sorts of objects: strings, collections, variables, etc., with different semantics depending on the input object.
+		
+		| Input Type | Behaviour |
+		| --- | --- |
+		| string | Returns `true` if the string is non-null and not empty. A string with length > 0 is non-empty, even if it contains only whitespace. |
+		| collection | Returns `true` if the collection is non-null and contains at least one object (even if the object itself might be null). |
+		| variable | Returns `true` if the variable is neither null nor undefined nor the empty string. |
+		
+		This function is the go-to replacement for more complex checks in both JavaScript and StructrScript for null references, undefined variables, empty strings etc., since you can simply use `!$.empty(..)` on all objects.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return super.getParameters();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${empty('')}", "Returns `true`"),
+			Example.structrScript("${empty('test')}", "Returns `false`"),
+			Example.structrScript("${empty(find('Project'))}", "Returns `false` if there are Project entites in the database"),
+			Example.structrScript("${empty(find('NonExistentType'))}", "WARNING: the call in this example returns `false`  because the error message returned by the `find()` call is non-empty.")
+		);
+	}
 }

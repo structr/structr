@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,48 +21,54 @@ package org.structr.web.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
-import org.structr.rest.logging.entity.LogEvent;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.rest.traits.definitions.LogEventTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 public class LogEventFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_LOG_EVENT    = "Usage: ${log_event(action, message [, subject [, object ]] )}. Example: ${log_event('read', 'Book has been read')}";
-	public static final String ERROR_MESSAGE_LOG_EVENT_JS = "Usage: ${{Structr.logEvent(action, message [, subject [, object ]] )}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}";
-
 	@Override
 	public String getName() {
-		return "log_event";
+		return "logEvent";
 	}
 
 	@Override
-	public String getSignature() {
-		return "action, message [, subject [, object ]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("action, message [, subject [, object ]]");
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		if (sources.length == 1 && sources[0] instanceof Map) {
+		final Traits traits  = Traits.of(StructrTraits.LOG_EVENT);
+
+		if (sources.length == 1 && sources[0] instanceof Map map) {
 
 			// support javascript objects here
-			final Map map = (Map)sources[0];
 
-			final String action  = DOMNode.objectToString(map.get("action"));
-			final String message = DOMNode.objectToString(map.get("message"));
-			final String subject = DOMNode.objectToString(map.get("subject"));
-			final String object  = DOMNode.objectToString(map.get("object"));
+			final String action  = DOMNode.objectToString(map.get(LogEventTraitDefinition.ACTION_PROPERTY));
+			final String message = DOMNode.objectToString(map.get(LogEventTraitDefinition.MESSAGE_PROPERTY));
+			final String subject = DOMNode.objectToString(map.get(LogEventTraitDefinition.SUBJECT_PROPERTY));
+			final String object  = DOMNode.objectToString(map.get(LogEventTraitDefinition.OBJECT_PROPERTY));
 
-			return StructrApp.getInstance().create(LogEvent.class,
-				new NodeAttribute(LogEvent.actionProperty, action),
-				new NodeAttribute(LogEvent.messageProperty, message),
-				new NodeAttribute(LogEvent.timestampProperty, new Date()),
-				new NodeAttribute(LogEvent.subjectProperty, subject),
-				new NodeAttribute(LogEvent.objectProperty, object)
+			return StructrApp.getInstance().create(StructrTraits.LOG_EVENT,
+				new NodeAttribute(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), action),
+				new NodeAttribute(traits.key(LogEventTraitDefinition.MESSAGE_PROPERTY), message),
+				new NodeAttribute(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date()),
+				new NodeAttribute(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY), subject),
+				new NodeAttribute(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), object)
 			);
 
 		} else {
@@ -74,22 +80,22 @@ public class LogEventFunction extends UiAdvancedFunction {
 				final String action = sources[0].toString();
 				final String message = sources[1].toString();
 
-				final LogEvent logEvent = StructrApp.getInstance().create(LogEvent.class,
-					new NodeAttribute(LogEvent.actionProperty, action),
-					new NodeAttribute(LogEvent.messageProperty, message),
-					new NodeAttribute(LogEvent.timestampProperty, new Date())
+				final NodeInterface logEvent = StructrApp.getInstance().create(StructrTraits.LOG_EVENT,
+					new NodeAttribute(traits.key(LogEventTraitDefinition.ACTION_PROPERTY), action),
+					new NodeAttribute(traits.key(LogEventTraitDefinition.MESSAGE_PROPERTY), message),
+					new NodeAttribute(traits.key(LogEventTraitDefinition.TIMESTAMP_PROPERTY), new Date())
 				);
 
 				switch (sources.length) {
 
 					case 4:
 						final String object = sources[3].toString();
-						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(LogEvent.objectProperty, object));
+						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(traits.key(LogEventTraitDefinition.OBJECT_PROPERTY), object));
 						// no break, next case should be included
 
 					case 3:
 						final String subject = sources[2].toString();
-						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(LogEvent.subjectProperty, subject));
+						logEvent.setProperties(logEvent.getSecurityContext(), new PropertyMap(traits.key(LogEventTraitDefinition.SUBJECT_PROPERTY), subject));
 						break;
 				}
 
@@ -104,12 +110,56 @@ public class LogEventFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_LOG_EVENT_JS : ERROR_MESSAGE_LOG_EVENT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${logEvent(action, message [, subject [, object ]] )}. Example: ${logEvent('read', 'Book has been read')}"),
+			Usage.javaScript("Usage: ${{Structr.logEvent(action, message [, subject [, object ]] )}}. Example: ${{Structr.logEvent('read', 'Book has been read')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Logs an event to the Structr log";
+	public String getShortDescription() {
+		return "Logs an event to the Structr log.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		This function creates an entity of type `LogEvent` with the current timestamp and the given values. All four parameters (`action`, `message`, `subject` and `object`) can be arbitrary strings.
+
+		In JavaScript, the function can be called with a single map as parameter.
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("action", "action to log (the verb)"),
+			Parameter.mandatory("message", "message to log"),
+			Parameter.optional("subject", "subject of the event (who did it?)"),
+			Parameter.optional("object", "object of the event (on which object was the action done?)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${logEvent('VIEW', me.id)}", "Log a simple \"VIEW\" event"),
+			Example.javaScript("""
+			${{
+			    $.logEvent({
+				action: "VIEW",
+				message: Structr.me.id
+			    });
+			}}
+			""", "Log a simple \"VIEW\" event")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return super.getNotes();
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,16 +22,15 @@ import org.structr.common.error.FrameworkException;
 
 public interface MQTTInfo {
 
-	public String getMainBrokerURL();
-	public String[] getFallbackBrokerURLs();
-	public int getQos();
-	public String getUuid();
-	public String getUsername();
-	public String getPassword();
-	boolean getIsEnabled();
+	String getMainBrokerURL();
+	String[] getFallbackBrokerURLs();
+	int getQos();
+	String getUuid();
+	String getUsername();
+	String getPassword();
 
-	public String[] getTopics();
+	String[] getTopics();
 
-	public void messageCallback(String topic, String message) throws FrameworkException;
-	public void connectionStatusCallback(boolean connected);
+	void messageCallback(String topic, String message) throws FrameworkException;
+	void connectionStatusCallback(boolean connected);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -88,7 +88,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 					}
 				}
 
-				return Iterables.map(i -> masterData.get(i), cache);
+				return Iterables.filter(r -> r != null, Iterables.map(i -> masterData.get(i), cache));
 			}
 
 			if (filter instanceof SourceNodeFilter) {
@@ -99,7 +99,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 				final Set<MemoryIdentity> set = getCacheForSource(id, false);
 				if (set != null) {
 
-					return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set));
+					return Iterables.filter(r -> r != null, Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set)));
 				}
 
 				return Collections.EMPTY_LIST;
@@ -113,7 +113,7 @@ public class MemoryRelationshipRepository extends EntityRepository {
 				final Set<MemoryIdentity> set = getCacheForTarget(id, false);
 				if (set != null) {
 
-					return Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set));
+					return Iterables.filter(r -> r != null, Iterables.map(i -> masterData.get(i), new LinkedHashSet<>(set)));
 				}
 
 				return Collections.EMPTY_LIST;

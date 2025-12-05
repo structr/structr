@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,13 +43,9 @@ public class GraphQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 
 		if (values.isEmpty() || onlyEmptyValues(values)) {
 
-			checkOccur(query, predicate.getOccurrence(), isFirst);
-
 			query.addPredicate(new NoRelationshipPredicate<>(predicate.getName(), graphQuery));
 
 		} else {
-
-			checkOccur(query, predicate.getOccurrence(), isFirst);
 
 			query.addPredicate(new GraphPredicate(graphQuery));
 		}

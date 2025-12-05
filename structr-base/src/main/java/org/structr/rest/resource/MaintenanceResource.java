@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,29 +19,40 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.search.SortOrder;
+import org.structr.api.service.Command;
+import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
+import org.structr.docs.Documentable;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotAllowedException;
-import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.exception.SystemException;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.rest.exception.*;
+import org.structr.rest.maintenance.DeleteSpatialIndexCommand;
+import org.structr.rest.maintenance.UpdateLicenseKeyCommand;
+import org.structr.schema.export.StructrSchema;
+import org.structr.schema.importer.SchemaAnalyzer;
+import org.structr.util.StructrLicenseManager;
+import org.structr.web.maintenance.*;
 
-import java.util.Collections;
-import java.util.Map;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
+import java.util.*;
 
 /**
  * A resource constraint that allows to execute maintenance tasks via
@@ -49,172 +60,299 @@ import java.util.Map;
  *
  *
  */
-public class MaintenanceResource extends Resource {
+public class MaintenanceResource extends ExactMatchEndpoint {
 
-	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class);
 
-	private String taskOrCommandName = null;
-	private Class taskOrCommand      = null;
+	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
 
-	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	static {
 
-		this.securityContext = securityContext;
+		maintenanceCommandMap.put("analyzeSchema",              SchemaAnalyzer.class);
+		maintenanceCommandMap.put("changeNodePropertyKey",      BulkChangeNodePropertyKeyCommand.class);
+		maintenanceCommandMap.put("clearDatabase",              ClearDatabase.class);
+		maintenanceCommandMap.put("copyRelationshipProperties", BulkCopyRelationshipPropertyCommand.class);
+		maintenanceCommandMap.put("createLabels",               BulkCreateLabelsCommand.class);
+		maintenanceCommandMap.put("createLicense",              StructrLicenseManager.CreateLicenseCommand.class);
+		maintenanceCommandMap.put("deleteSpatialIndex",         DeleteSpatialIndexCommand.class);
+		maintenanceCommandMap.put("deployData",                 DeployDataCommand.class);
+		maintenanceCommandMap.put("deploy",                     DeployCommand.class);
+		maintenanceCommandMap.put("directFileImport",           DirectFileImportCommand.class);
+		maintenanceCommandMap.put("fixNodeProperties",          BulkFixNodePropertiesCommand.class);
+		maintenanceCommandMap.put("flushCaches",                FlushCachesCommand.class);
+		maintenanceCommandMap.put("letsencrypt",                RetrieveCertificateCommand.class);
+		maintenanceCommandMap.put("maintenanceMode",            MaintenanceModeCommand.class);
+		maintenanceCommandMap.put("manageDatabases",            ManageDatabasesCommand.class);
+		maintenanceCommandMap.put("manageThreads",              ManageThreadsCommand.class);
+		maintenanceCommandMap.put("migrateChangelog",           BulkMigrateChangelogCommand.class);
+		maintenanceCommandMap.put("rebuildIndex",               BulkRebuildIndexCommand.class);
+		maintenanceCommandMap.put("setNodeProperties",          BulkSetNodePropertiesCommand.class);
+		maintenanceCommandMap.put("setRelationshipProperties",  BulkSetRelationshipPropertiesCommand.class);
+		maintenanceCommandMap.put("setUuid",                    BulkSetUuidCommand.class);
+		maintenanceCommandMap.put("sync",                       SyncCommand.class);
+		maintenanceCommandMap.put("updateLicense",              StructrLicenseManager.UpdateLicenseCommand.class);
+		maintenanceCommandMap.put("updatelicensekey",           UpdateLicenseKeyCommand.class);
+	}
 
-		return ("maintenance".equals(part));
+	public MaintenanceResource() {
+
+		super(
+			RESTParameter.forStaticString("maintenance", true),
+			RESTParameter.forPattern("name", "[a-zA-Z_]+", true)
+		);
+	}
+
+	public static List<Documentable> getMaintenanceCommands() {
+
+		final List<Documentable> maintenanceCommands = new LinkedList<>();
+		final SecurityContext securityContext        = SecurityContext.getSuperUserInstance();
+		final Services services                      = Services.getInstance();
+
+		for (final Class commandType : maintenanceCommandMap.values()) {
+
+			final Command command = services.command(securityContext, commandType);
+			if (command instanceof Documentable documentable) {
+
+				maintenanceCommands.add(documentable);
+			}
+		}
+
+		return maintenanceCommands;
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+
+		final String typeName = call.get("name");
+		if (typeName != null) {
+
+			if ("_schemaJson".equals(typeName)) {
+
+				// handle schema json
+				return new SchemaJsonResourceHandler(call);
+			}
+
+			if (maintenanceCommandMap.containsKey(typeName)) {
+
+				// handle maintenance command
+				return new MaintenanceResourceHandler(call, typeName, maintenanceCommandMap.get(typeName));
+			}
+
+		}
+
+		return null;
 	}
 
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
+	public static void registerMaintenanceTask(final String key, final Class<? extends Task> task) {
+
+		if(maintenanceCommandMap.containsKey(key)) {
+			throw new IllegalStateException("Maintenance command for key " + key + " already registered!");
+		}
+
+		maintenanceCommandMap.put(key, task);
 	}
 
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public static Class getMaintenanceCommandClass(final String key) {
+		return maintenanceCommandMap.get(key);
+	}
 
-		if ((securityContext != null) && isSuperUser()) {
+	private class MaintenanceResourceHandler extends RESTCallHandler {
 
-			if (this.taskOrCommand != null) {
+		private String taskOrCommandName = null;
+		private Class taskOrCommand      = null;
 
-				RuntimeEventLog.maintenance(taskOrCommand.getSimpleName(), propertySet);
+		public MaintenanceResourceHandler(final RESTCall call, final String taskOrCommandName, final Class taskOrCommand) {
 
-				try {
+			super(call);
 
-					final App app = StructrApp.getInstance(securityContext);
+			this.taskOrCommandName = taskOrCommandName;
+			this.taskOrCommand     = taskOrCommand;
+		}
 
-					if (Task.class.isAssignableFrom(taskOrCommand)) {
+		@Override
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+			throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+		}
 
-						final Task task = (Task) taskOrCommand.newInstance();
+		@Override
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("PUT not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+		}
 
-						app.processTasks(task);
+		@Override
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+			throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+		}
 
-					} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
+		@Override
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-						final MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
+			if (securityContext != null && isSuperUser(securityContext)) {
 
-						// flush caches if required
-						if (cmd.requiresFlushingOfCaches()) {
+				if (this.taskOrCommand != null) {
 
-							app.command(FlushCachesCommand.class).execute(Collections.EMPTY_MAP);
-						}
+					RuntimeEventLog.maintenance(taskOrCommand.getSimpleName(), propertySet);
 
-						// create enclosing transaction if required
-						if (cmd.requiresEnclosingTransaction()) {
+					try {
 
-							try (final Tx tx = app.tx()) {
+						final App app = StructrApp.getInstance(securityContext);
 
-								cmd.execute(propertySet);
-								tx.success();
+						if (Task.class.isAssignableFrom(taskOrCommand)) {
+
+							final Task task = (Task) taskOrCommand.getDeclaredConstructor().newInstance();
+
+							app.processTasks(task);
+
+						} else if (MaintenanceCommand.class.isAssignableFrom(taskOrCommand)) {
+
+							final MaintenanceCommand cmd = (MaintenanceCommand)StructrApp.getInstance(securityContext).command(taskOrCommand);
+
+							// flush caches if required
+							if (cmd.requiresFlushingOfCaches()) {
+
+								logger.info("Flushing caches before maintenance command.");
+
+								app.command(FlushCachesCommand.class).execute(Collections.EMPTY_MAP);
 							}
 
-						} else {
+							// create enclosing transaction if required
+							if (cmd.requiresEnclosingTransaction()) {
 
-							cmd.execute(propertySet);
+								try (final Tx tx = app.tx()) {
+
+									cmd.execute(propertySet);
+									tx.success();
+								}
+
+							} else {
+
+								cmd.execute(propertySet);
+							}
+
+							final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
+
+							result.setNonGraphObjectResult(cmd.getCommandResult());
+							cmd.getCustomHeaders().forEach(result::addHeader);
+							cmd.getCustomHeaders().clear();
+
+							return result;
+
+						} else {
+							return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
 						}
 
-						final RestMethodResult result = new RestMethodResult(cmd.getCommandStatusCode());
+						// return 200 OK
+						return new RestMethodResult(HttpServletResponse.SC_OK);
 
-						result.setNonGraphObjectResult(cmd.getCommandResult());
-						cmd.getCustomHeaders().forEach(result::addHeader);
-						cmd.getCustomHeaders().clear();
+					} catch (NoSuchMethodException|InvocationTargetException|InstantiationException|IllegalAccessException ex) {
+						throw new SystemException(ex.getMessage());
+					}
 
-						return result;
+				} else {
+
+					if (taskOrCommandName != null) {
+
+						throw new NotFoundException("No such task or command: " + this.taskOrCommandName);
 
 					} else {
 
-						return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
+						throw new IllegalPathException("Maintenance resource needs parameter");
 					}
-
-					// return 200 OK
-					return new RestMethodResult(HttpServletResponse.SC_OK);
-
-				} catch (InstantiationException iex) {
-
-					throw new SystemException(iex.getMessage());
-
-				} catch (IllegalAccessException iaex) {
-
-					throw new SystemException(iaex.getMessage());
 				}
 
 			} else {
 
-				if (taskOrCommandName != null) {
+				throw new NotAllowedException("Use of the maintenance endpoint is restricted to admin users");
 
-					throw new NotFoundException("No such task or command: " + this.taskOrCommandName);
+			}
+		}
 
-				} else {
+		@Override
+		public boolean createPostTransaction() {
+			return false;
+		}
 
-					throw new IllegalPathException("Maintenance resource needs parameter");
+		@Override
+		public String getTypeName(final SecurityContext securityContext) {
+			return null;
+		}
+
+
+		@Override
+		public boolean isCollection() {
+			return true;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("POST");
+		}
+
+		// ----- private methods -----
+		private boolean isSuperUser(final SecurityContext securityContext) throws FrameworkException {
+
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final boolean isSuperUser = securityContext.isSuperUser();
+
+				tx.success();
+
+				return isSuperUser;
+			}
+		}
+	}
+
+	public class SchemaJsonResourceHandler extends RESTCallHandler {
+
+		public SchemaJsonResourceHandler(final RESTCall call) {
+			super(call);
+		}
+
+		@Override
+		public String getTypeName(final SecurityContext securityContext) {
+			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
+
+		@Override
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
+			final String schema         = jsonSchema.toString();
+
+			return new PagingIterable<>(getURL(), Arrays.asList(schema));
+
+		}
+
+		@Override
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
+			if(propertySet != null && propertySet.containsKey("schema")) {
+
+				try {
+					final App app           = StructrApp.getInstance(securityContext);
+					final String schemaJson = (String)propertySet.get("schema");
+
+					StructrSchema.replaceDatabaseSchema(app, StructrSchema.createFromSource(schemaJson));
+
+					return new RestMethodResult(200, "Schema imported successfully");
+
+				} catch (InvalidSchemaException | URISyntaxException ex) {
+
+					return new RestMethodResult(422, ex.getMessage());
 				}
 			}
 
-		} else {
-
-			throw new NotAllowedException("Use of the maintenance endpoint is restricted to admin users");
-		}
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		if (next instanceof MaintenanceParameterResource) {
-
-			final MaintenanceParameterResource param = ((MaintenanceParameterResource) next);
-			this.taskOrCommandName = param.getUriPart();
-
-			this.taskOrCommand = param.getMaintenanceCommand();
-
-			return this;
+			return new RestMethodResult(400, "Invalid request body. Specify schema json string as 'schema' in request body.");
 		}
 
-		if(next instanceof SchemaJsonResource) {
-			return next;
-		}
-
-		// accept global schema methods resource as successor
-		if (next instanceof GlobalSchemaMethodsResource) {
-			return next;
-		}
-
-		return null;
-	}
-
-	@Override
-	public boolean createPostTransaction() {
-		return false;
-	}
-
-	@Override
-	public Class getEntityClass() {
-		return null;
-	}
-
-	@Override
-	public String getUriPart() {
-		return "maintenance";
-	}
-
-	@Override
-	public boolean isCollectionResource() {
-		return true;
-	}
-
-        @Override
-        public String getResourceSignature() {
-                return getUriPart();
-        }
-
-	// ----- private methods -----
-	private boolean isSuperUser() throws FrameworkException {
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-			return securityContext.isSuperUser();
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS", "POST");
 		}
 	}
 }

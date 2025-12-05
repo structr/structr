@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,7 +18,8 @@
  */
 package org.structr.web.importer;
 
-import org.apache.commons.lang.exception.ExceptionUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -32,6 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.core.script.polyglot.config.ScriptConfig;
 import org.structr.schema.action.ActionContext;
 
 import java.util.HashMap;
@@ -68,25 +70,26 @@ public class ScriptJob extends ScheduledJob {
 
 		return () -> {
 
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+			final SecurityContext securityContext = user.getSecurityContext();
 
-				final SecurityContext securityContext = SecurityContext.getInstance(user, AccessMode.Backend);
+			// avoid NPEs in re-used request objects that dont have an internal request reference
+			if (securityContext != null) {
+				securityContext.setRequest(null);
+			}
 
-				securityContext.setContextStore(ctxStore);
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-				final ActionContext actionContext     = new ActionContext(securityContext);
+				final ActionContext actionContext = new ActionContext(securityContext);
 
 				reportBegin();
 
 				// If a polyglot function was supplied, execute it directly
-				if (script instanceof PolyglotWrapper.FunctionWrapper) {
+				if (script instanceof PolyglotWrapper.FunctionWrapper functionWrapper) {
 
-					((PolyglotWrapper.FunctionWrapper)script).execute();
-
+					functionWrapper.execute();
 				} else if (script instanceof String) {
 
 					Scripting.evaluate(actionContext, null, (String)script, jobName, null);
-
 				} else if (script != null) {
 
 					logger.warn("Unable to schedule script of type {}, ignoring", script.getClass().getName());

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,20 +21,29 @@ package org.structr.core.script.polyglot.filesystem;
 import org.graalvm.polyglot.io.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.web.entity.AbstractFile;
+import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileTime;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -43,7 +52,6 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public Path parsePath(URI uri) {
-		logger.info("parsePath(uri) : {}", uri);
 
 		if (uri != null) {
 
@@ -66,44 +74,145 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public void checkAccess(Path path, Set<? extends AccessMode> modes, LinkOption... linkOptions) throws IOException {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
+			final NodeInterface abstractFile  = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, path.toString()).getFirst();
+
+			tx.success();
+
+			if (abstractFile == null) {
+				throw new NoSuchFileException("No file or folder found for path: " + path.toString());
+			}
+
+		} catch (FrameworkException ex) {
+
+			logger.error("Could not open directory stream for dir: {}.", path.toString(), ex);
+		}
 	}
 
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-		Files.createDirectory(dir, attrs);
-	}
+        App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
+			final NodeInterface folder        = app.nodeQuery(StructrTraits.FOLDER).key(pathKey, dir.toString()).getFirst();
+
+			if (folder == null) {
+				FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), dir.toString());
+			}
+
+			tx.success();
+
+			throw new FileAlreadyExistsException("Folder already exists for path: " + dir.toString());
+
+        } catch (FrameworkException ex) {
+
+			logger.error("Unexpected exception while trying to create folder", ex);
+        }
+    }
 
 	@Override
 	public void delete(Path path) throws IOException {
-		Files.delete(path);
+
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> pathKey = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
+			final NodeInterface file          = app.nodeQuery(StructrTraits.ABSTRACT_FILE).key(pathKey, path.toString()).getFirst();
+
+			if (file != null) {
+
+				app.delete(file);
+
+			} else {
+
+				throw new NoSuchFileException("Cannot delete file or folder. No entity found for path: " + path.toString());
+			}
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+
+			logger.error("Unexpected exception while trying to delete file", ex);
+		}
 	}
 
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+
 		final App app = StructrApp.getInstance();
+
 		try (final Tx tx = app.tx()) {
 
-			PropertyKey pathKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(AbstractFile.class, "path");
-			File file = (File)app.nodeQuery(File.class).and(pathKey, path.toString()).getFirst();
+			final Traits traits                        = Traits.of(StructrTraits.ABSTRACT_FILE);
+			final PropertyKey<String> pathKey          = traits.key(AbstractFileTraitDefinition.PATH_PROPERTY);
+			final PropertyKey<NodeInterface> parentKey = traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY);
 
-			if (file != null) {
+			NodeInterface file = app.nodeQuery(StructrTraits.FILE).key(pathKey, path.toString()).getFirst();
 
-				tx.success();
-				return StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel();
+			if (file == null) {
+
+				if (path.getParent() != null) {
+
+					NodeInterface  parent = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), path.getParent().toString());
+
+					file = app.create(StructrTraits.FILE,
+						new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString()),
+						new NodeAttribute<>(parentKey, parent)
+					);
+
+				} else {
+
+					file = app.create(StructrTraits.FILE, new NodeAttribute<>(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), path.getFileName().toString()));
+				}
 			}
 
 			tx.success();
+
+			if (options.contains(StandardOpenOption.CREATE_NEW)) {
+
+				throw new FileAlreadyExistsException("Cannot open file with CREATE_NEW option. File already exists at path: " + path.toString());
+			}
+
+			return StorageProviderFactory.getStorageProvider(file.as(File.class)).getSeekableByteChannel(options);
+
 		} catch (FrameworkException ex) {
 
-			logger.error("Unexpected exception while trying to parse virtual filesystem path", ex);
+			logger.error("Unexpected exception while trying to open new bytechannel", ex);
+			return null;
 		}
-
-		return Files.newByteChannel(path, options, attrs);
 	}
 
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-		return Files.newDirectoryStream(dir, filter);
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final PropertyKey<String> path = Traits.of(StructrTraits.ABSTRACT_FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY);
+			final NodeInterface folder     = app.nodeQuery(StructrTraits.FOLDER).key(path, dir.toString()).getFirst();
+
+			if (folder != null) {
+				return new VirtualDirectoryStream(dir, filter);
+			}
+
+			tx.success();
+
+			throw new NotDirectoryException("No directory found for path: " + dir.toString());
+
+		} catch (FrameworkException ex) {
+
+                        logger.error("Could not open directory stream for dir: {}.", dir.toString(), ex);
+		}
+
+		throw new NotDirectoryException(dir.toString());
 	}
 
 	@Override
@@ -117,7 +226,49 @@ public class PolyglotFilesystem implements FileSystem {
 	}
 
 	@Override
-	public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-		return Files.readAttributes(path, attributes, options);
+	public Map<String, Object> readAttributes(Path path, String rawattributes, LinkOption... options) throws IOException {
+
+		final NodeInterface file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path.toString());
+
+		if (file == null && rawattributes.equals("isDirectory")) {
+			return Map.of("isDirectory", false);
+		}
+
+		final int viewIndex = rawattributes.indexOf(':');
+		String view = "basic";
+		String attributes = rawattributes;
+
+		if (viewIndex != -1) {
+			view = rawattributes.substring(0, viewIndex);
+			attributes = rawattributes.substring(viewIndex + 1, rawattributes.length());
+		}
+
+		if (!view.equals("basic")) {
+			throw new UnsupportedOperationException("View \"%s\" is not supported by PolyglotFilesystem.".formatted(view));
+		}
+
+		Map<String, Object> attributeMap = new HashMap<>();
+		if (attributes.isEmpty()) {
+			return attributeMap;
+		}
+
+		if (file == null) {
+			throw new IOException("File or folder does not exist for requested path: " + path.toString());
+		}
+
+
+		for (String attr : attributes.split(",")) {
+			switch (attr) {
+				case "isDirectory" -> attributeMap.put("isDirectory", (file.is(StructrTraits.FOLDER)));
+				case "creationTime" -> attributeMap.put("creationTime", FileTime.fromMillis(file.getCreatedDate().getTime()));
+				case "lastModifiedTime" -> attributeMap.put("lastModifiedTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
+				case "lastAccessTime" -> attributeMap.put("lastAccessTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
+				case "isSymbolicLink" -> attributeMap.put("isSymbolicLink", false);
+				case "isRegularFile" -> attributeMap.put("isRegularFile", (file.is(StructrTraits.FILE)));
+				case "size" -> attributeMap.put("size", (file.is(StructrTraits.FILE) ? FileHelper.getSize((File)file) : 0));
+			}
+		}
+
+		return attributeMap;
 	}
 }

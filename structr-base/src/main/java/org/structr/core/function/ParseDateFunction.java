@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,24 +22,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 public class ParseDateFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_PARSE_DATE    = "Usage: ${parse_date(value, pattern)}. Example: ${parse_date(\"2014-01-01\", \"yyyy-MM-dd\")}";
-	public static final String ERROR_MESSAGE_PARSE_DATE_JS = "Usage: ${{Structr.parseDate(value, pattern)}}. Example: ${{Structr.parseDate(\"2014-01-01\", \"yyyy-MM-dd\")}}";
-
 	@Override
 	public String getName() {
-		return "parse_date";
+		return "parseDate";
 	}
 
 	@Override
-	public String getSignature() {
-		return "str, pattern";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("str, pattern");
 	}
 
 	@Override
@@ -68,7 +70,7 @@ public class ParseDateFunction extends CoreFunction {
 
 			} catch (ParseException ex) {
 
-				logger.warn("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getReplacement(), dateString, pattern, caller, getParametersAsString(sources) });
+				logger.debug("{}: Could not parse string \"{}\" with pattern {} in element \"{}\". Parameters: {}", new Object[] { getDisplayName(), dateString, pattern, caller, getParametersAsString(sources) });
 
 			}
 
@@ -87,12 +89,37 @@ public class ParseDateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PARSE_DATE_JS : ERROR_MESSAGE_PARSE_DATE);
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${parseDate(value, pattern)}."),
+				Usage.javaScript("Usage: ${{ $.parseDate(value, pattern) }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Parses the given date string using the given format string";
+	public String getShortDescription() {
+		return "Parses the given date string using the given format string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Parses the given string according to the given pattern and returns a date object. This method is the inverse of <a href='#date_format'>date_format()</a>.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${parseDate('2015-12-12', 'yyyy-MM-dd')}"),
+				Example.javaScript("${{ $.parseDate('2015-12-12', 'yyyy-MM-dd') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("string", "date string"),
+				Parameter.mandatory("pattern", "date pattern")
+		);
 	}
 }

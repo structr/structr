@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.Map;
 
 /**
@@ -45,23 +44,12 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public String typeName() {
-		return valueType().getSimpleName();
+		return null;
 	}
 
 	@Override
 	public Class valueType() {
-
-		ParameterizedType pType = (ParameterizedType) getClass().getGenericSuperclass();
-
-		if ("T".equals(pType.getRawType().toString())) {
-
-			Class<? extends GraphObject> relType = relatedType();
-
-			return relType != null ? relType : null;
-
-		}
-
-		return pType.getRawType().getClass();
+		return null;
 	}
 
 	@Override
@@ -82,17 +70,22 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	}
 
 	@Override
-	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, T> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return null;
 	}
 
 	@Override
-	public Class<? extends GraphObject> relatedType() {
+	public String relatedType() {
 		return null;
 	}
 
 	@Override
 	public boolean isCollection() {
+		return false;
+	}
+
+	@Override
+	public boolean isArray() {
 		return false;
 	}
 

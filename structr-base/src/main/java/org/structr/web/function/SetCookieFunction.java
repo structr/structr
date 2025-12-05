@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,23 +24,23 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 
 public class SetCookieFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_SET_COOKIE    = "Usage: ${set_cookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}. Example: ${get_cookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}";
-	public static final String ERROR_MESSAGE_SET_COOKIE_JS = "Usage: ${{Structr.getCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}}. Example: ${{Structr.getCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}}";
-
 	@Override
 	public String getName() {
-		return "set_cookie";
+		return "setCookie";
 	}
 
 	@Override
-	public String getSignature() {
-		return "name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]]");
 	}
 
 	@Override
@@ -107,12 +107,20 @@ public class SetCookieFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_COOKIE_JS : ERROR_MESSAGE_SET_COOKIE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}. Example: ${getCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}"),
+			Usage.javaScript("Usage: ${{Structr.setCookie(name, value[, secure[, httpOnly[, maxAge[, domain[, path]]]]])}}. Example: ${{Structr.setCookie('cartId', 'abcdef123', true, false, 1800, 'www.structr.com', '/')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the given cookie";
+	public String getShortDescription() {
+		return "Sets the given cookie.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,10 +22,11 @@ import org.structr.api.DatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.TypeProperty;
+import org.structr.docs.*;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,18 +55,18 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 			info("Starting creation of labels for all nodes of type {}", entityType);
 		}
 
-		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 10000, "CreateLabels", new BulkGraphOperation<AbstractNode>() {
+		final long count = bulkGraphOperation(securityContext, getNodeQuery(entityType, true), 10000, "CreateLabels", new BulkGraphOperation<NodeInterface>() {
 
 			@Override
-			public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+			public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
-				TypeProperty.updateLabels(graphDb, node, node.getClass(), removeUnused);
+				TypeProperty.updateLabels(graphDb, node, node.getTraits(), removeUnused);
 
 				return true;
 			}
 
 			@Override
-			public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
+			public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
 				warn("Unable to create labels for node {}: {}", node, t.getMessage());
 			}
 
@@ -96,5 +97,61 @@ public class BulkCreateLabelsCommand extends NodeServiceCommand implements Maint
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return true;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "createLabels";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Updates the type labels of a node in the database so they match the type hierarchy of the Structr type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command looks at the value in the `type` property of an object and tries to identify a corresponding schema type. If the schema type exists, it creates a label on the object for each type in the inheritance hierarchy and removes labels that don’t have a corresponding type.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.optional("type", "if set, labels are only updated on nodes with the given type"),
+			Parameter.optional("removeUnused", "if set to `false`, unused labels are left on the node (default is `true`)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This command will only work for objects that have a value in their `type` property."
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

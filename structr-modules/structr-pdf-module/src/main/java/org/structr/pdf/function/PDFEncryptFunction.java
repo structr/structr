@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.pdf.function;
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.io.RandomAccessReadBuffer;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.encryption.AccessPermission;
 import org.apache.pdfbox.pdmodel.encryption.StandardProtectionPolicy;
@@ -26,26 +28,29 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
-import org.structr.storage.StorageProviderFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
+import java.util.List;
 
 public class PDFEncryptFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_PDF_ENCRYPT = "Usage: ${pdf_encrypt(file, password)}. Example: ${pdf_encrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}";
 
 	private static final int keyLength = 256;
 
 	@Override
 	public String getName() {
-		return "pdf_encrypt";
+		return "pdfEncrypt";
 	}
 
 	@Override
-	public String getSignature() {
-		return "file, password";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("file, password");
 	}
 
 	@Override
@@ -57,7 +62,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 
 			try {
 
-				if (!(sources[0] instanceof File)) {
+				if (!(sources[0] instanceof NodeInterface n && n.is(StructrTraits.FILE))) {
 
 					logParameterError(caller, sources, "First parameter is not a file object.", ctx.isJavaScriptContext());
 					return usage(ctx.isJavaScriptContext());
@@ -69,10 +74,10 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 					return usage(ctx.isJavaScriptContext());
 				}
 
-				final File pdfFileObject  = (File) sources[0];
+				final File pdfFileObject  = ((NodeInterface) sources[0]).as(File.class);
 				final String userPassword = (String) sources[1];
 
-				final PDDocument pdDocument = PDDocument.load(StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream());
+				final PDDocument pdDocument = Loader.loadPDF(new RandomAccessReadBuffer(StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream()));
 
 				final AccessPermission accessPermission = new AccessPermission();
 				accessPermission.setCanPrint(false);
@@ -108,12 +113,20 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_PDF_ENCRYPT;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${pdfEncrypt(file, password)}. Example: ${pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword')}"),
+			Usage.javaScript("Usage: ${{ $.pdfEncrypt(file, password) }}. Example: ${{ $.pdfEncrypt(first(find('File', 'name', 'document.pdf')), 'mypassword') }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Encrypts a PDF file so that it can't be opened without password.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

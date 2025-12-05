@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,21 +21,24 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class StripHtmlFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_STRIP_HTML    = "Usage: ${strip_html(html)}. Example: ${strip_html(\"<p>foo</p>\")}";
-	public static final String ERROR_MESSAGE_STRIP_HTML_JS = "Usage: ${{Structr.strip_html(html)}}. Example: ${{Structr.strip_html(\"<p>foo</p>\")}}";
-
 	@Override
 	public String getName() {
-		return "strip_html";
+		return "stripHtml";
 	}
 
 	@Override
-	public String getSignature() {
-		return "html";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("html");
 	}
 
 	@Override
@@ -60,12 +63,43 @@ public class StripHtmlFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_STRIP_HTML_JS : ERROR_MESSAGE_STRIP_HTML);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${stripHtml(html)}."),
+			Usage.javaScript("Usage: ${{$.stripHtml(html)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Strips all (HTML) tags from the given string";
+	public String getShortDescription() {
+		return "Removes all HTML tags from the given source string and returns only the content.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${stripHtml('<h3><p>Clean me!</p></h3>')}"),
+				Example.javaScript("${{ $.stripHtml('<h3><p>Clean me!</p></h3>') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("source", "HTML string for content extraction")
+				);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Similar results can be produced by `strReplace(source, \"\\\\<[a-zA-Z].*?>\", \"\")`"
+		);
 	}
 }

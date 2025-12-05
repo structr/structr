@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,7 @@ import com.google.gson.GsonBuilder;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -62,192 +62,198 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		try {
+		final List<String> notes = new LinkedList<>();
+		boolean error             = false;
 
-			// isolate request authentication in a transaction
-			try (final Tx tx = StructrApp.getInstance().tx()) {
+		// isolate request authentication in a transaction
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final Authenticator auth = getConfig().getAuthenticator();
+			final Authenticator auth = getConfig().getAuthenticator();
 
-				// Ensure CORS settings apply by letting the authenticator examine the request.
-				auth.initializeAndExamineRequest(request, response);
+			// Ensure CORS settings apply by letting the authenticator examine the request.
+			auth.initializeAndExamineRequest(request, response);
 
-				tx.success();
-			}
-
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/health+json; charset=utf-8");
-
-			final String remoteAddress = request.getRemoteAddr();
-			if (remoteAddress != null) {
-
-				if ("/ready".equals(request.getPathInfo())) {
-
-					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling() || !Services.getInstance().isInitialized()) {
-
-						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-
-					} else {
-
-						response.setStatus(HttpServletResponse.SC_OK);
-					}
-
-					return;
-				}
-
-				final Set<String> wl = getWhitelistAddresses();
-				if (!wl.contains(remoteAddress)) {
-
-					if (!Services.getInstance().isInitialized()) {
-
-						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-
-					} else {
-
-						response.setStatus(HttpServletResponse.SC_OK);
-					}
-
-					return;
-				}
-			}
-
-			try (final Writer writer = response.getWriter()) {
-
-				if (System.currentTimeMillis() > lastUpdate + updateInterval) {
-
-					lastUpdate = System.currentTimeMillis();
-
-					synchronized (data) {
-
-						data.clear();
-
-						data.put("version", "1.1");
-						data.put("description", "Structr system health status");
-
-						// service layer available?
-						if (Services.getInstance().isInitialized()) {
-
-							// status is "pass" or "warn", only pass for now..
-							data.put("status", "pass");
-
-							final Map<String, Object> details = new LinkedHashMap<>();
-							final ThreadMXBean threadMXBean   = ManagementFactory.getThreadMXBean();
-							final Runtime runtime             = Runtime.getRuntime();
-
-							data.put("checks", details);
-
-							embedGroup(details, "memory:utilization",
-									embedValue("free memory",  "system", runtime.freeMemory(),  "bytes", "pass"),
-									embedValue("max memory",   "system", runtime.maxMemory(),   "bytes", "pass"),
-									embedValue("total memory", "system", runtime.totalMemory(), "bytes", "pass")
-							);
-
-							embedGroup(details, "cpu:utilization",
-									embedValue("load average 1 min", "system", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage(), null, "pass")
-							);
-
-							embedGroup(details, "uptime",
-									embedValue("uptime",  "system", ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass")
-							);
-
-							embedGroup(details, "threads",
-									embedValue("current thread count", "system", threadMXBean.getThreadCount(),       null, "pass"),
-									embedValue("peak thread count",    "system", threadMXBean.getPeakThreadCount(),   null, "pass"),
-									embedValue("daemon thread count",  "system", threadMXBean.getDaemonThreadCount(), null, "pass")
-							);
-
-							final Map<String, Map<String, Integer>> info = Services.getInstance().getDatabaseService().getCachesInfo();
-							final Map<String, Integer> nodeCacheInfo     = info.get("nodes");
-							final Map<String, Integer> relCacheInfo      = info.get("relationships");
-
-							if (nodeCacheInfo != null) {
-
-								embedGroup(details, "cache:node",
-										embedValue("size",  "system", nodeCacheInfo.get("max"),  null, "pass"),
-										embedValue("count", "system", nodeCacheInfo.get("size"), null, "pass")
-								);
-							}
-
-							if (relCacheInfo != null) {
-
-								embedGroup(details, "cache:relationship",
-										embedValue("size",  "system", relCacheInfo.get("max"),  null, "pass"),
-										embedValue("count", "system", relCacheInfo.get("size"), null, "pass")
-								);
-							}
-
-							final HttpService httpService = Services.getInstance().getService(HttpService.class, "default");
-							if (httpService != null) {
-
-								{
-									// html
-									final List<Map<String, Object>> measurements = new LinkedList<>();
-
-									details.put("html:responseTime", measurements);
-
-									final Map<String, Stats> stats = httpService.getRequestStats("html");
-									if (stats != null) {
-
-										for (final String key : stats.keySet()) {
-
-											final Stats statsData = stats.get(key);
-
-											measurements.add(embedValue(key, "page", statsData.getMinValue(),     "ms", "pass",   "min"));
-											measurements.add(embedValue(key, "page", statsData.getMaxValue(),     "ms", "pass",   "max"));
-											measurements.add(embedValue(key, "page", statsData.getAverageValue(), "ms", "pass",   "avg"));
-											measurements.add(embedValue(key, "page", statsData.getCount(),        null, "pass", "count"));
-										}
-									}
-								}
-
-								{
-									// json
-									final List<Map<String, Object>> measurements = new LinkedList<>();
-
-									details.put("json:responseTime", measurements);
-
-									final Map<String, Stats> stats = httpService.getRequestStats("json");
-									if (stats != null) {
-
-										for (final String key : stats.keySet()) {
-
-											final Stats statsData = stats.get(key);
-
-											measurements.add(embedValue(key, "endpoint", statsData.getMinValue(),     "ms", "pass",   "min"));
-											measurements.add(embedValue(key, "endpoint", statsData.getMaxValue(),     "ms", "pass",   "max"));
-											measurements.add(embedValue(key, "endpoint", statsData.getAverageValue(), "ms", "pass",   "avg"));
-											measurements.add(embedValue(key, "endpoint", statsData.getCount(),        null, "pass", "count"));
-										}
-									}
-								}
-							}
-
-							statusCode = HttpServletResponse.SC_OK;
-
-						} else {
-
-							statusCode = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-
-							data.put("status", "fail");
-						}
-
-					}
-				}
-
-				synchronized (data) {
-					gson.toJson(data, writer);
-				}
-
-				response.setStatus(statusCode);
-				response.setHeader("Cache-Control", "max-age=60");
-
-				writer.append("\n");
-				writer.flush();
-			}
+			tx.success();
 
 		} catch (FrameworkException ex) {
 
+			notes.add(ex.getMessage());
+			error = true;
+		}
+
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/health+json; charset=utf-8");
+
+		final String remoteAddress = request.getRemoteAddr();
+		if (remoteAddress != null) {
+
+			if ("/ready".equals(request.getPathInfo())) {
+
+				if (error || DeployCommand.isDeploymentActive() || SchemaService.getSchemaIsBeingReplaced() || !Services.getInstance().isInitialized()) {
+
+					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+
+				} else {
+
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
+
+				return;
+			}
+
+			final Set<String> wl = getWhitelistAddresses();
+			if (!wl.contains(remoteAddress)) {
+
+				if (!Services.getInstance().isInitialized()) {
+
+					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+
+				} else {
+
+					response.setStatus(HttpServletResponse.SC_OK);
+				}
+
+				return;
+			}
+		}
+
+		try (final Writer writer = response.getWriter()) {
+
+			if (System.currentTimeMillis() > lastUpdate + updateInterval) {
+
+				lastUpdate = System.currentTimeMillis();
+
+				synchronized (data) {
+
+					data.clear();
+
+					data.put("version", "1.1");
+					data.put("description", "Structr system health status");
+
+					// service layer available?
+					if (Services.getInstance().isInitialized()) {
+
+						// status is "pass" or "warn", only pass for now..
+						data.put("status", error ? "fail": "pass");
+
+						final Map<String, Object> details = new LinkedHashMap<>();
+						final ThreadMXBean threadMXBean   = ManagementFactory.getThreadMXBean();
+						final Runtime runtime             = Runtime.getRuntime();
+
+						data.put("checks", details);
+
+						embedGroup(details, "memory:utilization",
+								embedValue("free memory",  "system", runtime.freeMemory(),  "bytes", "pass"),
+								embedValue("max memory",   "system", runtime.maxMemory(),   "bytes", "pass"),
+								embedValue("total memory", "system", runtime.totalMemory(), "bytes", "pass")
+						);
+
+						embedGroup(details, "cpu:utilization",
+								embedValue("load average 1 min", "system", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage(), null, "pass")
+						);
+
+						embedGroup(details, "uptime",
+								embedValue("uptime",  "system", ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass")
+						);
+
+						embedGroup(details, "threads",
+								embedValue("current thread count", "system", threadMXBean.getThreadCount(),       null, "pass"),
+								embedValue("peak thread count",    "system", threadMXBean.getPeakThreadCount(),   null, "pass"),
+								embedValue("daemon thread count",  "system", threadMXBean.getDaemonThreadCount(), null, "pass")
+						);
+
+						final Map<String, Map<String, Integer>> info = Services.getInstance().getDatabaseService().getCachesInfo();
+						final Map<String, Integer> nodeCacheInfo     = info.get("nodes");
+						final Map<String, Integer> relCacheInfo      = info.get("relationships");
+
+						if (nodeCacheInfo != null) {
+
+							embedGroup(details, "cache:node",
+									embedValue("size",  "system", nodeCacheInfo.get("max"),  null, "pass"),
+									embedValue("count", "system", nodeCacheInfo.get("size"), null, "pass")
+							);
+						}
+
+						if (relCacheInfo != null) {
+
+							embedGroup(details, "cache:relationship",
+									embedValue("size",  "system", relCacheInfo.get("max"),  null, "pass"),
+									embedValue("count", "system", relCacheInfo.get("size"), null, "pass")
+							);
+						}
+
+						final HttpService httpService = Services.getInstance().getService(HttpService.class, "default");
+						if (httpService != null) {
+
+							{
+								// html
+								final List<Map<String, Object>> measurements = new LinkedList<>();
+
+								details.put("html:responseTime", measurements);
+
+								final Map<String, Stats> stats = httpService.getRequestStats("html");
+								if (stats != null) {
+
+									for (final String key : stats.keySet()) {
+
+										final Stats statsData = stats.get(key);
+
+										measurements.add(embedValue(key, "page", statsData.getMinValue(),     "ms", "pass",   "min"));
+										measurements.add(embedValue(key, "page", statsData.getMaxValue(),     "ms", "pass",   "max"));
+										measurements.add(embedValue(key, "page", statsData.getAverageValue(), "ms", "pass",   "avg"));
+										measurements.add(embedValue(key, "page", statsData.getCount(),        null, "pass", "count"));
+									}
+								}
+							}
+
+							{
+								// json
+								final List<Map<String, Object>> measurements = new LinkedList<>();
+
+								details.put("json:responseTime", measurements);
+
+								final Map<String, Stats> stats = httpService.getRequestStats("json");
+								if (stats != null) {
+
+									for (final String key : stats.keySet()) {
+
+										final Stats statsData = stats.get(key);
+
+										measurements.add(embedValue(key, "endpoint", statsData.getMinValue(),     "ms", "pass",   "min"));
+										measurements.add(embedValue(key, "endpoint", statsData.getMaxValue(),     "ms", "pass",   "max"));
+										measurements.add(embedValue(key, "endpoint", statsData.getAverageValue(), "ms", "pass",   "avg"));
+										measurements.add(embedValue(key, "endpoint", statsData.getCount(),        null, "pass", "count"));
+									}
+								}
+							}
+						}
+
+						statusCode = HttpServletResponse.SC_OK;
+
+					} else {
+
+						statusCode = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+
+						data.put("status", "fail");
+					}
+
+					if (!notes.isEmpty()) {
+
+						data.put("notes", notes);
+					}
+				}
+			}
+
+			synchronized (data) {
+				gson.toJson(data, writer);
+			}
+
+			response.setStatus(statusCode);
+			response.setHeader("Cache-Control", "max-age=60");
+
+			writer.append("\n");
+			writer.flush();
 		}
 	}
 
@@ -286,10 +292,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 		final List<Map<String, Object>> list = new LinkedList<>();
 
-		for (final Map<String, Object> entry : data) {
-
-			list.add(entry);
-		}
+		Collections.addAll(list, data);
 
 		dest.put(name, list);
 	}

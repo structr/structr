@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.apache.commons.codec.binary.Base64OutputStream;
 import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,24 +36,23 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
-import org.structr.rest.ResourceProvider;
+import org.structr.core.traits.StructrTraits;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.Template;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.util.LinkedHashMap;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
@@ -65,13 +65,12 @@ import java.util.Stack;
  */
 public class RenderContext extends ActionContext {
 
-	private final Map<String, GraphObject> dataObjects = new LinkedHashMap<>();
+	private final Map<String, GraphObject> dataObjects = new HashMap<>();
 	private final Stack<SecurityContext> scStack       = new Stack<>();
 	private EditMode editMode                          = EditMode.NONE;
 	private AsyncBuffer buffer                         = null;
 	private int depth                                  = 0;
 	private boolean inBody                             = false;
-	private boolean appLibRendered                     = false;
 	private GraphObject detailsDataObject              = null;
 	private GraphObject currentDataObject              = null;
 	private GraphObject sourceDataObject               = null;
@@ -80,7 +79,6 @@ public class RenderContext extends ActionContext {
 	private Page page                                  = null;
 	private HttpServletRequest request                 = null;
 	private HttpServletResponse response               = null;
-	private ResourceProvider resourceProvider          = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
 	private boolean indentHtml                         = true;
 	private boolean isPartialRendering                 = false;
@@ -89,7 +87,7 @@ public class RenderContext extends ActionContext {
 
 	public enum EditMode {
 
-		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, SHAPES, SHAPES_MINIATURES
+		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, PREVIEW
 	}
 
 	public RenderContext(final SecurityContext securityContext) {
@@ -114,7 +112,6 @@ public class RenderContext extends ActionContext {
 
 		this.editMode                   = other.editMode;
 		this.inBody                     = other.inBody;
-		this.appLibRendered             = other.appLibRendered;
 		this.detailsDataObject          = other.detailsDataObject;
 		this.currentDataObject          = other.currentDataObject;
 		this.sourceDataObject           = other.sourceDataObject;
@@ -123,7 +120,6 @@ public class RenderContext extends ActionContext {
 		this.page                       = other.page;
 		this.request                    = other.request;
 		this.response                   = other.response;
-		this.resourceProvider           = other.resourceProvider;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 		this.indentHtml                 = other.indentHtml;
 		this.buffer                     = other.buffer;
@@ -239,48 +235,15 @@ public class RenderContext extends ActionContext {
 
 	public static EditMode editMode(final String editString) {
 
-		EditMode edit;
-
 		switch (editString) {
 
-			case "1":
-
-				edit = EditMode.WIDGET;
-				break;
-
-			case "2":
-
-				edit = EditMode.CONTENT;
-				break;
-
-			case "3":
-
-				edit = EditMode.RAW;
-				break;
-
-			case "4":
-
-				edit = EditMode.DEPLOYMENT;
-				break;
-
-			case "5":
-
-				edit = EditMode.SHAPES;
-				break;
-
-			case "6":
-
-				edit = EditMode.SHAPES_MINIATURES;
-				break;
-
-			default:
-
-				edit = EditMode.NONE;
-
+			case "1": return EditMode.WIDGET;
+			case "2": return EditMode.CONTENT;
+			case "3": return EditMode.RAW;
+			case "4": return EditMode.DEPLOYMENT;
+			case "5": return EditMode.PREVIEW;
+			default: return EditMode.NONE;
 		}
-
-		return edit;
-
 	}
 
 	public String getISO3Country() {
@@ -297,14 +260,6 @@ public class RenderContext extends ActionContext {
 
 	public HttpServletResponse getResponse() {
 		return response;
-	}
-
-	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
-	}
-
-	public ResourceProvider getResourceProvider() {
-		return resourceProvider;
 	}
 
 	public void increaseDepth() {
@@ -337,14 +292,6 @@ public class RenderContext extends ActionContext {
 
 	public boolean inBody() {
 		return inBody;
-	}
-
-	public void setAppLibRendered(final boolean appLibRendered) {
-		this.appLibRendered = appLibRendered;
-	}
-
-	public boolean appLibRendered() {
-		return appLibRendered;
 	}
 
 	public void setIsPartialRendering(final boolean isPartialRendering) {
@@ -380,22 +327,22 @@ public class RenderContext extends ActionContext {
 		return dataObjects;
 	}
 
-	public GraphObject getDataNode(String key) {
+	public GraphObject getDataNode(final String key) {
 		return dataObjects.get(key);
 	}
 
-	public void putDataObject(String key, GraphObject currentDataObject) {
+	public void putDataObject(final String key, final GraphObject currentDataObject) {
 		dataObjects.put(key, currentDataObject);
 		setDataObject(currentDataObject);
 
 	}
 
-	public void clearDataObject(String key) {
+	public void clearDataObject(final String key) {
 		dataObjects.remove(key);
 		setDataObject(null);
 	}
 
-	public boolean hasDataForKey(String key) {
+	public boolean hasDataForKey(final String key) {
 		return dataObjects.containsKey(key);
 	}
 
@@ -470,10 +417,11 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (data instanceof LinkSource) {
+						if (data instanceof NodeInterface node && node.is(StructrTraits.LINK_SOURCE)) {
 
 							hints.reportExistingKey(key);
-							final LinkSource linkSource = (LinkSource)data;
+
+							final LinkSource linkSource = node.as(LinkSource.class);
 							return linkSource.getLinkable();
 						}
 						break;
@@ -504,34 +452,34 @@ public class RenderContext extends ActionContext {
 
 					case "template":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getClosestTemplate(getPage());
+							return entity.as(DOMNode.class).getClosestTemplate(getPage());
 						}
 						break;
 
 					case "page":
 						hints.reportExistingKey(key);
 						Page page = getPage();
-						if (page == null && entity instanceof DOMNode) {
-							page = ((DOMNode) entity).getOwnerDocument();
+						if (page == null && entity.is(StructrTraits.DOM_NODE)) {
+							page = entity.as(DOMNode.class).getOwnerDocument();
 						}
 						return page;
 
 					case "parent":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getParentNode();
+							return entity.as(DOMNode.class).getParent();
 						}
 						break;
 
 					case "children":
 
-						if (entity instanceof DOMNode) {
+						if (entity.is(StructrTraits.DOM_NODE)) {
 
 							hints.reportExistingKey(key);
-							return ((DOMNode) entity).getChildNodes();
+							return Iterables.toList(entity.as(DOMNode.class).getChildren());
 
 						}
 						break;
@@ -539,10 +487,12 @@ public class RenderContext extends ActionContext {
 					// link has two different meanings
 					case "link":
 
-						if (entity instanceof LinkSource) {
+						if (entity.is(StructrTraits.LINK_SOURCE)) {
 
 							hints.reportExistingKey(key);
-							final LinkSource linkSource = (LinkSource)entity;
+
+							final LinkSource linkSource = entity.as(LinkSource.class);
+
 							return linkSource.getLinkable();
 						}
 						break;
@@ -561,7 +511,7 @@ public class RenderContext extends ActionContext {
 	@Override
 	public void print(final Object[] objects, final Object caller) {
 
-		if ((caller instanceof Template) || (caller instanceof Content)) {
+		if (caller instanceof NodeInterface n && (n.is(StructrTraits.TEMPLATE) || n.is(StructrTraits.CONTENT))) {
 
 			for (final Object obj : objects) {
 
@@ -579,7 +529,7 @@ public class RenderContext extends ActionContext {
 
 	public String getEncodedRenderState() {
 
-		final Map<String, Object> renderState = new LinkedHashMap<>();
+		final Map<String, Object> renderState = new HashMap<>();
 
 		for (final String dataKey : dataObjects.keySet()) {
 
@@ -603,7 +553,7 @@ public class RenderContext extends ActionContext {
 				ioex.printStackTrace();
 			}
 
-			return output.toString(Charset.forName("utf-8")).trim();
+			return output.toString(StandardCharsets.UTF_8).trim();
 		}
 
 		return null;
@@ -611,7 +561,7 @@ public class RenderContext extends ActionContext {
 
 	public void initializeFromEncodedRenderState(final String encoded) {
 
-		final ByteArrayInputStream input = new ByteArrayInputStream(encoded.getBytes(Charset.forName("utf-8")));
+		final ByteArrayInputStream input = new ByteArrayInputStream(encoded.getBytes(StandardCharsets.UTF_8));
 		final App app                    = StructrApp.getInstance(getSecurityContext());
 		final Gson gson                  = new GsonBuilder().create();
 

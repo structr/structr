@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,25 +21,27 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.List;
 import java.util.Locale;
 
 public class NumberFormatFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT    = "Usage: ${number_format(value, locale, pattern)}. Example: ${number_format(12345.6789, 'en', '#,##0.00')}";
-	public static final String ERROR_MESSAGE_NUMBER_FORMAT_JS = "Usage: ${{Structr.numberFormat(value, locale, pattern)}}. Example: ${{Structr.numberFormat(12345.6789, 'en', '#,##0.00')}}";
+	public static final String ERROR_MESSAGE_NUMBER_FORMAT = "Usage: ${numberFormat(value, locale, pattern)}. Example: ${numberFormat(12345.6789, 'en', '#,##0.00')}";
 
 	@Override
 	public String getName() {
-		return "number_format";
+		return "numberFormat";
 	}
 
 	@Override
-	public String getSignature() {
-		return "value, locale, format";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value, locale, format");
 	}
 
 	@Override
@@ -79,12 +81,39 @@ public class NumberFormatFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_NUMBER_FORMAT_JS : ERROR_MESSAGE_NUMBER_FORMAT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${numberFormat(value, locale, pattern)}. Example: ${numberFormat(12345.6789, 'en', '#,##0.00')}"),
+			Usage.javaScript("Usage: ${{Structr.numberFormat(value, locale, pattern)}}. Example: ${{Structr.numberFormat(12345.6789, 'en', '#,##0.00')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Formats the given value using the given locale and format string";
+	public String getShortDescription() {
+		return "Formats the given value using the given locale and format string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		This function uses the Java NumberFormat class which supports the ISO two-letter language codes, e.g. "en", "de" etc.
+		
+		The following four pattern chars are supported:
+
+		| Letter | Description |
+		| --- | --- |
+		| 0 | Any number, or "0" |
+		| # | Any number, or nothing |
+		| . | The decimal separator |
+		| , | The thousands-separator |
+		""";
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"In general, if you want a formatted number to be visible all the time, use \"0\" in the pattern, otherwise use \"#\"."
+		);
 	}
 }

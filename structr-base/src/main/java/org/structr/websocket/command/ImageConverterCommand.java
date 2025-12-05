@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,8 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
 import org.structr.web.entity.Image;
@@ -44,7 +46,7 @@ public class ImageConverterCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final String originalImageId          = webSocketData.getId();
-		final Image originalImage             = (Image) getNode(originalImageId);
+		final Image originalImage             = getNodeAs(originalImageId, Image.class, StructrTraits.IMAGE);
 
 		final String format = webSocketData.getNodeDataStringValue("format");
 		final int width     = webSocketData.getNodeDataIntegerValue("width");
@@ -68,10 +70,10 @@ public class ImageConverterCommand extends AbstractCommand {
 					final String thumbnailName = ImageHelper.getVariantName(originalImage.getName(), tnWidth, tnHeight, "_cropped_");
 
 					// create image variant
-					final Image imageVariant = ImageHelper.createImageNode(originalImage.getSecurityContext(), data, "image/" + Thumbnail.Format.png, Image.class, thumbnailName, false);
+					final NodeInterface imageVariant = ImageHelper.createImageNode(originalImage.getSecurityContext(), data, "image/" + Thumbnail.Format.png, StructrTraits.IMAGE, thumbnailName, false);
 
 					// store in same parent folder
-					imageVariant.setParent(originalImage.getParent());
+					imageVariant.as(Image.class).setParent(originalImage.getParent());
 
 				} catch (IOException | FrameworkException ex) {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.storage;
 
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.StorageConfiguration;
 
 import javax.activation.DataSource;
 import java.io.InputStream;
@@ -27,10 +28,7 @@ import java.nio.channels.SeekableByteChannel;
 import java.nio.file.OpenOption;
 import java.util.Set;
 
-import org.structr.web.entity.StorageConfiguration;
-
 import static java.nio.file.StandardOpenOption.*;
-import static java.nio.file.StandardOpenOption.SYNC;
 
 public interface StorageProvider extends DataSource {
 
@@ -51,7 +49,7 @@ public interface StorageProvider extends DataSource {
 	OutputStream getOutputStream(final boolean append);
 
 	default SeekableByteChannel getSeekableByteChannel() {
-		return getSeekableByteChannel(new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC)));
+		return getSeekableByteChannel(new java.util.HashSet<OpenOption>(Set.of(CREATE, READ, WRITE, SYNC)));
 	}
 
 	SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options);

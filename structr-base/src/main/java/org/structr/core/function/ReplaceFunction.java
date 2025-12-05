@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,10 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.Scripting;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -30,16 +34,14 @@ import java.util.List;
 
 public class ReplaceFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_REPLACE = "Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}";
-
 	@Override
 	public String getName() {
 		return "replace";
 	}
 
 	@Override
-	public String getSignature() {
-		return "template, entity";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("template, entity");
 	}
 
 	@Override
@@ -88,12 +90,48 @@ public class ReplaceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_REPLACE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.replace(template, source)}}."),
+			Usage.structrScript("Usage: ${replace(template, source)}. Example: ${replace(\"${this.id}\", this)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Replaces script expressions in the given template with values from the given entity";
+	public String getShortDescription() {
+		return "Replaces script expressions in the given template with values from the given entity.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function can be used to evaluate template expressions in database objects, for example to create customized e-mails etc.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${replace('Welcome, ${this.name}!', me)}"),
+				Example.javaScript("""
+						${{ $.replace('Welcome, ${this.name}!', $.me) }}
+						> Welcome, admin!
+						""")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"Allowing user input to be evaluated in a template expression poses a security risk. You have no control over what the user can do!"
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("template", "template for replacement"),
+				Parameter.optional("entity", "target object")
+				);
+	}
+
 }

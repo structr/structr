@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NumberToken;
+import org.structr.common.error.NumberFormatToken;
+import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
@@ -42,6 +43,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 	public LongProperty(final String name) {
 		super(name);
+	}
+
+	public LongProperty(final String name, final String dbName) {
+		super(name, dbName);
 	}
 
 	@Override
@@ -70,7 +75,7 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 	}
 
 	@Override
-	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, Long> inputConverter(SecurityContext securityContext, boolean fromString) {
 		return new InputConverter(securityContext);
 	}
 
@@ -113,7 +118,10 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), LongProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringTrait.getLabel(), jsonName(), source)
+					);
 				}
 			}
 
@@ -145,6 +153,11 @@ public class LongProperty extends AbstractPrimitiveProperty<Long> implements Num
 		}
 
 		return null;
+	}
+
+	@Override
+	public boolean isArray() {
+		return false;
 	}
 
 	@Override

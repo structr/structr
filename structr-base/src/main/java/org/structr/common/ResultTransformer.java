@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,8 +30,8 @@ public interface ResultTransformer {
 
 	String getSourceType();
 
-	ResultStream transformOutput(final SecurityContext securityContext, final Class sourceType, final ResultStream result) throws FrameworkException;
-	void transformInput(final SecurityContext securityContext, final Class type, final Map<String, Object> propertySet) throws FrameworkException;
+	ResultStream transformOutput(final SecurityContext securityContext, final String sourceType, final ResultStream result) throws FrameworkException;
+	void transformInput(final SecurityContext securityContext, final String type, final Map<String, Object> propertySet) throws FrameworkException;
 
 	boolean isPrimitiveArray();
 }

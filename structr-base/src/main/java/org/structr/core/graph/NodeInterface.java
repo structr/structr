@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,84 +18,78 @@
  */
 package org.structr.core.graph;
 
+import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.*;
+import org.structr.common.AccessControllable;
+import org.structr.common.Permission;
+import org.structr.common.Permissions;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.*;
-import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.property.*;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.Security;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
 
-import java.util.HashSet;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
-public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
+public interface NodeInterface extends GraphObject, Comparable<NodeInterface> {
 
-	// properties
-	public static final Property<String>              name         = new StringProperty("name").indexed().partOfBuiltInSchema();
-	public static final Property<Boolean>             hidden       = new BooleanProperty("hidden").indexed().partOfBuiltInSchema();
-
-	public static final Property<Principal>           owner        = new StartNode<>("owner", PrincipalOwnsNode.class).partOfBuiltInSchema();
-	public static final Property<String>              ownerId      = new EntityIdProperty("ownerId", owner).partOfBuiltInSchema();
-
-	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
-	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
-
-	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final long sourceTransactionId);
-
-	void onNodeCreation();
+	void onNodeCreation(final SecurityContext securityContext) throws FrameworkException;
 	void onNodeInstantiation(final boolean isCreation);
 	void onNodeDeletion(SecurityContext securityContext) throws FrameworkException;
 
 	Node getNode();
 
+	boolean isDeleted();
+
 	String getName();
+	void setName(final String name) throws FrameworkException;
+	Object getPath(final SecurityContext securityContext);
 
 	boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
-	<R extends AbstractRelationship> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
+	RelationshipInterface getRelationshipTo(final RelationshipType type, final NodeInterface targetNode);
 
-	<R extends AbstractRelationship> Iterable<R> getRelationships();
-	<R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser();
+	Iterable<RelationshipInterface> getRelationships();
+	Iterable<RelationshipInterface> getRelationshipsAsSuperUser();
+	Iterable<RelationshipInterface> getRelationshipsAsSuperUser(final String type);
 
-	<R extends AbstractRelationship> Iterable<R> getIncomingRelationships();
-	<R extends AbstractRelationship> Iterable<R> getOutgoingRelationships();
+	Iterable<RelationshipInterface> getIncomingRelationships();
+	Iterable<RelationshipInterface> getOutgoingRelationships();
 
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target> boolean hasRelationship(final Class<? extends Relation<A, B, S, T>> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type);
+	boolean hasRelationship(final String type);
+	boolean hasIncomingRelationships(final String type);
+	boolean hasOutgoingRelationships(final String type);
 
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> Iterable<R> getRelationships(final Class<R> type);
+	Iterable<RelationshipInterface> getRelationships(final String type);
 
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationship(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, OneStartpoint<A>, T>> R getIncomingRelationshipAsSuperUser(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationships(final Class<R> type);
+	RelationshipInterface getIncomingRelationship(final String type);
+	RelationshipInterface getIncomingRelationshipAsSuperUser(final String type);
+	Iterable<RelationshipInterface> getIncomingRelationships(final String type);
+	Iterable<RelationshipInterface> getIncomingRelationshipsAsSuperUser(final String type, final Predicate<GraphObject> predicate);
 
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationship(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, OneEndpoint<B>>> R getOutgoingRelationshipAsSuperUser(final Class<R> type);
-	<A extends NodeInterface, B extends NodeInterface, S extends Source, R extends Relation<A, B, S, ManyEndpoint<B>>> Iterable<R> getOutgoingRelationships(final Class<R> type);
+	RelationshipInterface getOutgoingRelationship(final String type);
+	RelationshipInterface getOutgoingRelationshipAsSuperUser(final String type);
+	Iterable<RelationshipInterface> getOutgoingRelationships(final String type);
 
 	void setRawPathSegmentId(final Identity pathSegmentId);
 
-	List<Security> getSecurityRelationships();
+	Map<String, Object> getTemporaryStorage();
 
-	public Map<String, Object> getTemporaryStorage();
-
-	default public void visitForUsage(final Map<String, Object> data) {
-
-		data.put("id",   getUuid());
-		data.put("type", getClass().getSimpleName());
-	}
+	void visitForUsage(final Map<String, Object> data);
 
 	default void copyPermissionsTo(final SecurityContext ctx, final NodeInterface targetNode, final boolean overwrite) throws FrameworkException {
 
-		for (final Security security : this.getIncomingRelationships(Security.class)) {
+		for (final RelationshipInterface rel : this.getIncomingRelationships(StructrTraits.SECURITY)) {
 
-			final Set<Permission> permissions = new HashSet();
-			final Principal principal         = security.getSourceNode();
+			final Set<Permission> permissions = new LinkedHashSet<>();
+			final Security security           = rel.as(Security.class);
+			final NodeInterface sourceNode    = rel.getSourceNode();
+			final Principal principal         = sourceNode.as(Principal.class);
 
 			for (final String perm : security.getPermissions()) {
 
@@ -104,12 +98,70 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 			if (overwrite) {
 
-				targetNode.setAllowed(permissions, principal, ctx);
+				targetNode.as(AccessControllable.class).setAllowed(permissions, principal, ctx);
 
 			} else {
 
-				targetNode.grant(permissions, principal, ctx);
+				targetNode.as(AccessControllable.class).grant(permissions, principal, ctx);
 			}
 		}
 	}
+
+	default void prefetchPropertySet(final Iterable<PropertyKey> keys) {
+
+		/* disabled because it's buggy and doesn't improve the performance much
+		final Set<String> outgoingKeys     = new LinkedHashSet<>();
+		final Set<String> incomingKeys     = new LinkedHashSet<>();
+		final Set<String> outgoingRelTypes = new LinkedHashSet<>();
+		final Set<String> incomingRelTypes = new LinkedHashSet<>();
+		final Class type                   = getClass();
+		final String uuid                  = getUuid();
+
+		for (final PropertyKey key : keys) {
+
+			if (key instanceof RelationProperty<?> r) {
+
+				final Relation rel   = r.getRelation();
+				final Direction dir  = rel.getDirectionForType(type);
+				final String relType = rel.name();
+
+				switch (dir) {
+
+					case OUTGOING -> {
+						outgoingKeys.add("all/OUTGOING/" + relType);
+						outgoingRelTypes.add(relType);
+					}
+
+					case INCOMING -> {
+						incomingKeys.add("all/INCOMING/" + relType);
+						incomingRelTypes.add(relType);
+					}
+				}
+			}
+		}
+
+		if (outgoingRelTypes.size() > 1) {
+
+			TransactionCommand.getCurrentTransaction().prefetch2(
+				"MATCH (n:NodeInterface { id: $id })-[r:" + StringUtils.join(outgoingRelTypes, "|") + "*0..1]->(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+				outgoingKeys,
+				outgoingKeys,
+				uuid
+			);
+
+		}
+
+		if (incomingRelTypes.size() > 1) {
+
+			TransactionCommand.getCurrentTransaction().prefetch2(
+				"MATCH (n:NodeInterface { id: $id })<-[r:" + StringUtils.join(incomingRelTypes, "|") + "*0..1]-(x) WITH collect(DISTINCT x) AS nodes, collect(DISTINCT last(r)) AS rels RETURN nodes, rels",
+				incomingKeys,
+				incomingKeys,
+				uuid
+			);
+
+		}
+		*/
+	}
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,12 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
- * Indicates that a property is internal, system-only
- *
- *
+ * Indicates that a property is internal, system-only.
  */
 public class InternalSystemPropertyToken extends SemanticErrorToken {
 
-	public InternalSystemPropertyToken(final String type, final PropertyKey propertyKey) {
+	public InternalSystemPropertyToken(final String type, final String propertyKey) {
 		super(type, propertyKey, "is_system_property");
 	}
 }

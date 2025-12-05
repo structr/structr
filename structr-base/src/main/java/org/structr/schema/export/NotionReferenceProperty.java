@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -27,6 +27,9 @@ import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.SchemaPropertyTraitDefinition;
 import org.structr.schema.SchemaHelper;
 
 import java.net.URI;
@@ -69,10 +72,11 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
 		final SchemaProperty property      = super.createDatabaseSchema(app, schemaNode);
+		final Traits traits                = Traits.of(StructrTraits.SCHEMA_PROPERTY);
 		final PropertyMap createProperties = new PropertyMap();
 
-		createProperties.put(SchemaProperty.format, referenceName + ", " + StringUtils.join(properties, ", "));
-		createProperties.put(SchemaProperty.propertyType, SchemaHelper.Type.Notion.name());
+		createProperties.put(traits.key(SchemaPropertyTraitDefinition.FORMAT_PROPERTY), referenceName + ", " + StringUtils.join(properties, ", "));
+		createProperties.put(traits.key(SchemaPropertyTraitDefinition.PROPERTY_TYPE_PROPERTY), SchemaHelper.Type.Notion.name());
 
 		property.setProperties(SecurityContext.getSuperUserInstance(), createProperties);
 

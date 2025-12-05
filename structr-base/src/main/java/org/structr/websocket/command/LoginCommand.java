@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,9 +30,10 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.*;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.schema.action.ActionContext;
@@ -67,12 +68,13 @@ public class LoginCommand extends AbstractCommand {
 
 		boolean sendSuccess = false;
 		Principal user      = null;
+		long userId         = -1L;
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
 			String username             = webSocketData.getNodeDataStringValue("username");
-			final String password       = webSocketData.getNodeDataStringValue("password");
-			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
+			final String password       = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.PASSWORD_PROPERTY);
+			final String twoFactorToken = webSocketData.getNodeDataStringValue(PrincipalTraitDefinition.TWO_FACTOR_TOKEN_PROPERTY);
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
 
 
@@ -102,7 +104,7 @@ public class LoginCommand extends AbstractCommand {
 					getWebSocket().send(MessageBuilder.status().code(403).build(), false);
 				}
 
-				if (user != null) {
+				if (user != null && !(user instanceof SuperUser)) {
 
 					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
 
@@ -113,7 +115,7 @@ public class LoginCommand extends AbstractCommand {
 						String sessionId = webSocketData.getSessionId();
 						if (sessionId == null) {
 
-							logger.debug("Unable to login {}: No sessionId found", new Object[]{ username, password });
+							logger.debug("Unable to login {}: No sessionId found", username, password);
 							getWebSocket().send(MessageBuilder.status().code(403).build(), true);
 
 						} else {
@@ -125,7 +127,7 @@ public class LoginCommand extends AbstractCommand {
 
 							if (!user.addSessionId(sessionId)) {
 
-								logger.debug("Unable to login {}: Unable to add new sessionId", new Object[]{ username, password });
+								logger.debug("Unable to login {}: Unable to add new sessionId", username, password);
 								getWebSocket().send(MessageBuilder.status().code(403).data("reason", "sessionLimitExceeded").build(), true);
 
 							} else {
@@ -136,7 +138,7 @@ public class LoginCommand extends AbstractCommand {
 								// store token in response data
 								webSocketData.getNodeData().clear();
 								webSocketData.setSessionId(sessionId);
-								webSocketData.getNodeData().put("username", user.getProperty(AbstractNode.name));
+								webSocketData.getNodeData().put("username", user.getName());
 
 								// authenticate socket
 								getWebSocket().setAuthenticated(sessionId, user);
@@ -149,10 +151,12 @@ public class LoginCommand extends AbstractCommand {
 						}
 					}
 
+					// fixme: really?
+					userId = user.getNode().getId().getId();
+
 				} else {
 
-					getWebSocket().send(MessageBuilder.status().code(401).build(), true);
-
+					throw new AuthenticationException(AuthHelper.STANDARD_ERROR_MSG);
 				}
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
@@ -175,7 +179,7 @@ public class LoginCommand extends AbstractCommand {
 						hints.put("MARGIN", 0);
 						hints.put("ERROR_CORRECTION", "M");
 
-						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(Principal.getTwoFactorUrl(principal), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
+						final String qrdata = Base64.getEncoder().encodeToString(BarcodeFunction.getQRCode(principal.getTwoFactorUrl(), "QR_CODE", 200, 200, hints).getBytes("ISO-8859-1"));
 
 						msg.data("qrdata", qrdata);
 
@@ -204,7 +208,7 @@ public class LoginCommand extends AbstractCommand {
 		if (sendSuccess) {
 
 			// send broadcast to cluster members to refresh user from db
-			Services.getInstance().broadcastLogin(user);
+			Services.getInstance().broadcastLogin(userId);
 
 			getWebSocket().send(webSocketData, false);
 		}

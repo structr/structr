@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import java.security.Principal;
 import java.util.*;
 
 public class HttpServletRequestWrapper implements HttpServletRequest {
+
 	private final HttpServletRequest request;
 	private final String url;
 
@@ -106,12 +107,6 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 			}
 		}
 
-		for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
-
-			parameterMap.computeIfAbsent(entry.getKey(), k -> entry.getValue());
-		}
-
-
 		return parameterMap;
 	}
 
@@ -181,11 +176,6 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 	}
 
 	@Override
-	public String getRealPath(String s) {
-		return request.getRealPath(s);
-	}
-
-	@Override
 	public int getRemotePort() {
 		return request.getRemotePort();
 	}
@@ -238,6 +228,22 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 	@Override
 	public DispatcherType getDispatcherType() {
 		return request.getDispatcherType();
+	}
+
+	@Override
+	public String getRequestId() {
+		return request.getRequestId();
+	}
+
+	@Override
+	public String getProtocolRequestId() {
+
+		return request.getProtocolRequestId();
+	}
+
+	@Override
+	public ServletConnection getServletConnection() {
+		return request.getServletConnection();
 	}
 
 	@Override
@@ -362,11 +368,6 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public boolean isRequestedSessionIdFromURL() {
-		return request.isRequestedSessionIdFromURL();
-	}
-
-	@Override
-	public boolean isRequestedSessionIdFromUrl() {
 		return request.isRequestedSessionIdFromURL();
 	}
 

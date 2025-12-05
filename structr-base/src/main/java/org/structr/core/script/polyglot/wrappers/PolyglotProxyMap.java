@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -64,7 +64,6 @@ public class PolyglotProxyMap implements ProxyObject {
 			if (unwrappedValue == null) {
 
 				map.remove(key);
-
 			} else {
 
 				map.put(key, unwrappedValue);

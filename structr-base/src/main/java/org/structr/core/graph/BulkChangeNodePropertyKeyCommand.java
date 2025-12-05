@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,10 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+import org.structr.docs.*;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -54,30 +54,30 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 		if (StringUtils.isNotBlank(oldKey) && StringUtils.isNotBlank(newKey)) {
 
-			if (properties.containsKey(AbstractNode.type.dbName())) {
+			if (properties.containsKey("type")) {
 
-				type = (String) properties.get(AbstractNode.type.dbName());
+				type = (String) properties.get("type");
 
-				properties.remove(AbstractNode.type.dbName());
+				properties.remove("type");
 			}
 
-			final long count = bulkGraphOperation(securityContext, getNodeQuery(type, true), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<AbstractNode>() {
+			final long count = bulkGraphOperation(securityContext, getNodeQuery(type, true), 1000, "ChangeNodePropertyKey", new BulkGraphOperation<NodeInterface>() {
 
 				@Override
-				public boolean handleGraphObject(SecurityContext securityContext, AbstractNode node) {
+				public boolean handleGraphObject(SecurityContext securityContext, NodeInterface node) {
 
 					for (Entry entry : properties.entrySet()) {
 
 						String key = (String) entry.getKey();
 
-						PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+						PropertyKey propertyKey = node.getTraits().key(key);
 						if (propertyKey != null) {
 
 							Node dbNode = node.getNode();
 
 							if (dbNode.hasProperty(newKey)) {
 
-								logger.error("Node {} has already a property with key {}", new Object[] { node, newKey });
+								logger.error("Node {} has already a property with key {}", node, newKey);
 								throw new IllegalStateException("Node has already a property of the new key");
 
 							}
@@ -95,8 +95,8 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 				}
 
 				@Override
-				public void handleThrowable(SecurityContext securityContext, Throwable t, AbstractNode node) {
-					logger.warn("Unable to set properties of node {}: {}", new Object[] { node.getUuid(), t.getMessage() } );
+				public void handleThrowable(SecurityContext securityContext, Throwable t, NodeInterface node) {
+					logger.warn("Unable to set properties of node {}: {}", node.getUuid(), t.getMessage());
 				}
 
 				@Override
@@ -125,5 +125,60 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 	@Override
 	public boolean requiresFlushingOfCaches() {
 		return false;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.MaintenanceCommand;
+	}
+
+	@Override
+	public String getName() {
+		return "changeNodePropertyKey";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Migrates property values from one property key to another.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This command can for example be used to move all name values to a description property.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("oldKey", "source key"),
+			Parameter.mandatory("newKey", "target key")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
 	}
 }

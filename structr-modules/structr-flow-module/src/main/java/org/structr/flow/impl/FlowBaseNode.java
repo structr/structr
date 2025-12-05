@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,46 +18,53 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.flow.impl.rels.FlowContainerBaseNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.traits.definitions.FlowBaseNodeTraitDefinition;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
 import java.util.Map;
 
-/**
- */
-public abstract class FlowBaseNode extends AbstractNode implements DeployableEntity {
+public class FlowBaseNode extends AbstractNodeTraitWrapper implements DeployableEntity {
 
-	public static final Property<FlowContainer> flowContainer = new StartNode<>("flowContainer", FlowContainerBaseNode.class).indexed();
-
-	public static final View defaultView = new View(FlowContainer.class, PropertyView.Public);
-	public static final View uiView      = new View(FlowContainer.class, PropertyView.Ui, flowContainer);
-
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		super.onCreation(securityContext, errorBuffer);
-
-		this.setProperty(visibleToAuthenticatedUsers, true);
-		this.setProperty(visibleToPublicUsers, true);
+	public FlowBaseNode(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	@Override
+	public final FlowDataSource getDataSource() {
+
+		final NodeInterface dataSource = wrappedObject.getProperty(traits.key(FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY));
+		if (dataSource != null) {
+
+			return dataSource.as(FlowDataSource.class);
+		}
+
+		return null;
+	}
+
+	public final FlowContainer getFlowContainer() {
+
+		final NodeInterface node = wrappedObject.getProperty(traits.key(FlowBaseNodeTraitDefinition.FLOW_CONTAINER_PROPERTY));
+		if (node != null) {
+
+			return node.as(FlowContainer.class);
+		}
+
+		return null;
+	}
+
+	public final void setDataSource(final FlowDataSource dataSource) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowBaseNodeTraitDefinition.DATA_SOURCE_PROPERTY), dataSource);
+	}
+
+	public final void setFlowContainer(final FlowContainer flowContainer) throws FrameworkException {
+		wrappedObject.setProperty(traits.key(FlowBaseNodeTraitDefinition.FLOW_CONTAINER_PROPERTY), flowContainer);
+	}
+
 	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
-
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
-		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
-
-		return result;
+		return traits.getMethod(GetExportData.class).getExportData(this);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,17 +22,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.search.Occurrence;
-import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.graph.search.ArraySearchAttribute;
-import org.structr.core.graph.search.SearchAttribute;
-import org.structr.core.graph.search.SearchAttributeGroup;
-import org.structr.schema.parser.DatePropertyParser;
+import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -42,70 +36,41 @@ import java.util.*;
  *
  *
  */
-public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
+public class DateArrayProperty extends ArrayProperty<Date> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DateArrayProperty.class.getName());
 
 	public DateArrayProperty(final String name) {
-		super(name);
-		this.format = getDefaultFormat();
+		this(name, name);
 	}
 
 	public DateArrayProperty(final String jsonName, final String dbName) {
-		super(jsonName, dbName);
+
+		super(jsonName, Date.class);
+
+		dbName(dbName);
+
 		this.format = getDefaultFormat();
-	}
-
-	public DateArrayProperty(final String jsonName, final String dbName, final String format) {
-		super(jsonName);
-
-		if (StringUtils.isNotBlank(format)) {
-			this.format = format;
-		} else {
-			this.format = getDefaultFormat();
-		}
 	}
 
 	@Override
 	public Object fixDatabaseProperty(Object value) {
-
 		return value;
 	}
 
 	@Override
-	public String typeName() {
-		return "Date[]";
-	}
-
-	@Override
-	public Class valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + Date.class.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
-
-		return Date.class;
-	}
-
-	@Override
-	public SortType getSortType() {
-		return SortType.Default;
-	}
-
-	@Override
-	public PropertyConverter<Date[], Long[]> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<Date[], Long[]> databaseConverter(final SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Date[], Long[]> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<Date[], Long[]> databaseConverter(final SecurityContext securityContext, final GraphObject entity) {
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, Date[]> inputConverter(SecurityContext securityContext) {
-		return new ArrayInputConverter(securityContext);
+	public PropertyConverter<?, Date[]> inputConverter(final SecurityContext securityContext, final boolean fromString) {
+		return new ArrayInputConverter(securityContext, fromString);
 	}
 
 	private class ArrayDatabaseConverter extends PropertyConverter<Date[], Long[]> {
@@ -134,29 +99,39 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 			}
 
 			return null;
-
 		}
 	}
 
 	private class ArrayInputConverter extends PropertyConverter<Object, Date[]> {
 
-		public ArrayInputConverter(SecurityContext securityContext) {
+		private final boolean fromString;
+
+		public ArrayInputConverter(final SecurityContext securityContext, final boolean fromString) {
 			super(securityContext, null);
+			this.fromString = fromString;
 		}
 
 		@Override
-		public Object revert(Date[] source) throws FrameworkException {
+		public Object revert(final Date[] source) throws FrameworkException {
 
 			final ArrayList<String> result = new ArrayList<>();
-			for (final Date o : source) {
-				result.add(DatePropertyParser.format(o, format));
+
+			if (source != null) {
+
+				for (final Date o : source) {
+
+					if (o != null) {
+
+						result.add(DatePropertyGenerator.format(o, format));
+					}
+				}
 			}
 
 			return result;
 		}
 
 		@Override
-		public Date[] convert(Object source) throws FrameworkException {
+		public Date[] convert(final Object source) throws FrameworkException {
 
 			if (source == null) {
 				return null;
@@ -170,47 +145,30 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 				return convert(Arrays.asList((Date[])source));
 			}
 
-			if (source instanceof String) {
+			if (!fromString) {
 
-				final String s = (String)source;
-				if (s.contains(",")) {
+				throw new ClassCastException();
 
-					return DateArrayProperty.this.convert(Arrays.asList(s.split(",")));
+			} else {
+
+				if (source instanceof String) {
+
+					final String s = (String) source;
+					if (s.contains(",")) {
+
+						return DateArrayProperty.this.convert(Arrays.asList(s.split(",")));
+					}
+
+					// special handling of empty search attribute
+					if (StringUtils.isBlank(s)) {
+						return null;
+					}
+
 				}
 
-				// special handling of empty search attribute
-				if (StringUtils.isBlank(s)) {
-					return null;
-				}
-
+				return new Date[]{DatePropertyGenerator.parse(source.toString(), format)};
 			}
-
-			return (Date[])new Date[] { DatePropertyParser.parse(source.toString(), format) };
 		}
-
-	}
-
-	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Date[] searchValue, boolean exactMatch, Query query) {
-
-		// early exit, return empty search attribute
-		if (searchValue == null) {
-			return new ArraySearchAttribute(this, "", exactMatch ? occur : Occurrence.OPTIONAL, exactMatch);
-		}
-
-		final SearchAttributeGroup group = new SearchAttributeGroup(occur);
-
-		for (Date value : searchValue) {
-
-			group.add(new ArraySearchAttribute(this, value, exactMatch ? occur : Occurrence.OPTIONAL, exactMatch));
-		}
-
-		return group;
-	}
-
-	@Override
-	public boolean isCollection() {
-		return true;
 	}
 
 	// ----- private methods -----
@@ -220,10 +178,18 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 		for (final Long o : source) {
 
+			if (o == null) {
+				continue;
+			}
+
 			result.add(new Date(o));
 		}
 
-		return (Date[])result.toArray(new Date[result.size()]);
+		if (result.isEmpty()) {
+			return null;
+		}
+
+		return result.toArray(new Date[result.size()]);
 	}
 
 	private Long[] convertDateArrayToLongArray(final Date[] source) {
@@ -232,10 +198,19 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 		for (final Date o : source) {
 
+			// skip unparseable dates
+			if (o == null) {
+				continue;
+			}
+
 			result.add(o.getTime());
 		}
 
-		return (Long[])result.toArray(new Long[result.size()]);
+		if (result.isEmpty()) {
+			return null;
+		}
+
+		return result.toArray(new Long[result.size()]);
 	}
 
 	private Date[] convert(final List source) {
@@ -244,22 +219,26 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 		for (final Object o : source) {
 
+			// skip unparseable dates
+			if (o == null) {
+				continue;
+			}
+
 			if (o instanceof Date) {
 
 				result.add((Date)o);
 
 			} else if (o != null) {
 
-				result.add(DatePropertyParser.parse(o.toString(), format));
-
-			} else {
-
-				// dont know
-				throw new IllegalStateException("Conversion of array type failed.");
+				result.add(DatePropertyGenerator.parse(o.toString(), format));
 			}
 		}
 
-		return (Date[])result.toArray(new Date[0]);
+		if (result.isEmpty())  {
+			return null;
+		}
+
+		return result.toArray(new Date[0]);
 	}
 
 	// ----- OpenAPI -----

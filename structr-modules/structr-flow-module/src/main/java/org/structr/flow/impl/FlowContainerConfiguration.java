@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,52 +18,29 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
-import org.structr.flow.impl.rels.FlowActiveContainerConfiguration;
-import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
+import java.util.Map;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.wrappers.AbstractNodeTraitWrapper;
+import org.structr.flow.traits.definitions.FlowContainerConfigurationTraitDefinition;
+import org.structr.flow.traits.operations.GetExportData;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.HashMap;
-import java.util.Map;
+public class FlowContainerConfiguration extends AbstractNodeTraitWrapper implements DeployableEntity {
 
-public class FlowContainerConfiguration extends AbstractNode implements DeployableEntity {
-
-	public static final Property<FlowContainer> flow				= new EndNode<>("flow", FlowContainerConfigurationFlow.class);
-	public static final Property<FlowContainer> activeForFlow       = new EndNode<>("activeForFlow", FlowActiveContainerConfiguration.class);
-	public static final Property<String> validForEditor				= new StringProperty("validForEditor").indexed();
-	public static final Property<String> configJson            		= new StringProperty("configJson");
-
-	public static final View defaultView 							= new View(FlowAction.class, PropertyView.Public, validForEditor, configJson);
-	public static final View uiView      							= new View(FlowAction.class, PropertyView.Ui, flow, activeForFlow, validForEditor, configJson);
-
-	@Override
-	public Map<String, Object> exportData() {
-		Map<String, Object> result = new HashMap<>();
-
-		result.put("id", this.getUuid());
-		result.put("type", this.getClass().getSimpleName());
-		result.put("name", this.getName());
-		result.put("validForEditor", this.getProperty(validForEditor));
-		result.put("configJson", this.getProperty(configJson));
-		result.put("visibleToPublicUsers", true);
-		result.put("visibleToAuthenticatedUsers", true);
-
-		return result;
+	public FlowContainerConfiguration(final Traits traits, final NodeInterface wrappedObject) {
+		super(traits, wrappedObject);
 	}
 
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		super.onCreation(securityContext, errorBuffer);
+	public String getValidForEditor() {
+		return wrappedObject.getProperty(traits.key(FlowContainerConfigurationTraitDefinition.VALID_FOR_EDITOR_PROPERTY));
+	}
 
-		this.setProperty(visibleToAuthenticatedUsers, true);
-		this.setProperty(visibleToPublicUsers, true);
+	public String getConfigJson() {
+		return wrappedObject.getProperty(traits.key(FlowContainerConfigurationTraitDefinition.CONFIG_JSON_PROPERTY));
+	}
+
+	public Map<String, Object> exportData() {
+		return traits.getMethod(GetExportData.class).getExportData(this.as(FlowBaseNode.class));
 	}
 }

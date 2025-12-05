@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
+import org.structr.docs.*;
 
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
@@ -119,7 +121,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 			final Thread thread      = entry.getKey();
 			final long id            = thread.getId();
 
-			if (!stack.isEmpty()) {
+			if (!stack.isEmpty() || thread.getName().startsWith(DoInNewTransactionFunction.THREAD_NAME_PREFIX)) {
 
 				threads.add(Map.of(
 					"id",       id,
@@ -147,6 +149,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 		return threads;
 	}
 
+	@SuppressWarnings("deprecation")
 	private Object killThread() {
 
 		for (final Thread thread : Thread.getAllStackTraces().keySet()) {
@@ -154,7 +157,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 			if (thread.getId() == id) {
 
 				logger.info("Trying to kill thread {}..", id);
-				thread.stop();
+				thread.interrupt();
 			}
 		}
 
@@ -268,4 +271,55 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doHead"),          "REST HEAD"),
 		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doOptions"),       "REST OPTIONS")
 	);
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getName() {
+		return "";
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of();
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of();
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of();
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return List.of();
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of();
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of();
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,7 @@ package org.structr.api.search;
 
 public interface ComparisonQuery<T> extends QueryPredicate {
 
-	enum Operation {
+	enum Comparison {
 		equal,
 		notEqual,
 		greater,
@@ -34,11 +34,11 @@ public interface ComparisonQuery<T> extends QueryPredicate {
 		contains,
 		caseInsensitiveStartsWith,
 		caseInsensitiveEndsWith,
-		caseInsensitiveContains
-
+		caseInsensitiveContains,
+		matches
 	}
 
 	T getSearchValue();
-	Operation getOperation();
+	Comparison getComparison();
 
 }

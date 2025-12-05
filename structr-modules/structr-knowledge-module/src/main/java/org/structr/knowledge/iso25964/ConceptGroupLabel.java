@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,39 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.knowledge.iso25964.relationship.ConceptGrouphasConceptGroupLabelConceptGroupLabel;
 
-import java.net.URI;
-import java.util.Locale;
+import java.util.Date;
 
 /**
  * Class as defined in ISO 25964 data model
  */
-public interface ConceptGroupLabel extends NodeInterface {
+public class ConceptGroupLabel extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<ConceptGroup> conceptGroupProperty = new StartNode<>("conceptGroup", ConceptGrouphasConceptGroupLabelConceptGroupLabel.class);
 
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("ConceptGroupLabel");
+	public static final Property<String> lexicalValueProperty = new StringProperty("lexicalValue").indexed().notNull();
+	public static final Property<Date> createdProperty = new DateProperty("created");
+	public static final Property<Date> modifiedProperty = new DateProperty("modified");
+	public static final Property<String> langProperty = new EnumProperty("lang", ThesaurusTerm.Lang.class);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/ConceptGroupLabel"));
+	public static final View uiView      = new View(ConceptGroupLabel.class, PropertyView.Ui,
+		lexicalValueProperty, createdProperty, modifiedProperty, langProperty
+	);
 
-		type.addStringProperty("lexicalValue", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("modified", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages());
-	}}
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
+
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidPropertyNotNull(this, ConceptGroupLabel.lexicalValueProperty, errorBuffer);
+
+		return valid;
+	}
 }

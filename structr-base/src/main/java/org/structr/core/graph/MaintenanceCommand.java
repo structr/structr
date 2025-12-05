@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Documentable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -33,22 +34,23 @@ import java.util.Map;
  *
  *
  */
-public interface MaintenanceCommand {
+public interface MaintenanceCommand extends Documentable {
 
-	final static String COMMAND_TYPE_KEY         = "type";
-	final static String COMMAND_SUBTYPE_KEY      = "subtype";
-	final static String COMMAND_TITLE_KEY        = "title";
-	final static String COMMAND_MESSAGE_KEY      = "message";
+	String COMMAND_TYPE_KEY         = "type";
+	String COMMAND_SUBTYPE_KEY      = "subtype";
+	String COMMAND_TITLE_KEY        = "title";
+	String COMMAND_MESSAGE_KEY      = "message";
 
-	final static String COMMAND_SUBTYPE_BEGIN    = "BEGIN";
-	final static String COMMAND_SUBTYPE_PROGRESS = "PROGRESS";
-	final static String COMMAND_SUBTYPE_END      = "END";
-	final static String COMMAND_SUBTYPE_WARNING  = "WARNING";
+	String COMMAND_SUBTYPE_BEGIN    = "BEGIN";
+	String COMMAND_SUBTYPE_PROGRESS = "PROGRESS";
+	String COMMAND_SUBTYPE_END      = "END";
+	String COMMAND_SUBTYPE_WARNING  = "WARNING";
+	String COMMAND_SUBTYPE_INFO     = "INFO";
 
-	public void execute(Map<String, Object> attributes) throws FrameworkException;
-	public boolean requiresEnclosingTransaction();
-	public boolean requiresFlushingOfCaches();
-	public Map<String, String> getCustomHeaders();
+	void execute(Map<String, Object> attributes) throws FrameworkException;
+	boolean requiresEnclosingTransaction();
+	boolean requiresFlushingOfCaches();
+	Map<String, String> getCustomHeaders();
 
 	default Object getCommandResult() {
 		return Collections.EMPTY_LIST;
@@ -73,10 +75,19 @@ public interface MaintenanceCommand {
 
 	default void publishProgressMessage (final String type, final String message) {
 
+		publishProgressMessage(type, message, null);
+	}
+
+	default void publishProgressMessage (final String type, final String message, final Map additionalInfo) {
+
 		final Map<String, Object> msgData = new HashMap();
 		msgData.put(COMMAND_TYPE_KEY,    type);
 		msgData.put(COMMAND_SUBTYPE_KEY, COMMAND_SUBTYPE_PROGRESS);
 		msgData.put(COMMAND_MESSAGE_KEY, message);
+
+		if (additionalInfo != null) {
+			msgData.putAll(additionalInfo);
+		}
 
 		TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 	}
@@ -98,6 +109,16 @@ public interface MaintenanceCommand {
 
 		final Map<String, Object> warningMsgData = new HashMap();
 		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_WARNING);
+		warningMsgData.put(COMMAND_TITLE_KEY,   title);
+		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
+
+		TransactionCommand.simpleBroadcastGenericMessage(warningMsgData, Predicate.all());
+	}
+
+	default void publishInfoMessage (final String title, final String text) {
+
+		final Map<String, Object> warningMsgData = new HashMap();
+		warningMsgData.put(COMMAND_TYPE_KEY,    COMMAND_SUBTYPE_INFO);
 		warningMsgData.put(COMMAND_TITLE_KEY,   title);
 		warningMsgData.put(COMMAND_MESSAGE_KEY, text);
 

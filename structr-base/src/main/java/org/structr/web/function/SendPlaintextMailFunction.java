@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,24 +19,28 @@
 package org.structr.web.function;
 
 import org.apache.commons.mail.EmailException;
-import org.structr.common.MailHelper;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.MailHelper;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_SEND_PLAINTEXT_MAIL = "Usage: ${send_plaintext_mail(fromAddress, fromName, toAddress, toName, subject, content)}.";
-
 	@Override
 	public String getName() {
-		return "send_plaintext_mail";
+		return "sendPlaintextMail";
 	}
 
 	@Override
-	public String getSignature() {
-		return "from, fromName, to, toName, subject, content";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("from, fromName, to, toName, subject, content");
 	}
 
 	@Override
@@ -77,12 +81,48 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_SEND_PLAINTEXT_MAIL;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{ $.sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content) }}."),
+			Usage.structrScript("Usage: ${sendPlaintextMail(fromAddress, fromName, toAddress, toName, subject, content)}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sends a plaintext e-mail";
+	public String getShortDescription() {
+		return "Sends a plaintext email.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"`textContent` is typically generated using the `template()` function.",
+				"Emails are sent based on the SMTP configuration defined in structr.conf.",
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mailBegin()`."
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("fromAddress", "sender address"),
+				Parameter.mandatory("fromName", "sender name"),
+				Parameter.mandatory("toAddress", "recipient address"),
+				Parameter.mandatory("toName", "recipient name"),
+				Parameter.mandatory("subject", "subject"),
+				Parameter.mandatory("textContent", "text content")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User', 'Welcome to Structr', 'Hi User, welcome to Structr!')}")
+		);
 	}
 }

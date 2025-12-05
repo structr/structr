@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -32,12 +32,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
+import org.structr.core.api.NamedArguments;
 import org.structr.core.entity.Principal;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.schema.action.EvaluationHints;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -210,13 +214,18 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	@Override
-	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
+	public void invokeOnLoginMethod(final Principal user) throws FrameworkException {
 
-		final Map<String, Object> methodParameters = new LinkedHashMap<>();
-		methodParameters.put("provider", this.provider);
-		methodParameters.put("userinfo", this.getUserInfo());
+		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), "onOAuthLogin");
+		if (method != null) {
 
-		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParameters, false, new EvaluationHints());
+			final NamedArguments arguments = new NamedArguments();
+
+			arguments.add("provider", this.provider);
+			arguments.add("userinfo", this.getUserInfo());
+
+			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
+		}
 	}
 
 	@Override

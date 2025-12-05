@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,29 +18,34 @@
  */
 package org.structr.api.config;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
-import org.apache.commons.configuration.ConfigurationException;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration2.PropertiesConfiguration;
+import org.apache.commons.configuration2.builder.FileBasedConfigurationBuilder;
+import org.apache.commons.configuration2.builder.fluent.Parameters;
+import org.apache.commons.configuration2.convert.DefaultListDelimiterHandler;
+import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.configuration2.io.FileHandler;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * The Structr configuration settings.
  */
 public class Settings {
 
+	private static String uuidOnlyRegex;
+	private static String uuidPartRegex;
 	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);
 
-	private static String uuidRegex;
 	private static Pattern uuidPattern;
 
 	public static final String ConfigFileName                 = "structr.conf";
@@ -49,6 +54,8 @@ public class Settings {
 	public static final String DEFAULT_REMOTE_DATABASE_DRIVER = "org.structr.bolt.BoltDatabaseService";
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
+
+	public static final String CRON_EXPRESSION_INFO_HTML      = "A cron expression is defined as <pre>&lt;s&gt; &lt;m&gt; &lt;h&gt; &lt;dom&gt; &lt;m&gt; &lt;dow&gt;</pre> It is similar to a normal cron expression but with a \"seconds\" field at the beginning. Search for \"cron\" or \"periodic task scheduler\" in the documentation to find more info and examples.";
 
 	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
 
@@ -71,13 +78,10 @@ public class Settings {
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
 	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");
-	public static final SettingsGroup ldapGroup               = new SettingsGroup("ldap",        "LDAP Settings");
 	public static final SettingsGroup miscGroup               = new SettingsGroup("misc",        "Miscellaneous");
 	public static final SettingsGroup licensingGroup          = new SettingsGroup("licensing",   "Licensing");
 
 	// general settings
-	public static final Setting<String> ReleasesIndexUrl            = new StringSetting(generalGroup,          "Application", "application.releases.index.url",               "https://structr.com/repositories/releases/org/structr/structr/index", "URL with release index (list of version strings for Structr releases)");
-	public static final Setting<String> SnapshotsIndexUrl           = new StringSetting(generalGroup,          "Application", "application.snapshots.index.url",              "https://structr.com/repositories/snapshots/org/structr/structr/index", "URL with snapshot index (list of version strings for Structr unstable builds)");
 	public static final Setting<String> ApplicationTitle            = new StringSetting(generalGroup,          "Application", "application.title",                            "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
 	public static final Setting<String> InstanceName                = new StringSetting(generalGroup,          "Application", "application.instance.name",                    "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> InstanceStage               = new StringSetting(generalGroup,          "Application", "application.instance.stage",                   "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
@@ -86,42 +90,51 @@ public class Settings {
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
 
+    public static final Setting<String> JavaHeapMin                 = new StringSetting(generalGroup, "Application", "application.heap.min_size", "1g", "Minimum Java heap size (-Xms). Examples: 512m, 1g, 2g. Note: Changes require a restart of Structr.");
+    public static final Setting<String> JavaHeapMax                 = new StringSetting(generalGroup, "Application", "application.heap.max_size", "4g", "Maximum Java heap size (-Xmx). Examples: 2g, 4g, 8g. Note: Changes require a restart of Structr.");
+    public static final Setting<String> ApplicationTimezone         = new StringSetting(generalGroup, "Application", "application.timezone", "", "Application timezone (e.g. UTC, Europe/Berlin). If not set, falls back to system timezone or UTC. Note: Changes require a restart of Structr.");
+
 	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Settings.getAllowedUUIDv4FormatOptions(), """
   		Configures which UUIDv4 types are allowed: With dashes, without dashes or both.<br>
-  		<br><strong>WARNING</strong>: Allowing both UUIDv4 formats to be accepted is dangerous strongly recommended against! This should be a last resort for temporary migration scenarios!<br> 
-  		<br><strong>WARNING</strong>: If changed after some data was already created, this could prevent access to data objects. Only change configure setting with an empty database.<br>
-  		<br><strong>INFO</strong>: Requires a restart.
+  		<br><strong>WARNING</strong>: Allowing both UUIDv4 formats to be accepted is not supported and strongly recommended against! It should only be used for temporary migration scenarios!<br>
+  		<br><strong>WARNING</strong>: If changed after data was already created, this could prevent access to data objects. Only change this setting with an empty database.<br>
+  		<br><strong>INFO</strong>: Requires a restart to take effect.
 	""");
-	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines how UUIDs are created, either with or without dashes.<br><br><strong>WARNING</strong>: If configured so that the created UUIDs do not comply with an allowed format, then structr will not start.<br><strong>WARNING</strong>: Requires a restart.");
+	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines if UUIDs are created with or without dashes. This setting is only used if <strong>" + Settings.UUIDv4AllowedFormats.getKey() + "</strong> is set to <strong>" + POSSIBLE_UUID_V4_FORMATS.both.toString() + "</strong>.<br><br><strong>WARNING</strong>: Requires a restart to take effect.");
+	public static final Setting<String> EmailValidationRegex        = new StringSetting(generalGroup,          "Application", "application.email.validation.regex", "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,}$", "Regular expression used to validate email addresses for User.eMail and is_valid_email() function.");
+	private static Pattern emailValidationPattern = Pattern.compile(Settings.EmailValidationRegex.getValue());
 
 	// scripting related settings
-	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
+	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false,"Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
+	public static final Setting<Boolean> WrapJSInMainFunction       = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.js.wrapinmainfunction",  false,"Forces js scripts to be wrapped in a main function for legacy behaviour.");
+
+	public static final Setting<String> AllowedHostClasses          = new StringSetting(generalGroup,          "Scripting",   "application.scripting.allowedhostclasses",     "", "Space-separated list of fully-qualified Java class names that you can load dynamically in a scripting environment.");
 
 	// clustering
 	public static final Setting<Boolean> ClusterModeEnabled            = new BooleanSetting(generalGroup,         "Application", "application.cluster.enabled",                  false, "Enables cluster mode (experimental)");
-	public static final Setting<String> ClusterName                   = new StringSetting(generalGroup,          "Application", "application.cluster.name",                    "structr", "The name of the Structr cluster");
-	public static final Setting<Boolean> ClusterDebugLogEnabled       = new BooleanSetting(generalGroup,         "Application", "application.cluster.log.enabled",                  false, "Enables debug logging for cluster mode communication");
+	public static final Setting<String> ClusterName                    = new StringSetting(generalGroup,          "Application", "application.cluster.name",                    "structr", "The name of the Structr cluster");
+	public static final Setting<Boolean> ClusterDebugLogEnabled        = new BooleanSetting(generalGroup,         "Application", "application.cluster.log.enabled",                  false, "Enables debug logging for cluster mode communication");
+
+	// stats
+	public static final Setting<Integer> HttpStatsAggregationInterval  = new IntegerSetting(generalGroup,            "Logging",     "application.stats.aggreation.interval", 60_000,"Minimum aggregation interval for HTTP request stats.");
 
 	public static final Setting<String> BasePath                       = new StringSetting(generalGroup,             "Paths",       "base.path",                             ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                        = new StringSetting(generalGroup,             "Paths",       "tmp.path",                              System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");
 	public static final Setting<String> FilesPath                      = new StringSetting(generalGroup,             "Paths",       "files.path",                            System.getProperty("user.dir").concat(File.separator + "files"), "Path to the Structr file storage folder");
 	public static final Setting<String> ChangelogPath                  = new StringSetting(generalGroup,             "Paths",       "changelog.path",                        System.getProperty("user.dir").concat(File.separator + "changelog"), "Path to the Structr changelog storage folder");
 	public static final Setting<String> DataExchangePath               = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",                    "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> SnapshotsPath                  = new StringSetting(generalGroup,             "Paths",       "snapshot.path",                         "snapshots" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<String> WebDataPath                    = new StringSetting(generalGroup,             "Paths",       "data.webapp.path",                      "webapp-data" + File.separator, "IMPORTANT: Path is relative to base.path");
-	public static final Setting<Boolean> LogSchemaOutput               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log",                      false, "Whether to write dynamically created Java code to the logfile, for debugging purposes.");
-	public static final Setting<Boolean> LogSchemaErrors               = new BooleanSetting(generalGroup,            "Logging",     "NodeExtender.log.errors",               true);
+
+	public static final Setting<String> LogLevel                       = new ChoiceSetting(generalGroup,             "Logging",     "log.level",                             "INFO", Settings.getAvailableLogLevels(), "Configures the default log level. Takes effect immediately.");
 	public static final Setting<Integer> QueryTimeLoggingThreshold     = new IntegerSetting(generalGroup,            "Logging",     "log.querytime.threshold",               3000, "Milliseconds after which a long-running query will be logged.");
 	public static final Setting<Integer> CallbackLoggingThreshold      = new IntegerSetting(generalGroup,            "Logging",     "log.callback.threshold",                50000, "Number of callbacks after which a transaction will be logged.");
 	public static final Setting<Boolean> RequestLogging                = new BooleanSetting(generalGroup,            "Logging",     "log.requests",                          false);
-	public static final Setting<Boolean> DebugLogging                  = new BooleanSetting(generalGroup,            "Logging",     "log.debug",                             false, "Controls the behaviour of the debug() function. If disabled, the debug() function behaves like a NOP. If enabled, it behaves exactly like the log() function.");
 	public static final Setting<Boolean> LogFunctionsStackTrace        = new BooleanSetting(generalGroup,            "Logging",     "log.functions.stacktrace",              false, "If true, the full stacktrace is logged for exceptions in system functions.");
-	public static final Setting<String> LogPrefix                      = new StringSetting(generalGroup,             "Logging",     "log.prefix",                            "structr");
-	public static final Setting<Boolean> LogJSExcpetionRequest         = new BooleanSetting(generalGroup,            "Logging",     "log.javascript.exception.request",      false, "Adds path, queryString and parameterMap to JavaScript exceptions (if available)");
+	public static final Setting<Integer> LogScriptProcessCommandLine   = new IntegerChoiceSetting(generalGroup,        "Logging",     "log.scriptprocess.commandline",         2, Settings.getScriptProcessLogCommandLineOptions(), "Configures the default logging behaviour for the command line generated for script processes. This applies to the exec()- and exec_binary() functions, as well as some processes handling media conversion or processing. For the exec() and exec_binary() function, this can be overridden for each call of the function.");
 	public static final Setting<Boolean> LogDirectoryWatchServiceQuiet = new BooleanSetting(generalGroup,            "Logging",     "log.directorywatchservice.scanquietly", false, "Prevents logging of each scan process for every folder processed by the directory watch service");
+
 	public static final Setting<Boolean> SetupWizardCompleted          = new BooleanSetting(generalGroup,            "hidden",      "setup.wizard.completed",                false);
 	public static final Setting<String> Configuration                  = new StringSetting(generalGroup,             "hidden",      "configuration.provider",                "org.structr.module.JarConfigurationProvider", "Fully-qualified class name of a Java class in the current class path that implements the <code>org.structr.schema.ConfigurationProvider</code> interface.");
-	public static final StringMultiChoiceSetting Services              = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",                   "NodeService SchemaService AgentService CronService HttpService", "Services that are listed in this configuration key will be started when Structr starts.");
+	public static final StringMultiChoiceSetting Services              = new StringMultiChoiceSetting(generalGroup,  "Services",    "configured.services",                   "NodeService SchemaService AgentService CronService HttpService MigrationService", "Services that are listed in this configuration key will be started when Structr starts.");
 	public static final Setting<Integer> ServicesStartTimeout          = new IntegerSetting(generalGroup,            "Services",    "services.start.timeout",                30);
 	public static final Setting<Integer> ServicesStartRetries          = new IntegerSetting(generalGroup,            "Services",    "services.start.retries",                10);
 
@@ -134,6 +147,8 @@ public class Settings {
 	public static final Setting<Integer> HttpsPort            = new IntegerSetting(serverGroup, "Interfaces", "application.https.port",        8083, "HTTPS port the Structr server will listen on (if SSL is enabled)");
 	public static final Setting<Integer> SshPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ssh.port",          8022, "SSH port the Structr server will listen on (if SSHService is enabled)");
 	public static final Setting<Integer> FtpPort              = new IntegerSetting(serverGroup, "Interfaces", "application.ftp.port",          8021, "FTP port the Structr server will listen on (if FtpService is enabled)");
+	public static final Setting<String> FTPPassivePortRange   = new StringSetting(serverGroup, "Interfaces", "application.ftp.passivePortRange",          null, "FTP port range for pasv mode. Needed if Structr is run in a docker container, so the port mapping can be done correctly.");
+
 	public static final Setting<Boolean> HttpsEnabled         = new BooleanSetting(serverGroup, "Interfaces", "application.https.enabled",     false, "Whether SSL is enabled");
 	public static final Setting<String> KeystorePath          = new StringSetting(serverGroup,  "Interfaces", "application.keystore.path",     "domain.key.keystore", "The path to the JKS keystore containing the SSL certificate. Default value is 'domain.key.keystore' which fits with the default value for letsencrypt.domain.key.filename which is 'domain.key'.");
 	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "", "The password for the JKS keystore");
@@ -150,7 +165,6 @@ public class Settings {
 	public static final Setting<Boolean> MaintenanceModeEnabled       = new BooleanSetting(serverGroup, "hidden", MAINTENANCE_PREFIX + ".enabled",                           false, "Enables maintenance mode where all ports can be changed to prevent users from accessing the application during maintenance.");
 
 	// HTTP service settings
-	public static final Setting<String> ResourceHandlers         = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",         "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
 	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
 	public static final Setting<Boolean> GzipCompression         = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",             true,  "Use GZIP compression for HTTP transfers");
 	public static final Setting<Integer> HttpConnectionRateLimit = new IntegerSetting(serverGroup, "HTTP Settings", "httpservice.connection.ratelimit", 100, "Defines the rate limit of HTTP/2 frames per connection for the HTTP Service.");
@@ -204,11 +218,6 @@ public class Settings {
 	public static final Setting<String> AccessControlExposeHeaders    = new StringSetting(serverGroup, "CORS Settings", "access.control.expose.headers",    "", "Sets the value of the <code>Access-Control-Expose-Headers</code> header.");
 
 
-	public static final Setting<String> UiHandlerContextPath        = new StringSetting(serverGroup,  "hidden", "structruihandler.contextpath",       "/structr", "Static resource handling configuration.");
-	public static final Setting<Boolean> UiHandlerDirectoriesListed = new BooleanSetting(serverGroup, "hidden", "structruihandler.directorieslisted", false);
-	public static final Setting<String> UiHandlerResourceBase       = new StringSetting(serverGroup,  "hidden", "structruihandler.resourcebase",      "src/main/resources/structr");
-	public static final Setting<String> UiHandlerWelcomeFiles       = new StringSetting(serverGroup,  "hidden", "structruihandler.welcomefiles",      "index.html");
-
 	// database settings
 	public static final Setting<String> DatabaseAvailableConnections = new StringSetting(databaseGroup,  "hidden",                  "database.available.connections",   null);
 	public static final Setting<String> DatabaseDriverMode           = new ChoiceSetting(databaseGroup,  "hidden",                  "database.driver.mode",             "embedded", Settings.getStringsAsSet("embedded", "remote"));
@@ -221,14 +230,15 @@ public class Settings {
 	public static final Setting<String> ConnectionPassword           = new StringSetting(databaseGroup,  "hidden",                  "database.connection.password",     "neo4j");
 	public static final Setting<String> ConnectionDatabaseName       = new StringSetting(databaseGroup,  "hidden",                  "database.connection.databasename", "neo4j");
 	public static final Setting<String> TenantIdentifier             = new StringSetting(databaseGroup,  "hidden",                  "database.tenant.identifier",       "");
-	public static final Setting<Integer> RelationshipCacheSize       = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.relationship.size", 500000);
-	public static final Setting<Integer> NodeCacheSize               = new IntegerSetting(databaseGroup, "Caching",                 "database.cache.node.size",         100000, "Size of the database driver node cache");
 	public static final Setting<Integer> UuidCacheSize               = new IntegerSetting(databaseGroup, "hidden",                  "database.cache.uuid.size",         1000000, "Size of the database driver relationship cache");
 	public static final Setting<Boolean> ForceResultStreaming        = new BooleanSetting(databaseGroup, "Result Streaming",        "database.result.lazy",             false, "Forces Structr to use lazy evaluation for relationship queries");
 	public static final Setting<Boolean> CypherDebugLogging          = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug",                 false, "Turns on debug logging for the generated Cypher queries");
 	public static final Setting<Boolean> CypherDebugLoggingPing      = new BooleanSetting(databaseGroup, "Debugging",               "log.cypher.debug.ping",            false, "Turns on debug logging for the generated Cypher queries of the websocket PING command. Can only be used in conjunction with log.cypher.debug");
 	public static final Setting<Integer> ResultCountSoftLimit        = new IntegerSetting(databaseGroup, "Soft result count limit", "database.result.softlimit",        10_000, "Soft result count limit for a single query (can be overridden by setting the <code>_pageSize</code> request parameter or by adding the request parameter <code>_disableSoftLimit</code> to a non-null value)");
 	public static final Setting<Integer> FetchSize                   = new IntegerSetting(databaseGroup, "Result fetch size",       "database.result.fetchsize",        100_000, "Number of database records to fetch per batch when fetching large results");
+	public static final Setting<Integer> PrefetchingThreshold        = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.threshold",   100, "How many identical queries must run in a transaction to activate prefetching for that query.");
+	public static final Setting<Integer> PrefetchingMaxDuration      = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxduration", 1000, "How long a prefetching query may take before prefetching will be deactivated for that query.");
+	public static final Setting<Integer> PrefetchingMaxCount         = new IntegerSetting(databaseGroup, "Prefetching",             "database.prefetching.maxcount",    50_000, "How many results a prefetching query may return before prefetching will be deactivated for that query.");
 
 	// Neo4j specific settings
 	public static final Setting<String> Neo4jDefaultUsername         = new StringSetting(databaseGroup,  "hidden",                  "database.neo4j.default.username",   "neo4j");
@@ -237,31 +247,20 @@ public class Settings {
 	// application settings
 	public static final Setting<Boolean> ChangelogEnabled            = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.enabled",                   false, "Turns on logging of changes to nodes and relationships");
 	public static final Setting<Boolean> UserChangelogEnabled        = new BooleanSetting(applicationGroup, "Changelog",    "application.changelog.user_centric.enabled",      false, "Turns on user-centric logging of what a user changed/created/deleted");
-	public static final Setting<Boolean> FilesystemEnabled           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",                  false, "If enabled, Structr will create a separate home directory for each user. See Filesystem for more information.");
+	public static final Setting<Boolean> FilesystemEnabled           = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.enabled",                  false, "If enabled, Structr will create a separate home directory for each user. The home directory of authenticated users will override the default upload folder setting. See Filesystem for more information.");
 	public static final Setting<Boolean> UniquePaths                 = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.unique.paths",             true,  "If enabled, Structr will not allow files/folders of the same name in the same folder and automatically rename the file.");
 	public static final Setting<String> UniquePathsInsertionPosition = new ChoiceSetting(applicationGroup, "Filesystem",    "application.filesystem.unique.insertionposition", "beforeextension", Settings.getStringsAsSet("start", "beforeextension", "end"), "Defines the insertion position of the uniqueness criterion (currently a timestamp).<dl><dt>start</dt><dd>prefixes the name with a timestamp</dd><dt>beforeextension</dt><dd>puts the timestamp before the last dot (or at the end if the name does not contain a dot)</dd><dt>end</dt><dd>appends the timestamp after the complete name</dd></dl>");
 	public static final Setting<String> DefaultChecksums             = new StringSetting(applicationGroup,  "Filesystem",   "application.filesystem.checksums.default",        "",    "List of additional checksums to be calculated on file creation by default. (<code>File.checksum</code> is always popuplated with an xxHash)<dl><dt>crc32</dt><dd>Cyclic Redundancy Check - long value</dd><dt>md5</dt><dd>md5 algorithm - 32 character hex string</dd><dt>sha1</dt><dd>SHA-1 algorithm - 40 character hex string</dd><dt>sha512</dt><dd>SHA-512 algorithm - 128 character hex string</dd></dl>");
 	public static final Setting<Boolean> IndexingEnabled             = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.enabled",         true,  "Whether indexing is enabled globally (can be controlled separately for each file)");
 	public static final Setting<Integer> IndexingMaxFileSize         = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxsize",         10,    "Maximum size (MB) of a file to be indexed");
-	public static final Setting<Integer> IndexingLimit               = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.limit",           50000, "Maximum number of words to be indexed per file.");
-	public static final Setting<Integer> IndexingMinLength           = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.minlength",       3,     "Minimum length of words to be indexed");
-	public static final Setting<Integer> IndexingMaxLength           = new IntegerSetting(applicationGroup, "Filesystem",   "application.filesystem.indexing.maxlength",       30,    "Maximum length of words to be indexed");
 	public static final Setting<Boolean> FollowSymlinks              = new BooleanSetting(applicationGroup, "Filesystem",   "application.filesystem.mount.followsymlinks",     true);
-	public static final Setting<String> DefaultUploadFolder          = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                      "", "The default path for files uploaded via the UploadServlet (available from Structr 2.1+)");
+	public static final Setting<String> DefaultUploadFolder          = new StringSetting(applicationGroup,  "Filesystem",   "application.uploads.folder",                      "/._structr_uploads", "The default upload folder for files uploaded via the UploadServlet. This must be a valid folder path and can not be empty (uploads to the root directory are not allowed).");
 
-	public static final Setting<Boolean> FeedItemIndexingEnabled            = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.enabled",            true,  "Whether indexing is enabled for type FeedItem");
 	public static final Setting<Boolean> FeedItemIndexRemoteDocument        = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.remote",             true,  "Whether indexing for type FeedItem will index the target URL of the FeedItem or the description");
-	public static final Setting<Integer> FeedItemIndexingLimit              = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.limit",              50000, "Maximum number of words to be indexed per FeedItem.");
-	public static final Setting<Integer> FeedItemIndexingMinLength          = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.minlength",          3,     "Minimum length of words to be indexed for FeedItem");
-	public static final Setting<Integer> FeedItemIndexingMaxLength          = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditem.indexing.maxlength",          30,    "Maximum length of words to be indexed for FeedItem");
 	public static final Setting<Boolean> FeedItemContentIndexingEnabled     = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.enabled",     true,  "Whether indexing is enabled for type FeedItemContent");
 	public static final Setting<Integer> FeedItemContentIndexingLimit       = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.limit",       50000, "Maximum number of words to be indexed per FeedItemContent.");
 	public static final Setting<Integer> FeedItemContentIndexingMinLength   = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.minlength",   3,     "Minimum length of words to be indexed for FeedItemContent");
 	public static final Setting<Integer> FeedItemContentIndexingMaxLength   = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemcontent.indexing.maxlength",   30,    "Maximum length of words to be indexed for FeedItemContent");
-	public static final Setting<Boolean> FeedItemEnclosureIndexingEnabled   = new BooleanSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.enabled",   true,  "Whether indexing is enabled for type FeedItemEnclosure");
-	public static final Setting<Integer> FeedItemEnclosureIndexingLimit     = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.limit",     50000, "Maximum number of words to be indexed per FeedItemEnclosure.");
-	public static final Setting<Integer> FeedItemEnclosureIndexingMinLength = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.minlength", 3,     "Minimum length of words to be indexed for FeedItemEnclosure");
-	public static final Setting<Integer> FeedItemEnclosureIndexingMaxLength = new IntegerSetting(applicationGroup, "Indexing",   "application.feeditemenclosure.indexing.maxlength", 30,    "Maximum length of words to be indexed for FeedItemEnclosure");
 	public static final Setting<Boolean> RemoteDocumentIndexingEnabled      = new BooleanSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.enabled",      true,  "Whether indexing is enabled for type RemoteDocument");
 	public static final Setting<Integer> RemoteDocumentIndexingLimit        = new IntegerSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.limit",        50000, "Maximum number of words to be indexed per RemoteDocument.");
 	public static final Setting<Integer> RemoteDocumentIndexingMinLength    = new IntegerSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.minlength",    3,     "Minimum length of words to be indexed for RemoteDocument");
@@ -273,11 +272,12 @@ public class Settings {
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
 	public static final ChoiceSetting   ProxyServletMode          = new ChoiceSetting(applicationGroup,  "Proxy",        "application.proxy.mode",                      "disabled", Set.of("disabled", "protected", "public"), "Sets the mode of the proxy servlet. Possible values are 'disabled' (off, servlet responds with 503 error code), 'protected' (only authenticated requests allowed) and 'public' (anonymous requests allowed). Default is disabled.");
 
-	public static final Setting<Integer> HttpConnectionRequestTimeout = new IntegerSetting(applicationGroup, "Outbound Connections",   "application.httphelper.timeouts.connectionrequest",   60,            "Timeout for outbound connections in <b>seconds</b> to wait when requesting a connection from the connection manager. A timeout value of zero is interpreted as an infinite timeout.");
-	public static final Setting<Integer> HttpConnectTimeout           = new IntegerSetting(applicationGroup, "Outbound Connections",   "application.httphelper.timeouts.connect",             60,            "Timeout for outbound connections in <b>seconds</b> to wait until a connection is established. A timeout value of zero is interpreted as an infinite timeout.");
-	public static final Setting<Integer> HttpSocketTimeout            = new IntegerSetting(applicationGroup, "Outbound Connections",   "application.httphelper.timeouts.socket",              600,           "Socket timeout for outbound connections in <b>seconds</b> to wait for data or, put differently, a maximum inactivity period between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.");
-	public static final Setting<String>  HttpUserAgent                = new StringSetting(applicationGroup,  "Outbound Connections",   "application.httphelper.useragent",                    "curl/7.35.0", "User agent string for outbound connections");
-	public static final Setting<String>  HttpDefaultCharset           = new StringSetting(applicationGroup,  "Outbound Connections",   "application.httphelper.charset",                      "ISO-8859-1",  "Default charset for outbound connections");
+	public static final Setting<Integer> HttpConnectionRequestTimeout = new IntegerSetting(applicationGroup, "Outbound Connections","application.httphelper.timeouts.connectionrequest",   60,            "Timeout for outbound connections in <b>seconds</b> to wait when requesting a connection from the connection manager. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<Integer> HttpConnectTimeout           = new IntegerSetting(applicationGroup, "Outbound Connections","application.httphelper.timeouts.connect",             60,            "Timeout for outbound connections in <b>seconds</b> to wait until a connection is established. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<Integer> HttpSocketTimeout            = new IntegerSetting(applicationGroup, "Outbound Connections","application.httphelper.timeouts.socket",              600,           "Socket timeout for outbound connections in <b>seconds</b> to wait for data or, put differently, a maximum inactivity period between two consecutive data packets. A timeout value of zero is interpreted as an infinite timeout.");
+	public static final Setting<String>  HttpUserAgent                = new StringSetting(applicationGroup,  "Outbound Connections","application.httphelper.useragent",                    "curl/7.35.0", "User agent string for outbound connections");
+	public static final Setting<String>  HttpDefaultCharset           = new StringSetting(applicationGroup,  "Outbound Connections","application.httphelper.charset",                      "ISO-8859-1",  "Default charset for outbound connections");
+	public static final Setting<String>  OutgoingURLWhitelist         = new StringSetting(applicationGroup,  "Outbound Connections","application.httphelper.urlwhitelist",                 "*",           "A comma-separated list of URL patterns that can be used in HTTP request scripting functions (GET, PUT, POST etc.). If this value is anything other than *, whitelisting is applied to all outgoing requests.");
 
 	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false,  "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false,  "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
@@ -286,11 +286,12 @@ public class Settings {
 	public static final Setting<Boolean> useFallbackLocale        = new BooleanSetting(applicationGroup, "Localization", "application.localization.usefallbacklocale",  false,  "Turns on usage of fallback locale if for the current locale no localization is found");
 	public static final Setting<String> fallbackLocale            = new StringSetting(applicationGroup,  "Localization", "application.localization.fallbacklocale",     "en_US","The default locale used, if no localization is found and using a fallback is active.");
 
-	public static final Setting<String> SchemaDeploymentFormat    = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                    "tree", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
-	public static final Setting<Integer> DeploymentNodeBatchSize  = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.nodes.batchsize",             1000,   "Sets the batch size for data deployment when importing nodes.");
-	public static final Setting<Integer> DeploymentRelBatchSize   = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.relationships.batchsize",     1000,   "Sets the batch size for data deployment when importing relationships.");
+	public static final Setting<String> SchemaDeploymentFormat         = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                      "tree", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
+	public static final Setting<Integer> DeploymentNodeImportBatchSize = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.import.nodes.batchsize",         1000,   "Sets the batch size for data deployment when importing nodes.");
+	public static final Setting<Integer> DeploymentRelImportBatchSize  = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.import.relationships.batchsize", 1000,   "Sets the batch size for data deployment when importing relationships.");
+	public static final Setting<Integer> DeploymentNodeExportBatchSize = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.export.nodes.batchsize",         100,   "Sets the batch size for data deployment when exporting nodes.<br><br>The relationships for each node are collected and exported while the node itself is exported. It can make sense to reduce this number, if all/most nodes have very high amount of relationships.");
 
-	public static final Setting<String> GlobalSecret              = new StringSetting(applicationGroup,  "Encryption",   "application.encryption.secret",               null,   "Sets the global secret for encrypted string properties. Using this configuration setting is one of several possible ways to set the secret, and it is not recommended for production environments because the key can easily be read by an attacker with scripting access.");
+	public static final Setting<String> GlobalSecret              = new StringSetting(applicationGroup,  "Encryption",   "application.encryption.secret", null,   "Sets the global secret for encrypted string properties. Using this configuration setting is one of several possible ways to set the secret. Using the <code>set_encryption_key()</code> function is a way to set the encryption key without persisting it on disk.").setIsProtected();
 
 	public static final Setting<Boolean> CallbacksOnLogout      = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.logout.onsave",       false, "Setting this to true enables the execution of the User.onSave method when a user logs out. Disabled by default because the global login handler onStructrLogout would be the right place for such functionality.");
 	public static final Setting<Boolean> CallbacksOnLogin       = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.login.onsave",      false, "Setting this to true enables the execution of the User.onSave method for login actions. This will also trigger for failed login attempts and for two-factor authentication intermediate steps. Disabled by default because the global login handler onStructrLogin would be the right place for such functionality.");
@@ -307,21 +308,22 @@ public class Settings {
 
 	// advanced settings
 	public static final Setting<Boolean> JsonRedundancyReduction      = new BooleanSetting(advancedGroup, "JSON",   "json.redundancyreduction",       true,  "If enabled, nested nodes (which were already rendered in the current output) are rendered with limited set of attribute (id, type, name).");
-	public static final Setting<Integer> JsonParallelizationThreshold = new IntegerSetting(advancedGroup, "JSON",   "json.parallelization.threshold", 100,   "Collection size threshold for multi-threaded JSON generation");
 	public static final Setting<Boolean> JsonLenient                  = new BooleanSetting(advancedGroup, "JSON",   "json.lenient",                   false, "Whether to use lenient serialization, e.g. allow to serialize NaN, -Infinity, Infinity instead of just returning null. Note: as long as Javascript doesn’t support NaN etc., most of the UI will be broken");
 	public static final Setting<Boolean> ForceArrays                  = new BooleanSetting(advancedGroup, "JSON",   "json.output.forcearrays",        false, "If enabled, collections with a single element are always represented as a collection.");
 	public static final Setting<Integer> JsonReduceNestedObjectsDepth = new IntegerSetting(advancedGroup, "JSON",   "json.reductiondepth",            0,     "For restricted views (ui, custom, all), only a limited amount of attributes (id, type, name) are rendered for nested objects after this depth. The default is 0, meaning that on the root depth (0), all attributes are rendered and reduction starts at depth 1.<br><br>Can be overridden on a per-request basis by using the request parameter <code>" + (Settings.RequestParameterLegacyMode.getValue() ? "" : "_")  + "outputReductionDepth</code>");
+	public static final Setting<String> JsonOuputDateFormat           = new StringSetting(advancedGroup,  "JSON",   "json.output.dateformat",         "yyyy-MM-dd'T'HH:mm:ssZ", "Output format pattern for date objects in JSON");
 
-	public static final Setting<String> GeocodingProvider        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider", "Geocoding configuration");
-	public static final Setting<String> GeocodingLanguage        = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.language",            "de", "Geocoding configuration");
-	public static final Setting<String> GeocodingApiKey          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.apikey",              "", "Geocoding configuration");
-	public static final Setting<String> DefaultDateFormat        = new StringSetting(advancedGroup,  "Date Format", "dateproperty.defaultformat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default ISO8601 date format pattern");
-	public static final Setting<Boolean> InheritanceDetection    = new BooleanSetting(advancedGroup, "hidden",      "importer.inheritancedetection", true);
+	public static final Setting<String> GeocodingProvider          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.provider",            "org.structr.common.geo.GoogleGeoCodingProvider", "Geocoding configuration");
+	public static final Setting<String> GeocodingLanguage          = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.language",            "de", "Geocoding configuration");
+	public static final Setting<String> GeocodingApiKey            = new StringSetting(advancedGroup,  "Geocoding",   "geocoding.apikey",              "", "Geocoding configuration");
+	public static final Setting<String> DefaultDateFormat          = new StringSetting(advancedGroup,  "Date Format", "dateproperty.defaultformat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default ISO8601 date format pattern");
+	public static final Setting<String> DefaultZonedDateTimeFormat = new StringSetting(advancedGroup,  "ZonedDateTime Format", "zoneddatetimeproperty.defaultformat",    "yyyy-MM-dd'T'HH:mm:ssZ", "Default zoneddatetime format pattern");
+	public static final Setting<Boolean> InheritanceDetection      = new BooleanSetting(advancedGroup, "hidden",      "importer.inheritancedetection", true);
 
 	// servlets
 	public static final StringMultiChoiceSetting Servlets     = new StringMultiChoiceSetting(servletsGroup, "General", "httpservice.servlets",
-		"JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
-		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "WebSocketServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "GraphQLServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet", "MetricsServlet"),
+		"JsonRestServlet HtmlServlet CsvServlet UploadServlet ProxyServlet DeploymentServlet LoginServlet LogoutServlet TokenServlet HealthCheckServlet HistogramServlet OpenAPIServlet FlowServlet",
+		Settings.getStringsAsSet("JsonRestServlet", "HtmlServlet", "CsvServlet", "UploadServlet", "ProxyServlet", "DeploymentServlet", "FlowServlet", "LoginServlet", "LogoutServlet", "TokenServlet", "EventSourceServlet", "HealthCheckServlet", "HistogramServlet", "OpenAPIServlet", "MetricsServlet"),
 		"Servlets that are listed in this configuration key will be available in the HttpService. Changes to this setting require a restart of the HttpService in the 'Services' tab.");
 
 	public static final Setting<Boolean> ConfigServletEnabled = new BooleanSetting(servletsGroup,  "ConfigServlet", "configservlet.enabled",             true, "Enables the config servlet (available under <code>http(s)://&lt;your-server&gt;/structr/config</code>)");
@@ -335,7 +337,7 @@ public class Settings {
 	public static final Setting<String> RestUserClass         = new StringSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.user.class",                   "org.structr.dynamic.User", "User class that is instantiated when new users are created via the servlet");
 	public static final Setting<Boolean> RestUserAutologin    = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autologin",               false, "Only works in conjunction with the jsonrestservlet.user.autocreate key. Will log in user after self registration.");
 	public static final Setting<Boolean> RestUserAutocreate   = new BooleanSetting(servletsGroup,           "JsonRestServlet", "jsonrestservlet.user.autocreate",              false, "Enable this to support user self registration");
-	public static final Setting<String> InputValidationMode   = new ChoiceSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "accept_warn", new LinkedHashSet<>(Arrays.asList("accept", "accept_warn", "ignore", "ignore_warn", "reject", "reject_warn")), "Controls how Structr reacts to unknown keys in JSON input. <code>accept</code> allows the unknown key to be written. <code>ignore</code> removes the key. <code>reject</code> rejects the complete request. The <code>warn</code> options behave identical but also log a warning.");
+	public static final Setting<String> InputValidationMode   = new ChoiceSetting(servletsGroup,            "JsonRestServlet", "jsonrestservlet.unknowninput.validation.mode", "accept_warn", getStringsAsSet("accept", "accept_warn", "ignore", "ignore_warn", "reject", "reject_warn"), "Controls how Structr reacts to unknown keys in JSON input. <code>accept</code> allows the unknown key to be written. <code>ignore</code> removes the key. <code>reject</code> rejects the complete request. The <code>warn</code> options behave identical but also log a warning.");
 
 	public static final Setting<String> FlowServletPath       = new StringSetting(servletsGroup,  "hidden", "flowservlet.path",             "/structr/flow/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
 	public static final Setting<String> FlowServletClass      = new StringSetting(servletsGroup,  "hidden", "flowservlet.class",            "org.structr.flow.servlet.FlowServlet");
@@ -350,7 +352,7 @@ public class Settings {
 	public static final Setting<String> HtmlDefaultView           = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.defaultview",           "public", "Not used for HtmlServlet");
 	public static final Setting<Integer> HtmlOutputDepth          = new IntegerSetting(servletsGroup, "HtmlServlet", "htmlservlet.outputdepth",           3, "Not used for HtmlServlet");
 	public static final Setting<String> HtmlResourceProvider      = new StringSetting(servletsGroup,  "hidden", "htmlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider", "FQCN of resource provider class to use in the HTTP server. Do not change unless you know what you are doing.");
-	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
+	public static final Setting<String> HtmlResolveProperties     = new StringSetting(servletsGroup,  "HtmlServlet", "htmlservlet.resolveproperties",     "NodeInterface.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
 	public static final Setting<String> HtmlCustomResponseHeaders = new TextSetting(servletsGroup,    "HtmlServlet", "htmlservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> PdfServletPath           = new StringSetting(servletsGroup,  "hidden", "pdfservlet.path",                  "/structr/pdf/*", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
@@ -359,7 +361,7 @@ public class Settings {
 	public static final Setting<String> PdfDefaultView           = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.defaultview",           "public", "Default view to use when no view is given in the URL.");
 	public static final Setting<Integer> PdfOutputDepth          = new IntegerSetting(servletsGroup, "PdfServlet", "pdfservlet.outputdepth",           3, "Maximum nesting depth of JSON output.");
 	public static final Setting<String> PdfResourceProvider      = new StringSetting(servletsGroup,  "hidden", "pdfservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resolveproperties",     "AbstractNode.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
+	public static final Setting<String> PdfResolveProperties     = new StringSetting(servletsGroup,  "PdfServlet", "pdfservlet.resolveproperties",     "NodeInterface.name", "Specifies the list of properties that are be used to resolve entities from URL paths.");
 	public static final Setting<String> PdfCustomResponseHeaders = new TextSetting(servletsGroup,    "PdfServlet", "pdfservlet.customresponseheaders", "Strict-Transport-Security:max-age=60,X-Content-Type-Options:nosniff,X-Frame-Options:SAMEORIGIN,X-XSS-Protection:1;mode=block", "List of custom response headers that will be added to every HTTP response");
 
 	public static final Setting<String> WebsocketServletPath       = new StringSetting(servletsGroup,  "hidden", "websocketservlet.path",              "/structr/ws/*", "URL pattern for WebSockets. Do not change unless you know what you are doing.");
@@ -393,13 +395,6 @@ public class Settings {
 	public static final Setting<Integer> UploadMaxFileSize      = new IntegerSetting(servletsGroup, "UploadServlet", "uploadservlet.maxfilesize",           1000, "Maximum allowed file size for single file uploads. Unit is Megabytes");
 	public static final Setting<Integer> UploadMaxRequestSize   = new IntegerSetting(servletsGroup, "UploadServlet", "uploadservlet.maxrequestsize",        1200, "Maximum allowed request size for single file uploads. Unit is Megabytes");
 
-	public static final Setting<String> GraphQLServletPath       = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.path",                  "/structr/graphql", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
-	public static final Setting<String> GraphQLServletClass      = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.class",                 "org.structr.rest.servlet.GraphQLServlet");
-	public static final Setting<String> GraphQLAuthenticator     = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> GraphQLResourceProvider  = new StringSetting(servletsGroup,  "hidden", "graphqlservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> GraphQLDefaultView       = new StringSetting(servletsGroup,  "GraphQLServlet", "graphqlservlet.defaultview",           "public", "Default view to use when no view is given in the URL.");
-	public static final Setting<Integer> GraphQLOutputDepth      = new IntegerSetting(servletsGroup, "GraphQLServlet", "graphqlservlet.outputdepth",	   3, "Maximum nesting depth of JSON output.");
-
 	public static final Setting<String> LoginServletPath       = new StringSetting(servletsGroup,  "hidden", "loginservlet.path",                  "/structr/login", "The URI under which requests are accepted by the servlet. Needs to include a wildcard at the end.");
 	public static final Setting<String> LoginServletClass      = new StringSetting(servletsGroup,  "hidden", "loginservlet.class",                 "org.structr.web.servlet.LoginServlet");
 	public static final Setting<String> LoginAuthenticator     = new StringSetting(servletsGroup,  "hidden", "loginservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
@@ -429,12 +424,7 @@ public class Settings {
 	public static final Setting<String> DeploymentResourceProvider           = new StringSetting(servletsGroup,  "hidden", "deploymentservlet.resourceprovider",          "org.structr.web.common.UiResourceProvider");
 	public static final Setting<Boolean> DeploymentUserAutologin             = new BooleanSetting(servletsGroup, "hidden", "deploymentservlet.user.autologin",            false);
 	public static final Setting<Boolean> DeploymentUserAutocreate            = new BooleanSetting(servletsGroup, "hidden", "deploymentservlet.user.autocreate",           false);
-	public static final Setting<Boolean> DeploymentAllowAnonymousDeployments = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.allowanonymousdeployments", false, "Allow anonymous users to trigger a deployment process.");
-	public static final Setting<Boolean> DeploymentAllowAnonymousUploads     = new BooleanSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.allowanonymousuploads",     false, "Allow anonymous users to upload deployment files.");
-	public static final Setting<Integer> DeploymentMaxFileSize               = new IntegerSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.maxfilesize",               1000, "Maximum allowed file size for single file uploads. Unit is Megabytes.");
-	public static final Setting<Integer> DeploymentMaxRequestSize            = new IntegerSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.maxrequestsize",            1200, "Maximum allowed request size for single file uploads. Unit is Megabytes.");
 	public static final Setting<String> DeploymentFileGroupName              = new StringSetting(servletsGroup, "DeploymentServlet", "deploymentservlet.filegroup.name", "", "For unix based file systems only. Adds the group ownership to the created deployment files.");
-	public static final Setting<Integer> DeploymentFileGroupId                = new IntegerSetting(servletsGroup, "hidden", "deploymentservlet.filegroup.id", 0, "The group id of the DeploymentFileGroup.");
 
 	public static final Setting<String> ProxyServletPath       = new StringSetting(servletsGroup,  "hidden", "proxyservlet.path",                  "/structr/proxy");
 	public static final Setting<String> ProxyServletClass      = new StringSetting(servletsGroup,  "hidden", "proxyservlet.class",                 "org.structr.web.servlet.ProxyServlet");
@@ -484,15 +474,16 @@ public class Settings {
 	public static final Setting<String> MetricsServletWhitelist         = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/metrics.");
 
 	// cron settings
-	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations or method names");
+	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations or method names. This only configures the list of tasks. For each task, there needs to be another configuration entry named '<taskname>.cronExpression' with the appropriate cron schedule configuration.");
 	public static final Setting<Boolean> CronAllowParallelExecution = new BooleanSetting(cronGroup,  "", "CronService.allowparallelexecution", false, "Enables the parallel execution of *the same* cron job. This can happen if the method runs longer than the defined cron interval. Since this could lead to problems, the default is false.");
 
 	//security settings
 	public static final Setting<String> SuperUserName                  = new StringSetting(securityGroup,     "Superuser",            "superuser.username",                    "superadmin", "Name of the superuser");
-	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    null, "Password of the superuser");
+	public static final Setting<String> SuperUserPassword              = new PasswordSetting(securityGroup,   "Superuser",            "superuser.password",                    null, "Password of the superuser").setIsProtected();
 	public static final Setting<Integer> ResolutionDepth               = new IntegerSetting(applicationGroup, "Application Security", "application.security.resolution.depth", 5);
-	public static final Setting<String> OwnerlessNodes                 = new StringSetting(applicationGroup,  "Application Security", "application.security.ownerless.nodes",  "read", "The permission level for users on nodes without an owner. One or more of: <code>read, write, delete, accessControl</code>. Does not propagate over active relationships.");
 	public static final Setting<Boolean> XMLParserSecurity             = new BooleanSetting(applicationGroup, "Application Security", "application.xml.parser.security", true, "Enables various security measures for XML parsing to prevent exploits.");
+
+	public static final Setting<String> AuthenticationPropertyKeys      = new StringSetting(securityGroup,     "Authentication", "security.authentication.propertykeys", null, "List of property keys separated by space in the form of <Type>.<key> (example: 'Member.memberId') to be used in addition to the default 'Principal.name Principal.eMail'");
 
 	public static final Setting<Boolean> InitialAdminUserCreate        = new BooleanSetting(securityGroup,    "Initial Admin User",   "initialuser.create",    true,    "Enables or disables the creation of an initial admin user when connecting to a database that has never been used with structr.");
 	public static final Setting<String> InitialAdminUserName           = new StringSetting(securityGroup,     "Initial Admin User",   "initialuser.name",      "admin", "Name of the initial admin user. This will only be set if the user is created.");
@@ -508,14 +499,19 @@ public class Settings {
 	public static final Setting<String> TwoFactorWhitelistedIPs        = new StringSetting(securityGroup,        "Two Factor Authentication", "security.twofactorauthentication.whitelistedips",       "",            "A comma-separated (,) list of IPs for which two factor authentication is disabled. Both IPv4 and IPv6 are supported. CIDR notation is also supported. (e.g. 192.168.0.1/24 or 2A01:598:FF30:C500::/64)");
 
 	public static final Setting<String> JWTSecretType                     = new ChoiceSetting(securityGroup, "JWT Auth",  "security.jwt.secrettype", "secret", Settings.getStringsAsSet("secret", "keypair", "jwks"), "Selects the secret type that will be used to sign or verify a given access or refresh token");
-	public static final Setting<String> JWTSecret                         = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.secret", "", "Used if 'security.jwt.secrettype'=secret. The secret that will be used to sign and verify all tokens issued and sent to Structr. Must have a min. length of 32 characters.");
+	public static final Setting<String> JWTSecret                         = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.secret", "", "Used if 'security.jwt.secrettype'=secret. The secret that will be used to sign and verify all tokens issued and sent to Structr. Must have a min. length of 32 characters.").setIsProtected();
 	public static final Setting<String> JWTIssuer                         = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.jwtIssuer", "structr", "The issuer for the JWTs created by this Structr instance.");
 	public static final Setting<Integer> JWTExpirationTimeout             = new IntegerSetting(securityGroup, "JWT Auth",  "security.jwt.expirationtime", 60, "Access token timeout in minutes.");
 	public static final Setting<Integer> JWTRefreshTokenExpirationTimeout = new IntegerSetting(securityGroup, "JWT Auth",  "security.jwt.refreshtoken.expirationtime", 1440,"Refresh token timeout in minutes.");
 	public static final Setting<String> JWTKeyStore                       = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.keystore", "", "Used if 'security.jwt.secrettype'=keypair. A valid keystore file containing a private/public keypair that can be used to sign and verify JWTs");
 	public static final Setting<String> JWTKeyStorePassword               = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.keystore.password", "","The password for the given 'security.jwt.keystore'");
 	public static final Setting<String> JWTKeyAlias                       = new StringSetting(securityGroup, "JWT Auth",  "security.jwt.key.alias", "","The alias of the private key of the given 'security.jwt.keystore'");
-	public static final Setting<String> JWTSProvider                      = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.provider", "","URL of the JWKS provider");
+	public static final Setting<String> JWKSProvider                      = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.provider", "","URL of the JWKS provider");
+	public static final Setting<String> JWKSGroupClaimKey                 = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.group.claim.key", "","The name of the key in the JWKS response claims whose value(s) will be used to look for Group nodes with a matching jwksReferenceId.");
+	public static final Setting<String> JWKSObjectIdClaimKey              = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.id.claim.key", "oid","The name of the key in the JWKS response claims whose value will be used as the ID of the temporary principal object.");
+	public static final Setting<String> JWKSObjectNameClaimKey            = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.name.claim.key", "oid","The name of the key in the JWKS response claims whose value will be used as the name of the temporary principal object.");
+	public static final Setting<String> JWKSAdminClaimKey                 = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.admin.claim.key", "","The name of the key in the JWKS response claims in whose values is searched for a value matching the value of security.jwks.admin.claim.value.");
+	public static final Setting<String> JWKSAdminClaimValue               = new StringSetting(securityGroup, "JWT Auth",  "security.jwks.admin.claim.value", "","The value that must be present in the JWKS response claims object with the key given in security.jwks.admin.claim.key in order to give the requesting user admin privileges.");
 
 	public static final Setting<Boolean> PasswordForceChange                 = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.forcechange",                         false, "Indicates if a forced password change is active");
 	public static final Setting<Boolean> PasswordClearSessionsOnChange       = new BooleanSetting(securityGroup, "Password Policy", "security.passwordpolicy.onchange.clearsessions",              false, "Clear all sessions of a user on password change.");
@@ -555,13 +551,13 @@ public class Settings {
 
 
 	// oauth settings
-	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-separated List of available oauth services. Defaults to 'github twitter linkedin google facebook auth0'");
+	public static final Setting<String> OAuthServers          = new StringSetting(oauthGroup, "General", "oauth.servers", "auth0 azure facebook github google linkedin", "Space-separated List of available oauth services. Defaults to a list of all available services.");
 	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Enables verbose logging for oauth login");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthGithubTokenLocation  = new StringSetting(oauthGroup, "GitHub", "oauth.github.token_location", "https://github.com/login/oauth/access_token", "URL of the token endpoint.");
 	public static final Setting<String> OAuthGithubClientId       = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthGithubClientSecret   = new StringSetting(oauthGroup, "GitHub", "oauth.github.client_secret", "", "Client secret used for oauth").setIsProtected();
 	public static final Setting<String> OAuthGithubRedirectUri    = new StringSetting(oauthGroup, "GitHub", "oauth.github.redirect_uri", "/oauth/github/auth", "Structr endpoint for the service oauth authorization.");
 	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "GitHub", "oauth.github.user_details_resource_uri", "https://api.github.com/user/emails", "Points to the user details endpoint of the service provider.");
 	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
@@ -569,32 +565,22 @@ public class Settings {
 	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email", "Specifies the scope of the authentifcation. Defaults to 'user:email'.");
 	public static final ChoiceSetting OAuthGithubAccessTokenLocation = new ChoiceSetting(oauthGroup, "GitHub", "oauth.github.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
-	public static final Setting<String> OAuthTwitterAuthLocation  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.authorization_location", "https://api.twitter.com/oauth/authorize", "URL of the authorization endpoint.");
-	public static final Setting<String> OAuthTwitterTokenLocation = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.token_location", "https://api.twitter.com/oauth/access_token", "URL of the token endpoint.");
-	public static final Setting<String> OAuthTwitterClientId      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthTwitterClientSecret  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.client_secret", "", "Client secret used for oauth");
-	public static final Setting<String> OAuthTwitterRedirectUri   = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.redirect_uri", "/oauth/twitter/auth", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthTwitterErrorUri      = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
-	public static final Setting<String> OAuthTwitterReturnUri     = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.return_uri", "/", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthTwitterScope         = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.scope", "", "Specifies the scope of the authentifcation.");
-	public static final ChoiceSetting OAuthTwitterAccessTokenLocation = new ChoiceSetting(oauthGroup, "Twitter", "oauth.twitter.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
-
 	public static final Setting<String> OAuthLinkedInAuthLocation   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.authorization_location", "https://www.linkedin.com/oauth/v2/authorization", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthLinkedInTokenLocation  = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.token_location", "https://www.linkedin.com/oauth/v2/accessToken", "URL of the token endpoint.");
 	public static final Setting<String> OAuthLinkedInClientId       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthLinkedInClientSecret   = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.client_secret", "", "Client secret used for oauth").setIsProtected();
 	public static final Setting<String> OAuthLinkedInRedirectUri    = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.redirect_uri", "/oauth/linkedin/auth", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthLinkedInUserDetailsUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_details_resource_uri", "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))", "Points to the user details endpoint of the service provider.");
 	public static final Setting<String> OAuthLinkedInUserProfileUri = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.user_profile_resource_uri", "https://api.linkedin.com/v2/me", "Points to the user profile endpoint of the service provider.");
 	public static final Setting<String> OAuthLinkedInErrorUri       = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthLinkedInReturnUri      = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.return_uri", "/", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthLinkedInScope          = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.scope", "r_liteprofile r_emailaddress", "oauth.twitter.scope");
+	public static final Setting<String> OAuthLinkedInScope          = new StringSetting(oauthGroup, "LinkedIn", "oauth.linkedin.scope", "r_liteprofile r_emailaddress", "oauth.linkedin.scope");
 	public static final ChoiceSetting OAuthLinkedInAccessTokenLocation = new ChoiceSetting(oauthGroup, "LinkedIn", "oauth.linkedin.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	public static final Setting<String> OAuthGoogleAuthLocation   = new StringSetting(oauthGroup, "Google", "oauth.google.authorization_location", "https://accounts.google.com/o/oauth2/auth", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthGoogleTokenLocation  = new StringSetting(oauthGroup, "Google", "oauth.google.token_location", "https://accounts.google.com/o/oauth2/token", "URL of the token endpoint.");
 	public static final Setting<String> OAuthGoogleClientId       = new StringSetting(oauthGroup, "Google", "oauth.google.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "Google", "oauth.google.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthGoogleClientSecret   = new StringSetting(oauthGroup, "Google", "oauth.google.client_secret", "", "Client secret used for oauth").setIsProtected();
 	public static final Setting<String> OAuthGoogleRedirectUri    = new StringSetting(oauthGroup, "Google", "oauth.google.redirect_uri", "/oauth/google/auth", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthGoogleUserDetailsUri = new StringSetting(oauthGroup, "Google", "oauth.google.user_details_resource_uri", "https://www.googleapis.com/oauth2/v3/userinfo");
 	public static final Setting<String> OAuthGoogleErrorUri       = new StringSetting(oauthGroup, "Google", "oauth.google.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
@@ -605,7 +591,7 @@ public class Settings {
 	public static final Setting<String> OAuthFacebookAuthLocation   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.authorization_location", "https://www.facebook.com/dialog/oauth", "URL of the authorization endpoint.");
 	public static final Setting<String> OAuthFacebookTokenLocation  = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.token_location", "https://graph.facebook.com/oauth/access_token", "URL of the token endpoint.");
 	public static final Setting<String> OAuthFacebookClientId       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_id", "", "Client ID used for oauth.");
-	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_secret", "", "Client secret used for oauth");
+	public static final Setting<String> OAuthFacebookClientSecret   = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.client_secret", "", "Client secret used for oauth").setIsProtected();
 	public static final Setting<String> OAuthFacebookRedirectUri    = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.redirect_uri", "/oauth/facebook/auth", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthFacebookUserDetailsUri = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.user_details_resource_uri", "https://graph.facebook.com/me?fields=id,name,email", "Points to the user details endpoint of the service provider.");
 	public static final Setting<String> OAuthFacebookErrorUri       = new StringSetting(oauthGroup, "Facebook", "oauth.facebook.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
@@ -619,7 +605,7 @@ public class Settings {
 	public static final Setting<String> OAuthAuth0LogoutReturnUri       = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.logout_return_uri", "", "Structr redirects to this URI on successfull logout.");
 	public static final Setting<String> OAuthAuth0LogoutReturnLocationParameterKey  = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.logout_return_location_parameter", "returnTo", "Provider specific URL parameter that carries the value of the return location after successfull logout.");
 	public static final Setting<String> OAuthAuth0ClientId              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_id", "", "Client ID use for oauth.");
-	public static final Setting<String> OAuthAuth0ClientSecret          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_secret", "", "Client secret used for oauth.");
+	public static final Setting<String> OAuthAuth0ClientSecret          = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.client_secret", "", "Client secret used for oauth.").setIsProtected();
 	public static final Setting<String> OAuthAuth0RedirectUri           = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.redirect_uri", "", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthAuth0UserDetailsUri        = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.user_details_resource_uri", "", "Points to the user details endpoint of the service provider.");
 	public static final Setting<String> OAuthAuth0ErrorUri              = new StringSetting(oauthGroup, "Auth0", "oauth.auth0.error_uri", "", "Structr redirects to this URI on unsuccessful authentication.");
@@ -634,34 +620,13 @@ public class Settings {
 	public static final Setting<String> OAuthAzureLogoutReturnUri       = new StringSetting(oauthGroup, "Azure", "oauth.azure.logout_return_uri", "", "Structr redirects to this URI on successfull logout.");
 	public static final Setting<String> OAuthAzureLogoutReturnLocationParameterKey  = new StringSetting(oauthGroup, "Auth0", "oauth.azure.logout_return_location_parameter", "returnTo", "Provider specific URL parameter that carries the value of the return location after successfull logout.");
 	public static final Setting<String> OAuthAzureClientId              = new StringSetting(oauthGroup, "Azure", "oauth.azure.client_id", "", "Client ID use for oauth.");
-	public static final Setting<String> OAuthAzureClientSecret          = new StringSetting(oauthGroup, "Azure", "oauth.azure.client_secret", "", "Client secret used for oauth.");
+	public static final Setting<String> OAuthAzureClientSecret          = new StringSetting(oauthGroup, "Azure", "oauth.azure.client_secret", "", "Client secret used for oauth.").setIsProtected();
 	public static final Setting<String> OAuthAzureRedirectUri           = new StringSetting(oauthGroup, "Azure", "oauth.azure.redirect_uri", "", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthAzureUserDetailsUri        = new StringSetting(oauthGroup, "Azure", "oauth.azure.user_details_resource_uri", "", "Points to the user details endpoint of the service provider.");
 	public static final Setting<String> OAuthAzureErrorUri              = new StringSetting(oauthGroup, "Azure", "oauth.azure.error_uri", "", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthAzureReturnUri             = new StringSetting(oauthGroup, "Azure", "oauth.azure.return_uri", "", "Structr redirects to this URI on successful authentification.");
 	public static final Setting<String> OAuthAzureScope                 = new StringSetting(oauthGroup, "Azure", "oauth.azure.scope", "openid profile email", "Specifies the scope of the authentifcation.");
 	public static final ChoiceSetting OAuthAzureAccessTokenLocation     = new ChoiceSetting(oauthGroup, "Azure", "oauth.azure.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
-
-	// LDAP settings
-	public static final Setting<String> LDAPHost            = new StringSetting(ldapGroup,  "General", "ldap.host", "localhost", "Address of the LDAP host.");
-	public static final Setting<Integer> LDAPPort           = new IntegerSetting(ldapGroup, "General", "ldap.port", 389, "Port of the LDAP host.");
-	public static final Setting<Integer> LDAPConnectTimeout = new IntegerSetting(ldapGroup, "General", "ldap.connecttimeout", 1000, "Connection timeout in milliseconds");
-	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup,  "General", "ldap.binddn", "", "DN that is used to authenticate synchronization");
-	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup,  "General", "ldap.secret", "", "Used in conjunction with bind DN to handle authentication.");
-	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false, "Enables SSL for the LDAP connection.");
-	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE", "Specifies the LDAP scope. Defaults to 'SUBTREE'");
-	public static final Setting<String> LDAPPrimaryKey      = new StringSetting(ldapGroup,  "General", "ldap.primarykey", "dn", "Name of primary identification property of LDAP objects, must uniquely identify users and groups");
-	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup,  "General", "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
-	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup,  "General", "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");
-	public static final Setting<Integer> LDAPUpdateInterval = new IntegerSetting(ldapGroup, "General", "ldap.updateinterval", 600, "Update interval for group synchronization in seconds.");
-
-	// payment settings
-	public static final Setting<String> PaymentPaypalMode      = new StringSetting(miscGroup,  "Payment Options", "paypal.mode",         "");
-	public static final Setting<String> PaymentPaypalUsername  = new StringSetting(miscGroup,  "Payment Options", "paypal.username",     "");
-	public static final Setting<String> PaymentPaypalPassword  = new StringSetting(miscGroup,  "Payment Options", "paypal.password",     "");
-	public static final Setting<String> PaymentPaypalSignature = new StringSetting(miscGroup,  "Payment Options", "paypal.signature",    "");
-	public static final Setting<String> PaymentPaypalRedirect  = new StringSetting(miscGroup,  "Payment Options", "paypal.redirect",     "");
-	//public static final Setting<String> PaymentStripeApiKey    = new StringSetting(miscGroup,  "Payment Options", "stripe.apikey",       "");
 
 	// licence settings
 	public static final Setting<String> LicenseKey                = new StringSetting(licensingGroup,   "Licensing", "license.key",                   "", "Base64-encoded string that contains the complete license data, typically saved as 'license.key' in the main directory.");
@@ -802,10 +767,29 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().fileBased()
+							.setFileName(fileName)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+					);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration();
-			config.setFileName(fileName);
+			// If file does not exist, create it and set default permissions
+			final Path filePath     = Path.of(fileName);
+			final boolean didCreate = filePath.toFile().createNewFile();
+			if (didCreate) {
+
+				try {
+
+					Files.setPosixFilePermissions(filePath, expectedConfigFilePermissions);
+
+				} catch (UnsupportedOperationException | IOException e) {
+					// happens on non-POSIX filesystems, ignore
+				}
+			}
+
+			final PropertiesConfiguration config = builder.getConfiguration();
+			final FileHandler fileHandler        = builder.getFileHandler();
 
 			for (final Setting setting : settings.values()) {
 
@@ -813,40 +797,36 @@ public class Settings {
 				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
 
 					config.setProperty(setting.getKey(), setting.getValue());
+
+					setting.setIsModified(false);
 				}
 			}
 
-			final boolean isFileCreation = !config.getFile().exists();
+			final long freeSpace = fileHandler.getFile().getFreeSpace();
 
-			config.save();
-
-			if (isFileCreation) {
-
-				try {
-
-					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
-
-				} catch (UnsupportedOperationException | IOException e) {
-					// happens on non-POSIX filesystems, ignore
-				}
-
-			} else {
-
-				checkConfigurationFilePermissions(config, warnForNotRecommendedPermissions);
+			if (freeSpace < 1024 * 1024){
+				logger.error("Refusing to start with less than 1 MB of disk space.");
+				System.exit(1);
 			}
+
+			fileHandler.save();
+
+			checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 
 		} catch (ConfigurationException ex) {
 
-			logger.error("Unable to store configuration: " + ex.getMessage());
+            logger.error("Unable to store configuration: {}", ex.getMessage());
 		}
 	}
 
-	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
+	public static FileBasedConfigurationBuilder<PropertiesConfiguration> getDefaultPropertiesConfigurationBuilder() {
 
-		final PropertiesConfiguration config = new PropertiesConfiguration();
-		config.setFileName(Settings.ConfigFileName);
-
-		return config;
+        return new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+                .configure(new Parameters().fileBased()
+                        .setFileName(Settings.ConfigFileName)
+                        .setThrowExceptionOnMissing(true)
+                        .setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+                );
 	}
 
 	public static String getExpectedConfigurationFilePermissionsAsString () {
@@ -854,11 +834,11 @@ public class Settings {
 		return PosixFilePermissions.toString(expectedConfigFilePermissions);
 	}
 
-	public static String getActualConfigurationFilePermissionsAsString (final PropertiesConfiguration config) {
+	public static String getActualConfigurationFilePermissionsAsString (final FileBasedConfigurationBuilder<?> builder) {
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
 			return PosixFilePermissions.toString(actualPermissions);
 
@@ -869,25 +849,34 @@ public class Settings {
 		return "";
 	}
 
-	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
+	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final FileBasedConfigurationBuilder<?> builder) throws UnsupportedOperationException, IOException{
 
-		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
+		if (builder != null) {
+
+			final FileHandler fileHandler = builder.getFileHandler();
+			final String pathString = fileHandler.getPath();
+			if (pathString != null) {
+				return Files.getPosixFilePermissions(Path.of(pathString));
+			}
+		}
+
+		return null;
 	}
 
-	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
+	public static boolean checkConfigurationFilePermissions(final FileBasedConfigurationBuilder<?> builder, final boolean warn) {
 
 		// default to true for non-POSIX filesystems
 		boolean isOk = true;
 
 		try {
 
-			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(builder);
 
-			isOk = actualPermissions.equals(Settings.expectedConfigFilePermissions);
+			isOk = actualPermissions != null && actualPermissions.equals(Settings.expectedConfigFilePermissions);
 
 			if (!isOk && warn) {
 
-				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", builder.getFileHandler().getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
 			}
 
 		} catch (UnsupportedOperationException | IOException e) {
@@ -901,12 +890,19 @@ public class Settings {
 
 		try {
 
-			PropertiesConfiguration.setDefaultListDelimiter('\0');
+			final File configFile = new File(fileName);
 
-			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
+			FileBasedConfigurationBuilder<PropertiesConfiguration> builder = new FileBasedConfigurationBuilder<>(PropertiesConfiguration.class)
+					.configure(new Parameters().fileBased()
+							.setFile(configFile)
+							.setThrowExceptionOnMissing(true)
+							.setListDelimiterHandler(new DefaultListDelimiterHandler('\0'))
+					);
+
+			final PropertiesConfiguration config = builder.getConfiguration();
 			final Iterator<String> keys          = config.getKeys();
 
-			Settings.checkConfigurationFilePermissions(config, true);
+			Settings.checkConfigurationFilePermissions(builder, true);
 
 			while (keys.hasNext()) {
 
@@ -973,6 +969,7 @@ public class Settings {
 	public static String getFullSettingPath(Setting<String> pathSetting) {
 
 		return getBasePath() + checkPath(pathSetting.getValue());
+
 	}
 
 	private static String checkPath(final String path) {
@@ -1037,11 +1034,48 @@ public class Settings {
 	}
 
 	public static Map<String, String> getAllowedUUIDv4FormatOptions() {
-		return Map.of(
-			POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes",
-			POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes",
-			POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)"
-		);
+
+		final Map<String, String> options = new LinkedHashMap();
+		options.put(POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes");
+		options.put(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes");
+		options.put(POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)");
+		return options;
+	}
+
+	public static Map<String, String> getAvailableLogLevels() {
+
+		final Map<String, String> options = new LinkedHashMap();
+		options.put("ALL", "ALL");
+		options.put("TRACE", "TRACE");
+		options.put("DEBUG", "DEBUG");
+		options.put("INFO", "INFO");
+		options.put("WARN", "WARN");
+		options.put("ERROR", "ERROR");
+		return options;
+	}
+
+
+	public enum SCRIPT_PROCESS_LOG_STYLE {
+		NOTHING(0), SCRIPT_PATH(1), CUSTOM(2);
+
+		SCRIPT_PROCESS_LOG_STYLE(int l) {}
+
+		public static SCRIPT_PROCESS_LOG_STYLE get(int i) {
+
+			switch (i) {
+				case 0: return NOTHING;
+				case 1: return SCRIPT_PATH;
+				default: return CUSTOM;
+			}
+		}
+	}
+
+	public static Map<Integer, String> getScriptProcessLogCommandLineOptions() {
+		final Map<Integer, String> options = new LinkedHashMap();
+		options.put(0, "0 - Do not log command line");
+		options.put(1, "1 - Log full path to script without parameters");
+		options.put(2, "2 - Log full path to script and parameters as configured");
+		return options;
 	}
 
 	public static boolean isNumeric(final String source) {
@@ -1062,33 +1096,48 @@ public class Settings {
 
 	public static String getValidUUIDRegexString() {
 
-		return Settings.uuidRegex;
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
+
+		return Settings.uuidOnlyRegex;
+	}
+
+	public static String getValidUUIDRegexStringForURLParts() {
+
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
+
+		return Settings.uuidPartRegex;
 	}
 
 	private static void initializeValidUUIDPatternOnce() {
 
-		if (Settings.uuidPattern != null && Settings.uuidRegex != null) {
+		if (Settings.uuidPattern != null && Settings.uuidOnlyRegex != null) {
 			// prevent update
 			return;
 		}
 
-		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
+		switch (Settings.UUIDv4AllowedFormats.getValue()) {
+			case "with_dashes":
+				Settings.uuidOnlyRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				Settings.uuidPartRegex = "[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}";
+				break;
 
-		if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString())) {
+			case "both":
+				Settings.uuidOnlyRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				Settings.uuidPartRegex = "[a-fA-F0-9]{32}|[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}";
+				break;
 
-			Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-
-		} else if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.both.toString())) {
-
-			Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-
-		} else {
-
-			// default to "without_dashes":
-			Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
+			default:
+			case "without_dashes":
+				Settings.uuidOnlyRegex = "^[a-fA-F0-9]{32}$";
+				Settings.uuidPartRegex = "[a-fA-F0-9]{32}";
+				break;
 		}
 
-		Settings.uuidPattern = Pattern.compile(Settings.getValidUUIDRegexString());
+		Settings.uuidPattern = Pattern.compile(Settings.uuidOnlyRegex);
 	}
 
 	public static boolean isValidUuid(final String id) {
@@ -1106,5 +1155,13 @@ public class Settings {
 		}
 
 		return false;
+	}
+
+	public static boolean isValidEmail(final String email) {
+		return Settings.emailValidationPattern.matcher(email).matches();
+	}
+
+	public static void updateEmailValidationPattern() {
+		emailValidationPattern = Pattern.compile(Settings.EmailValidationRegex.getValue());
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,34 +28,26 @@ import org.structr.core.property.PropertyMap;
 
 import java.util.Map.Entry;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * A property group that uses a Map.
- *
- *
  */
 public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 
 	private static final Logger logger   = LoggerFactory.getLogger(MapPropertyGroup.class.getName());
 	protected PropertyKey[] propertyKeys = null;
 
-	//~--- constructors ---------------------------------------------------
-
-	public MapPropertyGroup(PropertyKey... propertyKeys) {
+	public MapPropertyGroup(final PropertyKey... propertyKeys) {
 		this.propertyKeys = propertyKeys;
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
-	public PropertyMap getGroupedProperties(SecurityContext securityContext, GraphObject source) {
+	public PropertyMap getGroupedProperties(final SecurityContext securityContext, final GraphObject source) {
 
 		PropertyMap groupedProperties = new PropertyMap();
 
 		for (PropertyKey key : propertyKeys) {
 
-			PropertyConverter converter = key.inputConverter(securityContext);
+			PropertyConverter converter = key.inputConverter(securityContext, false);
 			if (converter != null) {
 				
 				try {
@@ -64,12 +56,9 @@ public class MapPropertyGroup implements PropertyGroup<PropertyMap> {
 					
 				} catch(FrameworkException fex) {
 					
-					logger.warn("Unable to convert grouped property {} on type {}: {}", new Object[] {
-						key.dbName(),
+					logger.warn("Unable to convert grouped property {} on type {}: {}", key.dbName(),
 						source.getClass().getSimpleName(),
-						fex.getMessage()
-						
-					});
+						fex.getMessage());
 				}
 				
 				

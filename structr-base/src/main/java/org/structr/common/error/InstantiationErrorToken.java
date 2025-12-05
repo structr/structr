@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,8 @@ public class InstantiationErrorToken extends SemanticErrorToken {
 
 	public InstantiationErrorToken(final String type, final Throwable t) {
 
-		super(type, null, "instantiation_error", t.getMessage());
+		super(type, null, "instantiation_error");
+
+		withDetail(t.getMessage());
 	}
 }

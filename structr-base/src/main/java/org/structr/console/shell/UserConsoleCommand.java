@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,21 +18,23 @@
  */
 package org.structr.console.shell;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.util.Writable;
+import org.structr.web.entity.User;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -98,44 +100,29 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 	}
 
 	// ----- private methods -----
-	private void handleList(final SecurityContext securityContext, final Writable writable) throws FrameworkException, IOException{
+	private void handleList(final SecurityContext securityContext, final Writable writable) throws FrameworkException, IOException {
 
-		final Class<NodeInterface> type = StructrApp.getConfiguration().getNodeEntityClass("User");
-		final App app                   = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
+		boolean first = true;
 
-		if (type != null) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			for (final NodeInterface user : app.nodeQuery(StructrTraits.USER).sort(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY)).getResultStream()) {
 
-				final List<NodeInterface> users = app.nodeQuery(type).sort(AbstractNode.name).getAsList();
-				for (final Iterator<NodeInterface> it = users.iterator(); it.hasNext();) {
+				final String name = user.getName();
 
-					final NodeInterface user = it.next();
-					final String name        = user.getProperty(AbstractNode.name);
-
-					if (name != null) {
-
-						writable.print(name);
-
-					} else {
-
-						writable.print(user.getUuid());
-					}
-
-					if (it.hasNext()) {
-
-						writable.print(", ");
-					}
+				if (!first) {
+					writable.print(", ");
 				}
 
-				writable.println();
+				writable.print(name);
 
-				tx.success();
+				first = false;
 			}
 
-		} else {
+			writable.println();
 
-			throw new FrameworkException(422, "Cannot list users, no User class found.");
+			tx.success();
 		}
 	}
 
@@ -145,33 +132,26 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 			throw new FrameworkException(422, "Missing user name for add command.");
 		}
 
-		final App app    = StructrApp.getInstance(securityContext);
-		final Class type = StructrApp.getConfiguration().getNodeEntityClass("User");
+		final App app = StructrApp.getInstance(securityContext);
 
-		if (type != null) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			final NodeInterface node = app.create(StructrTraits.USER, new NodeAttribute<>(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name));
+			final User user          = node.as(User.class);
 
-				final Principal user = (Principal)app.create(type, new NodeAttribute<>(AbstractNode.name, name));
-
-				// set e-mail address
-				if (eMail != null && !"isAdmin".equals(eMail)) {
-					user.setEMail(eMail);
-				}
-
-				// set isAdmin flag
-				if ("isAdmin".equals(eMail) || "isAdmin".equals(isAdmin)) {
-					user.setIsAdmin(true);
-				}
-
-				writable.println("User created.");
-
-				tx.success();
+			// set e-mail address
+			if (eMail != null && !"isAdmin".equals(eMail)) {
+				user.setEMail(eMail);
 			}
 
-		} else {
+			// set isAdmin flag
+			if ("isAdmin".equals(eMail) || "isAdmin".equals(isAdmin)) {
+				user.setIsAdmin(true);
+			}
 
-			throw new FrameworkException(422, "Cannot create user, no User class found.");
+			writable.println("User created.");
+
+			tx.success();
 		}
 	}
 
@@ -181,61 +161,53 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 			throw new FrameworkException(422, "Missing user name for delete command.");
 		}
 
-		final Class<? extends NodeInterface> type = StructrApp.getConfiguration().getNodeEntityClass("User");
-		final App app                             = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
 
-		if (type != null) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			NodeInterface user = app.nodeQuery(StructrTraits.USER).name(name).getFirst();
+			if (user == null) {
 
-				NodeInterface user = app.nodeQuery(type).andName(name).getFirst();
-				if (user == null) {
+				user = app.getNodeById(StructrTraits.USER, name);
+			}
 
-					user = app.get(type, name);
-				}
+			if (user != null) {
 
-				if (user != null) {
+				final List<NodeInterface> ownedNodes = Iterables.toList(user.as(Principal.class).getOwnedNodes());
+				if (ownedNodes.isEmpty()) {
 
-					final List<NodeInterface> ownedNodes = Iterables.toList(user.getProperty(Principal.ownedNodes));
-					if (ownedNodes.isEmpty()) {
+					app.delete(user);
+
+					writable.println("User deleted.");
+
+				} else {
+
+					final String hash = user.getUuid().substring(7, 11);
+
+					if (confirm == null || !confirm.equals(hash)) {
+
+						writable.print("User '");
+						writable.print(name);
+						writable.print("' has owned nodes, please confirm deletion with 'user delete ");
+						writable.print(name);
+						writable.print(" ");
+						writable.print(hash);
+						writable.println("'.");
+
+					} else {
 
 						app.delete(user);
 
 						writable.println("User deleted.");
-
-					} else {
-
-						final String hash = user.getUuid().substring(7, 11);
-
-						if (confirm == null || !confirm.equals(hash)) {
-
-							writable.print("User '");
-							writable.print(name);
-							writable.print("' has owned nodes, please confirm deletion with 'user delete ");
-							writable.print(name);
-							writable.print(" ");
-							writable.print(hash);
-							writable.println("'.");
-
-						} else {
-
-							app.delete(user);
-
-							writable.println("User deleted.");
-						}
 					}
-
-				} else {
-
-					throw new FrameworkException(422, "User " + name + " not found.");
 				}
 
-				tx.success();
+			} else {
+
+				throw new FrameworkException(422, "User " + name + " not found.");
 			}
 
-		} else {
-
-			throw new FrameworkException(422, "Cannot delete user, no User class found.");
+			tx.success();
 		}
 	}
 
@@ -245,38 +217,32 @@ public class UserConsoleCommand extends AdminConsoleCommand {
 			throw new FrameworkException(422, "Missing user name for password command.");
 		}
 
-		final Class<? extends Principal> type = StructrApp.getConfiguration().getNodeEntityClass("User");
-		final App app                          = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
 
-		if (type != null) {
+		try (final Tx tx = app.tx()) {
 
-			try (final Tx tx = app.tx()) {
+			final NodeInterface node = app.nodeQuery(StructrTraits.USER).name(name).getFirst();
+			if (node != null) {
 
-				final Principal user = app.nodeQuery(type).andName(name).getFirst();
-				if (user != null) {
+				final Principal user = node.as(Principal.class);
 
-					if (StringUtils.isNotBlank(password)) {
+				if (StringUtils.isNotBlank(password)) {
 
-						user.setPassword(password);
+					user.setPassword(password);
 
-						writable.println("Password changed.");
-
-					} else {
-
-						throw new FrameworkException(422, "Will not set empty password");
-					}
+					writable.println("Password changed.");
 
 				} else {
 
-					throw new FrameworkException(422, "User " + name + " not found.");
+					throw new FrameworkException(422, "Will not set empty password");
 				}
 
-				tx.success();
+			} else {
+
+				throw new FrameworkException(422, "User " + name + " not found.");
 			}
 
-		} else {
-
-			throw new FrameworkException(422, "Cannot change password, no User class found.");
+			tx.success();
 		}
 	}
 }

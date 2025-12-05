@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -88,7 +88,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 	public void render(final Tag parent) {
 
 		final Tag group = parent.block("div").css("form-group");
-		final String id = RandomStringUtils.randomAlphabetic(8);
+		final String id = RandomStringUtils.insecure().nextAlphabetic(8);
 
 		renderLabel(group);
 

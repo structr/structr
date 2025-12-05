@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -83,7 +83,7 @@ public class StructrDateProperty extends StructrStringProperty implements JsonDa
 
 		super.deserialize(schemaNodes, property);
 
-		this.datePattern = property.getProperty(SchemaProperty.format);
+		this.datePattern = property.getFormat();
 	}
 
 	@Override

@@ -2,49 +2,176 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<name>Structr Modules</name>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.structr</groupId>
 	<artifactId>structr-modules</artifactId>
 	<version>6.0-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
-		<artifactId>structr-test-configuration</artifactId>
+		<artifactId>structr</artifactId>
 		<version>6.0-SNAPSHOT</version>
-		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<packaging>pom</packaging>
 
 	<dependencies>
-		<dependency>
-			<groupId>org.structr</groupId>
-			<artifactId>structr-base</artifactId>
-			<version>6.0-SNAPSHOT</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.structr</groupId>-->
+<!--			<artifactId>structr-app</artifactId>-->
+<!--			<version>${project.version}</version>-->
+<!--		</dependency>-->
 	</dependencies>
 
 	<modules>
-		<module>structr-xmpp-module</module>
-		<module>structr-media-module</module>
-		<module>structr-api-builder-module</module>
-		<module>structr-flow-module</module>
-		<module>structr-file-access-module</module>
-		<module>structr-text-search-module</module>
-		<module>structr-data-feeds-module</module>
-		<module>structr-csv-module</module>
-		<module>structr-geo-transformations-module</module>
-		<module>structr-odf-module</module>
-		<module>structr-ldap-client-module</module>
-		<module>structr-payment-module</module>
-		<module>structr-crawler-module</module>
-		<module>structr-xml-module</module>
-		<module>structr-knowledge-module</module>
-		<module>structr-translation-module</module>
-		<module>structr-messaging-engine-module</module>
-		<module>structr-excel-module</module>
 		<module>structr-advanced-mail-module</module>
+		<module>structr-api-builder-module</module>
+		<module>structr-csv-module</module>
+		<module>structr-data-feeds-module</module>
+		<module>structr-excel-module</module>
+		<module>structr-file-access-module</module>
+		<module>structr-flow-module</module>
+		<module>structr-geo-transformations-module</module>
+		<module>structr-media-module</module>
+		<module>structr-messaging-engine-module</module>
+		<module>structr-odf-module</module>
 		<module>structr-pdf-module</module>
-		<module>structr-security-module</module>
+		<module>structr-text-search-module</module>
+		<module>structr-translation-module</module>
+		<module>structr-xmpp-module</module>
 	</modules>
+	<profiles>
+		<profile>
+			<id>test-neo4j</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+				<property>
+					<name>database</name>
+					<value>neo4j</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.5.4</version>
+						<configuration>
+							<argLine>-Duser.language=en -Duser.region=GB -Duser.timezone=UTC</argLine>
+							<excludes>
+								<exclude>**/*.java</exclude>
+							</excludes>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-failsafe-plugin</artifactId>
+						<version>3.5.4</version>
+						<configuration>
+							<includes>
+								<include>**/*Test.java</include>
+							</includes>
+							<argLine>-Xms12g -Xmx12g -Duser.timezone=UTC</argLine>
+							<reuseForks>false</reuseForks>
+							<forkCount>${test.forkCount}</forkCount>
+							<skipTests>${skipTests}</skipTests>
+<!--							<rerunFailingTestsCount>2</rerunFailingTestsCount>-->
+							<!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
+							<systemPropertyVariables>
+								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+								<testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
+							</systemPropertyVariables>
+						</configuration>
+						<executions>
+							<execution>
+								<goals>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+					<plugin>
+						<groupId>io.fabric8</groupId>
+						<artifactId>docker-maven-plugin</artifactId>
+						<version>${docker.maven.plugin.version}</version>
+						<executions>
+							<execution>
+								<id>prepare-database</id>
+								<phase>pre-integration-test</phase>
+								<goals>
+									<goal>start</goal>
+								</goals>
+								<configuration>
+									<images>
+										<image>
+											<name>${test.neo4j.version}</name>
+											<alias>database</alias>
+											<run>
+												<ports>
+													<port>7690:7687</port>
+												</ports>
+												<wait>
+													<log>(.?)Bolt enabled on(.?)</log>
+													<time>20000</time>
+												</wait>
+												<env>
+													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
+													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+													<NEO4J_server_memory_heap_max__size>4G</NEO4J_server_memory_heap_max__size>
+													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
+												</env>
+											</run>
+										</image>
+									</images>
+									<skip>${skipDockerTestDB}</skip>
+								</configuration>
+							</execution>
+							<execution>
+								<id>remove-database</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>stop</goal>
+								</goals>
+								<configuration>
+<!--									<executeStopOnVMShutdown>true</executeStopOnVMShutdown>-->
+									<skip>${skipDockerTestDB}</skip>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>test-in-memory-database</id>
+			<activation>
+				<property>
+					<name>database</name>
+					<value>in-memory</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.5.4</version>
+						<configuration>
+							<includes>
+								<include>**/*Test.java</include>
+							</includes>
+							<argLine>-Xms8g -Xmx8g -Duser.timezone=UTC</argLine>
+							<reuseForks>false</reuseForks>
+							<forkCount>${test.forkCount}</forkCount>
+							<skipTests>${skipTests}</skipTests>
+<!--							<rerunFailingTestsCount>2</rerunFailingTestsCount>-->
+							<systemPropertyVariables>
+								<testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>
+							</systemPropertyVariables>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 </project>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,15 +25,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Map;
 
 public class CreateFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_CREATE    = "Usage: ${create(type, key, value)}. Example: ${create(\"Feedback\", \"text\", this.text)}";
-	public static final String ERROR_MESSAGE_CREATE_JS = "Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create(\"Feedback\", {text: \"Structr is awesome.\"})}}";
 
 	@Override
 	public String getName() {
@@ -41,8 +40,8 @@ public class CreateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, parameterMap ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type [, parameterMap ]");
 	}
 
 	@Override
@@ -51,13 +50,12 @@ public class CreateFunction extends CoreFunction {
 		if (sources != null && sources.length > 0) {
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 			PropertyMap propertyMap;
-			Class type = null;
+			Traits type = null;
 
 			if (sources.length >= 1 && sources[0] != null) {
 
-				type = config.getNodeEntityClass(sources[0].toString());
+				type = Traits.of(sources[0].toString());
 			}
 
 			if (type == null) {
@@ -68,29 +66,29 @@ public class CreateFunction extends CoreFunction {
 			// extension for native javascript objects
 			if (sources.length == 2 && sources[1] instanceof Map) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, (Map)sources[1]);
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), (Map)sources[1]);
 
 			} else if (sources.length == 2 && sources[1] instanceof GraphObjectMap) {
 
-				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type, ((GraphObjectMap)sources[1]).toMap());
+				propertyMap = PropertyMap.inputTypeToJavaType(securityContext, type.getName(), ((GraphObjectMap)sources[1]).toMap());
 
 			} else {
 
 				propertyMap               = new PropertyMap();
-				final int parameter_count = sources.length;
+				final int parameterCount = sources.length;
 
-				if (parameter_count % 2 == 0) {
+				if (parameterCount % 2 == 0) {
 
-					throw new FrameworkException(400, "Invalid number of parameters: " + parameter_count + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
+					throw new FrameworkException(400, "Invalid number of parameters: " + parameterCount + ". Should be uneven: " + usage(ctx.isJavaScriptContext()));
 				}
 
-				for (int c = 1; c < parameter_count; c += 2) {
+				for (int c = 1; c < parameterCount; c += 2) {
 
-					final PropertyKey key = StructrApp.key(type, sources[c].toString());
+					final PropertyKey key = type.key(sources[c].toString());
 
 					if (key != null) {
 
-						final PropertyConverter inputConverter = key.inputConverter(securityContext);
+						final PropertyConverter inputConverter = key.inputConverter(securityContext, false);
 						Object value = sources[c + 1];
 
 						if (inputConverter != null) {
@@ -104,7 +102,7 @@ public class CreateFunction extends CoreFunction {
 				}
 			}
 
-			return StructrApp.getInstance(securityContext).create(type, propertyMap);
+			return StructrApp.getInstance(securityContext).create(type.getName(), propertyMap);
 
 		} else {
 
@@ -115,13 +113,53 @@ public class CreateFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CREATE_JS : ERROR_MESSAGE_CREATE);
+	public List<Documentable> getContextHints(final String lastToken) {
+		return getContextHintsForTypes(lastToken);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Creates a new entity with the given key/value pairs in the database";
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${create(type, key, value)}. Example: ${create('Feedback', 'text', this.text)}"),
+			Usage.javaScript("Usage: ${{Structr.create(type, {key: value})}}. Example: ${{Structr.create('Feedback', {text: 'Structr is awesome.'})}}")
+		);
 	}
 
+	@Override
+	public String getShortDescription() {
+		return "Creates a new node with the given type and key-value pairs in the database.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("type", "type of node to create"),
+			Parameter.optional("additionalValues", "key-value pairs or a map thereof")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${create('User', 'name', 'tester', 'passwword', 'changeMeNow!')}"),
+			Example.javaScript("""
+			${{
+				let user = $.create('User', { name: 'tester', password: 'changeMeNow!' });
+			}}
+			""", "Create a new User with the given name and password")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"In a StructrScript environment, parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function takes a map as the second parameter."
+		);
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.structr.memory.index.filter.MemoryLabelFilter;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -108,14 +109,36 @@ public class MemoryNode extends MemoryEntity implements Node {
 	}
 
 	@Override
-	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType) {
-		return db.getRelationships(this, direction, relationshipType);
+	public Map<String, Long> getDegree() {
+
+		final Map<String, Long> degree = new LinkedHashMap<>();
+
+		for (final Relationship rel : db.getRelationships(this)) {
+
+			final String type = (String) rel.getProperty("type");
+			final Long count  = degree.get(type);
+
+			if (count == null) {
+
+				degree.put(type, 1L);
+
+			} else {
+				degree.put(type, count + 1);
+			}
+		}
+
+		return degree;
 	}
 
 	@Override
 	public void delete(boolean deleteRelationships) throws NotInTransactionException {
 		lock();
 		db.delete(this);
+	}
+
+	@Override
+	public boolean isNode() {
+		return true;
 	}
 
 	@Override

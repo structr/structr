@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,11 +25,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -61,7 +63,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 		if (obj != null) {
 
-			TransactionCommand.registerNodeCallback((NodeInterface) obj, callback);
+			TransactionCommand.registerNodeCallback(obj, callback);
 
 			deleteNode(getWebSocket(), obj, recursive);
 		}
@@ -82,10 +84,10 @@ public class DeleteNodeCommand extends AbstractCommand {
 				tx.success();
 
 				return;
-
 			}
 
 		} catch (FrameworkException ex) {
+
 			logger.warn("", ex);
 		}
 
@@ -95,20 +97,31 @@ public class DeleteNodeCommand extends AbstractCommand {
 			try {
 
 				final List<NodeInterface> filteredResults = new LinkedList<>();
-				if (obj instanceof DOMNode) {
 
-					DOMNode node = (DOMNode) obj;
+				if (obj.is(StructrTraits.PAGE)) {
 
-					filteredResults.addAll(DOMNode.getAllChildNodes(node));
+					final Page node = obj.as(Page.class);
 
-				} else if (obj instanceof LinkedTreeNode) {
+					for (final NodeInterface childNode : node.getAllChildNodes()) {
 
-					LinkedTreeNode node = (LinkedTreeNode) obj;
+						final DOMNode domNode = childNode.as(DOMNode.class);
+						RemoveCommand.recursivelyRemoveNodesFromPage(domNode, securityContext);
+					}
+
+				} else if (obj.is(StructrTraits.DOM_NODE)) {
+
+					final DOMNode node = obj.as(DOMNode.class);
+
+					filteredResults.addAll(node.getAllChildNodes());
+
+				} else if (obj.is(StructrTraits.FOLDER)) {
+
+					final Folder node = obj.as(Folder.class);
 
 					filteredResults.addAll(node.getAllChildNodes());
 				}
 
-				for (NodeInterface node : filteredResults) {
+				for (final NodeInterface node : filteredResults) {
 					app.delete(node);
 				}
 
@@ -121,20 +134,19 @@ public class DeleteNodeCommand extends AbstractCommand {
 
 				logger.warn("DOMException occured.", dex);
 				ws.send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
-
 			}
-
 		}
 
 		try {
+
 			app.delete(obj);
 
 		} catch (FrameworkException fex) {
+
 			logger.warn("Unable to delete node(s)", fex);
 		}
 	}
 
-	//~--- get methods ----------------------------------------------------
 	@Override
 	public String getCommand() {
 		return "DELETE";

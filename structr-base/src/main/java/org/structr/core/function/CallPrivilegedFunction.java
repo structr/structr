@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,32 +19,19 @@
 package org.structr.core.function;
 
 import org.structr.common.SecurityContext;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 public class CallPrivilegedFunction extends CallFunction {
 
-	public static final String ERROR_MESSAGE_CALL_PRIVILEGED    = "Usage: ${call_privileged(key [, key, value]}. Example ${call_privileged('myEvent', 'key1', 'value1', 'key2', 'value2')}";
-	public static final String ERROR_MESSAGE_CALL_PRIVILEGED_JS = "Usage: ${{Structr.call_privileged(key [, parameterMap]}}. Example ${{Structr.call_privileged('myEvent', {key1: 'value1', key2: 'value2'})}}";
-
 	@Override
 	public String getName() {
-		return "call_privileged";
-	}
-
-	@Override
-	public String getSignature() {
-		return "functionName [, parameterMap ]";
-	}
-
-	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_CALL_PRIVILEGED_JS : ERROR_MESSAGE_CALL_PRIVILEGED);
-	}
-
-	@Override
-	public String shortDescription() {
-		return "Calls the given global schema method with a superuser context";
+		return "callPrivileged";
 	}
 
 	@Override
@@ -54,5 +41,60 @@ public class CallPrivilegedFunction extends CallFunction {
 		superuserSecurityContext.setContextStore(ctx.getContextStore());
 
 		return superuserSecurityContext;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("functionName [, parameterMap ]");
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${callPrivileged(key [, key, value]}. Example ${callPrivileged('myEvent', 'key1', 'value1', 'key2', 'value2')}"),
+			Usage.javaScript("Usage: ${{ $.callPrivileged(key [, parameterMap]}}. Example ${{ $.callPrivileged('myEvent', {key1: 'value1', key2: 'value2'})}}")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Calls the given user-defined function **in a superuser context**.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("functionName", "name of the user-defined function to call"),
+			Parameter.mandatory("parameterMap", "map of parameters")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${call('updateUsers', 'param1', 'value1', 'param2', 'value2')}", "Call the user-defined function `updateUsers` with two key-value pairs as parameters"),
+			Example.javaScript("""
+			${{
+				$.call('updateUsers', {
+					param1: 'value1',
+					param2: 'value2'
+				})
+			        }}
+			""", "Call the user-defined function `updateUsers` with a map of parameters")
+		);
+	}
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Useful in situations where different types have the same or similar functionality but no common base class so the method can not be attached there",
+			"In a StructrScript environment parameters are passed as pairs of `'key1', 'value1'`.",
+			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the second parameter."
+
+		);
 	}
 }

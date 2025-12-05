@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class PathPropertySortOrder implements SortOrder {
+
 	final PathResolvingComparator comparator;
 
 	public PathPropertySortOrder(final ActionContext actionContext, final String pathSortKey, final boolean sortDescending) {

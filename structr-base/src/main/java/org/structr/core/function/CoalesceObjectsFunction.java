@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,22 +19,23 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 public class CoalesceObjectsFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_COALESCE = "Usage: ${coalesce_objects(obj1, obj2...)}. Example: ${coalesce(node1, node2, node3)}";
-	public static final String ERROR_MESSAGE_COALESCE_JS = "Usage: ${{Structr.coalesceObjects(obj1, obj2...)}}. Example: ${{Structr.coalesceObjects(node1, node2, node3)}}";
-
 	@Override
 	public String getName() {
-		return "coalesce_objects";
+		return "coalesceObjects";
 	}
 
 	@Override
-	public String getSignature() {
-		return "obj1, obj2, obj3, ...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("obj1, obj2, obj3, ...");
 	}
 
 	@Override
@@ -64,13 +65,20 @@ public class CoalesceObjectsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_COALESCE_JS : ERROR_MESSAGE_COALESCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${coalesceObjects(obj1, obj2...)}. Example: ${coalesce(node1, node2, node3)}"),
+			Usage.javaScript("Usage: ${{Structr.coalesceObjects(obj1, obj2...)}}. Example: ${{Structr.coalesceObjects(node1, node2, node3)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned";
+	public String getShortDescription() {
+		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }

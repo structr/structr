@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,17 +20,22 @@ package org.structr.rest.exception;
 
 
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Set;
 
 
 /**
  *
- *
  */
 public class IllegalMethodException extends FrameworkException {
 
-	public IllegalMethodException(final String message) {
-		super(HttpServletResponse.SC_METHOD_NOT_ALLOWED, message);
-	}
+	public IllegalMethodException(final String message, final Set<String> allowedMethods) {
 
+		super(HttpServletResponse.SC_METHOD_NOT_ALLOWED, message);
+
+		// 405 is required to return allowed methods
+		headers().put("Allow", StringUtils.join(allowedMethods, ","));
+	}
 }

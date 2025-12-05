@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,18 +23,19 @@ import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.User;
 
 import java.util.Date;
 import java.util.List;
@@ -103,7 +104,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			} else {
 
 				if (structrFile != null) {
-					name = structrFile.getProperty(File.name);
+					name = structrFile.getName();
 				}
 			}
 
@@ -129,7 +130,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final boolean hidden = structrFile.getProperty(File.hidden);
+			final boolean hidden = structrFile.isHidden();
 
 			tx.success();
 
@@ -172,7 +173,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			String name = "";
 
 			if (owner != null) {
-				name = owner.getProperty(User.name);
+				name = owner.getName();
 			}
 
 			tx.success();
@@ -196,10 +197,10 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 			if (owner != null) {
 
-				final List<Principal> parents = Iterables.toList(owner.getParents());
+				final List<Group> parents = Iterables.toList(owner.getParents());
 				if (!parents.isEmpty()) {
 
-					name = parents.get(0).getProperty(AbstractNode.name);
+					name = parents.get(0).getName();
 				}
 			}
 
@@ -223,7 +224,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Date date = structrFile.getProperty(AbstractFile.lastModifiedDate);
+			final Date date = structrFile.getLastModifiedDate();
 
 			tx.success();
 
@@ -241,7 +242,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			structrFile.setProperty(AbstractFile.lastModifiedDate, new Date(l));
+			structrFile.setLastModifiedDate(new Date(l));
 
 			tx.success();
 
@@ -284,26 +285,24 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 			try {
 				if (path.contains("/")) {
 
-					String newParentPath = StringUtils.substringBeforeLast(path, "/");
-					AbstractFile newParent = FileHelper.getFileByAbsolutePath(securityContext, newParentPath);
+					String newParentPath    = StringUtils.substringBeforeLast(path, "/");
+					NodeInterface newParent = FileHelper.getFileByAbsolutePath(securityContext, newParentPath);
 
-					if (newParent != null && newParent instanceof Folder) {
+					if (newParent != null && newParent.is(StructrTraits.FOLDER)) {
 
-						Folder newParentFolder = (Folder) newParent;
-						structrFile.setParent(newParentFolder);
+						structrFile.setParent(newParent.as(Folder.class));
 
 					} else {
 
 						// Move to /
 						structrFile.setParent(null);
-
 					}
 
 				}
 
 				if (!("/".equals(path))) {
 					final String newName = path.contains("/") ? StringUtils.substringAfterLast(path, "/") : path;
-					structrFile.setProperty(AbstractNode.name, newName);
+					structrFile.setName(newName);
 				}
 
 			} catch (FrameworkException ex) {
@@ -326,7 +325,7 @@ public abstract class AbstractStructrFtpFile implements FtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			Principal owner = structrFile.getProperty(File.owner);
+			Principal owner = structrFile.as(AccessControllable.class).getOwnerNode();
 
 			tx.success();
 

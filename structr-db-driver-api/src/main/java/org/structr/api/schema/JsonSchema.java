@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,112 +26,120 @@ import java.net.URI;
  */
 public interface JsonSchema {
 
-	public enum Direction {
+	enum Direction {
 		in, out
 	}
 
-	public enum Cascade {
+	enum Cascade {
 		sourceToTarget, targetToSource, always, constraintBased
 	}
 
-	public enum ImportMode {
+	enum ImportMode {
 		replace, extend
 	}
 
-	public static final String KEY_SCHEMA                   = "$schema";
-	public static final String KEY_SIZE_OF                  = "$size";
-	public static final String KEY_REFERENCE                = "$ref";
-	public static final String KEY_EXTENDS                  = "$extends";
-	public static final String KEY_IMPLEMENTS               = "$implements";
-	public static final String KEY_LINK                     = "$link";
-	public static final String KEY_LINK_SOURCE              = "$source";
-	public static final String KEY_LINK_TARGET              = "$target";
+	String KEY_REFERENCE                = "$ref";
+	String KEY_EXTENDS                  = "$extends";
+	String KEY_IMPLEMENTS               = "$implements";
+	String KEY_LINK                     = "$link";
+	String KEY_LINK_SOURCE              = "$source";
+	String KEY_LINK_TARGET              = "$target";
 
-	public static final String KEY_ID                       = "id";
-	public static final String KEY_TYPE                     = "type";
-	public static final String KEY_TITLE                    = "title";
-	public static final String KEY_DESCRIPTION              = "description";
-	public static final String KEY_ICON                     = "icon";
-	public static final String KEY_ENUM                     = "enum";
-	public static final String KEY_FQCN                     = "fqcn";
-	public static final String KEY_FORMAT                   = "format";
-	public static final String KEY_HINT                     = "hint";
-	public static final String KEY_CATEGORY                 = "category";
-	public static final String KEY_READ_ONLY                = "readOnly";
-	public static final String KEY_VALIDATORS               = "validators";
-	public static final String KEY_TRANSFORMATORS           = "transformators";
-	public static final String KEY_DATE_PATTERN             = "datePattern";
-	public static final String KEY_ITEMS                    = "items";
-	public static final String KEY_IS_ABSTRACT              = "isAbstract";
-	public static final String KEY_IS_INTERFACE             = "isInterface";
-	public static final String KEY_IS_BUILTIN_TYPE          = "isBuiltinType";
-	public static final String KEY_CHANGELOG_DISABLED       = "changelogDisabled";
-	public static final String KEY_VISIBLE_TO_PUBLIC        = "visibleToPublicUsers";
-	public static final String KEY_VISIBLE_TO_AUTHENTICATED = "visibleToAuthenticatedUsers";
-	public static final String KEY_DEFINITIONS              = "definitions";
-	public static final String KEY_PROPERTIES               = "properties";
-	public static final String KEY_VIEWS                    = "views";
-	public static final String KEY_VIEW_ORDER               = "viewOrder";
-	public static final String KEY_METHODS                  = "methods";
-	public static final String KEY_GRANTS                   = "grants";
-	public static final String KEY_REQUIRED                 = "required";
-	public static final String KEY_MIN_ITEMS                = "minItems";
-	public static final String KEY_MAX_ITEMS                = "maxItems";
-	public static final String KEY_SOURCE                   = "source";
-	public static final String KEY_CODE_TYPE                = "codeType";
-	public static final String KEY_OVERRIDES_EXISTING       = "overridesExisting";
-	public static final String KEY_RETURN_TYPE              = "returnType";
-	public static final String KEY_OPENAPI_RETURN_TYPE      = "openAPIReturnType";
-	public static final String KEY_EXCEPTIONS               = "exceptions";
-	public static final String KEY_CALL_SUPER               = "callSuper";
-	public static final String KEY_IS_STATIC                = "isStatic";
-	public static final String KEY_DO_EXPORT                = "doExport";
-	public static final String KEY_PARAMETERS               = "parameters";
-	public static final String KEY_PARAMETER_TYPE           = "parameterType";
-	public static final String KEY_PARAMETER_INDEX          = "parameterIndex";
-	public static final String KEY_SUMMARY                  = "summary";
-	public static final String KEY_CONTENT_TYPE             = "contentType";
-	public static final String KEY_RELATIONSHIP             = "rel";
-	public static final String KEY_DIRECTION                = "direction";
-	public static final String KEY_COMPOUND                 = "compound";
-	public static final String KEY_UNIQUE                   = "unique";
-	public static final String KEY_INDEXED                  = "indexed";
-	public static final String KEY_DEFAULT                  = "default";
-	public static final String KEY_CASCADE                  = "cascade";
-	public static final String KEY_CREATE                   = "create";
-	public static final String KEY_DELETE                   = "delete";
-	public static final String KEY_CARDINALITY              = "cardinality";
-	public static final String KEY_SOURCE_NAME              = "sourceName";
-	public static final String KEY_TARGET_NAME              = "targetName";
-	public static final String KEY_READ_FUNCTION            = "readFunction";
-	public static final String KEY_WRITE_FUNCTION           = "writeFunction";
-	public static final String KEY_TYPE_HINT                = "typeHint";
-	public static final String KEY_ACL_RESOLUTION           = "aclResolution";
-	public static final String KEY_ACL_READ_MASK            = "aclReadMask";
-	public static final String KEY_ACL_WRITE_MASK           = "aclWriteMask";
-	public static final String KEY_ACL_DELETE_MASK          = "aclDeleteMask";
-	public static final String KEY_ACL_ACCESS_CONTROL_MASK  = "aclAccessControlMask";
-	public static final String KEY_ACL_HIDDEN_PROPERTIES    = "aclHiddenProperties";
-	public static final String KEY_IS_CACHING_ENABLED       = "cachingEnabled";
-	public static final String KEY_EXAMPLE_VALUE            = "exampleValue";
-	public static final String KEY_TAGS                     = "tags";
-	public static final String KEY_INCLUDE_IN_OPENAPI       = "includeInOpenAPI";
+	String KEY_ID                       = "id";
+	String KEY_TYPE                     = "type";
+	String KEY_NAME                     = "name";
+	String KEY_TRAITS                   = "traits";
+	String KEY_TITLE                    = "title";
+	String KEY_DESCRIPTION              = "description";
+	String KEY_ICON                     = "icon";
+	String KEY_ENUM                     = "enum";
+	String KEY_FQCN                     = "fqcn";
+	String KEY_FORMAT                   = "format";
+	String KEY_HINT                     = "hint";
+	String KEY_CATEGORY                 = "category";
+	String KEY_READ_ONLY                = "readOnly";
+	String KEY_SERIALIZATION_DISABLED   = "serializationDisabled";
+	String KEY_VALIDATORS               = "validators";
+	String KEY_TRANSFORMATORS           = "transformators";
+	String KEY_DATE_PATTERN             = "datePattern";
+	String KEY_ITEMS                    = "items";
+	String KEY_IS_ABSTRACT              = "isAbstract";
+	String KEY_IS_INTERFACE             = "isInterface";
+	String KEY_IS_BUILTIN_TYPE          = "isBuiltinType";
+	String KEY_IS_SERVICE_CLASS         = "isServiceClass";
+	String KEY_CHANGELOG_DISABLED       = "changelogDisabled";
+	String KEY_VISIBLE_TO_PUBLIC        = "visibleToPublicUsers";
+	String KEY_VISIBLE_TO_AUTHENTICATED = "visibleToAuthenticatedUsers";
+	String KEY_DEFINITIONS              = "definitions";
+	String KEY_PROPERTIES               = "properties";
+	String KEY_VIEWS                    = "views";
+	String KEY_VIEW_ORDER               = "viewOrder";
+	String KEY_METHODS                  = "methods";
+	String KEY_GRANTS                   = "grants";
+	String KEY_REQUIRED                 = "required";
+	String KEY_MIN_ITEMS                = "minItems";
+	String KEY_MAX_ITEMS                = "maxItems";
+	String KEY_SOURCE                   = "source";
+	String KEY_CODE_TYPE                = "codeType";
+	String KEY_OVERRIDES_EXISTING       = "overridesExisting";
+	String KEY_RETURN_TYPE              = "returnType";
+	String KEY_OPENAPI_RETURN_TYPE      = "openAPIReturnType";
+	String KEY_EXCEPTIONS               = "exceptions";
+	String KEY_CALL_SUPER               = "callSuper";
+	String KEY_IS_STATIC                = "isStatic";
+	String KEY_IS_PRIVATE               = "isPrivate";
+	String KEY_RETURN_RAW_RESULT        = "returnRawResult";
+	String KEY_HTTP_VERB                = "httpVerb";
+	String KEY_DO_EXPORT                = "doExport";
+	String KEY_PARAMETERS               = "parameters";
+	String KEY_PARAMETER_TYPE           = "parameterType";
+	String KEY_PARAMETER_INDEX          = "parameterIndex";
+	String KEY_SUMMARY                  = "summary";
+	String KEY_CONTENT_TYPE             = "contentType";
+	String KEY_RELATIONSHIP             = "rel";
+	String KEY_DIRECTION                = "direction";
+	String KEY_COMPOUND                 = "compound";
+	String KEY_UNIQUE                   = "unique";
+	String KEY_INDEXED                  = "indexed";
+	String KEY_FULLTEXT                 = "fulltext";
+	String KEY_DEFAULT                  = "default";
+	String KEY_CASCADE                  = "cascade";
+	String KEY_CREATE                   = "create";
+	String KEY_DELETE                   = "delete";
+	String KEY_CARDINALITY              = "cardinality";
+	String KEY_SOURCE_NAME              = "sourceName";
+	String KEY_TARGET_NAME              = "targetName";
+	String KEY_READ_FUNCTION            = "readFunction";
+	String KEY_WRITE_FUNCTION           = "writeFunction";
+	String KEY_WRITE_FUNCTION_WRAP_JS   = "writeFunctionWrapJS";
+	String KEY_READ_FUNCTION_WRAP_JS    = "readFunctionWrapJS";
+	String KEY_TYPE_HINT                = "typeHint";
+	String KEY_ACL_RESOLUTION           = "aclResolution";
+	String KEY_ACL_READ_MASK            = "aclReadMask";
+	String KEY_ACL_WRITE_MASK           = "aclWriteMask";
+	String KEY_ACL_DELETE_MASK          = "aclDeleteMask";
+	String KEY_ACL_ACCESS_CONTROL_MASK  = "aclAccessControlMask";
+	String KEY_ACL_HIDDEN_PROPERTIES    = "aclHiddenProperties";
+	String KEY_IS_CACHING_ENABLED       = "cachingEnabled";
+	String KEY_EXAMPLE_VALUE            = "exampleValue";
+	String KEY_TAGS                     = "tags";
+	String KEY_INCLUDE_IN_OPENAPI       = "includeInOpenAPI";
 
-	public static final String KEY_GRANT_READ               = "read";
-	public static final String KEY_GRANT_WRITE              = "write";
-	public static final String KEY_GRANT_DELETE             = "delete";
-	public static final String KEY_GRANT_ACCESS_CONTROL     = "accessControl";
+	String KEY_GRANT_READ               = "read";
+	String KEY_GRANT_WRITE              = "write";
+	String KEY_GRANT_DELETE             = "delete";
+	String KEY_GRANT_ACCESS_CONTROL     = "accessControl";
 
 
-	public static final String KEY_MINIMUM                  = "minimum";
-	public static final String KEY_EXCLUSIVE_MINIMUM        = "exclusiveMinimum";
-	public static final String KEY_MAXIMUM                  = "maximum";
-	public static final String KEY_EXCLUSIVE_MAXIMUM        = "exclusiveMaximum";
-	public static final String KEY_MULTIPLE_OF              = "multipleOf";
+	String KEY_MINIMUM                  = "minimum";
+	String KEY_EXCLUSIVE_MINIMUM        = "exclusiveMinimum";
+	String KEY_MAXIMUM                  = "maximum";
+	String KEY_EXCLUSIVE_MAXIMUM        = "exclusiveMaximum";
+	String KEY_MULTIPLE_OF              = "multipleOf";
 
-	public static final String FORMAT_DATE_TIME             = "date-time";
+	String FORMAT_DATE_TIME             = "date-time";
 
-	public static final String EMPTY_SCHEMA                 = "{\"definitions\":{}, \"methods\":[]}";
+	String EMPTY_SCHEMA                 = "{\"definitions\":{}, \"methods\":[]}";
 
 	URI getId();
 

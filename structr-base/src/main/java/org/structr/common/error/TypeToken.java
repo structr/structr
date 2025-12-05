@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a property value has the wrong type.
  *
@@ -27,11 +25,10 @@ import org.structr.core.property.PropertyKey;
  */
 public class TypeToken extends SemanticErrorToken {
 
-	public TypeToken(final Class type, final PropertyKey propertyKey, final String desiredType) {
-		this(type.getSimpleName(), propertyKey, desiredType);
-	}
+	public TypeToken(final String type, final String propertyKey, final String desiredType) {
 
-	public TypeToken(final String type, final PropertyKey propertyKey, final String desiredType) {
-		super(type, propertyKey, "must_be_of_type", desiredType);
+		super(type, propertyKey, "must_be_of_type");
+
+		withDetail(desiredType);
 	}
 }

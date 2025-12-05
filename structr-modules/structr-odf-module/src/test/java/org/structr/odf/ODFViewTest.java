@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,12 @@
  */
 package org.structr.odf;
 
-import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.TestHelper;
 import org.testng.annotations.Test;
 
 /**
  */
-public class ODFViewTest extends StructrUiTest {
+public class ODFViewTest extends ODSTestBase {
 
 	@Test
 	public void testViews() {

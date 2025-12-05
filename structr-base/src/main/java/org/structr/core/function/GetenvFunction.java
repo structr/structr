@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,62 +21,101 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class GetenvFunction extends CoreFunction {
 
-    public static final String ERROR_MESSAGE_GETENV    = "Usage: ${getenv()}. Example: ${getenv('JAVA_HOME')}";
-    public static final String ERROR_MESSAGE_GETENV_JS = "Usage: ${{ $.getenv() }. Example: ${{ $.getenv('JAVA_HOME'); }}";
+	@Override
+	public String getName() {
+		return "getenv";
+	}
 
-    @Override
-    public String getName() {
-        return "getenv";
-    }
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("[variable]");
+	}
 
-    @Override
-    public String getSignature() {
-        return "[variable]";
-    }
+	@Override
+	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-    @Override
-    public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
+		try {
 
-        try {
+			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 0, 1);
 
-            assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 0, 1);
+			if (sources.length == 1) {
 
-            if (sources.length == 1) {
+				return System.getenv(sources[0].toString());
 
-                return System.getenv(sources[0].toString());
+			} else {
 
-            } else {
+				return System.getenv();
+			}
 
-                return System.getenv();
-            }
+		} catch (SecurityException se) {
 
-        } catch (SecurityException se) {
+			logException(se, "SecurityException encountered for parameters: {}", sources);
 
-            logException(se, "SecurityException encountered for parameters: {}", sources);
+		} catch (ArgumentNullException pe) {
 
-        } catch (ArgumentNullException pe) {
+			// silently ignore null arguments
 
-            // silently ignore null arguments
+		} catch (ArgumentCountException pe) {
 
-        } catch (ArgumentCountException pe) {
+			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
+		}
 
-            logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
-        }
+		return "";
+	}
 
-        return "";
-    }
+	@Override
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${getenv()}. Example: ${getenv('JAVA_HOME')}"),
+			Usage.javaScript("Usage: ${{ $.getenv() }. Example: ${{ $.getenv('JAVA_HOME'); }}")
+		);
+	}
 
-    @Override
-    public String usage(boolean inJavaScriptContext) {
-        return inJavaScriptContext ? ERROR_MESSAGE_GETENV_JS : ERROR_MESSAGE_GETENV;
-    }
+	@Override
+	public String getShortDescription() {
+		return "Returns the value of the specified environment variable. If no value is specified, all environment variables are returned as a map. An environment variable is a system-dependent external named value.";
+	}
 
-    @Override
-    public String shortDescription() {
-        return "Returns the value of the specified environment variable. If no value is specified, all environment variables are returned as a map. An environment variable is a system-dependent external named value.";
-    }
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${getenv('JAVA_HOME')}"),
+				Example.javaScript("""
+		        ${{ return $.getenv().PATH; }}
+		        ${{ return $.getenv('PATH'); }}
+		        """)
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"This function was added in v4.0"
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.optional("variable", "name of enviroment variable")
+				);
+	}
 }

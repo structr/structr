@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,20 +19,17 @@
 package org.structr.pdf;
 
 import org.structr.api.service.LicenseManager;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.pdf.function.PDFEncryptFunction;
 import org.structr.pdf.function.PDFFunction;
-import org.structr.schema.SourceFile;
-import org.structr.schema.action.Actions;
 
 import java.util.Set;
 
 public class PDFModule implements StructrModule {
 
 	@Override
-	public void onLoad(LicenseManager licenseManager) {
+	public void onLoad() {
 	}
 
 	@Override
@@ -48,31 +45,11 @@ public class PDFModule implements StructrModule {
 
 	@Override
 	public Set<String> getDependencies() {
-		return null;
+		return Set.of("ui");
 	}
 
 	@Override
 	public Set<String> getFeatures() {
-		return null;
-	}
-
-	@Override
-	public void insertImportStatements(AbstractSchemaNode schemaNode, SourceFile buf) {
-
-	}
-
-	@Override
-	public void insertSourceCode(AbstractSchemaNode schemaNode, SourceFile buf) {
-
-	}
-
-	@Override
-	public void insertSaveAction(AbstractSchemaNode schemaNode, SourceFile buf, Actions.Type type) {
-
-	}
-
-	@Override
-	public Set<String> getInterfacesForType(AbstractSchemaNode schemaNode) {
 		return null;
 	}
 }

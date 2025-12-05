@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,7 +20,6 @@ package org.structr.files.ssh;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.sshd.common.Factory;
-import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.config.keys.KeyUtils;
 import org.apache.sshd.common.config.keys.PublicKeyEntry;
 import org.apache.sshd.common.config.keys.PublicKeyEntryResolver;
@@ -49,15 +48,19 @@ import org.structr.common.error.FrameworkException;
 import org.structr.console.Console.ConsoleMode;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.UnauthorizedException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -86,7 +89,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		logger.info("Setting up SSH server..");
 
@@ -205,7 +208,8 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 				try {
 
-					Principal principal = AuthHelper.getPrincipalForPassword(AbstractNode.name, username, password);
+					final PropertyKey<String> nameKey = Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY);
+					Principal principal = AuthHelper.getPrincipalForPassword(nameKey, username, password);
 
 					if (principal != null) {
 
@@ -264,15 +268,16 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 			try {
 
-				final Principal principal = StructrApp.getInstance().nodeQuery(Principal.class).andName(username).getFirst();
-				if (principal != null) {
+				final NodeInterface principalNode = StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).name(username).getFirst();
+				if (principalNode != null) {
 
+					final Principal principal = principalNode.as(Principal.class);
 					if (principal.isAdmin()) {
 
 						securityContext = SecurityContext.getInstance(principal, AccessMode.Backend);
 
 						// check single (main) pubkey
-						final String pubKeyData = principal.getProperty(StructrApp.key(Principal.class, "publicKey"));
+						final String pubKeyData = principal.getProperty(principal.getTraits().key(PrincipalTraitDefinition.PUBLIC_KEY_PROPERTY));
 						if (pubKeyData != null) {
 
 							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
@@ -281,7 +286,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						}
 
 						// check array of pubkeys for this user
-						final String[] pubKeysData = principal.getProperty(StructrApp.key(Principal.class, "publicKeys"));
+						final String[] pubKeysData = principal.getProperty(principal.getTraits().key( PrincipalTraitDefinition.PUBLIC_KEYS_PROPERTY));
 						if (pubKeysData != null) {
 
 							for (final String k : pubKeysData) {
@@ -319,15 +324,6 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 			logger.warn("", t);
 
 			isValid = false;
-		}
-
-		try {
-			if (isValid) {
-				session.setAuthenticated();
-			}
-
-		} catch (IOException ex) {
-			logger.error("Unable to authenticate session", ex);
 		}
 
 		return isValid;
@@ -465,7 +461,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ---- interface ShellFactory -----
 	@Override
 	public org.apache.sshd.server.command.Command createShell(ChannelSession channelSession) throws IOException {
-		return new StructrShellCommand();
+		return new StructrConsoleCommand(securityContext );
 	}
 	// ----- -----
 

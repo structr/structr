@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,8 +24,12 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
 import org.structr.web.entity.File;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -63,10 +67,14 @@ public class StructrURLConnection extends URLConnection {
 
 			try (final Tx tx = app.tx()) {
 
-				final String path = url.getPath();
-				final File file   = app.nodeQuery(File.class).and(StructrApp.key(File.class, "path"), path).getFirst();
+				final NodeInterface node = app
+					.nodeQuery(StructrTraits.FILE)
+					.key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.PATH_PROPERTY), url.getPath())
+					.getFirst();
 
-				if (file != null) {
+				if (node != null) {
+
+					final File file = node.as(File.class);
 
 					return file.getInputStream();
 				}

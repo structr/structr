@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,12 +21,22 @@ package org.structr.flow.impl;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.flow.api.FlowResult;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
+import org.structr.flow.traits.definitions.FlowContainerTraitDefinition;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
+import java.util.List;
 import java.util.Map;
 
 public class FlowFunction extends Function<Object, Object> {
@@ -43,8 +53,8 @@ public class FlowFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String getSignature() {
-		return "name";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("name");
 	}
 
 	@Override
@@ -61,17 +71,21 @@ public class FlowFunction extends Function<Object, Object> {
 
 			if (sources[0] instanceof String) {
 
-				final String name                                     = (String)sources[0];
-				final FlowContainer container = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(FlowContainer.class).and(FlowContainer.effectiveName, name).getFirst();
-				Map<String, Object> parameters                        = null;
+				final String name                 = (String)sources[0];
+				final PropertyKey<String> nameKey = Traits.of(StructrTraits.FLOW_CONTAINER).key(FlowContainerTraitDefinition.EFFECTIVE_NAME_PROPERTY);
+				Map<String, Object> parameters    = null;
+
+				final NodeInterface containerNode = StructrApp.getInstance(ctx.getSecurityContext()).nodeQuery(StructrTraits.FLOW_CONTAINER).key(nameKey, name).getFirst();
 
 				if (sources.length > 1 && sources[1] instanceof Map) {
 					parameters = (Map)sources[1];
 				}
 
-				if (container != null) {
+				if (containerNode != null) {
 
-					final FlowNode node = container.getProperty(FlowContainer.startNode);
+					final FlowContainer container = containerNode.as(FlowContainer.class);
+					final FlowNode node           = container.getStartNode();
+
 					if (node != null) {
 
 						final Context context = new Context(caller instanceof GraphObject ? (GraphObject)caller : null);
@@ -120,12 +134,51 @@ public class FlowFunction extends Function<Object, Object> {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? USAGE_JS : USAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the evaluation result of the Flow with the given name";
+	public String getShortDescription() {
+		return "Executes a given Flow and returns the evaluation result.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("name", "effective name of the Flow"),
+			Parameter.optional("parameterMap", "parameters")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.javaScript("""
+			${{
+				let result = $.flow('package1.flow1', {
+				    parameter1 : 42,
+				    parameter2 : 3.14
+				});
+			}}
+			""", "Execute the Flow \"package1.flow1\"")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"The effective name is the combined name of the Flow plus all its parent packages.",
+			"In a StructrScript environment, parameters can be passed as pairs of 'key1', 'value1'."
+		);
 	}
 }

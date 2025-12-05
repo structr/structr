@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.websocket.command;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;
 import org.structr.websocket.StructrWebSocket;
@@ -40,15 +41,15 @@ public class LinkCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String sourceId                 = webSocketData.getId();
-		final String targetId                 = webSocketData.getNodeDataStringValue("targetId");
-		final LinkSource sourceNode           = (LinkSource) getNode(sourceId);
-		final Linkable targetNode             = (Linkable) getNode(targetId);
+		final String sourceId          = webSocketData.getId();
+		final String targetId          = webSocketData.getNodeDataStringValue("targetId");
+		final NodeInterface sourceNode = getNode(sourceId);
+		final NodeInterface targetNode = getNode(targetId);
 
 		if ((sourceNode != null) && (targetNode != null)) {
 
 			try {
-				sourceNode.setLinkable(targetNode);
+				sourceNode.as(LinkSource.class).setLinkable(targetNode.as(Linkable.class));
 
 			} catch (FrameworkException t) {
 

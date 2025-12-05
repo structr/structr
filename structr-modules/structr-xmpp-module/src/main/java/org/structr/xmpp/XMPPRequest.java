@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,52 +18,11 @@
  */
 package org.structr.xmpp;
 
-import org.jivesoftware.smack.packet.IQ.Type;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
-
-import java.net.URI;
 
 /**
  *
  *
  */
 public interface XMPPRequest extends NodeInterface {
-
-	static class Impl { static {
-
-		final JsonSchema schema   = SchemaService.getDynamicSchema();
-		final JsonObjectType type = schema.addType("XMPPRequest");
-
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/XMPPRequest"));
-
-		type.addStringProperty("sender",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("content",   PropertyView.Public, PropertyView.Ui);
-		type.addEnumProperty("requestType", PropertyView.Public, PropertyView.Ui).setEnumType(Type.class);
-
-		// view configuration
-		type.addViewProperty(PropertyView.Public, "client");
-		type.addViewProperty(PropertyView.Ui,     "client");
-	}}
-
-	/*
-	private static final Logger logger = LoggerFactory.getLogger(XMPPRequest.class.getName());
-
-	public static final Property<XMPPClient> client = new StartNode<>("client", XMPPClientRequest.class);
-	public static final Property<String> sender     = new StringProperty("sender").indexed();
-	public static final Property<String> content    = new StringProperty("content");
-	public static final Property<Type> requestType  = new EnumProperty("requestType", Type.class);
-
-
-	public static final View publicView = new View(XMPPRequest.class, PropertyView.Public,
-		client, sender, content, requestType
-	);
-
-	public static final View uiView = new View(XMPPRequest.class, PropertyView.Ui,
-		client, sender, content, requestType
-	);
-	*/
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,26 +21,28 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.ConfigurationProvider;
+import org.structr.core.traits.Traits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
-public class PropertyInfoFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_PROPERTY_INFO    = "Usage: ${property_info(type, name)}. Example ${property_info('User', 'name')}";
-	public static final String ERROR_MESSAGE_PROPERTY_INFO_JS = "Usage: ${Structr.propertyInfo(type, name)}. Example ${Structr.propertyInfo('User', 'name')}";
+public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 
 	@Override
 	public String getName() {
-		return "property_info";
+		return "propertyInfo";
 	}
 
 	@Override
-	public String getSignature() {
-		return "type, propertyName";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type, propertyName");
 	}
 
 	@Override
@@ -50,32 +52,27 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
 			final String typeName = sources[0].toString();
 			final String keyName = sources[1].toString();
 
-			Class type = config.getNodeEntityClass(typeName);
-			if (type == null) {
+			Traits traits = Traits.of(typeName);
 
-				type = config.getRelationshipEntityClass(typeName);
-			}
+			if (traits != null) {
 
-			if (type != null) {
-
-				final PropertyKey key = StructrApp.key(type, keyName);
+				final PropertyKey key = traits.key(keyName);
 				if (key != null) {
 
 					return SchemaHelper.getPropertyInfo(ctx.getSecurityContext(), key);
 
 				} else {
 
-					logger.warn("Error: Unknown property \"{}.{}\". Parameters: {}", new Object[] { typeName, keyName, getParametersAsString(sources) });
+					logger.warn("Error: Unknown property \"{}.{}\". Parameters: {}", typeName, keyName, getParametersAsString(sources));
 					return "Unknown property " + typeName + "." + keyName;
 				}
 
 			} else {
 
-				logger.warn("Error: Unknown type \"{}\". Parameters: {}", new Object[] { typeName, getParametersAsString(sources) });
+				logger.warn("Error: Unknown type \"{}\". Parameters: {}", typeName, getParametersAsString(sources));
 				return "Unknown type " + typeName;
 			}
 
@@ -92,12 +89,63 @@ public class PropertyInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_PROPERTY_INFO_JS : ERROR_MESSAGE_PROPERTY_INFO);
+	public List<Usage> getUsages() {
+		return List.of(
+				Usage.structrScript("Usage: ${propertyInfo(type, name)}."),
+				Usage.javaScript("Usage: ${{ $.propertyInfo(type, name) }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the schema information for the given property";
+	public String getShortDescription() {
+		return "Returns the schema information for the given property.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """  
+		Returns a property info object for the property of the given type with the given name. A property info object has the following structure:
+	
+		| Field | Description | Type |
+		| --- | --- | --- |
+		| dbName | Database (Neo4j) name - can be used in Cypher etc. | String |
+		| jsonName | JSON name (as it appears in JSON REST output) | String |
+		| className | Class name of the property type | String |
+		| declaringClass | Name of the declaring class | String |
+		| defaultValue | Default value or null | String |
+		| contentType | Content type or null (String only) | String |
+		| format | Format or null | String |
+		| readOnly | Read-only flag | Boolean |
+		| system | System flag | Boolean |
+		| indexed | Indexed flag | Boolean |
+		| indexedWhenEmpty | Indexed-when-empty flag | Boolean |
+		| unique | Unique flag | Boolean |
+		| notNull | Not-null flag | Boolean |
+		| dynamic | Dynamic flag | Boolean |
+		| relatedType | Related type (for relationship properties) | String |
+		| type | Property type from definition | String |
+		| uiType | Extended property type for Edit Mode (e.g. String, String[] etc.) | String |
+		| isCollection | Collection or entity (optional) | String |
+		| databaseConverter | Database converter type (internal) | String |
+		| inputConverter | Input converter type (internal) | String |
+		| relationshipType | Relationship type (for relationship properties) | String |
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${propertyInfo('User', 'name').uiType}"),
+				Example.javaScript("${{ $.propertyInfo('User', 'name').uiType }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("type", "type of the object"),
+				Parameter.mandatory("name", "name of the object")
+		);
 	}
 }

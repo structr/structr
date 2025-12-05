@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,39 +18,12 @@
  */
 package org.structr.test.entity;
 
-import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.*;
-
-import java.util.Date;
+import org.structr.core.graph.NodeInterface;
 
 /**
  * A simple entity for the most basic tests.
  *
  * The isValid method does always return true for testing purposes only.
  */
-public class CsvTestOne extends AbstractNode {
-
-	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class).indexed();
-	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
-	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();
-	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed();
-	public static final Property<Long>          longProperty        = new LongProperty("longProperty").indexed();
-	public static final Property<Date>          dateProperty        = new DateProperty("dateProperty").indexed();
-	public static final Property<String>        stringProperty      = new StringProperty("stringProperty").indexed();
-	public static final Property<CsvTestEnum>   enumProperty        = new EnumProperty("enumProperty", CsvTestEnum.class).indexed();
-	public static final Property<Integer>       index               = new IntProperty("index");
-	public static final Property<Integer[]>     intArrayProperty    = new ArrayProperty<>("intArrayProperty", Integer.class).indexed();
-
-
-	public static final View protectedView = new View(CsvTestOne.class, "csv",
-		name, index, type, stringArrayProperty, enumProperty
-	);
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-		return true;
-	}
-
+public interface CsvTestOne extends NodeInterface {
 }

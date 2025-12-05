@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,10 +18,18 @@
  */
 package org.structr.bolt;
 
+import org.apache.commons.lang3.StringUtils;
+import org.neo4j.driver.exceptions.ClientException;
+import org.neo4j.driver.exceptions.DatabaseException;
+import org.structr.api.UnknownClientException;
 import org.structr.api.graph.Node;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -33,11 +41,11 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
+	public String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query) {
 
 		final StringBuilder buf = new StringBuilder();
 
-		if (hasOptionalParts) {
+		if (query.getHasOptionalParts()) {
 
 			buf.append("OPTIONAL ");
 		}
@@ -45,7 +53,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 		buf.append("MATCH (n");
 
 		// Only add :NodeInterface label when query has predicates, single label queries are much faster.
-		if (hasPredicates) {
+		if (query.hasPredicates()) {
 			buf.append(":NodeInterface");
 		}
 
@@ -62,6 +70,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 			buf.append(":");
 			buf.append(typeLabel);
 		}
+
 
 		buf.append(")");
 
@@ -99,7 +108,88 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 	}
 
 	@Override
-	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
-		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
+	public Map<Node, Double> fulltextQuery(final String indexName, final String searchString) {
+
+		final String tenantIdentifier        = db.getTenantIdentifier();
+		final Map<String, Object> parameters = new LinkedHashMap<>();
+		final SessionTransaction tx          = db.getCurrentTransaction();
+		final String statement;
+
+		// check if index exists first
+		if (Iterables.toList(tx.run(new SimpleCypherQuery("SHOW FULLTEXT INDEXES WHERE name = $indexName", Map.of("indexName", indexName)))).isEmpty()) {
+
+			throw new UnknownClientException(null, null, "Index \"" + indexName + "\" does not exist.");
+		}
+
+		parameters.put("indexName", indexName);
+		parameters.put("searchValue", searchString);
+
+		if (StringUtils.isNotBlank(tenantIdentifier)) {
+
+			statement = "CALL db.index.fulltext.queryNodes($indexName, $searchValue) YIELD node, score WHERE ANY (l in labels(node) WHERE l = $tenantIdentifier) RETURN node, score";
+
+			parameters.put("tenantIdentifier", tenantIdentifier);
+
+		} else {
+
+			statement = "CALL db.index.fulltext.queryNodes($indexName, $searchValue) YIELD node, score RETURN node, score";
+		}
+
+		final SimpleCypherQuery query              = new SimpleCypherQuery(statement, parameters);
+		final Iterable<Map<String, Object>> result = tx.run(query);
+		final Map<Node, Double> nodes              = new LinkedHashMap<>();
+
+		for (final Map<String, Object> entry : result) {
+
+			final Node node    = (Node) entry.get("node");
+			final Double score = (Double) entry.get("score");
+
+			nodes.put(node, score);
+		}
+
+		return nodes;
+	}
+
+	@Override
+	public Iterable<Node> getResult(final CypherQuery query) {
+
+		try {
+
+			return db.getCurrentTransaction().getCachedResult(query);
+
+		} catch (ClientException e) {
+			ReactiveSessionTransaction.translateClientException(e);
+		} catch (DatabaseException d) {
+			ReactiveSessionTransaction.translateDatabaseException(d);
+		}
+
+		return Collections.EMPTY_LIST;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

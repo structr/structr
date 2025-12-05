@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,114 +18,19 @@
  */
 package org.structr.messaging.engine.entities;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
-import org.structr.schema.SchemaService;
-import org.structr.schema.action.EvaluationHints;
-
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 
 public interface MessageClient extends NodeInterface {
 
-    class Impl {
+	boolean getIsEnabled();
 
-        static {
+	Iterable<MessageSubscriber> getSubscribers();
+	void setSubscribers(final Iterable<MessageSubscriber> subscribers) throws FrameworkException;
 
-			final JsonSchema schema     = SchemaService.getDynamicSchema();
-			final JsonObjectType type   = schema.addType("MessageClient");
-			final JsonObjectType sub 	= schema.addType("MessageSubscriber");
-
-			type.setImplements(URI.create("https://structr.org/v1.1/definitions/MessageClient"));
-
-			type.relate(sub, "HAS_SUBSCRIBER", Cardinality.ManyToMany,"clients","subscribers");
-
-			type.addViewProperty(PropertyView.Public, "subscribers");
-			type.addViewProperty(PropertyView.Ui,     "subscribers");
-
-			type.addPropertyGetter("subscribers", Iterable.class);
-			type.addPropertySetter("subscribers", Iterable.class).addException("FrameworkException");
-
-			type.addMethod("sendMessage")
-				.setReturnType(RestMethodResult.class.getName())
-				.addParameter("ctx", SecurityContext.class.getName())
-				.addParameter("topic", String.class.getName())
-				.addParameter("message", String.class.getName())
-				.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
-				.addException(FrameworkException.class.getName())
-				.setDoExport(true);
-
-
-			type.addMethod("subscribeTopic")
-					.setReturnType(RestMethodResult.class.getName())
-					.addParameter("ctx", SecurityContext.class.getName())
-					.addParameter("topic", String.class.getName())
-					.setSource("return " + MessageClient.class.getName() + ".subscribeTopic(this, topic, ctx);")
-					.addException(FrameworkException.class.getName())
-					.setDoExport(true);
-
-			type.addMethod("unsubscribeTopic")
-					.setReturnType(RestMethodResult.class.getName())
-					.addParameter("ctx", SecurityContext.class.getName())
-					.addParameter("topic", String.class.getName())
-					.setSource("return " + MessageClient.class.getName() + ".unsubscribeTopic(this, topic, ctx);")
-					.addException(FrameworkException.class.getName())
-					.setDoExport(true);
-        }
-    }
-
-    Iterable<MessageSubscriber> getSubscribers();
-    void setSubscribers(Iterable<MessageSubscriber> subs) throws FrameworkException;
-
-    static RestMethodResult sendMessage(MessageClient thisClient, final String topic, final String message, final SecurityContext securityContext) throws FrameworkException {
-
-        final App app = StructrApp.getInstance();
-        try (final Tx tx = app.tx()) {
-
-            Iterable<MessageSubscriber> subscribers = thisClient.getSubscribers();
-            if (subscribers != null) {
-                subscribers.forEach(sub -> {
-					String subTopic = sub.getProperty(StructrApp.key(MessageSubscriber.class,"topic"));
-                    if ( subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
-                        Map<String, Object> params = new HashMap<>();
-                        params.put("topic", topic);
-                        params.put("message", message);
-                        try {
-                            sub.invokeMethod(securityContext, "onMessage", params, false, new EvaluationHints());
-                        } catch (FrameworkException e) {
-			    final Logger logger = LoggerFactory.getLogger(MessageClient.class);
-                            logger.warn("Could not invoke 'onMessage' method on MessageSubscriber: " + e.getMessage());
-                        }
-                    }
-                });
-            }
-
-            tx.success();
-        }
-
-        return new RestMethodResult(200);
-    }
-
-    static RestMethodResult subscribeTopic(MessageClient client, final String topic, final SecurityContext securityContext) throws FrameworkException {
-
-        return new RestMethodResult(200);
-    }
-
-    static RestMethodResult unsubscribeTopic(MessageClient client, final String topic, final SecurityContext securityContext) throws FrameworkException {
-
-        return new RestMethodResult(200);
-    }
-
+	RestMethodResult sendMessage(final SecurityContext securityContext, final String topic, final String message) throws FrameworkException;
+	RestMethodResult subscribeTopic(final SecurityContext securityContext, String topic) throws FrameworkException;
+	RestMethodResult unsubscribeTopic(final SecurityContext securityContext, String topic) throws FrameworkException;
 }

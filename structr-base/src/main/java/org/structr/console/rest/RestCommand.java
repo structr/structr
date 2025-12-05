@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -135,7 +135,7 @@ public abstract class RestCommand {
 		if (cls != null) {
 
 			try {
-				return cls.newInstance();
+				return cls.getDeclaredConstructor().newInstance();
 
 			} catch (Throwable ignore) {}
 		}

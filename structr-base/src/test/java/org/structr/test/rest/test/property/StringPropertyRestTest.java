@@ -1,0 +1,182 @@
+/*
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.test.rest.test.property;
+
+import io.restassured.RestAssured;
+import org.structr.api.DatabaseFeature;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.core.Services;
+import org.structr.schema.SchemaService;
+import org.structr.test.rest.common.IndexingTest;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+
+public class StringPropertyRestTest extends IndexingTest {
+
+	@Test
+	public void testBasics() {
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" { 'stringProperty' : 'This is a test!' } ")
+		.expect()
+			.statusCode(201)
+		.when()
+			.post("/TestThree")
+			.getHeader("Location");
+
+
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result[0].stringProperty", equalTo("This is a test!"))
+		.when()
+			.get("/TestThree");
+
+	}
+
+	@Test
+	public void testSearch() {
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test1' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test2' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test3' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'           : 'test4' } ").expect().statusCode(201).when().post("/TestThree");
+
+		// test for three elements
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(4))
+		.when()
+			.get("/TestThree");
+
+		// test strict search
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result[0].stringProperty", equalTo("test2"))
+		.when()
+			.get("/TestThree?stringProperty=test2");
+
+
+		// test loose search
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(3))
+		.when()
+			.get("/TestThree?stringProperty=test&_loose=1");
+
+
+		// test range query
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(2))
+		.when()
+			.get("/TestThree?stringProperty=[test1 TO test2]");
+
+
+		// test empty value
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+			.body("result_count", equalTo(1))
+			.body("result[0].name", equalTo("test4"))
+		.when()
+			.get("/TestThree?stringProperty=");
+
+	}
+
+	@Test
+	public void testLargeStrings() {
+
+		// we need to update the schema so the indexes are created
+		SchemaService.reloadSchema(new ErrorBuffer(), null, true, false);
+
+		// wait for index updates
+		try { Thread.sleep(10000); } catch (Throwable t) {}
+
+		// this test needs the schema index on string properties to be present
+		// it is disabled for now since index updates are disabled during test execution
+
+		// This test is designed to fail if the actual indexable size of a string in the database changes
+		final boolean supportsLargeStrings = Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.LargeStringIndexing);
+		final int errorStatusCode          = supportsLargeStrings ? 201 : 422;
+
+		testLargeString(4000, 201);
+		testLargeString(5000, 201);
+		testLargeString(6000, 201);
+		testLargeString(7000, 201);
+		testLargeString(8000, 201);
+		testLargeString(9000, 201);
+		testLargeString(10000, 201);
+		testLargeString(20000, 201);
+		testLargeString(30000, 201);
+		testLargeString(40000, errorStatusCode);
+	}
+
+	private void testLargeString(final int length, final int expectedStatusCode) {
+
+		final StringBuilder buf = new StringBuilder();
+
+		for (int i=0; i<length; i++) {
+			buf.append("0");
+		}
+
+		String largeString = buf.toString();
+
+		// cleanup
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+		.expect()
+			.statusCode(200)
+		.when()
+			.delete("/TestThree");
+
+		RestAssured.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(" { 'name': '" + length + "', 'stringProperty' : '" + largeString + "' } ")
+		.expect()
+			.statusCode(expectedStatusCode)
+		.when()
+			.post("/TestThree")
+			.getHeader("Location");
+
+		if (expectedStatusCode == 201) {
+
+			RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result[0].stringProperty", equalTo(largeString))
+			.when()
+				.get("/TestThree");
+		}
+	}
+}

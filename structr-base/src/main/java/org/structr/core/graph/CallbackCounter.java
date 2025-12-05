@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -37,9 +37,6 @@ public class CallbackCounter {
 	private int afterCreate      = 0;
 	private int afterSave        = 0;
 	private int afterDelete      = 0;
-	private int ownerModified    = 0;
-	private int securityModified = 0;
-	private int locationModified = 0;
 	private int indexing         = 0;
 	private int sum              = 0;
 
@@ -77,21 +74,6 @@ public class CallbackCounter {
 
 	public void afterDelete() {
 		afterDelete++;
-		count();
-	}
-
-	public void ownerModified() {
-		ownerModified++;
-		count();
-	}
-
-	public void securityModified() {
-		securityModified++;
-		count();
-	}
-
-	public void locationModified() {
-		locationModified++;
 		count();
 	}
 

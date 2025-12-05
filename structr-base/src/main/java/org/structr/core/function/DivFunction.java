@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,11 +21,14 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Language;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class DivFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_DIV = "Usage: ${div(value1, value2)}. Example: ${div(5, 2)}";
+public class DivFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -33,8 +36,8 @@ public class DivFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value1, value2");
 	}
 
 	@Override
@@ -50,7 +53,7 @@ public class DivFunction extends CoreFunction {
 
 			} catch (NumberFormatException nfe) {
 
-				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
+				logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 				return nfe.getMessage();
 
 			}
@@ -65,7 +68,7 @@ public class DivFunction extends CoreFunction {
 
 				} catch (NumberFormatException nfe) {
 
-					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getReplacement(), caller, getParametersAsString(sources) });
+					logException(nfe, "{}: NumberFormatException in element \"{}\" for parameters: {}", new Object[] { getDisplayName(), caller, getParametersAsString(sources) });
 					return nfe.getMessage();
 				}
 			}
@@ -80,12 +83,31 @@ public class DivFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_DIV;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${div(value1, value2)}. Example: ${div(5, 2)}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Integer division, first argument / second argument";
+	public String getShortDescription() {
+		return "Returns the result of value1 divided by value2.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function tries to convert its parameter objects into numerical values, i.e. you can use strings as arguments."
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

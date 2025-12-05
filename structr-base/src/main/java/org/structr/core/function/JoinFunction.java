@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,11 +22,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
 
-public class JoinFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_JOIN = "Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}";
+public class JoinFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -34,8 +35,8 @@ public class JoinFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list, separator";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("list, separator");
 	}
 
 	@Override
@@ -69,12 +70,41 @@ public class JoinFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_JOIN;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${join(collection, separator)}. Example: ${join(this.names, \",\")}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Joins all its parameters to a single string using the given separator";
+	public String getShortDescription() {
+		return "Joins the given collection of strings into a single string, separated by the given separator.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function is often used in conjunction with `find()` and `extract()` to create comma-separated lists of property values.";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "collection of values to join"),
+			Parameter.mandatory("separator", "separator string")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${join(extract(find('User'), 'name'), ', ')}", "Create a comma-separated list of all the user names in the database")
+		);
 	}
 }

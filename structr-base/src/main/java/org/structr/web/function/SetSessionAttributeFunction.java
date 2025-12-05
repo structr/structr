@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,26 +20,31 @@ package org.structr.web.function;
 
 
 import jakarta.servlet.http.HttpSession;
+import org.graalvm.polyglot.Value;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
-public class SetSessionAttributeFunction extends UiAdvancedFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE    = "Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.set_session_attribute(key, value)}}. Example: ${{Structr.set_session_attribute(\"do_not_track\", true)}}";
+public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 	private int retryCount = 0;
 
 	@Override
 	public String getName() {
-		return "set_session_attribute";
+		return "setSessionAttribute";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
@@ -50,11 +55,12 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
 
 			final HttpSession session = ctx.getSecurityContext().getSession();
+			final HttpSessionWrapper sessionWrapper = new HttpSessionWrapper(ctx, session);
 
 			if (session != null) {
-				session.setAttribute(ActionContext.SESSION_ATTRIBUTE_PREFIX.concat(sources[0].toString()), sources[1]);
+				sessionWrapper.putMember(sources[0].toString(), Value.asValue(sources[1]));
 			} else {
-				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getReplacement());
+				logger.warn("{}: No session available to set session attribute! (this can happen in onStructrLogin/onStructrLogout)", getDisplayName());
 			}
 
 			return "";
@@ -80,12 +86,38 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS : ERROR_MESSAGE_SET_SESSION_ATTRIBUTE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setSessionAttribute(key, value)}. Example: "),
+			Usage.javaScript("Usage: ${{$.setSessionAttribute(key, value)}}. Example: ")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Store a value under the given key in the users session";
+	public String getShortDescription() {
+		return "Store a value under the given key in the users session.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setSessionAttribute('do_no_track', true)}"),
+				Example.javaScript("${{ $.setSessionAttribute('do_not_track', true) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "given key"),
+				Parameter.mandatory("value", "given value for key")
+				);
+	}
+
 }

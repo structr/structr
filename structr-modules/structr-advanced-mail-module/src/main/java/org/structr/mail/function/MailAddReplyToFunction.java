@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,16 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_add_reply_to(replyToAddress[, replyToName])}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_add_reply_to(replyToAddress[, replyToName]) }}";
+public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 
 	public MailAddReplyToFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -37,8 +40,8 @@ public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "replyToAddress [, replyToName ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("address [, name ]");
 	}
 
 	@Override
@@ -63,12 +66,58 @@ public class MailAddReplyToFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mail_add_reply_to(address [, name])}"),
+			Usage.javaScript("Usage: ${{ $.mailAddReplyTo(address [, name]) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets replyTo address and optional replyName of the current mail";
+	public String getShortDescription() {
+		return "Adds a `Reply-To:` recipient to the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("address", "replyTo address"),
+				Parameter.optional("name", "name of the recipient")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"can be called multiple times to add more reply-to addresses."
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+						${{
+							let newsletterNode = $.this;
+
+							$.mailBegin('sender@example.com', 'Newsletter Agent', 'Newsletter: ' + newsletterNode.name);
+
+							$.mailAddReplyTo("no-reply@example.com");
+
+							for (let recipient of newsletterNode.recipients) {
+
+								$.mailAddBcc(recipient.eMail, recipient.name);
+							}
+
+							let htmlContent = $.template('Newsletter', 'en', newsletterNode);
+							$.mailSetHtmlContent(htmlContent);
+
+							$.mailSend();
+						}}""", "Newsletter with only \"Bcc:\" recipients and no-reply address.")
+		);
 	}
 }

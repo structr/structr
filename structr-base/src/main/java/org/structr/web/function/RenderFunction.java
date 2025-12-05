@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,16 +20,20 @@ package org.structr.web.function;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collection;
+import java.util.List;
 
 public class RenderFunction extends UiCommunityFunction {
-
-	public static final String ERROR_MESSAGE_RENDER    = "Usage: ${render(node)} or ${render(nodes)}. Example: ${render(get(this, \"children\"))}";
-	public static final String ERROR_MESSAGE_RENDER_JS = "Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}. Example: ${{Structr.render(Structr.get('this').children)}}";
 
 	@Override
 	public String getName() {
@@ -37,8 +41,8 @@ public class RenderFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "list";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("list");
 	}
 
 	@Override
@@ -65,22 +69,41 @@ public class RenderFunction extends UiCommunityFunction {
 				useBuffer = false;
 			}
 
-			if (sources[0] instanceof DOMNode) {
+			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+				innerCtx.getBuffer().append("<structr:render data-caller-id=\"").append(caller.toString()).append("\">");
+			}
 
-				((DOMNode)sources[0]).render(innerCtx, 0);
+			if (sources[0] instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
 
-			} else if (sources[0] instanceof Collection) {
+				n.as(DOMNode.class).render(innerCtx, 0);
 
-				for (final Object obj : (Collection)sources[0]) {
+			} else if (sources[0] instanceof Collection collection) {
 
-					if (obj instanceof DOMNode) {
-						((DOMNode)obj).render(innerCtx, 0);
+				for (final Object obj : collection) {
+
+					if (obj instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
+						n.as(DOMNode.class).render(innerCtx, 0);
 					}
 				}
+			} else if (sources[0] instanceof Iterable iterable) {
 
+				for (final Object obj : iterable) {
+
+					if (obj instanceof NodeInterface n && n.is(StructrTraits.DOM_NODE)) {
+
+						n.as(DOMNode.class).render(innerCtx, 0);
+
+					} else {
+						// TODO: Render data object with its attached template
+					}
+				}
 			} else {
 
 				logger.warn("Error: Parameter 1 is neither node nor collection. Parameters: {}", getParametersAsString(sources));
+			}
+
+			if (RenderContext.EditMode.PREVIEW.equals(innerCtx.getEditMode(ctx.getSecurityContext().getCachedUser()))) {
+				innerCtx.getBuffer().append("</structr:render>");
 			}
 
 			if (useBuffer) {
@@ -103,12 +126,42 @@ public class RenderFunction extends UiCommunityFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_RENDER_JS : ERROR_MESSAGE_RENDER);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${render(node)} or ${render(nodes)}."),
+			Usage.javaScript("Usage: ${{Structr.render(node)}} or ${{Structr.render(nodes)}}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Renders the children of the current node";
+	public String getShortDescription() {
+		return "Renders the children of the current node.";
 	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Renders the HTML representation of the given node(s) into the output buffer. This function is exactly equivalent to the rendering process that Structr uses internally to create the HTML output of pages etc. It can be used to render dynamic content in pages with placeholders etc. Together with `include()`, `render()` is one of the the most important method when dealing with HTML web templates, since it allows the user to fill static HTML pages with dynamic content from the underlying node structure.
+		
+		See the documentation article about Page Rendering for more information on this topic.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${render(children)}"),
+			Example.javaScript("${{ $.render($.children) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("node", "node or list of nodes to be rendered")
+		);
+	}
+
+
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,8 @@
  */
 package org.structr.files.ftp;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.ftpserver.DataConnectionConfigurationFactory;
 import org.apache.ftpserver.FtpServer;
 import org.apache.ftpserver.FtpServerFactory;
 import org.apache.ftpserver.listener.ListenerFactory;
@@ -40,6 +42,7 @@ public class FtpService implements RunnableService {
 	private boolean isRunning          = false;
 
 	private static int port;
+	private static String passivePortRange;
 	private FtpServer server;
 
 	@Override
@@ -51,7 +54,15 @@ public class FtpService implements RunnableService {
 		serverFactory.setFileSystem( new StructrFileSystemFactory());
 
 		ListenerFactory factory = new ListenerFactory();
+
+		if (!StringUtils.isAllBlank(passivePortRange)) {
+			DataConnectionConfigurationFactory dataConnConfigFactory = new DataConnectionConfigurationFactory();
+			dataConnConfigFactory.setPassivePorts(passivePortRange);
+			factory.setDataConnectionConfiguration(dataConnConfigFactory.createDataConnectionConfiguration());
+		}
+
 		factory.setPort(port);
+
 		serverFactory.addListener("default", factory.createListener());
 
 		logger.info("Starting FTP server on port {}", new Object[] { String.valueOf(port) });
@@ -89,6 +100,7 @@ public class FtpService implements RunnableService {
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
 		port = Settings.getSettingOrMaintenanceSetting(Settings.FtpPort).getValue();
+		passivePortRange = Settings.getSettingOrMaintenanceSetting(Settings.FTPPassivePortRange).getValue();
 
 		return new ServiceResult(true);
 	}

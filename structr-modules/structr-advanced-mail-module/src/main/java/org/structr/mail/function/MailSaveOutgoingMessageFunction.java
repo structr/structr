@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,14 +19,15 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
+
 public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction {
-
-
-	public final String ERROR_MESSAGE    = "Usage: ${mail_save_outgoing_message(true)}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_save_outgoing_message(true) }}";
 
 	public MailSaveOutgoingMessageFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -34,12 +35,12 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 
 	@Override
 	public String getName() {
-		return "mail_save_outgoing_message";
+		return "mailSaveOutgoingMessage";
 	}
 
 	@Override
-	public String getSignature() {
-		return "bool";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("doSave");
 	}
 
 	@Override
@@ -61,12 +62,38 @@ public class MailSaveOutgoingMessageFunction extends AdvancedMailModuleFunction 
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mailSave_outgoing_message(doSave)}"),
+			Usage.javaScript("Usage: ${{ $.mailSaveOutgoingMessage(doSave) }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "If set to true, the mail will be saved after it has been sent and can be retrieved via the getLastOutgoingMessage() function";
+	public String getShortDescription() {
+		return "Configures if the current mail should be saved or not.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+				Configures the Advanced Mail Module that the next invocation of `mail_send()` should save the outgoing email as an `EMailMessage` node.
+				Configured attachments are *copied* and attached to the `EMailMessage` node. For attached dynamic files the evaluated result is saved as a static file.
+				After the `mail_send()` command is finished, the outgoing message can be accessed via `mail_get_last_outgoing_message()`.
+				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.mandatory("doSave", "boolean indicating if mail should be saved or not")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"By default, mails are not saved"
+		);
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,21 +20,23 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class CopyPermissionsFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE    = "Usage: ${copy_permissions(source, target[, overwrite])}. Example: ${copy_permissions(this, this.child)}";
-	public static final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.copy_permissions(source, target[, overwrite]); }}. Example: ${{ Structr.copy_permissions(Structr.this, Structr.this.child); }}";
-
 	@Override
 	public String getName() {
-		return "copy_permissions";
+		return "copyPermissions";
 	}
 
 	@Override
-	public String getSignature() {
-		return "source, target [, overwrite ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("source, target [, overwrite ]");
 	}
 
 	@Override
@@ -70,12 +72,36 @@ public class CopyPermissionsFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${copyPermissions(source, target[, syncPermissions])}. Example: ${copyPermissions(this, this.child)}"),
+			Usage.javaScript("Usage: ${{ $..copyPermissions(source, target[, syncPermissions]); }}. Example: ${{ $.copyPermissions($.this, $.this.child); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Copies the security configuration of an entity to another entity.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "If the `syncPermissions` parameter is set to `true`, the permissions of existing security relationships are aligned between source and target nodes. If it is not set (or omitted) the function just adds the permissions to the existing permissions.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("sourceNode", "source node to copy permissions from"),
+			Parameter.mandatory("targetNode",  "target node to copy permissions to"),
+			Parameter.optional("syncPermissions", "synchronize permissions between source and target nodes")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This function **only** changes target node permissions that are also present on the source node."
+		);
 	}
 }

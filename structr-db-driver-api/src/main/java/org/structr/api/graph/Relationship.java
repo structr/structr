@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ public interface Relationship extends PropertyContainer, Comparable<Relationship
 	Node getStartNode();
 	Node getEndNode();
 	Node getOtherNode(final Node node);
+	Direction getDirectionForNode(final Node otherNode);
 
 	RelationshipType getType();
 

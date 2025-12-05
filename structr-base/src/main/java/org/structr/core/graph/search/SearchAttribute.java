@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,12 @@
 package org.structr.core.graph.search;
 
 import org.structr.api.Predicate;
-import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
 import org.structr.api.search.SortOrder;
 import org.structr.core.GraphObject;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Trait;
 
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -34,37 +33,28 @@ import java.util.Set;
 /**
  * Wrapper representing a part of a search query. All parts of a search query
  * must have a search operator and a payload. The payload can be either a node
- * attribute oder a group of serach attributes.
+ * attribute oder a group of search attributes.
  *
  * @param <T>
  */
-public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
+public abstract class SearchAttribute<T> implements Predicate<GraphObject>, QueryPredicate {
 
-	public static final String WILDCARD = "*";
-
-	private Comparator<GraphObject> comparator = null;
  	private Set<GraphObject> result            = new LinkedHashSet<>();
-	private Occurrence occur                   = null;
+	private Comparator<GraphObject> comparator = null;
 	private SortOrder sortOrder                = null;
+	protected PropertyKey<T> key               = null;
+	protected T value                          = null;
 
-	public abstract boolean includeInResult(GraphObject entity);
+	public abstract boolean includeInResult(final GraphObject entity);
 
-	public SearchAttribute() {
-		this(null, null);
+	public SearchAttribute(final PropertyKey<T> key, final T value) {
+		this.key    = key;
+		this.value  = value;
 	}
 
-	public SearchAttribute(Occurrence occur) {
-		this(occur, null, null);
-	}
-
-	public SearchAttribute(PropertyKey<T> key, T value) {
-		this(null, key, value);
-	}
-
-	public SearchAttribute(Occurrence occur, PropertyKey<T> key, T value) {
-
-		super(key, value);
-		this.occur = occur;
+	@Override
+	public String toString() {
+		return key.dbName() + "=" + value;
 	}
 
 	public void setResult(final Set<GraphObject> result) {
@@ -79,10 +69,6 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		result.add(graphObject);
 	}
 
-	public void addToResult(final Set<GraphObject> list) {
-		result.addAll(list);
-	}
-
 	public void setExactMatch(final boolean exact) {
 	};
 
@@ -90,14 +76,17 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 		this.comparator = comparator;
 	}
 
-	public void setOccurrence(final Occurrence occurrence) {
-		this.occur = occurrence;
-	}
-
 	public void setSortOrder(final SortOrder sortOrder) {
 		this.sortOrder = sortOrder;
 	}
 
+	public PropertyKey<T> getKey() {
+		return key;
+	}
+
+	public void setValue(final T value) {
+		this.value = value;
+	}
 
 	// ----- interface Predicate<GraphObject> -----
 	@Override
@@ -112,19 +101,18 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 
 	// ----- interface QueryPredicate -----
 	@Override
-	public Occurrence getOccurrence() {
-		return occur;
+	public String getName() {
+		return key.dbName();
 	}
 
 	@Override
-	public String getName() {
-		return getKey().dbName();
+	public T getValue() {
+		return value;
 	}
 
 	@Override
 	public Class getType() {
 
-		final PropertyKey key = getKey();
 		if (key != null) {
 
 			return key.valueType();
@@ -136,13 +124,18 @@ public abstract class SearchAttribute<T> extends NodeAttribute<T> implements Pre
 	@Override
 	public String getLabel() {
 
-		final PropertyKey key = getKey();
 		if (key != null) {
 
-			final Class declaringClass = key.getDeclaringClass();
-			if (declaringClass != null && !GraphObject.class.equals(declaringClass) && !RelationshipInterface.class.isAssignableFrom(declaringClass)) {
+			final Trait declaringTrait = key.getDeclaringTrait();
 
-				return declaringClass.getSimpleName();
+			if (declaringTrait != null && !declaringTrait.isRelationship()) {
+
+				final String name = declaringTrait.getLabel();
+
+				if (!StructrTraits.GRAPH_OBJECT.equals(name)) {
+
+					return name;
+				}
 			}
 		}
 

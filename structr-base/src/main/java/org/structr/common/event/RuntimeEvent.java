@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,16 +36,24 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class RuntimeEvent {
 
+	public static final String ID_PROPERTY                 = "id";
+	public static final String TYPE_PROPERTY               = "type";
+	public static final String DATA_PROPERTY               = "data";
+	public static final String SEEN_PROPERTY               = "seen";
+	public static final String DESCRIPTION_PROPERTY        = "description";
+	public static final String ABSOLUTE_TIMESTAMP_PROPERTY = "absoluteTimestamp";
+	public static final String RELATIVE_TIMESTAMP_PROPERTY = "relativeTimestamp";
+
 	private static final Logger logger = LoggerFactory.getLogger(RuntimeEvent.class);
 	private static final AtomicLong ID_SOURCE = new AtomicLong();
 
-	private static final LongProperty _id                = new LongProperty("id");
-	private static final StringProperty _type            = new StringProperty("type");
-	private static final GenericProperty _data           = new GenericProperty("data");
-	private static final BooleanProperty _seen           = new BooleanProperty("seen");
-	private static final StringProperty _description     = new StringProperty("description");
-	private static final LongProperty _absoluteTimestamp = new LongProperty("absoluteTimestamp");
-	private static final LongProperty _relativeTimestamp = new LongProperty("relativeTimestamp");
+	private static final LongProperty _id                = new LongProperty(ID_PROPERTY);
+	private static final StringProperty _type            = new StringProperty(TYPE_PROPERTY);
+	private static final GenericProperty _data           = new GenericProperty(DATA_PROPERTY);
+	private static final BooleanProperty _seen           = new BooleanProperty(SEEN_PROPERTY);
+	private static final StringProperty _description     = new StringProperty(DESCRIPTION_PROPERTY);
+	private static final LongProperty _absoluteTimestamp = new LongProperty(ABSOLUTE_TIMESTAMP_PROPERTY);
+	private static final LongProperty _relativeTimestamp = new LongProperty(RELATIVE_TIMESTAMP_PROPERTY);
 
 	private final long id                  = ID_SOURCE.getAndIncrement();
 	private final long absoluteTimestamp   = System.currentTimeMillis();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,25 +38,27 @@ class RecordRelationshipMapper implements Function<Record, Relationship> {
 	@Override
 	public Relationship apply(final Record record) {
 
+		final SessionTransaction tx = db.getCurrentTransaction();
+
 		// target node present?
 		final Value t = record.get("t");
 		if (!t.isNull()) {
 
-			NodeWrapper.newInstance(db, t.asNode());
+			tx.getNodeWrapper(t.asNode());
 		}
 
 		// source node present?
 		final Value s = record.get("s");
 		if (!s.isNull()) {
 
-			NodeWrapper.newInstance(db, s.asNode());
+			tx.getNodeWrapper(s.asNode());
 		}
 
 		// "other" node present (direction unknown)?
 		final Value o = record.get("o");
 		if (!o.isNull()) {
 
-			NodeWrapper.newInstance(db, o.asNode());
+			tx.getNodeWrapper(o.asNode());
 		}
 
 		return record.get(0).asRelationship();

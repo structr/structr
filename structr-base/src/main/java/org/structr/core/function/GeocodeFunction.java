@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,14 +24,18 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
+import org.structr.core.traits.definitions.LocationTraitDefinition;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 public class GeocodeFunction extends AdvancedScriptingFunction {
-
-	public static final String ERROR_MESSAGE_GEOCODE = "Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}";
 
 	@Override
 	public String getName() {
@@ -39,8 +43,8 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "street, city, country";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("street, city, country");
 	}
 
 	@Override
@@ -60,38 +64,38 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 
 				final Map<String, Object> map = new LinkedHashMap<>();
 
-				map.put("latitude", result.getLatitude());
-				map.put("longitude", result.getLongitude());
+				map.put(LocationTraitDefinition.LATITUDE_PROPERTY, result.getLatitude());
+				map.put(LocationTraitDefinition.LONGITUDE_PROPERTY, result.getLongitude());
 
 				AddressComponent cur = null;
 
 				cur = result.getAddressComponent(GeoCodingResult.Type.country);
 				if(cur != null){
-					map.put("country", cur.getValue());
+					map.put(LocationTraitDefinition.COUNTRY_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.postal_code);
 				if(cur != null){
-					map.put("postalCode", cur.getValue());
+					map.put(LocationTraitDefinition.POSTAL_CODE_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.locality);
 				if(cur != null){
-					map.put("city", cur.getValue());
+					map.put(LocationTraitDefinition.CITY_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.route);
 				if(cur != null){
-					map.put("street", cur.getValue());
+					map.put(LocationTraitDefinition.STREET_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.street_number);
 				if(cur != null){
-					map.put("houseNumber", cur.getValue());
+					map.put(LocationTraitDefinition.HOUSE_NUMBER_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.administrative_area_level_1);
 				if(cur != null){
-					map.put("state", cur.getValue());
+					map.put(LocationTraitDefinition.STATE_PROPERTY, cur.getValue());
 				}
 				cur = result.getAddressComponent(GeoCodingResult.Type.administrative_area_level_3);
 				if(cur != null){
-					map.put("stateDistrict", cur.getValue());
+					map.put(LocationTraitDefinition.STATE_DISTRICT_PROPERTY, cur.getValue());
 				}
 
 				return map;
@@ -111,12 +115,51 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_GEOCODE;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.geocode(street, city, country)}}. Example: ${{$.set($.this, $.geocode($.this.street, $.this.city, $.this.country))}}"),
+			Usage.structrScript("Usage: ${geocode(street, city, country)}. Example: ${set(this, geocode(this.street, this.city, this.country))}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the geolocation (latitude, longitude) for the given street address using the configured geocoding provider";
+	public String getShortDescription() {
+		return "Returns the geolocation (latitude, longitude) for the given street address using the configured geocoding provider.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		Returns the geocoding result for the given parameters. 
+		See Geocoding Configuration for more information. 
+		This function returns a nested object with latitude / longitude that can directly be used in the `set()` method.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${set(this, geocode(this.street, this.city, this.country))}"),
+				Example.javaScript("${{ $.set(this, $.geocode(this.street, this.city, this.country)) }}")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+				"An API Key (`geocoding.apikey`) has to be configured in structr.conf.",
+				"Also this key is configurable through **Config -> Advanced Settings**."
+		);
+	}
+
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("street", "street of place to geocode"),
+				Parameter.mandatory("city", "city of place to geocode"),
+				Parameter.mandatory("country", "country of place to geocode")
+				);
 	}
 }

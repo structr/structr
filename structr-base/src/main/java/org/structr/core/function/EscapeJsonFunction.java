@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,21 +22,24 @@ import org.apache.commons.lang3.StringEscapeUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class EscapeJsonFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_ESCAPE_JSON = "Usage: ${escape_json(string)}. Example: ${escape_json(this.name)}";
-	public static final String ERROR_MESSAGE_ESCAPE_JSON_JS = "Usage: ${{ Structr.escape_json(string) }}. Example: ${{ Structr.escape_json(this.name); }}";
-
 	@Override
 	public String getName() {
-		return "escape_json";
+		return "escapeJson";
 	}
 
 	@Override
-	public String getSignature() {
-		return "string";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override
@@ -61,12 +64,45 @@ public class EscapeJsonFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_ESCAPE_JSON_JS : ERROR_MESSAGE_ESCAPE_JSON);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${escapeJson(text)}. Example: ${escapeJson(this.name)}"),
+			Usage.javaScript("Usage: ${{ $.escapeJson(text) }}. Example: ${{ $.escapeJson(this.name); }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Escapes the given string for use within JSON";
+	public String getShortDescription() {
+		return "Escapes the given string for use within JSON.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("text", "text to escape")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${escapeJson('This is a \"test\"')} => This is a \\\"test\\\"")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Escapes the characters in a string using Json String rules.",
+			"Escapes any values it finds into their Json String form.",
+			"Deals correctly with quotes and control-chars (tab, backslash, cr, ff, etc.)"
+		);
 	}
 }

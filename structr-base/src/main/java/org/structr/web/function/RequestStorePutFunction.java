@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,22 +21,24 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class RequestStorePutFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_REQUEST_STORE_PUT    = "Usage: ${request_store_put(key,value)}. Example: ${request_store_put(\"do_no_track\", true)}";
-	public static final String ERROR_MESSAGE_REQUEST_STORE_PUT_JS = "Usage: ${{ $.request_store_put(key,value); }}. Example: ${{ $.request_store_put(\"do_not_track\", true); }}";
-
-
 	@Override
 	public String getName() {
-		return "request_store_put";
+		return "requestStorePut";
 	}
 
 	@Override
-	public String getSignature() {
-		return "key, value";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("key, value");
 	}
 
 	@Override
@@ -44,7 +46,14 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 
 		try {
 
-			assertArrayHasLengthAndAllElementsNotNull(sources, 2);
+
+			if (sources.length != 2) {
+				throw ArgumentCountException.notEqual(sources.length, 2);
+			}
+
+			if (sources[0] == null) {
+				throw new ArgumentNullException();
+			}
 
 			return ctx.getRequestStore().put(sources[0].toString(), sources[1]);
 			
@@ -61,12 +70,37 @@ public class RequestStorePutFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_REQUEST_STORE_PUT_JS : ERROR_MESSAGE_REQUEST_STORE_PUT);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${requestStorePut(key,value)}."),
+			Usage.javaScript("Usage: ${{ $.requestStorePut(key,value); }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Stores a value in the request level store.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${requestStorePut('do_no_track', true)}"),
+				Example.javaScript("${{ $.requestStorePut('do_not_track', true); }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("key", "given key"),
+				Parameter.optional("value", "value for given key")
+				);
 	}
 }

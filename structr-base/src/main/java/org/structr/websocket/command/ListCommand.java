@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,19 +23,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.Query;
+import org.structr.core.app.QueryGroup;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.List;
+import java.util.Set;
 
 /**
  * Websocket command to retrieve nodes of a given type which are on root level,
@@ -64,9 +64,9 @@ public class ListCommand extends AbstractCommand {
 		final String properties               = webSocketData.getNodeDataStringValue("properties");
 		final boolean rootOnly                = webSocketData.getNodeDataBooleanValue("rootOnly");
 
-		Class type = SchemaHelper.getEntityClassForRawType(rawType);
-
+		Traits type = Traits.of(rawType);
 		if (type == null) {
+
 			getWebSocket().send(MessageBuilder.status().code(404).message("Type " + rawType + " not found").build(), true);
 			return;
 		}
@@ -79,33 +79,39 @@ public class ListCommand extends AbstractCommand {
 		final String sortKey           = webSocketData.getSortKey();
 		final int pageSize             = webSocketData.getPageSize();
 		final int page                 = webSocketData.getPage();
-		final PropertyKey sortProperty = StructrApp.key(type, sortKey);
-		final Query query              = StructrApp.getInstance(securityContext).nodeQuery(type).sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize);
+		final PropertyKey sortProperty = type.key(sortKey);
+		final QueryGroup query         = StructrApp.getInstance(securityContext).nodeQuery().sort(sortProperty, "desc".equals(sortOrder)).page(page).pageSize(pageSize).and().type(rawType);
 
-		if (File.class.isAssignableFrom(type)) {
+		if (type.contains(StructrTraits.FILE)) {
 
 			if (rootOnly) {
-				query.and(StructrApp.key(File.class, "hasParent"), false);
+				query.key(Traits.of(StructrTraits.FILE).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
 			}
 
 			// inverted as isThumbnail is not necessarily present in all objects inheriting from FileBase
-			query.not().and(StructrApp.key(Image.class, "isThumbnail"), true);
+			query.not().key(Traits.of(StructrTraits.IMAGE).key(ImageTraitDefinition.IS_THUMBNAIL_PROPERTY), true);
 
+			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
+				"all/INCOMING/CONTAINS",
+				"all/OUTGOING/CONFIGURED_BY"
+			));
 		}
 
 		// important
-		if (Folder.class.isAssignableFrom(type) && rootOnly) {
+		if (type.contains(StructrTraits.FOLDER) && rootOnly) {
 
-			query.and(StructrApp.key(Folder.class, "hasParent"), false);
+			query.key(Traits.of(StructrTraits.FOLDER).key(AbstractFileTraitDefinition.HAS_PARENT_PROPERTY), false);
+
+			TransactionCommand.getCurrentTransaction().prefetch(StructrTraits.ABSTRACT_FILE, StructrTraits.ABSTRACT_FILE, Set.of(
+				"all/INCOMING/CONTAINS",
+				"all/OUTGOING/CONFIGURED_BY"
+			));
 		}
 
 		try {
 
-			// do search
-			final List<AbstractNode> result = query.getAsList();
-
 			// set full result list
-			webSocketData.setResult(result);
+			webSocketData.setResult(query.getResultStream());
 
 			// send only over local connection
 			getWebSocket().send(webSocketData, true);

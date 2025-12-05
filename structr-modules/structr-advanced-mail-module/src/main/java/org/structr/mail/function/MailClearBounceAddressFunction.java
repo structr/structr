@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,14 @@
 package org.structr.mail.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
 
-public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
+import java.util.List;
 
-	public final String ERROR_MESSAGE    = "Usage: ${mail_clear_bounce_address()}";
-	public final String ERROR_MESSAGE_JS = "Usage: ${{ Structr.mail_clear_bounce_address() }}";
+public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	public MailClearBounceAddressFunction(final AdvancedMailModule parent) {
 		super(parent);
@@ -33,12 +34,12 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_bounce_address";
+		return "mailClearBounceAddress";
 	}
 
 	@Override
-	public String getSignature() {
-		return null;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("");
 	}
 
 	@Override
@@ -50,12 +51,20 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_JS : ERROR_MESSAGE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${mailClearBounce_address()}"),
+			Usage.javaScript("Usage: ${{ $.mailClearBounceAddress() }}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Removes the bounce address from the current mail";
+	public String getShortDescription() {
+		return "Removes the bounce address from the current mail.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

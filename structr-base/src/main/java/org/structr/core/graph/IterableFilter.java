@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,7 +33,7 @@ import java.util.Set;
  */
 public class IterableFilter<T> implements Iterable<T> {
 
-	private SecurityContext securityContext = null;
+	private final SecurityContext securityContext = null;
 	private Iterator<T> sourceIterator      = null;
 	private Set<Filter<T>> filters          = null;
 

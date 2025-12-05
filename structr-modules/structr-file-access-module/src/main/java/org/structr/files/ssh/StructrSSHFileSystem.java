@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,13 +25,17 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+import org.structr.web.traits.definitions.AbstractFileTraitDefinition;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,14 +70,10 @@ public class StructrSSHFileSystem extends FileSystem {
 	@Override
 	public FileSystemProvider provider() {
 
-		logger.info("x");
-
 		return new FileSystemProvider() {
 
 			@Override
 			public OutputStream newOutputStream(Path path, OpenOption... options) throws IOException {
-
-				logger.info("x");
 
 				OutputStream os = null;
 
@@ -104,7 +104,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			public InputStream newInputStream(Path path, OpenOption... options) throws IOException {
 				// Remote file => file node in Structr
 
-				logger.info("x");
+				
 
 				InputStream inputStream = null;
 
@@ -150,7 +150,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
 
-				logger.info("x");
+				
 
 				SeekableByteChannel channel = null;
 
@@ -160,7 +160,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 						
-						channel             = StorageProviderFactory.getStorageProvider(fileNode).getSeekableByteChannel();
+						channel             = StorageProviderFactory.getStorageProvider(fileNode).getSeekableByteChannel(options);
 
 						tx.success();
 
@@ -176,7 +176,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
 
-				logger.info("x");
+				
 
 				return new DirectoryStream() {
 
@@ -227,21 +227,22 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
 
-				logger.info("x");
+				
 
 				final StructrSSHFile parent = (StructrSSHFile) dir.getParent();
 
-				final App app = StructrApp.getInstance(securityContext);
-				final String name = dir.getFileName().toString();
+				final App app       = StructrApp.getInstance(securityContext);
+				final String name   = dir.getFileName().toString();
+				final Traits traits = Traits.of(StructrTraits.FOLDER);
 
 				try (final Tx tx = app.tx()) {
 
-					final Folder folder = app.create(Folder.class,
-						new NodeAttribute(AbstractNode.name, name),
-						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parent != null ? parent.getActualFile() : null)
+					final NodeInterface folder = app.create(StructrTraits.FOLDER,
+						new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), name),
+						new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parent != null ? parent.getActualFile() : null)
 					);
 
-					((StructrSSHFile) dir).setActualFile(folder);
+					((StructrSSHFile) dir).setActualFile(folder.as(AbstractFile.class));
 
 					tx.success();
 
@@ -270,7 +271,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public boolean isSameFile(Path path, Path path2) throws IOException {
 
-				logger.info("x");
+				
 				return path != null && path.equals(path);
 			}
 
@@ -294,7 +295,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public <V extends FileAttributeView> V getFileAttributeView(final Path path, final Class<V> type, final LinkOption... options) {
 
-				logger.info("x");
+				
 
 				return (V) new PosixFileAttributeView() {
 
@@ -340,7 +341,7 @@ public class StructrSSHFileSystem extends FileSystem {
 			@Override
 			public <A extends BasicFileAttributes> A readAttributes(Path path, Class<A> type, LinkOption... options) throws IOException {
 
-				logger.info("x");
+				
 
 				if (path != null) {
 
@@ -371,24 +372,22 @@ public class StructrSSHFileSystem extends FileSystem {
 				logger.info("Method not implemented yet");;
 			}
 
-			private AbstractFile create(final Path path) throws IOException {
-
-				logger.info("x");
+			private NodeInterface create(final Path path) throws IOException {
 
 				final StructrSSHFile parent = (StructrSSHFile) path.getParent();
 
-				AbstractFile newFile = null;
+				NodeInterface newFile = null;
 
 				final App app = StructrApp.getInstance(securityContext);
 				try (final Tx tx = app.tx()) {
 
-					final String fileName = path.getFileName().toString();
+					final String fileName            = path.getFileName().toString();
+					final NodeInterface parentFolder = parent.getActualFile();
+					final Traits traits              = Traits.of(StructrTraits.FILE);
 
-					final Folder parentFolder = (Folder) parent.getActualFile();
-
-					newFile = app.create(File.class,
-						new NodeAttribute(AbstractNode.name, fileName),
-						new NodeAttribute(StructrApp.key(AbstractFile.class, "parent"), parentFolder)
+					newFile = app.create(StructrTraits.FILE,
+						new NodeAttribute(traits.key(NodeInterfaceTraitDefinition.NAME_PROPERTY), fileName),
+						new NodeAttribute(traits.key(AbstractFileTraitDefinition.PARENT_PROPERTY), parentFolder)
 					);
 
 					tx.success();
@@ -409,34 +408,34 @@ public class StructrSSHFileSystem extends FileSystem {
 	public void close() throws IOException {
 
 
-				logger.info("x");
+				
 	}
 
 	@Override
 	public boolean isOpen() {
 
-				logger.info("x");
+				
 		return true;
 	}
 
 	@Override
 	public boolean isReadOnly() {
 
-				logger.info("x");
+				
 		return false;
 	}
 
 	@Override
 	public String getSeparator() {
 
-				logger.info("x");
+				
 		return "/";
 	}
 
 	@Override
 	public Iterable<Path> getRootDirectories() {
 
-				logger.info("x");
+				
 
 		final List<Path> paths = new LinkedList<>();
 
@@ -448,7 +447,7 @@ public class StructrSSHFileSystem extends FileSystem {
 	@Override
 	public Iterable<FileStore> getFileStores() {
 
-				logger.info("x");
+				
 		logger.info("Method not implemented yet");
 		return null;
 	}
@@ -456,7 +455,7 @@ public class StructrSSHFileSystem extends FileSystem {
 	@Override
 	public Set<String> supportedFileAttributeViews() {
 
-				logger.info("x");
+				
 
 		final Set<String> views = new HashSet<>();
 
@@ -468,7 +467,7 @@ public class StructrSSHFileSystem extends FileSystem {
 	@Override
 	public Path getPath(String string, String... strings) {
 
-				logger.info("x");
+				
 
 		if ("/".equals(string)) {
 			return rootFolder;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,9 +22,10 @@ package org.structr.rest.auth;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.server.session.Session;
-import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
+import org.eclipse.jetty.ee10.servlet.SessionHandler;
+import org.eclipse.jetty.session.ManagedSession;
+import org.eclipse.jetty.session.SessionCache;
+import org.eclipse.jetty.websocket.core.server.ServerUpgradeRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -33,8 +34,12 @@ import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.PrincipalTraitDefinition;
 import org.structr.rest.service.HttpService;
 
 import java.time.Instant;
@@ -78,7 +83,7 @@ public class SessionHelper {
 		}
 	}
 
-	public static HttpSession getSessionBySessionId(final String sessionId) throws FrameworkException {
+	public static ManagedSession getSessionBySessionId(final String sessionId) throws FrameworkException {
 
 		return getSessionFromCache(sessionId);
 	}
@@ -87,7 +92,7 @@ public class SessionHelper {
 
 		if (request.getSession(true) == null) {
 
-			if (request instanceof JettyServerUpgradeRequest) {
+			if (request instanceof ServerUpgradeRequest) {
 				logger.debug("Requested to create a new session on a Websocket request, aborting");
 				return;
 			}
@@ -95,9 +100,11 @@ public class SessionHelper {
 			request.changeSessionId();
 		}
 
-		if (request.getSession(false) != null) {
+		final HttpSession session = request.getSession(false);
+		if (session != null) {
 
-			logger.debug("Created new session " + request.getSession(false).getId());
+			logger.debug("Created new session " + session.getId());
+
 		} else {
 
 			logger.warn("Request still has no valid session");
@@ -116,14 +123,14 @@ public class SessionHelper {
 		}
 
 		final App app                            = StructrApp.getInstance();
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		final Query<Principal> query             = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
+		final PropertyKey<String[]> sessionIdKey = Traits.of(StructrTraits.PRINCIPAL).key(PrincipalTraitDefinition.SESSION_IDS_PROPERTY);
+		final Query<NodeInterface> query         = app.nodeQuery(StructrTraits.PRINCIPAL).key(sessionIdKey, new String[]{sessionId}, false).disableSorting();
 
 		try {
 
-			for (final Principal p : query.getAsList()) {
+			for (final NodeInterface p : query.getResultStream()) {
 
-				p.removeSessionId(sessionId);
+				p.as(Principal.class).removeSessionId(sessionId);
 			}
 
 		} catch (Exception fex) {
@@ -146,10 +153,17 @@ public class SessionHelper {
 	 */
 	public static void clearInvalidSessions(final Principal user) {
 
+		if (user == null) {
+
+			logger.warn("Trying to clear session for null user, dumping stack.");
+			Thread.dumpStack();
+
+			return;
+		}
+
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		final String[] sessionIds                = user.getProperty(sessionIdKey);
+		final String[] sessionIds = user.getSessionIds();
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
@@ -157,9 +171,10 @@ public class SessionHelper {
 
 			for (final String sessionId : sessionIds) {
 
-				Session session = getSessionFromCache(sessionCache, sessionId);
+				final ManagedSession session  = getSessionFromCache(sessionCache, sessionId);
+				final HttpSession httpSession = SessionHandler.ServletSessionApi.wrapSession(session);
 
-				if (session == null || SessionHelper.isSessionTimedOut(session)) {
+				if (session == null || SessionHelper.isSessionTimedOut(httpSession)) {
 					SessionHelper.clearSession(sessionId);
 					SessionHelper.invalidateSession(sessionId);
 				}
@@ -174,14 +189,11 @@ public class SessionHelper {
 	 */
 	public static void clearAllSessions(final Principal user) {
 
-		final Class groupClass = StructrApp.getConfiguration().getNodeEntityClass("Group");
-
-		if (!groupClass.isAssignableFrom(user.getClass())) {
+		if (!user.getTraits().contains(StructrTraits.GROUP)) {
 
 			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 
-			final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-			final String[] sessionIds                = user.getProperty(sessionIdKey);
+			final String[] sessionIds = user.getSessionIds();
 
 			if (sessionIds != null && sessionIds.length > 0) {
 
@@ -204,8 +216,8 @@ public class SessionHelper {
 
 		try (final Tx tx = StructrApp.getInstance().tx(false, false, false)) {
 
-			for (final Principal user : StructrApp.getInstance().nodeQuery(Principal.class).getAsList()) {
-				clearAllSessions(user);
+			for (final NodeInterface user : StructrApp.getInstance().nodeQuery(StructrTraits.PRINCIPAL).getAsList()) {
+				clearAllSessions(user.as(Principal.class));
 			}
 
 			tx.success();
@@ -222,7 +234,7 @@ public class SessionHelper {
 
 			try {
 
-				getDefaultSessionCache().delete(sessionId);
+				getDefaultSessionCache().get(sessionId).invalidate();
 
 			} catch (final Exception ex) {
 
@@ -359,12 +371,12 @@ public class SessionHelper {
 		return Services.getInstance().getService(HttpService.class, "default").getSessionCache();
 	}
 
-	private static Session getSessionFromCache(final String sessionId) {
+	private static ManagedSession getSessionFromCache(final String sessionId) {
 
 		return getSessionFromCache(getDefaultSessionCache(), sessionId);
 	}
 
-	private static Session getSessionFromCache(final SessionCache sessionCache, final String sessionId) {
+	private static ManagedSession getSessionFromCache(final SessionCache sessionCache, final String sessionId) {
 
 		try {
 

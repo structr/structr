@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,20 +21,21 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class DoubleSumFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_DOUBLE_SUM = "Usage: ${double_sum(list)}. Example: ${double_sum(extract(this.children, \"amount\"))}";
-
 	@Override
 	public String getName() {
-		return "double_sum";
+		return "doubleSum";
 	}
 
 	@Override
-	public String getSignature() {
-		return "list";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("list");
 	}
 
 	@Override
@@ -69,12 +70,38 @@ public class DoubleSumFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_DOUBLE_SUM;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${doubleSum(list)}. Example: ${doubleSum(extract(this.children, 'amount'))}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the sum of the given arguments as a floating-point number";
+	public String getShortDescription() {
+		return "Returns the sum of all the values in the given collection as a floating-point value.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function will most likely be used in combination with the `extract()` or `merge()` functions.";
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("list", "list of values to sum")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("${doubleSum(extract(find('Product'), 'itemPrice'))}", "Return the sum of all `itemPrice` values of all `Product` entities")
+		);
 	}
 }

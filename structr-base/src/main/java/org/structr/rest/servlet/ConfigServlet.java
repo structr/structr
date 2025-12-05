@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -615,17 +615,19 @@ public class ConfigServlet extends AbstractServletBase {
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
-		final Tag header = body.block("div").id("header");
+		final Tag header = body.block("div").id("header").css("flex gap-x-4 items-center justify-between");
 
-		header.block("svg").attr(new Attr("title", "Structr Logo")).css("logo").block("use").attr(new Attr("href", "#structr-logo"));
-		final Tag links = header.block("div").id("menu").css("menu").block("ul");
+		body.block("div").id("cron-info-text").css("hidden").attr(new Attr("data-value", Settings.CRON_EXPRESSION_INFO_HTML));
+
+		header.block("svg").attr(new Attr("title", "Structr Logo"), new Attr("width", "90"), new Attr("height", "24")).css("logo ml-8 mb-1").block("use").attr(new Attr("href", "#structr-logo"));
+		final Tag menu = header.block("div").css("menu mr-6");
 
 		if (isAuthenticated(request)) {
 
-			final Tag form = links.block("li").block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"), new Style("display: none")).id("logout-form");
+			final Tag form = menu.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"), new Style("display: none")).id("logout-form");
 
 			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
-			links.block("a").text("Logout").attr(new Style("cursor: pointer"), new OnClick("$('#logout-form').submit();"));
+			menu.block("a").text("Logout").attr(new Attr("href", "javascript:$('#logout-form').submit();"));
 		}
 
 		return body;
@@ -663,8 +665,6 @@ public class ConfigServlet extends AbstractServletBase {
 		final ManageDatabasesCommand cmd   = Services.getInstance().command(null, ManageDatabasesCommand.class);
 		final boolean databaseIsConfigured = !cmd.getConnections().isEmpty();
 		final boolean passwordIsSet        = StringUtils.isNotBlank(Settings.SuperUserPassword.getValue());
-		final Style fgGreen                = new Style("color: var(--config-structr-green);");
-		final Style bgGreen                = new Style("background-color: var(--config-structr-green); color: #fff; border: 1px solid rgba(0,0,0,.125);");
 		final String id                    = "welcome";
 
 		menu.block("li").css("active").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Start").css("active");
@@ -680,11 +680,11 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag item2 = list.block("li").text("Configure a <b>database connection</b>");
 
 		if (passwordIsSet) {
-			item1.block("span").text(" &#x2714;").attr(fgGreen);
+			item1.block("span").text(" &#x2714;");
 		}
 
 		if (databaseIsConfigured) {
-			item2.block("span").text(" &#x2714;").attr(fgGreen);
+			item2.block("span").text(" &#x2714;");
 		}
 
 		if (!passwordIsSet) {
@@ -692,8 +692,13 @@ public class ConfigServlet extends AbstractServletBase {
 			body.block("h3").text("Superuser password");
 
 			final Tag pwd = body.block("p");
-			pwd.empty("input").attr(new Name("superuser.password")).attr(new Type("password")).attr(new Attr("size", 40));
-			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Save")).attr(bgGreen);
+			pwd.empty("input")
+					.attr(new Name("superuser.password"))
+					.attr(new Type("password"))
+					.attr(new Attr("size", 40))
+					.attr(new Attr("placeholder", "Enter a superuser password"))
+					.attr(new Attr("class", "combined"));
+			pwd.empty("input").attr(new Type("submit")).attr(new Attr("value", "Save")).attr(new Attr("class", "combined"));
 
 		} else {
 
@@ -729,7 +734,7 @@ public class ConfigServlet extends AbstractServletBase {
 			final Tag div = body.block("div");
 
 			final Tag leftDiv  = div.block("div").css("inline-block");
-			leftDiv.block("button").css("default-action").attr(new Type("button")).text("Create new database connection").attr(new OnClick("$('.new-connection.collapsed').removeClass('collapsed')"));
+			leftDiv.block("button").id("create-db-connection-button").css("default-action").attr(new Type("button")).text("Create new database connection");
 			leftDiv.block("p").text("Configure Structr to connect to a running database.");
 
 			final Tag rightDiv = div.block("div").css("inline-block");

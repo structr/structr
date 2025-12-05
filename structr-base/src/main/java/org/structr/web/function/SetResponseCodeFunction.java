@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,23 +22,25 @@ package org.structr.web.function;
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 
 
 public class SetResponseCodeFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_SET_RESPONSE_CODE    = "Usage: ${set_response_code(int)}. Example: ${set_response_header(302)}";
-	public static final String ERROR_MESSAGE_SET_RESPONSE_CODE_JS = "Usage: ${{Structr.setResponseCode(int)}}. Example: ${{Structr.setResponseHeader(302)}}";
-
 	@Override
 	public String getName() {
-		return "set_response_code";
+		return "setResponseCode";
 	}
 
 	@Override
-	public String getSignature() {
-		return "code";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("code");
 	}
 
 	@Override
@@ -48,12 +50,10 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 1);
 
-			if (!(sources[0] instanceof Number)) {
+			if (!(sources[0] instanceof Number statusCode)) {
 
 				throw new IllegalArgumentException("Parameter must be a number!");
 			}
-
-			final Number statusCode = (Number)sources[0];
 
 			final SecurityContext securityContext = ctx.getSecurityContext();
 			if (securityContext != null) {
@@ -79,13 +79,36 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_SET_RESPONSE_CODE_JS : ERROR_MESSAGE_SET_RESPONSE_CODE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${setResponseCode(int)}."),
+			Usage.javaScript("Usage: ${{ $.setResponseCode(int) }}.")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Sets the response code of the current rendering run";
+	public String getShortDescription() {
+		return "Sets the response code of the current rendering run.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "Very useful in conjunction with `setResponseHeader()` for redirects.";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${setResponseCode(302)}"),
+				Example.javaScript("${{ $.setResponseCode(302) }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("code", "HTTP response code")
+				);
+	}
 }

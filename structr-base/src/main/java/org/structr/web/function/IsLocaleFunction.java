@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,23 +19,25 @@
 package org.structr.web.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
+import java.util.List;
 import java.util.Locale;
 
 public class IsLocaleFunction extends UiAdvancedFunction {
 
-	public static final String ERROR_MESSAGE_IS_LOCALE    = "Usage: ${is_locale(locales...)}";
-	public static final String ERROR_MESSAGE_IS_LOCALE_JS = "Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}";
-
 	@Override
 	public String getName() {
-		return "is_locale";
+		return "isLocale";
 	}
 
 	@Override
-	public String getSignature() {
-		return "locales...";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("locales...");
 	}
 
 	@Override
@@ -65,12 +67,44 @@ public class IsLocaleFunction extends UiAdvancedFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_IS_LOCALE_JS : ERROR_MESSAGE_IS_LOCALE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${isLocale(locales...)}"),
+			Usage.javaScript("Usage: ${{Structr.isLocale(locales...}}. Example ${{Structr.isLocale('de_DE', 'de_AT', 'de_CH')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns true if the current user locale is equal to the given argument";
+	public String getShortDescription() {
+		return "Returns true if the current user locale is equal to the given argument.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("locales", "list of strings that represent different locales to check")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${isLocale('en_GB', 'en_US')}", "Check whether the current locale is an English variant")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+
+		return List.of(
+			"See the `locale` keyword to learn how the locale of the current context is determined."
+		);
 	}
 }

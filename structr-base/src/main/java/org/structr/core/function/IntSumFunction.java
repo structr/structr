@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,20 +21,21 @@ package org.structr.core.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class IntSumFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_INT_SUM = "Usage: ${int_sum(list)}. Example: ${int_sum(extract(this.children, \"number\"))}";
-
 	@Override
 	public String getName() {
-		return "int_sum";
+		return "intSum";
 	}
 
 	@Override
-	public String getSignature() {
-		return "list";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("list");
 	}
 
 	@Override
@@ -74,12 +75,40 @@ public class IntSumFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_INT_SUM;
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${intSum(list)}. Example: ${intSum(extract(this.children, 'number'))}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the sum of the given arguments as an integer";
+	public String getShortDescription() {
+		return "Returns the sum of the given arguments as an integer.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "This function will most likely be used in combination with the `extract()` or `merge()` functions.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("collection", "collection of values to sum")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${intSum(merge(1, 2, 3, 4))}", "Return the sum of a list of values")
+		);
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return List.of(Language.StructrScript);
 	}
 }

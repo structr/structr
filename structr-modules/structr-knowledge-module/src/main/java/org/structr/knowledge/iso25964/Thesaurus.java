@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,54 +18,61 @@
  */
 package org.structr.knowledge.iso25964;
 
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
-import org.structr.core.graph.NodeInterface;
-import org.structr.schema.SchemaService;
+import org.structr.common.View;
+import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.*;
+import org.structr.knowledge.iso25964.relationship.ThesauruscontainsConceptGroup;
+import org.structr.knowledge.iso25964.relationship.ThesauruscontainsThesaurusArray;
+import org.structr.knowledge.iso25964.relationship.ThesauruscontainsThesaurusConcept;
+import org.structr.knowledge.iso25964.relationship.ThesaurushasVersionVersionHistory;
 
-import java.net.URI;
-import java.util.Locale;
+import java.util.Date;
 
 /**
  * Class as defined in ISO 25964 data model
  */
 
-public interface Thesaurus extends NodeInterface {
+public class Thesaurus extends AbstractNode {
 
-	static class Impl { static {
+	public static final Property<Iterable<ConceptGroup>> conceptGroupsProperty         = new EndNodes<>("conceptGroups", ThesauruscontainsConceptGroup.class);
+	public static final Property<Iterable<VersionHistory>> versionsProperty            = new EndNodes<>("versions", ThesaurushasVersionVersionHistory.class);
+	public static final Property<Iterable<ThesaurusArray>> thesaurusArraysProperty     = new EndNodes<>("thesaurusArrays", ThesauruscontainsThesaurusArray.class);
+	public static final Property<Iterable<ThesaurusConcept>> thesaurusConceptsProperty = new EndNodes<>("concepts", ThesauruscontainsThesaurusConcept.class);
 
-		final JsonSchema schema      = SchemaService.getDynamicSchema();
-		final JsonObjectType type    = schema.addType("Thesaurus");
-		final JsonObjectType concept = schema.addType("ThesaurusConcept");
-		final JsonObjectType array   = schema.addType("ThesaurusArray");
-		final JsonObjectType group   = schema.addType("ConceptGroup");
-		final JsonObjectType version = schema.addType("VersionHistory");
+	public static final Property<String[]> identifierProperty    = new ArrayProperty<>("identifier", String.class).indexed().notNull();
+	public static final Property<String[]> contributorProperty   = new ArrayProperty<>("contributor", String.class);
+	public static final Property<String[]> coverageProperty      = new ArrayProperty<>("coverage", String.class);
+	public static final Property<String[]> creatorProperty       = new ArrayProperty<>("creator", String.class);
+	public static final Property<Date[]> dateProperty            = new DateArrayProperty("date");
+	public static final Property<Date> createdProperty           = new DateProperty("created");
+	public static final Property<String[]> descriptionProperty   = new ArrayProperty<>("description", String.class);
+	public static final Property<String[]> formatProperty        = new ArrayProperty<>("format", String.class);
+	public static final Property<String> langProperty            = new EnumProperty("lang", ThesaurusTerm.Lang.class).notNull();
+	public static final Property<String[]> publisherProperty     = new ArrayProperty<>("publisher", String.class);
 
-		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Thesaurus"));
+	public static final Property<String[]> relationProperty      = new ArrayProperty<>("relation", String.class);
+	public static final Property<String[]> rightsProperty        = new ArrayProperty<>("rights", String.class);
+	public static final Property<String[]> sourceProperty        = new ArrayProperty<>("source", String.class);
+	public static final Property<String[]> subjectProperty       = new ArrayProperty<>("subject", String.class);
+	public static final Property<String[]> titleProperty         = new ArrayProperty<>("title", String.class);
+	public static final Property<String[]> thesaurusTypeProperty = new ArrayProperty<>("thesaurusType", String.class);
 
-		type.addStringArrayProperty("identifier", PropertyView.All, PropertyView.Ui).setIndexed(true).setRequired(true);
-		type.addStringArrayProperty("contributor", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("coverage", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("creator", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateArrayProperty("date", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addDateProperty("created", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("description", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("format", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addEnumProperty("lang", PropertyView.All, PropertyView.Ui).setEnums(Locale.getISOLanguages()).setRequired(true);
-		type.addStringArrayProperty("publisher", PropertyView.All, PropertyView.Ui).setIndexed(true);
+	public static final View uiView      = new View(Thesaurus.class, PropertyView.Ui,
+		identifierProperty, contributorProperty, coverageProperty, createdProperty, dateProperty, createdProperty, descriptionProperty, formatProperty,
+		langProperty, publisherProperty, relationProperty, rightsProperty, sourceProperty, subjectProperty, titleProperty, thesaurusTypeProperty
+	);
 
-		type.addStringArrayProperty("relation", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("rights", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("source", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("subject", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("title", PropertyView.All, PropertyView.Ui).setIndexed(true);
-		type.addStringArrayProperty("thesaurusType", PropertyView.All, PropertyView.Ui).setIndexed(true);
+	@Override
+	public boolean isValid(final ErrorBuffer errorBuffer) {
 
-		type.relate(group,   "contains",   Cardinality.ManyToMany, "thesaurus", "conceptGroups");
-		type.relate(version, "hasVersion", Cardinality.OneToMany,  "thesaurus", "versions");
-		type.relate(array,   "contains",   Cardinality.OneToMany,  "thesaurus", "thesaurusArrays");
-		type.relate(concept, "contains",   Cardinality.OneToMany,  "thesaurus", "concepts");
-	}}
+		boolean valid = super.isValid(errorBuffer);
+
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Thesaurus.identifierProperty, errorBuffer);
+		valid &= ValidationHelper.isValidPropertyNotNull(this, Thesaurus.langProperty, errorBuffer);
+
+		return valid;
+	}
 }

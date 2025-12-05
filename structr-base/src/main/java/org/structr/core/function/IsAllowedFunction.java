@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,24 +25,28 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class IsAllowedFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_IS_ALLOWED    = "Usage: ${is_allowed(principal, node, permissions)}. Example: ${is_allowed(me, this, 'write, delete'))}";
-	public static final String ERROR_MESSAGE_IS_ALLOWED_JS = "Usage: ${{Structr.is_allowed(principal, node, permissions)}}. Example: ${{Structr.is_allowed(Structr.('me'), Structr.this, 'write, delete'))}}";
-
 	@Override
 	public String getName() {
-		return "is_allowed";
+		return "isAllowed";
 	}
 
 	@Override
-	public String getSignature() {
-		return "user, node, permissions";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("user, node, permissions");
 	}
 
 	@Override
@@ -52,7 +56,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 3);
 
-			if (!(sources[0] instanceof Principal)) {
+			if (!(sources[0] instanceof NodeInterface n && n.is(StructrTraits.PRINCIPAL))) {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument!", ctx.isJavaScriptContext());
 
@@ -60,7 +64,7 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 				logParameterError(caller, sources, "Expected node of type Principal as first argument - unable to check rights for the SuperUser!", ctx.isJavaScriptContext());
 
-			} else if (!(sources[1] instanceof AbstractNode)) {
+			} else if (!(sources[1] instanceof NodeInterface)) {
 
 				logParameterError(caller, sources, "Expected node as second argument!", ctx.isJavaScriptContext());
 
@@ -70,8 +74,8 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 
 			} else {
 
-				final Principal principal = (Principal) sources[0];
-				final AbstractNode node   = (AbstractNode) sources[1];
+				final Principal principal = ((NodeInterface)sources[0]).as(Principal.class);
+				final NodeInterface node  = (NodeInterface) sources[1];
 				final String[] parts      = ((String) sources[2]).split("[,]+");
 				boolean allowed           = true;
 
@@ -109,12 +113,38 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_IS_ALLOWED_JS : ERROR_MESSAGE_IS_ALLOWED);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${isAllowed(principal, node, permissions)}. Example: ${isAllowed(me, this, 'write, delete'))}"),
+			Usage.javaScript("Usage: ${{ $.isAllowed(principal, node, permissions)}}. Example: ${{ $.isAllowed($.me, $.this, 'write, delete'))}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns whether the principal has all of the permission(s) on the given node.";
+	public String getShortDescription() {
+		return "Returns true if the given principal has the given permissions on the given node.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "Valid values for the permission list are `read`, `write`, `delete` and `accessControl`. The permissions are passed in as a comma-separated list (see example). See also `grant()` and `revoke()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("principal", "principal to check permissions for"),
+			Parameter.mandatory("node", "node to check permissions on"),
+			Parameter.mandatory("permissions", "string with comma-separated list of permissions (`read`, `write`, `delete` and `accessControl`)")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${isAllowed(me, group1, 'read, write')}", "Check if the current user has `read` and `write` permissions on a group")
+		);
 	}
 }

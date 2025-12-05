@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,12 +25,14 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipFactory;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
-public class OutgoingFunction extends CoreFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_OUTGOING    = "Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}";
-	public static final String ERROR_MESSAGE_OUTGOING_JS = "Usage: ${{Structr.outgoing(entity [, relType])}}. Example: ${{outgoing(Structr.this, 'PARENT_OF')}}";
+public class OutgoingFunction extends CoreFunction {
 
 	@Override
 	public String getName() {
@@ -38,8 +40,8 @@ public class OutgoingFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "entity [, relType ]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("entity [, relType ]");
 	}
 
 	@Override
@@ -89,12 +91,29 @@ public class OutgoingFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_OUTGOING_JS : ERROR_MESSAGE_OUTGOING);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${outgoing(entity [, relType])}. Example: ${outgoing(this, 'PARENT_OF')}"),
+			Usage.javaScript("Usage: ${{Structr.outgoing(entity [, relType])}}. Example: ${{outgoing(Structr.this, 'PARENT_OF')}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the outgoing relationships of the given entity";
+	public String getShortDescription() {
+		return "Returns all outgoing relationships of a node, with an optional qualifying relationship type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "You can use this function in the Function Query section of a Repeater Element to access the relationships of a node. See also `outgoing()` and `hasRelationship()`.";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+			Parameter.mandatory("entity", "entity to fetch relationships for"),
+			Parameter.optional("relType", "relationship type")
+		);
 	}
 }

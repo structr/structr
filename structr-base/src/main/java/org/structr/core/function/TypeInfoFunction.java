@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,22 +19,22 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
-public class TypeInfoFunction extends AdvancedScriptingFunction {
+import java.util.List;
 
-	public static final String ERROR_MESSAGE_TYPE_INFO    = "Usage: ${type_info(type[, view])}. Example ${type_info('User', 'public')}";
-	public static final String ERROR_MESSAGE_TYPE_INFO_JS = "Usage: ${Structr.type_info(type[, view])}. Example ${Structr.type_info('User', 'public')}";
+public class TypeInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getName() {
-		return "type_info";
+		return "typeInfo";
 	}
 
 	@Override
-	public String getSignature() {
-		return "type [, view]";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("type [, view]");
 	}
 
 	@Override
@@ -45,10 +45,9 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 			assertArrayHasMinLengthAndMaxLengthAndAllElementsNotNull(sources, 1, 2);
 
 			final String typeName = sources[0].toString();
-			final Class type      = SchemaHelper.getEntityClassForRawType(typeName);
 			final String viewName = (sources.length == 2 ? sources[1].toString() : null);
 
-			return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, type, viewName);
+			return SchemaHelper.getSchemaTypeInfo(ctx.getSecurityContext(), typeName, viewName);
 
 		} catch (IllegalArgumentException e) {
 
@@ -58,12 +57,48 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_TYPE_INFO_JS : ERROR_MESSAGE_TYPE_INFO);
+	public List<Documentable> getContextHints(String lastToken) {
+		return getContextHintsForTypes(lastToken);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the type information for the specified type";
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${typeInfo(type[, view])}."),
+			Usage.javaScript("Usage: ${$.typeInfo(type[, view])}.")
+		);
 	}
+
+	@Override
+	public String getShortDescription() {
+		return "Returns the type information for the specified type.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		If called with a view, all properties of that view are returned as a list. The items of the list are in the same 
+		format as `property_info()` returns. This is identical to the result one would get from `/structr/rest/_schema/<type>/<view>`.
+		If called without a view, the complete type information is returned as an object. 
+		This is identical to the result one would get from `/structr/rest/_schema/<type>`.
+		""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.structrScript("${typeInfo('User', 'public')}"),
+				Example.javaScript("${{ $.typeInfo('User', 'public') }}")
+		);
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+
+		return List.of(
+				Parameter.mandatory("type", "schema type"),
+				Parameter.optional("view", "view (default: `public`)")
+				);
+	}
+
 }

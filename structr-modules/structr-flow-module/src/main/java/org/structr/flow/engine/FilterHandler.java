@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,19 +18,16 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.Filter;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowHandler;
+import org.structr.flow.impl.FlowFilter;
+import org.structr.flow.impl.FlowNode;
 
-/**
- *
- */
-public class FilterHandler implements FlowHandler<Filter> {
+public class FilterHandler implements FlowHandler {
 
 	@Override
-	public FlowElement handle(final Context context, final Filter flowElement) throws FlowException {
+	public FlowNode handle(final Context context, final FlowNode flowElement) throws FlowException {
 
-		flowElement.filter(context);
+		flowElement.as(FlowFilter.class).filter(context);
 
 		return flowElement.next();
 	}

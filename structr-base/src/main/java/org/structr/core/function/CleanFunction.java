@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -31,16 +35,9 @@ import static org.structr.core.function.Functions.cleanString;
 
 public class CleanFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_CLEAN = "Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}";
-
 	@Override
 	public String getName() {
 		return "clean";
-	}
-
-	@Override
-	public String getSignature() {
-		return "str";
 	}
 
 	@Override
@@ -88,12 +85,66 @@ public class CleanFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return ERROR_MESSAGE_CLEAN;
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("string");
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Cleans the given string";
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.javaScript("Usage: ${{$.clean(string)}}. Example: ${{$.clean($.this.stringWithNonWordChars)}}"),
+			Usage.structrScript("Usage: ${clean(string)}. Example: ${clean(this.stringWithNonWordChars)}")
+		);
+	}
+
+	@Override
+	public String getShortDescription() {
+		return "Cleans the given string.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return """
+		This function can be used to convert complex strings or collections of strings (e.g. user names, article titles, etc.) into simple strings that can be used in URLs etc.
+		
+		| Characters | Action |
+		| --- | --- | --- |
+		| Whitespace | Replace with `-` (consecutive whitespaces are replaced with a single `-`) |
+		|  `–'+/|\\` | Replace with `-` |
+		| Uppercase letters | Replace with corresponding lowercase letter |
+		| `<>.?(){}[]!,` | Remove |
+		""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("stringOrList", "string or list of strings to clean")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+
+		return List.of(
+			Example.structrScript("${clean('This   is Än   example')}", "Results in \"this-is-an-example\""),
+			Example.structrScript(
+			"""
+			${clean(merge('This   is Än   example', 'This   is   Änother   example'))}
+			=> ['this-is-an-example', 'this-is-another-example']
+			""", "Clean a list of strings"),
+			Example.javaScript(
+			"""
+			${{ $.clean(['This   is Än   example', 'This   is   Änother   example'])}}
+			=> ['this-is-an-example', 'this-is-another-example']
+			""", "Clean a list of strings")
+		);
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"Strings are normalized in the NFD form (see. http://www.unicode.org/reports/tr15/tr15-23.html) before the replacements are applied."
+		);
 	}
 }

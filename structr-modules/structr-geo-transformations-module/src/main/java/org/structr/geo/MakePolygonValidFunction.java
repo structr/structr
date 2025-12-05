@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,14 +18,18 @@
  */
 package org.structr.geo;
 
-import com.vividsolutions.jts.geom.Polygon;
 import org.geotools.geometry.jts.JTS;
+import org.locationtech.jts.geom.Polygon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class MakePolygonValidFunction extends GeoFunction {
 
@@ -34,12 +38,12 @@ public class MakePolygonValidFunction extends GeoFunction {
 
 	@Override
 	public String getName() {
-		return "make_polygon_valid";
+		return "makePolygonValid";
 	}
 
 	@Override
-	public String getSignature() {
-		return "polygon";
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("polygon");
 	}
 
 	@Override
@@ -77,12 +81,18 @@ public class MakePolygonValidFunction extends GeoFunction {
 	}
 
 	@Override
-	public String usage(final boolean inJavaScriptContext) {
-		return ERROR_MESSAGE;
+	public List<Usage> getUsages() {
+		return List.of(
+		);
 	}
 
 	@Override
-	public String shortDescription() {
+	public String getShortDescription() {
 		return "Makes a polygon valid.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 }

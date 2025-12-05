@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,39 +38,38 @@ public class OpenAPIMaintenanceOperationSetUuid extends LinkedHashMap<String, Ob
 
         operations.put("post", new OpenAPIOperation(
 
-                // summary
-                "Initializes Structr UUIDs in non-Structr nodes",
+			// summary
+			"Initializes Structr UUIDs in non-Structr nodes",
 
-                // description
-		"This command can be used to initialize non-Structr nodes with a UUID so they can be used with Structr. Please note"
-	      + " that Structr will store the UUIDs in the `id` property of the node, and only do so if the property is empty before.",
+			// description
+			"This command can be used to initialize non-Structr nodes with a UUID so they can be used with Structr. Please note" +
+			" that Structr will store the UUIDs in the `id` property of the node, and only do so if the property is empty before.",
 
-                // operation ID
-                "setUuid",
+			// operation ID
+			"setUuid",
 
-                // tags
-                Set.of("Maintenance commands (admin only)"),
+			// tags
+			Set.of("Maintenance commands (admin only)"),
 
-                // parameters
-                null,
+			// parameters
+			null,
 
-                // request body
-                new OpenAPIRequestResponse(
-                        "Request body",
-			new OpenAPIObjectSchema(
-                        	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain node type",         "type",     "string"),
+			// request body
+			new OpenAPIRequestResponse(
+					"Request body",
+					new OpenAPIObjectSchema(
+							new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain node type",         "type",     "string"),
                         	new OpenAPIPrimitiveSchema("Limit the index rebuild to a certain relationship type", "relType",  "string"),
                         	new OpenAPIPrimitiveSchema("Process all nodes",                                      "allNodes", "boolean"),
                         	new OpenAPIPrimitiveSchema("Process all relationships",                              "allRels",  "boolean")
-                        )
-                ),
+					)
+			),
 
-                // responses
-                Map.of(
-                        "200", new OpenAPISchemaReference("#/components/responses/ok"),
-                        "401", new OpenAPISchemaReference("#/components/responses/unauthorized")
-                )
+			// responses
+			Map.of(
+					"200", new OpenAPISchemaReference("#/components/responses/ok"),
+					"401", new OpenAPISchemaReference("#/components/responses/unauthorized")
+			)
         ));
-
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,18 +18,13 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
-import java.util.Date;
-
 /**
  * Indicates that a given date property value must lie in the future.
- *
  *
  */
 public class FutureDateToken extends SemanticErrorToken {
 
-	public FutureDateToken(final String type, PropertyKey<Date> propertyKey) {
+	public FutureDateToken(final String type, final String propertyKey) {
 		super(type, propertyKey, "must_lie_in_the_future");
 	}
 }

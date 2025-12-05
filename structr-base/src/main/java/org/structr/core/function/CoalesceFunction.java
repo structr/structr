@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,13 +19,16 @@
 package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
+import org.structr.docs.Signature;
+import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 
 public class CoalesceFunction extends CoreFunction {
-
-	public static final String ERROR_MESSAGE_COALESCE = "Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}";
-	public static final String ERROR_MESSAGE_COALESCE_JS = "Usage: ${{Structr.coalesce(string1, string2...)}}. Example: ${{Structr.coalesce(node.name, node.title, node.id)}}";
 
 	@Override
 	public String getName() {
@@ -33,8 +36,23 @@ public class CoalesceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String getSignature() {
-		return "value1, value2, value3, ...";
+	public List<Parameter> getParameters() {
+		return List.of(
+			Parameter.mandatory("strings..", "list of strings to coalesce")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+			Example.structrScript("coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null"),
+			Example.javaScript("$.coalesce(node.name, node.title, node.id)", "Returns either the name, the title or the UUID of a node, depending on which one is non-null")
+		);
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return Signature.forAllScriptingLanguages("value1, value2, value3, ...");
 	}
 
 	@Override
@@ -62,13 +80,20 @@ public class CoalesceFunction extends CoreFunction {
 	}
 
 	@Override
-	public String usage(boolean inJavaScriptContext) {
-		return (inJavaScriptContext ? ERROR_MESSAGE_COALESCE_JS : ERROR_MESSAGE_COALESCE);
+	public List<Usage> getUsages() {
+		return List.of(
+			Usage.structrScript("Usage: ${coalesce(string1, string2...)}. Example: ${coalesce(node.name, node.title, node.id)}"),
+			Usage.javaScript("Usage: ${{Structr.coalesce(string1, string2...)}}. Example: ${{Structr.coalesce(node.name, node.title, node.id)}}")
+		);
 	}
 
 	@Override
-	public String shortDescription() {
-		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned";
+	public String getShortDescription() {
+		return "Returns the first non-null value in the list of expressions passed to it. In case all arguments are null, null will be returned.";
 	}
 
+	@Override
+	public String getLongDescription() {
+		return "";
+	}
 }
