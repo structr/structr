@@ -65,12 +65,24 @@ let _Documentation = {
 				checkIndexLinks(e.target);
 			});
 		});
+
+        document.getElementById('search-overlay').addEventListener('click',(e) => {
+            if (e.target?.id === 'search-overlay') {
+                _Documentation.search.hideSearch();
+                _Documentation.search.clearSearchResults();
+            }
+        });
 	},
 	keyDownHandler: e =>{
 		if (e.key === 'Escape') {
 			_Documentation.search.hideSearch();
 			_Documentation.search.clearSearchResults();
 		}
+        if ((e.code === 'KeyK' || e.keyCode === 75) && ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey))) {
+            e.preventDefault();
+            document.getElementById('search-overlay')?.classList.remove('hidden');
+            document.querySelector('[data-autofocus=true]').focus();
+        }
 	},
 	removeAllMarkdownChars: (text) => {
 		return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ');

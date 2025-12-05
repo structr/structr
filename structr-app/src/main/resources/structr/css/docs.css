@@ -366,6 +366,8 @@ index h2, .index h3 {
     border-bottom-right-radius: .25rem;
     margin-top: -.25rem;
     padding-top: .25rem;
+    overflow-y: auto;
+    max-height: 80vh;
 }
 
 #search-results ul {
