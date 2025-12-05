@@ -12,7 +12,7 @@ This guide covers the breaking changes and required modifications when upgrading
 
 ## Global Schema Methods
 
-Global schema methods have been simplified. The `globalSchemaMethods` namespace no longer exists—functions can now be called directly from the root context.
+Global schema methods have been renamed to _user-defined functions_. The `globalSchemaMethods` namespace has been deprecated and should no longer be used - functions can now be called directly from the root context.
 
 **StructrScript / JavaScript:**
 ```javascript
