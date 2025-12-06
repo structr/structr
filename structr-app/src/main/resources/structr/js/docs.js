@@ -46,7 +46,6 @@ let _Documentation = {
 		});
 
 		Structr.setFunctionBarHTML(_Documentation.templates.searchField());
-		document.querySelector('body').insertAdjacentHTML('beforeend', _Documentation.templates.searchOverlay());
 
 		Structr.mainMenu.unblock(100);
 
@@ -65,23 +64,17 @@ let _Documentation = {
 				checkIndexLinks(e.target);
 			});
 		});
-
-        document.getElementById('search-overlay').addEventListener('click',(e) => {
-            if (e.target?.id === 'search-overlay') {
-                _Documentation.search.hideSearch();
-                _Documentation.search.clearSearchResults();
-            }
-        });
 	},
-	keyDownHandler: e =>{
+	keyDownHandler: e => {
+
 		if (e.key === 'Escape') {
 			_Documentation.search.hideSearch();
 			_Documentation.search.clearSearchResults();
 		}
+
         if ((e.code === 'KeyK' || e.keyCode === 75) && ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey))) {
             e.preventDefault();
-            document.getElementById('search-overlay')?.classList.remove('hidden');
-            document.querySelector('[data-autofocus=true]').focus();
+			_Documentation.search.showSearch();
         }
 	},
 	removeAllMarkdownChars: (text) => {
@@ -197,7 +190,8 @@ let _Documentation = {
 				});
 		});
 	},
-	loadDoc: (rawPath, hash) => { console.log('Loading documentation page ', rawPath, hash);
+	loadDoc: (rawPath, hash) => {
+		// console.log('Loading documentation page ', rawPath, hash);
 		const path = decodeURI(rawPath);
 		//const path = rawPath;
 		const text = _Documentation._content[path];
@@ -323,19 +317,29 @@ let _Documentation = {
 
 	},
 	search: {
+		searchOverlay: undefined,
 		overlaySearchField: undefined,
 		searchAnimationFrameKey: undefined,
 		init: () => {
 
-			_Documentation.search.overlaySearchField = document.getElementById('overlay-search-field');
-			_Documentation.search.searchResultsList  = document.querySelector('#search-results ul');
+			_Documentation.search.searchOverlay      = _Helpers.createSingleDOMElementFromHTML(_Documentation.templates.searchOverlay());
+			_Documentation.search.overlaySearchField = _Documentation.search.searchOverlay.querySelector('#overlay-search-field');
+			_Documentation.search.searchResultsList  = _Documentation.search.searchOverlay.querySelector('#search-results ul');
+
+			document.querySelector('body').insertAdjacentElement('beforeend', _Documentation.search.searchOverlay);
 
 			document.querySelector('#search-field').addEventListener('click', e => {
-				document.getElementById('search-overlay')?.classList.remove('hidden');
-				document.querySelector('[data-autofocus=true]').focus();
+				_Documentation.search.showSearch();
 			});
 
-			window.addEventListener('keydown', _Documentation.keyDownHandler);
+			_Documentation.search.searchOverlay.addEventListener('click', e => {
+				if (e.target?.id === 'search-overlay') {
+					_Documentation.search.hideSearch();
+					_Documentation.search.clearSearchResults();
+				}
+			});
+
+			document.addEventListener('keydown', _Documentation.keyDownHandler);
 
 			_Documentation.search.overlaySearchField.addEventListener('keyup', e => {
 				_Helpers.requestAnimationFrameWrapper(_Documentation.search.searchAnimationFrameKey, _Documentation.search.doSearch);
@@ -343,13 +347,20 @@ let _Documentation = {
 
 			_Documentation.search.overlaySearchField.addEventListener('search', e => {
 				let query = e.target.value;
-				if (query === '') {
+				if (query.trim() === '') {
 					_Documentation.search.clearSearchResults();
 				}
 			});
 		},
 		dispose: () => {
-			window.removeEventListener('keydown', _Documentation.keyDownHandler);
+
+			document.removeEventListener('keydown', _Documentation.keyDownHandler);
+
+			_Helpers.fastRemoveElement(_Documentation.search.searchOverlay);
+
+			delete _Documentation.search.searchOverlay;
+			delete _Documentation.search.overlaySearchField;
+			delete _Documentation.search.searchResultsList;
 		},
 		clearSearchResults: () => {
 			_Documentation.search.searchResultsList.replaceChildren();
@@ -398,8 +409,12 @@ let _Documentation = {
 				}
 			}
 		},
+		showSearch: () => {
+			_Documentation.search.searchOverlay.classList.remove('hidden');
+			_Documentation.search.overlaySearchField.focus();
+		},
 		hideSearch: () => {
-			document.getElementById('search-overlay')?.classList.add('hidden');
+			_Documentation.search.searchOverlay.classList.add('hidden');
 		}
 	},
 	templates: {
