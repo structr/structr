@@ -32,6 +32,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.JavaMethod;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
@@ -101,9 +102,9 @@ public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 				@Override
 				public void onCreation(final GraphObject graphObject, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-					final File thisFile = graphObject.as(File.class);
-
-					if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent()) {
+					final File thisFile  = graphObject.as(File.class);
+					final Principal user = securityContext.getUser(false);
+					if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent() && user != null && !user.isAdmin()) {
 
 						final Folder workingOrHomeDir = thisFile.getCurrentWorkingDir();
 						if (workingOrHomeDir != null && thisFile.getParent() == null) {
