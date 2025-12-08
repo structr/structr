@@ -60,7 +60,7 @@ test('user-group', async ({ page }) => {
 
   await page.waitForTimeout(1000);
 
-  //await page.screenshot({ path: 'login.png' });
+  //await page.screenshot({ path: 'screenshots/login.png' });
 
   // Login with admin/admin
   await page.locator('#usernameField').fill('admin');
@@ -75,13 +75,13 @@ test('user-group', async ({ page }) => {
 
   // Wait for Security UI to load all components
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'security.png'});
+  await page.screenshot({ path: 'screenshots/security.png' });
 
   // Create new user
   await page.locator('#add-user-button').waitFor({state: 'visible'});
   await page.locator('#add-user-button').click();
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'security_create-user.png'});
+  await page.screenshot({ path: 'screenshots/security_create-user.png' });
 
   // Rename user
   await page.locator('#users').getByText('New User').first().click();
@@ -89,7 +89,7 @@ test('user-group', async ({ page }) => {
   await page.keyboard.press('Enter');
   await page.locator('#users').click();
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'security_rename-user.png'});
+  await page.screenshot({ path: 'screenshots/security_rename-user.png' });
   await page.locator('#users').getByText('Renamed user').waitFor({state: 'visible'});
 
   // Change password
@@ -98,7 +98,7 @@ test('user-group', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.locator('input#password-input').dblclick();
   await page.keyboard.type('test123');
-  await page.screenshot({path: 'security_change-admin-password.png'});
+  await page.screenshot({ path: 'screenshots/security_change-admin-password.png' });
   await page.getByText('Set Password').first().click();
   await page.waitForTimeout(1000);
   await page.getByRole('button', {name: 'Close', exact: true}).click();
@@ -107,7 +107,7 @@ test('user-group', async ({ page }) => {
   await page.locator('#add-group-button').waitFor({state: 'visible'});
   await page.locator('#add-group-button').click();
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'security_create-group.png'});
+  await page.screenshot({ path: 'screenshots/security_create-group.png' });
 
   // Rename group
   await page.locator('#groups').getByText('New Group').first().click();
@@ -115,7 +115,7 @@ test('user-group', async ({ page }) => {
   await page.keyboard.press('Enter');
   await page.locator('#groups').click();
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'security_renamed-group.png'});
+  await page.screenshot({ path: 'screenshots/security_renamed-group.png' });
   await page.locator('#groups').getByText('Renamed group').waitFor({state: 'visible'});
 
   // Drag user into group
@@ -126,7 +126,7 @@ test('user-group', async ({ page }) => {
   await page.waitForTimeout(1000);
   // Open group
   await page.locator('#groups .expand_icon_svg.svg-collapsed').first().click();
-  await page.screenshot({path: 'security_user-dragged-on-group.png'});
+  await page.screenshot({ path: 'screenshots/security_user-dragged-on-group.png' });
 });
 
 test('resource-access-before-1', async ({ request }) => {
@@ -159,7 +159,7 @@ test('add-resource-access-auth-user-get', async ({ page }) => {
 
   await page.waitForTimeout(1000);
 
-  //await page.screenshot({ path: 'login.png' });
+  //await page.screenshot({ path: 'screenshots/login.png' });
 
   // Login with admin/admin
   await page.locator('#usernameField').fill('admin');
@@ -187,7 +187,7 @@ test('add-resource-access-auth-user-get', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.getByRole('button', {name: 'Close', exact: true}).click();
   await page.waitForTimeout(1000);
-  await page.screenshot({ path: 'security_create-resource-access-auth-user-get.png' });
+  await page.screenshot({ path: 'screenshots/security_create-resource-access-auth-user-get.png' });
 
 });
 
@@ -238,7 +238,7 @@ test('add-resource-access-auth-user-post', async ({ page }) => {
 
   await page.waitForTimeout(1000);
 
-  //await page.screenshot({ path: 'login.png' });
+  //await page.screenshot({ path: 'screenshots/login.png' });
 
   // Login with admin/admin
   await page.locator('#usernameField').fill('admin');
@@ -260,7 +260,7 @@ test('add-resource-access-auth-user-post', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.locator('#resourceAccessesTable tr:has-text("Project") input[data-key="AUTH_USER_POST"]').first().click();
   await page.waitForTimeout(1000);
-  await page.screenshot({ path: 'security_create-resource-access-auth-user-post.png' });
+  await page.screenshot({ path: 'screenshots/security_create-resource-access-auth-user-post.png' });
 
   // Logout
   await page.locator('.submenu-trigger').hover();
@@ -301,7 +301,7 @@ test('cors-settings', async ({ page }) => {
 
   await page.waitForTimeout(1000);
 
-  //await page.screenshot({ path: 'login.png' });
+  //await page.screenshot({ path: 'screenshots/login.png' });
 
   // Login with admin/admin
   await page.locator('#usernameField').fill('admin');
@@ -316,7 +316,7 @@ test('cors-settings', async ({ page }) => {
 
   // Wait for Security UI to load all components
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'security_.png'});
+  await page.screenshot({ path: 'screenshots/security_.png' });
 
   // CORS Settings: Typical Example
 
@@ -373,7 +373,7 @@ test('cors-settings', async ({ page }) => {
 
 
   await page.waitForTimeout(1000);
-  await page.screenshot({ path: 'security_create-cors-setting.png' });
+  await page.screenshot({ path: 'screenshots/security_create-cors-setting.png' });
 
 
   // Logout
