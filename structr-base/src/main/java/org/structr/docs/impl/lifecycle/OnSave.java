@@ -50,15 +50,15 @@ public class OnSave extends LifecycleBase {
 			Example.javaScript("""
 			{
 				if ($.this.name === 'foo') {
-
-					// don't allow Nodes named "foo"
-					$.error('Type', 'name', 'name can not be "foo"!');
-
+			
+					// don't allow deletion of nodes named "foo"
+					$.error('name', 'save_not_allowed', 'Name can\\'t be changed to "foo"');
+			
 				} else {
-
+			
 					$.log('Node with name ' + $.this.name + ' has been modified.');
 				}
-			}
+			 }
 			""", "")
 		);
 	}

@@ -125,6 +125,7 @@ test('schema', async ({ page }) => {
   await page.getByPlaceholder('JSON name').nth(1).fill('dueDate');
   await page.locator('.property-type').nth(1).selectOption({ value: 'Date'} );
   await page.waitForTimeout(500);
+  await page.screenshot({ path: 'screenshots/schema_property-added_dueDate.png' });
   await page.getByRole('button', { name: 'Add direct property', exact: true }).click();
   await page.getByPlaceholder('JSON name').nth(2).click();
   await page.getByPlaceholder('JSON name').nth(2).fill('projectId');

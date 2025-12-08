@@ -42,7 +42,7 @@ public class OnDelete extends LifecycleBase {
 		
 		If you want to execute code after successful validation, implement the `afterDelete()` callback method.
 		
-		Please note that you cannot directly access the properties of the deleted entity in this method, since the entity is already marked as deleted. 
+		You can access the local properties of the deleted entity through the `this` keyword. 
 		""";
 	}
 
@@ -51,6 +51,15 @@ public class OnDelete extends LifecycleBase {
 		return List.of(
 			Example.javaScript("""
 			{
+				if ($.this.name === 'foo') {
+			
+					// don't allow deletion of nodes named "foo"
+					$.error('name', 'delete_not_allowed', 'Can\\'t be deleted because name is "foo"');
+			
+				} else {
+			
+					$.log('Node with name ' + $.this.name + ' has been deleted.');
+				}
 			}
 			""", "")
 		);
@@ -60,7 +69,7 @@ public class OnDelete extends LifecycleBase {
 	public List<String> getNotes() {
 
 		return List.of(
-			"See also: `afterSave()`, `error()` and `assert()`."
+			"See also: `afterDelete()`, `error()` and `assert()`."
 		);
 	}
 }

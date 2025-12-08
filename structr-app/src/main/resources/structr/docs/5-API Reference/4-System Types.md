@@ -14,14 +14,14 @@ This type is one of Structr's built-in types for managing uploaded files and fil
 |owner|owner of this node|
 |parent|parent folder of this File or Folder|
 |path|full path of this file or folder (read-only)|
-|checksum|xxHash checksum of the file's content (generated automatically)|
-|sha1|SHA1 checksum of the file's content (optional, see below)|
 |crc32|CRC32 checksum of the file's content (optional, see below)|
-|md5|MD5 checksum of the file's content (optional, see below)|
-|size|size of this file|
-|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
-|sha512|SHA512 checksum of the file's content (optional, see below)|
+|sha1|SHA1 checksum of the file's content (optional, see below)|
+|checksum|xxHash checksum of the file's content (generated automatically)|
 |contentType|content type of the file|
+|sha512|SHA512 checksum of the file's content (optional, see below)|
+|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
+|size|size of this file|
+|md5|MD5 checksum of the file's content (optional, see below)|
 
 
 ### How Files Work
@@ -84,6 +84,7 @@ This type is one of the base classes for Structr's access control and permission
 |visibleToPublicUsers|whether this entity is visible to public users|
 |visibleToAuthenticatedUsers|whether this entity is visible to authenticated users|
 |owner|owner of this node|
+|members|members of the group, can be User or Group|
 
 
 ### How It Works
@@ -108,20 +109,20 @@ This type allows you to handle images within your application.
 |owner|owner of this node|
 |parent|parent folder of this File or Folder|
 |path|full path of this file or folder (read-only)|
-|checksum|xxHash checksum of the file's content (generated automatically)|
-|sha1|SHA1 checksum of the file's content (optional, see below)|
 |crc32|CRC32 checksum of the file's content (optional, see below)|
-|md5|MD5 checksum of the file's content (optional, see below)|
-|size|size of this file|
-|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
-|sha512|SHA512 checksum of the file's content (optional, see below)|
+|sha1|SHA1 checksum of the file's content (optional, see below)|
+|checksum|xxHash checksum of the file's content (generated automatically)|
 |contentType|content type of the file|
+|sha512|SHA512 checksum of the file's content (optional, see below)|
+|isTemplate|when checked, the content of this file is evaluated as a script and the resulting content is returned|
+|size|size of this file|
+|md5|MD5 checksum of the file's content (optional, see below)|
 |height|height of this image|
-|exifIFD0Data|Exif IFD0 data|
-|gpsData|GPS data|
-|width|width of this image|
-|exifSubIFDData|Exif SubIFD data|
 |orientation|orientation of this image|
+|exifSubIFDData|Exif SubIFD data|
+|width|width of this image|
+|gpsData|GPS data|
+|exifIFD0Data|Exif IFD0 data|
 
 
 ### How It Works
