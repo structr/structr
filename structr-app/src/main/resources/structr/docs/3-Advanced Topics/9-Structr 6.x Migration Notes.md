@@ -8,8 +8,6 @@ Version 6 has some breaking changes which require manual migration of applicatio
 
 This guide covers the breaking changes and required modifications when upgrading from Structr 5.x to 6.x.
 
----
-
 ## Global Schema Methods
 
 Global schema methods have been renamed to _user-defined functions_. The `globalSchemaMethods` namespace has been deprecated and should no longer be used - functions can now be called directly from the root context.
@@ -34,8 +32,6 @@ $.foo()
 
 > **Action required:** Search your codebase for `/maintenance/globalSchemaMethods` and `$.globalSchemaMethods` and update all occurrences.
 
----
-
 ## REST API Query Parameter Change
 
 The `_loose` parameter has been renamed to `_inexact`.
@@ -48,8 +44,6 @@ The `_loose` parameter has been renamed to `_inexact`.
 /structr/rest/foo?_inexact=1
 ```
 
----
-
 ## REST API Response Structure
 
 The response body from `$.GET` and `$.POST` requests is now accessible via the `body` property.
@@ -61,8 +55,6 @@ JSON.parse($.GET(url))
 // New (6.x)
 JSON.parse($.GET(url).body)
 ```
-
----
 
 ## Schema Inheritance
 
@@ -82,8 +74,6 @@ To get the first inherited trait:
 // New: $.first(schemaNode.inheritedTraits)
 ```
 
----
-
 ## JavaScript Function Return Behavior
 
 JavaScript functions now return their result directly by default. The previous behavior required an explicit `return` statement.
@@ -95,15 +85,11 @@ application.scripting.js.wrapinmainfunction = true
 
 **Option 2:** Remove `return` statements from functions that now produce errors due to this change.
 
----
-
 ## Custom Indices
 
 Custom indices are dropped during the upgrade to 6.0.
 
 > **Action required:** After upgrading, recreate all custom indices manually.
-
----
 
 ## Upload Servlet Changes
 
@@ -119,8 +105,6 @@ The upload servlet has several new security and behavioral changes:
 
 > **Note:** Even administrators cannot use `uploadFolderPath` to target folders outside the default upload folder hierarchy.
 
----
-
 ## Repeaters: No More REST Queries
 
 REST queries are no longer allowed for repeaters. You must migrate them to function queries or flows.
@@ -130,8 +114,6 @@ REST queries are no longer allowed for repeaters. You must migrate them to funct
 **Migration options:**
 1. Convert REST queries to function queries
 2. Convert REST queries to flows
-
----
 
 ## Migration Checklist
 

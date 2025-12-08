@@ -6,7 +6,7 @@ The Code section provides a comprehensive development environment for creating c
 
 The Code section enables developers to extend Structr's capabilities through custom Java-like methods, StructrScript functions, and JavaScript implementations. It provides syntax highlighting, code completion, debugging tools, and integrated testing capabilities.
 
-![Code](code.png)
+![Code](../code.png)
 
 ## Key Features
 
@@ -174,9 +174,9 @@ date_format(now(), 'yyyy-MM-dd HH:mm:ss')
 ## Next Steps
 
 After mastering the Code section:
-1. Implement custom logic for your [Schema](6-Schema.md) types
-2. Create dynamic behavior for [Pages](2-Pages.md)
-3. Integrate with [Data](8-Data.md) management operations
-4. Monitor code performance through the [Dashboard](1-Dashboard.md)
+1. Implement custom logic for your [Schema](3-Schema.md) types
+2. Create dynamic behavior for [Pages](5-Pages.md)
+3. Integrate with [Data](4-Data.md) management operations
+4. Monitor code performance through the [Dashboard](2-Dashboard.md)
 
 The Code section empowers you to extend Structr's capabilities and implement sophisticated business logic tailored to your specific requirements. Well-written custom code enhances application functionality while maintaining performance and security standards.

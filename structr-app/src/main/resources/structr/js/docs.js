@@ -25,9 +25,13 @@ let _Documentation = {
 	_content: {},
 	_moduleName: 'docs',
 	//urlHashKey: 'structrUrlHashKey_' + location.port,
+	currentDoc: undefined,
 
 	unload: () => {
 		_Documentation.search.dispose();
+		_Documentation.currentDoc = undefined;
+
+		window.removeEventListener('hashchange', _Documentation.hashChangeHandler);
 	},
 	onload: () => {
 
@@ -37,11 +41,16 @@ let _Documentation = {
 		const lastIndexOfHash = Structr.subModule?.lastIndexOf('#');
 		let inPageHash;
 		if (lastIndexOfHash > 0) {
-			inPageHash = Structr.subModule?.substring(lastIndexOfHash);
+			inPageHash = Structr.subModule?.substring(lastIndexOfHash + 1);
 			Structr.subModule = Structr.subModule?.substring(0, lastIndexOfHash);
 		}
 
 		_Documentation.preloadContent().then(() => {
+
+			// install handler after preload
+			window.addEventListener('hashchange', _Documentation.hashChangeHandler);
+
+			_Documentation.updateHashWithoutAddingHistory('#docs:' + (Structr.subModule || '1-Introduction/1-Getting%20Started.md') + '#' + (inPageHash ?? ''))
 			_Documentation.loadDoc(Structr.subModule || '1-Introduction/1-Getting%20Started.md', inPageHash);
 		});
 
@@ -64,6 +73,32 @@ let _Documentation = {
 				checkIndexLinks(e.target);
 			});
 		});
+	},
+	hashChangeHandler: e => {
+
+		let hash = new URL(e.newURL).hash;
+
+		if (hash.startsWith('#docs:')) {
+
+			let rawPath = hash.substring(hash.indexOf(':') + 1);
+			let deepHash = undefined;
+
+			if (rawPath.indexOf('#') > -1) {
+				deepHash = rawPath.substring(rawPath.indexOf('#') + 1);
+				rawPath = rawPath.substring(0, rawPath.indexOf('#'));
+			}
+
+			_Documentation.loadDoc(rawPath, deepHash);
+
+		} else {
+
+			// browser should have navigated by itself - update hash so it survives page reload
+			// _Documentation.updateHashWithoutAddingHistory('#docs:' + _Documentation.currentDoc + hash);
+			_Documentation.loadDoc(_Documentation.currentDoc, hash.substring(1));
+		}
+	},
+	updateHashWithoutAddingHistory: (newHash) => {
+		history.replaceState(history.state, "", newHash);
 	},
 	keyDownHandler: e => {
 
@@ -125,15 +160,6 @@ let _Documentation = {
 
 									}
 								});
-
-								articleListElement.querySelectorAll(`li a`).forEach(el => {
-									el.addEventListener('click', e => {
-										const el = e.target;
-										const href = el.href;
-										_Documentation.loadDoc(href.substring(href.lastIndexOf(':') + 1));
-									});
-								});
-
 							});
 					}
 				});
@@ -191,76 +217,71 @@ let _Documentation = {
 		});
 	},
 	loadDoc: (rawPath, hash, searchText) => {
+
 		// console.log('Loading documentation page ', rawPath, hash);
 		const path = decodeURI(rawPath);
-		//const path = rawPath;
-		const text = _Documentation._content[path];
-		const converter = new showdown.Converter({ tables: true, simplifiedAutoLink: true, prefixHeaderId: `${path}` });
-
-		// Transform image URLs
-		// Input: Local URLs like just "login.png": ![Login Screen](login.png)
-		// Output: /docs/5-Admin%20User%20Interface/login.png
-
-		const markdownImageRegex = /!\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
-		const markdownLinkRegex  = /[^!]\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+)\)/g;
-
-		const prefixMarkdownImages = (text, prefix) => {
-			return text?.replace(markdownImageRegex, (match, alt, url) => {
-				return `![${alt}](${prefix}${url})`;
-			});
-		}
-
-		// Transform image URLs
-		// Input: Local URLs like just "login.png": ![Login Screen](login.png)
-		// Output: /docs/5-Admin%20User%20Interface/login.png
-
-
-		const prefixArticleLinks = (text, prefix) => {
-			return text?.replace(markdownLinkRegex, (match, alt, url) => {
-				return ` [${alt}](${prefix}${url})`;
-			});
-		}
-
-		const parent = path.substring(0, path.lastIndexOf('/'));
-		let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
-		updatedContent = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
-
-		const html               = converter.makeHtml(updatedContent);
 		let articleElement       = document.querySelector('#docs-area article');
-		articleElement.innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
 
-		const indexHtml = converter.makeHtml(html);
+		if (_Documentation.currentDoc !== rawPath) {
 
-		// Page index
-		document.querySelector('#docs-area aside').innerHTML = '<div class="index-heading">On this page</div>' + indexHtml;
+			_Documentation.currentDoc = rawPath;
 
-		// Activate in-page index links (aside element on the right-hand side)
-		document.querySelectorAll('#docs-area aside h1, #docs-area aside h2, #docs-area aside h3, #docs-area aside h4').forEach(el => {
-			const newAElement = document.createElement('A');
-			const hrefAfterClick = `#docs:${path}#${el.id}`;
-			newAElement.href = '#' + el.id;
-			newAElement.dataset.hrefAfterClick = hrefAfterClick;
-			el.removeAttribute('id');
-			el.parentNode.insertBefore(newAElement, el);
-			newAElement.appendChild(el);
-			newAElement.addEventListener('click', e => {
-				//e.preventDefault();
-				const aEl = e.target.closest('a');
-				document.querySelectorAll('#docs-area aside a').forEach(el => {
-					el.classList.remove('active');
+			const text = _Documentation._content[path];
+			const converter = new showdown.Converter({ tables: true, simplifiedAutoLink: true, prefixHeaderId: `${path}` });
+
+			// Transform image URLs
+			// Input: Local URLs like just "login.png": ![Login Screen](login.png)
+			// Output: /docs/5-Admin%20User%20Interface/login.png
+
+			const markdownImageRegex = /!\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
+			const markdownLinkRegex  = /[^!]\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+)\)/g;
+
+			const prefixMarkdownImages = (text, prefix) => {
+				return text?.replace(markdownImageRegex, (match, alt, url) => {
+					return `![${alt}](${prefix}${url})`;
 				});
-				aEl.classList.add('active');
-				window.setTimeout(() => {
-					window.location.hash = aEl.dataset.hrefAfterClick;
-				}, 100);
+			}
+
+			// Transform image URLs
+			// Input: Local URLs like just "login.png": ![Login Screen](login.png)
+			// Output: /docs/5-Admin%20User%20Interface/login.png
+
+			const prefixArticleLinks = (text, prefix) => {
+				return text?.replace(markdownLinkRegex, (match, alt, url) => {
+					return ` [${alt}](${prefix}${url})`;
+				});
+			}
+
+			const parent       = path.substring(0, path.lastIndexOf('/'));
+			let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
+			updatedContent     = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
+
+			const html               = converter.makeHtml(updatedContent);
+			articleElement.innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
+
+			const indexHtml = converter.makeHtml(html);
+
+			// Page index
+			document.querySelector('#docs-area aside').innerHTML = '<div class="index-heading">On this page</div>' + indexHtml;
+
+			// Activate in-page index links (aside element on the right-hand side)
+			document.querySelectorAll('#docs-area aside h1, #docs-area aside h2, #docs-area aside h3, #docs-area aside h4').forEach(el => {
+				const newAElement = document.createElement('A');
+				newAElement.href = '#' + el.id;
+				el.removeAttribute('id');
+				el.parentNode.insertBefore(newAElement, el);
+				newAElement.appendChild(el);
 			});
-		});
+		}
 
 		articleElement.scrollTo(0,0);
 
 		if (hash) {
 
-			document.querySelector(`#docs-area aside a[href="${hash}"]`).click();
+			const el = document.getElementById(hash) || document.querySelector(`[name="${CSS.escape(hash)}"]`);
+			if (el) el.scrollIntoView({ block: "start" });
+
+			_Documentation.updateHashWithoutAddingHistory('#docs:' + _Documentation.currentDoc + '#' + hash);
 
 		} else if (searchText) {
 
@@ -301,20 +322,10 @@ let _Documentation = {
 			aElement.classList.remove('active');
 		});
 
-		// Make navigation link active
+		// Make navigation link active and scroll into view
 		waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
 			el.classList.add('active');
-		});
-
-		// Allow navigation from main document
-		document.querySelectorAll('#docs-area .article a').forEach(aElementInArticle => {
-			aElementInArticle.addEventListener('click', e => {
-				const el = e.target;
-				const href = el.href;
-				// Don't try to load document for external links
-				if (href.startsWith('http')) { return }
-				_Documentation.loadDoc(href.substring(href.lastIndexOf(':') + 1));
-			});
+			el.scrollIntoView({ block: "start" });
 		});
 
 		const isElementInViewport = el => {
@@ -330,7 +341,7 @@ let _Documentation = {
 		};
 
 		articleElement.addEventListener('scroll', e => {
-			for (const el of document.querySelectorAll('.article h1, .article h2, .article h3')) {
+			for (const el of document.querySelectorAll('.article h1, .article h2')) {
 				const isVisible = isElementInViewport(el);
 				if (isVisible) {
 					document.querySelectorAll('.index a').forEach(el => {

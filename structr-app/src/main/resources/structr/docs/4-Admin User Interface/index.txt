@@ -1,11 +1,11 @@
 1-Overview.md
 2-Dashboard.md
-3-Pages.md
-4-Files.md
-5-Security.md
-6-Schema.md
+3-Schema.md
+4-Data.md
+5-Pages.md
+6-Security.md
 7-Code.md
-8-Data.md
+8-Files.md
 9-Graph.md
 10-Flows.md
 11-Importer.md

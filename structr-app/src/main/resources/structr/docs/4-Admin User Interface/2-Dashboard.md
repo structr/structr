@@ -12,19 +12,19 @@ The Dashboard provides real-time insights into your Structr instance, including 
 
 The "About Me" section displays information about the currently logged-in user, including user details, session information, and personal settings.
 
-![About Me](dashboard_about-me.png)
+![About Me](../dashboard_about-me.png)
 
 ### About Structr
 
 This section provides detailed information about the Structr server instance, including version information, system configuration, and licensing details. It also shows some information about hardware configuration and access statistics.
 
-![About Structr](dashboard_about-structr.png)
+![About Structr](../dashboard_about-structr.png)
 
 ### Deployment
 
 The Deployment section offers comprehensive tools for managing application deployment, including export/import functionality and environment synchronization.
 
-![Deployment](dashboard_deployment.png)
+![Deployment](../dashboard_deployment.png)
 
 **Deployment features:**
 - **Export functionality**: Export a Structr application with schema, pages, files, or custom data, to a server directory or ZIP file
@@ -38,7 +38,7 @@ The Server Log provides real-time access to server log messages, allowing admini
 
 You can temporarily stop the auto-refresh by focusing the log area by clicking on it. To restart automatic updates, click somewhere outside the log area.
 
-![Server Log](dashboard_server-log.png)
+![Server Log](../dashboard_server-log.png)
 
 **Features:**
 - Real-time log streaming
@@ -50,7 +50,7 @@ You can temporarily stop the auto-refresh by focusing the log area by clicking o
 
 The Event Log tracks important system events, user actions, and security-related activities within the Structr application. It can be filtered by different event types, and the number of events to show can be configured (default: 100).
 
-![Event Log](dashboard_event-log.png)
+![Event Log](../dashboard_event-log.png)
 
 **Filterable event types:**
 - All events
@@ -70,13 +70,13 @@ The Threads monitor lists active threads and processes running within the Struct
 
 You can interrupt or kill a thread by clicking on the corresponding button.
 
-![Running Threads](dashboard_running-threads.png)
+![Running Threads](../dashboard_running-threads.png)
 
 ### UI Configuration
 
 Customize the Admin UI appearance and behavior to match your preferences and organizational requirements.
 
-![UI Configuration](dashboard_ui-config.png)
+![UI Configuration](../dashboard_ui-config.png)
 
 **Configuration options:**
 - **Theme settings**: Choose between light and dark themes
@@ -152,9 +152,9 @@ The Dashboard can integrate with external monitoring and management tools:
 ## Next Steps
 
 After familiarizing yourself with the Dashboard:
-1. Explore the [Pages](3-Pages.md) section for application development
-2. Review [Schema](6-Schema.md) design capabilities
-3. Learn about [Security](5-Security.md) management
-4. Understand [Data](8-Data.md) management features
+1. Explore the [Pages](5-Pages.md) section for application development
+2. Review [Schema](3-Schema.md) design capabilities
+3. Learn about [Security](6-Security.md) management
+4. Understand [Data](4-Data.md) management features
 
 The Dashboard serves as your primary tool for system oversight and administration, providing the foundation for effective Structr application management.

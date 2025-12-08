@@ -1,7 +1,5 @@
 # Services
 ## CronService
-A service for periodic task scheduling.
-
 This service allows you to schedule periodic execution of built-in functions based on a pattern similar to the "cron" daemon on UNIX systems.
 
 ### How It Works

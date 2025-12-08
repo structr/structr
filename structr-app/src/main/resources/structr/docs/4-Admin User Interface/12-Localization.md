@@ -4,6 +4,6 @@ The Localization section provides comprehensive internationalization (i18n) and 
 
 ## Overview
 
-![Localization](localization_created.png)
+![Localization](../localization_created.png)
 
 The Localization section enables you to create applications that can be easily adapted for different languages, regions, and cultures. It provides tools for managing translations, locale-specific formatting, and culturally appropriate content presentation.

@@ -4,7 +4,7 @@ The Importer section provides comprehensive tools for importing data from variou
 
 ## Overview
 
-![Importer](importer.png)
+![Importer](../importer.png)
 
 The Importer enables seamless data migration from external systems, spreadsheets, databases, and files into your Structr schema. It provides a user-friendly interface for mapping external data to your schema types while maintaining data integrity and relationships.
 
