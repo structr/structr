@@ -55,6 +55,7 @@ import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.rest.servlet.DocumentationServlet;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 import org.structr.websocket.servlet.WebSocketConfigurator;
@@ -415,6 +416,9 @@ public class HttpService implements RunnableService, StatsCallback {
 		if (Settings.Servlets.getValue("").contains(MetricsServlet.class.getSimpleName())) {
 			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 		}
+
+		// docs
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/*");
 
 		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);

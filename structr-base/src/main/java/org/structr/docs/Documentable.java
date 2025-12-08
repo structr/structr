@@ -19,9 +19,11 @@
 package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.ontology.Details;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Base interface for all things that are documentable. Implement this
@@ -42,7 +44,7 @@ public interface Documentable {
 	 *
 	 * @return the Markdown documentation for this documentable
 	 */
-	default List<String> createMarkdownDocumentation() {
+	default List<String> createMarkdownDocumentation(final Set<Details> details, final int startLevel) {
 
 		final List<String> lines = new LinkedList<>();
 
@@ -55,121 +57,131 @@ public interface Documentable {
 		final List<String> notes         = getNotes();
 		final String longDescription     = getLongDescription();
 		final String name                = getName();
+		final String startHeading        = StringUtils.repeat("#", startLevel);
 
-		lines.add("## " + getDisplayName());
-		lines.add(getShortDescription());
-
-		if (isJavaScriptOnly()) {
-
-			lines.add("");
-			lines.add("**JavaScript only**");
-			lines.add("");
-
-		} else if (isStructrScriptOnly()) {
-
-			lines.add("");
-			lines.add("**StructrScript only**");
-			lines.add("");
+		if (details.contains(Details.Name)) {
+			lines.add(startHeading + " " + getDisplayName());
 		}
 
-		if (properties != null && !properties.isEmpty()) {
+		if (details.contains(Details.ShortDescription)) {
+			lines.add(getShortDescription());
+		}
 
-			lines.add("### Properties");
+		// should we use longDescription or details here?
+		if (details.contains(Details.Details)) {
 
-			lines.add("");
-			lines.add("|Name|Description|");
-			lines.add("|---|---|");
+			if (isJavaScriptOnly()) {
 
-			for (final Property property : properties) {
-				lines.add("|" + property.getName() + "|" + property.getDescription() + "|");
+				lines.add("");
+				lines.add("**JavaScript only**");
+				lines.add("");
+
+			} else if (isStructrScriptOnly()) {
+
+				lines.add("");
+				lines.add("**StructrScript only**");
+				lines.add("");
 			}
 
-			lines.add("");
-		}
+			if (properties != null && !properties.isEmpty()) {
 
-		if (settings != null && !settings.isEmpty()) {
+				lines.add(startHeading + "# Properties");
 
-			lines.add("### Settings");
+				lines.add("");
+				lines.add("|Name|Description|");
+				lines.add("|---|---|");
 
-			lines.add("");
-			lines.add("|Name|Description|");
-			lines.add("|---|---|");
-
-			for (final Setting setting : settings) {
-				lines.add("|" + setting.getName() + "|" + setting.getDescription() + "|");
-			}
-
-			lines.add("");
-		}
-
-		if (parameters != null && !parameters.isEmpty()) {
-
-			lines.add("### Parameters");
-
-			lines.add("");
-			lines.add("|Name|Description|Optional|");
-			lines.add("|---|---|---|");
-
-			for (final Parameter parameter : parameters) {
-				lines.add("|" + parameter.getName() + "|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
-			}
-
-			lines.add("");
-		}
-
-		// longDescription can be empty
-		if (StringUtils.isNotEmpty(longDescription)) {
-
-			lines.add("");
-			lines.add(longDescription);
-		}
-
-		if (notes != null && !notes.isEmpty()) {
-
-			lines.add("### Notes");
-
-			for (final String note : notes) {
-				lines.add("- " + note);
-			}
-
-			lines.add("");
-		}
-
-		if (signatures != null && !signatures.isEmpty()) {
-
-			lines.add("### Signatures");
-			lines.add("");
-			lines.add("```");
-
-			for (final Signature signature : signatures) {
-				lines.add(name + "(" + signature.getSignature() + ")");
-			}
-
-			lines.add("```");
-			lines.add("");
-		}
-
-		if (examples != null && !examples.isEmpty()) {
-
-			int index = 1;
-
-			lines.add("### Examples");
-
-			for (final Example example : examples) {
-
-				if (StringUtils.isNotBlank(example.getTitle())) {
-
-					lines.add("##### " + index + ". (" + example.getLanguage() + ") " + example.getTitle());
-
-				} else {
-
-					lines.add("##### Example " + index + " (" + example.getLanguage() + ")");
+				for (final Property property : properties) {
+					lines.add("|" + property.getName() + "|" + property.getDescription() + "|");
 				}
-				lines.add("```");
-				lines.add(example.getText());
+
+				lines.add("");
+			}
+
+			if (settings != null && !settings.isEmpty()) {
+
+				lines.add(startHeading + "# Settings");
+
+				lines.add("");
+				lines.add("|Name|Description|");
+				lines.add("|---|---|");
+
+				for (final Setting setting : settings) {
+					lines.add("|" + setting.getName() + "|" + setting.getDescription() + "|");
+				}
+
+				lines.add("");
+			}
+
+			if (parameters != null && !parameters.isEmpty()) {
+
+				lines.add(startHeading + "# Parameters");
+
+				lines.add("");
+				lines.add("|Name|Description|Optional|");
+				lines.add("|---|---|---|");
+
+				for (final Parameter parameter : parameters) {
+					lines.add("|" + parameter.getName() + "|" + parameter.getDescription() + "|" + (parameter.isOptional() ? "yes" : "no") + "|");
+				}
+
+				lines.add("");
+			}
+
+			// longDescription can be empty
+			if (StringUtils.isNotEmpty(longDescription)) {
+
+				lines.add("");
+				lines.add(longDescription);
+			}
+
+			if (notes != null && !notes.isEmpty()) {
+
+				lines.add(startHeading + "# Notes");
+
+				for (final String note : notes) {
+					lines.add("- " + note);
+				}
+
+				lines.add("");
+			}
+
+			if (signatures != null && !signatures.isEmpty()) {
+
+				lines.add(startHeading + "# Signatures");
+				lines.add("");
 				lines.add("```");
 
-				index++;
+				for (final Signature signature : signatures) {
+					lines.add(name + "(" + signature.getSignature() + ")");
+				}
+
+				lines.add("```");
+				lines.add("");
+			}
+
+			if (examples != null && !examples.isEmpty()) {
+
+				int index = 1;
+
+				lines.add(startHeading + "# Examples");
+
+				for (final Example example : examples) {
+
+					if (StringUtils.isNotBlank(example.getTitle())) {
+
+						lines.add(startHeading + "## " + index + ". (" + example.getLanguage() + ") " + example.getTitle());
+
+					} else {
+
+						lines.add(startHeading + "## Example " + index + " (" + example.getLanguage() + ")");
+					}
+					lines.add("```");
+					lines.add(example.getText());
+					lines.add("```");
+
+					index++;
+				}
 			}
 		}
 

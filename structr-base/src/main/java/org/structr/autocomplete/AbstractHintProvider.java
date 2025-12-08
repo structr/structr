@@ -49,6 +49,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
 import org.structr.docs.Documentable;
+import org.structr.docs.ontology.Details;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
@@ -450,7 +451,7 @@ public abstract class AbstractHintProvider {
 
 	private String getDocumentation(final Documentable documentable) {
 
-		final List<String> lines = documentable.createMarkdownDocumentation();
+		final List<String> lines = documentable.createMarkdownDocumentation(EnumSet.allOf(Details.class), 0);
 
 		return StringUtils.join(lines, "\n");
 	}
