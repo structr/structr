@@ -199,7 +199,7 @@ If the request is successful, the result object contains one or more objects and
 ### Result Object
 
 |Key|Description|
-|--|--|
+|---|---|
 |result|Array of result objects|
 |query_time|Time it took to run the query (in seconds)|
 |result_count|Number of results in the database (if fewer than the soft limit)|
@@ -810,15 +810,15 @@ You can see that access to the User collection was denied. If you look at the lo
 
   Resource Access Grants consist of a signature and a set of flags that control access to individual REST endpoints. The signature of an endpoint is based on its URL, omitting any UUID, plus a special representation for the view, which is the view’s name, capitalized and with a leading underscore. The signature part of a schema method is equal to its name, but capitalized. The following table contains examples for different URLs and the resulting signatures.
 
-| Type                      |URL|Signature|
-|---------------------------|-|-|
-| Collection                |/structr/rest/Project|Project
-| Collection with view      |/structr/rest/Project/ui|Project/_Ui
-| Collection with view      |/structr/rest/Project/info|Project/_Info
-| Object with UUID          |/structr/rest/Project/362cc05768044c7db886f0bec0061a0a|Project
-| Object with UUID and view |/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/info|Project/_Info
-| Subcollection             |/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/tasks|Project/Task
-| Schema Method             |/structr/rest/Project/362cc05768044c7db886f0bec0061a0a/doUpdate|Project/DoUpdate
+| Type | URL | Signature |
+| --- | --- | --- |
+| Collection                  | /structr/rest/Project | Project |
+| Collection with view        | /structr/rest/Project/ui | Project/_Ui |
+| Collection with view        | /structr/rest/Project/info | Project/_Info |
+| Object with UUID            | /structr/rest/Project/362cc05768044c7db886f0bec0061a0a | Project |
+| Object with UUID and view   | /structr/rest/Project/362cc05768044c7db886f0bec0061a0a/info | Project/_Info |
+| Subcollection               | /structr/rest/Project/362cc05768044c7db886f0bec0061a0a/tasks | Project/Task |
+| Schema Method               | /structr/rest/Project/362cc05768044c7db886f0bec0061a0a/doUpdate | Project/DoUpdate |
 
 
 If access to an endpoint is denied because of a missing Resource Access Permission, you can find the corresponding signature in the log file.
@@ -1004,7 +1004,7 @@ If a request causes an error on the server, Structr responds with a correspondin
 It contains the following fields:
 
 |Name|Description|
-|--|--|
+|---|---|
 |code|HTTP status code|
 |message|Status message|
 |errors|Array of error objects|
@@ -1015,7 +1015,7 @@ It contains the following fields:
 Error objects contain detailed information about an error. There can be multiple error objects in a single error response. An error object contains the following fields.
 
 |Name|Description|
-|--|--|
+|---|---|
 |type|Data type of the erroneous object|
 |property|Name of the property that caused the error (optional)|
 |token|Error token|
@@ -1028,7 +1028,7 @@ Error objects contain detailed information about an error. There can be multiple
 The following endpoints exist in addition to the endpoints that are maintained automatically based on the schema.
 
 |URL|Description|Supported methods|
-|--|--|--|
+|---|---|---|
 |/structr/rest/_env|Structr runtime environment information|GET|
 |/structr/rest/_schema|Schema information endpoint|GET|
 |/structr/rest/_schemaJson|Schema JSON output endpoint|GET, POST|
@@ -1046,7 +1046,7 @@ The following endpoints exist in addition to the endpoints that are maintained a
 The following HTTP headers are supported by the REST server and allow special configuration options.
 
 |Header| Description |
-|--|--|
+|---|---|
 |Accept|Allows you to specify content type and properties, see below|
 |X-User|Username for header-based authentication|
 |X-Password|Password for header-based authentication|
