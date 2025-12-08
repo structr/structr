@@ -53,8 +53,9 @@ public abstract class ContextFactory {
 			.engine(engine)
 			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 			.allowHostAccess(AccessProvider.getHostAccessConfig())
-			.allowIO(AccessProvider.getIOAccessConfig())
-			.allowExperimentalOptions(true)
+			//.allowIO(AccessProvider.getIOAccessConfig())
+			.allowExperimentalOptions(true);
+			/*
 			.option("python.CoreHome", "/.python/core")
 			.option("python.PythonHome", "/.python/.venv")
 			.option("python.StdLibHome", "/.python/lib/std")
@@ -63,6 +64,7 @@ public abstract class ContextFactory {
 			.option("python.Executable", "/.python/.venv/bin/python")
 			.option("python.PosixModuleBackend", "java")
 			.option("python.NoUserSiteFlag", "true");
+			 */
 
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
