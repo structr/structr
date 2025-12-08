@@ -21,6 +21,7 @@ dashboard_ui-config.png \
 schema.png \
 schema_create-type_Project.png \
 schema_property-added_projectId.png \
+schema_property-added_dueDate.png \
 schema_type-created_Project.png \
 schema_create-type_Milestone.png \
 schema_added-Milestone-properties.png \
