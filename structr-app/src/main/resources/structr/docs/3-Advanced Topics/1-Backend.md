@@ -160,10 +160,6 @@ There are two different endpoint types in the REST API:
 
 >**Note:** The examples in this chapter use HTTP header-based authentication with the default admin user that Structr creates when you start it for the first time. You can read more about the different authentication methods in the Security article or in the Authentication section below.
 
-[Security](/4-Advanced topics/4-Security guide.md)
-
-[Authentication](#authentication)
-
 ## Collection Endpoints
 
 Collection endpoints provide access to collections of objects and support pagination, searching, filtering and bulk editing. The example request below accesses the endpoint for the type Project and fetches all existing objects.
