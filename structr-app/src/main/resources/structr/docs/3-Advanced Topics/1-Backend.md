@@ -100,7 +100,7 @@ You can think of the data model as a blueprint for the structures that are creat
 
 ## Schema
 
-![Schema](../schema-project.png)
+![Schema](../schema_type-created_Project.png)
 
 ### Input and Output
 
