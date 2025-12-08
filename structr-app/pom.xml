@@ -368,9 +368,16 @@
                                                 <shmSize>2147483648</shmSize> <!-- 2GB shared memory -->
                                                 <env>
                                                     <BASE_URL>http://structr-ui-tests:8082</BASE_URL>
+                                                    <DATABASE_URL>bolt://neo4j-test:7687</DATABASE_URL>
+                                                    <DATABASE_PASSWORD>admin123</DATABASE_PASSWORD>
                                                     <SUPERUSER_PASSWORD>structr1234</SUPERUSER_PASSWORD>
                                                     <DEBUG>pw:api</DEBUG>
                                                 </env>
+                                                <volumes>
+                                                    <bind>
+                                                        <volume>${project.basedir}/target/playwright-screenshots:/tests/screenshots</volume>
+                                                    </bind>
+                                                </volumes>
                                                 <wait>
                                                     <!-- Wait for container to exit -->
                                                     <exit>0</exit>
