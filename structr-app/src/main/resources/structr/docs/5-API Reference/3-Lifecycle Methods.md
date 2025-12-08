@@ -69,13 +69,6 @@ Please note that you cannot directly access the properties of the deleted entity
 ### Notes
 - See also: `afterSave()`, `error()` and `assert()`.
 
-### Examples
-##### Example 1 (JavaScript)
-```
-{
-}
-
-```
 
 ## onSave
 Called when an existing object of this type is modified.
