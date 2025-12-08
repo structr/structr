@@ -282,6 +282,13 @@ let _Graph = {
 				});
 			}
 
+			$('#exec-rest').on('click', function () {
+				var query = $('.search[name=rest]').val();
+				if (query && query.length) {
+					_Graph.execQuery(query, 'rest');
+				}
+			});
+
 			$('#exec-cypher').on('click', function () {
 				var query = $('.search[name=cypher]').val();
 				// var params = {};
@@ -384,8 +391,9 @@ let _Graph = {
 
 			// _Graph.listSavedQueries();
 
+			let restQueryBox = document.querySelector('.query-box.rest .search');
 			let cypherQueryBox = document.querySelector('.query-box.cypher .search');
-			cypherQueryBox.focus();
+			restQueryBox.focus();
 
 			let searchKeydownHandler = (e) => {
 
@@ -416,6 +424,7 @@ let _Graph = {
 				}
 			};
 
+			restQueryBox?.addEventListener('keydown', searchKeydownHandler);
 			cypherQueryBox?.addEventListener('keydown', searchKeydownHandler);
 			cypherQueryBox?.addEventListener('keyup', () => {
 				// keyup so we have the actual value
@@ -466,8 +475,23 @@ let _Graph = {
 	},
 	execQuery: (query, type, params) => {
 
-		if (query && query.length) {
+		if (type === 'cypher') {
 			Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params, _Graph.processQueryResults);
+			// _Graph.saveQuery(query, 'cypher', params);
+		} else {
+			fetch(`${Structr.rootUrl}${query}`).then(response => {
+				if (response.ok) {
+					return response.json();
+				} else {
+					throw 'not ok';
+				}
+			}).then(data => {
+				_Graph.processQueryResults(data.result);
+				// _Graph.saveQuery(query, 'rest');
+			}).catch(e => {
+				_Helpers.blinkRed($('.search[name="rest"]'));
+			})
+
 		}
 	},
 	processQueryResults: (results) => {
