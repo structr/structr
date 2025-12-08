@@ -78,7 +78,7 @@ let _Documentation = {
         }
 	},
 	removeAllMarkdownChars: (text) => {
-		return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ');
+		return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ').replace(/ +/g, ' ');
 	},
 	init: () => {
 
@@ -190,7 +190,7 @@ let _Documentation = {
 				});
 		});
 	},
-	loadDoc: (rawPath, hash) => {
+	loadDoc: (rawPath, hash, searchText) => {
 		// console.log('Loading documentation page ', rawPath, hash);
 		const path = decodeURI(rawPath);
 		//const path = rawPath;
@@ -225,8 +225,9 @@ let _Documentation = {
 		let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
 		updatedContent = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
 
-		const html      = converter.makeHtml(updatedContent);
-		document.querySelector('#docs-area article').innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
+		const html               = converter.makeHtml(updatedContent);
+		let articleElement       = document.querySelector('#docs-area article');
+		articleElement.innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
 
 		const indexHtml = converter.makeHtml(html);
 
@@ -255,10 +256,45 @@ let _Documentation = {
 			});
 		});
 
-		document.querySelector('#docs-area article').scrollTo(0,0);
+		articleElement.scrollTo(0,0);
 
 		if (hash) {
+
 			document.querySelector(`#docs-area aside a[href="${hash}"]`).click();
+
+		} else if (searchText) {
+
+			let navigateToClosestAnchor = (el) => {
+				let id;
+				while (!id) {
+					if (el.id) {
+						id = el.id;
+						break;
+					} else {
+						el = el.previousElementSibling;
+						if (el === articleElement) {
+							return;
+						}
+					}
+				}
+
+				// attempt to find link for this id
+				let linkToEl = document.querySelector(`a[href="#${id}"]`);
+				if (linkToEl) {
+					linkToEl.click();
+				} else {
+					// this breaks on reload...
+					location.hash = '#' + id;
+				}
+			};
+
+			for (let child of articleElement.children) {
+
+				if (child.innerText.toLowerCase().contains(searchText)) {
+					navigateToClosestAnchor(child);
+					break;
+				}
+			}
 		}
 
 		document.querySelectorAll('#docs-area nav a').forEach(aElement => {
@@ -293,7 +329,7 @@ let _Documentation = {
 			);
 		};
 
-		document.querySelector('#docs-area article').addEventListener('scroll', e => {
+		articleElement.addEventListener('scroll', e => {
 			for (const el of document.querySelectorAll('.article h1, .article h2, .article h3')) {
 				const isVisible = isElementInViewport(el);
 				if (isVisible) {
@@ -306,15 +342,13 @@ let _Documentation = {
 					break;
 				} else {
 					/*
-									const id = el.querySelector('a').id;
-									const indexEl = document.querySelector('.index a[href="#' + id + '"]');
-									indexEl.classList.remove('active');
-									*/
+					const id = el.querySelector('a').id;
+					const indexEl = document.querySelector('.index a[href="#' + id + '"]');
+					indexEl.classList.remove('active');
+					*/
 				}
 			}
-
 		});
-
 	},
 	search: {
 		searchOverlay: undefined,
@@ -373,25 +407,21 @@ let _Documentation = {
 
 			if (searchText) {
 
-				let files = [];
-				for (const key of Object.keys(_Documentation._content)) {
-					const content = _Documentation._content[key].toLowerCase();
-					if (content.indexOf(searchText.toLowerCase()) > -1) {
-						files.push(key);
-					}
-				}
+				for (const file of Object.keys(_Documentation._content)) {
 
-				for (const file of files) {
+					const textLowerCase       = _Documentation.removeAllMarkdownChars(_Documentation._content[file]).toLowerCase();
+					const searchTextLowerCase = searchText.toLowerCase();
+					const numContextWords     = 5;
+					let index                 = textLowerCase.indexOf(searchTextLowerCase.toLowerCase());
 
-					const text            = _Documentation.removeAllMarkdownChars(_Documentation._content[file]);
-					const index           = text.toLowerCase().indexOf(searchText.toLowerCase());
-					const substringBefore = text.slice(0, index);
-					const wordsBefore     = substringBefore.split(' ');
-					const substringAfter  = text.slice(index);
-					const wordsAfter      = substringAfter.split(' ');
-					const numContextWords = 5;
+					if (index >= 0) {
 
-					let result = _Helpers.createSingleDOMElementFromHTML(`
+						const substringBefore = textLowerCase.slice(0, index);
+						const wordsBefore = substringBefore.split(' ');
+						const substringAfter = textLowerCase.slice(index);
+						const wordsAfter = substringAfter.split(' ');
+
+						let result = _Helpers.createSingleDOMElementFromHTML(`
 							<li class="search-result cursor-pointer">
 								<div class="group-aria-selected:text-sky-600">
 									<span>${wordsBefore.slice(Math.max(wordsBefore.length - numContextWords, 1)).join(' ')}${wordsAfter.slice(0, numContextWords).join(' ')}</span>
@@ -400,12 +430,13 @@ let _Documentation = {
 							</li>
 						`);
 
-					result.addEventListener('click', e => {
-						_Documentation.search.hideSearch();
-						_Documentation.loadDoc(encodeURI(file));
-					});
+						result.addEventListener('click', e => {
+							_Documentation.search.hideSearch();
+							_Documentation.loadDoc(encodeURI(file), null, searchTextLowerCase);
+						});
 
-					_Documentation.search.searchResultsList.appendChild(result);
+						_Documentation.search.searchResultsList.appendChild(result);
+					}
 				}
 			}
 		},
