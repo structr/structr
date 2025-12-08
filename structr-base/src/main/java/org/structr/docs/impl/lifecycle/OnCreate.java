@@ -51,12 +51,12 @@ public class OnCreate extends LifecycleBase {
 			{
 				if ($.this.name === 'foo') {
 
-					// don't allow Nodes named "foo"
-					$.error('Type', 'name', 'name can not be "foo"!');
+					// don't allow creation of nodes named "foo"
+					$.error('name', 'create_not_allowed', 'Can\\'t be created because name is "foo"');
 
 				} else {
 
-					$.log('Node with name ' + $.this.name + ' has just created.');
+					$.log('Node with name ' + $.this.name + ' has just been created.');
 				}
 			}
 			""", "")
