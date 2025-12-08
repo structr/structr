@@ -16,23 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology.introduction;
+package org.structr.docs.ontology;
 
-import org.structr.docs.ontology.StructuralConcept;
+import java.util.LinkedList;
+import java.util.List;
 
-public class IntroductionConcept extends StructuralConcept {
+public class Button extends UserInterfaceElement {
 
-	public IntroductionConcept() {
+	private final List<Action> actions = new LinkedList<>();
 
-		super("Introduction");
+	public Button(final Root root, final String name) {
+		super(root, name);
+	}
 
-		addConcept(new GettingStartedConcept());
-		addConcept(new FirstStepsConcept());
+	public Dialog opensDialog(final Dialog dialog) {
 
-		/*
-		final Concept gs02 = createConcept(gettingStarted, "Installation");
-		final Concept gs04 = createConcept(gettingStarted, "Basic Configuration");
-		final Concept gs05 = createConcept(gettingStarted, "Quick Start Tutorial");
-		*/
+		final Verb opens = new Verb("opens");
+
+		actions.add(new Action(opens, dialog));
+
+		return dialog;
 	}
 }

@@ -29,11 +29,10 @@ import java.util.Set;
 public final class Ontology {
 
 	private static Ontology ontology;
-	private final Map<String, DocumentationConcept> index = new LinkedHashMap<>();
-	private final RootConcept rootConcept;
+	private final Map<String, Concept> index = new LinkedHashMap<>();
+	private final Root root             = new Root();
 
 	private Ontology() {
-		rootConcept = new RootConcept();
 	}
 
 	public static Ontology getInstance() {
@@ -46,12 +45,107 @@ public final class Ontology {
 		return ontology;
 	}
 
-	public void registerConcept(final DocumentationConcept concept) {
-
-		index.put(concept.getName(), concept);
+	public List<String> createMarkdownDocumentation(final Set<Details> details) {
+		//return rootConcept.getFilteredDocumentationLines(details, 0);
+		return null;
 	}
 
-	public List<String> createMarkdownDocumentation(final Set<Details> details) {
-		return rootConcept.getFilteredDocumentationLines(details, 0);
+	private void initialize() {
+
+		final Topic coreSystem    = root.topic("Core System");
+		final Topic operations    = root.topic("Operations");
+		final Topic userInterface = root.topic("User Interface");
+
+		initializeUserInterface(userInterface);
+	}
+
+	private void initializeUserInterface(final Topic userInterface) {
+
+		initializeFrontend(userInterface.hasTopic("Frontend"));
+		initializeBackend(userInterface.hasTopic("Backend"));
+	}
+
+	private void initializeFrontend(final Topic fontend) {
+	}
+
+	private void initializeBackend(final Topic backend) {
+
+		initializePagesArea(backend.hasScreenArea("Pages Area"));
+
+
+	}
+
+	private void initializePagesArea(final ScreenArea pagesArea) {
+
+		final DropdownMenu createPageMenu = pagesArea.hasDropdownMenu("Create Page Menu");
+
+		final Button createPageButton = createPageMenu.hasButton("Create Page");
+		final Button importPageButton = createPageMenu.hasButton("Import Page");
+
+		final Dialog createPageDialog = createPageButton.opensDialog(initializeCreatePageDialog());
+		final Dialog importPageDialog = createPageButton.opensDialog(initializeImportPageDialog());
+	}
+
+	private Dialog initializeCreatePageDialog() {
+
+		final Dialog createPageDialog = root.dialog("Create Page Dialog");
+
+
+
+		return createPageDialog;
+	}
+
+	private Dialog initializeImportPageDialog() {
+
+		final Dialog importPageDialog = root.dialog("Import Page Dialog");
+
+		final UseCase createPageFromHTML = root.useCase("Create Page From HTML source");
+		final UseCase fetchPageFromURL   = root.useCase("Fetch Page from URL");
+
+		final SystemType pageType = root.systemType("Page");
+
+
+		importPageDialog.implementsUseCase(createPageFromHTML);
+		importPageDialog.implementsUseCase(fetchPageFromURL);
+
+		return importPageDialog;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -16,13 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology.introduction;
+package org.structr.docs.ontology;
 
-import org.structr.docs.ontology.StructuralConcept;
+import org.apache.commons.lang3.StringUtils;
 
-public class FirstStepsConcept extends StructuralConcept {
+import java.util.*;
 
-	public FirstStepsConcept() {
-		super("First Steps");
+/**
+ * A concept in the Structr Documentation Ontology. This class
+ * will store everything you add into the ontology.
+ */
+public abstract class Concept {
+
+	protected final Root root;
+	protected final String name;
+
+	public abstract List<String> getFilteredDocumentationLines(final Set<Details> details, final int level);
+
+	protected Concept(final Root root, final String name) {
+
+		this.root = root;
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	// ----- protected methods -----
+	protected String formatMarkdownHeading(final String text, final int level) {
+		return StringUtils.repeat("#", level) + " " + text;
 	}
 }

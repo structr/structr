@@ -23,7 +23,7 @@ import org.structr.docs.Documentable;
 import java.util.List;
 import java.util.Set;
 
-public class DocumentableConcept extends DocumentationConcept {
+public class DocumentableConcept extends Concept {
 
 	private final Documentable documentable;
 

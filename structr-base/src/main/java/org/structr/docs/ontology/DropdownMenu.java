@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology.apireference;
+package org.structr.docs.ontology;
 
-import org.structr.docs.ontology.StructuralConcept;
+import java.util.LinkedList;
+import java.util.List;
 
-public class LifecycleMethodsConcept extends StructuralConcept {
+public class DropdownMenu extends UserInterfaceElement {
 
-	public LifecycleMethodsConcept() {
-		super("Lifecycle Methods");
+	public DropdownMenu(final Root root, final String name) {
+		super(root, name);
 	}
 }

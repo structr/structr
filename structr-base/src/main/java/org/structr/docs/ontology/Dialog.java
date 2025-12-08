@@ -16,13 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology.coreconcepts;
+package org.structr.docs.ontology;
 
-import org.structr.docs.ontology.StructuralConcept;
+public class Dialog extends UserInterfaceElement {
 
-public class WebStackConcept extends StructuralConcept {
-
-	public WebStackConcept() {
-		super("Web Stack");
+	public Dialog(final Root root, final String name) {
+		super(root, name);
 	}
 }

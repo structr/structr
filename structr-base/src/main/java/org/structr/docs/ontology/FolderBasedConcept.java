@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-public class FolderBasedConcept extends DocumentationConcept {
+public class FolderBasedConcept extends Concept {
 
 	private final String folderPath;
 

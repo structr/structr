@@ -22,7 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-public class StructuralConcept extends DocumentationConcept {
+public class StructuralConcept extends Concept {
 
 	public StructuralConcept(final String name) {
 		super(name);
@@ -35,7 +35,7 @@ public class StructuralConcept extends DocumentationConcept {
 
 		final List<String> childrenLines = new LinkedList<>();
 
-		for (final DocumentationConcept child : children) {
+		for (final Concept child : children) {
 			childrenLines.addAll(child.getFilteredDocumentationLines(details, level + 1));
 		}
 
