@@ -49,7 +49,7 @@ Below are examples for `fetch()` and JQuery's `$.ajax()` that you can use in you
 
 #### curl
 
-The example requests in this chapter are made with `curl`, which is a command-line tool available at https://curl.haxx.se/download.html. It might already be installed on your system, but you can of course use any other REST client - or even your browser - to follow the examples in this chapter.
+The example requests in this chapter are made with `curl`, which is a command-line tool available at [https://curl.haxx.se/download.html](https://curl.haxx.se/download.html). It might already be installed on your system, but you can of course use any other REST client - or even your browser - to follow the examples in this chapter.
 
 >**Note:** The output of all REST endpoints can also be viewed with a browser. Browser requests send an `HTTP Accept:text/html` header which causes Structr to generate the output as HTML.
 
