@@ -310,7 +310,7 @@ let _Documentation = {
 		document.querySelectorAll('#docs-area .article a').forEach(aElementInArticle => {
 			aElementInArticle.addEventListener('click', e => {
 				const el = e.target;
-				const href = el.href;
+				const href = el.getAttribute('href');
 				// Don't try to load document for external links
 				if (href.startsWith('http')) { return }
 				_Documentation.loadDoc(href.substring(href.lastIndexOf(':') + 1));
