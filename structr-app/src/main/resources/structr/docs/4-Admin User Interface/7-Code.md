@@ -90,7 +90,7 @@ sort(this.projects, 'dueDate')
 
 // Aggregation
 add(this.expenses, 2.5)
-mult(this.ratings, 'score')
+mult(this.ratings, data.score)
 count(filter(this.tasks, eq(data.status, 'COMPLETED')))
 ```
 
