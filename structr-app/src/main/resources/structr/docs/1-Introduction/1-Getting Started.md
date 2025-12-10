@@ -187,6 +187,7 @@ Navigate to [http://localhost:8082/structr](http://localhost:8082/structr) which
 ### 2. Configure a Database Connection
 
 Click "Configure a database connection" and then "Create new database connection".
+
 ![Configure a database connection](../config_create-database-connection.png)
 
 

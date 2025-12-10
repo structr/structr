@@ -271,6 +271,7 @@ JsonRestServlet.user.autologin = true
 ```
 security.passwordpolicy.maxfailedattempts = 4
 ```
+This can be set to 0 or less to disable account lockout.
 
 ### Account Lockout Management
 

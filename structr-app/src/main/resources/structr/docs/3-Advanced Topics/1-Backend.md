@@ -200,7 +200,7 @@ If the request is successful, the result object contains one or more objects and
 |query_time|Time it took to run the query (in seconds)|
 |result_count|Number of results in the database (if fewer than the soft limit)|
 |page_count|Number of pages in a paginated result|
-|result_count_time|Time it took to count the result objects (in seconds)|
+|result\_count\_time|Time it took to count the result objects (in seconds)|
 |serialization_time|Time it took to serialize the JSON response (in seconds)|
 
 ### Pagination

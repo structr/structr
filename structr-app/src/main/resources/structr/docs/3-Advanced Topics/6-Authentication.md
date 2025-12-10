@@ -29,6 +29,23 @@ Users can authenticate using a simple HTTP POST request to the REST interface. U
 }
 ```
 
+**Example using JavaScript:**
+```javascript
+fetch('/structr/rest/login', {
+	method: 'POST',
+	body: JSON.stringify({
+		"eMail": "admin",
+		"password": "admin"
+	})
+}).then(response => {
+	if (response.ok) {
+		location.reload();
+	} else {
+		// error handling
+	}
+})
+```
+
 **Example using curl:**
 ```bash
 curl --request POST \
