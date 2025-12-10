@@ -14,20 +14,21 @@ With Structr 6, released in 2025, an entirely new type system based on [traits](
 
 There are three different types of methods in the new implementation:
 
-- **Framework methods**: Overridable methods that implement the basic functionality of Structr, something like in `AccessControllable`, see for example `core/traits/operations` in the `structr-base` module.
-- **Lifecycle methods**: Non-overridable methods that also implement basic functionality, such as `isValid`, `onCreate` etc.
-- **Dynamic methods**: Additional methods that must be exported (something like `File.doCSVImport`), see for example  `core/traits/definitions/GroupTraitDefinition.java` in `structr-base`.
+- **Framework methods**: Built-in exported methods (e.g. `File.doCSVImport`, `File.doXMLImport`)
+- **Lifecycle methods**: Methods in the custom schema that are automatically called during the lifecycle of an object, such as `onCreate`, `onSave`, etc.
+- **Dynamic methods**: Custom methods the user defines.
 
 #### Framework Methods
 
-In Framework methods, there is a `super` implementation that you can call up as in normal overwritten methods.
+Built-in exported methods are typically used in UI functionality, but can be used directly as well.
 
 #### Lifecycle Methods
 
-Lifecycle methods are executed in the order in which they were defined, one after the other, without having to know each other.
+Lifecycle methods for each lifecycle event are executed in the order given by the natural sort order, without having to know each other. For example `onCreate01`, then `onCreate02`.
 
 #### Dynamic Methods
-Dynamic methods are made available as Java methods, for example, for external access.
+
+Dynamic methods are made available via scripting and REST.
 
 ## Older versions
 
