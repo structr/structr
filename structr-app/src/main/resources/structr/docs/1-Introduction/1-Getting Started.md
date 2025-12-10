@@ -226,4 +226,4 @@ There's default admin user which is created automatically if the database was fo
 
 ![Change the admin password](../security_change-admin-password.png)
 
-Now you're set and done and ready for the [first steps](2-First Steps.md) with Structr.
+Now you're set and done and ready for the [first steps](2-First%20Steps.md) with Structr.
