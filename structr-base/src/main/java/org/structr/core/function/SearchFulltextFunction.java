@@ -108,16 +108,20 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 	public String getLongDescription() {
 		return """
 			Searches are **case-insensitive**. A query term matches only if the **complete token** exists in the fulltext index; partial substrings inside a longer token won't match unless that exact token is indexed.
-			
+
 			For type attributes with the fulltext index flag enabled, the fulltext index name is auto-generated as `<type name>_<attribute name>_fulltext` (for example, `Employee_firstName_fulltext`).
+
+			Typically, the following features are available. Refer to the documentation for the database you're connecting to.
 			
-			Supported wildcards:
+			Wildcards:
+
 			- `?` matches exactly one character
 			- `*` matches zero or more characters
 			
-			For performance reasons, avoid placing `*` at the beginning of a term (for example `*test`), because leading wildcards can make queries much more expensive. Prefer anchored patterns like `test*` where possible.
-			
-			Supported query modifiers:
+			For performance reasons, avoid placing `*` at the beginning of a term (for example `*test`), because leading wildcards can make queries much more expensive/slower. Prefer anchored patterns like `test*` where possible.
+
+			Query modifiers:
+
 			- `~` enables fuzzy matching for the preceding term, allowing similar words rather than exact equality.
 			""";
 	}
