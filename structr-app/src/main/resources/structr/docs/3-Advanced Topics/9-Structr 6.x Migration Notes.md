@@ -85,6 +85,33 @@ application.scripting.js.wrapinmainfunction = true
 
 **Option 2:** Remove `return` statements from functions that now produce errors due to this change.
 
+## JavaScript: declare variables (strict mode / ES modules)
+
+In modern JavaScript (strict mode and ES modules), identifiers must be declared before use. Assigning to an undeclared name throws a ReferenceError (no "implicit globals").
+
+```javascript
+// ❌ Not allowed (undeclared variable)
+foo = 1;
+for (foo of array) {}
+for (key in obj) {}
+
+
+// ✅ Allowed
+let foo = 1;
+for (let foo of array) {}
+for (const foo of array) {}
+
+for (let key in obj) {}
+for (const key in obj) {}
+```
+
+If the identifier is already declared in an outer scope, it’s valid but reuses that variable:
+
+```javascript
+let foo;
+for (foo of array) {} // ✅ reassigns outer `foo`
+```
+
 ## Custom Indices
 
 Custom indices are dropped during the upgrade to 6.0.
@@ -123,6 +150,7 @@ REST queries are no longer allowed for repeaters. You must migrate them to funct
 - [ ] Update `$.GET`/`$.POST` calls to use `.body` for response content
 - [ ] Replace `extendsClass` with `inheritedTraits` in schema queries
 - [ ] Review JavaScript functions for return statement compatibility
+- [ ] Review JavaScript functions for implicit globals
 - [ ] Recreate custom indices after upgrade
 - [ ] Review and update upload handling code for new security requirements
 - [ ] Migrate repeater REST queries to function queries or flows
