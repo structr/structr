@@ -16,30 +16,37 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.token;
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
+import org.graalvm.collections.Pair;
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Ontology;
 
-public class FolderBasedConcept extends Concept {
+public class VerbToken extends Token<Pair<Concept, Concept>> {
 
-	private final String folderPath;
+	private final String inverse;
 
-	public FolderBasedConcept(final String name, final String folderPath) {
+	public VerbToken(final String name, final String inverse) {
 
 		super(name);
 
-		this.folderPath = folderPath;
+		this.inverse = inverse;
 	}
 
 	@Override
-	public List<String> getFilteredDocumentationLines(final Set<Details> details, final int level) {
+	public boolean isUnresolved() {
+		return false;
+	}
 
-		Path p = Path.of(folderPath);
+	public String getInverse() {
+		return inverse;
+	}
 
-		System.out.println(p);
+	public Pair<Concept, Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		return List.of();
+		final Concept verb1 = ontology.getOrCreateConcept(sourceFile, line, "verb", name);
+		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, "verb", inverse);
+
+		return Pair.create(verb1, verb2);
 	}
 }

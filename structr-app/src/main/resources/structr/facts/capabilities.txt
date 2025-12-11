@@ -1,0 +1,17 @@
+
+
+"Core System" has service "Cron Service"
+topic "Core System" has capability "Scheduled execution of business logic"
+"Core System" has capability "User self-registration"
+"Core System" has capability "Sending emails"
+
+"Mail Service" provides capability "Sending emails"
+"Cron Service" provides capability "Scheduled execution of business logic"
+
+
+
+"Core System" has component "Scripting Engine"
+"Core System" has component "Page Rendering Engine"
+
+
+"Scripting Engine" provides capability "Scripting"

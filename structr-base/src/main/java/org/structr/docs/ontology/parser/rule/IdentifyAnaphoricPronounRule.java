@@ -16,42 +16,44 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.rule;
 
+import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.parser.token.AnaphoricPronounToken;
+import org.structr.docs.ontology.parser.token.Token;
+
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
-public class StructuralConcept extends Concept {
+public class IdentifyAnaphoricPronounRule extends Rule {
 
-	public StructuralConcept(final String name) {
-		super(name);
+	public IdentifyAnaphoricPronounRule(final Ontology ontology) {
+		super(ontology);
 	}
 
 	@Override
-	public List<String> getFilteredDocumentationLines(final Set<Details> details, final int level) {
+	public void apply(final Deque<Token> tokens) {
 
-		final List<String> lines = new LinkedList<>();
+		final List<Token> result = new LinkedList<>();
 
-		final List<String> childrenLines = new LinkedList<>();
+		while (!tokens.isEmpty()) {
 
-		for (final Concept child : children) {
-			childrenLines.addAll(child.getFilteredDocumentationLines(details, level + 1));
-		}
+			final Token token = tokens.pop();
 
-		// only output parent info if children produce output
-		if (!childrenLines.isEmpty()) {
+			if (token.isUnresolved() && "it".equals(token.getName().toLowerCase())) {
 
-			// level 0 is invisible
-			if (level > 0 && details.contains(Details.Name)) {
+				result.add(new AnaphoricPronounToken());
 
-				lines.add(formatMarkdownHeading(getName(), level));
-				lines.add(""); // empty line
+			} else {
+
+				result.add(token);
 			}
-
-			lines.addAll(childrenLines);
 		}
 
-		return lines;
+
+
+
+		tokens.addAll(result);
 	}
 }

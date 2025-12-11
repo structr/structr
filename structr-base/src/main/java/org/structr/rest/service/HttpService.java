@@ -85,6 +85,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	private final Map<String, Map<String, Stats>> stats = new ConcurrentHashMap<>();
+	private ResourceHandler exportedResourceHandler     = null;
 	private SslContextFactory.Server sslContextFactory  = null;
 	private DefaultSessionCache sessionCache            = null;
 	private GzipHandler gzipHandler                     = null;
@@ -203,6 +204,14 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	@Override
 	public void injectArguments(Command command) {
+	}
+
+	public Server getServer() {
+		return server;
+	}
+
+	public ResourceHandler getExportedResourceHandler() {
+		return exportedResourceHandler;
 	}
 
 	@Override
@@ -335,6 +344,8 @@ public class HttpService implements RunnableService, StatsCallback {
 			context.addAliasCheck((pathInContext, resource) -> resource.exists());
 
 			contexts.addHandler(context);
+
+			exportedResourceHandler = resourceHandler;
 		}
 
 		if (Settings.ConfigServletEnabled.getValue()) {
@@ -418,7 +429,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		// docs
-		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/*");
+		servletContext.addServlet(DocumentationServlet.class, "/structr/docs/ontology");
 
 		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);

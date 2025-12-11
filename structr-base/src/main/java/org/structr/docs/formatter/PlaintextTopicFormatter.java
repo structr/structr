@@ -16,14 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.formatter;
 
-import java.util.LinkedList;
+import org.structr.docs.Formatter;
+import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Details;
+
 import java.util.List;
 
-public class DropdownMenu extends UserInterfaceElement {
+public class PlaintextTopicFormatter extends Formatter {
 
-	public DropdownMenu(final Root root, final String name) {
-		super(root, name);
+	@Override
+	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
+
+		if (settings.hasDetail(Details.name)) {
+			lines.add(concept.getName());
+		}
 	}
 }

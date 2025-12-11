@@ -1,0 +1,87 @@
+/*
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.docs.ontology.parser.rule;
+
+import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.parser.token.ConceptToken;
+import org.structr.docs.ontology.parser.token.IdentifierToken;
+import org.structr.docs.ontology.parser.token.NamedConceptToken;
+import org.structr.docs.ontology.parser.token.Token;
+
+import java.util.Deque;
+import java.util.LinkedList;
+
+public class CombineConceptAndIdentifierRule extends Rule {
+
+	public CombineConceptAndIdentifierRule(final Ontology ontology) {
+		super(ontology);
+	}
+
+	@Override
+	public void apply(final Deque<Token> tokens) {
+
+		final Deque<Token> result = new LinkedList<>();
+
+		while (!tokens.isEmpty()) {
+
+			final Token token1 = tokens.pop();
+
+			if (token1 instanceof IdentifierToken identifierToken && !tokens.isEmpty()) {
+
+				// unresolved => check if next is existing concept
+				final Token token2 = tokens.pop();
+
+				if (token2 instanceof ConceptToken conceptToken) {
+
+					result.add(new NamedConceptToken(conceptToken, identifierToken));
+
+				} else {
+
+					// move both tokens to result without changing anything
+					result.add(token1);
+					result.add(token2);
+				}
+
+			} else if (token1 instanceof ConceptToken conceptToken && !tokens.isEmpty()) {
+
+				// concept => check if next is unresolved
+				final Token token2 = tokens.pop();
+
+				if (token2 instanceof IdentifierToken identifierToken) {
+
+					result.add(new NamedConceptToken(conceptToken, identifierToken));
+
+				} else {
+
+					// move both tokens to result without changing anything
+					result.add(conceptToken);
+					result.add(token2);
+				}
+
+			} else {
+
+				// move token to result without changing anything
+				result.add(token1);
+			}
+		}
+
+		// restore input
+		tokens.addAll(result);
+	}
+}

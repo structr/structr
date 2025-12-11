@@ -18,11 +18,7 @@
  */
 package org.structr.test.common;
 
-import com.drew.lang.Charsets;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
 import org.structr.autocomplete.AbstractHintProvider;
@@ -34,15 +30,14 @@ import org.structr.core.traits.TraitsManager;
 import org.structr.docs.*;
 import org.structr.docs.impl.lifecycle.*;
 import org.structr.docs.impl.settings.SettingDocumentable;
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Details;
 import org.structr.docs.ontology.Ontology;
 import org.structr.rest.resource.MaintenanceResource;
-import org.structr.rest.service.HttpService;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -50,28 +45,6 @@ import java.util.*;
 import static org.testng.AssertJUnit.fail;
 
 public class CreateDocumentationTest extends StructrUiTest {
-
-	@Test
-	public void testOntology() {
-
-		Services.getInstance();
-
-
-		try {
-			System.out.println(Files.readAllLines(Path.of("structr/docs/index.txt")));
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
-
-		/*
-		for (final String s : Ontology.getInstance().createMarkdownDocumentation(Set.of(Details.Name))) {
-			//System.out.println(s);
-		}
-
-		 */
-
-	}
 
 	@Test
 	public void createDocumentationTest() {

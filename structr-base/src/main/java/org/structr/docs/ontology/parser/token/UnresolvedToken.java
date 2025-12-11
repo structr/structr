@@ -16,13 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.token;
 
-public enum Details {
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Ontology;
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	all
+public class UnresolvedToken extends Token<Concept> {
+
+	public UnresolvedToken(final String name) {
+		super(name);
+	}
+
+	@Override
+	public boolean isUnresolved() {
+		return true;
+	}
+
+	@Override
+	public Concept resolve(final Ontology ontology, final String sourceFile, final int line) {
+		throw new UnsupportedOperationException("Trying to resolve unresolved token " + name + " from " + sourceFile + ":" + line);
+	}
 }

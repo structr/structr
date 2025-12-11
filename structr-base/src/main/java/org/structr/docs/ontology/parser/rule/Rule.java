@@ -1,3 +1,4 @@
+package org.structr.docs.ontology.parser.rule;
 /*
  * Copyright (C) 2010-2025 Structr GmbH
  *
@@ -16,11 +17,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
 
-public class Dialog extends UserInterfaceElement {
+import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.parser.token.Token;
 
-	public Dialog(final Root root, final String name) {
-		super(root, name);
+import java.util.Deque;
+
+public abstract class Rule {
+
+	protected final Ontology ontology;
+
+	public Rule(final Ontology ontology) {
+		this.ontology = ontology;
 	}
+
+	public abstract void apply(final Deque<Token> tokens);
 }

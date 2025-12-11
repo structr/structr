@@ -16,25 +16,42 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.rule;
 
+import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.parser.token.IdentifierToken;
+import org.structr.docs.ontology.parser.token.Token;
+
+import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 
-public class Button extends UserInterfaceElement {
+public class IdentifyNamesRule extends Rule {
 
-	private final List<Action> actions = new LinkedList<>();
-
-	public Button(final Root root, final String name) {
-		super(root, name);
+	public IdentifyNamesRule(final Ontology ontology) {
+		super(ontology);
 	}
 
-	public Dialog opensDialog(final Dialog dialog) {
+	@Override
+	public void apply(final Deque<Token> tokens) {
 
-		final Verb opens = new Verb("opens");
+		final Deque<Token> result = new LinkedList<>();
 
-		actions.add(new Action(opens, dialog));
+		while (!tokens.isEmpty()) {
 
-		return dialog;
+			final Token token = tokens.pop();
+
+			if (token.isUnresolved()) {
+
+				result.add(new IdentifierToken(token.getName()));
+
+			} else {
+
+				// move to result
+				result.add(token);
+			}
+		}
+
+		// restore input
+		tokens.addAll(result);
 	}
 }

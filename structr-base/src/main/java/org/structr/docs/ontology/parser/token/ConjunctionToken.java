@@ -16,13 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.token;
 
-public enum Details {
+import org.structr.docs.ontology.Ontology;
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	all
+public class ConjunctionToken extends Token<Void> {
+
+	public ConjunctionToken(final String name) {
+		super(name);
+	}
+
+	@Override
+	public boolean isUnresolved() {
+		return false;
+	}
+
+	@Override
+	public Void resolve(final Ontology ontology, final String sourceFile, final int line) {
+		return null;
+	}
 }

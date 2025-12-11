@@ -104,15 +104,24 @@
     font-weight: 500;
 }
 
-/* Article */
-
-#docs-area article {
+.article {
+    background-color: white;
+}
+#docs-area iframe {
+    border: none;
     background-color: white;
     overflow: auto;
     height: calc(100vh - 10rem);
     padding: 0 2rem 2rem 2rem;
+    margin: 0;
     width: 80%;
     line-height: 1.5rem;
+}
+
+.article h1 a, .article h2 a, .article h3 a, .article h4 a, .article h5 a, .article h6 a {
+    padding-top: 1rem;
+    text-decoration: none;
+    color: inherit;
 }
 
 .article .subtitle {

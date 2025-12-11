@@ -59,16 +59,16 @@ public interface Documentable {
 		final String name                = getName();
 		final String startHeading        = StringUtils.repeat("#", startLevel);
 
-		if (details.contains(Details.Name)) {
+		if (details.contains(Details.name) || details.contains(Details.all)) {
 			lines.add(startHeading + " " + getDisplayName());
 		}
 
-		if (details.contains(Details.ShortDescription)) {
+		if (details.contains(Details.shortDescription) || details.contains(Details.all)) {
 			lines.add(getShortDescription());
 		}
 
 		// should we use longDescription or details here?
-		if (details.contains(Details.Details)) {
+		if (details.contains(Details.all)) {
 
 			if (isJavaScriptOnly()) {
 

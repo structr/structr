@@ -16,13 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.formatter;
 
-public enum Details {
+import org.structr.docs.Formatter;
+import org.structr.docs.OutputSettings;
+import org.structr.docs.ontology.Concept;
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	all
+import java.util.List;
+
+public class MarkdownServiceFormatter extends Formatter {
+
+	@Override
+	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
+
+
+
+	}
 }

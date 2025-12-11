@@ -16,13 +16,36 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.token;
 
-public enum Details {
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Ontology;
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	all
+public abstract class Token<T> {
+
+	protected String name;
+
+	public Token(final String name) {
+		this.name = name;
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName() + "(" + name + ")";
+	}
+
+	public abstract boolean isUnresolved();
+	public abstract T resolve(final Ontology ontology, final String sourceFile, final int line);
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
+	}
+
+	public String getType() {
+		return getClass().getSimpleName();
+	}
 }

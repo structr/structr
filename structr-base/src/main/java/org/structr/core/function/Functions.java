@@ -99,6 +99,22 @@ public class Functions {
 		}
 	}
 
+	public static List<String> tokenize(final String input) {
+
+		final StructrScriptTokenizer tokenizer = new StructrScriptTokenizer();
+		final List<String> tokens              = new LinkedList<>();
+
+		for (final Token token : tokenizer.tokenize(input)) {
+
+			if (StringUtils.isNotBlank(token.content)) {
+
+				tokens.add(token.content);
+			}
+		}
+
+		return tokens;
+	}
+
 	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result, final boolean silenceTokenizer) throws FrameworkException, UnlicensedScriptException {
 
 		final Map<Integer, String> namespaceMap = new TreeMap<>();

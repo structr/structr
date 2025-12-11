@@ -18,33 +18,94 @@
  */
 package org.structr.docs.ontology;
 
-import org.apache.commons.lang3.StringUtils;
-
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A concept in the Structr Documentation Ontology. This class
  * will store everything you add into the ontology.
  */
-public abstract class Concept {
+public final class Concept {
 
-	protected final Root root;
+	protected final Map<String, List<Concept>> children = new LinkedHashMap<>();
+	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
+	protected final String sourceFile;
+	protected final int lineNumber;
 	protected final String name;
+	protected String type;
 
-	public abstract List<String> getFilteredDocumentationLines(final Set<Details> details, final int level);
+	protected Concept(final String sourceFile, final int lineNumber, final String type, final String name) {
 
-	protected Concept(final Root root, final String name) {
+		this.sourceFile = sourceFile;
+		this.lineNumber = lineNumber;
+		this.type       = type;
+		this.name       = name;
+	}
 
-		this.root = root;
-		this.name = name;
+	@Override
+	public String toString() {
+		return type + "(" + name + ")";
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(final String type) {
+		this.type = type;
 	}
 
 	public String getName() {
 		return name;
 	}
 
-	// ----- protected methods -----
-	protected String formatMarkdownHeading(final String text, final int level) {
-		return StringUtils.repeat("#", level) + " " + text;
+	public void linkChild(final String verb, final Concept concept) {
+		children.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
+	}
+
+	public void linkParent(final String verb, final Concept concept) {
+		parents.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
+	}
+
+	public Map<String, List<Concept>> getChildren() {
+		return children;
+	}
+
+	public List<Concept> getChildrenOfType(final String linkType, final String conceptType) {
+
+		final List<Concept> list = children.get(linkType);
+		if (list != null) {
+
+			final List<Concept> result = new LinkedList<>();
+
+			for (final Concept child : list) {
+
+				if (child.getType().equals(conceptType)) {
+					result.add(child);
+				}
+			}
+
+			return result;
+		}
+
+		return List.of();
+	}
+
+	public Map<String, List<Concept>> getParents() {
+		return parents;
+	}
+
+	public int getLineNumber() {
+		return lineNumber;
+	}
+
+	public String getSourceFile() {
+		return sourceFile;
+	}
+
+	public boolean isTopic() {
+		return "topic".equals(type);
 	}
 }

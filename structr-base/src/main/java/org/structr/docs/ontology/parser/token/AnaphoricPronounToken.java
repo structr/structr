@@ -16,13 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.token;
 
-public enum Details {
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Ontology;
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	all
+import java.util.List;
+
+/**
+ * A token that references the last subject or entity mentioned
+ * earlier in the text.
+ */
+public class AnaphoricPronounToken extends NamedConceptToken {
+
+	public AnaphoricPronounToken() {
+
+		super(null, null);
+
+		setName("it");
+	}
+
+	@Override
+	public boolean isUnresolved() {
+		return false;
+	}
+
+	@Override
+	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+		return List.of(ontology.getCurrentSubject());
+	}
 }

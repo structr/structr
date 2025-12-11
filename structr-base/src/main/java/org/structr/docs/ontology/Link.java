@@ -18,11 +18,22 @@
  */
 package org.structr.docs.ontology;
 
-public enum Details {
+public class Link {
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	all
+	private final String outgoing;
+	private final String incoming;
+
+	public Link(final String outgoing, final String incoming) {
+
+		this.outgoing = outgoing;
+		this.incoming = incoming;
+	}
+
+	public String getOutgoing() {
+		return outgoing;
+	}
+
+	public String getIncoming() {
+		return incoming;
+	}
 }

@@ -18,134 +18,316 @@
  */
 package org.structr.docs.ontology;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.Predicate;
+import org.structr.core.function.Functions;
+import org.structr.docs.OutputSettings;
+import org.structr.docs.Formatter;
+import org.structr.docs.ontology.parser.rule.*;
+import org.structr.docs.ontology.parser.token.FactToken;
+import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.UnresolvedToken;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * The Structr Documentation Ontology.
  */
 public final class Ontology {
 
-	private static Ontology ontology;
-	private final Map<String, Concept> index = new LinkedHashMap<>();
-	private final Root root             = new Root();
+	private final List<Concept> concepts = new LinkedList<>();
+	private Concept currentSubject = null;
 
-	private Ontology() {
+	public Set<String> getKnownConcepts() {
+		return Set.of(
+
+			// structural concepts
+			"topic", "concept", "component", "feature", "mechanism", "provider", "service", "capability", "use-case", "type", "list",
+
+			// external sources
+			"markdown-source", "code-source",
+
+			// concepts for ui elements
+			"area", "tab", "dialog", "link", "input", "textarea", "button", "checkbox", "dropdown", "selector",
+
+			// metadata
+			"hint", "note", "description", "info", "setting"
+		);
 	}
 
-	public static Ontology getInstance() {
+	public Map<String, String> getKnownVerbs() {
 
-		if (ontology == null) {
+		return Map.of(
+			"is", "is",
+			"has", "isPartOf",
+			"uses", "isUsedBy",
+			"provides", "isProvidedBy",
+			"opens", "isOpenedBy",
+			"closes", "isClosedBy",
+			"contains", "isContainedBy",
+			"creates", "isCreatedBy",
+			"removes", "isRemovedBy",
+			"deletes", "isDeletedBy"
+		);
+	}
 
-			ontology = new Ontology();
+	public Set<String> getBlacklist() {
+		return Set.of("!", ";", ".", "the", "a", "an", "with", "named");
+	}
+
+	public Set<String> getConjunctions() {
+		return Set.of(",", "and");
+	}
+
+	public Ontology(final Path pathToFactsFolder) {
+		initialize(pathToFactsFolder);
+	}
+
+	public Ontology(final String sourceFile, final List<String> facts) {
+
+		int lineNumber = 1;
+
+		for (String line : facts) {
+
+			storeFact(sourceFile, line, lineNumber++);
+		}
+	}
+
+	/**
+	 * Constructs an ontology from a single fact. This method exists
+	 * to facilitate testing.
+	 * @param line
+	 */
+	public Ontology(final String sourceFile, final String line) {
+		storeFact(sourceFile, line, 1);
+	}
+
+	public List<String> createDocumentation(final List<Concept> concepts, final OutputSettings outputSettings) {
+
+		final List<String> lines = new LinkedList<>();
+
+		for (final Concept concept : concepts) {
+
+			Formatter.walkOntology(lines, concept, outputSettings, 0);
 		}
 
-		return ontology;
+		return lines;
 	}
 
-	public List<String> createMarkdownDocumentation(final Set<Details> details) {
-		//return rootConcept.getFilteredDocumentationLines(details, 0);
+	public List<Concept> getConcepts() {
+		return concepts;
+	}
+
+	public List<Concept> getConcepts(final Predicate<Concept> predicate) {
+
+		final List<Concept> result = new LinkedList<>();
+
+		for (final Concept concept : concepts) {
+
+			if (predicate.accept(concept)) {
+
+				result.add(concept);
+			}
+		}
+
+		return result;
+	}
+
+	public List<Concept> getRootConcepts() {
+
+		final List<Concept> rootConcepts = new LinkedList<>();
+
+		for (final Concept concept : concepts) {
+
+			if (concept.getParents().isEmpty()) {
+
+				rootConcepts.add(concept);
+			}
+		}
+
+		return rootConcepts;
+	}
+
+	public Set<String> getOutgoingLinkTypes() {
+
+		final Set<String> linkTypes = new LinkedHashSet<>();
+
+		for (final Concept concept : concepts) {
+
+			linkTypes.addAll(concept.getChildren().keySet());
+		}
+
+		return linkTypes;
+	}
+
+	public void storeFacts(final String sourceFile, final String fact) {
+
+		int lineNumber = 1;
+
+		for (final String line : fact.split("[\\n\\r]+")) {
+
+			storeFact(sourceFile, line, lineNumber++);
+		}
+	}
+
+	public void storeFact(final String sourceFile, final String line, final int lineNumber) {
+
+		// skip empty lines
+		if (StringUtils.isBlank(line)) {
+			return;
+		}
+
+		// skip lines that start with # (comment character, can be changed if it interferes with Markdown...)
+		if (line.trim().startsWith("#")) {
+			return;
+		}
+
+		final List<String> input = Functions.tokenize(line);
+		final Deque<Token> tokens = new LinkedList<>();
+
+		for (final String token : input) {
+
+			tokens.add(new UnresolvedToken(token));
+		}
+
+		reduce(sourceFile, lineNumber, line, tokens);
+
+		for (final Token token : tokens) {
+
+			token.resolve(this, sourceFile, lineNumber);
+		}
+	}
+
+	public void reduce(final String fileName, final int line, final String source, final Deque<Token> tokens) {
+
+		final List<Rule> rules = new LinkedList<>();
+		int count = 0;
+
+		rules.add(new RemoveUnwantedTokensRule(this));
+		rules.add(new IdentifyAnaphoricPronounRule(this));
+		rules.add(new IdentifyConjunctionsRule(this));
+		rules.add(new IdentifyConceptsRule(this));
+		rules.add(new ResolveConceptPairsRule(this));
+		rules.add(new IdentifyVerbsRule(this));
+		rules.add(new IdentifyNamesRule(this));
+		rules.add(new IdentifyListsRule(this));
+		rules.add(new CombineConceptAndIdentifierRule(this));
+		rules.add(new FindUnknownIdentifiersRule(this));
+		rules.add(new IdentifyFactsRule(this));
+		rules.add(new ResolveIsARelationsRule(this));
+
+		while (count++ < 100) {
+
+			for (final Rule rule : rules) {
+
+				rule.apply(tokens);
+			}
+
+			// all reduced
+			if (tokens.size() == 1) {
+				return;
+			}
+
+			// more than one token left => error
+			if (tokens.stream().noneMatch(token -> token.isUnresolved())) {
+				break;
+			}
+		}
+
+		final List<Token> remainingTokens = new LinkedList<>();
+		for (final Token token : tokens) {
+
+			if (token instanceof FactToken) {
+
+				// ignore
+
+			} else {
+
+				remainingTokens.add(token);
+			}
+		}
+
+		throw new RuntimeException("Syntax error in " + fileName + ":" + line + ": unable to parse " + source + " into facts: remaining tokens are " + remainingTokens + ". This can happen if an identifier matches a known concept, e.g. the topic \"Settings\" and the concept \"settings\". It might help to prefix the identifier with the concept, e.g. write \"topic Settings has code-source settings\" instead of \"Settings has code-source settings\".");
+	}
+
+	public Concept getConcept(final String type, final String name) {
+
+		for  (final Concept concept : concepts) {
+
+			if (concept.name.equals(name)) {
+
+				if (concept.type.equals(type) || type.equals("unknown") || concept.type.equals("unknown")) {
+
+					return concept;
+				}
+			}
+		}
+
 		return null;
 	}
 
-	private void initialize() {
+	public Concept getOrCreateConcept(final String sourceFile, final int line, final String type, final String name) {
 
-		final Topic coreSystem    = root.topic("Core System");
-		final Topic operations    = root.topic("Operations");
-		final Topic userInterface = root.topic("User Interface");
+		for  (final Concept concept : concepts) {
 
-		initializeUserInterface(userInterface);
+			if (concept.name.equals(name)) {
+
+				if (concept.type.equals(type) || type.equals("unknown") || concept.type.equals("unknown")) {
+
+					// set correct type
+					if ("unknown".equals(concept.type) && !"unknown".equals(type)) {
+						concept.type = type;
+					}
+
+					return concept;
+				}
+			}
+		}
+
+		final Concept concept = new Concept(sourceFile, line, type, name);
+
+		concepts.add(concept);
+
+		return concept;
 	}
 
-	private void initializeUserInterface(final Topic userInterface) {
-
-		initializeFrontend(userInterface.hasTopic("Frontend"));
-		initializeBackend(userInterface.hasTopic("Backend"));
+	public Concept getCurrentSubject() {
+		return currentSubject;
 	}
 
-	private void initializeFrontend(final Topic fontend) {
+	// ----- private methods -----
+	private void initialize(final Path path) {
+
+		try (final Stream<Path> files = Files.walk(path).filter(Files::isRegularFile)) {
+
+			files.forEach(file -> {
+
+				try {
+					final String fileName = file.getFileName().toString();
+					int lineNumber = 1;
+
+					for (final String line : Files.readAllLines(file)) {
+
+						storeFact(fileName, line, lineNumber++);
+					}
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+
+		} catch (IOException ioex) {
+
+			ioex.printStackTrace();
+		}
+
 	}
 
-	private void initializeBackend(final Topic backend) {
-
-		initializePagesArea(backend.hasScreenArea("Pages Area"));
-
-
-	}
-
-	private void initializePagesArea(final ScreenArea pagesArea) {
-
-		final DropdownMenu createPageMenu = pagesArea.hasDropdownMenu("Create Page Menu");
-
-		final Button createPageButton = createPageMenu.hasButton("Create Page");
-		final Button importPageButton = createPageMenu.hasButton("Import Page");
-
-		final Dialog createPageDialog = createPageButton.opensDialog(initializeCreatePageDialog());
-		final Dialog importPageDialog = createPageButton.opensDialog(initializeImportPageDialog());
-	}
-
-	private Dialog initializeCreatePageDialog() {
-
-		final Dialog createPageDialog = root.dialog("Create Page Dialog");
-
-
-
-		return createPageDialog;
-	}
-
-	private Dialog initializeImportPageDialog() {
-
-		final Dialog importPageDialog = root.dialog("Import Page Dialog");
-
-		final UseCase createPageFromHTML = root.useCase("Create Page From HTML source");
-		final UseCase fetchPageFromURL   = root.useCase("Fetch Page from URL");
-
-		final SystemType pageType = root.systemType("Page");
-
-
-		importPageDialog.implementsUseCase(createPageFromHTML);
-		importPageDialog.implementsUseCase(fetchPageFromURL);
-
-		return importPageDialog;
+	public void setCurrentSubject(final Concept subject) {
+		this.currentSubject = subject;
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

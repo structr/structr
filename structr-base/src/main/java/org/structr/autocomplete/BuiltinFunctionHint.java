@@ -26,7 +26,7 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 	public String getDisplayName() {
 
 		// show method with signature right away
-		return getName() + "(" + getFirstSignature() + ")";
+		return getName() + "()";
 	}
 
 	@Override

@@ -16,13 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.token;
 
-public enum Details {
+import org.structr.docs.ontology.Ontology;
 
-	name,
-	source,
-	shortDescription,
-	longDescription,
-	all
+/**
+ * A token that resolves to a class in the ontology.
+ */
+public class ConceptToken extends Token<String> {
+
+	private final String originalToken;
+
+	public ConceptToken(final String name, final String originalToken) {
+
+		super(name);
+
+		this.originalToken = originalToken;
+	}
+
+	@Override
+	public boolean isUnresolved() {
+		return false;
+	}
+
+	@Override
+	public String resolve(final Ontology ontology, final String sourceFile, final int line) {
+		return name;
+	}
+
+	public String getOriginalToken() {
+		return originalToken;
+	}
 }

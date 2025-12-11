@@ -16,26 +16,39 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs.ontology.parser.token;
 
-import org.structr.docs.Documentable;
+import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Ontology;
 
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
 
-public class DocumentableConcept extends Concept {
+public class IdentifierToken extends Token<List<String>> {
 
-	private final Documentable documentable;
+	private final List<String> identifiers = new LinkedList<>();
 
-	public DocumentableConcept(final Documentable documentable) {
+	public IdentifierToken(final String name) {
 
-		super(documentable.getName());
+		super(name);
 
-		this.documentable = documentable;
+		identifiers.add(name);
 	}
 
 	@Override
-	public List<String> getFilteredDocumentationLines(final Set<Details> details, final int level) {
-		return documentable.createMarkdownDocumentation(details, level);
+	public boolean isUnresolved() {
+		return false;
+	}
+
+	public void addIdentifier(final String identifier) {
+		identifiers.add(identifier);
+	}
+
+	public List<String> getIdentifiers() {
+		return identifiers;
+	}
+
+	public List<String> resolve(final Ontology ontology, final String sourceFile, final int line) {
+		return identifiers;
 	}
 }
