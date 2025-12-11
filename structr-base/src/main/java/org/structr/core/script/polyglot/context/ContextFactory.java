@@ -237,6 +237,10 @@ public abstract class ContextFactory {
 			return this.binding;
 		}
 
+		public boolean locksContext(final Context context) {
+			return context.equals(this.context);
+		}
+
 		public Context getContext() {
 			if (this.lock.isHeldByCurrentThread()) {
 				return context;
