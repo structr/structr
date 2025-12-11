@@ -1071,7 +1071,7 @@ public class DOMAndPageTest extends StructrUiTest {
 		// setup
 		try (final Tx tx = app.tx()) {
 
-			final String address    = "http://structr.github.io/structr/getbootstrap.com/docs/3.3/examples/jumbotron/";
+			final String address    = "https://structr.org/structr_ci_tests/getbootstrap.com/docs/3.3/examples/jumbotron/index.html";
 			final Importer importer = new Importer(securityContext, null, address, "test", true, true, false, false);
 
 			importer.parse();
