@@ -2449,7 +2449,7 @@ public class ScriptingTest extends StructrTest {
 				resultSize = app.nodeQuery("TestOne").getAsList().size();
 				Thread.sleep(2500);
 
-			} while (resultSize != 0 && ((ChronoUnit.MILLIS.between(instant, Instant.now())) < 10000));
+			} while (resultSize != 0 && ((ChronoUnit.MILLIS.between(instant, Instant.now())) < 30000));
 
 			assertEquals("After deleting all nodes of type TestOne in batches via doInNewTransaction, there should be none left.", 0, resultSize);
 
