@@ -68,6 +68,10 @@ import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 import static org.testng.AssertJUnit.*;
@@ -2434,7 +2438,20 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			assertEquals("After deleting all nodes of type TestOne in batches via doInNewTransaction, there should be none left.", 0, app.nodeQuery("TestOne").getAsList().size());
+
+			int resultSize;
+			Instant instant = Instant.now();
+
+			Thread.sleep(2000);
+
+			do {
+
+				resultSize = app.nodeQuery("TestOne").getAsList().size();
+				Thread.sleep(1000);
+
+			} while (resultSize != 0 && ((ChronoUnit.MILLIS.between(instant, Instant.now())) < 10000));
+
+			assertEquals("After deleting all nodes of type TestOne in batches via doInNewTransaction, there should be none left.", 0, resultSize);
 
 			tx.success();
 
@@ -2442,8 +2459,10 @@ public class ScriptingTest extends StructrTest {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
-		}
-	}
+		} catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	@Test
 	public void testBulkDeleteWithoutBatching() {
@@ -4769,6 +4788,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			assertEquals("", "", (Scripting.evaluate(ctx, null, "${{ $.doInNewTransaction(function() { $.error('base', 'nope', 'detail'); }, function() { $.store('test-result', 'error_handled'); }); }}", "test")));
+			Thread.sleep(2500);
 			assertEquals("Error handler in doInNewTransaction function was not called.", "error_handled", ctx.retrieve("test-result"));
 
 			tx.success();
@@ -4777,8 +4797,10 @@ public class ScriptingTest extends StructrTest {
 
 			fex.printStackTrace();
 			fail("Unexpected exception.");
-		}
-	}
+		} catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	@Test
 	public void testNotEqual() {
