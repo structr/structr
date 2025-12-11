@@ -510,6 +510,9 @@ public abstract class PolyglotWrapper {
 
 			curLockedContext.getLock().lock();
 			try {
+
+				curLockedContext.getContext().enter();
+
 				if (hasRun) {
 
 					ContextHelper.incrementReferenceCount(curLockedContext.getContext());
@@ -527,6 +530,9 @@ public abstract class PolyglotWrapper {
 
 				// Handle context reference counter and close current context if thread is the last one referencing it
 				ContextHelper.decrementReferenceCount(curLockedContext.getContext());
+
+				curLockedContext.getContext().leave();
+
 				if (ContextHelper.getReferenceCount(curLockedContext.getContext()) <= 0) {
 
                     curLockedContext.getLock().lock();
