@@ -20,6 +20,7 @@ package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -29,6 +30,8 @@ import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
+import java.util.logging.Handler;
+import java.util.logging.LogRecord;
 
 public abstract class ContextFactory {
 
@@ -39,6 +42,7 @@ public abstract class ContextFactory {
 	// javascript context builder
 	private static final Context.Builder jsBuilder = Context.newBuilder("js")
 				.engine(engine)
+				.out(new PolyglotOutputStream(LoggerFactory.getLogger("JavaScriptPolyglotContext")))
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				.allowHostClassLookup(s -> Settings.AllowedHostClasses.getValue("").contains(s))
@@ -48,9 +52,11 @@ public abstract class ContextFactory {
 				.option("js.ecmascript-version", "latest")
 				.option("js.temporal", "true");
 
+
 	// Python context builder
 	private static final Context.Builder pythonBuilder = Context.newBuilder("python")
 			.engine(engine)
+			.out(new PolyglotOutputStream(LoggerFactory.getLogger("PythonPolyglotContext")))
 			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 			.allowHostAccess(AccessProvider.getHostAccessConfig())
 			//.allowIO(AccessProvider.getIOAccessConfig())
@@ -103,6 +109,12 @@ public abstract class ContextFactory {
 				.allowExperimentalOptions(true)
 				//.option("lsp", "true")
 				;
+
+		// Loggers and IO
+		engineBuilder
+				.logHandler(new PolyglotLogHandler())
+				.out(new PolyglotOutputStream(LoggerFactory.getLogger("GenericPolyglotContext")));
+
 
 		// Debugging
 		if (Settings.ScriptingDebugger.getValue(false)) {

@@ -307,7 +307,8 @@ public abstract class PolyglotWrapper {
 					return null;
 				}
 
-				return value;
+				// Even if we can't successfully unwrap the value, we can't return the raw value, since it's bound to it's original context.
+				return null;
 			}
 
 			if (obj instanceof GraphObjectWrapper) {
