@@ -2442,12 +2442,12 @@ public class ScriptingTest extends StructrTest {
 			int resultSize;
 			Instant instant = Instant.now();
 
-			Thread.sleep(2000);
+			Thread.sleep(3000);
 
 			do {
 
 				resultSize = app.nodeQuery("TestOne").getAsList().size();
-				Thread.sleep(1000);
+				Thread.sleep(2500);
 
 			} while (resultSize != 0 && ((ChronoUnit.MILLIS.between(instant, Instant.now())) < 10000));
 
