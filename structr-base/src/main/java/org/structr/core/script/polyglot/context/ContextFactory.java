@@ -188,7 +188,7 @@ public abstract class ContextFactory {
 
 		context.getBindings(language).putMember("Structr", structrBinding);
 
-		if (!language.equals("python") && !language.equals("R")) {
+		if (!language.equals("python")) {
 			context.getBindings(language).putMember("$", structrBinding);
 		}
 
