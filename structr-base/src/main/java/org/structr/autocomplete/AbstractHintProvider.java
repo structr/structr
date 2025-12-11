@@ -118,6 +118,13 @@ public abstract class AbstractHintProvider {
 
 					return provider.getHints(actionContext, currentEntity, source, cursorLine, cursorPosition);
 
+				} else if (text.startsWith("${python{")) {
+
+					final PythonHintProvider provider = new PythonHintProvider();
+					final String source               = text.substring(9);
+
+					return provider.getHints(actionContext, currentEntity, source, cursorLine, cursorPosition);
+
 				} else if (text.startsWith("${")) {
 
 					final PlaintextHintProvider provider = new PlaintextHintProvider();

@@ -856,8 +856,13 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 	// ----- protected methods -----
 	protected List<Documentable> getContextHintsForTypes(final String lastToken) {
 
-		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 		final List<Documentable> hints = new LinkedList<>();
+
+		if (lastToken == null) {
+			return hints;
+		}
+
+		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
 		for (final String type : Traits.getAllTypes(t -> t.isNodeType() && !t.isServiceClass())) {
 

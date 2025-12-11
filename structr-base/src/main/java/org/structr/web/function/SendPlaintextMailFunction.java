@@ -40,7 +40,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("from, fromName, to, toName, subject, content");
+		return Signature.forAllScriptingLanguages("fromAddress, fromName, toAddress, toName, subject, content");
 	}
 
 	@Override
