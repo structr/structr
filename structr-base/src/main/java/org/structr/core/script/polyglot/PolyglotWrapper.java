@@ -522,7 +522,7 @@ public abstract class PolyglotWrapper {
 						.map(Value::asValue)
 						.toList();
 
-				result = func.execute(processedArgs.toArray());
+				result = unwrap(actionContext, func.execute(processedArgs.toArray()));
 				hasRun = true;
 
 				// Handle context reference counter and close current context if thread is the last one referencing it
@@ -542,7 +542,7 @@ public abstract class PolyglotWrapper {
 				curLockedContext.getLock().unlock();
 			}
 
-            return wrap(actionContext, unwrap(actionContext, result));
+            return wrap(actionContext, result);
 		}
 
 		public Value getValue() {
