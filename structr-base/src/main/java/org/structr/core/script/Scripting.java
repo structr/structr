@@ -271,31 +271,41 @@ public class Scripting {
 
 		// Clear output buffer
 		actionContext.clear();
-
-		final Context context = ContextFactory.getContext(engineName, actionContext, entity);
-
-		ContextHelper.incrementReferenceCount(context);
-		context.enter();
-
 		Object result = null;
+		final ContextFactory.LockedContext lockedContext = ContextFactory.getContext(engineName, actionContext, entity);
 
+		lockedContext.getLock().lock();
 		try {
+			final Context context = lockedContext.getContext();
 
-			final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
-			result = PolyglotWrapper.unwrap(actionContext, value);
+			ContextHelper.incrementReferenceCount(context);
+			context.enter();
+
+			try {
+
+				final Value value = evaluatePolyglot(actionContext, engineName, context, entity, snippet);
+				result = PolyglotWrapper.unwrap(actionContext, value);
+
+			} finally {
+
+				context.leave();
+				ContextHelper.decrementReferenceCount(context);
+
+				if (scriptConfig == null || !scriptConfig.keepContextOpen()) {
+
+					if (ContextHelper.getReferenceCount(context) <= 0) {
+
+						context.close();
+						actionContext.putScriptingContext(engineName, null);
+					}
+				}
+			}
 
 		} finally {
 
-			context.leave();
-			ContextHelper.decrementReferenceCount(context);
+			if (lockedContext.getLock().isHeldByCurrentThread()) {
 
-			if (scriptConfig == null || !scriptConfig.keepContextOpen()) {
-
-				if (ContextHelper.getReferenceCount(context) <= 0) {
-
-					context.close();
-					actionContext.putScriptingContext(engineName, null);
-				}
+				lockedContext.getLock().unlock();
 			}
 		}
 
@@ -308,6 +318,7 @@ public class Scripting {
 
 		return result != null ? result : "";
 	}
+
 
 	public static Value evaluatePolyglot(final ActionContext actionContext, final String engineName, final Context context, final GraphObject entity, final Snippet snippet) throws FrameworkException {
 

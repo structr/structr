@@ -29,7 +29,9 @@ import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
 import org.structr.schema.action.ActionContext;
 
+import java.sql.Struct;
 import java.util.concurrent.Callable;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
@@ -131,15 +133,15 @@ public abstract class ContextFactory {
 		return engineBuilder.build();
 	}
 
-	public static Context getContext(final String language) throws FrameworkException {
+	public static ContextFactory.LockedContext getContext(final String language) throws FrameworkException {
 		return getContext(language, null, null);
 	}
 
-	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
+	public static ContextFactory.LockedContext getContext(final String language, final ActionContext actionContext, final GraphObject entity) throws FrameworkException {
 		return getContext(language, actionContext, entity, true);
 	}
 
-	public static Context getContext(final String language, final ActionContext actionContext, final GraphObject entity, final boolean allowEntityOverride) throws FrameworkException {
+	public static ContextFactory.LockedContext getContext(final String language, final ActionContext actionContext, final GraphObject entity, final boolean allowEntityOverride) throws FrameworkException {
 
 		switch (language) {
 
@@ -154,9 +156,9 @@ public abstract class ContextFactory {
 		}
 	}
 
-	private static Context getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<Context> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
+	private static ContextFactory.LockedContext getOrCreateContext(final String language, final ActionContext actionContext, final GraphObject entity, final Callable<ContextFactory.LockedContext> contextCreationFunc, final boolean allowEntityOverride) throws FrameworkException {
 
-		Context storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
+		ContextFactory.LockedContext storedContext = actionContext != null ? actionContext.getScriptingContext(language) : null;
 
 		if (actionContext != null && storedContext == null) {
 
@@ -174,36 +176,72 @@ public abstract class ContextFactory {
 		} else if (actionContext != null && allowEntityOverride) {
 
 			// If binding exists in context, ensure entity is up to date
-			final StructrBinding structrBinding = storedContext.getBindings(language).getMember("Structr").asProxyObject();
+			final StructrBinding structrBinding = storedContext.getBinding();
 			structrBinding.setEntity(entity);
 		}
 
 		return  storedContext;
 	}
 
-	private static Context buildJSContext(final ActionContext actionContext, final GraphObject entity) {
-		return updateBindings(jsBuilder.build(), "js", actionContext, entity);
+	private static ContextFactory.LockedContext buildJSContext(final ActionContext actionContext, final GraphObject entity) {
+		return updateBindings(new LockedContext(jsBuilder.build()), "js", actionContext, entity);
 	}
 
-	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
-		Context ctx = pythonBuilder.build();
-		return updateBindings(ctx, "python", actionContext, entity);
+	private static ContextFactory.LockedContext buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
+		return updateBindings(new LockedContext(pythonBuilder.build()), "python", actionContext, entity);
 	}
 
-	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
-		return updateBindings(genericBuilder.build(), language, actionContext, entity);
+	private static ContextFactory.LockedContext buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
+		return updateBindings(new LockedContext(genericBuilder.build()), language, actionContext, entity);
 	}
 
-	private static Context updateBindings(final Context context, final String language, final ActionContext actionContext, final GraphObject entity) {
+	private static ContextFactory.LockedContext updateBindings(final ContextFactory.LockedContext lockedContext, final String language, final ActionContext actionContext, final GraphObject entity) {
 
 		final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
 
-		context.getBindings(language).putMember("Structr", structrBinding);
+		lockedContext.getLock().lock();
+		try {
+			Context context = lockedContext.getContext();
 
-		if (!language.equals("python")) {
-			context.getBindings(language).putMember("$", structrBinding);
+			context.getBindings(language).putMember("Structr", structrBinding);
+
+			if (!language.equals("python")) {
+				context.getBindings(language).putMember("$", structrBinding);
+			}
+		} finally {
+			lockedContext.getLock().unlock();
 		}
 
-		return context;
+		lockedContext.setBinding(structrBinding);
+		return lockedContext;
+	}
+
+	public static class LockedContext {
+		private final ReentrantLock lock = new ReentrantLock();
+		private final Context context;
+		private StructrBinding binding = null;
+
+		public LockedContext(final Context context) {
+			this.context = context;
+		}
+
+		public ReentrantLock getLock() {
+			return this.lock;
+		}
+
+		public void setBinding(final StructrBinding binding) {
+			this.binding = binding;
+		}
+
+		public StructrBinding getBinding() {
+			return this.binding;
+		}
+
+		public Context getContext() {
+			if (this.lock.isHeldByCurrentThread()) {
+				return context;
+			}
+			throw new IllegalStateException("Lock for context is not held by current thread.");
+		}
 	}
 }

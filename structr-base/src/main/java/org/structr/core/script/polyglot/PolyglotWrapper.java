@@ -28,6 +28,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.IllegalArgumentTypeException;
 import org.structr.core.api.NamedArguments;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
@@ -520,18 +521,35 @@ public abstract class PolyglotWrapper {
 				ContextHelper.decrementReferenceCount(func.getContext());
 				if (ContextHelper.getReferenceCount(func.getContext()) <= 0) {
 
-					final Context curContext = actionContext.getScriptingContexts()
+					final ContextFactory.LockedContext curLockedContext = actionContext.getScriptingContexts()
 							.entrySet()
 							.stream()
-							.filter(entry -> entry.getValue().equals(func.getContext()))
+							.filter(entry -> {
+
+								final ContextFactory.LockedContext lockedContext = entry.getValue();
+								lockedContext.getLock().lock();
+
+								try {
+
+									return lockedContext.getContext().equals(func.getContext());
+								} finally {
+
+									lockedContext.getLock().unlock();
+								}
+							})
 							.findFirst()
 							.map(Entry::getValue)
 							.orElse(null);
 
-					if (curContext != null) {
+					if (curLockedContext != null) {
 
-						curContext.close();
-						actionContext.removeScriptingContextByValue(curContext);
+						curLockedContext.getLock().lock();
+						try {
+							curLockedContext.getContext().close();
+							actionContext.removeScriptingContextByValue(curLockedContext);
+						} finally {
+							curLockedContext.getLock().unlock();
+						}
 					}
 				}
 
