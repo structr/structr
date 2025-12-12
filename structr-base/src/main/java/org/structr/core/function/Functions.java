@@ -99,12 +99,13 @@ public class Functions {
 		}
 	}
 
-	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
+	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result, final boolean silenceTokenizer) throws FrameworkException, UnlicensedScriptException {
 
 		final Map<Integer, String> namespaceMap = new TreeMap<>();
 		final String expression                 = snippet.getSource();
 		final List<String> tokens               = result.getTokens();
 		final StructrScriptTokenizer tokenizer  = new StructrScriptTokenizer();
+		tokenizer.setIsSilent(silenceTokenizer);
 
 		Expression root = new RootExpression();
 		Expression current = root;
@@ -242,7 +243,7 @@ public class Functions {
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
-		final Expression root = parse(actionContext, entity, snippet, new ParseResult());
+		final Expression root = parse(actionContext, entity, snippet, new ParseResult(), false);
 
 		return root.evaluate(actionContext, entity, hints);
 	}
@@ -420,6 +421,7 @@ public class Functions {
 		private Tokenizer currentToken     = null;
 		private int column                 = 1;
 		private int row                    = 1;
+		private boolean isSilent           = false;
 
 		static {
 
@@ -478,7 +480,9 @@ public class Functions {
 
 					} else {
 
-						logger.warn("Unexpected character {} ({}) in string \"{}\". Tokens: {}", (int)chars[i], Character.toString(chars[i]), expression, tokens);
+						if (!isSilent) {
+							logger.warn("Unexpected character {} ({}) in string \"{}\". Tokens: {}", (int)chars[i], Character.toString(chars[i]), expression, tokens);
+						}
 
 						// no token, stop parsing
 						break;
@@ -508,6 +512,10 @@ public class Functions {
 			}
 
 			return null;
+		}
+
+		public void setIsSilent(final boolean isSilent) {
+			this.isSilent = isSilent;
 		}
 	}
 
