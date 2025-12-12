@@ -271,7 +271,7 @@ public abstract class RESTCallHandler {
 			}
 		}
 
-		throw new FrameworkException(404, "Entity with ID ‛" + uuid + "‛ of type ‛" +  typeName +  "‛ does not exist");
+		throw new FrameworkException(404, "Entity with ID ‛" + uuid + "‛ of type ‛" +  typeName +  "‛ not found");
 	}
 
 	protected String buildLocationHeader(final SecurityContext securityContext, final org.structr.core.GraphObject newObject) {
