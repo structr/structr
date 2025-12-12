@@ -2262,7 +2262,7 @@ let _Schema = {
 				class: 'builtin schema-props grid',
 				style: 'grid-template-columns: [ declaringClass ] minmax(0, 1fr) [ jsonName ] minmax(0, 1fr) [ type ] minmax(0, 1fr) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ fulltext ] minmax(5%, max-content);',
 				cols: [
-					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Declaring Class' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Declaring Trait' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'JSON Name' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Type' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Notnull' },
