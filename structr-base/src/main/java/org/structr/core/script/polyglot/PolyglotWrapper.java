@@ -467,11 +467,12 @@ public abstract class PolyglotWrapper {
 
 	public static class FunctionWrapper implements ProxyExecutable {
 
-		private Value func;
+		private final Value func;
+		private final ContextFactory.LockedContext lockedContext;
 		private ActionContext actionContext;
 		private boolean hasRun;
 
-		public FunctionWrapper(final ActionContext actionContext, final Value func) {
+		public FunctionWrapper(final ActionContext actionContext, final Value func) throws FrameworkException {
 
 			this.actionContext = actionContext;
 			this.hasRun = false;
@@ -480,11 +481,31 @@ public abstract class PolyglotWrapper {
 
 				this.func = func;
 				ContextHelper.incrementReferenceCount(func.getContext());
+
+				this.lockedContext = determineLockedContextFromFunction(func);
+			} else {
+
+				throw new FrameworkException(422, "Could not initialize FunctionWrapper, because given value was not executable.");
 			}
 		}
 
 		public void setActionContext(final ActionContext actionContext) {
 			this.actionContext = actionContext;
+		}
+
+		public ContextFactory.LockedContext getLockedContext() {
+			return this.lockedContext;
+		}
+
+		private ContextFactory.LockedContext determineLockedContextFromFunction(Value func) {
+
+            return actionContext.getScriptingContexts()
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> entry.getValue().locksContext(func.getContext()))
+                    .findFirst()
+                    .map(Entry::getValue)
+                    .orElse(null);
 		}
 
 		@Override
@@ -494,28 +515,20 @@ public abstract class PolyglotWrapper {
 				throw new IllegalStateException("FunctionWrapper: Function cannot be null.");
 			}
 
-			final ContextFactory.LockedContext curLockedContext = actionContext.getScriptingContexts()
-					.entrySet()
-					.stream()
-					.filter(entry -> entry.getValue().locksContext(func.getContext()))
-					.findFirst()
-					.map(Entry::getValue)
-					.orElse(null);
-
-			if (curLockedContext == null) {
+			if (lockedContext == null) {
 				throw new IllegalStateException("Could not execute function within PolyglotWrapper.FunctionWrapper, because the attached context is null.");
 			}
 
 			Object result = null;
 
-			curLockedContext.getLock().lock();
+			lockedContext.getLock().lock();
 			try {
 
-				curLockedContext.getContext().enter();
+				lockedContext.getContext().enter();
 
 				if (hasRun) {
 
-					ContextHelper.incrementReferenceCount(curLockedContext.getContext());
+					ContextHelper.incrementReferenceCount(lockedContext.getContext());
 					hasRun = false;
 				}
 
@@ -525,27 +538,25 @@ public abstract class PolyglotWrapper {
 						.map(Value::asValue)
 						.toList();
 
-				result = unwrap(actionContext, func.execute(processedArgs.toArray()));
-				hasRun = true;
+				try {
 
-				// Handle context reference counter and close current context if thread is the last one referencing it
-				ContextHelper.decrementReferenceCount(curLockedContext.getContext());
+					result = unwrap(actionContext, func.execute(processedArgs.toArray()));
+					hasRun = true;
+				} finally {
+					// Handle context reference counter and close current context if thread is the last one referencing it
+					ContextHelper.decrementReferenceCount(lockedContext.getContext());
 
-				curLockedContext.getContext().leave();
+					lockedContext.getContext().leave();
 
-				if (ContextHelper.getReferenceCount(curLockedContext.getContext()) <= 0) {
+					if (ContextHelper.getReferenceCount(lockedContext.getContext()) <= 0) {
 
-                    curLockedContext.getLock().lock();
-                    try {
-                        curLockedContext.getContext().close();
-                        actionContext.removeScriptingContextByValue(curLockedContext);
-                    } finally {
-                        curLockedContext.getLock().unlock();
-                    }
-                }
+						lockedContext.getContext().close();
+						actionContext.removeScriptingContextByValue(lockedContext);
+					}
+				}
 
 			} finally {
-				curLockedContext.getLock().unlock();
+				lockedContext.getLock().unlock();
 			}
 
             return wrap(actionContext, result);
