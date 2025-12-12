@@ -125,8 +125,6 @@ public class DocumentationServlet extends HttpServlet {
 		}
 	}
 
-
-
 	private void handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings) {
 
 		boolean hasFilter = false;
@@ -213,11 +211,13 @@ public class DocumentationServlet extends HttpServlet {
 
 		settings.setFormatterForOutputFormatAndType("markdown", "topic",           new MarkdownTopicFormatter());
 		settings.setFormatterForOutputFormatAndType("markdown", "service",         new MarkdownServiceFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", "markdown-source", new MarkdownMarkdownSourceFormatter(baseResource));
+		settings.setFormatterForOutputFormatAndType("markdown", "markdown-folder", new MarkdownTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", "markdown-file",   new MarkdownMarkdownFileFormatter(baseResource));
 		settings.setFormatterForOutputFormatAndType("markdown", "code-source",     new MarkdownCodeSourceFormatter());
 
 		settings.setFormatterForOutputFormatAndType("text", "topic",               new PlaintextTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("text", "markdown-source",     new PlaintextMarkdownSourceFormatter(baseResource));
+		settings.setFormatterForOutputFormatAndType("text", "markdown-folder",     new PlaintextTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("text", "markdown-file",       new PlaintextMarkdownFileFormatter(baseResource));
 
 		return settings;
 	}

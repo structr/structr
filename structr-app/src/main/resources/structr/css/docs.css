@@ -106,16 +106,21 @@
 
 .article {
     background-color: white;
+    padding: 0 2rem 2rem 2rem;
 }
+
 #docs-area iframe {
     border: none;
     background-color: white;
     overflow: auto;
     height: calc(100vh - 10rem);
-    padding: 0 2rem 2rem 2rem;
     margin: 0;
     width: 80%;
     line-height: 1.5rem;
+}
+
+html {
+    background-color: white;
 }
 
 .article h1 a, .article h2 a, .article h3 a, .article h4 a, .article h5 a, .article h6 a {

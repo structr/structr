@@ -198,6 +198,7 @@ Click "Configure a database connection" and then "Create new database connection
 
 
 For a standard Neo4j setup:
+
 1. Click "Set Neo4j defaults" to auto-fill typical values
 2. Adjust the connection parameters if needed
 3. Click "Save" to establish the connection

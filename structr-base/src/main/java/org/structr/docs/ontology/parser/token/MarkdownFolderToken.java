@@ -18,27 +18,24 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.docs.formatter.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
 
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
-public class NamedConceptToken extends Token<List<Concept>> {
+public class MarkdownFolderToken extends NamedConceptToken {
 
-	protected final ConceptToken conceptToken;
-	protected final IdentifierToken identifierToken;
+	public MarkdownFolderToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
-	public NamedConceptToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
-
-		super((conceptToken != null ? conceptToken.getName() : "") + "(" + (identifierToken != null ? identifierToken.getName() : "") + ")");
-
-		this.identifierToken = identifierToken;
-		this.conceptToken    = conceptToken;
+		super(conceptToken, identifierToken);
 	}
 
 	@Override
@@ -57,9 +54,34 @@ public class NamedConceptToken extends Token<List<Concept>> {
 		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
 		final List<Concept> concepts   = new LinkedList<>();
 
-		for (final String identifier : identifiers) {
+		for (final String folderName : identifiers) {
 
-			concepts.add(ontology.getOrCreateConcept(sourceFile, line, type, identifier));
+			final String cleanedName = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
+			final Concept folder     = ontology.getOrCreateConcept(sourceFile, line, type, cleanedName);
+			final Path path          = Path.of("structr/docs/" + folderName + "/index.txt");
+
+			concepts.add(folder);
+
+			// resolve markdown folder contents and add them as topics
+			if (Files.exists(path)) {
+
+				try {
+					final List<String> files = Files.readAllLines(path);
+					for (final String file : files) {
+
+						final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
+						final Concept markdownFile   = ontology.getOrCreateConcept("sourceFile", line, "markdown-file", cleanedFileName);
+						final String filePath        = folderName + "/" + file;
+
+						markdownFile.getMetadata().put("path", filePath);
+
+						folder.linkChild("has", markdownFile);
+					}
+
+				} catch (IOException ioex) {
+					ioex.printStackTrace();
+				}
+			}
 		}
 
 		return concepts;

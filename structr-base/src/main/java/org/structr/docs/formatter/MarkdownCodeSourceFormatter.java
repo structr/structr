@@ -57,7 +57,6 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 				Functions.addExpressions(documentables);
 				break;
 
-
 			case "maintenance-commands":
 				documentables.addAll(MaintenanceResource.getMaintenanceCommands());
 				break;
@@ -84,11 +83,11 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 				documentables.add(new AfterDelete());
 				break;
 
-			case "services":
+			case "services-list":
 				Services.collectDocumentation(documentables);
 				break;
 
-			case "settings":
+			case "settings-list":
 				for (final SettingsGroup group : Settings.getGroups()) {
 
 					for (final org.structr.api.config.Setting setting : group.getSettings()) {

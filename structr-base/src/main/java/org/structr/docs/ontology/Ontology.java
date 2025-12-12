@@ -49,7 +49,7 @@ public final class Ontology {
 			"topic", "concept", "component", "feature", "mechanism", "provider", "service", "capability", "use-case", "type", "list",
 
 			// external sources
-			"markdown-source", "code-source",
+			"markdown-folder", "markdown-file", "code-source",
 
 			// concepts for ui elements
 			"area", "tab", "dialog", "link", "input", "textarea", "button", "checkbox", "dropdown", "selector",
@@ -186,7 +186,7 @@ public final class Ontology {
 			return;
 		}
 
-		final List<String> input = Functions.tokenize(line);
+		final List<String> input  = Functions.tokenize(line, true);
 		final Deque<Token> tokens = new LinkedList<>();
 
 		for (final String token : input) {

@@ -42,7 +42,17 @@ public class IdentifyNamesRule extends Rule {
 
 			if (token.isUnresolved()) {
 
-				result.add(new IdentifierToken(token.getName()));
+				if (token.isInQuotes()) {
+
+					final String name         = token.getName();
+					final String unquotedName = name.substring(1, name.length() - 1);
+
+					result.add(new IdentifierToken(unquotedName));
+
+				} else {
+
+					result.add(new IdentifierToken(token.getName()));
+				}
 
 			} else {
 

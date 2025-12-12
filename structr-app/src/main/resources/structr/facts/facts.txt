@@ -1,8 +1,5 @@
-Structr has topics Introduction, "Core Concepts", "Core System", "Admin User Interface", "Integration", "Security & Access", "Operations", "References"
-
-# Introduction links to existing markdown files
-Introduction has markdown-source "1-Introduction"
-"Core Concepts" has markdown-source "2-Core Concepts"
+Structr has markdown-folders "1-Introduction", "2-Core Concepts", "4-Admin User Interface"
+Structr has topic "References"
 
 # Admin User Interface
 "Admin User Interface" has areas "Login Form", "Navigation Bar", Dashboard, Pages, Files, Security, Schema, Code, Data, Graphs, Flows, Importer, Localization, "Virtual Types", "Mail Templates", Documentation

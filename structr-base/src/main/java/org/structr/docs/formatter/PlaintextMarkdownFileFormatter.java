@@ -18,6 +18,7 @@
  */
 package org.structr.docs.formatter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
@@ -34,53 +35,20 @@ import java.util.regex.Pattern;
  * Formats the contents of an external markdown source as plaintext,
  * but only the name. This is mainly used to build the navigation index.
  */
-public class PlaintextMarkdownSourceFormatter extends Formatter {
+public class PlaintextMarkdownFileFormatter extends Formatter {
 
 	private final Resource baseResource;
 
-	public PlaintextMarkdownSourceFormatter(final Resource baseResource) {
+	public PlaintextMarkdownFileFormatter(final Resource baseResource) {
 		this.baseResource = baseResource;
 	}
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
 
-		// concept name contains folder name
-		final String folderName = concept.getName();
-		final Resource resource = baseResource.resolve("docs/" + folderName);
-		final Resource index    = resource.resolve("index.txt");
+		if (settings.getDetails().contains(Details.name)) {
 
-		settings.setBaseUrl("/structr/docs/" + folderName + "/");
-
-		try {
-
-			final List<String> files = Files.readAllLines(index.getPath());
-			for (final String file : files) {
-
-				final String name = getNameFromFileName(file);
-
-				if (settings.getDetails().contains(Details.name)) {
-
-					lines.add(name);
-				}
-			}
-
-		} catch (IOException e) {
-			e.printStackTrace();
+			lines.add(concept.getName());
 		}
-	}
-
-	// ----- private methods -----
-	private String getNameFromFileName(final String fileName) {
-
-		final Pattern pattern = Pattern.compile("^[0-9]+\\-(.*?)(\\.md)?");
-		final Matcher matcher = pattern.matcher(fileName);
-
-		if (matcher.matches()) {
-
-			return matcher.group(1);
-		}
-
-		return fileName;
 	}
 }

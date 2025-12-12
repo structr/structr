@@ -18,6 +18,7 @@
  */
 package org.structr.docs.formatter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
@@ -34,11 +35,11 @@ import java.util.regex.Pattern;
  * Formats the contents of an external markdown source as plaintext,
  * but only the name. This is mainly used to build the navigation index.
  */
-public class MarkdownMarkdownSourceFormatter extends Formatter {
+public class MarkdownMarkdownFileFormatter extends Formatter {
 
 	private final Resource baseResource;
 
-	public MarkdownMarkdownSourceFormatter(final Resource baseResource) {
+	public MarkdownMarkdownFileFormatter(final Resource baseResource) {
 		this.baseResource = baseResource;
 	}
 
@@ -46,29 +47,25 @@ public class MarkdownMarkdownSourceFormatter extends Formatter {
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
 
 		// concept name contains folder name
-		final String folderName = concept.getName();
+		final String path       = concept.getMetadata().get("path");
+		final String fileName   = StringUtils.substringAfterLast(path, "/");
+		final String folderName = StringUtils.substringBeforeLast(path, "/");
 		final Resource resource = baseResource.resolve("docs/" + folderName);
-		final Resource index    = resource.resolve("index.txt");
 
 		settings.setBaseUrl("/structr/docs/" + folderName + "/");
 
 		try {
 
-			final List<String> files = Files.readAllLines(index.getPath());
-			for (final String file : files) {
+			final String name = getNameFromFileName(fileName);
 
-				final String name = getNameFromFileName(file);
+			if (settings.hasDetail(Details.name)) {
 
-				if (settings.getDetails().contains(Details.name)) {
+				lines.add(formatMarkdownHeading(name, level));
+			}
 
-					lines.add(formatMarkdownHeading(name, level));
-				}
+			if (settings.hasDetail(Details.all)) {
 
-				if (settings.getDetails().contains(Details.all)) {
-
-					lines.addAll(Files.readAllLines(resource.resolve(file).getPath()));
-				}
-
+				lines.addAll(Files.readAllLines(resource.resolve(fileName).getPath()));
 			}
 
 		} catch (IOException e) {
@@ -76,8 +73,7 @@ public class MarkdownMarkdownSourceFormatter extends Formatter {
 		}
 	}
 
-	// ----- private methods -----
-	private String getNameFromFileName(final String fileName) {
+	public static String getNameFromFileName(final String fileName) {
 
 		final Pattern pattern = Pattern.compile("^[0-9]+\\-(.*?)(\\.md)?");
 		final Matcher matcher = pattern.matcher(fileName);

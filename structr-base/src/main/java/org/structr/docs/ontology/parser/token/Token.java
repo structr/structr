@@ -48,4 +48,17 @@ public abstract class Token<T> {
 	public String getType() {
 		return getClass().getSimpleName();
 	}
+
+	public boolean isInQuotes() {
+
+		if (name.startsWith("\"") && name.endsWith("\"")) {
+			return true;
+		}
+
+		if (name.startsWith("\'") && name.endsWith("\'")) {
+			return true;
+		}
+
+		return false;
+	}
 }

@@ -19,10 +19,7 @@
 package org.structr.docs.ontology.parser.rule;
 
 import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.parser.token.ConceptToken;
-import org.structr.docs.ontology.parser.token.IdentifierToken;
-import org.structr.docs.ontology.parser.token.NamedConceptToken;
-import org.structr.docs.ontology.parser.token.Token;
+import org.structr.docs.ontology.parser.token.*;
 
 import java.util.Deque;
 import java.util.LinkedList;
@@ -49,7 +46,14 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof ConceptToken conceptToken) {
 
-					result.add(new NamedConceptToken(conceptToken, identifierToken));
+					if ("markdown-folder".equals(conceptToken.getName())) {
+
+						result.add(new MarkdownFolderToken(conceptToken, identifierToken));
+
+					} else {
+
+						result.add(new NamedConceptToken(conceptToken, identifierToken));
+					}
 
 				} else {
 
@@ -65,7 +69,14 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof IdentifierToken identifierToken) {
 
-					result.add(new NamedConceptToken(conceptToken, identifierToken));
+					if ("markdown-folder".equals(conceptToken.getName())) {
+
+						result.add(new MarkdownFolderToken(conceptToken, identifierToken));
+
+					} else {
+
+						result.add(new NamedConceptToken(conceptToken, identifierToken));
+					}
 
 				} else {
 

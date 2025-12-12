@@ -99,9 +99,9 @@ public class Functions {
 		}
 	}
 
-	public static List<String> tokenize(final String input) {
+	public static List<String> tokenize(final String input, final boolean includeQuotesInTokens) {
 
-		final StructrScriptTokenizer tokenizer = new StructrScriptTokenizer();
+		final StructrScriptTokenizer tokenizer = new StructrScriptTokenizer(includeQuotesInTokens);
 		final List<String> tokens              = new LinkedList<>();
 
 		for (final Token token : tokenizer.tokenize(input)) {
@@ -115,12 +115,12 @@ public class Functions {
 		return tokens;
 	}
 
-	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result, final boolean silenceTokenizer) throws FrameworkException, UnlicensedScriptException {
+	public static Expression parse(final Snippet snippet, final ParseResult result, final boolean silenceTokenizer) throws FrameworkException, UnlicensedScriptException {
 
 		final Map<Integer, String> namespaceMap = new TreeMap<>();
 		final String expression                 = snippet.getSource();
 		final List<String> tokens               = result.getTokens();
-		final StructrScriptTokenizer tokenizer  = new StructrScriptTokenizer();
+		final StructrScriptTokenizer tokenizer  = new StructrScriptTokenizer(false);
 		tokenizer.setIsSilent(silenceTokenizer);
 
 		Expression root = new RootExpression();
@@ -259,7 +259,7 @@ public class Functions {
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final EvaluationHints hints) throws FrameworkException, UnlicensedScriptException {
 
-		final Expression root = parse(actionContext, entity, snippet, new ParseResult(), false);
+		final Expression root = parse(snippet, new ParseResult(), false);
 
 		return root.evaluate(actionContext, entity, hints);
 	}
@@ -432,14 +432,14 @@ public class Functions {
 
 	private static class StructrScriptTokenizer {
 
-		private static final List<Tokenizer> candidates = new LinkedList<>();
-		private List<Token> tokens         = new LinkedList<>();
-		private Tokenizer currentToken     = null;
-		private int column                 = 1;
-		private int row                    = 1;
+		private final List<Tokenizer> candidates = new LinkedList<>();
+		private List<Token> tokens               = new LinkedList<>();
+		private Tokenizer currentToken           = null;
+		private int column                       = 1;
+		private int row                          = 1;
 		private boolean isSilent           = false;
 
-		static {
+		public StructrScriptTokenizer(final boolean includeQuotesInTokens) {
 
 			candidates.add(new Identifier());
 			candidates.add(new SingleCharacter((char)9));  // tab
@@ -452,8 +452,8 @@ public class Functions {
 			candidates.add(new SingleCharacter(')'));
 			candidates.add(new SingleCharacter('['));
 			candidates.add(new SingleCharacter(']'));
-			candidates.add(new QuotedString('\''));
-			candidates.add(new QuotedString('\"'));
+			candidates.add(new QuotedString('\'', includeQuotesInTokens));
+			candidates.add(new QuotedString('\"', includeQuotesInTokens));
 			candidates.add(new Number());
 		}
 
@@ -537,11 +537,11 @@ public class Functions {
 
 	private static class Token {
 
-		private String type    = null;
-		private String content = null;
-		private String quote   = null;
-		private int row        = 1;
-		private int column     = 1;
+		private final String type;
+		private final String content;
+		private final String quote;
+		private final int row;
+		private final int column;
 
 		public Token(final String type, final String content, final String quote, final int row, final int column) {
 
@@ -719,12 +719,15 @@ public class Functions {
 
 	private static class QuotedString extends Tokenizer {
 
-		private boolean esc     = false;
-		private char quoteChar  = 0;
-		private int state       = 0;
+		private boolean includeQuotesInToken = false;
+		private boolean esc                  = false;
+		private char quoteChar               = 0;
+		private int state                    = 0;
 
-		public QuotedString(final char quoteChar) {
-			this.quoteChar = quoteChar;
+		public QuotedString(final char quoteChar, final boolean includeQuotesInToken) {
+
+			this.includeQuotesInToken = includeQuotesInToken;
+			this.quoteChar            = quoteChar;
 		}
 
 		@Override
@@ -799,13 +802,23 @@ public class Functions {
 		}
 
 		@Override
+		public String getContent() {
+
+			if (includeQuotesInToken) {
+				return "\"" + super.getContent() + "\"";
+			}
+
+			return super.getContent();
+		}
+
+		@Override
 		public String getQuoteChar() {
 			return Character.toString(quoteChar);
 		}
 
 		@Override
 		Tokenizer newInstance() {
-			return new QuotedString(quoteChar);
+			return new QuotedString(quoteChar, includeQuotesInToken);
 		}
 	}
 }

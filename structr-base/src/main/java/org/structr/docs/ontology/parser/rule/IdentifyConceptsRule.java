@@ -20,6 +20,7 @@ package org.structr.docs.ontology.parser.rule;
 
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.ConceptToken;
+import org.structr.docs.ontology.parser.token.MarkdownFolderToken;
 import org.structr.docs.ontology.parser.token.Token;
 
 import java.util.Deque;
@@ -42,7 +43,8 @@ public class IdentifyConceptsRule extends Rule {
 
 			final Token token = tokens.pop();
 
-			if (token.isUnresolved()) {
+			// quoted tokens can never be keywords
+			if (token.isUnresolved() && !token.isInQuotes()) {
 
 				final String name                  = token.getName();
 				final String lowercaseName         = name.toLowerCase();

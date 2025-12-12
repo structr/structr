@@ -85,21 +85,21 @@ Switch to the Data tab to create test records for your project management system
 
 ### Creating Projects
 
-1. Searchg for "Project" and click on the "Project" type in the sidebar
+1. Search for "Project" and click on the "Project" type in the sidebar
 2. Use "Create Project" to add three sample projects
 3. Set names by clicking on the name cells:
-   - Project A
-   - Project B
-   - Project C
+    - Project A
+    - Project B
+    - Project C
 
 ### Creating Milestones
 
 1. Click on the "Milestone" type
 2. Create a couple of milestone records
 3. Name them according to their projects, e.g.:
-   - Milestone A1, A2, A3 (for Project A)
-   - Milestone B1, B2, B3 (for Project B)
-   - Milestone C1, C2, C3 (for Project C)
+    - Milestone A1, A2, A3 (for Project A)
+    - Milestone B1, B2, B3 (for Project B)
+    - Milestone C1, C2, C3 (for Project C)
 
 ![Created Objects](../data_objects-created.png)
 

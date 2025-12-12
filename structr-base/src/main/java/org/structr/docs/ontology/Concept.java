@@ -31,6 +31,7 @@ public final class Concept {
 
 	protected final Map<String, List<Concept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
+	protected final Map<String, String> metadata        =  new LinkedHashMap<>();
 	protected final String sourceFile;
 	protected final int lineNumber;
 	protected final String name;
@@ -71,6 +72,10 @@ public final class Concept {
 
 	public Map<String, List<Concept>> getChildren() {
 		return children;
+	}
+
+	public Map<String, String> getMetadata() {
+		return metadata;
 	}
 
 	public List<Concept> getChildrenOfType(final String linkType, final String conceptType) {

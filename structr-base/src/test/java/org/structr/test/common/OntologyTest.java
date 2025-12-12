@@ -85,6 +85,33 @@ public class OntologyTest extends StructrUiTest {
 
 	}
 
+	@Test
+	public void testAmbiguousIdentifiers() {
+
+		final List<String> facts = List.of(
+			"# References",
+			"Topic References has topics Keywords, Functions, \"Lifecycle Methods\", \"System Types\", Services, \"Maintenance Commands\", Settings",
+
+			"\"Keywords\" has code-source \"keywords\"",
+			"\"Functions\" has code-source \"functions\"",
+			"\"Lifecycle Methods\" has code-source \"lifecycle-methods\"",
+			"\"System Types\" has code-source \"system-types\"",
+			"\"Services\" has code-source \"services-list\"",
+			"\"Maintenance Commands\" has code-source \"maintenance-commands\"",
+			"\"Settings\" has code-source \"settings-list\""
+		);
+
+		final Ontology ontology = new Ontology("testAmbiguousIdentifiers", facts);
+
+		System.out.println(ontology.getConcept("topic", "Services"));
+	}
+
+	@Test
+	public void testMarkdownFolders() {
+
+		new Ontology("testMarkdownFolders", "topic Structr has markdown-folder \"1-Introduction\"");
+	}
+
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {
 

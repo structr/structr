@@ -5,6 +5,6 @@ Topic References has topics Keywords, Functions, "Lifecycle Methods", "System Ty
 "Functions" has code-source "functions"
 "Lifecycle Methods" has code-source "lifecycle-methods"
 "System Types" has code-source "system-types"
-Topic "Services" has code-source "services"
+Topic "Services" has code-source "services-list"
 "Maintenance Commands" has code-source "maintenance-commands"
-Topic "Settings" has code-source "settings"
+Topic "Settings" has code-source "settings-list"
