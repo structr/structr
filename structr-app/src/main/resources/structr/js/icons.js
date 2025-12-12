@@ -172,6 +172,7 @@ let _Icons = {
 	iconWrench:              'wrench',
 
 	iconLogoAuth0:           'logo-auth0',
+	iconLogoKeycloak:        'logo-keycloak',
 	iconLogoMicrosoft:       'logo-microsoft',
 	iconLogoFacebook:        'logo-facebook',
 	iconLogoGithub:          'logo-github',

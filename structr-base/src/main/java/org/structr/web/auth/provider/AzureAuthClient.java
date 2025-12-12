@@ -19,25 +19,29 @@
 package org.structr.web.auth.provider;
 
 import com.github.scribejava.apis.MicrosoftAzureActiveDirectory20Api;
-import com.github.scribejava.core.builder.ServiceBuilder;
 import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.web.auth.AbstractOAuth2Client;
+import org.structr.web.auth.OAuth2ProviderRegistry;
 
+/**
+ * Azure Active Directory OAuth2 client implementation.
+ *
+ * Configuration:
+ *    oauth.azure.tenant_id = your-tenant-id (or "common" for multi-tenant)
+ *    oauth.azure.user_details_resource_uri = user details endpoint (required)
+ *
+ * ScribeJava's MicrosoftAzureActiveDirectory20Api automatically handles
+ * authorization and token endpoint URL construction based on the tenant ID.
+ */
 public class AzureAuthClient extends AbstractOAuth2Client {
-    private static final Logger logger = LoggerFactory.getLogger(FacebookAuthClient.class);
 
-    private final static String authServer = "azure";
+	private static final String AUTH_SERVER = "azure";
 
-    public AzureAuthClient(final HttpServletRequest request) {
+	public AzureAuthClient(final HttpServletRequest request, OAuth2ProviderRegistry.ProviderConfig providerConfig) {
 
-        super(request, authServer);
+		final String tenantId = Settings.OAuthAzureTenantId.getValue();
 
-        service = new ServiceBuilder(clientId)
-                .apiSecret(clientSecret)
-                .callback(redirectUri)
-                .defaultScope(scope)
-                .build(MicrosoftAzureActiveDirectory20Api.instance());
-    }
+		super(request, AUTH_SERVER, MicrosoftAzureActiveDirectory20Api.custom(tenantId), providerConfig);
+	}
 }

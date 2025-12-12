@@ -107,6 +107,11 @@ let _Dialogs = {
 				name: 'LinkedIn',
 				uriPart: 'linkedin',
 				iconId: _Icons.iconLogoLinkedIn
+			},
+			{
+				name: 'Keycloak',
+				uriPart: 'keycloak',
+				iconId: _Icons.iconLogoKeycloak
 			}
 		],
 		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login?isBackendOAuthLogin`,
