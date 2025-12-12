@@ -39,8 +39,8 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_FUNCTION_INFO_JS = "Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}";
 
-	public static final String DECLARING_CLASS_KEY            = "declaringClass";
-	public static final String IS_USER_DEFINED_FUNCTION_KEY   = "isUserDefinedFunction";
+	public static final String DECLARING_TRAIT_KEY          = "declaringTrait";
+	public static final String IS_USER_DEFINED_FUNCTION_KEY = "isUserDefinedFunction";
 
 	@Override
 	public String getName() {
@@ -125,7 +125,7 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 				| Key                   | Type    | Description                                                                                                                   |
 				|-----------------------|---------|-------------------------------------------------------------------------------------------------------------------------------|
 				| name                  | String  | name of the method                                                                                                            |
-				| declaringClass        | String  | name of the type the method is declared on (`null` if if `isUserDefinedFunction === true`)                                    |
+				| declaringTrait        | String  | name of the type the method is declared on (`null` if if `isUserDefinedFunction === true`)                                    |
 				| isUserDefinedFunction | boolean | `true` if the method is not a type- or service class method, `false` otherwise                                                |
 				| isStatic              | boolean | `true` if the method can be called statically, `false` if it can only be called in an object context                          |
 				| isPrivate             | boolean | `true` if the method can only be called via scripting, `false` if it can be called via REST as well                           |
@@ -188,10 +188,10 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 		if (method instanceof ScriptMethod sm) {
 			if (sm.getDeclaringClass() != null) {
-				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, sm.getDeclaringClass());
+				info.put(FunctionInfoFunction.DECLARING_TRAIT_KEY, sm.getDeclaringClass());
 				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, false);
 			} else {
-				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, null);
+				info.put(FunctionInfoFunction.DECLARING_TRAIT_KEY, null);
 				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, true);
 			}
 		}
