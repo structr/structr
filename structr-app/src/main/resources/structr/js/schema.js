@@ -2286,7 +2286,7 @@ let _Schema = {
 
 				for (let prop of data) {
 
-					if (prop.declaringClass !== entity.name) {
+					if (prop.declaringClass !== entity.name || prop.isDynamic === false) {
 
 						let property = {
 							id: prop.id,
