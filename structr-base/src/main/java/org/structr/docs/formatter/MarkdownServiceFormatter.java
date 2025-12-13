@@ -27,7 +27,7 @@ import java.util.List;
 public class MarkdownServiceFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
+	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 
 

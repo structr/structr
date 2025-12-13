@@ -18,33 +18,48 @@
  */
 package org.structr.docs.formatter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.Details;
 
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
-public class MarkdownTopicFormatter extends Formatter {
+public class JsonConceptFormatter extends Formatter {
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
 
-		if (settings.hasDetail(Details.name) || settings.hasDetail(Details.all)) {
+		final StringBuilder sb = new StringBuilder();
 
-			lines.add(formatMarkdownHeading((link != null ? link + " " : "") + concept.getName() + " (" + concept.getType() + ")", level + 1));
-			lines.add("");
+		sb.append("{ \"name\": \"");
+		sb.append(concept.getName());
+		sb.append("\", ");
+		sb.append("\"type\": \"");
+		sb.append(concept.getType());
+		sb.append("\", \"links\": [");
+
+		final List<String> c = new LinkedList<>();
+
+		for (final Map.Entry<String, List<Concept>> child : concept.getChildren().entrySet()) {
+
+			final List<String> t = new LinkedList<>();
+
+			for (final Concept childConcept : child.getValue()) {
+
+				t.add("{ \"name\": \"" + childConcept.getName() + "\" }");
+			}
+
+			c.add("{ \"name\": \"" + child.getKey() + "\", \"targets\": [ " + StringUtils.join(t, ", ") + " ] }");
 		}
 
-		if (settings.hasDetail(Details.source)) {
+		sb.append(StringUtils.join(c, ", "));
+		sb.append("] }");
 
-			lines.add("<small>Source: " + concept.getSourceFile() + ", line " + concept.getLineNumber() + "</small>");
-			lines.add("");
-		}
+		lines.add(sb.toString());
 
-		if (settings.hasDetail(Details.all)) {
-
-			//
-		}
 	}
+
 }

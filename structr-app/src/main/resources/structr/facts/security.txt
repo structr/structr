@@ -1,0 +1,27 @@
+Structr has topic "Security"
+
+Security has topics "Users and Groups", "Node-level security", "Resource Permissions", "Graph-based permission resolution", "Best practices", "Troubleshooting"
+
+"Users and Groups" has synonyms "User and Group Management", "Role-based access control"
+"Users and Groups" has topics "Administrators", "Normal users", "Password policy", "User Autocreation", "Password reset", "Auto-login"
+"Password policy" isConfiguredBy setting "security-passwordpolicy.maxfailedattempts"
+
+Topic "Administrators" has mechanism "isAdmin flag"
+Checkbox "isAdmin" configures mechanism "isAdmin flag"
+
+
+
+"Resource Permissions" has synonyms "Resource Access Grants", "URL-based permission control for REST endpoints"
+
+Topic "Resource Permissions" has values "Signature", "HTTP Method", "User Category"
+"Resource Permissions" configures feature "Access to REST endpoints"
+It writesTo logfile "Server Log"
+"User Category" has "Administrators", "Public Users", "Authenticated Users", "Groups"
+
+
+"Node-level security" has topics "Direct Permission Grants", "Visibility flags", "Ownership"
+"Direct Permission Grants" has synonym "SECURITY relationship"
+
+"Graph-based permission resolution" has topics "Active relationships", "Permission propagation rules", "Hidden properties", "Resolution process"
+It has synonym "Permission propagation"
+

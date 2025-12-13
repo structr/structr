@@ -18,20 +18,18 @@
  */
 package org.structr.docs;
 
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Details;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class OutputSettings {
 
 	private final Map<String, Map<String, Formatter>> outputFormatTypeFormatterMap = new LinkedHashMap<>();
 	private final Map<Integer, Set<String>> linkTypesPerLevel                      = new LinkedHashMap<>();
+	private final Set<String> typesToRender                                        = new LinkedHashSet<>();
 	private final Set<Details> details                                             = new LinkedHashSet<>();
-	private String outputFormat                                                    = "markdown";
-	private String typeToRender = null;
+	private String outputFormat                                                    = "text";
 	private String baseUrl;
 	private int startLevel;
 	private int maxLevels;
@@ -59,6 +57,12 @@ public class OutputSettings {
 			if (formatter != null) {
 
 				return formatter;
+			}
+
+			final Formatter defaultFormatter = formatters.get("*");
+			if (defaultFormatter != null) {
+
+				return defaultFormatter;
 			}
 		}
 
@@ -126,14 +130,6 @@ public class OutputSettings {
 		return baseUrl;
 	}
 
-	public void setTypeToRender(final String type) {
-		this.typeToRender = type;
-	}
-
-	public boolean isTypeEnabled(final String type) {
-		return typeToRender == null || typeToRender.equals(type);
-	}
-
 	public void setMaxLevels(final int maxLevels) {
 		this.maxLevels = maxLevels;
 	}
@@ -144,5 +140,15 @@ public class OutputSettings {
 
 	public String getOutputFormat() {
 		return outputFormat;
+	}
+
+	public void setTypesToRender(final Set<String> typeList) {
+
+		typesToRender.clear();
+		typesToRender.addAll(typeList);
+	}
+
+	public boolean renderType(final String type) {
+		return typesToRender.isEmpty() || typesToRender.contains(type);
 	}
 }

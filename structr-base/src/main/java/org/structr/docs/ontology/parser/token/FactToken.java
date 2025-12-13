@@ -22,6 +22,7 @@ import org.graalvm.collections.Pair;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class FactToken extends Token {
@@ -55,9 +56,21 @@ public class FactToken extends Token {
 
 	public Concept resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final List<Concept> subjects       = subjectToken.resolve(ontology, sourceFile, line);
+		final List<Concept> subjects       = new LinkedList<>();
+		final List<Concept> objects        = new LinkedList<>();
+
+		if (predicateToken.isInverted()) {
+
+			objects.addAll(subjectToken.resolve(ontology, sourceFile, line));
+			subjects.addAll(objectToken.resolve(ontology, sourceFile, line));
+
+		} else {
+
+			subjects.addAll(subjectToken.resolve(ontology, sourceFile, line));
+			objects.addAll(objectToken.resolve(ontology, sourceFile, line));
+		}
+
 		final Pair<Concept, Concept> verbs = predicateToken.resolve(ontology, sourceFile, line);
-		final List<Concept> objects        = objectToken.resolve(ontology, sourceFile, line);
 
 		final String verb    = verbs.getLeft().getName();
 		final String inverse = verbs.getRight().getName();

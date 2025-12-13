@@ -70,6 +70,10 @@ public class DocumentationServlet extends HttpServlet {
 				renderPlaintext(response, lines);
 			}
 
+			if ("json".equals(settings.getOutputFormat())) {
+				renderJson(response, lines);
+			}
+
 
 		} catch (Throwable t) {
 
@@ -97,7 +101,7 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write("<html>\n");
 		writer.write("<head>\n");
 		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/main.css\" />\n");
-		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/docs.css\" />\n");
+		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/docs-chrisi.css\" />\n");
 
 		if (settings.getBaseUrl() != null) {
 			writer.write("<base href='" + settings.getBaseUrl() + "'/>\n");
@@ -125,6 +129,15 @@ public class DocumentationServlet extends HttpServlet {
 		}
 	}
 
+	private void renderJson(final HttpServletResponse response, final List<String> lines) throws IOException {
+
+		final Writer writer = response.getWriter();
+
+		writer.write("{ \"data\": [\n");
+		writer.write(StringUtils.join(lines, ",\n"));
+		writer.write("]}\n");
+	}
+
 	private void handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings) {
 
 		boolean hasFilter = false;
@@ -140,16 +153,20 @@ public class DocumentationServlet extends HttpServlet {
 		final String types = request.getParameter("types");
 		if (StringUtils.isNotBlank(types)) {
 
-			for (final String type : types.split("[,]+")) {
+			final Set<String> typeSet = new LinkedHashSet<>();
+			for (final String type : types.split(",")) {
 
-				concepts.addAll(ontology.getConcepts(c -> c.getType().equals(type)));
+				final String trimmed = type.trim();
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					typeSet.add(trimmed);
+				}
 			}
+
+			settings.setTypesToRender(typeSet);
 
 			// clear link types (only one level)
 			settings.setLinkTypes(Map.of());
-
-			// set start level to 1, 0 is ignored
-			settings.setStartLevel(1);
 
 			// do not add default set of concepts
 			hasFilter = true;
@@ -159,7 +176,14 @@ public class DocumentationServlet extends HttpServlet {
 		final String type = request.getParameter("type");
 		if (StringUtils.isNotBlank(type)) {
 
-			settings.setTypeToRender(type);
+			if ("*".equals(type)) {
+
+				concepts.addAll(ontology.getAllConcepts());
+
+			} else {
+
+				concepts.addAll(ontology.getConcepts(c -> c.getType().equals(type)));
+			}
 
 			// do not add default set of concepts
 			hasFilter = true;
@@ -169,7 +193,7 @@ public class DocumentationServlet extends HttpServlet {
 		final String root = request.getParameter("root");
 		if (StringUtils.isNotBlank(root)) {
 
-			concepts.add(ontology.getConcept("unknown", root));
+			concepts.addAll(ontology.getConceptsByName(root));
 
 			// do not add default set of concepts
 			hasFilter = true;
@@ -207,17 +231,24 @@ public class DocumentationServlet extends HttpServlet {
 
 	private OutputSettings setupOutputSettings(final Resource baseResource) {
 
-		final OutputSettings settings = new OutputSettings(1, Integer.MAX_VALUE);
+		final OutputSettings settings = new OutputSettings(0, 5);
 
+		// sensible default
+		settings.getDetails().add(Details.name);
+
+		settings.setFormatterForOutputFormatAndType("markdown", "*",               new MarkdownTopicFormatter());
 		settings.setFormatterForOutputFormatAndType("markdown", "topic",           new MarkdownTopicFormatter());
 		settings.setFormatterForOutputFormatAndType("markdown", "service",         new MarkdownServiceFormatter());
 		settings.setFormatterForOutputFormatAndType("markdown", "markdown-folder", new MarkdownTopicFormatter());
 		settings.setFormatterForOutputFormatAndType("markdown", "markdown-file",   new MarkdownMarkdownFileFormatter(baseResource));
 		settings.setFormatterForOutputFormatAndType("markdown", "code-source",     new MarkdownCodeSourceFormatter());
 
+		settings.setFormatterForOutputFormatAndType("text", "*",                   new PlaintextTopicFormatter());
 		settings.setFormatterForOutputFormatAndType("text", "topic",               new PlaintextTopicFormatter());
 		settings.setFormatterForOutputFormatAndType("text", "markdown-folder",     new PlaintextTopicFormatter());
 		settings.setFormatterForOutputFormatAndType("text", "markdown-file",       new PlaintextMarkdownFileFormatter(baseResource));
+
+		settings.setFormatterForOutputFormatAndType("json", "*",                   new JsonConceptFormatter());
 
 		return settings;
 	}

@@ -18,7 +18,6 @@
  */
 package org.structr.test.common;
 
-import org.structr.api.SyntaxErrorException;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 import org.structr.test.web.StructrUiTest;
@@ -51,7 +50,7 @@ public class OntologyTest extends StructrUiTest {
 		assertNotNull("concept should not be null", concept);
 		assertEquals("concept type should be inferred retrospectively", "topic", concept.getType());
 
-		final List<Concept> concepts = ontology.getConcepts();
+		final List<Concept> concepts = ontology.getAllConcepts();
 		int i=0;
 
 		assertEquals("Topic was not parsed correctly", "topic(Core System)",  concepts.get(i++).toString());
@@ -96,14 +95,30 @@ public class OntologyTest extends StructrUiTest {
 			"\"Functions\" has code-source \"functions\"",
 			"\"Lifecycle Methods\" has code-source \"lifecycle-methods\"",
 			"\"System Types\" has code-source \"system-types\"",
-			"\"Services\" has code-source \"services-list\"",
+			"\"Services\" has code-source \"services\"",
 			"\"Maintenance Commands\" has code-source \"maintenance-commands\"",
-			"\"Settings\" has code-source \"settings-list\""
+			"\"Settings\" has code-source \"settings\""
 		);
 
 		final Ontology ontology = new Ontology("testAmbiguousIdentifiers", facts);
 
-		System.out.println(ontology.getConcept("topic", "Services"));
+		assertNotNull(ontology.getConcept("topic", "Services"));
+		assertNotNull(ontology.getConcept("code-source", "services"));
+	}
+
+	@Test
+	public void testInverseVerbs() {
+
+		final List<String> facts = List.of(
+			"Type Test isCreatedBy button Test"
+		);
+
+		final Ontology ontology = new Ontology("testInverseVerbs", facts);
+
+		assertNotNull(ontology.getConcept("type", "Test"));
+		assertNotNull(ontology.getConcept("button", "Test"));
+		assertEquals("type(Test)", ontology.getConcept("button", "Test").getChildren().get("creates").get(0).toString());
+		assertEquals("button(Test)", ontology.getConcept("type", "Test").getParents().get("iscreatedby").get(0).toString());
 	}
 
 	@Test

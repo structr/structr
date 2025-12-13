@@ -18,6 +18,8 @@
  */
 package org.structr.docs.ontology;
 
+import org.apache.commons.io.Charsets;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.core.function.Functions;
@@ -28,7 +30,9 @@ import org.structr.docs.ontology.parser.token.FactToken;
 import org.structr.docs.ontology.parser.token.Token;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -46,33 +50,44 @@ public final class Ontology {
 		return Set.of(
 
 			// structural concepts
-			"topic", "concept", "component", "feature", "mechanism", "provider", "service", "capability", "use-case", "type", "list",
+			"topic", "concept", "component", "feature", "mechanism", "provider", "service", "capability",
+			"use-case", "type",
 
 			// external sources
 			"markdown-folder", "markdown-file", "code-source",
 
-			// concepts for ui elements
-			"area", "tab", "dialog", "link", "input", "textarea", "button", "checkbox", "dropdown", "selector",
+			// concepts for user interface elements
+			"area", "tab", "flyout", "menu", "dialog", "link", "input", "textarea", "button", "checkbox",
+			"dropdown", "selector", "list", "table", "row", "column", "notification", "element", "icon",
+
+			// concepts for backend elements
+			"logfile", "value",
 
 			// metadata
-			"hint", "note", "description", "info", "setting"
+			"hint", "note", "description", "info", "setting", "configuration", "synonym"
 		);
 	}
 
 	public Map<String, String> getKnownVerbs() {
 
-		return Map.of(
-			"is", "is",
-			"has", "isPartOf",
-			"uses", "isUsedBy",
-			"provides", "isProvidedBy",
-			"opens", "isOpenedBy",
-			"closes", "isClosedBy",
-			"contains", "isContainedBy",
-			"creates", "isCreatedBy",
-			"removes", "isRemovedBy",
-			"deletes", "isDeletedBy"
-		);
+		final Map<String, String> verbs = new LinkedHashMap<>();
+
+		// verbs must be defined in lower case!
+		verbs.put("is",         "is");
+		verbs.put("has",        "ispartof");
+		verbs.put("uses",       "isusedby");
+		verbs.put("provides",   "isprovidedby");
+		verbs.put("opens",      "isopenedby");
+		verbs.put("closes",     "isclosedby");
+		verbs.put("contains",   "iscontainedby");
+		verbs.put("creates",    "iscreatedby");
+		verbs.put("removes",    "isremovedby");
+		verbs.put("deletes",    "isdeletedby");
+		verbs.put("configures", "isconfiguredby");
+		verbs.put("displays",   "isdisplayedby");
+		verbs.put("writesto",   "iswrittenfrom");
+
+		return verbs;
 	}
 
 	public Set<String> getBlacklist() {
@@ -112,13 +127,13 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			Formatter.walkOntology(lines, concept, outputSettings, 0);
+			Formatter.walkOntology(lines, concept, outputSettings, null, 0, new LinkedHashSet<>());
 		}
 
 		return lines;
 	}
 
-	public List<Concept> getConcepts() {
+	public List<Concept> getAllConcepts() {
 		return concepts;
 	}
 
@@ -194,7 +209,15 @@ public final class Ontology {
 			tokens.add(new UnresolvedToken(token));
 		}
 
-		reduce(sourceFile, lineNumber, line, tokens);
+		try {
+
+			reduce(sourceFile, lineNumber, line, tokens);
+
+		} catch (Throwable t) {
+
+			System.out.println("Exception while parsing " + sourceFile + ":" + lineNumber + ": " + t.getMessage());
+			t.printStackTrace();
+		}
 
 		for (final Token token : tokens) {
 
@@ -270,6 +293,21 @@ public final class Ontology {
 		return null;
 	}
 
+	public List<Concept> getConceptsByName(final String name) {
+
+		final List<Concept> result = new LinkedList<>();
+
+		for  (final Concept concept : concepts) {
+
+			if (concept.name.equals(name)) {
+
+				result.add(concept);
+			}
+		}
+
+		return result;
+	}
+
 	public Concept getOrCreateConcept(final String sourceFile, final int line, final String type, final String name) {
 
 		for  (final Concept concept : concepts) {
@@ -324,7 +362,6 @@ public final class Ontology {
 
 			ioex.printStackTrace();
 		}
-
 	}
 
 	public void setCurrentSubject(final Concept subject) {

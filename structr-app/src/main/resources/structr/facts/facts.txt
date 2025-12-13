@@ -1,10 +1,12 @@
-Structr has markdown-folders "1-Introduction", "2-Core Concepts", "4-Admin User Interface"
-Structr has topic "References"
+# Structr has markdown-folders "1-Introduction", "2-Core Concepts", "4-Admin User Interface"
+Structr has topic "Core System", "Admin User Interface", "References"
 
 # Admin User Interface
 "Admin User Interface" has areas "Login Form", "Navigation Bar", Dashboard, Pages, Files, Security, Schema, Code, Data, Graphs, Flows, Importer, Localization, "Virtual Types", "Mail Templates", Documentation
 
-"Navigation Bar" has links Dashboard, Pages, Files, Security, Schema, Code, Data, Graphs, Flows, Importer, Localization, "Virtual Types", "Mail Templates", Documentation, "Logout Button"
+"Navigation Bar" has menus "Main Menu", "Submenu"
+"Main Menu" has links Dashboard, Pages, Files, Security, Schema, Code, Data
+"Submenu" has links Graphs, Flows, Importer, Localization, "Virtual Types", "Mail Templates", Documentation, "Logout Button"
 
 # Navigation bar links
 Dashboard link opens Dashboard area
@@ -49,7 +51,9 @@ Dashboard has tabs "About Me", "About Structr", "Deployment", "User-defined func
 
 "About me" tab has infos "Name of the logged-in user", "UUID of the logged-in user", "E-Mail of the logged-in user", "Working Directory", "Session ID(s)", Groups
 "About Structr" tab has infos Version, Modules, Licensee, "Host ID", "License Start Date", "License End Date", "Database Driver", "UUID Format", "Runtime Info", "Scripting Debugger", "Security Warnings", "HTTP Access Statistics"
-Capability "Handle different UUID Formats" has info "UUID Format"
+Capability "Handle different UUID formats" has info "UUID Format"
+"Core System" has capability "Handle different UUID formats"
+"Core System" has components "GraalVM Chrome Scripting Debugger", "Server Log"
 
 # Deployment tab
 Deployment tab has selectors "Action / Mode", Type, "Target / Source"
@@ -73,17 +77,61 @@ Feature "User-defined functions" has capability "Scheduled execution of business
 "Server Log" tab provides capability "View log file"
 It has settings "Refresh Interval", "Number of lines", "Truncate lines at" and "Log File"
 It has "Copy" and "Download" buttons
-It has textarea "Log Output"
-Topic Operations has feature Logfile
+It has textarea "Log output"
+It displays logfile "Server Log"
 
+# Event log tab
+"Event log" tab has selector "Type filter"
+It has table "Event log table"
+"Event log table" has columns "Timestamp", "Type", "Detail", "Data"
 
+# Threads tab
+"Threads" tab has "Refresh" button
+It has table "Threads"
+Table "Threads" has columns "ID", "Name", "State", "Deadlock detected", "CPU Time", "Stack", "Actions"
+Column "Actions" has buttons "Interrupt" and "Kill"
+"Interrupt" button provides capability "Stop running scripts"
+"Kill" button provides capability "Stop running scripts"
 
+# Ui settings tab
+"UI settings" tab has configurations "Main Menu", "Submenu", "Misc UI Settings"
+"Main Menu" configuration configures "Main Menu"
+"UI settings" tab has button "Reset all stored UI settings"
+
+"Admin User Interface" has component "Notifications"
+Component "Notifications" displays notification "Error Messages"
 
 
 
 
 # pages area
 Area Pages has dropdown "Create Page"
+It has flyouts "Page Tree", "Translations", "Widgets", "Shared Components", "Recycle Bin", "Preview"
+It has area "Main Area"
+"Page Tree" flyout has list "Page List"
+"Page List" displays types "Page", "DOMElement", "Template", "Content"
+It has icons "Context Menu", "Open page in new tab", "Access Control"
+"Context Menu" icon opens menu "Context Menu"
+"Access Control" icon opens dialog "Access Control"
+"Access Control" dialog configures mechanisms "Visibility flags", "Ownership", "Security Relationship"
+
+# clarification needed
+Feature "Role-based Access Control" has mechanism "Visibility flags"
+Feature "Role-based Access Control" has mechanism "SECURITY relationships"
+Feature "Role-based Access Control" has mechanism "Ownership"
+
+
+
+"Access Control" dialog has selector "Owner"
+Selector "Owner" configures mechanism "Ownership"
+It has checkbox "Apply visibility switches recursively"
+It has buttons "Toggle visibility for public users", "Toggle visibility for authenticated users"
+"Toggle visibility for public users" configures mechanism "Visibility flags"
+"Toggle visibility for authenticated users" configures mechanism "Visibility flags"
+"Access Control" dialog has table "Access Rights"
+Table "Access Rights" has columns "Name", "Read", "Write", "Delete", "Access Control"
+Table "Access Rights" configures feature "SECURITY relationships"
+
 
 "Create Page" dropdown has buttons "Create Page" and "Import Page"
 "Create Page" button opens dialog "Create Page"
@@ -94,6 +142,3 @@ Area Pages has dropdown "Create Page"
 "Import Page" dialog has use-case "Create New Page"
 "Import Page" dialog has use-case "Import Page"
 
-
-
-"Security & Access" has topic Authentication

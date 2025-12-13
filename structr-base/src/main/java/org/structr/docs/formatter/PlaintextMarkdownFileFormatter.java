@@ -18,18 +18,13 @@
  */
 package org.structr.docs.formatter;
 
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Details;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Formats the contents of an external markdown source as plaintext,
@@ -44,7 +39,7 @@ public class PlaintextMarkdownFileFormatter extends Formatter {
 	}
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
+	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 		if (settings.getDetails().contains(Details.name)) {
 

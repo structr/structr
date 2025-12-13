@@ -28,10 +28,10 @@ import java.util.List;
 public class PlaintextTopicFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
+	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 		if (settings.hasDetail(Details.name)) {
-			lines.add(concept.getName());
+			lines.add(formatListHeading((link != null ? link + " " : "") + concept.getType() + " \"" + concept.getName() + "\"", level));
 		}
 	}
 }

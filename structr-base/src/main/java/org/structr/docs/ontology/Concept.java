@@ -50,6 +50,10 @@ public final class Concept {
 		return type + "(" + name + ")";
 	}
 
+	public String getNameTypeAndLinks() {
+		return type + "(" + name + ") -> " + children + " <- " + parents;
+	}
+
 	public String getType() {
 		return type;
 	}

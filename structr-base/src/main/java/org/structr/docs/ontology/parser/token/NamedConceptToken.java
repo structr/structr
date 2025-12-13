@@ -47,7 +47,7 @@ public class NamedConceptToken extends Token<List<Concept>> {
 	}
 
 	public boolean isUnknown() {
-		return "unknown".equals(conceptToken.getName());
+		return conceptToken != null && "unknown".equals(conceptToken.getName());
 	}
 
 	@Override

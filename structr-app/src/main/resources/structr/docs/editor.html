@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            html {
+                margin: 0;
+                padding: 1em;
+                background-color: #eee;
+            }
+            #visualization {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: calc(90vh);
+                background-color: white;
+                border: 1px solid #ddd;
+            }
+            #editor {
+                padding: 1em 0;
+            }
+            #input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="visualization"></div>
+        <div id="editor">
+            <input type="text" id="input" />
+        </div>
+        <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
+        <script>
+            var container = document.querySelector('#visualization');
+            var nodes = new vis.DataSet();
+            var edges = new vis.DataSet();
+            fetch('/structr/docs/ontology?type=*&levels=1&format=json').then(response => response.json()).then(data => {
+
+            });
+            var data = {
+                nodes: nodes,
+                edges: edges,
+            };
+            var network = new vis.Network(container, data, {
+                layout: {
+                    randomSeed: 42
+                }
+            });
+        </script>
+    </body>
+</html>

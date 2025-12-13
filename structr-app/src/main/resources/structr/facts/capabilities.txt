@@ -4,6 +4,7 @@
 topic "Core System" has capability "Scheduled execution of business logic"
 "Core System" has capability "User self-registration"
 "Core System" has capability "Sending emails"
+"Core System" has capability "Fulltext indexing"
 
 "Mail Service" provides capability "Sending emails"
 "Cron Service" provides capability "Scheduled execution of business logic"
@@ -12,6 +13,19 @@ topic "Core System" has capability "Scheduled execution of business logic"
 
 "Core System" has component "Scripting Engine"
 "Core System" has component "Page Rendering Engine"
+"Core System" has component "Database Layer"
+"Core System" has component "Data model"
 
+"Data model" provides capability "Instance methods"
+"Data model" provides capability "Static methods"
+"Data model" provides capability "Custom types"
+"Data model" provides capability "System types"
+
+
+"Database Layer" provides capability "Fulltext indexing"
+"Database Layer" provides capability "Distance query"
 
 "Scripting Engine" provides capability "Scripting"
+"Scripting Engine" provides capability "Geocoding"
+
+

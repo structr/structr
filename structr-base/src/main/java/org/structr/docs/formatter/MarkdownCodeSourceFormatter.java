@@ -42,7 +42,7 @@ import java.util.List;
 public class MarkdownCodeSourceFormatter extends Formatter {
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
+	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 		final List<Documentable> documentables = new LinkedList<>();
 
@@ -83,11 +83,11 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 				documentables.add(new AfterDelete());
 				break;
 
-			case "services-list":
+			case "services":
 				Services.collectDocumentation(documentables);
 				break;
 
-			case "settings-list":
+			case "settings":
 				for (final SettingsGroup group : Settings.getGroups()) {
 
 					for (final org.structr.api.config.Setting setting : group.getSettings()) {

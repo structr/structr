@@ -23,10 +23,11 @@ import org.structr.docs.ontology.Concept;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public abstract class Formatter {
 
-	public abstract void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level);
+	public abstract void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level);
 
 	/**
 	 * Walks through the whole ontology and calls formatters for all the elements.
@@ -37,10 +38,15 @@ public abstract class Formatter {
 	 * @param outputSettings
 	 * @param level
 	 */
-	public static void walkOntology(final List<String> lines, final Concept concept, final OutputSettings outputSettings, final int level) {
+	public static void walkOntology(final List<String> lines, final Concept concept, final OutputSettings outputSettings, final String link, final int level, final Set<Concept> seenConcepts) {
 
 		// max level reached, no output beyond this point
 		if (level >= outputSettings.getMaxLevels()) {
+			return;
+		}
+
+		// type filter
+		if (!outputSettings.renderType(concept.getType())) {
 			return;
 		}
 
@@ -50,8 +56,13 @@ public abstract class Formatter {
 			final Formatter formatter = outputSettings.getFormatterForType(concept.getType());
 			if (formatter != null) {
 
-				formatter.format(lines, concept, outputSettings, level);
+				formatter.format(lines, concept, outputSettings, link, level);
 			}
+		}
+
+		// only output the same concept once
+		if (!seenConcepts.add(concept)) {
+			return;
 		}
 
 		// part2: recurse (children are handled externally, i.e. not inside the type-specific formatters)
@@ -60,7 +71,16 @@ public abstract class Formatter {
 
 			for (final Concept child : children.get(key)) {
 
-				walkOntology(lines, child, outputSettings, level + 1);
+				walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
+			}
+		}
+
+		final Map<String, List<Concept>> parents = concept.getParents();
+		for (final String key : parents.keySet()) {
+
+			for (final Concept parent : parents.get(key)) {
+
+				walkOntology(lines, parent, outputSettings, key, level + 1, seenConcepts);
 			}
 		}
 	}

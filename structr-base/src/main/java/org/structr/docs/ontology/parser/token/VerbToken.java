@@ -24,13 +24,15 @@ import org.structr.docs.ontology.Ontology;
 
 public class VerbToken extends Token<Pair<Concept, Concept>> {
 
+	private final boolean isInverted;
 	private final String inverse;
 
-	public VerbToken(final String name, final String inverse) {
+	public VerbToken(final String name, final String inverse, final boolean isInverted) {
 
 		super(name);
 
-		this.inverse = inverse;
+		this.isInverted = isInverted;
+		this.inverse    = inverse;
 	}
 
 	@Override
@@ -48,5 +50,9 @@ public class VerbToken extends Token<Pair<Concept, Concept>> {
 		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, "verb", inverse);
 
 		return Pair.create(verb1, verb2);
+	}
+
+	public boolean isInverted() {
+		return isInverted;
 	}
 }

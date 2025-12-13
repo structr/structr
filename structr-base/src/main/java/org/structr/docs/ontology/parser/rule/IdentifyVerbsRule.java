@@ -22,10 +22,7 @@ import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.Token;
 import org.structr.docs.ontology.parser.token.VerbToken;
 
-import java.util.Deque;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class IdentifyVerbsRule extends Rule {
 
@@ -37,6 +34,7 @@ public class IdentifyVerbsRule extends Rule {
 	public void apply(final Deque<Token> tokens) {
 
 		final Map<String, String> knownVerbs = ontology.getKnownVerbs();
+		final Map<String, String> inverse    = invert(knownVerbs);
 		final Deque<Token> result            = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
@@ -49,7 +47,11 @@ public class IdentifyVerbsRule extends Rule {
 
 				if (knownVerbs.containsKey(verb)) {
 
-					result.add(new VerbToken(verb, knownVerbs.get(verb)));
+					result.add(new VerbToken(verb, knownVerbs.get(verb), false));
+
+				} else if (inverse.containsKey(verb)) {
+
+					result.add(new VerbToken(inverse.get(verb), verb, true));
 
 				} else {
 
@@ -65,5 +67,17 @@ public class IdentifyVerbsRule extends Rule {
 
 		// restore input
 		tokens.addAll(result);
+	}
+
+	private Map<String, String> invert(final Map<String, String> knownVerbs) {
+
+		final Map<String, String> inverse = new LinkedHashMap<>();
+
+		for (final Map.Entry<String, String> entry : knownVerbs.entrySet()) {
+
+			inverse.put(entry.getValue(), entry.getKey());
+		}
+
+		return inverse;
 	}
 }

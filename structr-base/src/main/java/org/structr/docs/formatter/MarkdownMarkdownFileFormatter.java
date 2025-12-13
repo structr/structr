@@ -44,7 +44,7 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 	}
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final int level) {
+	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 		// concept name contains folder name
 		final String path       = concept.getMetadata().get("path");
