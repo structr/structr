@@ -630,7 +630,11 @@ let _Files = {
 	},
 	loadAndSetWorkingDir: async (callback) => {
 
-        let response = await fetch(`${Structr.rootUrl}me`);
+        let response = await fetch(`${Structr.rootUrl}me`, {
+			headers: {
+				Accept: `application/json; charset=utf-8;properties=id,workingDirectory`
+			}
+		});
         let result    = await response.json();
         let me        = result.result;
 		if (me.workingDirectory) {
