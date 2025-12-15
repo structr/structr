@@ -19,9 +19,6 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.TextNode;
-import org.structr.docs.formatter.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
@@ -30,14 +27,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
 public class JavascriptFileToken extends NamedConceptToken {
+
+	private final int minLength = 4;
 
 	public JavascriptFileToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
@@ -83,20 +79,13 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 							String text = line;
 
+							text = text.replace("\\$", "$");
+							text = parseAndRemoveStyleAttribute(text, tokens, ontology, fileName, sourceLineNumber);
+							text = parseAndRemoveDataComment(text, tokens, ontology, fileName, sourceLineNumber);
 							text = text.replaceAll("\\$\\{.*\\}", "");
 							text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
 
-							final String trimmed = text.trim();
-
-							if (StringUtils.isNotBlank(trimmed) && !trimmed.contains("$")) {
-
-								tokens.add(trimmed);
-								ontology.getOrCreateConcept(fileName, sourceLineNumber, "unknown", trimmed);
-							}
-
-							parseDataComment(line, tokens, ontology, fileName, sourceLineNumber);
-
-							//FIXME: remove data-comment after parsing?!
+							handleConcept("unknown", text, tokens, ontology, fileName, sourceLineNumber);
 						}
 
 						sourceLineNumber++;
@@ -120,19 +109,69 @@ public class JavascriptFileToken extends NamedConceptToken {
 		return line.matches("<[a-zA-Z0-9_\\p{Punct} ]+>.*");
 	}
 
-	private void parseDataComment(final String line, final List<String> tokens, final Ontology ontology, final String fileName, final int sourceLineNumber) {
+	private boolean isCode(final String text) {
+
+		if (text.contains("=>") && text.contains("{") && text.contains(" ")) {
+			return true;
+		}
+
+		if (text.contains("'") && (text.contains("{") || text.contains("}"))) {
+			return true;
+		}
+
+		if (text.contains("('')") || text.contains(");") || text.contains(")}")) {
+			return true;
+		}
+
+		if (text.contains("&#")) {
+			return true;
+		}
+
+		if (text.contains("===") || text.contains("==")) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private void handleConcept(final String type, final String text, final List<String> tokens, final Ontology ontology, String fileName, final int sourceLineNumber) {
+
+		final String trimmed = text.trim();
+
+		if (StringUtils.isNotBlank(trimmed) && trimmed.length() >= minLength && !isCode(trimmed)) {
+
+			tokens.add(fileName + ":" + sourceLineNumber + ": " + type + ": " + trimmed);
+
+			final Concept concept = ontology.getOrCreateConcept(fileName, sourceLineNumber, type, trimmed);
+
+			for (final NamedConceptToken additionalNamedConcept : getAdditionalNamedConcepts()) {
+
+				for (final Concept additionalConcept : additionalNamedConcept.resolve(ontology, fileName, sourceLineNumber)) {
+
+					if (!concept.equals(additionalConcept) && !concept.hasChild("has", additionalConcept)) {
+
+						concept.linkChild("has", additionalConcept);
+					}
+				}
+			}
+		}
+	}
+
+	private String parseAndRemoveDataComment(final String line, final List<String> tokens, final Ontology ontology, final String fileName, final int sourceLineNumber) {
 
 		// parse data-comment
 		if (line.contains("data-comment=")) {
 
-			int start = 0;
+			final StringBuilder lineBuffer = new StringBuilder();
 
-			int pos = line.indexOf("data-comment=", start) + 14;
-			if (pos > 0) {
+			int pos = line.indexOf("data-comment=") + 14;
+			if (pos > 0 && pos < line.length()) {
+
+				lineBuffer.append(line.substring(0, pos));
 
 				StringBuilder comment = new StringBuilder();
-				char quote            = line.charAt(pos - 1);
-				char c                = line.charAt(pos);
+				char quote = line.charAt(pos - 1);
+				char c = line.charAt(pos);
 
 				while (c != quote) {
 
@@ -148,10 +187,53 @@ public class JavascriptFileToken extends NamedConceptToken {
 					c = line.charAt(pos);
 				}
 
-				tokens.add(comment.toString());
+				lineBuffer.append(line.substring(pos));
 
-				ontology.getOrCreateConcept(fileName, sourceLineNumber, "data-comment", comment.toString());
+				handleConcept("comment", comment.toString(), tokens,  ontology, fileName, sourceLineNumber);
 			}
+
+			return lineBuffer.toString();
 		}
+
+		return line;
+	}
+
+	private String parseAndRemoveStyleAttribute(final String line, final List<String> tokens, final Ontology ontology, final String fileName, final int sourceLineNumber) {
+
+		// parse data-comment
+		if (line.contains("style=")) {
+
+			final StringBuilder lineBuffer = new StringBuilder();
+
+			int pos = line.indexOf("style=") + 7;
+			if (pos > 0 && pos < line.length()) {
+
+				lineBuffer.append(line.substring(0, pos));
+
+				StringBuilder comment = new StringBuilder();
+				char quote = line.charAt(pos - 1);
+				char c = line.charAt(pos);
+
+				while (c != quote) {
+
+					comment.append(c);
+					pos++;
+
+					// skip escaped chars
+					if (c == '\\') {
+						comment.append(line.charAt(pos));
+						pos++;
+					}
+
+					c = line.charAt(pos);
+				}
+
+				lineBuffer.append(line.substring(pos));
+			}
+
+			return lineBuffer.toString();
+		}
+
+		return line;
 	}
 }

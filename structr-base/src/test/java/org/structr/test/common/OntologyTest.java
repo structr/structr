@@ -133,6 +133,24 @@ public class OntologyTest extends StructrUiTest {
 		new Ontology("testJavascriptFile", "topic Structr has javascript-file \"structr/js/dashboard.js\"");
 	}
 
+	@Test
+	public void testPrepositions() {
+
+		final Ontology ontology  = new Ontology("testPrepositions", "topic Structr has topic \"Test\" with topic \"Added\"");
+
+		for (final Concept concept : ontology.getAllConcepts()) {
+
+			System.out.println(concept.getNameTypeAndLinks());
+		}
+
+		final Concept test = ontology.getConcept("topic", "Test");
+
+		assertNotNull(test);
+
+		// information from the prepositional clause "with <type> <name>" is stored in the concept's metadata
+		assertEquals("Added", test.getMetadata().get("topic"));
+	}
+
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {
 

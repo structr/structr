@@ -30,6 +30,7 @@ import java.util.List;
  */
 public class NamedConceptToken extends Token<List<Concept>> {
 
+	protected final List<NamedConceptToken> additionalNamedConcepts = new LinkedList<>();
 	protected final ConceptToken conceptToken;
 	protected final IdentifierToken identifierToken;
 
@@ -50,6 +51,14 @@ public class NamedConceptToken extends Token<List<Concept>> {
 		return conceptToken != null && "unknown".equals(conceptToken.getName());
 	}
 
+	public void addAdditionalNamedConcept(final NamedConceptToken additionalNamedConcept) {
+		additionalNamedConcepts.add(additionalNamedConcept);
+	}
+
+	public List<NamedConceptToken> getAdditionalNamedConcepts() {
+		return additionalNamedConcepts;
+	}
+
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
@@ -59,7 +68,21 @@ public class NamedConceptToken extends Token<List<Concept>> {
 
 		for (final String identifier : identifiers) {
 
-			concepts.add(ontology.getOrCreateConcept(sourceFile, line, type, identifier));
+			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier);
+
+			// additional named concepts go into metadata of a concept (for now..)
+			for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
+
+				final List<Concept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
+				for (final Concept additionalConcept : additionalConcepts) {
+
+					concepts.add(additionalConcept);
+
+					concept.getMetadata().put(additionalConcept.getType(), additionalConcept.getName());
+				}
+			}
+
+			concepts.add(concept);
 		}
 
 		return concepts;

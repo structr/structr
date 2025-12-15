@@ -19,9 +19,11 @@
 package org.structr.docs.formatter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
+import org.structr.web.function.EscapeHtmlFunction;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -42,14 +44,14 @@ public class JsonConceptFormatter extends Formatter {
 
 			for (final Concept childConcept : child.getValue()) {
 
-				t.add("{ \"name\": \"" + childConcept.getName() + "\", \"type\": \"" + childConcept.getType() + "\" }");
+				t.add("{ \"name\": \"" + escape(childConcept.getName()) + "\", \"type\": \"" + childConcept.getType() + "\" }");
 			}
 
-			c.add("{ \"name\": \"" + child.getKey() + "\", \"targets\": [ " + StringUtils.join(t, ", ") + " ] }");
+			c.add("{ \"name\": \"" + escape(child.getKey()) + "\", \"targets\": [ " + StringUtils.join(t, ", ") + " ] }");
 		}
 
 		sb.append("{ \"name\": \"");
-		sb.append(concept.getName());
+		sb.append(escape(concept.getName()));
 		sb.append("\", ");
 		sb.append("\"type\": \"");
 		sb.append(concept.getType());
@@ -65,4 +67,9 @@ public class JsonConceptFormatter extends Formatter {
 
 	}
 
+	// ----- private methods -----
+	private String escape(final String input) {
+
+		return StringEscapeUtils.escapeJson(input);
+	}
 }

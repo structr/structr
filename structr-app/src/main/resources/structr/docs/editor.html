@@ -94,7 +94,6 @@
                 for (let entry of data.data) {
                     let id = entry.type + ':' + entry.name;
                     let value = (entry.count + 1) * 2;
-                    console.log(value)
                     nodes.add({ id: id, label: id, value: value, color: colors[entry.type] });
                 }
 
@@ -138,8 +137,7 @@
                         gravitationalConstant: -100000,
                         avoidOverlap: 1,
                         springLength: 200
-                    },
-                    theta: 0.001
+                    }
                 }
             });
         </script>

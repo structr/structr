@@ -138,6 +138,22 @@ public final class Concept {
 
 		return sum;
 	}
+
+	public boolean hasChild(final String has, final Concept additionalConcept) {
+
+		final List<Concept> list = children.get(has);
+		if (list != null) {
+
+			for (final Concept child : list) {
+
+				if (child.equals(additionalConcept)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
 }
 
 

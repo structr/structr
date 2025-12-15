@@ -88,7 +88,7 @@ public final class Ontology {
 	}
 
 	public Set<String> getBlacklist() {
-		return Set.of("!", ";", ".", "the", "a", "an", "with", "named");
+		return Set.of("!", ";", ".", "the", "a", "an", "named");
 	}
 
 	public Set<String> getConjunctions() {
@@ -228,6 +228,7 @@ public final class Ontology {
 		int count = 0;
 
 		rules.add(new RemoveUnwantedTokensRule(this));
+		rules.add(new IdentifyPrepositionsRule(this));
 		rules.add(new IdentifyAnaphoricPronounRule(this));
 		rules.add(new IdentifyConjunctionsRule(this));
 		rules.add(new IdentifyConceptsRule(this));
@@ -237,6 +238,7 @@ public final class Ontology {
 		rules.add(new IdentifyListsRule(this));
 		rules.add(new CombineConceptAndIdentifierRule(this));
 		rules.add(new FindUnknownIdentifiersRule(this));
+		rules.add(new CombineNamedConceptsAndPrepositionsRule(this));
 		rules.add(new IdentifyFactsRule(this));
 		rules.add(new ResolveIsARelationsRule(this));
 
