@@ -1,6 +1,0 @@
-Structr has use-case "Import file from local hard disk"
-It has use-case "Rapid prototyping"
-
-Structr has use-case "JSON document database"
-Structr has use-case "Integration platform"
-

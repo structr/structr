@@ -104,6 +104,9 @@ public class Functions {
 		final StructrScriptTokenizer tokenizer = new StructrScriptTokenizer(includeQuotesInTokens);
 		final List<String> tokens              = new LinkedList<>();
 
+
+		tokenizer.setIsSilent(true);
+
 		for (final Token token : tokenizer.tokenize(input)) {
 
 			if (StringUtils.isNotBlank(token.content)) {
@@ -452,6 +455,10 @@ public class Functions {
 			candidates.add(new SingleCharacter(')'));
 			candidates.add(new SingleCharacter('['));
 			candidates.add(new SingleCharacter(']'));
+
+			candidates.add(new SingleCharacter('['));
+			candidates.add(new SingleCharacter(']'));
+
 			candidates.add(new QuotedString('\'', includeQuotesInTokens));
 			candidates.add(new QuotedString('\"', includeQuotesInTokens));
 			candidates.add(new Number());
@@ -772,8 +779,10 @@ public class Functions {
 
 				if (esc) {
 
-					// convert back to escape code
-					super.add(StringEscapeUtils.unescapeJava("\\" + Character.toString(character)).charAt(0));
+					try {
+						// convert back to escape code
+						super.add(StringEscapeUtils.unescapeJava("\\" + Character.toString(character)).charAt(0));
+					} catch (Throwable t) {}
 
 				} else {
 

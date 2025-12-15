@@ -127,6 +127,12 @@ public class OntologyTest extends StructrUiTest {
 		new Ontology("testMarkdownFolders", "topic Structr has markdown-folder \"1-Introduction\"");
 	}
 
+	@Test
+	public void testJavascriptFile() {
+
+		new Ontology("testJavascriptFile", "topic Structr has javascript-file \"structr/js/dashboard.js\"");
+	}
+
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {
 

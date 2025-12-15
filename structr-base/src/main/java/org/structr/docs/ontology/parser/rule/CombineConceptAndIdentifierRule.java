@@ -23,8 +23,15 @@ import org.structr.docs.ontology.parser.token.*;
 
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.function.BiFunction;
 
 public class CombineConceptAndIdentifierRule extends Rule {
+
+	private final Map<String, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
+		"markdown-folder", MarkdownFolderToken::new,
+		"javascript-file", JavascriptFileToken::new
+	);
 
 	public CombineConceptAndIdentifierRule(final Ontology ontology) {
 		super(ontology);
@@ -46,9 +53,11 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof ConceptToken conceptToken) {
 
-					if ("markdown-folder".equals(conceptToken.getName())) {
+					final String name = conceptToken.getName();
 
-						result.add(new MarkdownFolderToken(conceptToken, identifierToken));
+					if (SpecializedTokens.containsKey(name)) {
+
+						result.add(SpecializedTokens.get(name).apply(conceptToken, identifierToken));
 
 					} else {
 
@@ -69,9 +78,11 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof IdentifierToken identifierToken) {
 
-					if ("markdown-folder".equals(conceptToken.getName())) {
+					final String name = conceptToken.getName();
 
-						result.add(new MarkdownFolderToken(conceptToken, identifierToken));
+					if (SpecializedTokens.containsKey(name)) {
+
+						result.add(SpecializedTokens.get(name).apply(conceptToken, identifierToken));
 
 					} else {
 

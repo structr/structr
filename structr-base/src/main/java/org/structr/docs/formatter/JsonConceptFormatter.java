@@ -33,15 +33,8 @@ public class JsonConceptFormatter extends Formatter {
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
 
 		final StringBuilder sb = new StringBuilder();
-
-		sb.append("{ \"name\": \"");
-		sb.append(concept.getName());
-		sb.append("\", ");
-		sb.append("\"type\": \"");
-		sb.append(concept.getType());
-		sb.append("\", \"links\": [");
-
-		final List<String> c = new LinkedList<>();
+		final List<String> c   = new LinkedList<>();
+		int linkCount          = concept.getTotalChildCount();
 
 		for (final Map.Entry<String, List<Concept>> child : concept.getChildren().entrySet()) {
 
@@ -49,11 +42,21 @@ public class JsonConceptFormatter extends Formatter {
 
 			for (final Concept childConcept : child.getValue()) {
 
-				t.add("{ \"name\": \"" + childConcept.getName() + "\" }");
+				t.add("{ \"name\": \"" + childConcept.getName() + "\", \"type\": \"" + childConcept.getType() + "\" }");
 			}
 
 			c.add("{ \"name\": \"" + child.getKey() + "\", \"targets\": [ " + StringUtils.join(t, ", ") + " ] }");
 		}
+
+		sb.append("{ \"name\": \"");
+		sb.append(concept.getName());
+		sb.append("\", ");
+		sb.append("\"type\": \"");
+		sb.append(concept.getType());
+		sb.append("\", ");
+		sb.append("\"count\": ");
+		sb.append(linkCount);
+		sb.append(", \"links\": [");
 
 		sb.append(StringUtils.join(c, ", "));
 		sb.append("] }");

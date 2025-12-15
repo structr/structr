@@ -31,11 +31,83 @@
         </div>
         <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
         <script>
+            const colors = {
+
+                'unknown':    '#FF0000',
+
+                // Structural concepts - Blau/Indigo-Palette
+                'topic':      '#4A90E2',  // Helles Blau
+                'concept':    '#5C6BC0',  // Indigo
+                'component':  '#66BB6A',  // Grün
+                'type':       '#26A69A',  // Teal
+                'feature':    '#FFA726',  // Orange
+                'capability': '#FFCA28',  // Gelb-Orange
+                'use-case':   '#FFB74D',  // Hellorange
+                'mechanism':  '#AB47BC',  // Lila
+                'provider':   '#7E57C2',  // Dunkles Violett
+                'service':    '#9575CD',  // Hellviolett
+
+                // External sources - Grau-Palette (neutral, dokumentarisch)
+                'markdown-folder': '#78909C',  // Blaugrau
+                'markdown-file':   '#90A4AE',  // Hellblaugrau
+                'code-source':     '#607D8B',  // Stahlblau
+
+                // UI Elements - Cyan/Türkis-Palette (interaktiv, frontend)
+                'area':         '#00ACC1',  // Cyan
+                'tab':          '#26C6DA',  // Helles Cyan
+                'flyout':       '#00BCD4',  // Türkis
+                'menu':         '#0097A7',  // Dunkles Cyan
+                'dialog':       '#00838F',  // Petrol
+                'link':         '#4DD0E1',  // Sehr helles Cyan
+                'input':        '#80DEEA',  // Pastellcyan
+                'textarea':     '#84FFFF',  // Hellstes Cyan
+                'button':       '#18FFFF',  // Neon Cyan
+                'checkbox':     '#64FFDA',  // Cyan-Grün
+                'dropdown':     '#1DE9B6',  // Mintgrün
+                'selector':     '#00E676',  // Hellgrün
+                'list':         '#69F0AE',  // Pastellgrün
+                'table':        '#B9F6CA',  // Sehr hellgrün
+                'row':          '#CCFF90',  // Gelbgrün
+                'column':       '#F4FF81',  // Hellgelb
+                'notification': '#FFD54F',  // Gold
+                'element':      '#4FC3F7',  // Sky Blue
+                'icon':         '#29B6F6',  // Hellblau
+
+                // Backend elements - Dunklere Violett/Braun-Töne (technisch, intern)
+                'logfile':      '#8D6E63',  // Braun
+                'value':        '#A1887F',  // Hellbraun
+
+                // Metadata - Warme Grau/Beige-Töne (unterstützend, sekundär)
+                'hint':         '#BCAAA4',  // Beige
+                'note':         '#D7CCC8',  // Hellbeige
+                'description':  '#EFEBE9',  // Sehr hellbeige
+                'info':         '#81C784',  // Pastellgrün (informativ)
+                'setting':      '#AED581',  // Hellgrün (konfigurierbar)
+                'configuration':'9CCC65',   // Limette
+                'synonym':      '#C5E1A5',  // Sehr hellgrün
+            };
             var container = document.querySelector('#visualization');
             var nodes = new vis.DataSet();
             var edges = new vis.DataSet();
             fetch('/structr/docs/ontology?type=*&levels=1&format=json').then(response => response.json()).then(data => {
 
+                for (let entry of data.data) {
+                    let id = entry.type + ':' + entry.name;
+                    let value = (entry.count + 1) * 2;
+                    console.log(value)
+                    nodes.add({ id: id, label: id, value: value, color: colors[entry.type] });
+                }
+
+                for (let entry of data.data) {
+                    for (let link of entry.links) {
+                        for (let target of link.targets) {
+                            let id1 = entry.type + ':' + entry.name;
+                            let id2 = target.type + ':' + target.name;
+                            let edge = { from: id1, to: id2 };
+                            edges.add(edge);
+                        }
+                    }
+                }
             });
             var data = {
                 nodes: nodes,
@@ -44,6 +116,30 @@
             var network = new vis.Network(container, data, {
                 layout: {
                     randomSeed: 42
+                },
+                nodes: {
+                    font: {
+                        size: 50
+                    },
+                    shape: 'hexagon',
+                    scaling: {
+                        min: 20,
+                        max: 100
+                    }
+                },
+                physics: {
+                    enabled: true,
+                    solver: 'barnesHut',
+                    stabilization: true,
+                    forceAtlas2Based: {
+                        centralGravity: 0.001
+                    },
+                    barnesHut: {
+                        gravitationalConstant: -100000,
+                        avoidOverlap: 1,
+                        springLength: 200
+                    },
+                    theta: 0.001
                 }
             });
         </script>

@@ -18,21 +18,17 @@
  */
 package org.structr.docs.ontology;
 
-import org.apache.commons.io.Charsets;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.core.function.Functions;
-import org.structr.docs.OutputSettings;
 import org.structr.docs.Formatter;
+import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.parser.rule.*;
 import org.structr.docs.ontology.parser.token.FactToken;
 import org.structr.docs.ontology.parser.token.Token;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -54,11 +50,12 @@ public final class Ontology {
 			"use-case", "type",
 
 			// external sources
-			"markdown-folder", "markdown-file", "code-source",
+			"markdown-folder", "markdown-file", "code-source", "javascript-file",
 
 			// concepts for user interface elements
-			"area", "tab", "flyout", "menu", "dialog", "link", "input", "textarea", "button", "checkbox",
-			"dropdown", "selector", "list", "table", "row", "column", "notification", "element", "icon",
+			"screen", "form", "area", "tab", "flyout", "menu", "dialog", "link", "input", "textarea",
+			"button", "checkbox", "dropdown", "selector", "list", "table", "row", "notification", "element",
+			"icon",
 
 			// concepts for backend elements
 			"logfile", "value",

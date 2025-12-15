@@ -117,4 +117,51 @@ public final class Concept {
 	public boolean isTopic() {
 		return "topic".equals(type);
 	}
+
+	public int getTotalChildCount() {
+		return getTotalChildCount(this);
+	}
+
+	private int getTotalChildCount(final Concept concept) {
+
+		int sum = 0;
+
+		for (final List<Concept> child : concept.getChildren().values()) {
+
+			sum++;
+
+			for (final Concept childConcept : child) {
+
+				sum += childConcept.getTotalChildCount();
+			}
+		}
+
+		return sum;
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,2 +1,0 @@
-
-Structr has feature "security: exchange folder"
