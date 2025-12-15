@@ -64,6 +64,21 @@ public interface StructrModule {
 	 */
 	Set<String> getFeatures();
 
+	/**
+	 * Fetch a module-specific feature by name. This method exists to allow lower level
+	 * access to module-specific features via a generic method.
+	 *
+	 * @param name name of the desired feature
+	 * @param type type of the desired feature
+	 * @param arguments optional arguments
+	 * @return the desired feature, or null
+	 * @throws FrameworkException
+	 * @param <T> the type of the desired feature result
+	 */
+	default <T> T getModuleSpecificFeature(final String name, final Class<T> type, final Object... arguments) throws FrameworkException {
+		return null;
+	}
+
 	// ---- Deployment-specific methods
 	default public boolean hasDeploymentData () {
 		return false;

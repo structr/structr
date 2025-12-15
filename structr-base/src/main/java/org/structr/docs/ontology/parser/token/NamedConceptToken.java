@@ -69,16 +69,18 @@ public class NamedConceptToken extends Token<List<Concept>> {
 		for (final String identifier : identifiers) {
 
 			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier);
+			if (concept != null) {
 
-			// additional named concepts go into metadata of a concept (for now..)
-			for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
+				// additional named concepts go into metadata of a concept (for now..)
+				for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
-				final List<Concept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
-				for (final Concept additionalConcept : additionalConcepts) {
+					final List<Concept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
+					for (final Concept additionalConcept : additionalConcepts) {
 
-					concepts.add(additionalConcept);
+						concepts.add(additionalConcept);
 
-					concept.getMetadata().put(additionalConcept.getType(), additionalConcept.getName());
+						concept.getMetadata().put(additionalConcept.getType(), additionalConcept.getName());
+					}
 				}
 			}
 

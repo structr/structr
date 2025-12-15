@@ -151,6 +151,20 @@ public class OntologyTest extends StructrUiTest {
 		assertEquals("Added", test.getMetadata().get("topic"));
 	}
 
+	@Test
+	public void testBlacklist() {
+
+		final Ontology ontology  = new Ontology("testBlacklist", "blacklist One, Two, Three");
+
+		for (final Concept concept : ontology.getAllConcepts()) {
+
+			System.out.println(concept.getNameTypeAndLinks());
+		}
+
+		assertEquals(10, ontology.getBlacklist().size());
+		assertEquals( 0, ontology.getAllConcepts().size());
+	}
+
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {
 

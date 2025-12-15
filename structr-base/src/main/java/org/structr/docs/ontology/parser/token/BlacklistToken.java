@@ -18,21 +18,12 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.graalvm.collections.Pair;
-import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-public class VerbToken extends Token<Pair<Concept, Concept>> {
+public class BlacklistToken extends ConceptToken {
 
-	private final boolean isInverted;
-	private final String inverse;
-
-	public VerbToken(final String name, final String inverse, final boolean isInverted) {
-
-		super(name);
-
-		this.isInverted = isInverted;
-		this.inverse    = inverse;
+	public BlacklistToken(final String originalToken) {
+		super("blacklist", originalToken);
 	}
 
 	@Override
@@ -40,25 +31,8 @@ public class VerbToken extends Token<Pair<Concept, Concept>> {
 		return false;
 	}
 
-	public String getInverse() {
-		return inverse;
-	}
-
-	public Pair<Concept, Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
-
-		final Concept verb1 = ontology.getOrCreateConcept(sourceFile, line, "verb", name);
-		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, "verb", inverse);
-
-		if (verb1 != null && verb2 != null) {
-
-			return Pair.create(verb1, verb2);
-		}
-
-		// at least one of the verbs is blacklisted..
+	@Override
+	public String resolve(final Ontology ontology, final String sourceFile, final int line) {
 		return null;
-	}
-
-	public boolean isInverted() {
-		return isInverted;
 	}
 }

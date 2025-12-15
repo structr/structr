@@ -210,6 +210,25 @@ public class TextSearchModule implements FulltextIndexer, StructrModule {
 		return null;
 	}
 
+	@Override
+	public <T> T getModuleSpecificFeature(final String name, final Class<T> type, final Object... arguments) throws FrameworkException {
+
+		if ("stopwords".equals(name)) {
+
+			if (arguments != null && arguments.length > 0) {
+
+				final String language = arguments[0].toString();
+				return (T)getStopWords(language);
+
+			} else {
+
+				throw new FrameworkException(422, "Module-specific feature {} needs argument \"language\".");
+			}
+		}
+
+		return null;
+	}
+
 	//~--- private methods --------------------------------------------------------
 	private static int flushWordBuffer(final StringBuilder lineBuffer, final StringBuilder wordBuffer, final boolean prepend) {
 

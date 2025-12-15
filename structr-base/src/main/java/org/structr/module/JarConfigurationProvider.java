@@ -26,6 +26,7 @@ import org.structr.agent.Agent;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -133,6 +134,26 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public Map<String, StructrModule> getModules() {
 		return modules;
+	}
+
+	public Set<String> getStopWords(final String language) {
+
+		final StructrModule module = StructrApp.getConfiguration().getModules().get("text-search");
+		if (module != null) {
+
+			try {
+				final Set<String> stopwords = module.getModuleSpecificFeature("stopwords", Set.class, language);
+				if (stopwords != null) {
+
+					return stopwords;
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----

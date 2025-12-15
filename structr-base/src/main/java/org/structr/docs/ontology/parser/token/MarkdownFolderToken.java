@@ -60,27 +60,41 @@ public class MarkdownFolderToken extends NamedConceptToken {
 			final Concept folder     = ontology.getOrCreateConcept(sourceFile, line, type, cleanedName);
 			final Path path          = Path.of("structr/docs/" + folderName + "/index.txt");
 
-			concepts.add(folder);
+			if (folder != null) {
+				concepts.add(folder);
 
-			// resolve markdown folder contents and add them as topics
-			if (Files.exists(path)) {
+				// resolve markdown folder contents and add them as topics
+				if (Files.exists(path)) {
 
-				try {
-					final List<String> files = Files.readAllLines(path);
-					for (final String file : files) {
+					try {
+						final List<String> files = Files.readAllLines(path);
+						for (final String file : files) {
 
-						final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
-						final Concept markdownFile   = ontology.getOrCreateConcept("sourceFile", line, "markdown-file", cleanedFileName);
-						final String filePath        = folderName + "/" + file;
+							final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
+							final Concept markdownFile = ontology.getOrCreateConcept("sourceFile", line, "markdown-file", cleanedFileName);
 
-						markdownFile.getMetadata().put("path", filePath);
+							if (markdownFile != null) {
 
-						folder.linkChild("has", markdownFile);
+								final String filePath = folderName + "/" + file;
+
+								markdownFile.getMetadata().put("path", filePath);
+
+								folder.linkChild("has", markdownFile);
+
+							} else {
+
+								System.out.println("Markdown file " + cleanedFileName + " not created, probably blacklisted..");
+							}
+						}
+
+					} catch (IOException ioex) {
+						ioex.printStackTrace();
 					}
-
-				} catch (IOException ioex) {
-					ioex.printStackTrace();
 				}
+
+			} else {
+
+				System.out.println("Folder " + cleanedName + " not created, probably blacklisted..");
 			}
 		}
 

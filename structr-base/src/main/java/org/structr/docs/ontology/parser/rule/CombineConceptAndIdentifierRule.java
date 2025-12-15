@@ -29,6 +29,7 @@ import java.util.function.BiFunction;
 public class CombineConceptAndIdentifierRule extends Rule {
 
 	private final Map<String, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
+		"blacklist",       DoBlacklistToken::new,
 		"markdown-folder", MarkdownFolderToken::new,
 		"javascript-file", JavascriptFileToken::new
 	);

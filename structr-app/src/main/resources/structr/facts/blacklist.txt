@@ -1,0 +1,3 @@
+blacklist Boolean, Byte, Date, Double, Fload, Integer, Long, String, "Boolean[]", "Byte[]", "Date[]", "Double[]", "Float[]", "Integer[]", "Long[]", "String[]", "&quot;"
+blacklist advanced, keep, full, none, always, indent, same, Advanced, Keep, Full, Always, None
+blacklist Load, Save, Create, Delete, Remove, Filter, Filters, Select, Refresh, Action, Actions, Copy, Option, Options, Name, Description, Type, Parameter, Parameters

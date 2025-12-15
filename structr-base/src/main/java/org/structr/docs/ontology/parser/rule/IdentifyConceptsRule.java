@@ -19,8 +19,8 @@
 package org.structr.docs.ontology.parser.rule;
 
 import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.parser.token.BlacklistToken;
 import org.structr.docs.ontology.parser.token.ConceptToken;
-import org.structr.docs.ontology.parser.token.MarkdownFolderToken;
 import org.structr.docs.ontology.parser.token.Token;
 
 import java.util.Deque;
@@ -51,7 +51,11 @@ public class IdentifyConceptsRule extends Rule {
 				final String singularLowercaseName = lowercaseName.substring(0, lowercaseName.length() - 1);
 				final String singularName          = name.substring(0, lowercaseName.length() - 1);
 
-				if (knownConcepts.contains(lowercaseName)) {
+				if ("blacklist".equals(lowercaseName)) {
+
+					result.add(new BlacklistToken(name));
+
+				} else if (knownConcepts.contains(lowercaseName)) {
 
 					// use original case for concept token
 					result.add(new ConceptToken(lowercaseName, name));

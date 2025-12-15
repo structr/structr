@@ -19,25 +19,48 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
+import org.structr.module.StructrModule;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
 public class JavascriptFileToken extends NamedConceptToken {
 
-	private final int minLength = 4;
+	private final Set<String> stopWords = new LinkedHashSet<>();
+	private final int minLength         = 4;
 
 	public JavascriptFileToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
 		super(conceptToken, identifierToken);
+
+		// fetch stop words from text search module..
+		final StructrModule textSearchModule = Services.getInstance().getConfigurationProvider().getModules().get("text-search-module");
+		if (textSearchModule != null) {
+
+			try {
+
+				final Set<String> stopWordsFromModule = textSearchModule.getModuleSpecificFeature("stopwords", Set.class, "en");
+				if (stopWordsFromModule != null) {
+
+					stopWords.addAll(stopWordsFromModule);
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
 	}
 
 	@Override
@@ -64,9 +87,8 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 				try {
 					final List<String> lines  = Files.readAllLines(path);
-					final List<String> tokens = new LinkedList<>();
 					int sourceLineNumber      = 1;
-					boolean inHtml             = false;
+					boolean inHtml            = false;
 
 					for (final String rawLine : lines) {
 
@@ -80,19 +102,15 @@ public class JavascriptFileToken extends NamedConceptToken {
 							String text = line;
 
 							text = text.replace("\\$", "$");
-							text = parseAndRemoveStyleAttribute(text, tokens, ontology, fileName, sourceLineNumber);
-							text = parseAndRemoveDataComment(text, tokens, ontology, fileName, sourceLineNumber);
+							text = parseAndRemoveStyleAttribute(text);
+							text = parseAndRemoveDataComment(text, ontology, fileName, sourceLineNumber);
 							text = text.replaceAll("\\$\\{.*\\}", "");
 							text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
 
-							handleConcept("unknown", text, tokens, ontology, fileName, sourceLineNumber);
+							handleConcept("unknown", text, ontology, fileName, sourceLineNumber);
 						}
 
 						sourceLineNumber++;
-					}
-
-					for (final String token : tokens) {
-						System.out.println(token);
 					}
 
 				} catch (IOException ioex) {
@@ -123,41 +141,47 @@ public class JavascriptFileToken extends NamedConceptToken {
 			return true;
 		}
 
-		if (text.contains("&#")) {
+		if (text.contains("&#") || text.contains("&&") || text.contains("||")) {
 			return true;
 		}
 
-		if (text.contains("===") || text.contains("==")) {
+		if (text.contains("===") || text.contains("==") || text.contains("---")) {
 			return true;
 		}
 
 		return false;
 	}
 
-	private void handleConcept(final String type, final String text, final List<String> tokens, final Ontology ontology, String fileName, final int sourceLineNumber) {
+	private void handleConcept(final String type, final String text, final Ontology ontology, String fileName, final int sourceLineNumber) {
 
 		final String trimmed = text.trim();
+		if (StringUtils.isNotBlank(trimmed)) {
 
-		if (StringUtils.isNotBlank(trimmed) && trimmed.length() >= minLength && !isCode(trimmed)) {
+			final String cleaned = clean(trimmed);
+			if (StringUtils.isNotBlank(cleaned)) {
 
-			tokens.add(fileName + ":" + sourceLineNumber + ": " + type + ": " + trimmed);
+				if (StringUtils.isNotBlank(cleaned) && cleaned.length() >= minLength && !isCode(cleaned)) {
 
-			final Concept concept = ontology.getOrCreateConcept(fileName, sourceLineNumber, type, trimmed);
+					final Concept concept = ontology.getOrCreateConcept(fileName, sourceLineNumber, type, cleaned);
+					if (concept != null) {
 
-			for (final NamedConceptToken additionalNamedConcept : getAdditionalNamedConcepts()) {
+						for (final NamedConceptToken additionalNamedConcept : getAdditionalNamedConcepts()) {
 
-				for (final Concept additionalConcept : additionalNamedConcept.resolve(ontology, fileName, sourceLineNumber)) {
+							for (final Concept additionalConcept : additionalNamedConcept.resolve(ontology, fileName, sourceLineNumber)) {
 
-					if (!concept.equals(additionalConcept) && !concept.hasChild("has", additionalConcept)) {
+								if (!concept.equals(additionalConcept) && !concept.hasChild("has", additionalConcept)) {
 
-						concept.linkChild("has", additionalConcept);
+									concept.linkChild("has", additionalConcept);
+								}
+							}
+						}
 					}
 				}
 			}
 		}
 	}
 
-	private String parseAndRemoveDataComment(final String line, final List<String> tokens, final Ontology ontology, final String fileName, final int sourceLineNumber) {
+	private String parseAndRemoveDataComment(final String line, final Ontology ontology, final String fileName, final int sourceLineNumber) {
 
 		// parse data-comment
 		if (line.contains("data-comment=")) {
@@ -189,7 +213,8 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 				lineBuffer.append(line.substring(pos));
 
-				handleConcept("comment", comment.toString(), tokens,  ontology, fileName, sourceLineNumber);
+				// ignore comments for now
+				//handleConcept("comment", comment.toString(), ontology, fileName, sourceLineNumber);
 			}
 
 			return lineBuffer.toString();
@@ -198,7 +223,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 		return line;
 	}
 
-	private String parseAndRemoveStyleAttribute(final String line, final List<String> tokens, final Ontology ontology, final String fileName, final int sourceLineNumber) {
+	private String parseAndRemoveStyleAttribute(final String line) {
 
 		// parse data-comment
 		if (line.contains("style=")) {
@@ -235,5 +260,50 @@ public class JavascriptFileToken extends NamedConceptToken {
 		}
 
 		return line;
+	}
+
+	private String clean(final String name) {
+
+		if (StringUtils.isNumeric(name)) {
+			return null;
+		}
+
+		String cleaned     = StringUtils.stripToEmpty(name);
+		boolean hasChanged = true;
+
+		// clean prefix
+		while (cleaned.length() > 0 && hasChanged) {
+
+			hasChanged = false;
+
+			final char first = cleaned.charAt(0);
+
+			if (!Character.isAlphabetic(first) && !Character.isDigit(first) && first != '(') {
+
+				cleaned = cleaned.substring(1);
+				hasChanged = true;
+			}
+		}
+
+		// start again
+		hasChanged = true;
+
+		// clean suffix
+		while (cleaned.length() > 0 && hasChanged) {
+
+			int len = cleaned.length();
+
+			hasChanged = false;
+
+			final char last = cleaned.charAt(len - 1);
+
+			if (!Character.isAlphabetic(last) && !Character.isDigit(last) && last != ')') {
+
+				cleaned = cleaned.substring(0, len - 1);
+				hasChanged = true;
+			}
+		}
+
+		return cleaned;
 	}
 }

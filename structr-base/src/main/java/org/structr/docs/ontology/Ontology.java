@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 public final class Ontology {
 
 	private final List<Concept> concepts = new LinkedList<>();
+	private final Set<String> blacklist  = new LinkedHashSet<>();
 	private Concept currentSubject = null;
 
 	public Set<String> getKnownConcepts() {
@@ -88,7 +89,7 @@ public final class Ontology {
 	}
 
 	public Set<String> getBlacklist() {
-		return Set.of("!", ";", ".", "the", "a", "an", "named");
+		return blacklist;
 	}
 
 	public Set<String> getConjunctions() {
@@ -96,10 +97,15 @@ public final class Ontology {
 	}
 
 	public Ontology(final Path pathToFactsFolder) {
+
+		this();
+
 		initialize(pathToFactsFolder);
 	}
 
 	public Ontology(final String sourceFile, final List<String> facts) {
+
+		this();
 
 		int lineNumber = 1;
 
@@ -109,12 +115,17 @@ public final class Ontology {
 		}
 	}
 
+	public Ontology() {
+		blacklist.addAll(Set.of("!", ";", ".", "the", "a", "an", "named"));
+	}
+
 	/**
 	 * Constructs an ontology from a single fact. This method exists
 	 * to facilitate testing.
 	 * @param line
 	 */
 	public Ontology(final String sourceFile, final String line) {
+		this();
 		storeFact(sourceFile, line, 1);
 	}
 
@@ -309,6 +320,10 @@ public final class Ontology {
 
 	public Concept getOrCreateConcept(final String sourceFile, final int line, final String type, final String name) {
 
+		if (blacklist.contains(name)) {
+			return null;
+		}
+
 		for  (final Concept concept : concepts) {
 
 			if (concept.name.equals(name)) {
@@ -339,7 +354,7 @@ public final class Ontology {
 	// ----- private methods -----
 	private void initialize(final Path path) {
 
-		try (final Stream<Path> files = Files.walk(path).filter(Files::isRegularFile)) {
+		try (final Stream<Path> files = Files.walk(path).filter(Files::isRegularFile).sorted()) {
 
 			files.forEach(file -> {
 

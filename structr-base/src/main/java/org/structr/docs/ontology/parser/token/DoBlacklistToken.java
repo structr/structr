@@ -24,42 +24,24 @@ import org.structr.docs.ontology.Ontology;
 import java.util.LinkedList;
 import java.util.List;
 
-public class IsAToken extends Token<List<Concept>> {
+public class DoBlacklistToken extends NamedConceptToken {
 
-	private final NamedConceptToken namedConceptToken;
-	private final ConceptToken conceptToken;
-
-	public IsAToken(final NamedConceptToken namedConceptToken, final ConceptToken conceptToken) {
-
-		super(null);
-
-		this.namedConceptToken = namedConceptToken;
-		this.conceptToken      = conceptToken;
-	}
-
-	@Override
-	public boolean isUnresolved() {
-		return false;
+	public DoBlacklistToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
+		super(conceptToken, identifierToken);
 	}
 
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final String type          = conceptToken.resolve(ontology, sourceFile, line);
-		final List<Concept> input  = namedConceptToken.resolve(ontology,  sourceFile, line);
-		final List<Concept> output = new LinkedList<>();
+		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
+		final List<Concept> concepts   = new LinkedList<>();
 
-		for (final Concept concept : input) {
+		for (final String identifier : identifiers) {
 
-			final Concept toRefine = ontology.getOrCreateConcept(sourceFile, line, type, concept.getName());
-			if (toRefine != null) {
-
-				toRefine.setType(type);
-
-				output.add(toRefine);
-			}
+			ontology.getBlacklist().add(identifier);
 		}
 
-		return output;
+		// empty list
+		return concepts;
 	}
 }
