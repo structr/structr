@@ -52,7 +52,7 @@ require(['vs/editor/editor.main'], () => {
 					let wordAtPos = model.getWordAtPosition(position);
 					// console.log(`Looking up definition for word (${wordAtPos.word}) at position ${position}`, wordAtPos);
 
-					let queryURL = `/structr/rest/NodeInterface?type=SchemaMethod;SchemaNode;SchemaProperty&name=${wordAtPos.word}`;
+					let queryURL = `${Structr.rootUrl}NodeInterface?type=SchemaMethod;SchemaNode;SchemaProperty&name=${wordAtPos.word}`;
 
 					fetch(queryURL).then(response => {
 						if (response.ok) {

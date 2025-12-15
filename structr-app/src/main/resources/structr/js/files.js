@@ -1726,7 +1726,7 @@ let _Files = {
 					mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
 					mountConfig.storageConfiguration.entries = [ Object.fromEntries(Object.entries(storageConfigurationEntryData).map(entry => [ ['name', entry[0]], ['value', entry[1]] ]).flat()) ];
 
-					let response = await fetch ('/structr/rest/Folder', {
+					let response = await fetch (`${Structr.rootUrl}Folder`, {
 						method: 'POST',
 						body: JSON.stringify(mountConfig)
 					});

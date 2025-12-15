@@ -535,7 +535,7 @@ let _Config = {
 
 				<p>Welcome to the Structr Configuration Editor. Please log in with the <b>super-user</b> password which can be found in your structr.conf.</p>
 
-				<form action="/structr/config" method="post">
+				<form action="${_Helpers.getPrefixedRootUrl("/structr/config")}" method="post">
 
 					<div id="username-password" class="gap-y-2 grid ml-1 mr-4" style="grid-template-columns: 35fr 65fr;">
 

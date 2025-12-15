@@ -365,7 +365,7 @@ let Structr = {
 	},
 	renewSessionId: (callback) => {
 
-		fetch(Structr.viewRootUrl).then(response => {
+		fetch(Structr.viewRootUrl, {redirect: 'manual'}).then(response => {
 
 			StructrWS.sessionId = Structr.getSessionId();
 
@@ -382,7 +382,7 @@ let Structr = {
 			if (typeof callback === "function") {
 				callback();
 			}
-		});
+		}).catch(error => {console.error(error); });
 	},
 	loadInitialModule: (isLogin, callback) => {
 
