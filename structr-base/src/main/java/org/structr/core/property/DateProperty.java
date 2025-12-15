@@ -190,10 +190,20 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 							return result;
 						}
 
-						throw new PropertyInputParsingException(
-							jsonName(),
-							new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source)
-						);
+						if (declaringTrait != null) {
+
+							throw new PropertyInputParsingException(
+								jsonName(),
+								new DateFormatToken(declaringTrait.getLabel(), jsonName()).withDetail(source)
+							);
+
+						} else {
+
+							throw new PropertyInputParsingException(
+								jsonName(),
+								new DateFormatToken("Unknown type", jsonName()).withDetail(source)
+							);
+						}
 
 					}
 

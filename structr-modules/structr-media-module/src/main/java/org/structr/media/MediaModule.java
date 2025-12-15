@@ -19,11 +19,17 @@
 package org.structr.media;
 
 import org.structr.api.service.LicenseManager;
+import org.structr.core.property.EndNode;
+import org.structr.core.property.StartNode;
 import org.structr.core.traits.StructrTraits;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.TraitsInstance;
+import org.structr.core.traits.TraitsManager;
 import org.structr.media.relationship.VideoFileHAS_CONVERTED_VIDEOVideoFile;
 import org.structr.media.relationship.VideoFileHAS_POSTER_IMAGEImage;
 import org.structr.media.traits.definitions.VideoFileTraitDefinition;
 import org.structr.module.StructrModule;
+import org.structr.web.traits.definitions.ImageTraitDefinition;
 
 import java.util.Set;
 
@@ -44,6 +50,10 @@ public class MediaModule implements StructrModule {
 		StructrTraits.registerTrait(new VideoFileTraitDefinition());
 
 		StructrTraits.registerNodeType(StructrTraits.VIDEO_FILE, StructrTraits.ABSTRACT_FILE, StructrTraits.FILE, StructrTraits.LINKABLE, StructrTraits.VIDEO_FILE);
+
+		// register VideoFile -> Image relation
+		final TraitsInstance rootInstance = TraitsManager.getRootInstance();
+		Traits.getTrait(StructrTraits.IMAGE).registerPropertyKey(new StartNode(rootInstance, ImageTraitDefinition.POSTER_IMAGE_OF_VIDEO_PROPERTY, StructrTraits.VIDEO_FILE_HAS_POSTER_IMAGE_IMAGE));
 	}
 
 	@Override

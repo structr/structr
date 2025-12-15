@@ -54,11 +54,6 @@ public class FunctionProperty<T> extends Property<T> {
 
 	private static final Logger logger             = LoggerFactory.getLogger(FunctionProperty.class.getName());
 	private static final Map<String, String> cache = new ConcurrentHashMap<>();
-	private static final BooleanProperty pBoolean  = new BooleanProperty("pBoolean");
-	private static final IntProperty pInt          = new IntProperty("pInt");
-	private static final LongProperty pLong        = new LongProperty("pLong");
-	private static final DoubleProperty pDouble    = new DoubleProperty("pDouble");
-	private static final DateProperty pDate        = new DateProperty("pDate");
 
 	public FunctionProperty(final String name) {
 		super(name);
@@ -134,23 +129,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 					if (typeHint != null && result != null) {
 
-						switch (typeHint.toLowerCase()) {
+						final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+						if (tmp != null) {
 
-							case "boolean":
-								converter = pBoolean.inputConverter(securityContext, false);
-								break;
-							case "int":
-								converter = pInt.inputConverter(securityContext, false);
-								break;
-							case "long":
-								converter = pLong.inputConverter(securityContext, false);
-								break;
-							case "double":
-								converter = pDouble.inputConverter(securityContext, false);
-								break;
-							case "date":
-								converter = pDate.inputConverter(securityContext, false);
-								break;
+							converter = tmp.inputConverter(securityContext, false);
 						}
 
 						if (converter != null) {
@@ -247,13 +229,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 			PropertyConverter converter = null;
 
-			switch (typeHint.toLowerCase()) {
+			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+			if (tmp != null) {
 
-				case "boolean": converter = pBoolean.databaseConverter(securityContext); break;
-				case "int":     converter = pInt.databaseConverter(securityContext); break;
-				case "long":    converter = pLong.databaseConverter(securityContext); break;
-				case "double":  converter = pDouble.databaseConverter(securityContext); break;
-				case "date":    converter = pDate.databaseConverter(securityContext); break;
+				converter = tmp.databaseConverter(securityContext);
 			}
 
 			return converter;
@@ -337,13 +316,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 			PropertyConverter converter = null;
 
-			switch (typeHint.toLowerCase()) {
+			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+			if (tmp != null) {
 
-				case "boolean": converter = pBoolean.inputConverter(securityContext, false); break;
-				case "int":     converter = pInt.inputConverter(securityContext, false); break;
-				case "long":    converter = pLong.inputConverter(securityContext, false); break;
-				case "double":  converter = pDouble.inputConverter(securityContext, false); break;
-				case "date":    converter = pDate.inputConverter(securityContext, false); break;
+				converter = tmp.inputConverter(securityContext, false);
 			}
 
 			if (converter != null) {
@@ -410,13 +386,10 @@ public class FunctionProperty<T> extends Property<T> {
 
 		if (typeHint != null) {
 
-			switch (typeHint.toLowerCase()) {
+			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+			if (tmp != null) {
 
-				case "boolean": return pBoolean.getExampleValue(type, viewName);
-				case "int":     return pInt.getExampleValue(type, viewName);
-				case "long":    return pLong.getExampleValue(type, viewName);
-				case "double":  return pDouble.getExampleValue(type, viewName);
-				case "date":    return pDate.getExampleValue(type, viewName);
+				return tmp.getExampleValue(type, viewName);
 			}
 		}
 
@@ -452,19 +425,12 @@ public class FunctionProperty<T> extends Property<T> {
 
 		if (typeHint != null) {
 
-			switch (typeHint.toLowerCase()) {
+			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+			if (tmp != null) {
 
-				case "boolean":
-					return pBoolean.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "int":
-					return pInt.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "long":
-					return pLong.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "double":
-					return pDouble.describeOpenAPIOutputType(type, viewName, level + 1);
-				case "date":
-					return pDate.describeOpenAPIOutputType(type, viewName, level + 1);
+				return tmp.describeOpenAPIOutputType(type, viewName, level + 1);
 			}
+
 		} else {
 
 			return new OpenAPISchemaReference(type + "." + this.dbName + "PropertySchema");
@@ -479,16 +445,47 @@ public class FunctionProperty<T> extends Property<T> {
 
 		if (typeHint != null) {
 
-			switch (typeHint.toLowerCase()) {
+			final Property tmp = createTempProperty(typeHint.toLowerCase(), jsonName);
+			if (tmp != null) {
 
-				case "boolean": return pBoolean.describeOpenAPIInputType(type, viewName, level + 1);
-				case "int":     return pInt.describeOpenAPIInputType(type, viewName, level + 1);
-				case "long":    return pLong.describeOpenAPIInputType(type, viewName, level + 1);
-				case "double":  return pDouble.describeOpenAPIInputType(type, viewName, level + 1);
-				case "date":    return pDate.describeOpenAPIInputType(type, viewName, level + 1);
+				return tmp.describeOpenAPIInputType(type, viewName, level + 1);
 			}
 		}
 
 		return Collections.EMPTY_MAP;
+	}
+
+	// ----- private methods -----
+	private Property createTempProperty(final String type, final String name) {
+
+		Property tmp = null;
+
+		switch (type) {
+			case "boolean":
+				tmp = new BooleanProperty(name);
+				break;
+
+			case "int":
+				tmp = new IntProperty(name);
+				break;
+
+			case "long":
+				tmp = new LongProperty(name);
+				break;
+
+			case "double":
+				tmp = new DoubleProperty(name);
+				break;
+
+			case "date":
+				tmp = new DateProperty(name);
+				break;
+		}
+
+		if (tmp != null) {
+			tmp.setDeclaringTrait(this.getDeclaringTrait());
+		}
+
+		return tmp;
 	}
 }
