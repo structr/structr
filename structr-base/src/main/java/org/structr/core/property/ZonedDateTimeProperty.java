@@ -190,4 +190,15 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 	public static String getDefaultFormat() {
 		return Settings.DefaultZonedDateTimeFormat.getValue();
 	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property type for zoned date-time values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
+	}
 }

@@ -33,6 +33,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.docs.DocumentableType;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
@@ -366,6 +367,17 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 		}
 
 		return map;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property that stores arrays of primitive values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
 	}
 
 	// ----- private methods -----

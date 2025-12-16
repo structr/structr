@@ -33,6 +33,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -184,5 +185,10 @@ public class CreateRelationshipFunction extends CoreFunction {
 			"In a JavaScript environment, the function can be used just as in a StructrScript environment. Alternatively it can take a map as the fourth parameter.",
 			"The relationshipType is the literal name of the relationship that you see between two nodes in the schema editor, e.g. \"FOLLOWS\" or \"HAS\"."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

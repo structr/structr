@@ -29,6 +29,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractBinaryProcess;
@@ -227,6 +228,11 @@ public class ExecBinaryFunction extends ExecFunction {
 		return List.of(
 				Example.structrScript("${execBinary(response, 'my.create.pdf')}", "Streaming binary content of the `my.create.pdf` script to the client.")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 
 	private static class ScriptingProcess extends AbstractBinaryProcess<String> {

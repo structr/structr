@@ -52,4 +52,9 @@ public abstract class KeywordHint extends AbstractHint {
 		// keywords are valid for all languages
 		return Language.scriptingLanguages();
 	}
+
+	@Override
+	public List<Concept> getParentConcepts() {
+		return List.of(Concept.of("topic", "Keywords"));
+	}
 }

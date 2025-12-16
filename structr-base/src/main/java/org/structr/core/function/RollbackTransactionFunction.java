@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -66,4 +67,9 @@ public class RollbackTransactionFunction extends CoreFunction {
         public String getName() {
                 return "rollbackTransaction";
         }
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
+	}
 }

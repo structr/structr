@@ -25,6 +25,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -84,8 +85,8 @@ public class RequestStoreHasFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${requestStoreHas('do_no_track')}"),
-				Example.javaScript(" ${{ $.requestStoreHas('do_not_track'); }}")
+			Example.structrScript("${requestStoreHas('do_no_track')}"),
+			Example.javaScript(" ${{ $.requestStoreHas('do_not_track'); }}")
 		);
 	}
 
@@ -93,7 +94,12 @@ public class RequestStoreHasFunction extends UiAdvancedFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("key", "key to check")
-				);
+			Parameter.mandatory("key", "key to check")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Scripting;
 	}
 }

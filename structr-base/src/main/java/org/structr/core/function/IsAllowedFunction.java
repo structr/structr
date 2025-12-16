@@ -33,6 +33,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -146,5 +147,10 @@ public class IsAllowedFunction extends AdvancedScriptingFunction {
 		return List.of(
 			Example.structrScript("${isAllowed(me, group1, 'read, write')}", "Check if the current user has `read` and `write` permissions on a group")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.AccessControl;
 	}
 }

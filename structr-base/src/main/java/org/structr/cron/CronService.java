@@ -362,6 +362,11 @@ public class CronService extends Thread implements RunnableService {
 			public List<Usage> getUsages() {
 				return null;
 			}
+
+			@Override
+			public List<Concept> getParentConcepts() {
+				return List.of(Concept.of("topic", "Services"));
+			}
 		};
 	}
 

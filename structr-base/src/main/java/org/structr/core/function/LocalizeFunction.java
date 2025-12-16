@@ -34,6 +34,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.LocalizationTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.*;
@@ -167,6 +168,11 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 						}}
 						""", "Localization of multiple keys at once")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 
 	public static List<GraphObjectMap> getLocalizedList(final ActionContext ctx, final Object caller, final List<String> keyList, final String domain) throws FrameworkException {

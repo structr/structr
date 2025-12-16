@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.sql.*;
@@ -196,6 +197,11 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 		return List.of(
 			"Username and password can also be included in the JDBC connection string."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 
 	private Connection getConnection(final String url, final String username, final String password) throws SQLException {

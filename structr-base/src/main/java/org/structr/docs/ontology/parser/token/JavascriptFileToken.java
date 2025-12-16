@@ -32,14 +32,19 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An identifier that is augmented with a type so we know what it is.
  */
 public class JavascriptFileToken extends NamedConceptToken {
 
+	private final Pattern HTMLLine      = Pattern.compile("<[a-zA-Z0-9_\\p{Punct} ]+>.*");
+	private final Pattern JSONToken     = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*:\\s*([\"'a-zA-Z0-9_]+)\\s*[\\p{Punct}]*");
 	private final Set<String> stopWords = new LinkedHashSet<>();
 	private final int minLength         = 4;
+	private final int maxLength         = 40;
 
 	public JavascriptFileToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
@@ -94,12 +99,26 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 						final String line    = rawLine.trim();
 						final boolean isHtml = isHtmlLine(line);
+						final boolean isJson = isJSONLine(line);
 
-						if (isHtml || inHtml) {
+						if (isHtml || isJson || inHtml) {
 
 							inHtml = isHtml;
 
 							String text = line;
+
+							if (isJson) {
+
+								final Matcher matcher = JSONToken.matcher(line);
+								if (matcher.matches()) {
+
+									text = matcher.group(2);
+
+									if (StringUtils.isNumeric(text) || text.length() < minLength || text.matches("'[0-9]+[a-z]+'")) {
+										continue;
+									}
+								}
+							}
 
 							text = text.replace("\\$", "$");
 							text = parseAndRemoveStyleAttribute(text);
@@ -124,7 +143,19 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 	// ----- private methods -----
 	private boolean isHtmlLine(final String line) {
-		return line.matches("<[a-zA-Z0-9_\\p{Punct} ]+>.*");
+
+		// any sort of HTML tag
+		final Matcher htmlMatcher = HTMLLine.matcher(line);
+
+		return htmlMatcher.matches();
+	}
+
+	private boolean isJSONLine(final String line) {
+
+		// key: value (and nothing else)
+		final Matcher jsonMatcher = JSONToken.matcher(line);
+
+		return jsonMatcher.matches();
 	}
 
 	private boolean isCode(final String text) {
@@ -149,6 +180,10 @@ public class JavascriptFileToken extends NamedConceptToken {
 			return true;
 		}
 
+		if (text.contains("&mdash")) {
+			return true;
+		}
+
 		return false;
 	}
 
@@ -160,7 +195,9 @@ public class JavascriptFileToken extends NamedConceptToken {
 			final String cleaned = clean(trimmed);
 			if (StringUtils.isNotBlank(cleaned)) {
 
-				if (StringUtils.isNotBlank(cleaned) && cleaned.length() >= minLength && !isCode(cleaned)) {
+				final int len = cleaned.length();
+
+				if (StringUtils.isNotBlank(cleaned) && len >= minLength && len <= maxLength && !isCode(cleaned)) {
 
 					final Concept concept = ontology.getOrCreateConcept(fileName, sourceLineNumber, type, cleaned);
 					if (concept != null) {
@@ -169,9 +206,13 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 							for (final Concept additionalConcept : additionalNamedConcept.resolve(ontology, fileName, sourceLineNumber)) {
 
-								if (!concept.equals(additionalConcept) && !concept.hasChild("has", additionalConcept)) {
+								// additional concept can resolve to null because of blacklisting
+								if (additionalConcept != null) {
 
-									concept.linkChild("has", additionalConcept);
+									if (!concept.equals(additionalConcept)) {
+
+										concept.linkChild("has", additionalConcept);
+									}
 								}
 							}
 						}
@@ -305,5 +346,22 @@ public class JavascriptFileToken extends NamedConceptToken {
 		}
 
 		return cleaned;
+	}
+
+	public static void main(final String[] args) {
+
+		final Pattern p = Pattern.compile("\\s*[a-zA-Z0-9_]+\\s*:\\s*[\"'a-zA-Z0-9_]+\\s*");
+		final List<String> samples = new LinkedList<>();
+
+		samples.add("\t\ttoken: 'onStructrLogin'\n");
+		samples.add("\t\ttoken: 'onStructrLogin\n");
+
+		for (final String sample : samples) {
+
+			final Matcher matcher = p.matcher(sample);
+
+			System.out.println(matcher.matches() + ": " + sample);
+		}
+
 	}
 }

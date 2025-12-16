@@ -21,6 +21,7 @@ package org.structr.rest.api;
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Documentable;
 import org.structr.rest.resource.*;
 import org.structr.web.resource.*;
 
@@ -74,6 +75,14 @@ public class RESTEndpoints {
 	// ----- public static methods -----
 	public static void register(final RESTEndpoint endpoint) {
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
+	}
+
+	public static void addEndpoints(final List<Documentable> documentables) {
+
+		for (final SortedByUsageCount count : ENDPOINTS) {
+
+			documentables.add(count.endpoint);
+		}
 	}
 
 	public static RESTCallHandler resolveRESTCallHandler(final HttpServletRequest request, final String defaultView, final String userType) throws FrameworkException {

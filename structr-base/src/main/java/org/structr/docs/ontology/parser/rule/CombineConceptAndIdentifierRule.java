@@ -31,7 +31,9 @@ public class CombineConceptAndIdentifierRule extends Rule {
 	private final Map<String, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
 		"blacklist",       DoBlacklistToken::new,
 		"markdown-folder", MarkdownFolderToken::new,
-		"javascript-file", JavascriptFileToken::new
+		"javascript-file", JavascriptFileToken::new,
+		"code-source",     CodeSourceToken::new,
+		"enum-source",     EnumSourceToken::new
 	);
 
 	public CombineConceptAndIdentifierRule(final Ontology ontology) {

@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -166,5 +167,10 @@ public class ArrayExpression extends Expression {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of();
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return null;
 	}
 }

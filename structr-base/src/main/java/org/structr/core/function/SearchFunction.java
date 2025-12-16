@@ -122,17 +122,17 @@ public class SearchFunction extends AbstractQueryFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitve / inexact.";
+		return "Returns a collection of entities of the given type from the database, takes optional key/value pairs. Searches case-insensitive / inexact.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		The `search()` method is very similar to `find()`, except that it is case-insensitive / inexact. It returns a collection of entities, 
+		The `search()` method is very similar to `find()`, except that it is case-insensitive / inexact. It returns a collection of entities,
 		which can be empty if none of the existing nodes or relationships matches the given search parameters.
-		`search()` accepts several different parameter combinations, whereas the first parameter is always the name of 
+		`search()` accepts several different parameter combinations, whereas the first parameter is always the name of
 		the type to retrieve from the database. The second parameter can either be a map (e.g. a result from nested function calls)
-		or a list of (key, value) pairs. Calling `search()` with only a single parameter will return all the nodes of the  
+		or a list of (key, value) pairs. Calling `search()` with only a single parameter will return all the nodes of the
 		given type (which might be dangerous if there are many of them in the database).
 		
 		For more examples see `find()`.

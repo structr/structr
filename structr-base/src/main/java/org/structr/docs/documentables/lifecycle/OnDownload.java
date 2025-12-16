@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,61 +16,31 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.service;
-
-import org.structr.docs.*;
+package org.structr.docs.documentables.lifecycle;
 
 import java.util.List;
 
-public class FtpServiceDocumentable implements Documentable {
+public class OnDownload extends LifecycleBase {
 
-	@Override
-	public DocumentableType getDocumentableType() {
-		return DocumentableType.Service;
-	}
-
-	@Override
-	public String getName() {
-		return "FtpService";
+	public OnDownload() {
+		super("onDownload");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "A service that provides access to the Structr filesystem via FTP.";
+		return "Called after the download of a File is complete.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return null;
-	}
-
-	@Override
-	public List<Parameter> getParameters() {
-		return List.of();
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return List.of();
+		return "The `onDownload()` lifecycle method is called after a File is downloaded.";
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of();
-	}
 
-	@Override
-	public List<Signature> getSignatures() {
-		return List.of();
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-		return List.of();
+		return List.of(
+			"See also: `onDelete()`."
+		);
 	}
 }

@@ -18,6 +18,7 @@
  */
 package org.structr.mail.function;
 
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.Function;
 
@@ -32,5 +33,10 @@ public abstract class AdvancedMailModuleFunction extends Function<Object, Object
 	@Override
 	public String getRequiredModule() {
 		return parent.getName();
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.EMail;
 	}
 }

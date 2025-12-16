@@ -23,6 +23,7 @@ import org.structr.docs.Language;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -95,5 +96,10 @@ public class AddFunction extends CoreFunction {
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Mathematical;
 	}
 }

@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -108,5 +109,10 @@ public class RetrieveFunction extends CoreFunction {
 		// this might be the place where information about the execution context
 		// of a function etc. can be used, but not yet.
 		return null;
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Scripting;
 	}
 }

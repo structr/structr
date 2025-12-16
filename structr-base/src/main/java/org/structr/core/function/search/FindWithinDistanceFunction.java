@@ -23,6 +23,7 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -95,5 +96,10 @@ public class FindWithinDistanceFunction extends AdvancedScriptingFunction {
 			Parameter.mandatory("longitude", "longitude of the center point"),
 			Parameter.mandatory("distance", "circumference of the circle around the center point")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

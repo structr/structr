@@ -20,6 +20,7 @@ package org.structr.web.function;
 
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -78,5 +79,10 @@ public class ClearHeadersFunction extends UiAdvancedFunction {
 		return List.of(
 			"This is important if multiple calls to the family of HTTP functions is made in the same request to clear the headers in between usages to prevent sending the wrong headers in subsequent requests."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Http;
 	}
 }

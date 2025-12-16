@@ -86,22 +86,22 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-				The given Unicode string is examined for non US-ASCII characters. If the string contains only US-ASCII characters, it is returned as-is. If the string contains non US-ASCII characters, it is first character-encoded using the platform's default charset, then transfer-encoded using either the B or Q encoding. The resulting bytes are then returned as a Unicode string containing only ASCII characters.
-				Note that this method should be used to encode only "unstructured" RFC 822 headers.
-				""";
+			The given Unicode string is examined for non US-ASCII characters. If the string contains only US-ASCII characters, it is returned as-is. If the string contains non US-ASCII characters, it is first character-encoded using the platform's default charset, then transfer-encoded using either the B or Q encoding. The resulting bytes are then returned as a Unicode string containing only ASCII characters.
+			Note that this method should be used to encode only "unstructured" RFC 822 headers.
+		""";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-				Parameter.mandatory("text", "text to encode")
+			Parameter.mandatory("text", "text to encode")
 		);
 	}
 
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
+			Example.structrScript("${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
 		);
 	}
 }

@@ -16,31 +16,33 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.lifecycle;
+package org.structr.docs.documentables.lifecycle;
 
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class OnSave extends LifecycleBase {
+public class OnDelete extends LifecycleBase {
 
-	public OnSave() {
-		super("onSave");
+	public OnDelete() {
+		super("onDelete");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called when an existing object of this type is modified.";
+		return "Called when an object of this type is deleted.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		The `onSave()` lifecycle method is called when an existing object of this type is modified. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
+		The `onDelete()` lifecycle method is called when an existing object of this type is deleted. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
 		
 		If you throw an error in this method, the enclosing transaction will be rolled back and nothing will be written to the database.
 		
-		If you want to execute code after successful validation, implement the `afterSave()` callback method.
+		If you want to execute code after successful validation, implement the `afterDelete()` callback method.
+		
+		You can access the local properties of the deleted entity through the `this` keyword. 
 		""";
 	}
 
@@ -52,13 +54,13 @@ public class OnSave extends LifecycleBase {
 				if ($.this.name === 'foo') {
 			
 					// don't allow deletion of nodes named "foo"
-					$.error('name', 'save_not_allowed', 'Name can\\'t be changed to "foo"');
+					$.error('name', 'delete_not_allowed', 'Can\\'t be deleted because name is "foo"');
 			
 				} else {
 			
-					$.log('Node with name ' + $.this.name + ' has been modified.');
+					$.log('Node with name ' + $.this.name + ' has been deleted.');
 				}
-			 }
+			}
 			""", "")
 		);
 	}
@@ -67,7 +69,7 @@ public class OnSave extends LifecycleBase {
 	public List<String> getNotes() {
 
 		return List.of(
-			"See also: `afterSave()`, `error()` and `assert()`."
+			"See also: `afterDelete()`, `error()` and `assert()`."
 		);
 	}
 }

@@ -32,6 +32,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.Documentable;
+import org.structr.docs.ontology.FunctionCategory;
 
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,23 @@ import java.util.Map.Entry;
  * Abstract implementation of the basic functions of the Interface QueryFunction.
  */
 public abstract class AbstractQueryFunction extends CoreFunction implements QueryFunction {
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> concepts = super.getLinkedConcepts();
+
+		concepts.add(Link.of("implements", "Advanced find"));
+		concepts.add(Link.of("provides", "Search"));
+		concepts.add(Link.of("provides", "Database query"));
+
+		return concepts;
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
+	}
 
 	@Override
 	public List<Documentable> getContextHints(final String lastToken) {

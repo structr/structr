@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -92,8 +93,12 @@ public class RequestStoreGetFunction extends UiAdvancedFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("key", "stored key")
-				);
+			Parameter.mandatory("key", "stored key")
+		);
 	}
 
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Scripting;
+	}
 }

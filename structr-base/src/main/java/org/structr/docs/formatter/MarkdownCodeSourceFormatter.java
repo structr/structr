@@ -29,8 +29,8 @@ import org.structr.core.traits.TraitsManager;
 import org.structr.docs.Documentable;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.impl.lifecycle.*;
-import org.structr.docs.impl.settings.SettingDocumentable;
+import org.structr.docs.documentables.lifecycle.*;
+import org.structr.docs.documentables.settings.SettingDocumentable;
 import org.structr.docs.ontology.Concept;
 import org.structr.rest.resource.MaintenanceResource;
 
@@ -94,7 +94,7 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 
 						if (setting.getComment() != null) {
 
-							documentables.add(new SettingDocumentable(setting));
+							documentables.add(new SettingDocumentable(group.getName(), setting));
 						}
 					}
 				}

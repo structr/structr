@@ -33,6 +33,7 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.schema.action.ActionContext;
 
@@ -171,7 +172,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${maintenance(command [, key, value [, ... ]])}. Example: ${maintenance('rebuildIndex', 'mode', 'nodesOnly'))')}"),
-			Usage.javaScript("Usage: ${{Structr.maintenance(command [, key, value [, ... ]])}}. Example: ${{Structr.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}")
+			Usage.javaScript("Usage: ${{ $.maintenance(command [, key, value [, ... ]])}}. Example: ${{ $.maintenance('rebuildIndex', { mode: 'nodesOnly' })}}")
 		);
 	}
 
@@ -229,6 +230,11 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 			"In a StructrScript environment arguments are passed as pairs of 'key1', 'value1'.",
 			"In a JavaScript environment, this function takes a map as the second argument."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 
 	public List<Documentable> getContextHints(final String lastToken) {

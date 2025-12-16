@@ -87,6 +87,6 @@ public class TypeNameHint extends AbstractHint {
 
 	@Override
 	public DocumentableType getDocumentableType() {
-		return DocumentableType.TypeName;
+		return DocumentableType.SystemType;
 	}
 }

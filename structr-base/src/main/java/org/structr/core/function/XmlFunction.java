@@ -25,6 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -137,6 +138,11 @@ public class XmlFunction extends AdvancedScriptingFunction {
 		return List.of(
 				"Disabling `%s` reduces protection against malicious input. Do this only when the data source is fully trusted and you accept the associated risks.".formatted(Settings.XMLParserSecurity.getKey())
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 
 	public static DocumentBuilder getDocumentBuilder() throws ParserConfigurationException {

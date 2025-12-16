@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -114,5 +115,10 @@ public class SubtFunction extends CoreFunction {
 				Parameter.mandatory("val1", "minuend"),
 				Parameter.mandatory("val2", "subtrahend")
 				);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Mathematical;
 	}
 }

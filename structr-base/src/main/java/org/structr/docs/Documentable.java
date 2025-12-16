@@ -292,6 +292,19 @@ public interface Documentable {
 		return null;
 	}
 
+	default List<Concept> getParentConcepts() {
+		return new LinkedList<>();
+	}
+
+	default List<Link> getLinkedConcepts() {
+		return new LinkedList<>();
+	}
+
+	default List<String> getSynonyms() {
+		return new LinkedList<>();
+	}
+
+	// ----- "private" methods, don't override
 	default boolean isDynamic() {
 		return false;
 	}
@@ -338,5 +351,35 @@ public interface Documentable {
 
 	default boolean hasExamples() {
 		return getExamples() != null;
+	}
+
+	class Concept {
+
+		public String type;
+		public String name;
+
+		public Concept(final String type, final String name) {
+			this.type = type;
+			this.name = name;
+		}
+
+		public static Concept of(final String type, final String name) {
+			return new Concept(type, name);
+		}
+	}
+
+	class Link {
+
+		public String verb;
+		public String name;
+
+		public Link(final String verb, final String name) {
+			this.verb = verb;
+			this.name = name;
+		}
+
+		public static Link of(final String verb, final String name) {
+			return new Link(verb, name);
+		}
 	}
 }

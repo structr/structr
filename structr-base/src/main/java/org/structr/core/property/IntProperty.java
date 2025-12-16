@@ -26,7 +26,10 @@ import org.structr.common.error.NumberFormatToken;
 import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.docs.DocumentableType;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -199,6 +202,17 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		return fixDatabaseProperty(value);
 	}
 
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for integer values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
+	}
+
 	// ----- OpenAPI -----
 	@Override
 	public Object getExampleValue(final String type, final String viewName) {
@@ -240,5 +254,15 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 		}
 
 		return map;
+	}
+
+	@Override
+	public List<String> getSynonyms() {
+
+		final List<String> synonyms = super.getSynonyms();
+
+		synonyms.add("Integer property");
+
+		return synonyms;
 	}
 }

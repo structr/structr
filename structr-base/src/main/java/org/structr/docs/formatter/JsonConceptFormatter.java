@@ -56,6 +56,9 @@ public class JsonConceptFormatter extends Formatter {
 		sb.append("\"type\": \"");
 		sb.append(concept.getType());
 		sb.append("\", ");
+		sb.append("\"occurrences\": ");
+		sb.append(concept.getMetadata().get("occurrences"));
+		sb.append(", ");
 		sb.append("\"count\": ");
 		sb.append(linkCount);
 		sb.append(", \"links\": [");

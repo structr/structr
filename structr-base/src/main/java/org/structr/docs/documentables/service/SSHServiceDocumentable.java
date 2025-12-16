@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,35 +16,41 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.lifecycle;
+package org.structr.docs.documentables.service;
+
+import org.structr.docs.*;
 
 import java.util.List;
 
-public class AfterCreate extends LifecycleBase {
+public class SSHServiceDocumentable extends AbstractServiceDocumentable {
 
-	public AfterCreate() {
-		super("afterCreate");
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Service;
+	}
+
+	@Override
+	public String getName() {
+		return "SSHService";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called after a new object of this type is created.";
+		return "A service that provides access to Structr via SSH.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return """
-		The `afterCreate()` lifecycle method is called after a new object of this type is created. This method runs after the creating transaction is committed, so you can be sure that the validation was successful and the object is stored in the database.
-
-		This method would be the right place to send a welcome email, for example, as you can be sure that the user exists.
-		""";
+		return null;
 	}
 
 	@Override
-	public List<String> getNotes() {
+	public List<Link> getLinkedConcepts() {
 
-		return List.of(
-			"See also: `onCreate()`."
-		);
+		final List<Link> concepts = super.getLinkedConcepts();
+
+		concepts.add(Link.of("provides", "SSH server"));
+
+		return concepts;
 	}
 }

@@ -16,31 +16,35 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.lifecycle;
+package org.structr.docs.documentables.lifecycle;
 
 import java.util.List;
 
-public class AfterDelete extends LifecycleBase {
+public class AfterCreate extends LifecycleBase {
 
-	public AfterDelete() {
-		super("afterDelete");
+	public AfterCreate() {
+		super("afterCreate");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called after an object of this type was deleted.";
+		return "Called after a new object of this type is created.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The `afterDelete()` lifecycle method is called after an object of this type is deleted. This method runs after the deleting transaction is committed, so you can be sure that the object was deleted from the database.";
+		return """
+		The `afterCreate()` lifecycle method is called after a new object of this type is created. This method runs after the creating transaction is committed, so you can be sure that the validation was successful and the object is stored in the database.
+
+		This method would be the right place to send a welcome email, for example, as you can be sure that the user exists.
+		""";
 	}
 
 	@Override
 	public List<String> getNotes() {
 
 		return List.of(
-			"See also: `onDelete()`."
+			"See also: `onCreate()`."
 		);
 	}
 }

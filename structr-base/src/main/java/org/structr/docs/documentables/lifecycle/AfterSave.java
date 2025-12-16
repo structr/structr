@@ -16,68 +16,31 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.settings;
-
-import org.structr.api.config.Setting;
-import org.structr.docs.*;
+package org.structr.docs.documentables.lifecycle;
 
 import java.util.List;
 
-public class SettingDocumentable implements Documentable {
+public class AfterSave extends LifecycleBase {
 
-	final Setting setting;
-
-	public SettingDocumentable(final Setting setting) {
-		this.setting = setting;
-	}
-
-	@Override
-	public DocumentableType getDocumentableType() {
-		return DocumentableType.Setting;
-	}
-
-	@Override
-	public String getName() {
-		return setting.getKey();
+	public AfterSave() {
+		super("afterSave");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return setting.getComment();
+		return "Called after an existing object of this type is modified.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return null;
-	}
-
-	@Override
-	public List<Parameter> getParameters() {
-		return null;
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return null;
+		return "The `afterSave()` lifecycle method is called after an existing object of this type is modified. This method runs after the modifying transaction is committed, so you can be sure that the validation was successful and the object is stored in the database.";
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return null;
-	}
 
-	@Override
-	public List<Signature> getSignatures() {
-		return null;
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-		return null;
+		return List.of(
+			"See also: `onSave()`."
+		);
 	}
 }

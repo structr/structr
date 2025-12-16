@@ -29,6 +29,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashMap;
@@ -197,5 +198,10 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 		}
 
 		return info;
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Schema;
 	}
 }

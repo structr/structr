@@ -1,0 +1,113 @@
+/*
+ * Copyright (C) 2010-2025 Structr GmbH
+ *
+ * This file is part of Structr <http://structr.org>.
+ *
+ * Structr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * Structr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package org.structr.docs.analyzer;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
+
+public class ExistingDocs {
+
+	private final Map<String, List<String>> filesAndLines = new LinkedHashMap<>();
+	private final String docsPath;
+
+	public ExistingDocs(final String path) {
+
+		this.docsPath = path;
+
+		initialize();
+	}
+
+	public int countOccurrences(final String concept) {
+
+		final String lowerCaseConcept = concept.toLowerCase();
+		int occurrences               = 0;
+
+		for (final Map.Entry<String, List<String>> entry : filesAndLines.entrySet()) {
+
+			for (final String line : entry.getValue()) {
+
+				if (line.toLowerCase().contains(lowerCaseConcept)) {
+
+					occurrences++;
+				}
+			}
+		}
+
+		return occurrences;
+	}
+
+	// ----- private methods -----
+	private void initialize() {
+
+		final Path path = Path.of(docsPath);
+
+		// resolve markdown folder contents and add them as topics
+		if (Files.exists(path)) {
+
+			try (final Stream<Path> folders = Files.walk(path).filter(Files::isDirectory).sorted()) {
+
+				folders.forEach(folder -> {
+
+					try {
+
+						for (final Path file : getFilesFromIndexTxt(folder)) {
+
+							if (Files.isRegularFile(file)) {
+
+								final String fullName = file.toString().substring(docsPath.length() + 1);
+								final List<String> lines = Files.readAllLines(file);
+
+								filesAndLines.put(fullName, lines);
+							}
+						}
+
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+
+			} catch (IOException ioex) {
+
+				ioex.printStackTrace();
+			}
+		}
+	}
+
+	private List<Path> getFilesFromIndexTxt(final Path folder) throws IOException {
+
+		final List<Path> files = new LinkedList<>();
+		final Path indexFile   = folder.resolve("index.txt");
+
+		if (Files.exists(indexFile)) {
+
+			for (final String line : Files.readAllLines(indexFile)) {
+
+				files.add(folder.resolve(line));
+			}
+		}
+
+		return files;
+	}
+}

@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -65,5 +66,10 @@ public class DisableNotificationsFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "This function can be used to temporarily disable the broadcasting of large modification operations, which greatly reduces the processing time. If you experience very slow (i.e. more than 10 seconds) object creation, modification or deletion, try to disable notifications before executing the operation. See also `enableNotifications()`.";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 }

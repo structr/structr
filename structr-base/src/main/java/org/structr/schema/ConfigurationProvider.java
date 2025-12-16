@@ -23,6 +23,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.module.StructrModule;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -34,6 +35,6 @@ public interface ConfigurationProvider {
 	void shutdown();
 
 	Map<String, Class<? extends Agent>> getAgents();
-
 	Map<String, StructrModule> getModules();
+	Set<String> getClassNames();
 }

@@ -16,13 +16,13 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.service;
+package org.structr.docs.documentables.service;
 
 import org.structr.docs.*;
 
 import java.util.List;
 
-public class MailServiceDocumentable implements Documentable {
+public class MailServiceDocumentable extends AbstractServiceDocumentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
@@ -48,36 +48,6 @@ public class MailServiceDocumentable implements Documentable {
 	}
 
 	@Override
-	public List<Parameter> getParameters() {
-		return List.of();
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return List.of();
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of();
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return List.of();
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-		return List.of();
-	}
-
-	@Override
 	public List<Setting> getSettings() {
 
 		return List.of(
@@ -85,5 +55,15 @@ public class MailServiceDocumentable implements Documentable {
 			new Setting("mail.updateinterval",     "Update interval in milliseconds"),
 			new Setting("mail.attachmentbasepath", "path in Structr's virtual filesystem where attachments are downloaded to")
 		);
+	}
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> concepts = super.getLinkedConcepts();
+
+		concepts.add(Link.of("provides", "Sending emails"));
+
+		return concepts;
 	}
 }

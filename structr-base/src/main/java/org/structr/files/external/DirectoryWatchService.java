@@ -416,6 +416,21 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			public List<Usage> getUsages() {
 				return List.of();
 			}
+
+			@Override
+			public List<Concept> getParentConcepts() {
+				return List.of(Concept.of("topic", "Services"));
+			}
+
+			@Override
+			public List<Link> getLinkedConcepts() {
+
+				final List<Link> links = new LinkedList<>();
+
+				links.add(Link.of("uses", "Mount target"));
+
+				return links;
+			}
 		};
 	}
 

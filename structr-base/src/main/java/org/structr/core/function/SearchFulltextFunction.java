@@ -26,6 +26,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -140,5 +141,10 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 				}}
 				""", "Fuzzy fulltext search for all employees with names similar to 'alex'")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

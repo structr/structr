@@ -23,6 +23,7 @@ import org.structr.api.Predicate;
 import org.structr.core.function.Functions;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.ontology.parser.rule.*;
 import org.structr.docs.ontology.parser.token.FactToken;
 import org.structr.docs.ontology.parser.token.Token;
@@ -51,18 +52,19 @@ public final class Ontology {
 			"use-case", "type",
 
 			// external sources
-			"markdown-folder", "markdown-file", "code-source", "javascript-file",
+			"markdown-folder", "markdown-file", "code-source", "enum-source", "javascript-file",
 
 			// concepts for user interface elements
 			"screen", "form", "area", "tab", "flyout", "menu", "dialog", "link", "input", "textarea",
 			"button", "checkbox", "dropdown", "selector", "list", "table", "row", "notification", "element",
 			"icon",
 
-			// concepts for backend elements
-			"logfile", "value",
+			// technical concepts
+			"logfile", "value", "lifecycle-method", "http-verb", "function", "setting",
+			"user-defined-function", "helper",
 
 			// metadata
-			"hint", "note", "description", "info", "setting", "configuration", "synonym"
+			"hint", "note", "description", "info", "configuration", "synonym"
 		);
 	}
 
@@ -84,6 +86,7 @@ public final class Ontology {
 		verbs.put("configures", "isconfiguredby");
 		verbs.put("displays",   "isdisplayedby");
 		verbs.put("writesto",   "iswrittenfrom");
+		verbs.put("executes",   "isexecutedby");
 
 		return verbs;
 	}
@@ -116,6 +119,7 @@ public final class Ontology {
 	}
 
 	public Ontology() {
+
 		blacklist.addAll(Set.of("!", ";", ".", "the", "a", "an", "named"));
 	}
 
@@ -125,7 +129,9 @@ public final class Ontology {
 	 * @param line
 	 */
 	public Ontology(final String sourceFile, final String line) {
-		this();
+
+		this(null);
+
 		storeFact(sourceFile, line, 1);
 	}
 
@@ -380,5 +386,20 @@ public final class Ontology {
 
 	public void setCurrentSubject(final Concept subject) {
 		this.currentSubject = subject;
+	}
+
+	public void countConcepts(final ExistingDocs existingDocs) {
+
+		for (final Concept concept : concepts) {
+
+			int occurrences = existingDocs.countOccurrences(concept.getName());
+
+			for (final Concept synonym : concept.getChildrenOfType("has", "synonym")) {
+
+				occurrences += existingDocs.countOccurrences(synonym.getName());
+			}
+
+			concept.setOccurrences(occurrences);
+		}
 	}
 }

@@ -33,6 +33,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.Services;
 import org.structr.docs.OutputSettings;
+import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.*;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Details;
@@ -50,6 +51,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		try {
 
+			ExistingDocs existingDocs             = new ExistingDocs("structr/docs");
 			final HttpService service             = Services.getInstance().getServiceImplementation(HttpService.class);
 			final ResourceHandler resourceHandler = service.getExportedResourceHandler();
 			final Resource baseResource           = resourceHandler.getBaseResource();
@@ -57,6 +59,9 @@ public class DocumentationServlet extends HttpServlet {
 			final Ontology ontology               = new Ontology(facts.getPath());
 			final OutputSettings settings         = setupOutputSettings(baseResource);
 			final List<Concept> concepts          = new LinkedList<>();
+
+			// compare ontology to existing docs
+			ontology.countConcepts(existingDocs);
 
 			handleRequestParameters(request, ontology, concepts, settings);
 

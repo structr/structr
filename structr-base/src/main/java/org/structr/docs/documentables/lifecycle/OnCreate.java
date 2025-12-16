@@ -16,33 +16,31 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.lifecycle;
+package org.structr.docs.documentables.lifecycle;
 
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class OnDelete extends LifecycleBase {
+public class OnCreate extends LifecycleBase {
 
-	public OnDelete() {
-		super("onDelete");
+	public OnCreate() {
+		super("onCreate");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called when an object of this type is deleted.";
+		return "Called when a new object of this type is created.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		The `onDelete()` lifecycle method is called when an existing object of this type is deleted. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
+		The `onCreate()` lifecycle method is called when a new object of this type is created. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
 		
 		If you throw an error in this method, the enclosing transaction will be rolled back and nothing will be written to the database.
 		
-		If you want to execute code after successful validation, implement the `afterDelete()` callback method.
-		
-		You can access the local properties of the deleted entity through the `this` keyword. 
+		If you want to execute code after successful validation, implement the `afterCreate()` callback method.
 		""";
 	}
 
@@ -52,13 +50,13 @@ public class OnDelete extends LifecycleBase {
 			Example.javaScript("""
 			{
 				if ($.this.name === 'foo') {
-			
-					// don't allow deletion of nodes named "foo"
-					$.error('name', 'delete_not_allowed', 'Can\\'t be deleted because name is "foo"');
-			
+
+					// don't allow creation of nodes named "foo"
+					$.error('name', 'create_not_allowed', 'Can\\'t be created because name is "foo"');
+
 				} else {
-			
-					$.log('Node with name ' + $.this.name + ' has been deleted.');
+
+					$.log('Node with name ' + $.this.name + ' has just been created.');
 				}
 			}
 			""", "")
@@ -69,7 +67,7 @@ public class OnDelete extends LifecycleBase {
 	public List<String> getNotes() {
 
 		return List.of(
-			"See also: `afterDelete()`, `error()` and `assert()`."
+			"See also: `afterCreate()`, `error()` and `assert()`."
 		);
 	}
 }

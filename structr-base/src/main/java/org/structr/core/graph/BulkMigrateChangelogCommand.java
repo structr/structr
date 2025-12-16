@@ -189,4 +189,9 @@ public class BulkMigrateChangelogCommand extends NodeServiceCommand implements M
 	public List<Usage> getUsages() {
 		return List.of();
 	}
+
+	@Override
+	public final List<Concept> getParentConcepts() {
+		return List.of(Concept.of("topic", "Maintenance commands"));
+	}
 }

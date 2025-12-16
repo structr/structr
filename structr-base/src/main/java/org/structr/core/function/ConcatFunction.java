@@ -25,6 +25,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
@@ -124,5 +125,10 @@ public class ConcatFunction extends CoreFunction {
 			"If nodes and relationships are among the parameters, their UUIDs will be written into the result.",
 			"`null` values are filtered and not concatenated."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

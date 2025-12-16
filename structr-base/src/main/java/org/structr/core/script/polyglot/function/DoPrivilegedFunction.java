@@ -23,6 +23,7 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.SecurityContext;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -146,5 +147,10 @@ public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyEx
 		return List.of(
 			Signature.of("function", Language.values())
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 }

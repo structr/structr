@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
@@ -99,5 +100,10 @@ public class EqualFunction extends CoreFunction {
 		return List.of(
 			"This function can also be called using just `eq()` as an alias."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Logic;
 	}
 }

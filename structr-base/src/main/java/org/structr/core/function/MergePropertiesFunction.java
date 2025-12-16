@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
@@ -129,5 +130,10 @@ public class MergePropertiesFunction extends CoreFunction {
 	@Override
 	public List<Language> getLanguages() {
 		return List.of(Language.StructrScript);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Scripting;
 	}
 }

@@ -20,32 +20,38 @@ package org.structr.docs;
 
 public enum DocumentableType {
 
-	BuiltInFunction("Built-in function", true, true),
-	Keyword("Keyword", true, true),
-	Method("Method", true, true),
-	Property("Property", false, false),
-	TypeName("Type name", false, false),
-	UserDefinedFunction("User-defined function", false, false),
-	MaintenanceCommand("Maintenance command", false, false),
-	SystemType("System type", false, false),
-	LifecycleMethod("Lifecycle method", false, true),
-	Service("Service", false, false),
-	Setting("Setting", false, false),
-	Hidden(null, false, false);
+	BuiltInFunction("Built-in function", "function", true, true),
+	Keyword("Keyword", "keyword", true, true),
+	Method("Method", "method", true, true),
+	Property("Property", "property", false, false),
+	UserDefinedFunction("User-defined function", "user-defined-function", false, false),
+	MaintenanceCommand("Maintenance command", "maintenance-command", false, false),
+	SystemType("System type", "type", false, false),
+	LifecycleMethod("Lifecycle method", "lifecycle-method", false, true),
+	Service("Service", "service", false, false),
+	Setting("Setting", "setting", false, false),
+	RESTEndpoint("REST Endpoint", "rest-endpoint", false, false),
+	Hidden(null, null, false, false);
 
 	private final boolean supportsLanguages;
 	private final boolean supportsExamples;
+	private final String ontologyType;
 	private final String displayName;
 
-	DocumentableType(final String displayName, final boolean supportsLanguages, final boolean supportsExamples) {
+	DocumentableType(final String displayName, final String ontologyType, final boolean supportsLanguages, final boolean supportsExamples) {
 
 		this.supportsLanguages = supportsLanguages;
 		this.supportsExamples  = supportsExamples;
+		this.ontologyType      = ontologyType;
 		this.displayName       = displayName;
 	}
 
 	public String getDisplayName() {
 		return displayName;
+	}
+
+	public String getOntologyType() {
+		return ontologyType;
 	}
 
 	public boolean supportsLanguages() {

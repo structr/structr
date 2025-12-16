@@ -84,7 +84,7 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-				Parameter.mandatory("address", "address to which undeliverable messages will be returned if undeliverable")
+			Parameter.mandatory("address", "address to which undeliverable messages will be returned if undeliverable")
 		);
 	}
 }

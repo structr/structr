@@ -30,6 +30,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -106,8 +107,8 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${removeFromGroup(first(find('Group', 'name', 'Admins')), me)}"),
-				Example.javaScript("${{ $.removeFromGroup($.first($.find('Group', 'name', 'Admins')), $.me)} }}")
+			Example.structrScript("${removeFromGroup(first(find('Group', 'name', 'Admins')), me)}"),
+			Example.javaScript("${{ $.removeFromGroup($.first($.find('Group', 'name', 'Admins')), $.me)} }}")
 		);
 	}
 
@@ -115,8 +116,13 @@ public class RemoveFromGroupFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("group", "target group"),
-				Parameter.optional("principal", "principal to remove from group")
-				);
+			Parameter.mandatory("group", "target group"),
+			Parameter.optional("principal", "principal to remove from group")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.AccessControl;
 	}
 }

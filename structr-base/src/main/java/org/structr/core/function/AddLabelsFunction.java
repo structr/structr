@@ -21,6 +21,7 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
@@ -64,5 +65,10 @@ public class AddLabelsFunction extends ManageLabelsFunction {
 			Usage.javaScript("addLabels(node, [ 'LABEL1', 'LABEL2' ])"),
 			Usage.structrScript("addLabels(node, merge('LABEL1', 'LABEL2'))")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

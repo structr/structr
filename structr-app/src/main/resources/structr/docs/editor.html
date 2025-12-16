@@ -7,25 +7,43 @@
                 padding: 1em;
                 background-color: #eee;
             }
+            #container {
+                position: relative;
+            }
             #visualization {
                 margin: 0;
                 padding: 0;
                 width: 100%;
                 height: calc(90vh);
                 background-color: white;
-                border: 1px solid #ddd;
+                border: 1px solid #999;
+            }
+            #context {
+                position: absolute;
+                top: 2em;
+                right: 2em;
+                width: 300px;
+                height: 500px;
+                border: 1px solid #999;
+                background-color: #fff;
+                box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
             }
             #editor {
                 padding: 1em 0;
             }
             #input {
                 width: 100%;
+                border: 1px solid #999;
                 box-sizing: border-box;
             }
         </style>
     </head>
     <body>
-        <div id="visualization"></div>
+        <div id="container">
+            <div id="visualization">
+            </div>
+            <div id="context"></div>
+        </div>
         <div id="editor">
             <input type="text" id="input" />
         </div>
@@ -36,7 +54,8 @@
                 'unknown':    '#FF0000',
 
                 // Structural concepts - Blau/Indigo-Palette
-                'topic':      '#4A90E2',  // Helles Blau
+                //'topic':      '#4A90E2',  // Helles Blau
+                'topic':      '#000000',  // Schwarz
                 'concept':    '#5C6BC0',  // Indigo
                 'component':  '#66BB6A',  // Grün
                 'type':       '#26A69A',  // Teal
@@ -86,15 +105,18 @@
                 'configuration':'9CCC65',   // Limette
                 'synonym':      '#C5E1A5',  // Sehr hellgrün
             };
-            var container = document.querySelector('#visualization');
-            var nodes = new vis.DataSet();
-            var edges = new vis.DataSet();
             fetch('/structr/docs/ontology?type=*&levels=1&format=json').then(response => response.json()).then(data => {
+
+                var container = document.querySelector('#visualization');
+                var nodes = new vis.DataSet();
+                var edges = new vis.DataSet();
 
                 for (let entry of data.data) {
                     let id = entry.type + ':' + entry.name;
                     let value = (entry.count + 1) * 2;
-                    nodes.add({ id: id, label: id, value: value, color: colors[entry.type] });
+                    //color = (entry.occurrences > 0 ? '#00ff0099' : 'red');
+                    color = colors[entry.type];
+                    nodes.add({ id: id, label: id + ' (' + entry.occurrences + ')', value: value, color: color });
                 }
 
                 for (let entry of data.data) {
@@ -107,38 +129,42 @@
                         }
                     }
                 }
-            });
-            var data = {
-                nodes: nodes,
-                edges: edges,
-            };
-            var network = new vis.Network(container, data, {
-                layout: {
-                    randomSeed: 42
-                },
-                nodes: {
-                    font: {
-                        size: 50
+                var data = {
+                    nodes: nodes,
+                    edges: edges,
+                };
+                var network = new vis.Network(container, data, {
+                    layout: {
+                        randomSeed: 42
                     },
-                    shape: 'hexagon',
-                    scaling: {
-                        min: 20,
-                        max: 100
-                    }
-                },
-                physics: {
-                    enabled: true,
-                    solver: 'barnesHut',
-                    stabilization: true,
-                    forceAtlas2Based: {
-                        centralGravity: 0.001
+                    nodes: {
+                        font: {
+                            size: 50
+                        },
+                        shape: 'hexagon',
+                        scaling: {
+                            min: 20,
+                            max: 100
+                        }
                     },
-                    barnesHut: {
-                        gravitationalConstant: -100000,
-                        avoidOverlap: 1,
-                        springLength: 200
+                    physics: {
+                        enabled: true,
+                        solver: 'barnesHut',
+                        stabilization: true,
+                        forceAtlas2Based: {
+                            centralGravity: 0.001,
+                        },
+                        barnesHut: {
+                            gravitationalConstant: -100000,
+                            avoidOverlap: 0.5,
+                            springLength: 300
+                        },
+                        wind: {
+                            x: 0,
+                            y: 0
+                        }
                     }
-                }
+                });
             });
         </script>
     </body>

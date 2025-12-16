@@ -22,6 +22,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.servlet.EventSourceServlet;
 
@@ -124,5 +125,10 @@ public class BroadcastEventFunction extends UiAdvancedFunction {
 			"In order to use server-sent events, you need to enable the EventSource servlet in structr.conf.",
 			"If you want to use the generic `onmessage` event handler in your frontend, the messageType **must** be set to `message`. For message types other than `message`, you need to add a dedicated event listener to the EventSource instance using `addEventListener()` in your frontend."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

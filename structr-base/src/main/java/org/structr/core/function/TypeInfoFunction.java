@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -101,4 +102,8 @@ public class TypeInfoFunction extends AdvancedScriptingFunction {
 				);
 	}
 
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Schema;
+	}
 }

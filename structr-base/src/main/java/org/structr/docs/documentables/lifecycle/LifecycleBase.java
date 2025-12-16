@@ -16,61 +16,62 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.service;
+package org.structr.docs.documentables.lifecycle;
 
 import org.structr.docs.*;
 
 import java.util.List;
 
-public class SSHServiceDocumentable implements Documentable {
+public abstract class LifecycleBase implements Documentable {
 
-	@Override
-	public DocumentableType getDocumentableType() {
-		return DocumentableType.Service;
+	private final String name;
+
+	public LifecycleBase(final String name) {
+		this.name = name;
 	}
 
 	@Override
-	public String getName() {
-		return "SSHService";
+	public final DocumentableType getDocumentableType() {
+		return DocumentableType.LifecycleMethod;
 	}
 
 	@Override
-	public String getShortDescription() {
-		return "A service that provides access to Structr via SSH.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return null;
+	public final String getName() {
+		return name;
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return List.of();
+		return null;
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of();
+		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return List.of();
+		return null;
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return List.of();
+		return null;
 	}
 
 	@Override
 	public List<Language> getLanguages() {
-		return List.of();
+		return null;
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return List.of();
+		return null;
+	}
+
+	@Override
+	public List<Concept> getParentConcepts() {
+		return List.of(Concept.of("topic", "Lifecycle methods"));
 	}
 }

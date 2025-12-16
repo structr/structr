@@ -550,6 +550,11 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
+	public List<Concept> getParentConcepts() {
+		return List.of(Concept.of("topic", "System types"));
+	}
+
+	@Override
 	public List<Property> getProperties() {
 
 		final List<Property> properties = new LinkedList<>();

@@ -27,6 +27,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -161,5 +162,10 @@ public class CreateFunction extends CoreFunction {
 			"In a StructrScript environment, parameters are passed as pairs of `'key1', 'value1'`.",
 			"In a JavaScript environment, the function takes a map as the second parameter."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

@@ -95,7 +95,7 @@ public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-				Parameter.mandatory("text", "text to decode")
+			Parameter.mandatory("text", "text to decode")
 		);
 	}
 

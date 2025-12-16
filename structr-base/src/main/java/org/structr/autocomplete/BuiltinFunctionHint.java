@@ -18,9 +18,15 @@
  */
 package org.structr.autocomplete;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.DocumentableType;
+import org.structr.docs.ontology.FunctionCategory;
+
+import java.util.List;
 
 public abstract class BuiltinFunctionHint extends AbstractHint {
+
+	public abstract FunctionCategory getCategory();
 
 	@Override
 	public String getDisplayName() {
@@ -32,5 +38,23 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 	@Override
 	public DocumentableType getDocumentableType() {
 		return DocumentableType.BuiltInFunction;
+	}
+
+	@Override
+	public List<Concept> getParentConcepts() {
+
+		final List<Concept> concepts = super.getParentConcepts();
+
+		final FunctionCategory category = getCategory();
+		if (category != null) {
+
+			final String displayName = category.getDisplayName();
+			if (displayName != null) {
+
+				concepts.add(Concept.of("topic", displayName + " functions"));
+			}
+		}
+
+		return concepts;
 	}
 }

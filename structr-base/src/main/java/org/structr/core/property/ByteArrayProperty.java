@@ -30,6 +30,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
+import org.structr.docs.DocumentableType;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -218,6 +219,17 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 	@Override
 	public boolean isArray() {
 		return true;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public String getShortDescription() {
+		return "A property for byte array values.";
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "You can use this property to store binary data on a node or relationship.";
 	}
 
 	// ----- OpenAPI -----

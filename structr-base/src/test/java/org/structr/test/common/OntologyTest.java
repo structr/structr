@@ -165,6 +165,17 @@ public class OntologyTest extends StructrUiTest {
 		assertEquals( 0, ontology.getAllConcepts().size());
 	}
 
+	@Test
+	public void testCodeSources() {
+
+		final Ontology ontology  = new Ontology("testCodeSources", "topic Structr has code-source \"rest-endpoints\"");
+
+		for (final Concept concept : ontology.getAllConcepts()) {
+
+			System.out.println(concept.getNameTypeAndLinks());
+		}
+	}
+
 	// ----- private methods -----
 	private void printConcepts(final List<Concept> concepts) {
 

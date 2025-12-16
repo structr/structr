@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
@@ -131,5 +132,10 @@ public class ReadFunction extends AdvancedScriptingFunction {
 			Usage.structrScript("Usage: ${read(filename)}. Example: ${read('test.txt')}"),
 			Usage.javaScript("Usage: ${{ $.read(filename); }}. Example: ${{ $.read('test.txt'); }}")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

@@ -23,9 +23,7 @@ import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Documentable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Common base interface for commands that can be registered as a maintenance
@@ -51,6 +49,16 @@ public interface MaintenanceCommand extends Documentable {
 	boolean requiresEnclosingTransaction();
 	boolean requiresFlushingOfCaches();
 	Map<String, String> getCustomHeaders();
+
+	@Override
+	default List<Concept> getParentConcepts() {
+
+		final List<Concept> parentConcepts = new LinkedList<>();
+
+		parentConcepts.add(Concept.of("topic", "Maintenance commands"));
+
+		return parentConcepts;
+	}
 
 	default Object getCommandResult() {
 		return Collections.EMPTY_LIST;

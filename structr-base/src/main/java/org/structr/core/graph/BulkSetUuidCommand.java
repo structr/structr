@@ -230,4 +230,9 @@ public class BulkSetUuidCommand extends NodeServiceCommand implements Maintenanc
 	public List<Usage> getUsages() {
 		return List.of();
 	}
+
+	@Override
+	public final List<Concept> getParentConcepts() {
+		return List.of(Concept.of("topic", "Maintenance commands"));
+	}
 }

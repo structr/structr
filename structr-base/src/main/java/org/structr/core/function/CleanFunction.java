@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -146,5 +147,10 @@ public class CleanFunction extends CoreFunction {
 		return List.of(
 			"Strings are normalized in the NFD form (see. http://www.unicode.org/reports/tr15/tr15-23.html) before the replacements are applied."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.String;
 	}
 }

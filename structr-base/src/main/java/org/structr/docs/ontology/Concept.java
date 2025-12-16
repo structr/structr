@@ -67,7 +67,11 @@ public final class Concept {
 	}
 
 	public void linkChild(final String verb, final Concept concept) {
-		children.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
+
+		if (!hasChild(verb, concept)) {
+
+			children.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
+		}
 	}
 
 	public void linkParent(final String verb, final Concept concept) {
@@ -132,6 +136,10 @@ public final class Concept {
 
 			for (final Concept childConcept : child) {
 
+				if (childConcept == null) {
+					throw new RuntimeException("Empty child concept in children of " + getName() + ".");
+				}
+
 				sum += childConcept.getTotalChildCount();
 			}
 		}
@@ -153,6 +161,11 @@ public final class Concept {
 		}
 
 		return false;
+	}
+
+	public void setOccurrences(final int occurrences) {
+
+		metadata.put("occurrences", String.valueOf(occurrences));
 	}
 }
 

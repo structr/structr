@@ -27,6 +27,7 @@ import org.structr.api.RetryException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.Principal;
@@ -36,11 +37,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
+import org.structr.docs.*;
 import org.structr.schema.Transformer;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 
 /**
@@ -49,7 +49,7 @@ import java.util.TreeMap;
  *
  * @param <T>
  */
-public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
+public abstract class AbstractPrimitiveProperty<T> extends Property<T> implements Documentable {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractPrimitiveProperty.class.getName());
 
@@ -66,6 +66,22 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 	public AbstractPrimitiveProperty(final String jsonName, final String dbName, final T defaultValue) {
 		super(jsonName, dbName, defaultValue);
+	}
+
+	public static void addProperties(final List<Documentable> documentables) {
+
+		documentables.add(new ArrayProperty<>(null, String.class));
+		documentables.add(new BooleanProperty(null));
+		documentables.add(new ByteArrayProperty(null));
+		documentables.add(new CypherProperty<>(null, null));
+		documentables.add(new DateProperty(null));
+		documentables.add(new DoubleProperty(null));
+		documentables.add(new EnumProperty(null, Set.of()));
+		documentables.add(new IntProperty(null));
+		documentables.add(new LongProperty(null));
+		documentables.add(new LowercaseStringProperty(null));
+		documentables.add(new StringProperty(null));
+		documentables.add(new ZonedDateTimeProperty(null));
 	}
 
 	@Override
@@ -290,6 +306,85 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 		}
 
 		return map;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Property;
+	}
+
+	@Override
+	public String getName() {
+		return getClass().getSimpleName();
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return null;
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return null;
+	}
+
+	@Override
+	public List<String> getNotes() {
+		return null;
+	}
+
+	@Override
+	public List<Signature> getSignatures() {
+		return null;
+	}
+
+	@Override
+	public List<Language> getLanguages() {
+		return null;
+	}
+
+	@Override
+	public List<Usage> getUsages() {
+		return null;
+	}
+
+	@Override
+	public List<org.structr.docs.Property> getProperties() {
+		return null;
+	}
+
+	@Override
+	public List<Setting> getSettings() {
+		return null;
+	}
+
+	@Override
+	public List<Concept> getParentConcepts() {
+
+		final List<Concept> concepts = new LinkedList<>();
+
+		concepts.add(Concept.of("topic", "Built-in properties"));
+
+		return concepts;
+	}
+
+	public List<String> getSynonyms() {
+
+		final List<String> synonyms = new LinkedList<>();
+		final String name           = getName();
+
+		if (name != null) {
+
+			String underscoreName = CaseHelper.toUnderscore(getName(), false);
+
+			// replace underscores with spaces
+			underscoreName = underscoreName.replace("_", " ");
+
+			synonyms.add(StringUtils.capitalize(underscoreName));
+		}
+
+		return synonyms;
 	}
 
 	// ----- private methods -----

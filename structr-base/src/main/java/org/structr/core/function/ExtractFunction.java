@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedList;
@@ -165,5 +166,10 @@ public class ExtractFunction extends CoreFunction {
 		return List.of(
 			"This function is the StructrScript equivalent of JavaScript's `map()` function with a lambda expression of `l -> l.propertyName`."
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Collection;
 	}
 }

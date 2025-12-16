@@ -947,6 +947,11 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		return List.of();
 	}
 
+	@Override
+	public final List<Concept> getParentConcepts() {
+		return List.of(Concept.of("topic", "Maintenance commands"));
+	}
+
 	static class NodeCreation extends EntityCreation {
 
 		private final Set<String> labels = new LinkedHashSet<>();

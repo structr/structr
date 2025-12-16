@@ -70,5 +70,4 @@ public class GetAvailableLogFilesCommand extends AbstractCommand {
 	public String getCommand() {
 		return "GET_AVAILABLE_SERVER_LOGS";
 	}
-
 }

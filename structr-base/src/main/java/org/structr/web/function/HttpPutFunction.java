@@ -26,6 +26,7 @@ import org.structr.core.property.StringProperty;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 
@@ -151,5 +152,10 @@ public class HttpPutFunction extends UiAdvancedFunction {
 			"If the MIME type of the response is `application/json`, the `body` field will contain the mapped response as a Structr object that can be accessed using the dot notation (e.g. `result.body.resultCount`). Otherwise, the body field will contain the response as a string.  (see the related articles for more information)"
 
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Http;
 	}
 }

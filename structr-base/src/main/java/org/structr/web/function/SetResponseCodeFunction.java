@@ -26,6 +26,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -99,8 +100,8 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${setResponseCode(302)}"),
-				Example.javaScript("${{ $.setResponseCode(302) }}")
+			Example.structrScript("${setResponseCode(302)}"),
+			Example.javaScript("${{ $.setResponseCode(302) }}")
 		);
 	}
 
@@ -108,7 +109,12 @@ public class SetResponseCodeFunction extends UiAdvancedFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("code", "HTTP response code")
-				);
+			Parameter.mandatory("code", "HTTP response code")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Http;
 	}
 }

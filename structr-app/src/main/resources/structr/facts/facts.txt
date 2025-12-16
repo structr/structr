@@ -1,26 +1,15 @@
 
 
-# JavaScript resources
-Structr has javascript-file "structr/js/code.js" with topic "Code"
-It has javascript-file "structr/js/crud.js" with topic "Data"
-It has javascript-file "structr/js/dashboard.js" with topic "Dashboard"
-# It has javascript-file "structr/js/dialogs.js" with topic "Dialogs"
-It has javascript-file "structr/js/editors.js" with topic "Editors"
-It has javascript-file "structr/js/elements.js" with topic "Elements"
-It has javascript-file "structr/js/entities.js" with topic "Entities"
-It has javascript-file "structr/js/files.js" with topic "Files"
-It has javascript-file "structr/js/flows.js" with topic "Flows"
-It has javascript-file "structr/js/importer.js" with topic "Importer"
-It has javascript-file "structr/js/init.js" with topic "Pages"
-It has javascript-file "structr/js/localization.js" with topic "Localization"
-It has javascript-file "structr/js/mail-templates.js" with topic "Mail Templates"
-It has javascript-file "structr/js/pages.js" with topic "Pages"
-It has javascript-file "structr/js/refactoring-helper.js" with topic "Refactoring Helper"
-It has javascript-file "structr/js/rest.js" with topic "REST"
-It has javascript-file "structr/js/schema.js" with topic "Schema"
-It has javascript-file "structr/js/security.js" with topic "Security"
-It has javascript-file "structr/js/virtual-types.js" with topic "Virtual Types"
-It has javascript-file "structr/js/widgets.js" with topic "Widgets"
+Structr has topics "REST", "Core concepts", "Frontend", "Backend", "Operations", "Building Applications"
+REST has http-verbs HEAD, GET, PUT, POST, PATCH, DELETE, OPTIONS
+Topic REST has topic "REST endpoints"
+Function GET uses http-verb GET
+
+Backend has areas "Dashboard", "Pages", "Files", "Schema", "Code"
+Backend has topic "Helpers"
+Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Refactoring Helper"
+Pages has helper "Refactoring Helper"
 
 
-# Java resources
+"Core concepts" has topics "Business logic", "System types"
+"Business logic" has topic "Lifecycle methods"

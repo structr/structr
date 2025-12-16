@@ -28,11 +28,10 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.TraitsManager;
 import org.structr.docs.*;
-import org.structr.docs.impl.lifecycle.*;
-import org.structr.docs.impl.settings.SettingDocumentable;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.documentables.lifecycle.*;
+import org.structr.docs.documentables.settings.SettingDocumentable;
 import org.structr.docs.ontology.Details;
-import org.structr.docs.ontology.Ontology;
+import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -147,10 +146,13 @@ public class CreateDocumentationTest extends StructrUiTest {
 
 				if (setting.getComment() != null) {
 
-					documentables.add(new SettingDocumentable(setting));
+					documentables.add(new SettingDocumentable(group.getName(), setting));
 				}
 			}
 		}
+
+		// REST endpoints
+		RESTEndpoints.addEndpoints(documentables);
 	}
 
 	private List<String> checkFunctionMetadata(final Documentable item) {

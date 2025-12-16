@@ -43,6 +43,13 @@ public class AnaphoricPronounToken extends NamedConceptToken {
 
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
-		return List.of(ontology.getCurrentSubject());
+
+		final Concept currentSubject = ontology.getCurrentSubject();
+		if (currentSubject != null) {
+
+			return List.of(ontology.getCurrentSubject());
+		}
+
+		throw new RuntimeException("Syntax error in " + sourceFile + ":" + line + ": pronoun \"it\" has no subject to refer to.");
 	}
 }

@@ -22,6 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -89,5 +90,10 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("page, pageSize");
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Database;
 	}
 }

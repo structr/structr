@@ -30,6 +30,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -247,6 +248,12 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		);
 	}
 
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
+	}
+
+	// ----- private methods -----
 	private void addFileToZipArchive(final String path, final File file, final ZipFile zipFile, final ZipParameters params) throws IOException {
 
 		logger.info("Adding File \"{}\" to new ZIP archive...", path);

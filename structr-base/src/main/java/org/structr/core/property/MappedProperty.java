@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.PropertyMapper;
+import org.structr.docs.DocumentableType;
 
 import java.util.Map;
 
@@ -95,6 +96,22 @@ public class MappedProperty<T> extends AbstractPrimitiveProperty<T> {
 
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
+		return null;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getShortDescription() {
+		return null;
+	}
+
+	@Override
+	public String getLongDescription() {
 		return null;
 	}
 }

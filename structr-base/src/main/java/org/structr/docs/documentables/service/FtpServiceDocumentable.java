@@ -16,57 +16,41 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.impl.lifecycle;
+package org.structr.docs.documentables.service;
 
 import org.structr.docs.*;
 
 import java.util.List;
 
-public abstract class LifecycleBase implements Documentable {
+public class FtpServiceDocumentable extends AbstractServiceDocumentable {
 
-	private final String name;
-
-	public LifecycleBase(final String name) {
-		this.name = name;
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Service;
 	}
 
 	@Override
-	public final DocumentableType getDocumentableType() {
-		return DocumentableType.LifecycleMethod;
+	public String getName() {
+		return "FtpService";
 	}
 
 	@Override
-	public final String getName() {
-		return name;
+	public String getShortDescription() {
+		return "A service that provides access to the Structr filesystem via FTP.";
 	}
 
 	@Override
-	public List<Parameter> getParameters() {
+	public String getLongDescription() {
 		return null;
 	}
 
 	@Override
-	public List<Example> getExamples() {
-		return null;
-	}
+	public List<Link> getLinkedConcepts() {
 
-	@Override
-	public List<String> getNotes() {
-		return null;
-	}
+		final List<Link> links = super.getLinkedConcepts();
 
-	@Override
-	public List<Signature> getSignatures() {
-		return null;
-	}
+		links.add(Link.of("implements", "FTP server"));
 
-	@Override
-	public List<Language> getLanguages() {
-		return null;
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-		return null;
+		return links;
 	}
 }

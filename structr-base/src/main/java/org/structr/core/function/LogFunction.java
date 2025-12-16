@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -112,5 +113,10 @@ public class LogFunction extends CoreFunction {
 			"If you want a JSON representation in the log file, you can use `toJson(node, view)`",
 			"If you use `JSON.stringify()`, the default view `public` will be used"
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

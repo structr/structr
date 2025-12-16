@@ -26,6 +26,7 @@ import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -84,15 +85,20 @@ public class UnescapeHtmlFunction extends UiCommunityFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${unescapeHtml('test &amp; test')}"),
-				Example.javaScript("${{Structr.unescapeHtml('test &amp; test')}}")
+			Example.structrScript("${unescapeHtml('test &amp; test')}"),
+			Example.javaScript("${{Structr.unescapeHtml('test &amp; test')}}")
 		);
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-				Parameter.mandatory("string", "escaped string")
-				);
+			Parameter.mandatory("string", "escaped string")
+		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Conversion;
 	}
 }

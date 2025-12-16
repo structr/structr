@@ -1,0 +1,39 @@
+
+
+# JavaScript resources
+Structr has javascript-file "structr/js/code.js" with area "Code"
+It has javascript-file "structr/js/crud.js" with area "Data"
+It has javascript-file "structr/js/dashboard.js" with area "Dashboard"
+It has javascript-file "structr/js/dialogs.js" with helper "Dialogs"
+It has javascript-file "structr/js/editors.js" with helper "Editors"
+It has javascript-file "structr/js/elements.js" with helper "Elements"
+It has javascript-file "structr/js/entities.js" with helper "Entities"
+It has javascript-file "structr/js/files.js" with area "Files"
+It has javascript-file "structr/js/flows.js" with area "Flows"
+It has javascript-file "structr/js/importer.js" with area "Importer"
+It has javascript-file "structr/js/init.js" with helper "Init"
+It has javascript-file "structr/js/localization.js" with area "Localization"
+It has javascript-file "structr/js/mail-templates.js" with area "Mail Templates"
+It has javascript-file "structr/js/pages.js" with area "Pages"
+It has javascript-file "structr/js/refactoring-helper.js" with helper "Refactoring Helper"
+It has javascript-file "structr/js/rest.js" with topic "REST"
+It has javascript-file "structr/js/schema.js" with area "Schema"
+It has javascript-file "structr/js/security.js" with area "Security"
+It has javascript-file "structr/js/virtual-types.js" with area "Virtual Types"
+It has javascript-file "structr/js/widgets.js" with area "Widgets"
+
+
+# Java resources
+Structr has code-source "keywords" with topic "Keywords"
+Structr has code-source "rest-endpoints" with topic "REST endpoints"
+Structr has code-source "functions" with topic "Built-in functions"
+Structr has code-source "maintenance-commands" with topic "Maintenance commands"
+Structr has code-source "system-types" with topic "System types"
+Structr has code-source "lifecycle-methods" with topic "Lifecycle methods"
+Structr has code-source "services" with topic "Services"
+Structr has code-source "settings" with topic "Settings"
+Structr has code-source "properties" with topic "Properties"
+
+
+
+Topic References has topics Keywords, "Built-in functions", "Lifecycle methods", "System types", Services, "Maintenance commands", Settings, "REST endpoints"

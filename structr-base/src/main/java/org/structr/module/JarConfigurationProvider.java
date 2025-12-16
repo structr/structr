@@ -51,6 +51,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private final Map<String, Class<? extends Agent>> agentClassCache                              = new ConcurrentHashMap<>(100);
 	private final Map<String, StructrModule> modules                                               = new ConcurrentHashMap<>(100);
+	private final Set<String> classNames                                                           = new LinkedHashSet<>();
 	private final Set<String> agentPackages                                                        = new LinkedHashSet<>();
 	private final String fileSep                                                                   = System.getProperty("file.separator");
 	private final String pathSep                                                                   = System.getProperty("path.separator");
@@ -91,69 +92,14 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		return agentClassCache;
 	}
 
-	public Class<? extends Agent> getAgentClass(final String name) {
-
-		Class agentClass = null;
-
-		if ((name != null) && (name.length() > 0)) {
-
-			agentClass = agentClassCache.get(name);
-
-			if (agentClass == null) {
-
-				for (String possiblePath : agentPackages) {
-
-					if (possiblePath != null) {
-
-						try {
-
-							Class nodeClass = Class.forName(possiblePath + "." + name);
-
-							agentClassCache.put(name, nodeClass);
-
-							// first match wins
-							return nodeClass;
-
-						} catch (ClassNotFoundException ex) {
-
-							// ignore
-						}
-
-					}
-
-				}
-
-			}
-
-		}
-
-		return agentClass;
-
-	}
-
 	@Override
 	public Map<String, StructrModule> getModules() {
 		return modules;
 	}
 
-	public Set<String> getStopWords(final String language) {
-
-		final StructrModule module = StructrApp.getConfiguration().getModules().get("text-search");
-		if (module != null) {
-
-			try {
-				final Set<String> stopwords = module.getModuleSpecificFeature("stopwords", Set.class, language);
-				if (stopwords != null) {
-
-					return stopwords;
-				}
-
-			} catch (Throwable t) {
-				t.printStackTrace();
-			}
-		}
-
-		return null;
+	@Override
+	public Set<String> getClassNames() {
+		return classNames;
 	}
 
 	// ----- private methods -----
@@ -257,6 +203,8 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		for (final String name : classes) {
 
 			String className = StringUtils.removeStart(name, ".");
+
+			classNames.add(className);
 
 			try {
 

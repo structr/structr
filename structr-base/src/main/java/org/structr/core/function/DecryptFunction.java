@@ -26,6 +26,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.util.List;
@@ -133,5 +134,10 @@ public class DecryptFunction extends AdvancedScriptingFunction {
 			Example.structrScript("${print(decrypt(this.encryptedString))}", "Decrypt a string with the global encryption key from structr.conf"),
 			Example.structrScript("${print(decrypt(this.encryptedString'), 'secret key')}", "Decrypt a string with the key 'secret key'")
 		);
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.InputOutput;
 	}
 }

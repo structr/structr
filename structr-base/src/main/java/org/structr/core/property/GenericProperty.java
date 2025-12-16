@@ -22,6 +22,7 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.docs.DocumentableType;
 
 import java.util.Map;
 
@@ -92,6 +93,22 @@ public class GenericProperty<T> extends AbstractPrimitiveProperty<T> {
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
+	}
+
+	// ----- interface Documentable -----
+	@Override
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Hidden;
+	}
+
+	@Override
+	public String getShortDescription() {
+		return null;
+	}
+
+	@Override
+	public String getLongDescription() {
+		return null;
 	}
 
 	// ----- OpenAPI -----

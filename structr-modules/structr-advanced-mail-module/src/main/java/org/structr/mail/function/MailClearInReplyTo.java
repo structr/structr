@@ -72,7 +72,7 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mailSetInReplyTo()`)"
+			"This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mailSetInReplyTo()`)"
 		);
 	}
 }

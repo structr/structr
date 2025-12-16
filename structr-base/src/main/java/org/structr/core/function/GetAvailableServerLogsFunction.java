@@ -24,6 +24,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
 import java.io.File;
@@ -72,6 +73,11 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "The collection of available server logs files is identical to the list of available server log files in the dashboard area.";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.System;
 	}
 
 	public static List<String> getListOfServerlogFileNames() {

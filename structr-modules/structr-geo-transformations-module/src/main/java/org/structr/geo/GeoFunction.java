@@ -34,6 +34,7 @@ import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.Point;
 import org.geotools.api.feature.simple.SimpleFeature;
 import org.geotools.api.feature.simple.SimpleFeatureType;
+import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.Function;
 
 import javax.swing.*;
@@ -50,6 +51,11 @@ public abstract class GeoFunction extends Function<Object, Object> {
 	@Override
 	public String getRequiredModule() {
 		return "geo-transformations";
+	}
+
+	@Override
+	public FunctionCategory getCategory() {
+		return FunctionCategory.Geocoding;
 	}
 
 	protected Coordinate getCoordinate(final Object source) {

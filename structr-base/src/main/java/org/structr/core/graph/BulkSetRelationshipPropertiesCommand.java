@@ -175,4 +175,9 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 	public List<Usage> getUsages() {
 		return List.of();
 	}
+
+	@Override
+	public final List<Concept> getParentConcepts() {
+		return List.of(Concept.of("topic", "Maintenance commands"));
+	}
 }
