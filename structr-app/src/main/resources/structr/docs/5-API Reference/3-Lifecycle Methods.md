@@ -1,4 +1,5 @@
 # Lifecycle Methods
+
 ## afterCreate
 Called after a new object of this type is created.
 
@@ -39,7 +40,7 @@ If you want to execute code after successful validation, implement the `afterCre
 - See also: `afterCreate()`, `error()` and `assert()`.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 {
 	if ($.this.name === 'foo') {
@@ -67,10 +68,10 @@ If you want to execute code after successful validation, implement the `afterDel
 You can access the local properties of the deleted entity through the `this` keyword.
 
 ### Notes
-- See also: `afterSave()`, `error()` and `assert()`.
+- See also: `afterDelete()`, `error()` and `assert()`.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 {
 	if ($.this.name === 'foo') {
@@ -86,6 +87,14 @@ You can access the local properties of the deleted entity through the `this` key
 
 ```
 
+## onDownload
+Called after the download of a File is complete.
+
+The `onDownload()` lifecycle method is called after a File is downloaded.
+### Notes
+- See also: `onDelete()`.
+
+
 ## onSave
 Called when an existing object of this type is modified.
 
@@ -99,7 +108,7 @@ If you want to execute code after successful validation, implement the `afterSav
 - See also: `afterSave()`, `error()` and `assert()`.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 {
 	if ($.this.name === 'foo') {
