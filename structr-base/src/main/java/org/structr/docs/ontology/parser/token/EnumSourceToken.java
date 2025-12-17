@@ -19,7 +19,7 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.DisplayName;
+import org.structr.docs.ontology.HasDisplayName;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
@@ -46,7 +46,7 @@ public class EnumSourceToken extends NamedConceptToken {
 
 					for (final Object constant : enumType.getEnumConstants()) {
 
-						if (constant instanceof DisplayName displayName) {
+						if (constant instanceof HasDisplayName displayName) {
 
 							final String name = displayName.getDisplayName() + " functions";
 

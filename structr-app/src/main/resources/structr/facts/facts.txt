@@ -1,8 +1,7 @@
 
 
-Structr has topics "REST", "Core concepts", "Frontend", "Backend", "Operations", "Building Applications"
+Structr has topics "REST", "Core concepts", "Frontend", "Backend", "Operations", "Building Applications", References
 REST has http-verbs HEAD, GET, PUT, POST, PATCH, DELETE, OPTIONS
-Topic REST has topic "REST endpoints"
 Function GET uses http-verb GET
 
 Backend has areas "Dashboard", "Pages", "Files", "Schema", "Code"
@@ -11,5 +10,4 @@ Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Refac
 Pages has helper "Refactoring Helper"
 
 
-"Core concepts" has topics "Business logic", "System types"
-"Business logic" has topic "Lifecycle methods"
+"Core concepts" has topics "Business logic"

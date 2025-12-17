@@ -102,22 +102,19 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		);
 	}
 
-	public static List<Documentable> getMaintenanceCommands() {
+	public static void getMaintenanceCommands(final List<Documentable> documentables) {
 
-		final List<Documentable> maintenanceCommands = new LinkedList<>();
-		final SecurityContext securityContext        = SecurityContext.getSuperUserInstance();
-		final Services services                      = Services.getInstance();
+		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
+		final Services services               = Services.getInstance();
 
 		for (final Class commandType : maintenanceCommandMap.values()) {
 
 			final Command command = services.command(securityContext, commandType);
 			if (command instanceof Documentable documentable) {
 
-				maintenanceCommands.add(documentable);
+				documentables.add(documentable);
 			}
 		}
-
-		return maintenanceCommands;
 	}
 
 	@Override

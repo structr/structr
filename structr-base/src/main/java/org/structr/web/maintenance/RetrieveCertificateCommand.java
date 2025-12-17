@@ -23,6 +23,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.jruby.Main;
 import org.shredzone.acme4j.*;
 import org.shredzone.acme4j.challenge.Challenge;
 import org.shredzone.acme4j.challenge.Dns01Challenge;
@@ -74,9 +75,9 @@ import java.util.*;
 public class RetrieveCertificateCommand extends Command implements MaintenanceCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(RetrieveCertificateCommand.class.getName());
-	private final static String CERTIFICATE_RETRIEVAL_STATUS = "CERTIFICATE_RETRIEVAL_STATUS";
-	private final static String ACME_DNS_CHALLENGE_PREFIX    = "_acme-challenge.";
-	private final static String ACME_DNS_CHALLENGE_SUFFIX    = ".";
+	private final static String CERTIFICATE_RETRIEVAL_STATUS   = "CERTIFICATE_RETRIEVAL_STATUS";
+	private final static String ACME_DNS_CHALLENGE_PREFIX      = "_acme-challenge.";
+	private final static String ACME_DNS_CHALLENGE_SUFFIX      = ".";
 	private final static String MODE_PARAM_KEY                 = "mode";
 	private final static String CHALLENGE_PARAM_KEY            = "challenge";
 	private final static String SERVER_PARAM_KEY               = "server";
@@ -385,7 +386,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			final KeyPair domainKeyPair = getOrCreateDomainKey();
 			csrb.sign(domainKeyPair);
 
-			try (final Writer out = new FileWriter(new File(Settings.LetsEncryptDomainCSRFileName.getValue()))) {
+			try (final Writer out = new FileWriter(Settings.LetsEncryptDomainCSRFileName.getValue())) {
 				csrb.write(out);
 			}
 

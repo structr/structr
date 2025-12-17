@@ -18,32 +18,61 @@
  */
 package org.structr.docs;
 
-public enum DocumentableType {
+import org.structr.autocomplete.AbstractHintProvider;
+import org.structr.core.Services;
+import org.structr.core.function.Functions;
+import org.structr.core.property.AbstractPrimitiveProperty;
+import org.structr.core.traits.TraitsManager;
+import org.structr.docs.documentables.lifecycle.LifecycleBase;
+import org.structr.docs.documentables.settings.SettingDocumentable;
+import org.structr.docs.ontology.HasDisplayName;
+import org.structr.rest.api.RESTEndpoints;
+import org.structr.rest.resource.MaintenanceResource;
 
-	BuiltInFunction("Built-in function", "function", true, true),
-	Keyword("Keyword", "keyword", true, true),
-	Method("Method", "method", true, true),
-	Property("Property", "property", false, false),
-	UserDefinedFunction("User-defined function", "user-defined-function", false, false),
-	MaintenanceCommand("Maintenance command", "maintenance-command", false, false),
-	SystemType("System type", "type", false, false),
-	LifecycleMethod("Lifecycle method", "lifecycle-method", false, true),
-	Service("Service", "service", false, false),
-	Setting("Setting", "setting", false, false),
-	RESTEndpoint("REST Endpoint", "rest-endpoint", false, false),
-	Hidden(null, null, false, false);
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Consumer;
 
+public enum DocumentableType implements HasDisplayName {
+
+	BuiltInFunction("Built-in function", "function", true, true, Functions::addFunctionsAndExpressions),
+	Keyword("Keyword", "keyword", true, true, AbstractHintProvider::addKeywordHints),
+	Method("Method", "method", true, true, null),
+	Property("Property", "property", false, false, AbstractPrimitiveProperty::addProperties),
+	UserDefinedFunction("User-defined function", "user-defined-function", false, false, null),
+	MaintenanceCommand("Maintenance command", "maintenance-command", false, false, MaintenanceResource::getMaintenanceCommands),
+	SystemType("System type", "type", false, false, TraitsManager::addAllSystemTypes),
+	LifecycleMethod("Lifecycle method", "lifecycle-method", false, true, LifecycleBase::addAllLifecycleMethods),
+	Service("Service", "service", false, false, Services::collectDocumentation),
+	Setting("Setting", "setting", false, false, SettingDocumentable::collectAllSettings),
+	RESTEndpoint("REST Endpoint", "rest-endpoint", false, false, RESTEndpoints::addEndpoints),
+	Hidden(null, null, false, false, null);
+
+	private final Consumer<List<Documentable>> getFunction;
 	private final boolean supportsLanguages;
 	private final boolean supportsExamples;
 	private final String ontologyType;
 	private final String displayName;
 
-	DocumentableType(final String displayName, final String ontologyType, final boolean supportsLanguages, final boolean supportsExamples) {
+	DocumentableType(final String displayName, final String ontologyType, final boolean supportsLanguages, final boolean supportsExamples, final Consumer<List<Documentable>> getFunction) {
 
+		this.getFunction       = getFunction;
 		this.supportsLanguages = supportsLanguages;
 		this.supportsExamples  = supportsExamples;
 		this.ontologyType      = ontologyType;
 		this.displayName       = displayName;
+	}
+
+	public List<Documentable> getDocumentables() {
+
+		final List<Documentable> documentables = new LinkedList<>();
+
+		if (getFunction != null) {
+
+			getFunction.accept(documentables);
+		}
+
+		return documentables;
 	}
 
 	public String getDisplayName() {
@@ -60,5 +89,29 @@ public enum DocumentableType {
 
 	public boolean supportsExamples() {
 		return supportsExamples;
+	}
+
+	public static DocumentableType forOntologyType(final String ontologyType) {
+
+		if (ontologyType != null) {
+
+			for (DocumentableType documentableType : DocumentableType.values()) {
+
+				if (ontologyType.equals(documentableType.ontologyType)) {
+
+					return documentableType;
+				}
+			}
+		}
+
+		return DocumentableType.Hidden;
+	}
+
+	public static void collectAllDocumentables(final List<Documentable> documentables) {
+
+		for (final DocumentableType documentableType : DocumentableType.values()) {
+
+			documentables.addAll(documentableType.getDocumentables());
+		}
 	}
 }

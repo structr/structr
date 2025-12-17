@@ -347,21 +347,4 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 		return cleaned;
 	}
-
-	public static void main(final String[] args) {
-
-		final Pattern p = Pattern.compile("\\s*[a-zA-Z0-9_]+\\s*:\\s*[\"'a-zA-Z0-9_]+\\s*");
-		final List<String> samples = new LinkedList<>();
-
-		samples.add("\t\ttoken: 'onStructrLogin'\n");
-		samples.add("\t\ttoken: 'onStructrLogin\n");
-
-		for (final String sample : samples) {
-
-			final Matcher matcher = p.matcher(sample);
-
-			System.out.println(matcher.matches() + ": " + sample);
-		}
-
-	}
 }

@@ -335,6 +335,12 @@ public class Functions {
 		functions.add(new NoneExpression(0, 0));
 	}
 
+	public static void addFunctionsAndExpressions(final List<Documentable> documentables) {
+
+		documentables.addAll(Functions.getFunctions());
+		Functions.addExpressions(documentables);
+	}
+
 	// ----- private methods -----
 	private static Expression checkReservedWords(final String word, final int level, final Map<Integer, String> namespace, final int row, final int column) throws FrameworkException {
 

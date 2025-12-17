@@ -18,37 +18,11 @@
  */
 package org.structr.docs.ontology;
 
-import org.structr.docs.Category;
+/**
+ * Implement this interface in enum classes to allow
+ * use in EnumSourceToken.java.
+ */
+public interface HasDisplayName {
 
-public enum FunctionCategory implements Category {
-
-	AccessControl("Access Control"),
-	Collection("Collection"),
-	Conversion("Conversion"),
-	Database("Database"),
-	EMail("EMail"),
-	Geocoding("Geocoding"),
-	Http("Http"),
-	InputOutput("Input Output"),
-	Logic("Logic"),
-	Mathematical("Mathematical"),
-	Miscellaneous("Miscellaneous"),
-	MQTT("MQTT"),
-	Rendering("Rendering"),
-	Security("Security"),
-	Schema("Schema"),
-	Scripting("Scripting"),
-	String("String"),
-	System("System"),
-	Validation("Validation");
-
-	private final String displayName;
-
-	FunctionCategory(final String displayName) {
-		this.displayName = displayName;
-	}
-
-	public String getDisplayName() {
-		return displayName;
-	}
+	String getDisplayName();
 }

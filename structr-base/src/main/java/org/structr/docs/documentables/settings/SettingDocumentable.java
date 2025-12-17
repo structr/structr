@@ -19,6 +19,8 @@
 package org.structr.docs.documentables.settings;
 
 import org.structr.api.config.Setting;
+import org.structr.api.config.Settings;
+import org.structr.api.config.SettingsGroup;
 import org.structr.docs.*;
 
 import java.util.LinkedList;
@@ -95,6 +97,20 @@ public class SettingDocumentable implements Documentable {
 		final List<Link> links = new LinkedList<>();
 
 		return links;
+	}
+
+	public static void collectAllSettings(final List<Documentable> documentables) {
+
+		for (final SettingsGroup group : Settings.getGroups()) {
+
+			for (final org.structr.api.config.Setting setting : group.getSettings()) {
+
+				if (setting.getComment() != null) {
+
+					documentables.add(new SettingDocumentable(group.getName(), setting));
+				}
+			}
+		}
 	}
 }
 

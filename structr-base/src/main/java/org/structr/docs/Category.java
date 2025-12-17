@@ -16,13 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.ontology;
+package org.structr.docs;
 
-/**
- * Implement this interface in enum classes to allow
- * use in EnumSourceToken.java.
- */
-public interface DisplayName {
+import org.structr.docs.ontology.HasDisplayName;
 
-	String getDisplayName();
+public interface Category extends HasDisplayName {
 }

@@ -24,15 +24,15 @@ It has javascript-file "structr/js/widgets.js" with area "Widgets"
 
 
 # Java resources
-Structr has code-source "keywords" with topic "Keywords"
-Structr has code-source "rest-endpoints" with topic "REST endpoints"
-Structr has code-source "functions" with topic "Built-in functions"
-Structr has code-source "maintenance-commands" with topic "Maintenance commands"
-Structr has code-source "system-types" with topic "System types"
-Structr has code-source "lifecycle-methods" with topic "Lifecycle methods"
-Structr has code-source "services" with topic "Services"
-Structr has code-source "settings" with topic "Settings"
-Structr has code-source "properties" with topic "Properties"
+References has code-source "keyword" with topic "Keywords"
+References has code-source "rest-endpoint" with topic "REST endpoints"
+References has code-source "function" with topic "Built-in functions"
+References has code-source "maintenance-command" with topic "Maintenance commands"
+References has code-source "system-type" with topic "System types"
+References has code-source "lifecycle-method" with topic "Lifecycle methods"
+References has code-source "service" with topic "Services"
+References has code-source "setting" with topic "Settings"
+References has code-source "property" with topic "Properties"
 
 
 

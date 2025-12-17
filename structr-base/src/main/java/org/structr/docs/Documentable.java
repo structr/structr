@@ -304,6 +304,10 @@ public interface Documentable {
 		return new LinkedList<>();
 	}
 
+	default Category getCategory() {
+		return null;
+	}
+
 	// ----- "private" methods, don't override
 	default boolean isDynamic() {
 		return false;

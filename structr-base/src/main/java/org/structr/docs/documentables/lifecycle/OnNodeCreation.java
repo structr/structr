@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,56 +18,36 @@
  */
 package org.structr.docs.documentables.lifecycle;
 
-import org.structr.docs.Example;
-
 import java.util.List;
 
-public class OnCreate extends LifecycleBase {
+public class OnNodeCreation extends LifecycleBase {
 
-	public OnCreate() {
-		super("onCreate");
+	public OnNodeCreation() {
+		super("onNodeCreation");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called when a new object of this type is created.";
+		return "Called at the moment when a new object of this type is created.";
 	}
 
 	@Override
 	public String getLongDescription() {
 		return """
-		The `onCreate()` lifecycle method is called when a new object of this type is created. This method runs at the end of a transaction, but **before** property constraints etc. are evaluated.
+		The `onNodeCreation()` lifecycle method is called at the moment when a new object of this type is created. In contrast to `onCreate()`, this method runs at the same time that the object is created.
 		
 		If you throw an error in this method, the enclosing transaction will be rolled back and nothing will be written to the database.
 		
-		If you want to execute code after successful validation, implement the `afterCreate()` callback method.
+		- If you want to execute code at the end of the transaction, implement the `onCreate()` callback method.
+		- If you want to execute code after successful validation, implement the `afterCreate()` callback method.
 		""";
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return List.of(
-			Example.javaScript("""
-			{
-				if ($.this.name === 'foo') {
-
-					// don't allow creation of nodes named "foo"
-					$.error('name', 'create_not_allowed', 'Can\\'t be created because name is "foo"');
-
-				} else {
-
-					$.log('Node with name ' + $.this.name + ' has just been created.');
-				}
-			}
-			""", "")
-		);
 	}
 
 	@Override
 	public List<String> getNotes() {
 
 		return List.of(
-			"See also: `onNodeCreation()`, `afterCreate()`, `error()` and `assert()`."
+			"See also: `onCreate()`, `afterCreate()`, `error()` and `assert()`."
 		);
 	}
 }

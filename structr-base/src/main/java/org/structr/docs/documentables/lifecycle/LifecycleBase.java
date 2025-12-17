@@ -74,4 +74,20 @@ public abstract class LifecycleBase implements Documentable {
 	public List<Concept> getParentConcepts() {
 		return List.of(Concept.of("topic", "Lifecycle methods"));
 	}
+
+	/**
+	 *
+	 * @param documentables
+	 */
+	public static void addAllLifecycleMethods(final List<Documentable> documentables) {
+
+		documentables.add(new OnCreate());
+		documentables.add(new OnSave());
+		documentables.add(new OnDelete());
+		documentables.add(new AfterCreate());
+		documentables.add(new AfterSave());
+		documentables.add(new AfterDelete());
+		documentables.add(new OnDownload());
+		documentables.add(new OnNodeCreation());
+	}
 }

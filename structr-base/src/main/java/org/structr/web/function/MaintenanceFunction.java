@@ -191,7 +191,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 		lines.add("|Name|Description|");
 		lines.add("|---|---|");
 
-		for (final Documentable cmd : MaintenanceResource.getMaintenanceCommands()) {
+		for (final Documentable cmd : DocumentableType.MaintenanceCommand.getDocumentables()) {
 
 			if (!DocumentableType.Hidden.equals(cmd.getDocumentableType())) {
 
@@ -245,9 +245,9 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 			return hints;
 		}
 
-		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
+		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
-		for (final Documentable documentable : MaintenanceResource.getMaintenanceCommands()) {
+		for (final Documentable documentable : DocumentableType.MaintenanceCommand.getDocumentables()) {
 
 			if (!DocumentableType.Hidden.equals(documentable.getDocumentableType())) {
 

@@ -27,6 +27,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.TraitsInstance;
 import org.structr.core.traits.TraitsManager;
 import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.documentables.lifecycle.*;
@@ -44,61 +45,12 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
-		final List<Documentable> documentables = new LinkedList<>();
+		final List<Documentable> documentables  = new LinkedList<>();
+		final DocumentableType documentableType = DocumentableType.forOntologyType(concept.getName());
 
-		switch (concept.getName()) {
+		if (documentableType != null) {
 
-			case "keywords":
-				AbstractHintProvider.addKeywordHints(documentables);
-				break;
-
-			case "functions":
-				documentables.addAll(Functions.getFunctions());
-				Functions.addExpressions(documentables);
-				break;
-
-			case "maintenance-commands":
-				documentables.addAll(MaintenanceResource.getMaintenanceCommands());
-				break;
-
-			case "system-types":
-				final TraitsInstance rootInstance = TraitsManager.getRootInstance();
-				for (final String traitName : rootInstance.getAllTypes(t -> t.isNodeType())) {
-
-					final Traits traits = rootInstance.getTraits(traitName);
-					if (!traits.isHidden()) {
-
-						documentables.add(traits);
-					}
-				}
-				break;
-
-			case "lifecycle-methods":
-				// lifecycle methods
-				documentables.add(new OnCreate());
-				documentables.add(new OnSave());
-				documentables.add(new OnDelete());
-				documentables.add(new AfterCreate());
-				documentables.add(new AfterSave());
-				documentables.add(new AfterDelete());
-				break;
-
-			case "services":
-				Services.collectDocumentation(documentables);
-				break;
-
-			case "settings":
-				for (final SettingsGroup group : Settings.getGroups()) {
-
-					for (final org.structr.api.config.Setting setting : group.getSettings()) {
-
-						if (setting.getComment() != null) {
-
-							documentables.add(new SettingDocumentable(group.getName(), setting));
-						}
-					}
-				}
-				break;
+			documentables.addAll(documentableType.getDocumentables());
 		}
 
 		// sort

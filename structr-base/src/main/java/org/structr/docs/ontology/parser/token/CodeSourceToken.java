@@ -36,6 +36,7 @@ import org.structr.docs.ontology.Ontology;
 import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.resource.MaintenanceResource;
 
+import javax.print.Doc;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -54,68 +55,10 @@ public class CodeSourceToken extends NamedConceptToken {
 
 		for (final String identifier : identifiers) {
 
-			switch (identifier) {
+			final DocumentableType documentableType = DocumentableType.forOntologyType(identifier);
+			if (documentableType != null) {
 
-				case "properties":
-					AbstractPrimitiveProperty.addProperties(documentables);
-					break;
-
-				case "rest-endpoints":
-					RESTEndpoints.addEndpoints(documentables);
-					break;
-
-				case "keywords":
-					AbstractHintProvider.addKeywordHints(documentables);
-					break;
-
-				case "functions":
-					documentables.addAll(Functions.getFunctions());
-					Functions.addExpressions(documentables);
-					break;
-
-				case "maintenance-commands":
-					documentables.addAll(MaintenanceResource.getMaintenanceCommands());
-					break;
-
-				case "system-types":
-					final TraitsInstance rootInstance = TraitsManager.getRootInstance();
-					for (final String traitName : rootInstance.getAllTypes(t -> t.isNodeType())) {
-
-						final Traits traits = rootInstance.getTraits(traitName);
-						if (!traits.isHidden()) {
-
-							documentables.add(traits);
-						}
-					}
-					break;
-
-				case "lifecycle-methods":
-					// lifecycle methods
-					documentables.add(new OnCreate());
-					documentables.add(new OnSave());
-					documentables.add(new OnDelete());
-					documentables.add(new AfterCreate());
-					documentables.add(new AfterSave());
-					documentables.add(new AfterDelete());
-					documentables.add(new OnDownload());
-					break;
-
-				case "services":
-					Services.collectDocumentation(documentables);
-					break;
-
-				case "settings":
-					for (final SettingsGroup group : Settings.getGroups()) {
-
-						for (final org.structr.api.config.Setting setting : group.getSettings()) {
-
-							if (setting.getComment() != null) {
-
-								documentables.add(new SettingDocumentable(group.getName(), setting));
-							}
-						}
-					}
-					break;
+				documentables.addAll(documentableType.getDocumentables());
 			}
 		}
 
