@@ -1,4 +1,5 @@
 # Settings
+
 ## access.control.accepted.origins
 Comma-separated list of accepted origins, sets the <code>Access-Control-Allow-Origin</code> header.
 

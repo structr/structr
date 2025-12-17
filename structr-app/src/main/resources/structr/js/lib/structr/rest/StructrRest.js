@@ -6,8 +6,8 @@ import {Rest} from './Rest.js';
 
 export class StructrRest {
 
-    constructor() {
-        this.restEndPoint = "/structr/rest/";
+    constructor(basePath = "") {
+        this.restEndPoint = basePath + "/structr/rest/";
         this._rest = new Rest();
     }
 

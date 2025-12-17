@@ -233,8 +233,13 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 
 	public List<Documentable> getContextHints(final String lastToken) {
 
-		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 		final List<Documentable> hints = new LinkedList<>();
+		
+		if (lastToken == null) {
+			return hints;
+		}
+
+		final String quoteChar         = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
 		for (final Documentable documentable : MaintenanceResource.getMaintenanceCommands()) {
 

@@ -1,7 +1,11 @@
 export class DependencyLoader {
 
+	constructor(basePath) {
+		this.basePath = basePath;
+	}
+
 	_getBasePath() {
-		return "/structr/js/flow-editor/src/";
+		return this.basePath + "/structr/js/flow-editor/src/";
 	}
 
 	injectDependencies(dependencyObject) {

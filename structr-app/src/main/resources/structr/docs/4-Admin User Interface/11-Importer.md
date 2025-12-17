@@ -11,17 +11,20 @@ The Importer enables seamless data migration from external systems, spreadsheets
 ## Key Features
 
 ### Multi-Format Support
+
 - CSV, XML file imports
 - API-based data imports
 - Custom format adapters
 
 ### Data Mapping
+
 - Visual field mapping interface
 - Automatic field detection and suggestion
 - Data transformation during import
 - Relationship mapping and creation
 
 ### Validation and Quality
+
 - Pre-import data validation
 - Schema constraint verification
 - Duplicate detection and handling

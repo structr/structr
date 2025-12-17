@@ -25,6 +25,8 @@ import org.structr.core.api.ScriptMethod;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.SchemaMethodTraitDefinition;
+import org.structr.docs.Example;
+import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -37,8 +39,8 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	public static final String ERROR_MESSAGE_FUNCTION_INFO_JS = "Usage: ${{ $.functionInfo([type, name]) }}. Example ${{ $.functionInfo() }}";
 
-	public static final String DECLARING_CLASS_KEY            = "declaringClass";
-	public static final String IS_USER_DEFINED_FUNCTION_KEY   = "isUserDefinedFunction";
+	public static final String DECLARING_TRAIT_KEY          = "declaringTrait";
+	public static final String IS_USER_DEFINED_FUNCTION_KEY = "isUserDefinedFunction";
 
 	@Override
 	public String getName() {
@@ -112,12 +114,51 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getShortDescription() {
-		return "Returns information about the currently running Structr method, OR about the method defined in the given type and name.";
+		return "Returns information about the currently running Structr method, or about the method defined in the given type and name.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+				The function returns an object with the following structure.
+
+				| Key                   | Type    | Description                                                                                                                   |
+				|-----------------------|---------|-------------------------------------------------------------------------------------------------------------------------------|
+				| name                  | String  | name of the method                                                                                                            |
+				| declaringTrait        | String  | name of the type the method is declared on (`null` if if `isUserDefinedFunction === true`)                                    |
+				| isUserDefinedFunction | boolean | `true` if the method is not a type- or service class method, `false` otherwise                                                |
+				| isStatic              | boolean | `true` if the method can be called statically, `false` if it can only be called in an object context                          |
+				| isPrivate             | boolean | `true` if the method can only be called via scripting, `false` if it can be called via REST as well                           |
+				| httpVerb              | String  | The HTTP verb this function can be called with (only present if `isPrivate === false`)                                        |
+				| summary               | String  | summary as defined in OpenAPI (only present if summary is defined)                                                            |
+				| description           | String  | description as defined in OpenAPI (only present if description is defined)                                                    |
+				| parameters            | object  | key-value map of parameters as defined in OpenAPI (key = name, value = type) (only present if OpenAPI parameters are defined) |
+				""";
+	}
+
+	@Override
+	public List<Parameter> getParameters() {
+		return List.of(
+				Parameter.optional("type", "type name"),
+				Parameter.optional("name", "function name")
+		);
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				{
+					let info = $.functionInfo();
+
+					$.log(`[${info.declaringClass}][${info.name}] task started...`);
+
+					// ...
+
+					$.log(`[${info.declaringClass}][${info.name}] task finished...`);
+				}
+				""", "Add function information to log output")
+		);
 	}
 
 	// ----- private methods -----
@@ -128,7 +169,10 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 		info.put(NodeInterfaceTraitDefinition.NAME_PROPERTY,        method.getName());
 		info.put(SchemaMethodTraitDefinition.IS_PRIVATE_PROPERTY,   method.isPrivate());
 		info.put(SchemaMethodTraitDefinition.IS_STATIC_PROPERTY,    method.isStatic());
-		info.put(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY,    method.getHttpVerb());
+
+		if (!method.isPrivate()) {
+			info.put(SchemaMethodTraitDefinition.HTTP_VERB_PROPERTY, method.getHttpVerb());
+		}
 
 		if (method.getSummary() != null) {
 			info.put(SchemaMethodTraitDefinition.SUMMARY_PROPERTY, method.getSummary());
@@ -138,16 +182,16 @@ public class FunctionInfoFunction extends AdvancedScriptingFunction {
 			info.put(SchemaMethodTraitDefinition.DESCRIPTION_PROPERTY, method.getDescription());
 		}
 
-		if (method.getParameters() != null) {
+		if (!method.getParameters().isEmpty()) {
 			info.put(SchemaMethodTraitDefinition.PARAMETERS_PROPERTY, method.getParameters());
 		}
 
 		if (method instanceof ScriptMethod sm) {
 			if (sm.getDeclaringClass() != null) {
-				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, sm.getDeclaringClass());
+				info.put(FunctionInfoFunction.DECLARING_TRAIT_KEY, sm.getDeclaringClass());
 				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, false);
 			} else {
-				info.put(FunctionInfoFunction.DECLARING_CLASS_KEY, null);
+				info.put(FunctionInfoFunction.DECLARING_TRAIT_KEY, null);
 				info.put(FunctionInfoFunction.IS_USER_DEFINED_FUNCTION_KEY, true);
 			}
 		}
