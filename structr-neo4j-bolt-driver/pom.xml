@@ -4,10 +4,10 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>6.0.0</version>
+		<version>6.0.1</version>
 	</parent>
 	<artifactId>structr-neo4j-bolt-driver</artifactId>
-	<version>6.0.0</version>
+	<version>6.0.1</version>
 	<packaging>jar</packaging>
 
 	<name>Structr Neo4j Bolt Driver</name>
