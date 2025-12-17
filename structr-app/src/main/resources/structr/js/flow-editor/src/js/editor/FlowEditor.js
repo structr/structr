@@ -558,7 +558,7 @@ export class FlowEditor {
 
 		let rest = new Rest(this.options?.basePath ?? '/');
 
-        rest.post('structr/flow/' + this._flowContainer.effectiveName, {}, true).then((res) => {
+        rest.post('/structr/flow/' + this._flowContainer.effectiveName, {}, true).then((res) => {
             new ResultPanel(res, this);
         });
       
