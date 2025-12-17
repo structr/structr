@@ -146,12 +146,13 @@ let _Flows = {
 		async function getPackageByEffectiveName(name) {
 
 			let nameComponents = getNameParts(name);
-			let packages = await rest.get(_Helpers.getPrefixedRootUrl('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join("."))));
+			let packages = await rest.get('/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join(".")));
 			return packages.result.length > 0 ? packages.result[0] : null;
 		}
 
-		let rest        = new Rest();
-		let persistence = new Persistence();
+		let basePath = _Helpers.getPrefixedRootUrl('')
+		let rest        = new Rest(basePath);
+		let persistence = new Persistence(basePath);
 
 		Structr.setMainContainerHTML(_Flows.templates.main());
 		Structr.setFunctionBarHTML(_Flows.templates.functions());
@@ -711,18 +712,19 @@ let _Flows = {
 		nodeEditor = document.querySelector('#nodeEditor');
 
 		flowId = id;
-		let rest = new Rest();
-		let persistence = new Persistence();
+		let basePath = _Helpers.getPrefixedRootUrl('');
+		let rest        = new Rest(basePath);
+		let persistence = new Persistence(basePath);
 
 		persistence.getNodesById(id, new FlowContainer()).then( r => {
 			document.title = `Flow - ${r[0].name}`;
 
 			let rootElement = document.querySelector("#nodeEditor");
-			flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
+			flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true, basePath: basePath});
 
 			flowEditor.waitForInitialization().then( () => {
 
-				rest.post(`${Structr.rootUrl}FlowContainer/${r[0].id}/getFlowNodes`).then((res) => {
+				rest.post(`/structr/rest/FlowContainer/${r[0].id}/getFlowNodes`).then((res) => {
 
 					let result = res.result;
 
@@ -740,7 +742,7 @@ let _Flows = {
 
 				}).then(() => {
 
-					rest.post(`${Structr.rootUrl}FlowContainer/${r[0].id}/getFlowRelationships`).then((res) => {
+					rest.post(`/structr/rest/FlowContainer/${r[0].id}/getFlowRelationships`).then((res) => {
 
 						let result = res.result;
 
