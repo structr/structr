@@ -11,11 +11,13 @@ The Code section enables developers to extend Structr's capabilities through cus
 ## Key Features
 
 ### Integrated Development Environment
+
 - Syntax highlighting for multiple languages
 - Auto-completion
 - Integrated debugging tools
 
 ### Multiple Language Support
+
 - Javascript
 - StructrScript expressions
 
@@ -26,9 +28,11 @@ The Code section enables developers to extend Structr's capabilities through cus
 Implement custom behavior for schema types:
 
 **Instance Methods**
+
 Methods that operate on individual object instances.
 
 **Static Methods**
+
 Class-level operations that don't require an instance.
 
 ### User-defined Methods
@@ -36,9 +40,11 @@ Class-level operations that don't require an instance.
 System-wide utility functions available throughout the application:
 
 **Utility Functions**
+
 Common operations and calculations.
 
 **Integration Methods**
+
 Connect with external systems and APIs.
 
 ### Lifecycle Methods
@@ -52,6 +58,7 @@ Methods that execute automatically during object lifecycle events, e.g. onCreate
 Use StructrScript for dynamic content and logic:
 
 **Data Access**
+
 ```javascript
 // Access current object properties
 ${this.name}
@@ -67,6 +74,7 @@ ${date(this.dueDate, 'yyyy-MM-dd')}
 ```
 
 **Conditional Logic**
+
 ```javascript
 // Simple conditions
 ${if(this.isOverdue, 'OVERDUE', 'ON_TRACK')}
@@ -82,6 +90,7 @@ ${if(and(this.status == 'ACTIVE', lt(this.dueDate, now())),
 Leverage Structr's extensive function library:
 
 **Data Manipulation**
+
 ```javascript
 // Finding and filtering
 find('Project', 'status', 'ACTIVE')
@@ -95,6 +104,7 @@ count(filter(this.tasks, eq(data.status, 'COMPLETED')))
 ```
 
 **String Operations**
+
 ```javascript
 // Text processing
 concat(this.firstName, ' ', this.lastName)
@@ -104,6 +114,7 @@ substring(this.title, 0, 50)
 ```
 
 **Date Operations**
+
 ```javascript
 // Date calculations
 date_format(now(), 'yyyy-MM-dd HH:mm:ss')
@@ -112,24 +123,28 @@ date_format(now(), 'yyyy-MM-dd HH:mm:ss')
 ## Best Practices
 
 ### Code Organization
+
 - **Modular design**: Break complex logic into smaller methods
 - **Clear naming**: Use descriptive method and variable names
 - **Documentation**: Comment complex logic and business rules
 - **Consistent style**: Follow coding conventions
 
 ### Performance
+
 - **Efficient queries**: Minimize database operations
 - **Caching**: Cache expensive calculations
 - **Batch operations**: Group multiple operations when possible
 - **Resource management**: Properly handle connections and resources
 
 ### Security
+
 - **Input validation**: Validate all input parameters
 - **Access control**: Check permissions before operations
 - **Error handling**: Don't expose sensitive information in errors
 - **Logging**: Log security-relevant events
 
 ### Maintainability
+
 - **Version control**: Track code changes
 - **Testing**: Write comprehensive tests
 - **Documentation**: Maintain current documentation
@@ -140,18 +155,21 @@ date_format(now(), 'yyyy-MM-dd HH:mm:ss')
 ### Common Issues
 
 **Compilation Errors**
+
 - Check syntax and method signatures
 - Verify import statements and dependencies
 - Validate parameter types and return values
 - Review scope and visibility modifiers
 
 **Runtime Errors**
+
 - Add proper error handling and logging
 - Validate input parameters and data
 - Check for null pointer exceptions
 - Verify database connectivity and permissions
 
 **Performance Issues**
+
 - Profile slow methods and queries
 - Optimize database operations
 - Implement appropriate caching
@@ -160,12 +178,14 @@ date_format(now(), 'yyyy-MM-dd HH:mm:ss')
 ### Debugging Techniques
 
 **Logging Strategy**
+
 - Use appropriate log levels
 - Include relevant context information
 - Avoid logging sensitive data
 - Monitor log output for patterns
 
 **Testing Approach**
+
 - Write unit tests for individual methods
 - Test edge cases and error conditions
 - Use integration tests for complex workflows
@@ -174,6 +194,7 @@ date_format(now(), 'yyyy-MM-dd HH:mm:ss')
 ## Next Steps
 
 After mastering the Code section:
+
 1. Implement custom logic for your [Schema](3-Schema.md) types
 2. Create dynamic behavior for [Pages](5-Pages.md)
 3. Integrate with [Data](4-Data.md) management operations

@@ -11,18 +11,21 @@ The Schema editor allows you to create sophisticated data models using a drag-an
 ## Key Features
 
 ### Visual Schema Design
+
 - UML-like graphical interface
 - Drag-and-drop type creation
 - Visual relationship modeling
 - Real-time schema validation
 
 ### Automatic Code Generation
+
 - Database schema generation
 - REST API endpoint creation
 - JavaScript object models
 - Validation rule implementation
 
 ### Advanced Type System
+
 - Multiple type inheritance and polymorphism
 - Custom property types
 - Function properties
@@ -43,6 +46,7 @@ Once a type is created, you can see it in the schema designer and begin adding p
 ![Project Type Created](../schema_type-created_Project.png)
 
 **Core type configuration:**
+
 - **Name**: Unique identifier for the type
 - **Traits**: Inherit properties and method from existing types
 - **OpenAPI**: Documentation and purpose
@@ -54,6 +58,7 @@ Add properties to define the data structure of your types.
 ![Property Added - Project ID](../schema_property-added_projectId.png)
 
 **Property configuration:**
+
 - **Property name**: Unique identifier within the type
 - **Data type**: String, Integer, Date, Boolean, etc.
 - **Constraints**: Required, unique, format validation
@@ -67,6 +72,7 @@ Create more sophisticated types like the Milestone type with date properties.
 ![Create Milestone Type](../schema_create-type_Milestone.png)
 
 **Advanced property types:**
+
 - **Date/Time**: Timestamps and scheduling
 - **Relationships**: Connections to other types
 - **Collections**: Arrays and lists
@@ -82,6 +88,7 @@ Add time-based properties for scheduling and tracking.
 ![Due Date Property Added](../schema_property-added_dueDate.png)
 
 **Date property features:**
+
 - **Date formats**: Various date and time formats
 - **Timezone handling**: Automatic timezone conversion
 - **Validation**: Date range and format validation
@@ -98,6 +105,7 @@ Just drag a connection from the bottom dot to the top dot of another schema node
 ![Relationship Created](../schema_relationship-project-milestone-created.png)
 
 **Relationship configuration:**
+
 - **Source type**: The originating entity
 - **Target type**: The destination entity
 - **Relationship type**: Descriptive identifier
@@ -106,6 +114,7 @@ Just drag a connection from the bottom dot to the top dot of another schema node
 - **Cascade behavior**: Deletion and permission propagation
 
 **Relationship types:**
+
 - **One-to-One**: Single connection between entities
 - **One-to-Many**: Single source connected to multiple targets
 - **Many-to-Many**: Multiple connections in both directions
@@ -116,6 +125,7 @@ Just drag a connection from the bottom dot to the top dot of another schema node
 Relationships can have custom properties to store connection-specific data, e.g.:
 
 **Relationship properties:**
+
 - **Timestamps**: When the relationship was created/modified
 - **Weights**: Numerical relationship strength
 - **Status**: Relationship state information
@@ -126,6 +136,7 @@ Relationships can have custom properties to store connection-specific data, e.g.
 Relationships automatically create navigation properties:
 
 **Automatic properties:**
+
 - **Outgoing relationships**: Properties pointing to related objects
 - **Incoming relationships**: Back-references from related objects
 - **Collection properties**: Lists of related objects
@@ -138,6 +149,7 @@ Relationships automatically create navigation properties:
 Structr provides comprehensive built-in data types:
 
 **Primitive types:**
+
 - **String**: Text data with length constraints
 - **Integer**: Whole numbers with range validation
 - **Long**: Large integer values
@@ -146,6 +158,7 @@ Structr provides comprehensive built-in data types:
 - **Date**: Date and time values
 
 **Advanced types:**
+
 - **Enum**: Predefined value lists
 - **Function**: Computed properties with custom logic
 - **Cypher**: Dynamic graph database queries
@@ -158,6 +171,7 @@ Structr provides comprehensive built-in data types:
 Create specialized property types for specific use cases:
 
 **Custom implementations:**
+
 - **Validation logic**: Custom data validation rules
 - **Transformation**: Data format conversion
 - **Indexing**: Specialized search capabilities
@@ -168,6 +182,7 @@ Create specialized property types for specific use cases:
 Define validation and business rules using regular expressions, e.g.:
 
 **Constraint types:**
+
 - **Required**: Mandatory property values
 - **Unique**: Prevent duplicate values
 - **Range**: Minimum and maximum values
@@ -181,6 +196,7 @@ Define validation and business rules using regular expressions, e.g.:
 Add custom methods to schema types for business logic:
 
 **Method types:**
+
 - **Instance methods**: Operate on individual objects
 - **Static methods**: Class-level operations
 - **Validation methods**: Custom validation logic
@@ -193,6 +209,7 @@ Add custom methods to schema types for business logic:
 Create properties that calculate values dynamically, e.g.:
 
 **Function property examples:**
+
 - **Full names**: Concatenate first and last names
 - **Age calculations**: Calculate age from birth date
 - **Status derivations**: Derive status from other properties
@@ -205,6 +222,7 @@ Create properties that calculate values dynamically, e.g.:
 Implement type inheritance for code reuse and polymorphism:
 
 **Inheritance benefits:**
+
 - **Property inheritance**: Child types inherit parent properties
 - **Method inheritance**: Shared behavior across type hierarchies
 - **Polymorphic queries**: Query parent types to get all children
@@ -226,6 +244,7 @@ Person (abstract)
 Implement reusable property sets, e.g.:
 
 **Common mixins:**
+
 - **Timestamped**: Created/modified timestamps
 - **Versioned**: Version tracking and history
 - **Tagged**: Tag-based categorization
@@ -233,126 +252,107 @@ Implement reusable property sets, e.g.:
 - **Localized**: Multi-language support
 
 ### Schema Validation
-
-Ensure schema integrity and consistency:
+ 
+Schema integrity and consistency is automatically ensured by Structr.
 
 **Validation checks:**
-- **Circular dependencies**: Prevent infinite relationship loops
-- **Naming conflicts**: Ensure unique type and property names
-- **Type compatibility**: Validate relationship endpoints
-- **Constraint conflicts**: Check for contradictory rules
 
-### Query Optimization
-
-Design schemas for efficient querying:
-
-**Optimization techniques:**
-- **Denormalization**: Strategic data duplication
-- **Relationship design**: Efficient traversal paths
-- **Property selection**: Minimize data transfer
-- **Caching strategies**: Leverage function properties
+- **Circular dependencies**: Infinite relationship loops are prevented
+- **Naming conflicts**: Unique type and property names are ensured
+- **Type compatibility**: Relationship endpoints are always compatibel
+- **Constraint conflicts**: Contradictory rules are prevented
 
 ## Schema Security
 
-### Type-Level Security
+### Schema-based Access Control
 
-Control access to schema types:
+Define access control based on the schema
 
 **Security features:**
-- **Type permissions**: Control type access
-- **Property permissions**: Field-level security
-- **Method permissions**: Control method execution
-- **Relationship permissions**: Secure data traversal
 
-### Data Classification
+- **Group-based type permissions**: Control access based on the combination of type and groups
+- **Relationship-propagating permissions**: Access control via relationship definitions
 
-Implement data governance:
-
-**Classification levels:**
-- **Public**: Unrestricted access
-- **Internal**: Organization-wide access
-- **Confidential**: Restricted access
-- **Secret**: Highly restricted access
 
 ## Best Practices
 
 ### Schema Design
+
 - **Start simple**: Begin with core entities and basic relationships
 - **Iterative refinement**: Evolve schema based on requirements
 - **Consistent naming**: Use clear, descriptive names
 - **Documentation**: Document types, properties, and relationships
 
 ### Performance
+
 - **Strategic indexing**: Index queried properties
 - **Relationship optimization**: Design efficient traversal paths
 - **Property selection**: Include only necessary properties
 - **Batch operations**: Optimize bulk data operations
 
 ### Security
+
 - **Least privilege**: Grant minimal necessary access
-- **Property-level control**: Secure sensitive fields
-- **Audit trails**: Track schema and data changes
+- **Property-level control**: Secure sensitive fields by using views and endpoint permissions
 - **Regular reviews**: Periodic security assessments
 
 ### Maintenance
-- **Version control**: Track schema changes
+
+- **Version control**: Track schema changes via exported Schema JSON
 - **Testing**: Validate schema changes thoroughly
 - **Documentation**: Keep schema documentation current
-- **Monitoring**: Track schema performance and usage
 
 ## Integration with Other Sections
 
 ### Pages Integration
-- **Data binding**: Connect pages to schema types
-- **Forms**: Generate forms from schema definitions
-- **Validation**: Use schema constraints in forms
+
 - **Dynamic content**: Display schema-based data
+- **Data binding**: Connect pages to schema types via repeater queries
+- **Forms**: Generate forms from schema definitions by using schema info
+- **Validation**: Use schema constraints in forms
 
 ### Data Management
+
 - **Object creation**: Create instances of schema types
 - **Relationship management**: Manage object connections
 - **Queries**: Search and filter schema-based data
 - **Import/export**: Bulk data operations
 
 ### API Generation
+
+For each schema type, Structr automatically creates an API endpoint.
+
 - **REST endpoints**: Automatic API generation
-- **GraphQL schema**: Generate GraphQL APIs
-- **Validation**: API request validation
-- **Documentation**: Auto-generated API docs
+- **Validation**: API requests are validated based on schema rules
+- **Documentation**: Auto-generated API docs in OpenAPI 3.0 format
 
 ## Troubleshooting
 
 ### Common Issues
 
 **Schema Validation Errors**
-- Check for circular dependencies
+
+- Check for wrong relationship directions
 - Verify unique naming across types and properties
-- Validate relationship endpoint compatibility
-- Review constraint definitions for conflicts
+- Validate relationship endpoint names
+- Review constraint definitions
 
 **Performance Problems**
+
 - Analyze query patterns and add appropriate indexes
 - Review relationship cardinalities and traversal patterns
 - Optimize property selection in queries
-- Consider denormalization for frequently accessed data
 
 **Import/Export Issues**
+
 - Verify schema compatibility between environments
 - Check for naming conflicts with existing types
-- Validate relationship integrity
 - Test import process in staging environment
-
-### Debugging Tools
-
-**Schema analysis:**
-- **Dependency visualization**: View type relationships
-- **Performance metrics**: Monitor query performance
-- **Validation reports**: Identify schema issues
-- **Usage statistics**: Track type and property usage
 
 ## Next Steps
 
 After mastering the Schema section:
+
 1. Create data objects in the [Data](4-Data.md) management section
 2. Build pages that display your schema data in [Pages](5-Pages.md)
 3. Configure appropriate [Security](6-Security.md) permissions

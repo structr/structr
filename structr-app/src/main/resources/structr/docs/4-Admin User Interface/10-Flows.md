@@ -11,18 +11,21 @@ Flows in Structr combine the simplicity of visual workflow design with the power
 ## Key Features
 
 ### Visual Workflow Design
+
 - Drag-and-drop flow builder
 - Pre-built activity templates
 - Visual flow debugging and monitoring
 - Real-time flow execution tracking
 
 ### Process Automation
+
 - Event-driven workflow triggers
 - Scheduled and recurring processes
 - Conditional logic and branching
 - Parallel execution and synchronization
 
 ### Integration Capabilities
+
 - External API integration
 - Database operations
 - File processing and transformation
@@ -32,6 +35,7 @@ Flows in Structr combine the simplicity of visual workflow design with the power
 ## Next Steps
 
 After mastering the Flows section:
+
 1. Integrate flows with your [Schema](3-Schema.md) types for data processing
 2. Trigger flows from [Pages](5-Pages.md) for user-initiated processes
 3. Use flows to automate [Data](4-Data.md) management tasks

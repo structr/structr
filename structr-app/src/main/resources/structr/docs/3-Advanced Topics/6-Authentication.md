@@ -22,6 +22,7 @@ Users can authenticate using a simple HTTP POST request to the REST interface. U
 **Endpoint:** `POST /structr/rest/login`
 
 **Request payload:**
+
 ```json
 {
   "eMail": "username",
@@ -30,6 +31,7 @@ Users can authenticate using a simple HTTP POST request to the REST interface. U
 ```
 
 **Example using JavaScript:**
+
 ```javascript
 fetch('/structr/rest/login', {
 	method: 'POST',
@@ -47,6 +49,7 @@ fetch('/structr/rest/login', {
 ```
 
 **Example using curl:**
+
 ```bash
 curl --request POST \
   --url http://localhost:8082/structr/rest/login \
@@ -58,6 +61,7 @@ curl --request POST \
 ```
 
 **Requirements:**
+
 - A resource access grant with signature `_login` must exist
 - The grant must allow POST requests for public users
 
@@ -68,6 +72,7 @@ To end a user session, make an HTTP POST request to the logout endpoint.
 **Endpoint:** `POST /structr/rest/logout`
 
 **Requirements:**
+
 - A resource access grant with signature `_logout` must exist
 - The grant must allow POST requests for authenticated users
 
@@ -91,6 +96,7 @@ Configure the following settings in `structr.conf`:
 For enhanced security, use a public/private key pair stored in a Java KeyStore:
 
 1. **Create a KeyStore file:**
+2. 
 ```bash
 keytool -genkey -alias jwtkey -keyalg RSA -keystore server.jks -storepass jkspassword
 ```
@@ -113,6 +119,7 @@ Request tokens from the token resource endpoint:
 **Endpoint:** `POST /structr/rest/token`
 
 **Initial authentication:**
+
 ```javascript
 fetch("http://localhost:8082/structr/rest/token", {
   method: "POST",
@@ -124,6 +131,7 @@ fetch("http://localhost:8082/structr/rest/token", {
 ```
 
 **Using refresh token:**
+
 ```javascript
 fetch("http://localhost:8082/structr/rest/token", {
   method: "POST",
@@ -134,6 +142,7 @@ fetch("http://localhost:8082/structr/rest/token", {
 ```
 
 **Response format:**
+
 ```json
 {
   "result": {
@@ -146,6 +155,7 @@ fetch("http://localhost:8082/structr/rest/token", {
 ```
 
 **Requirements:**
+
 - A resource access grant with signature `_token` must exist
 - The grant must allow POST requests for all users
 
@@ -157,6 +167,7 @@ Authenticate requests using JWT tokens in two ways:
 2. **Authorization header** - Manual token inclusion
 
 **Example with Authorization header:**
+
 ```javascript
 fetch("http://localhost:8082/structr/rest/User", {
   method: "GET",
@@ -169,12 +180,14 @@ fetch("http://localhost:8082/structr/rest/User", {
 ### Token Lifetime
 
 Access tokens remain valid until:
+
 - Expiration time is exceeded
 - Token is explicitly revoked
 - Associated refresh token is revoked
 - A new token is created
 
 Refresh tokens remain valid until:
+
 - Expiration time is exceeded
 - Token is explicitly revoked
 
@@ -226,6 +239,7 @@ Trigger OAuth authentication by redirecting users to:
 `/oauth/<provider>/login`
 
 **Example for Auth0:**
+
 ```html
 <a href="/oauth/auth0/login">Login with Auth0</a>
 ```
@@ -252,6 +266,7 @@ Enable users to register themselves through a double opt-in process:
 **Endpoint:** `POST /structr/rest/registration`
 
 **Request:**
+
 ```javascript
 fetch("http://localhost:8082/structr/rest/registration", {
   method: "POST",
@@ -262,6 +277,7 @@ fetch("http://localhost:8082/structr/rest/registration", {
 ```
 
 **Requirements:**
+
 - Resource access grant with signature `_registration` for public users
 - `jsonrestservlet.user.autocreate` enabled in `structr.conf`
 - Mail configuration properly set up
@@ -287,6 +303,7 @@ Allow users to reset forgotten passwords:
 **Endpoint:** `POST /structr/rest/reset-password`
 
 **Request:**
+
 ```javascript
 fetch("http://localhost:8082/structr/rest/reset-password", {
   method: "POST",
@@ -297,6 +314,7 @@ fetch("http://localhost:8082/structr/rest/reset-password", {
 ```
 
 **Requirements:**
+
 - Resource access grant with signature `_resetPassword` for public users
 - `JsonRestServlet.user.autologin` set to true for auto-login functionality
 
@@ -347,21 +365,25 @@ Ensure these configurations are properly set:
 ### Common Issues
 
 **Authentication fails:**
+
 - Verify resource access grants are configured correctly
 - Check that required configuration settings are enabled
 - Ensure user credentials are correct
 
 **JWT tokens not working:**
+
 - Verify JWT configuration method (secret vs keypair)
 - Check token expiration settings
 - Ensure proper Authorization header format
 
 **Email notifications not sent:**
+
 - Verify mail configuration settings
 - Check SMTP server connectivity
 - Review mail template configurations
 
 **OAuth authentication fails:**
+
 - Verify provider configuration settings
 - Check redirect URIs match provider settings
 - Ensure client ID and secret are correct

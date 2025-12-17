@@ -13,6 +13,7 @@ This guide covers the breaking changes and required modifications when upgrading
 Global schema methods have been simplified. The `globalSchemaMethods` namespace no longer exists—functions can now be called directly from the root context.
 
 **StructrScript / JavaScript:**
+
 ```javascript
 // Old (5.x)
 $.globalSchemaMethods.foo()
@@ -22,6 +23,7 @@ $.foo()
 ```
 
 **REST API:**
+
 ```
 # Old (5.x)
 /structr/rest/maintenance/globalSchemaMethods/foo
@@ -139,6 +141,7 @@ REST queries are no longer allowed for repeaters. You must migrate them to funct
 **How to identify affected repeaters:** Check your server logs for messages about REST queries being used in repeaters.
 
 **Migration options:**
+
 1. Convert REST queries to function queries
 2. Convert REST queries to flows
 
