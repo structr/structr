@@ -3171,13 +3171,13 @@ let UISettings = {
 					type: 'checkbox'
 				},
 				favorEditorForContentElementsKey: {
-					text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
+					text: 'Open the editor tab for content nodes in the page area by default (unless the last one used is saved).',
 					storageKey: 'favorEditorForContentElements' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				favorHTMLForDOMNodesKey: {
-					text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
+					text: 'Open the HTML tab for DOM nodes in the page area by default (unless the last one used is saved).',
 					storageKey: 'favorHTMLForDOMNodes' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
