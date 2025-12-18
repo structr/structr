@@ -103,16 +103,19 @@ Also, there are a couple of settings in the Dashboard section to configure the U
 ## Best Practices
 
 ### Navigation
+
 - Use the left sidebar for primary navigation between functional areas
 - Utilize breadcrumbs and back buttons for efficient navigation within sections
 - Take advantage of keyboard shortcuts for faster operation
 
 ### Performance
+
 - Close unused tabs and panels to optimize browser performance
 - Use filters and search functionality to work with large datasets efficiently
 - Regular browser cache clearing may be needed for optimal performance
 
 ### Security
+
 - Always log out when finished working
 - Use appropriate user permissions and roles
 - Regularly review and update access controls
@@ -120,6 +123,7 @@ Also, there are a couple of settings in the Dashboard section to configure the U
 ## Browser Compatibility
 
 The Admin UI is optimized for modern web browsers:
+
 - **Chrome** (recommended): Full feature support
 - **Firefox**: Full feature support
 - **Safari**: Full feature support

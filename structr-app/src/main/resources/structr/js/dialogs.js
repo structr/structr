@@ -114,7 +114,7 @@ let _Dialogs = {
 				iconId: _Icons.iconLogoKeycloak
 			}
 		],
-		getSSOUriForURIPart: (uripart) => `/oauth/${uripart}/login?isBackendOAuthLogin`,
+		getSSOUriForURIPart: (uripart) => _Helpers.getPrefixedRootUrl(`/oauth/${uripart}/login?isBackendOAuthLogin`),
 		getLoginDialogElement: () => document.querySelector('#login'),
 		isOpen: () => {
 			let loginElement = _Dialogs.loginDialog.getLoginDialogElement();

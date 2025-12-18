@@ -1,4 +1,5 @@
 # Keywords
+
 ## applicationRootPath
 Refers to the root path of the Structr application.
 
@@ -14,7 +15,7 @@ The application store can be used to store data in-memory as long as the instanc
 - Be aware that this consumes memory - storing big amounts of data is not recommended.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 ${{
 	if (!$.applicationStore['code_was_run']) {
@@ -44,7 +45,7 @@ Refers to the child nodes of the current node.
 - This keyword is only available in Page elements (DOM nodes).
 
 ### Examples
-##### 1. (StructrScript) Render the HTML content of an element's children into the page
+#### 1. (StructrScript) Render the HTML content of an element's children into the page
 ```
 ${render(children)}
 ```
@@ -54,7 +55,7 @@ Refers to the object returned by URI Object Resolution, if available.
 
 When a valid UUID is present in the URL of a page, Structr automatically retrieves the object associated with that UUID and makes it available to all scripts, templates, and logic executed during the page rendering process under the keyword `current`.
 ### Examples
-##### 1. (Html) Print the name of the current object in page title and heading
+#### 1. (Html) Print the name of the current object in page title and heading
 ```
 <!DOCTYPE html>
 <html>
@@ -96,7 +97,7 @@ Only works in `a`, `link`, `script` or `img` tags/nodes. See Filesystem and Page
 The `link` keyword can only be accessed if a node of the above types is actually linked to a filesystem element. It can be linked via the link icon which is displayed when hovering over a node.
 
 ### Examples
-##### 1. (Html) Provide a download link for a linked file
+#### 1. (Html) Provide a download link for a linked file
 ```
 <!doctype html>
 <html>
@@ -106,7 +107,7 @@ The `link` keyword can only be accessed if a node of the above types is actually
 </html>
 
 ```
-##### 2. (Html) Display a linked image
+#### 2. (Html) Display a linked image
 ```
 <!doctype html>
 <html>
@@ -129,7 +130,7 @@ The locale of a request is determined like this in descending priority:
 5. Default locale which was used to start the java process (evaluated via `java.util.Locale.getDefault();`)
 
 ### Examples
-##### 1. (JavaScript) Print the current locale of a request to the log file
+#### 1. (JavaScript) Print the current locale of a request to the log file
 ```
 ${{
 	$.log('Current locale is: ' + $.locale);
@@ -145,7 +146,7 @@ The `me` keyword allows you to access the user in the current request. It is oft
 - The `me` keyword can be undefined in anonymous requests.
 
 ### Examples
-##### Example 1 (Html)
+#### Example 1 (Html)
 ```
 <!doctype html>
 <html>
@@ -155,7 +156,7 @@ The `me` keyword allows you to access the user in the current request. It is oft
 </html>
 
 ```
-##### 2. (StructrScript) Check the `isAdmin` flag of the current user
+#### 2. (StructrScript) Check the `isAdmin` flag of the current user
 ```
 ${me.isAdmin}
 ```
@@ -165,7 +166,7 @@ Refers to the arguments a method was called with.
 
 The `methodParameters` keyword allows you to access the arguments of a method call.
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 ${{
 	let param1 = $.methodParameters.param1;
@@ -179,7 +180,7 @@ Refers to the current timestamp.
 
 The `now` keyword allows you to access the current time and use it in calculations etc. This keyword is mainly used in StructrScript, because in JavaScript you can simply use `new Date()`.
 ### Examples
-##### 1. (StructrScript) Display the current date, for example in an HTML attribute
+#### 1. (StructrScript) Display the current date, for example in an HTML attribute
 ```
 ${date_format(now, 'dd.MM.yyyy')}
 ```
@@ -192,7 +193,7 @@ The `page` keyword allows you to access the current Page object that handles the
 - This keyword is only available in a Page rendering context.
 
 ### Examples
-##### 1. (Html) Set that HTML page title to the name of the page that renders it
+#### 1. (Html) Set that HTML page title to the name of the page that renders it
 ```
 <!DOCTYPE html>
 <html>
@@ -213,7 +214,7 @@ Refers to the parent element of the current in a page rendering context.
 
 The `parent` keyword allows you to access the parent of the HTML element that is currently rendering.
 ### Examples
-##### 1. (Html) Outputs a paragraph with the UUID of the H1 element above
+#### 1. (Html) Outputs a paragraph with the UUID of the H1 element above
 ```
 <!DOCTYPE html>
 <html>
@@ -254,7 +255,7 @@ The following predicates are available.
 - This keyword is defined in JavaScript only.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 ${{
 	let users = $.find('User', { eMail: $.predicate.contains('structr.com') });
@@ -282,7 +283,7 @@ The `request` keyword allows you to access the URL parameters that were sent wit
 - Only available in a context where Structr is responding to an HTTP request from the outside.
 
 ### Examples
-##### 1. (Html) Access request parameters in a Structr Page
+#### 1. (Html) Access request parameters in a Structr Page
 ```
 <!DOCTYPE html>
 <html>
@@ -314,11 +315,11 @@ The following keys are read-only and return session metadata, all other keys can
 - Only available in a context where Structr is responding to an HTTP request from the outside.
 
 ### Examples
-##### 1. (StructrScript) Log the session ID of the current request
+#### 1. (StructrScript) Log the session ID of the current request
 ```
 ${log(session.id)}
 ```
-##### 2. (JavaScript) Store some arbitrary data in the current session
+#### 2. (JavaScript) Store some arbitrary data in the current session
 ```
 ${{
 	$.session.myData = 'test';
@@ -338,7 +339,7 @@ Refers to the enclosing object instance of the currently executing method or scr
 - The value of `this` is `null` in user-defined functions and static methods.
 
 ### Examples
-##### 1. (JavaScript) Example for an onCreate method that sets a default name if none was given
+#### 1. (JavaScript) Example for an onCreate method that sets a default name if none was given
 ```
 {
 	if ($.empty($.this.name)) {

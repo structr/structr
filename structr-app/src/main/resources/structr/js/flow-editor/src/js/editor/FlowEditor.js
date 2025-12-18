@@ -46,7 +46,7 @@ import {CloneHandler} from "./utility/CloneHandler.js";
 export class FlowEditor {
 
 	constructor(rootElement, flowContainer, options) {
-
+		this.options = options || {};
 		this._initializationPromise = new Promise(resolve => {
 
 			this._injectDependencies().then(() => {
@@ -81,7 +81,7 @@ export class FlowEditor {
 	}
 
 	_injectDependencies() {
-		let dep = new DependencyLoader();
+		let dep = new DependencyLoader(this.options.basePath);
 		let depObject = {
 			scripts: [
 				"lib/d3-node-editor/d3.min.js",
@@ -556,7 +556,7 @@ export class FlowEditor {
 
 	executeFlow() {
 
-		let rest = new Rest();
+		let rest = new Rest(this.options?.basePath ?? '/');
 
         rest.post('/structr/flow/' + this._flowContainer.effectiveName, {}, true).then((res) => {
             new ResultPanel(res, this);
