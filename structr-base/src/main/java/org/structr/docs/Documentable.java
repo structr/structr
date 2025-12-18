@@ -21,9 +21,10 @@ package org.structr.docs;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.ontology.Details;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 /**
  * Base interface for all things that are documentable. Implement this
@@ -32,6 +33,8 @@ import java.util.Set;
  * appropriate places.
  */
 public interface Documentable {
+
+	String moep = "moep";
 
 	/**
 	 * Creates the full Markdown documentation to be used directly.
@@ -292,6 +295,13 @@ public interface Documentable {
 		return null;
 	}
 
+	/**
+	 * Override this method to return concepts that this Documentable
+	 * is a direct "has" child of. Please don't use this method to indicate
+	 * relations other than parent-child, use getLinkedConcepts() for
+	 * that.
+	 * @return
+	 */
 	default List<Concept> getParentConcepts() {
 		return new LinkedList<>();
 	}
@@ -382,8 +392,75 @@ public interface Documentable {
 			this.name = name;
 		}
 
-		public static Link of(final String verb, final String name) {
+		public static Link to(final String verb, final String name) {
 			return new Link(verb, name);
 		}
 	}
+
+	static List<Documentable> createMarkdownDocumentation() {
+
+		final List<Documentable> documentables = new LinkedList<>();
+
+		// this map controls which reference lists are generated, and
+		// into which file they are written
+		final Map<DocumentableType, DocumentationEntry> files = Map.of(
+
+			DocumentableType.Keyword,            new DocumentationEntry("1-Keywords.md",             "Keywords"),
+			DocumentableType.BuiltInFunction,    new GroupedDocumentationEntry("2-Functions.md",     "Built-in Functions"),
+			DocumentableType.LifecycleMethod,    new DocumentationEntry("3-Lifecycle Methods.md",    "Lifecycle Methods"),
+			DocumentableType.SystemType,         new DocumentationEntry("4-System Types.md",         "System Types"),
+			DocumentableType.Service,            new DocumentationEntry("5-Services.md",             "Services"),
+			DocumentableType.MaintenanceCommand, new DocumentationEntry("6-Maintenance Commands.md", "Maintenance Commands"),
+			DocumentableType.Setting,            new DocumentationEntry("7-Settings.md",             "Settings")
+		);
+
+		DocumentableType.collectAllDocumentables(documentables);
+
+		// sort by name
+		Collections.sort(documentables, Comparator.comparing(Documentable::getName));
+
+		// check style and content and generate Markdown docs
+		for (final Documentable item : documentables) {
+
+			// check metadata for style errors etc.
+			//errors.addAll(checkFunctionMetadata(item));
+
+			final DocumentableType itemType = item.getDocumentableType();
+			if (itemType != null) {
+
+				final DocumentationEntry entry = files.get(itemType);
+				if (entry != null) {
+
+					final Category itemCategory = item.getCategory();
+					if (itemCategory != null && itemCategory.getDisplayName() != null) {
+
+						final List<String> lines = item.createMarkdownDocumentation(EnumSet.allOf(Details.class), 3);
+						final String displayName = itemCategory.getDisplayName();
+
+						entry.addLines(lines, displayName);
+
+					} else {
+
+						final List<String> lines = item.createMarkdownDocumentation(EnumSet.allOf(Details.class), 2);
+
+						entry.addLines(lines);
+					}
+				}
+			}
+		}
+
+		for (final DocumentationEntry entry : files.values()) {
+
+			try {
+
+				Files.writeString(Path.of(entry.getFileName()), StringUtils.join(entry.getLines(), "\n"));
+
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return documentables;
+	}
+
 }

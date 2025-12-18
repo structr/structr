@@ -1,5 +1,0 @@
-
-
-Structr has topic "Built-in functions"
-
-Topic "Built-in functions" has enum-source "org.structr.docs.ontology.FunctionCategory"

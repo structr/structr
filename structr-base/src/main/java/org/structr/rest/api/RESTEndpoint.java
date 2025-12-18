@@ -29,14 +29,14 @@ import java.util.regex.Pattern;
 
 /**
  */
-public abstract class RESTEndpoint implements Documentable {
+public abstract class RESTEndpoint {
 
 	private final Map<String, RESTParameter> parts = new LinkedHashMap<>();
 	private final String pathSeparator            = "/";
 	private String uniquePath                     = null;
 	private Pattern pattern                       = null;
 
-	public RESTEndpoint(final RESTParameter... parameters) {
+	public RESTEndpoint(RESTParameter... parameters) {
 		initialize(parameters);
 	}
 
@@ -143,85 +143,5 @@ public abstract class RESTEndpoint implements Documentable {
 
 		this.uniquePath = pathBuffer.toString();
 		this.pattern    = Pattern.compile(uniquePath);
-	}
-
-	// ----- interface Documentable -----
-
-	@Override
-	public DocumentableType getDocumentableType() {
-		return DocumentableType.RESTEndpoint;
-	}
-
-	@Override
-	public String getName() {
-		return getClass().getSimpleName();
-	}
-
-	@Override
-	public String getShortDescription() {
-		return "";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return "";
-	}
-
-	@Override
-	public List<Parameter> getParameters() {
-
-		final List<Parameter> parameterList = new LinkedList<>();
-
-		for (final RESTParameter part : parts.values()) {
-
-			parameterList.add(Parameter.mandatory(part.key(), part.urlPattern()));
-		}
-
-		return parameterList;
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return List.of();
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of();
-	}
-
-	@Override
-	public List<Signature> getSignatures() {
-		return List.of();
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of();
-	}
-
-	@Override
-	public List<Usage> getUsages() {
-		return List.of();
-	}
-
-	@Override
-	public List<Property> getProperties() {
-		return Documentable.super.getProperties();
-	}
-
-	@Override
-	public List<Setting> getSettings() {
-		return Documentable.super.getSettings();
-	}
-
-	@Override
-	public List<Concept> getParentConcepts() {
-		return List.of(Concept.of("topic", "REST endpoints"));
-	}
-
-	@Override
-	public List<Link> getLinkedConcepts() {
-		return new LinkedList<>();
 	}
 }

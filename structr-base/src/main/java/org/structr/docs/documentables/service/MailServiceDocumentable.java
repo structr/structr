@@ -62,7 +62,7 @@ public class MailServiceDocumentable extends AbstractServiceDocumentable {
 
 		final List<Link> concepts = super.getLinkedConcepts();
 
-		concepts.add(Link.of("provides", "Sending emails"));
+		concepts.add(Link.to("provides", "Sending emails"));
 
 		return concepts;
 	}

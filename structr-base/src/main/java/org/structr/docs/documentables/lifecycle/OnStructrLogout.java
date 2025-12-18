@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,37 @@
  */
 package org.structr.docs.documentables.lifecycle;
 
+import org.structr.docs.Example;
+
 import java.util.List;
 
-public class AfterDelete extends LifecycleBase {
+public class OnStructrLogout extends LifecycleBase {
 
-	public AfterDelete() {
-		super("afterDelete");
+	public OnStructrLogout() {
+		super("onStructrLogout");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called after an object of this type was deleted.";
+		return "Called when a user finishes a new session by logging out.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The `afterDelete()` lifecycle method is called after an object of this type is deleted. This method runs after the deleting transaction is committed, so you can be sure that the object was deleted from the database.";
+		return """
+		The `onStructrLogout()` lifecycle method is called when users finish a session by logging themselves out, **OR** when the session times out.
+		
+		To receive this callback, you must create a **user-defined function** called `onStructrLogout`, instance methods or static methods will not be called.
+		
+		Note: You cannot prevent a user from logging out with this method. If you throw an error in this method, or the method contains a syntax error, the error will be logged but the logout will *not* fail.
+		""";
 	}
 
 	@Override
 	public List<String> getNotes() {
 
 		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onDelete()`."
+			"See also: `onStructrLogin()`."
 		);
 	}
 }

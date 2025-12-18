@@ -25,6 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.StructrEnvFunction;
+import org.structr.docs.Documentation;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -38,6 +39,7 @@ import java.util.Set;
  *
  *
  */
+@Documentation(name="Structr environment information endpoint", type="rest-endpoint", parent="System endpoints")
 public class EnvResource extends ExactMatchEndpoint {
 
 	public enum UriPart {

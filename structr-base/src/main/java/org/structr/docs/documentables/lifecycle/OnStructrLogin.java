@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,30 +18,38 @@
  */
 package org.structr.docs.documentables.lifecycle;
 
+import org.structr.docs.Documentable;
+import org.structr.docs.Example;
+
 import java.util.List;
 
-public class AfterDelete extends LifecycleBase {
+public class OnStructrLogin extends LifecycleBase {
 
-	public AfterDelete() {
-		super("afterDelete");
+	public OnStructrLogin() {
+		super("onStructrLogin");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called after an object of this type was deleted.";
+		return "Called when a user starts a new session.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The `afterDelete()` lifecycle method is called after an object of this type is deleted. This method runs after the deleting transaction is committed, so you can be sure that the object was deleted from the database.";
+		return """
+		The `onStructrLogin()` lifecycle method is called when users create new sessions by authenticating themselves with any of the login mechanisms.
+		
+		To receive this callback, you must create a **user-defined function** called `onStructrLogin`, instance methods or static methods will not be called.
+		
+		Note: You cannot prevent a user from logging in with this method. If you throw an error in this method, or the method contains a syntax error, the error will be logged but the login will *not* fail.
+		""";
 	}
 
 	@Override
 	public List<String> getNotes() {
 
 		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onDelete()`."
+			"See also: `onStructrLogout()`."
 		);
 	}
 }

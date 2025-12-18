@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,32 +16,39 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.documentables.lifecycle;
+package org.structr.docs;
 
+import java.util.LinkedList;
 import java.util.List;
 
-public class AfterDelete extends LifecycleBase {
+public class DocumentationEntry {
 
-	public AfterDelete() {
-		super("afterDelete");
+	protected final List<String> lines = new LinkedList<>();
+	protected String fileName;
+	protected String header;
+
+	public DocumentationEntry(final String fileName, final String header) {
+
+		this.fileName = fileName;
+		this.header   = header;
+
+		lines.add("# " + header);
+		lines.add("");
 	}
 
-	@Override
-	public String getShortDescription() {
-		return "Called after an object of this type was deleted.";
+	public void addLines(final List<String> lines, final String... additionalInfo) {
+		this.lines.addAll(lines);
 	}
 
-	@Override
-	public String getLongDescription() {
-		return "The `afterDelete()` lifecycle method is called after an object of this type is deleted. This method runs after the deleting transaction is committed, so you can be sure that the object was deleted from the database.";
+	public List<String> getLines() {
+		return lines;
 	}
 
-	@Override
-	public List<String> getNotes() {
+	public String getFileName() {
+		return fileName;
+	}
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onDelete()`."
-		);
+	public String getHeader() {
+		return header;
 	}
 }

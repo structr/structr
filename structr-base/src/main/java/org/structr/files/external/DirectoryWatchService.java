@@ -427,7 +427,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				final List<Link> links = new LinkedList<>();
 
-				links.add(Link.of("uses", "Mount target"));
+				links.add(Link.to("uses", "Mount target"));
 
 				return links;
 			}

@@ -28,7 +28,6 @@ import org.structr.common.error.PropertyInputParsingException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TemporalDateConverter;
-import org.structr.docs.DocumentableType;
 import org.structr.schema.parser.DatePropertyGenerator;
 
 import java.text.SimpleDateFormat;
@@ -254,7 +253,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 		final List<Link> links = super.getLinkedConcepts();
 
-		links.add(Link.of("isconfiguredby", "Date format pattern"));
+		links.add(Link.to("isconfiguredby", "Date format pattern"));
 
 		return links;
 	}

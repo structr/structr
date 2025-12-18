@@ -16,41 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.documentables.service;
+package org.structr.docs;
 
-import org.structr.docs.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.List;
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Documentation {
 
-public class SSHServiceDocumentable extends AbstractServiceDocumentable {
-
-	@Override
-	public DocumentableType getDocumentableType() {
-		return DocumentableType.Service;
-	}
-
-	@Override
-	public String getName() {
-		return "SSHService";
-	}
-
-	@Override
-	public String getShortDescription() {
-		return "A service that provides access to Structr via SSH.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return null;
-	}
-
-	@Override
-	public List<Link> getLinkedConcepts() {
-
-		final List<Link> concepts = super.getLinkedConcepts();
-
-		concepts.add(Link.to("provides", "SSH server"));
-
-		return concepts;
-	}
+	DocumentableType type() default DocumentableType.Topic;
+	String name();
+	String shortDescription() default "";
+	String parent() default "";
 }

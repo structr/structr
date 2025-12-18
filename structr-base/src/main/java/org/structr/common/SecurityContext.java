@@ -36,6 +36,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Documentation;
+import org.structr.docs.SystemClass;
 import org.structr.schema.SchemaHelper;
 
 import java.util.*;
@@ -48,6 +50,7 @@ import java.util.regex.Pattern;
  * permission flags for a given node. This is the place where Request
  * and Authenticator get together.
  */
+@SystemClass(name="SecurityContext", shortDescription="The ")
 public class SecurityContext {
 
 	public static final String LOCALE_KEY = "locale";
@@ -189,23 +192,23 @@ public class SecurityContext {
 
 	private void initializeHttpParameters(final HttpServletRequest request) {
 
-		if ("true".equals(request.getHeader("Structr-Return-Details-For-Created-Objects"))) {
+		if ("true".equals(request.getHeader(RequestHeaders.ReturnDetailsForCreatedObjects.getHeaderName()))) {
 			this.returnDetailedCreationResults = true;
 		}
 
-		if ("disabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+		if ("disabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getHeaderName()))) {
 			this.doTransactionNotifications = false;
 		}
 
-		if ("enabled".equals(request.getHeader("Structr-Websocket-Broadcast"))) {
+		if ("enabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getHeaderName()))) {
 			this.doTransactionNotifications = true;
 		}
 
-		if ("disabled".equals(request.getHeader("Structr-Cascading-Delete"))) {
+		if ("disabled".equals(request.getHeader(RequestHeaders.StructrCascadingDelete.getHeaderName()))) {
 			this.doCascadingDelete = false;
 		}
 
-		if ("enabled".equals(request.getHeader("Structr-Force-Merge-Of-Nested-Properties"))) {
+		if ("enabled".equals(request.getHeader(RequestHeaders.StructrForceMergeOfNestedProperties.getHeaderName()))) {
 			this.forceMergeOfNestedProperties = true;
 		}
 
@@ -227,7 +230,7 @@ public class SecurityContext {
 		// check for custom view attributes
 
 		try {
-			final String acceptedContentType = request.getHeader("Accept");
+			final String acceptedContentType = request.getHeader(RequestHeaders.Accept.getHeaderName());
 			final Matcher matcher            = customViewPattern.matcher(acceptedContentType);
 
 			if (matcher.matches()) {
@@ -253,7 +256,7 @@ public class SecurityContext {
 
 	private void initializeQueryRanges(final HttpServletRequest request) {
 
-		final String rangeSource = request.getHeader("Range");
+		final String rangeSource = request.getHeader(RequestHeaders.Range.getHeaderName());
 		if (rangeSource != null) {
 
 			final String[] rangeParts = StringUtils.split(rangeSource, ";");

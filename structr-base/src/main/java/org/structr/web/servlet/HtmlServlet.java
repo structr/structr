@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -65,6 +66,7 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
@@ -1457,9 +1459,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
-		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
-		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
-		response.setDateHeader("Expires", 0);
+		response.setHeader(RequestHeaders.CacheControl.getHeaderName(), "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setHeader(RequestHeaders.Pragma.getHeaderName(), "no-cache, no-store"); // HTTP 1.0.
+		response.setDateHeader(RequestHeaders.Expires.getHeaderName(), 0);
 	}
 
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {
@@ -1482,15 +1484,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.setHeader("Cache-Control", "max-age=" + seconds + ", s-maxage=" + seconds);
-			response.setHeader("Expires", httpDateFormat.format(cal.getTime()));
+			response.setHeader(RequestHeaders.CacheControl.getHeaderName(), "max-age=" + seconds + ", s-maxage=" + seconds);
+			response.setHeader(RequestHeaders.Expires.getHeaderName(), httpDateFormat.format(cal.getTime()));
 
 		} else {
 
 			if (!dontCache) {
-				response.setHeader("Cache-Control", "no-cache, must-revalidate, proxy-revalidate");
+				response.setHeader(RequestHeaders.CacheControl.getHeaderName(), "no-cache, must-revalidate, proxy-revalidate");
 			} else {
-				response.setHeader("Cache-Control", "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
+				response.setHeader(RequestHeaders.CacheControl.getHeaderName(), "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
 			}
 
 		}
@@ -1498,9 +1500,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (lastModified != null) {
 
 			final Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
-			response.setHeader("Last-Modified", httpDateFormat.format(roundedLastModified));
+			response.setHeader(RequestHeaders.LastModified.getHeaderName(), httpDateFormat.format(roundedLastModified));
 
-			final String ifModifiedSince = request.getHeader("If-Modified-Since");
+			final String ifModifiedSince = request.getHeader(RequestHeaders.IfModifiedSince.getHeaderName());
 
 			if (StringUtils.isNotBlank(ifModifiedSince)) {
 
@@ -1515,7 +1517,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						notModified = true;
 
 						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-						response.setHeader("Vary", "Accept-Encoding");
+						response.setHeader(RequestHeaders.Vary.getHeaderName(), "Accept-Encoding");
 					}
 
 				} catch (ParseException ex) {
@@ -1609,7 +1611,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					response.setContentType("application/octet-stream");
 				}
 
-				final String range = request.getHeader("Range");
+				final String range = request.getHeader(RequestHeaders.Range.getHeaderName());
 
 				try {
 
@@ -1692,7 +1694,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), "onDownload");
+				final AbstractMethod method = Methods.resolveMethod(file.getTraits(), Actions.NOTIFICATION_DOWNLOAD);
 				if (method != null) {
 
 					method.execute(securityContext, file, NamedArguments.fromMap(callbackMap), new EvaluationHints());
@@ -1843,7 +1845,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 			// check Http Basic Authentication headers
-			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader("Authorization"));
+			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader(RequestHeaders.Authorization.getHeaderName()));
 			if (principal != null) {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);

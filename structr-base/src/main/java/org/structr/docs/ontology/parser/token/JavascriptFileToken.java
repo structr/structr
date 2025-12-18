@@ -126,7 +126,11 @@ public class JavascriptFileToken extends NamedConceptToken {
 							text = text.replaceAll("\\$\\{.*\\}", "");
 							text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
 
-							handleConcept("unknown", text, ontology, fileName, sourceLineNumber);
+							final Concept concept = handleConcept("text", text, ontology, fileName, sourceLineNumber);
+							if (concept != null) {
+
+								concepts.add(concept);
+							}
 						}
 
 						sourceLineNumber++;
@@ -187,7 +191,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 		return false;
 	}
 
-	private void handleConcept(final String type, final String text, final Ontology ontology, String fileName, final int sourceLineNumber) {
+	private Concept handleConcept(final String type, final String text, final Ontology ontology, String fileName, final int sourceLineNumber) {
 
 		final String trimmed = text.trim();
 		if (StringUtils.isNotBlank(trimmed)) {
@@ -216,10 +220,14 @@ public class JavascriptFileToken extends NamedConceptToken {
 								}
 							}
 						}
+
+						return concept;
 					}
 				}
 			}
 		}
+
+		return null;
 	}
 
 	private String parseAndRemoveDataComment(final String line, final Ontology ontology, final String fileName, final int sourceLineNumber) {

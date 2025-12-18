@@ -1,3 +1,9 @@
+#
+# blacklist.txt
+#
+# This file defines all the words and phrases that should NOT be imported into the ontology.
+#
+
 blacklist Boolean, Byte, Date, Double, Fload, Integer, Long, String, "Boolean[]", "Byte[]", "Date[]", "Double[]", "Float[]", "Integer[]", "Long[]", "String[]", "&quot;"
 blacklist advanced, keep, full, none, always, indent, same, Advanced, Keep, Full, Always, None, true, false, undefined, inter, info, "10pt", "1rem", rem
 blacklist Load, Save, Create, Delete, Remove, Filter, Filters, Select, Refresh, Action, Actions, Copy, Option, Options, Name, Description, Type, Parameter, Parameters

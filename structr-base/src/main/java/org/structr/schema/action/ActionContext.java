@@ -28,6 +28,7 @@ import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.ContextStore;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
@@ -656,7 +657,7 @@ public class ActionContext {
 
 	public static String getRemoteAddr(HttpServletRequest request) {
 
-		final String remoteAddress = request.getHeader("X-FORWARDED-FOR");
+		final String remoteAddress = request.getHeader(RequestHeaders.XForwardedFor.getHeaderName());
 
 		if (remoteAddress == null) {
 			return request.getRemoteAddr();

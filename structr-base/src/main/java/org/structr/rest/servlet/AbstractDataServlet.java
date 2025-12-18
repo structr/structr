@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.RequestHeaders;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -153,7 +154,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 		try {
 
-			final String accept = request.getHeader("Accept");
+			final String accept = request.getHeader(RequestHeaders.Accept.getHeaderName());
 
 			if (accept != null && accept.contains("text/html")) {
 

@@ -19,6 +19,8 @@
 package org.structr.common;
 
 import org.structr.api.config.Settings;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.HasDisplayName;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -26,7 +28,8 @@ import java.util.TreeSet;
 /**
  */
 
-public enum RequestKeywords {
+@Documentation(name="Request parameters", shortDescription="Structr's HTTP API supports a number of custom request parameters to influence the behaviour of the endpoints.")
+public enum RequestKeywords implements HasDisplayName {
 
 	// pagination
 	PageNumber("page"),
@@ -84,6 +87,11 @@ public enum RequestKeywords {
 			return keyword;
 		}
 
+		return "_" + keyword;
+	}
+
+	public String getDisplayName() {
+		// we always return the same format and do not change it based on the legacy parameters setting
 		return "_" + keyword;
 	}
 

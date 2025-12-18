@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,28 +20,29 @@ package org.structr.docs.documentables.lifecycle;
 
 import java.util.List;
 
-public class AfterDelete extends LifecycleBase {
+public class OnAcmeChallenge extends LifecycleBase {
 
-	public AfterDelete() {
-		super("afterDelete");
+	public OnAcmeChallenge() {
+		super("onAcmeChallenge");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called after an object of this type was deleted.";
+		return "Called when... ??";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The `afterDelete()` lifecycle method is called after an object of this type is deleted. This method runs after the deleting transaction is committed, so you can be sure that the object was deleted from the database.";
+		return null;
 	}
 
 	@Override
-	public List<String> getNotes() {
+	public List<Link> getLinkedConcepts() {
 
-		return List.of(
-			"This lifecycle method can be defined on any node type.",
-			"See also: `onDelete()`."
-		);
+		final List<Link> links = super.getLinkedConcepts();
+
+		links.add(Link.to("isexecutedby", "Letsencrypt"));
+
+		return links;
 	}
 }

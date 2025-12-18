@@ -80,6 +80,16 @@ public class GetAvailableServerLogsFunction extends AdvancedScriptingFunction {
 		return FunctionCategory.System;
 	}
 
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> linkedConcepts = super.getLinkedConcepts();
+
+		linkedConcepts.add(Link.to("ispartof", "Logging"));
+
+		return linkedConcepts;
+	}
+
 	public static List<String> getListOfServerlogFileNames() {
 
 		final String basePath = Settings.getBasePath();

@@ -111,6 +111,16 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		return FunctionCategory.System;
 	}
 
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> linkedConcepts = super.getLinkedConcepts();
+
+		linkedConcepts.add(Link.to("ispartof", "Logging"));
+
+		return linkedConcepts;
+	}
+
 	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter, final String requestedLogfileName) {
 
 		int lines = numberOfLines;

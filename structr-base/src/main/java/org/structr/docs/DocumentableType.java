@@ -20,11 +20,12 @@ package org.structr.docs;
 
 import org.structr.autocomplete.AbstractHintProvider;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.traits.TraitsManager;
 import org.structr.docs.documentables.lifecycle.LifecycleBase;
-import org.structr.docs.documentables.settings.SettingDocumentable;
+import org.structr.docs.documentables.misc.SettingDocumentable;
 import org.structr.docs.ontology.HasDisplayName;
 import org.structr.rest.api.RESTEndpoints;
 import org.structr.rest.resource.MaintenanceResource;
@@ -41,11 +42,13 @@ public enum DocumentableType implements HasDisplayName {
 	Property("Property", "property", false, false, AbstractPrimitiveProperty::addProperties),
 	UserDefinedFunction("User-defined function", "user-defined-function", false, false, null),
 	MaintenanceCommand("Maintenance command", "maintenance-command", false, false, MaintenanceResource::getMaintenanceCommands),
-	SystemType("System type", "type", false, false, TraitsManager::addAllSystemTypes),
+	SystemType("System type", "system-type", false, false, TraitsManager::addAllSystemTypes),
 	LifecycleMethod("Lifecycle method", "lifecycle-method", false, true, LifecycleBase::addAllLifecycleMethods),
 	Service("Service", "service", false, false, Services::collectDocumentation),
 	Setting("Setting", "setting", false, false, SettingDocumentable::collectAllSettings),
-	RESTEndpoint("REST Endpoint", "rest-endpoint", false, false, RESTEndpoints::addEndpoints),
+	RequestKeyword("Request parameter", "request-parameter", false, false, null),
+	RequestHeader("Request header", "request-header", false, false, null),
+	Class("Class", "class", false, false, StructrApp.getConfiguration()::addDocumentedClasses),
 	Hidden(null, null, false, false, null);
 
 	private final Consumer<List<Documentable>> getFunction;

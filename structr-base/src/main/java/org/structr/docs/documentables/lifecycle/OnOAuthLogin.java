@@ -18,30 +18,46 @@
  */
 package org.structr.docs.documentables.lifecycle;
 
+import org.structr.docs.Parameter;
+
+import java.util.ArrayList;
 import java.util.List;
 
-public class OnDownload extends LifecycleBase {
+public class OnOAuthLogin extends LifecycleBase {
 
-	public OnDownload() {
-		super("onDownload");
+	public OnOAuthLogin() {
+		super("onOAuthLogin");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called after the download of a File is complete.";
+		return "Called when a user authenticates with oAuth.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The `onDownload()` lifecycle method is called after a File is downloaded.";
+		return """
+		The `onOAuthLogin()` lifecycle method is called when users create login via oAuth.
+		
+		To receive this callback, you must create a **user-defined function** called `onStructrLogin`, instance methods or static methods will not be called.
+		
+		This method will be called with the following arguments:
+		
+		| Name | Description |
+		| --- | --- |
+		| provider | The name of the oAuth provider that handled the login |
+		| userinfo | The map of user information sent by the oAuth server |
+		
+		Note: You cannot prevent a user from logging in with this method. If you throw an error in this method, or the method contains a syntax error, the error will be logged but the login will *not* fail.
+		""";
 	}
 
 	@Override
 	public List<String> getNotes() {
 
 		return List.of(
-			"This method must be defined on the type `File` or its descendants.",
-			"See also: `onDelete()`."
+			"This lifecycle method must be defined on the type `User` or its descendants.",
+			"See also: `onStructrLogin()`, `onStructrLogout()`."
 		);
 	}
 
@@ -50,7 +66,7 @@ public class OnDownload extends LifecycleBase {
 
 		final List<Link> linkedConcepts = super.getLinkedConcepts();
 
-		linkedConcepts.add(Link.to("ispartof", "File"));
+		linkedConcepts.add(Link.to("ispartof", "User"));
 
 		return linkedConcepts;
 	}

@@ -18,10 +18,9 @@
  */
 package org.structr.docs.ontology;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.*;
 
 /**
  * A concept in the Structr Documentation Ontology. This class
@@ -35,7 +34,7 @@ public final class Concept {
 	protected final String sourceFile;
 	protected final int lineNumber;
 	protected final String name;
-	protected String type;
+	protected Ontology.Type type;
 
 	protected Concept(final String sourceFile, final int lineNumber, final String type, final String name) {
 
@@ -68,14 +67,18 @@ public final class Concept {
 
 	public void linkChild(final String verb, final Concept concept) {
 
-		if (!hasChild(verb, concept)) {
+		if (!this.equals(concept) && !hasChild(verb, concept)) {
 
 			children.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
 		}
 	}
 
 	public void linkParent(final String verb, final Concept concept) {
-		parents.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
+
+		if (!this.equals(concept) && !hasParent(verb, concept)) {
+
+			parents.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
+		}
 	}
 
 	public Map<String, List<Concept>> getChildren() {
@@ -123,10 +126,14 @@ public final class Concept {
 	}
 
 	public int getTotalChildCount() {
-		return getTotalChildCount(this);
+		return getTotalChildCount(this, new LinkedHashSet<>(), 0);
 	}
 
-	private int getTotalChildCount(final Concept concept) {
+	private int getTotalChildCount(final Concept concept, final Set<String> visited, final int level) {
+
+		if (!visited.add(concept.getName())) {
+			return 0;
+		}
 
 		int sum = 0;
 
@@ -140,7 +147,7 @@ public final class Concept {
 					throw new RuntimeException("Empty child concept in children of " + getName() + ".");
 				}
 
-				sum += childConcept.getTotalChildCount();
+				sum += getTotalChildCount(childConcept, new LinkedHashSet<>(visited), level + 1);
 			}
 		}
 
@@ -155,6 +162,22 @@ public final class Concept {
 			for (final Concept child : list) {
 
 				if (child.equals(additionalConcept)) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	public boolean hasParent(final String has, final Concept additionalConcept) {
+
+		final List<Concept> list = parents.get(has);
+		if (list != null) {
+
+			for (final Concept parent : list) {
+
+				if (parent.equals(additionalConcept)) {
 					return true;
 				}
 			}

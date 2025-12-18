@@ -77,14 +77,6 @@ public class RESTEndpoints {
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
 	}
 
-	public static void addEndpoints(final List<Documentable> documentables) {
-
-		for (final SortedByUsageCount count : ENDPOINTS) {
-
-			documentables.add(count.endpoint);
-		}
-	}
-
 	public static RESTCallHandler resolveRESTCallHandler(final HttpServletRequest request, final String defaultView, final String userType) throws FrameworkException {
 
 		final List<String> viewHolder = new LinkedList<>();

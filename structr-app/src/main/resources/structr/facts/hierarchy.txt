@@ -1,0 +1,32 @@
+#
+# hierarchy.txt
+#
+# This file defines the hierarchical structure of the documentation ontology.
+#
+
+# The word "Structr" is the root of the ontology
+Structr has topics "Introduction", "Core concepts", "Building Applications", "User Interface", "Operations", References
+
+# this exists to match the Markdown docs and enable gap analysis
+Introduction has topics "What is Structr?", "Installation Method", "First Steps"
+"Installation Method" has topics "Sandbox", "Docker", "Manual Installation"
+"First Steps" has topics "Data Schema"
+
+
+
+"Core concepts" has topics "Business logic"
+
+
+
+
+"Building Applications" has topics "Error handling"
+
+
+
+
+
+"User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Virtual Types", "Widgets", "Flows", "Localization", "Admin Console", "Configuration Editor"
+"User Interface" has topic "Helpers"
+Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
+Pages has helper "Refactoring Helper"
+"Configuration Editor" configures "Settings"

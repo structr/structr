@@ -47,6 +47,7 @@ public class OnNodeCreation extends LifecycleBase {
 	public List<String> getNotes() {
 
 		return List.of(
+			"This lifecycle method can be defined on any node type.",
 			"See also: `onCreate()`, `afterCreate()`, `error()` and `assert()`."
 		);
 	}

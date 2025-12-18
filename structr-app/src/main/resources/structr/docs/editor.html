@@ -139,7 +139,7 @@
                     },
                     nodes: {
                         font: {
-                            size: 50
+                            size: 20
                         },
                         shape: 'hexagon',
                         scaling: {
@@ -147,9 +147,12 @@
                             max: 100
                         }
                     },
+                    edges: {
+                        arrows: 'to'
+                    },
                     physics: {
                         enabled: true,
-                        solver: 'barnesHut',
+                        solver: 'forceAtlas2Based',
                         stabilization: true,
                         forceAtlas2Based: {
                             centralGravity: 0.001,

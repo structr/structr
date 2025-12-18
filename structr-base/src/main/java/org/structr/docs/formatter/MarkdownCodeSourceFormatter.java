@@ -18,22 +18,11 @@
  */
 package org.structr.docs.formatter;
 
-import org.structr.api.config.Settings;
-import org.structr.api.config.SettingsGroup;
-import org.structr.autocomplete.AbstractHintProvider;
-import org.structr.core.Services;
-import org.structr.core.function.Functions;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.TraitsInstance;
-import org.structr.core.traits.TraitsManager;
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
-import org.structr.docs.documentables.lifecycle.*;
-import org.structr.docs.documentables.settings.SettingDocumentable;
 import org.structr.docs.ontology.Concept;
-import org.structr.rest.resource.MaintenanceResource;
 
 import java.util.Collections;
 import java.util.Comparator;

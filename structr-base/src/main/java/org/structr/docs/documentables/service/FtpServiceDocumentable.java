@@ -49,7 +49,7 @@ public class FtpServiceDocumentable extends AbstractServiceDocumentable {
 
 		final List<Link> links = super.getLinkedConcepts();
 
-		links.add(Link.of("implements", "FTP server"));
+		links.add(Link.to("implements", "FTP server"));
 
 		return links;
 	}

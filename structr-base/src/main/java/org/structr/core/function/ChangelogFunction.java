@@ -180,7 +180,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 		final List<Link> links = super.getLinkedConcepts();
 
-		links.add(Link.of("provides", "Changelog"));
+		links.add(Link.to("provides", "Changelog"));
 
 		return links;
 	}

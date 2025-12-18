@@ -168,4 +168,14 @@ public class LogEventFunction extends UiAdvancedFunction {
 	public FunctionCategory getCategory() {
 		return FunctionCategory.System;
 	}
+
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> linkedConcepts = super.getLinkedConcepts();
+
+		linkedConcepts.add(Link.to("ispartof", "Statistics"));
+
+		return linkedConcepts;
+	}
 }

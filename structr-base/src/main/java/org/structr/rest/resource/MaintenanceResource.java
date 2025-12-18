@@ -37,6 +37,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.docs.Documentable;
+import org.structr.docs.Documentation;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -60,6 +61,7 @@ import java.util.*;
  *
  *
  */
+@Documentation(name="Maintenance command execution endpoint", type="rest-endpoint", parent="System endpoints")
 public class MaintenanceResource extends ExactMatchEndpoint {
 
 	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class);

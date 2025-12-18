@@ -38,6 +38,7 @@ import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
+import org.structr.common.RequestHeaders;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.PathHelper;
@@ -617,9 +618,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			response.setContentType("application/json; charset=utf-8");
 
 			// check if this is a CORS preflight request
-			final String origin      = request.getHeader("Origin");
-			final String corsHeaders = request.getHeader("Access-Control-Request-Headers");
-			final String corsMethod  = request.getHeader("Access-Control-Request-Method");
+			final String origin      = request.getHeader(RequestHeaders.Origin.getHeaderName());
+			final String corsHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getHeaderName());
+			final String corsMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getHeaderName());
 			int statusCode           = HttpServletResponse.SC_OK;
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {

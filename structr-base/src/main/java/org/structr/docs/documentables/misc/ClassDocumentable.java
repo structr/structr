@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,58 +16,68 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.documentables.lifecycle;
+package org.structr.docs.documentables.misc;
 
 import org.structr.docs.*;
 
 import java.util.List;
 
-public abstract class LifecycleBase implements Documentable {
+public class ClassDocumentable implements Documentable {
 
-	private final String name;
+	private final SystemClass systemClassAnnotation;
 
-	public LifecycleBase(final String name) {
-		this.name = name;
+	public ClassDocumentable(final SystemClass value) {
+		this.systemClassAnnotation = value;
 	}
 
 	@Override
-	public final DocumentableType getDocumentableType() {
-		return DocumentableType.LifecycleMethod;
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.Class;
 	}
 
 	@Override
-	public final String getName() {
-		return name;
+	public String getName() {
+		return systemClassAnnotation.name();
+	}
+
+	@Override
+	public String getShortDescription() {
+		return systemClassAnnotation.shortDescription();
+	}
+
+	@Override
+	public String getLongDescription() {
+		return "";
 	}
 
 	@Override
 	public List<Parameter> getParameters() {
-		return null;
+		return List.of();
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return null;
+		return List.of();
 	}
 
 	@Override
 	public List<String> getNotes() {
-		return null;
+		return List.of();
 	}
 
 	@Override
 	public List<Signature> getSignatures() {
-		return null;
+		return List.of();
 	}
 
 	@Override
 	public List<Language> getLanguages() {
-		return null;
+		return List.of();
 	}
 
 	@Override
 	public List<Usage> getUsages() {
-		return null;
+		return List.of();
 	}
 
 	@Override
@@ -75,37 +85,8 @@ public abstract class LifecycleBase implements Documentable {
 
 		final List<Concept> parentConcepts = Documentable.super.getParentConcepts();
 
-		parentConcepts.add(Concept.of("topic", "Lifecycle methods"));
+		parentConcepts.add(Concept.of("topic", "Classes"));
 
 		return parentConcepts;
-	}
-
-	/**
-	 *
-	 * @param documentables
-	 */
-	public static void addAllLifecycleMethods(final List<Documentable> documentables) {
-
-		documentables.add(new OnCreate());
-		documentables.add(new OnSave());
-		documentables.add(new OnDelete());
-		documentables.add(new AfterCreate());
-		documentables.add(new AfterSave());
-		documentables.add(new AfterDelete());
-		documentables.add(new OnNodeCreation());
-
-		// File
-		documentables.add(new OnDownload());
-
-		// User
-		documentables.add(new OnOAuthLogin());
-
-
-		// global
-		documentables.add(new OnStructrLogin());
-		documentables.add(new OnStructrLogout());
-		documentables.add(new OnAcmeChallenge());
-
-
 	}
 }

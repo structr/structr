@@ -18,25 +18,11 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.structr.api.config.Settings;
-import org.structr.api.config.SettingsGroup;
-import org.structr.autocomplete.AbstractHintProvider;
-import org.structr.core.Services;
-import org.structr.core.function.Functions;
-import org.structr.core.property.AbstractPrimitiveProperty;
-import org.structr.core.traits.Traits;
-import org.structr.core.traits.TraitsInstance;
-import org.structr.core.traits.TraitsManager;
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
-import org.structr.docs.documentables.lifecycle.*;
-import org.structr.docs.documentables.settings.SettingDocumentable;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
-import org.structr.rest.api.RESTEndpoints;
-import org.structr.rest.resource.MaintenanceResource;
 
-import javax.print.Doc;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,14 +50,19 @@ public class CodeSourceToken extends NamedConceptToken {
 
 		for (final Documentable documentable : documentables) {
 
-			handleDocumentable(documentable, ontology, sourceFile, lineNumber);
+			for (final Concept parent : handleDocumentable(documentable, ontology, sourceFile, lineNumber)) {
+
+				concepts.add(parent);
+			}
 		}
 
 		return concepts;
 	}
 
 	// ----- private methods -----
-	private void handleDocumentable(final Documentable documentable, final Ontology ontology, final String sourceFile, final int lineNumber) {
+	private List<Concept> handleDocumentable(final Documentable documentable, final Ontology ontology, final String sourceFile, final int lineNumber) {
+
+		final List<Concept> parents = new LinkedList<>();
 
 		if (!documentable.isHidden()) {
 
@@ -87,6 +78,9 @@ public class CodeSourceToken extends NamedConceptToken {
 					if (parent != null) {
 
 						parent.linkChild("has", mainConcept);
+
+						// link to parents
+						parents.add(parent);
 					}
 				}
 
@@ -109,5 +103,7 @@ public class CodeSourceToken extends NamedConceptToken {
 				}
 			}
 		}
+
+		return parents;
 	}
 }

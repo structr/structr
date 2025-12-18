@@ -31,6 +31,7 @@ import org.structr.core.entity.Relation.Multiplicity;
 import org.structr.core.property.*;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.docs.Documentation;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -46,6 +47,7 @@ import java.util.Set;
  *
  *
  */
+@Documentation(name="Schema information endpoint", type="rest-endpoint", parent="System endpoints")
 public class SchemaResource extends ExactMatchEndpoint {
 
 	public static final StringProperty urlProperty                      = new StringProperty("url");

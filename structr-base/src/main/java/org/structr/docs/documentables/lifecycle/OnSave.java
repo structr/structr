@@ -40,7 +40,20 @@ public class OnSave extends LifecycleBase {
 		
 		If you throw an error in this method, the enclosing transaction will be rolled back and nothing will be written to the database.
 		
-		If you want to execute code after successful validation, implement the `afterSave()` callback method.
+		This lifecycle method will be called with the following arguments:
+		
+		| Name | Description |
+		| --- | --- |
+		| modifications | A map of modifications that reflect the changes made to this object |
+		
+		The `modifications` map contains the following entries:
+		
+		| Name | Description |
+		| --- | --- |
+		| before | key-value mappings that were removed |
+		| after | key-value mappings that were added or changed |
+		| added | key-value mappings that were added |
+		| removed | key-value mappings that were removed |
 		""";
 	}
 
@@ -67,6 +80,8 @@ public class OnSave extends LifecycleBase {
 	public List<String> getNotes() {
 
 		return List.of(
+			"This lifecycle method can be defined on any node type.",
+			"If you want to execute code after successful validation, implement the `afterSave()` callback method.",
 			"See also: `afterSave()`, `error()` and `assert()`."
 		);
 	}

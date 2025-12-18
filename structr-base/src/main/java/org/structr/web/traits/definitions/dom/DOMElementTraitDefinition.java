@@ -1601,7 +1601,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 		final String dataTarget = getDataTargetFromParameters(parameters, "custom", false);
 
-		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
+		// Empty dataTarget means no database object and no type, so it can only be a user-defined function
 		if (StringUtils.isNotBlank(methodName) && StringUtils.isBlank(dataTarget)) {
 
 			removeInternalDataBindingKeys(parameters);

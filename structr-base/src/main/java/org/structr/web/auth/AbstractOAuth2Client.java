@@ -38,6 +38,7 @@ import org.structr.core.api.NamedArguments;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
 import java.io.IOException;
@@ -216,7 +217,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	@Override
 	public void invokeOnLoginMethod(final Principal user) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), "onOAuthLogin");
+		final AbstractMethod method = Methods.resolveMethod(Traits.of(StructrTraits.USER), Actions.NOTIFICATION_OAUTH_LOGIN);
 		if (method != null) {
 
 			final NamedArguments arguments = new NamedArguments();

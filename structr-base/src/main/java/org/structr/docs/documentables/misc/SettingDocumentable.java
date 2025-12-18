@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.documentables.settings;
+package org.structr.docs.documentables.misc;
 
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;

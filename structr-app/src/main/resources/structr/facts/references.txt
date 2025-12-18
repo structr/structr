@@ -1,0 +1,51 @@
+#
+# references.txt
+#
+# This file defines references to the internal data sources that are implemented in Java
+# and links the to the hierarchical structure defined in hierarchy.txt
+#
+
+# References
+Topic References has topics Keywords, "Built-in functions", "Lifecycle methods", "System types", "Built-in properties", Services, "Maintenance commands", Settings, "HTTP API", "Java internals"
+
+"HTTP API" has topics "Generic endpoints", "System endpoints", "Request parameters", "Request headers"
+
+# enum constants
+"Request parameters" has enum-source "org.structr.common.RequestKeywords"
+"Request headers" has enum-source "org.structr.common.RequestHeaders"
+
+# JavaScript resources
+Area "Code" has javascript-file "structr/js/code.js"
+Area "Data" has javascript-file "structr/js/crud.js"
+Area "Dashboard" has javascript-file "structr/js/dashboard.js"
+Helper "Dialogs" has javascript-file "structr/js/dialogs.js"
+Helper "Editors" has javascript-file "structr/js/editors.js"
+Helper "Elements" has javascript-file "structr/js/elements.js"
+Helper "Entities" has javascript-file "structr/js/entities.js"
+Area "Files" has javascript-file "structr/js/files.js"
+Area "Flows" has javascript-file "structr/js/flows.js"
+Area "Importer" has javascript-file "structr/js/importer.js"
+Helper "Init" has javascript-file "structr/js/init.js"
+Area "Localizations" has javascript-file "structr/js/localization.js"
+Area "Mail Templates" has javascript-file "structr/js/mail-templates.js"
+Area "Pages" has javascript-file "structr/js/pages.js"
+Helper "Refactoring Helper" has javascript-file "structr/js/refactoring-helper.js"
+Topic "REST" has javascript-file "structr/js/rest.js"
+Area "Schema" has javascript-file "structr/js/schema.js"
+Area "Security" has javascript-file "structr/js/security.js"
+Area "Virtual Types" has javascript-file "structr/js/virtual-types.js"
+Area "Widgets" has javascript-file "structr/js/widgets.js"
+
+# resources from Java
+"Keywords" has code-source "keyword"
+"System endpoints" has code-source "rest-endpoint"
+"Built-in functions" has code-source "function"
+"Settings" has code-source "setting"
+"Maintenance commands" has code-source "maintenance-command"
+"System types" has code-source "system-type"
+"Lifecycle methods" has code-source "lifecycle-method"
+"Services" has code-source "service"
+"Built-in properties" has code-source "property"
+"Classes" has code-source "class"
+
+"Java internals" has topic "Classes"

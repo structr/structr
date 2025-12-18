@@ -20,7 +20,9 @@ package org.structr.docs.ontology;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
+import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import org.structr.docs.Documentation;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
@@ -40,33 +42,30 @@ import java.util.stream.Stream;
  */
 public final class Ontology {
 
+	public enum Type {
+
+		topic, concept, component, feature, mechanism, provider, service, capability,
+		use-case, type,
+
+		// external sources
+		markdown-folder, markdown-file, code-source, enum-source, javascript-file,
+
+		// concepts for user interface elements
+		screen, form, area, tab, flyout, menu, dialog, link, input, textarea,
+		button, checkbox, dropdown, selector, list, table, row, notification, element,
+		icon,
+
+		// technical concepts
+		logfile, value, lifecycle-method, http-verb, function, setting,
+		user-defined-function, helper,
+
+		// metadata
+		hint, note, description, info, configuration, synonym
+	};
+
 	private final List<Concept> concepts = new LinkedList<>();
 	private final Set<String> blacklist  = new LinkedHashSet<>();
 	private Concept currentSubject = null;
-
-	public Set<String> getKnownConcepts() {
-		return Set.of(
-
-			// structural concepts
-			"topic", "concept", "component", "feature", "mechanism", "provider", "service", "capability",
-			"use-case", "type",
-
-			// external sources
-			"markdown-folder", "markdown-file", "code-source", "enum-source", "javascript-file",
-
-			// concepts for user interface elements
-			"screen", "form", "area", "tab", "flyout", "menu", "dialog", "link", "input", "textarea",
-			"button", "checkbox", "dropdown", "selector", "list", "table", "row", "notification", "element",
-			"icon",
-
-			// technical concepts
-			"logfile", "value", "lifecycle-method", "http-verb", "function", "setting",
-			"user-defined-function", "helper",
-
-			// metadata
-			"hint", "note", "description", "info", "configuration", "synonym"
-		);
-	}
 
 	public Map<String, String> getKnownVerbs() {
 
@@ -121,6 +120,8 @@ public final class Ontology {
 	public Ontology() {
 
 		blacklist.addAll(Set.of("!", ";", ".", "the", "a", "an", "named"));
+
+		initializeFromDocumentationAnnotations();
 	}
 
 	/**
@@ -357,6 +358,25 @@ public final class Ontology {
 		return currentSubject;
 	}
 
+	public void setCurrentSubject(final Concept subject) {
+		this.currentSubject = subject;
+	}
+
+	public void countConcepts(final ExistingDocs existingDocs) {
+
+		for (final Concept concept : concepts) {
+
+			int occurrences = existingDocs.countOccurrences(concept.getName());
+
+			for (final Concept synonym : concept.getChildrenOfType("has", "synonym")) {
+
+				occurrences += existingDocs.countOccurrences(synonym.getName());
+			}
+
+			concept.setOccurrences(occurrences);
+		}
+	}
+
 	// ----- private methods -----
 	private void initialize(final Path path) {
 
@@ -384,22 +404,31 @@ public final class Ontology {
 		}
 	}
 
-	public void setCurrentSubject(final Concept subject) {
-		this.currentSubject = subject;
-	}
+	private void initializeFromDocumentationAnnotations() {
 
-	public void countConcepts(final ExistingDocs existingDocs) {
+		for (final Map.Entry<Class, Documentation> entry : StructrApp.getConfiguration().getDocumentationAnnotations().entrySet()) {
 
-		for (final Concept concept : concepts) {
+			final Class clazz                 = entry.getKey();
+			final Documentation documentation = entry.getValue();
 
-			int occurrences = existingDocs.countOccurrences(concept.getName());
+			// collect info from annotation and import it into the ontology
+			final String type   = documentation.type();
+			final String name   = documentation.name();
+			final String desc   = documentation.shortDescription();
+			final String parent = documentation.parent();
 
-			for (final Concept synonym : concept.getChildrenOfType("has", "synonym")) {
+			final Concept concept = getOrCreateConcept("Structr Documentation annotations", 0, type, name);
+			if (concept != null) {
 
-				occurrences += existingDocs.countOccurrences(synonym.getName());
+				if (StringUtils.isNotBlank(parent)) {
+
+					final Concept parentConcept = getOrCreateConcept("Structr Documentation annotations", 0, "unknown", parent);
+					if (parentConcept != null) {
+
+						parentConcept.linkChild("has", concept);
+					}
+				}
 			}
-
-			concept.setOccurrences(occurrences);
 		}
 	}
 }

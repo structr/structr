@@ -20,14 +20,13 @@ package org.structr.test.common;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.*;
-import org.structr.docs.ontology.Details;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.fail;
 
@@ -36,67 +35,12 @@ public class CreateDocumentationTest extends StructrUiTest {
 	@Test
 	public void createDocumentationTest() {
 
-		final List<Documentable> documentables = new LinkedList<>();
-		final List<String> errors              = new LinkedList<>();
+		final List<Documentable> items = Documentable.createMarkdownDocumentation();
+		final List<String> errors      = new LinkedList<>();
 
-		// this map controls which reference lists are generated, and
-		// into which file they are written
-		final Map<DocumentableType, DocumentationEntry> files = Map.of(
+		for (final Documentable item : items) {
 
-			DocumentableType.Keyword,            new DocumentationEntry("1-Keywords.md",             "Keywords"),
-			DocumentableType.BuiltInFunction,    new GroupedDocumentationEntry("2-Functions.md",     "Built-in Functions"),
-			DocumentableType.LifecycleMethod,    new DocumentationEntry("3-Lifecycle Methods.md",    "Lifecycle Methods"),
-			DocumentableType.SystemType,         new DocumentationEntry("4-System Types.md",         "System Types"),
-			DocumentableType.Service,            new DocumentationEntry("5-Services.md",             "Services"),
-			DocumentableType.MaintenanceCommand, new DocumentationEntry("6-Maintenance Commands.md", "Maintenance Commands"),
-			DocumentableType.Setting,            new DocumentationEntry("7-Settings.md",             "Settings")
-		);
-
-		DocumentableType.collectAllDocumentables(documentables);
-
-		// sort by name
-		Collections.sort(documentables, Comparator.comparing(Documentable::getName));
-
-		// check style and content and generate Markdown docs
-		for (final Documentable item : documentables) {
-
-			// check metadata for style errors etc.
 			errors.addAll(checkFunctionMetadata(item));
-
-			final DocumentableType itemType = item.getDocumentableType();
-			if (itemType != null) {
-
-				final DocumentationEntry entry = files.get(itemType);
-				if (entry != null) {
-
-					final Category itemCategory = item.getCategory();
-					if (itemCategory != null && itemCategory.getDisplayName() != null) {
-
-						final List<String> lines = item.createMarkdownDocumentation(EnumSet.allOf(Details.class), 3);
-						final String displayName = itemCategory.getDisplayName();
-
-						entry.addLines(lines, displayName);
-
-					} else {
-
-						final List<String> lines = item.createMarkdownDocumentation(EnumSet.allOf(Details.class), 2);
-
-						entry.addLines(lines);
-					}
-				}
-			}
-		}
-
-		for (final DocumentationEntry entry : files.values()) {
-
-			try {
-
-				Files.writeString(Path.of(entry.getFileName()), StringUtils.join(entry.getLines(), "\n"));
-
-			} catch (IOException e) {
-
-				fail("Unable to create documentation for " + entry.getFileName() + ": " + e.getMessage());
-			}
 		}
 
 		if (!errors.isEmpty()) {
@@ -108,13 +52,11 @@ public class CreateDocumentationTest extends StructrUiTest {
 	// ----- private methods -----
 	private List<String> checkFunctionMetadata(final Documentable item) {
 
-		final Set<DocumentableType> blacklist   = Set.of(
+		final Set<DocumentableType> blacklist = Set.of(
 			DocumentableType.Service,
 			DocumentableType.SystemType,
-			DocumentableType.Setting,
-			DocumentableType.RESTEndpoint
+			DocumentableType.Setting
 		);
-
 
 		final DocumentableType documentableType = item.getDocumentableType();
 
@@ -373,75 +315,5 @@ public class CreateDocumentationTest extends StructrUiTest {
 		if (c ==  '}') { return true; }
 
 		return false;
-	}
-
-	private class DocumentationEntry {
-
-		protected final List<String> lines = new LinkedList<>();
-		protected String fileName;
-		protected String header;
-
-		public DocumentationEntry(final String fileName, final String header) {
-
-			this.fileName = fileName;
-			this.header = header;
-
-			lines.add("# " + header);
-			lines.add("");
-		}
-
-		public void addLines(final List<String> lines, final String... additionalInfo) {
-			this.lines.addAll(lines);
-		}
-
-		public List<String> getLines() {
-			return lines;
-		}
-
-		public String getFileName() {
-			return fileName;
-		}
-		public String getHeader() {
-			return header;
-		}
-	}
-
-	private class GroupedDocumentationEntry extends DocumentationEntry {
-
-		private final Map<String, List<String>> linesPerCategory = new TreeMap<>();
-
-		public GroupedDocumentationEntry(final String fileName, final String header) {
-			super(fileName, header);
-		}
-
-		@Override
-		public void addLines(final List<String> lines, final String... additionalInfo) {
-
-			final String category = additionalInfo[0];
-
-			List<String> list = linesPerCategory.get(category);
-			if (list == null) {
-
-				list = new LinkedList<>();
-				linesPerCategory.put(category, list);
-
-				list.add("## " + category + " Functions");
-				list.add("");
-			}
-
-			list.addAll(lines);
-		}
-
-		@Override
-		public List<String> getLines() {
-
-			final List<String> result = new LinkedList<>(lines);
-
-			for (final List<String> lines : linesPerCategory.values()) {
-				result.addAll(lines);
-			}
-
-			return result;
-		}
 	}
 }

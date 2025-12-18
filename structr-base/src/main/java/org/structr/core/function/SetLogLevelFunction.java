@@ -95,6 +95,16 @@ public class SetLogLevelFunction extends CoreFunction {
 		return FunctionCategory.System;
 	}
 
+	@Override
+	public List<Link> getLinkedConcepts() {
+
+		final List<Link> linkedConcepts = super.getLinkedConcepts();
+
+		linkedConcepts.add(Link.to("ispartof", "Logging"));
+
+		return linkedConcepts;
+	}
+
 	public static boolean setLogLevel(final String level) {
 
 		final ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger("org.structr");

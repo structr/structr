@@ -48,7 +48,7 @@ public class EnumSourceToken extends NamedConceptToken {
 
 						if (constant instanceof HasDisplayName displayName) {
 
-							final String name = displayName.getDisplayName() + " functions";
+							final String name = displayName.getDisplayName();
 
 							final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, "topic", name);
 							if (concept != null) {

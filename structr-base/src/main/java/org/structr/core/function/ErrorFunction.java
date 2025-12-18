@@ -45,6 +45,8 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
+		assertArrayHasMinLengthAndTypes(sources, 2, String.class, String.class);
+
 		String type = StructrTraits.GRAPH_OBJECT;
 
 		if (caller != null && caller instanceof GraphObject o) {

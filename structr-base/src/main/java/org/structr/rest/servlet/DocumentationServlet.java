@@ -32,6 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.Services;
+import org.structr.docs.Documentable;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.*;
@@ -87,6 +88,13 @@ public class DocumentationServlet extends HttpServlet {
 			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			response.getWriter().print(t.getMessage());
 		}
+	}
+
+	@Override
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		// simply write out the markdown documentation on POST for now..
+		Documentable.createMarkdownDocumentation();
 	}
 
 	// ----- private methods -----

@@ -155,7 +155,7 @@ public class MaintenanceModeCommand extends NodeServiceCommand implements Mainte
 
 		final List<Link> links = new LinkedList<>();
 
-		links.add(Link.of("configures", "Maintenance mode"));
+		links.add(Link.to("configures", "Maintenance mode"));
 
 		return links;
 	}

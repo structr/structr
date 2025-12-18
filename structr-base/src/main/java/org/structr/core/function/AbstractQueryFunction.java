@@ -48,9 +48,9 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 		final List<Link> concepts = super.getLinkedConcepts();
 
-		concepts.add(Link.of("implements", "Advanced find"));
-		concepts.add(Link.of("provides", "Search"));
-		concepts.add(Link.of("provides", "Database query"));
+		concepts.add(Link.to("implements", "Advanced find"));
+		concepts.add(Link.to("provides", "Search"));
+		concepts.add(Link.to("provides", "Database query"));
 
 		return concepts;
 	}
