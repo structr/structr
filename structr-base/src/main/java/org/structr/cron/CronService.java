@@ -36,6 +36,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
+import org.structr.docs.ontology.Concept;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -364,8 +365,8 @@ public class CronService extends Thread implements RunnableService {
 			}
 
 			@Override
-			public List<Concept> getParentConcepts() {
-				return List.of(Concept.of("topic", "Services"));
+			public List<ConceptReference> getParentConcepts() {
+				return List.of(ConceptReference.of(Concept.Type.Topic, "Services"));
 			}
 		};
 	}

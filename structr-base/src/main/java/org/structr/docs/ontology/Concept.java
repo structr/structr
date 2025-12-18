@@ -18,8 +18,6 @@
  */
 package org.structr.docs.ontology;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.*;
 
 /**
@@ -28,15 +26,54 @@ import java.util.*;
  */
 public final class Concept {
 
+	public enum Type {
+
+		Topic("topic"), Concept("concept"), Component("component"), Feature("feature"), Mechanism("mechanism"),
+		Provider("provider"), Service("service"), Capability("capability"), UseCase("use-case"), Type("type"),
+
+		// external sources
+		MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), CodeSource("code-source"),
+		EnumSource("enum-source"), JavascriptFile("javascript-file"),
+
+		// concepts for user interface elements
+		Screen("screen"), Form("form"), Area("area"), Tab("tab"), Flyout("flyout"), Menu("menu"), Dialog("dialog"),
+		Button("button"),
+
+		// technical concepts
+		Logfile("logfile"), Value("value"), LifecycleMethod("lifecycle-method"), HttpVerb("http-verb"),
+		Function("function"), Setting("setting"), Helper("helper"),
+
+		// metadata
+		Hint("hint"), Note("note"), Description("description"), Info("info"), Configuration("configuration"),
+		Synonym("synonym"), Text("text"),
+
+		// java types
+		Keyword("keyword"), Method("method"), Property("property"), UserDefinedFunction("user-defined-function"),
+		MaintenanceCommand("maintenance-command"), SystemType("system-type"), RequestParameter("request-parameter"),
+		RequestHeader("request-header"), Class("class"), RestEndpoint("rest-endpoint"),
+
+		Verb("verb"), Blacklist("blacklist"), Unknown("unknown");
+
+		private final String identifier;
+
+		Type(final String identifier) {
+			this.identifier = identifier;
+		}
+
+		public String getIdentifier() {
+			return identifier;
+		}
+	}
+
 	protected final Map<String, List<Concept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
 	protected final Map<String, String> metadata        =  new LinkedHashMap<>();
 	protected final String sourceFile;
 	protected final int lineNumber;
 	protected final String name;
-	protected Ontology.Type type;
+	protected Type type;
 
-	protected Concept(final String sourceFile, final int lineNumber, final String type, final String name) {
+	protected Concept(final String sourceFile, final int lineNumber, final Type type, final String name) {
 
 		this.sourceFile = sourceFile;
 		this.lineNumber = lineNumber;
@@ -53,11 +90,11 @@ public final class Concept {
 		return type + "(" + name + ") -> " + children + " <- " + parents;
 	}
 
-	public String getType() {
+	public Type getType() {
 		return type;
 	}
 
-	public void setType(final String type) {
+	public void setType(final Type type) {
 		this.type = type;
 	}
 
@@ -89,7 +126,7 @@ public final class Concept {
 		return metadata;
 	}
 
-	public List<Concept> getChildrenOfType(final String linkType, final String conceptType) {
+	public List<Concept> getChildrenOfType(final String linkType, final Type conceptType) {
 
 		final List<Concept> list = children.get(linkType);
 		if (list != null) {
@@ -122,7 +159,7 @@ public final class Concept {
 	}
 
 	public boolean isTopic() {
-		return "topic".equals(type);
+		return Type.Topic.equals(type);
 	}
 
 	public int getTotalChildCount() {
@@ -190,30 +227,28 @@ public final class Concept {
 
 		metadata.put("occurrences", String.valueOf(occurrences));
 	}
+
+	public static boolean exists(final String name) {
+
+		for (final Type type : Type.values()) {
+
+			if (type.getIdentifier().equals(name)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	public static Type forName(String name) {
+
+		for (final Type type : Type.values()) {
+
+			if (type.getIdentifier().equals(name)) {
+				return type;
+			}
+		}
+
+		return null;
+	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

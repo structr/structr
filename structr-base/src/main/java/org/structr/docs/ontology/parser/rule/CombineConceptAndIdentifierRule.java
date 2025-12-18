@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.*;
 
@@ -28,12 +29,12 @@ import java.util.function.BiFunction;
 
 public class CombineConceptAndIdentifierRule extends Rule {
 
-	private final Map<String, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
-		"blacklist",       DoBlacklistToken::new,
-		"markdown-folder", MarkdownFolderToken::new,
-		"javascript-file", JavascriptFileToken::new,
-		"code-source",     CodeSourceToken::new,
-		"enum-source",     EnumSourceToken::new
+	private final Map<Concept.Type, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
+		Concept.Type.Blacklist,      DoBlacklistToken::new,
+		Concept.Type.MarkdownFolder, MarkdownFolderToken::new,
+		Concept.Type.JavascriptFile, JavascriptFileToken::new,
+		Concept.Type.CodeSource,     CodeSourceToken::new,
+		Concept.Type.EnumSource,     EnumSourceToken::new
 	);
 
 	public CombineConceptAndIdentifierRule(final Ontology ontology) {
@@ -56,11 +57,11 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof ConceptToken conceptToken) {
 
-					final String name = conceptToken.getName();
+					final Concept.Type type = conceptToken.getType();
 
-					if (SpecializedTokens.containsKey(name)) {
+					if (SpecializedTokens.containsKey(type)) {
 
-						result.add(SpecializedTokens.get(name).apply(conceptToken, identifierToken));
+						result.add(SpecializedTokens.get(type).apply(conceptToken, identifierToken));
 
 					} else {
 
@@ -81,11 +82,11 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof IdentifierToken identifierToken) {
 
-					final String name = conceptToken.getName();
+					final Concept.Type type = conceptToken.getType();
 
-					if (SpecializedTokens.containsKey(name)) {
+					if (SpecializedTokens.containsKey(type)) {
 
-						result.add(SpecializedTokens.get(name).apply(conceptToken, identifierToken));
+						result.add(SpecializedTokens.get(type).apply(conceptToken, identifierToken));
 
 					} else {
 

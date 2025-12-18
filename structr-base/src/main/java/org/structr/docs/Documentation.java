@@ -18,6 +18,8 @@
  */
 package org.structr.docs;
 
+import org.structr.docs.ontology.Concept;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -27,7 +29,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Documentation {
 
-	DocumentableType type() default DocumentableType.Topic;
+	Concept.Type type() default Concept.Type.Topic;
 	String name();
 	String shortDescription() default "";
 	String parent() default "";

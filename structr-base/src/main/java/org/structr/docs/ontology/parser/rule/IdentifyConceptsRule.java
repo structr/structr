@@ -18,6 +18,7 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.BlacklistToken;
 import org.structr.docs.ontology.parser.token.ConceptToken;
@@ -36,8 +37,7 @@ public class IdentifyConceptsRule extends Rule {
 	@Override
 	public void apply(final Deque<Token> tokens) {
 
-		final Set<String> knownConcepts = ontology.getKnownConcepts();
-		final Deque<Token> result       = new LinkedList<>();
+		final Deque<Token> result = new LinkedList<>();
 
 		while (!tokens.isEmpty()) {
 
@@ -55,16 +55,16 @@ public class IdentifyConceptsRule extends Rule {
 
 					result.add(new BlacklistToken(name));
 
-				} else if (knownConcepts.contains(lowercaseName)) {
+				} else if (Concept.exists(lowercaseName)) {
 
 					// use original case for concept token
-					result.add(new ConceptToken(lowercaseName, name));
+					result.add(new ConceptToken(Concept.forName(lowercaseName), name));
 
-				} else if (knownConcepts.contains(singularLowercaseName)) {
+				} else if (Concept.exists(singularLowercaseName)) {
 
 					// our "language" has only simple plurals with "s" at the end!
 					// use original case for concept token, but singular
-					result.add(new ConceptToken(singularName, name));
+					result.add(new ConceptToken(Concept.forName(singularLowercaseName), name));
 
 				} else {
 

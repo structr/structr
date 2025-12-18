@@ -24,6 +24,7 @@ import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.docs.*;
+import org.structr.docs.ontology.Concept;
 
 import java.util.List;
 import java.util.Map;
@@ -126,7 +127,7 @@ public class ClearDatabase extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	@Override
-	public final List<Concept> getParentConcepts() {
-		return List.of(Concept.of("topic", "Maintenance commands"));
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(Concept.Type.Topic, "Maintenance commands"));
 	}
 }

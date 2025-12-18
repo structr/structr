@@ -21,7 +21,6 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,7 +47,7 @@ public class NamedConceptToken extends Token<List<Concept>> {
 	}
 
 	public boolean isUnknown() {
-		return conceptToken != null && "unknown".equals(conceptToken.getName());
+		return conceptToken != null && Concept.Type.Unknown.equals(conceptToken.getType());
 	}
 
 	public void addAdditionalNamedConcept(final NamedConceptToken additionalNamedConcept) {
@@ -62,7 +61,7 @@ public class NamedConceptToken extends Token<List<Concept>> {
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final String type              = conceptToken.resolve(ontology, sourceFile, line);
+		final Concept.Type type        = conceptToken.resolve(ontology, sourceFile, line);
 		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
 		final List<Concept> concepts   = new LinkedList<>();
 
@@ -79,7 +78,7 @@ public class NamedConceptToken extends Token<List<Concept>> {
 
 						concepts.add(additionalConcept);
 
-						concept.getMetadata().put(additionalConcept.getType(), additionalConcept.getName());
+						concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
 					}
 				}
 			}

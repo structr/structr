@@ -27,6 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Documentation;
+import org.structr.docs.ontology.Concept;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -41,7 +42,7 @@ import java.util.Set;
 /**
  *
  */
-@Documentation(name="User information endpoint", type="rest-endpoint", shortDescription="HTTP endpoint that always returns the current user as a JSON object. URL path is /me.", parent="System endpoints")
+@Documentation(name="User information endpoint", type=Concept.Type.RestEndpoint, shortDescription="HTTP endpoint that always returns the current user as a JSON object. URL path is /me.", parent="System endpoints")
 public class MeResource extends ExactMatchEndpoint {
 
     public MeResource() {
@@ -92,22 +93,6 @@ public class MeResource extends ExactMatchEndpoint {
         public String getTypeName(final SecurityContext securityContext) {
             return StructrTraits.USER;
         }
-
-        /*
-        @Override
-        public String getResourceSignature() {
-
-            String signature = StructrTraits.USER;
-
-            // append requested view to resource signature
-            if (!isDefaultView()) {
-
-                signature += "/_" + CaseHelper.toUpperCamelCase(requestedView);
-            }
-
-            return signature;
-        }
-        */
 
         @Override
         public Set<String> getAllowedHttpMethodsForOptionsCall() {

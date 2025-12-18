@@ -22,6 +22,7 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
 import org.structr.docs.*;
+import org.structr.docs.ontology.Concept;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -88,8 +89,8 @@ public class SettingDocumentable implements Documentable {
 	}
 
 	@Override
-	public List<Concept> getParentConcepts() {
-		return List.of(Concept.of("topic", parentGroup));
+	public List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(Concept.Type.Topic, parentGroup));
 	}
 
 	public List<Link> getLinkedConcepts() {

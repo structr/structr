@@ -18,9 +18,6 @@
  */
 package org.structr.docs.documentables.lifecycle;
 
-import org.structr.docs.Documentable;
-import org.structr.docs.Example;
-
 import java.util.List;
 
 public class OnStructrLogin extends LifecycleBase {

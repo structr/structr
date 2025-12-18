@@ -25,11 +25,11 @@ import java.util.*;
 
 public class OutputSettings {
 
-	private final Map<String, Map<String, Formatter>> outputFormatTypeFormatterMap = new LinkedHashMap<>();
-	private final Map<Integer, Set<String>> linkTypesPerLevel                      = new LinkedHashMap<>();
-	private final Set<String> typesToRender                                        = new LinkedHashSet<>();
-	private final Set<Details> details                                             = new LinkedHashSet<>();
-	private String outputFormat                                                    = "text";
+	private final Map<String, Map<Concept.Type, Formatter>> outputFormatTypeFormatterMap = new LinkedHashMap<>();
+	private final Map<Integer, Set<String>> linkTypesPerLevel                            = new LinkedHashMap<>();
+	private final Set<Concept.Type> typesToRender                                        = new LinkedHashSet<>();
+	private final Set<Details> details                                                   = new LinkedHashSet<>();
+	private String outputFormat                                                          = "text";
 	private String baseUrl;
 	private int startLevel;
 	private int maxLevels;
@@ -48,9 +48,9 @@ public class OutputSettings {
 	 * @param type
 	 * @return
 	 */
-	public Formatter getFormatterForType(final String type) {
+	public Formatter getFormatterForType(final Concept.Type type) {
 
-		final Map<String, Formatter> formatters = outputFormatTypeFormatterMap.get(outputFormat);
+		final Map<Concept.Type, Formatter> formatters = outputFormatTypeFormatterMap.get(outputFormat);
 		if (formatters != null) {
 
 			final Formatter formatter = formatters.get(type);
@@ -59,7 +59,7 @@ public class OutputSettings {
 				return formatter;
 			}
 
-			final Formatter defaultFormatter = formatters.get("*");
+			final Formatter defaultFormatter = formatters.get(Concept.Type.Unknown);
 			if (defaultFormatter != null) {
 
 				return defaultFormatter;
@@ -118,7 +118,7 @@ public class OutputSettings {
 		this.startLevel = level;
 	}
 
-	public void setFormatterForOutputFormatAndType(final String outputFormat, final String type, final Formatter formatter) {
+	public void setFormatterForOutputFormatAndType(final String outputFormat, final Concept.Type type, final Formatter formatter) {
 		outputFormatTypeFormatterMap.computeIfAbsent(outputFormat, k -> new LinkedHashMap<>()).put(type, formatter);
 	}
 
@@ -142,13 +142,13 @@ public class OutputSettings {
 		return outputFormat;
 	}
 
-	public void setTypesToRender(final Set<String> typeList) {
+	public void setTypesToRender(final Set<Concept.Type> typeList) {
 
 		typesToRender.clear();
 		typesToRender.addAll(typeList);
 	}
 
-	public boolean renderType(final String type) {
+	public boolean renderType(final Concept.Type type) {
 		return typesToRender.isEmpty() || typesToRender.contains(type);
 	}
 }

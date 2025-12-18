@@ -18,12 +18,13 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
 public class BlacklistToken extends ConceptToken {
 
 	public BlacklistToken(final String originalToken) {
-		super("blacklist", originalToken);
+		super(Concept.Type.Blacklist, originalToken);
 	}
 
 	@Override
@@ -32,7 +33,7 @@ public class BlacklistToken extends ConceptToken {
 	}
 
 	@Override
-	public String resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public Concept.Type resolve(final Ontology ontology, final String sourceFile, final int line) {
 		return null;
 	}
 }

@@ -28,6 +28,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.operations.FrameworkMethod;
 import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.docs.*;
+import org.structr.docs.ontology.Concept;
 
 import java.util.*;
 
@@ -550,8 +551,8 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
-	public List<Concept> getParentConcepts() {
-		return List.of(Concept.of("topic", "System types"));
+	public List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(Concept.Type.Topic, "System types"));
 	}
 
 	@Override

@@ -18,7 +18,6 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Ontology;
 
 public abstract class Token<T> {
@@ -43,10 +42,6 @@ public abstract class Token<T> {
 
 	public void setName(final String name) {
 		this.name = name;
-	}
-
-	public String getType() {
-		return getClass().getSimpleName();
 	}
 
 	public boolean isInQuotes() {

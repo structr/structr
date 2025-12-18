@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.Principal;
 import org.structr.docs.Documentation;
+import org.structr.docs.ontology.Concept;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -40,7 +41,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
-@Documentation(name="JWT token endpoint", type="rest-endpoint", parent="System endpoints")
+@Documentation(name="JWT token endpoint", type=Concept.Type.RestEndpoint, parent="System endpoints")
 public class TokenResource extends ExactMatchEndpoint {
 
 	public TokenResource() {

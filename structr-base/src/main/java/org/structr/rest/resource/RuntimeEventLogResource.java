@@ -32,6 +32,7 @@ import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.docs.Documentation;
+import org.structr.docs.ontology.Concept;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
  *
  *
  */
-@Documentation(name="Runtime event log endpoint", type="rest-endpoint", parent="System endpoints")
+@Documentation(name="Runtime event log endpoint", type=Concept.Type.RestEndpoint, parent="System endpoints")
 public class RuntimeEventLogResource extends ExactMatchEndpoint {
 
 	public enum UriPart {

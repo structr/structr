@@ -38,6 +38,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.*;
+import org.structr.docs.ontology.Concept;
 import org.structr.schema.Transformer;
 
 import java.util.*;
@@ -360,11 +361,11 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 	}
 
 	@Override
-	public List<Concept> getParentConcepts() {
+	public List<ConceptReference> getParentConcepts() {
 
-		final List<Concept> concepts = new LinkedList<>();
+		final List<ConceptReference> concepts = new LinkedList<>();
 
-		concepts.add(Concept.of("topic", "Built-in properties"));
+		concepts.add(ConceptReference.of(Concept.Type.Topic, "Built-in properties"));
 
 		return concepts;
 	}

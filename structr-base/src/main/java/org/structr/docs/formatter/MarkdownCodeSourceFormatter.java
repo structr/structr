@@ -35,7 +35,7 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 		final List<Documentable> documentables  = new LinkedList<>();
-		final DocumentableType documentableType = DocumentableType.forOntologyType(concept.getName());
+		final DocumentableType documentableType = DocumentableType.forOntologyType(concept.getType());
 
 		if (documentableType != null) {
 

@@ -50,7 +50,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final String type              = conceptToken.resolve(ontology, sourceFile, line);
+		final Concept.Type type        = conceptToken.resolve(ontology, sourceFile, line);
 		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
 		final List<Concept> concepts   = new LinkedList<>();
 
@@ -71,7 +71,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 						for (final String file : files) {
 
 							final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
-							final Concept markdownFile = ontology.getOrCreateConcept("sourceFile", line, "markdown-file", cleanedFileName);
+							final Concept markdownFile = ontology.getOrCreateConcept("sourceFile", line, Concept.Type.MarkdownFile, cleanedFileName);
 
 							if (markdownFile != null) {
 

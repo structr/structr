@@ -45,7 +45,7 @@ public class IsAToken extends Token<List<Concept>> {
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final String type          = conceptToken.resolve(ontology, sourceFile, line);
+		final Concept.Type type    = conceptToken.resolve(ontology, sourceFile, line);
 		final List<Concept> input  = namedConceptToken.resolve(ontology,  sourceFile, line);
 		final List<Concept> output = new LinkedList<>();
 

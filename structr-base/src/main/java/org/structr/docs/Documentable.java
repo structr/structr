@@ -34,8 +34,6 @@ import java.util.*;
  */
 public interface Documentable {
 
-	String moep = "moep";
-
 	/**
 	 * Creates the full Markdown documentation to be used directly.
 	 * This method exists so the individual implementations can
@@ -302,7 +300,7 @@ public interface Documentable {
 	 * that.
 	 * @return
 	 */
-	default List<Concept> getParentConcepts() {
+	default List<ConceptReference> getParentConcepts() {
 		return new LinkedList<>();
 	}
 
@@ -367,18 +365,18 @@ public interface Documentable {
 		return getExamples() != null;
 	}
 
-	class Concept {
+	class ConceptReference {
 
-		public String type;
+		public org.structr.docs.ontology.Concept.Type type;
 		public String name;
 
-		public Concept(final String type, final String name) {
+		public ConceptReference(final org.structr.docs.ontology.Concept.Type type, final String name) {
 			this.type = type;
 			this.name = name;
 		}
 
-		public static Concept of(final String type, final String name) {
-			return new Concept(type, name);
+		public static ConceptReference of(final org.structr.docs.ontology.Concept.Type type, final String name) {
+			return new ConceptReference(type, name);
 		}
 	}
 

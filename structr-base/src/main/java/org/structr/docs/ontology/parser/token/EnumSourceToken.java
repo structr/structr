@@ -50,7 +50,7 @@ public class EnumSourceToken extends NamedConceptToken {
 
 							final String name = displayName.getDisplayName();
 
-							final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, "topic", name);
+							final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, Concept.Type.Topic, name);
 							if (concept != null) {
 
 								concepts.add(concept);

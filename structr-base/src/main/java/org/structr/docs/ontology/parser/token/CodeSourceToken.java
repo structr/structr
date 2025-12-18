@@ -41,7 +41,9 @@ public class CodeSourceToken extends NamedConceptToken {
 
 		for (final String identifier : identifiers) {
 
-			final DocumentableType documentableType = DocumentableType.forOntologyType(identifier);
+			final Concept.Type type                 = Concept.forName(identifier);
+			final DocumentableType documentableType = DocumentableType.forOntologyType(type);
+
 			if (documentableType != null) {
 
 				documentables.addAll(documentableType.getDocumentables());
@@ -67,11 +69,11 @@ public class CodeSourceToken extends NamedConceptToken {
 		if (!documentable.isHidden()) {
 
 			final DocumentableType conceptType = documentable.getDocumentableType();
-			final Concept mainConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, conceptType.getOntologyType(), documentable.getName());
+			final Concept mainConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, conceptType.getConcept(), documentable.getName());
 
 			if (mainConcept != null) {
 
-				for (final Documentable.Concept parentConcept : documentable.getParentConcepts()) {
+				for (final Documentable.ConceptReference parentConcept : documentable.getParentConcepts()) {
 
 					// every documentable has a list of parent concepts
 					final Concept parent = ontology.getOrCreateConcept(sourceFile, lineNumber, parentConcept.type, parentConcept.name);
@@ -86,7 +88,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 				for (final Documentable.Link link : documentable.getLinkedConcepts()) {
 
-					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, "unknown", link.name);
+					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, Concept.Type.Unknown, link.name);
 					if (childConcept != null) {
 
 						mainConcept.linkChild(link.verb, childConcept);
@@ -95,7 +97,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 				for (final String synonym : documentable.getSynonyms()) {
 
-					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, "synonym", synonym);
+					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, Concept.Type.Synonym, synonym);
 					if (synonymConcept != null) {
 
 						mainConcept.linkChild("has", synonymConcept);

@@ -51,59 +51,59 @@
         <script>
             const colors = {
 
-                'unknown':    '#FF0000',
+                'Unknown':    '#FF0000',
 
                 // Structural concepts - Blau/Indigo-Palette
                 //'topic':      '#4A90E2',  // Helles Blau
-                'topic':      '#000000',  // Schwarz
-                'concept':    '#5C6BC0',  // Indigo
-                'component':  '#66BB6A',  // Grün
-                'type':       '#26A69A',  // Teal
-                'feature':    '#FFA726',  // Orange
-                'capability': '#FFCA28',  // Gelb-Orange
-                'use-case':   '#FFB74D',  // Hellorange
-                'mechanism':  '#AB47BC',  // Lila
-                'provider':   '#7E57C2',  // Dunkles Violett
-                'service':    '#9575CD',  // Hellviolett
+                'Topic':      '#000000',  // Schwarz
+                'Concept':    '#5C6BC0',  // Indigo
+                'Component':  '#66BB6A',  // Grün
+                'Type':       '#26A69A',  // Teal
+                'Feature':    '#FFA726',  // Orange
+                'Capability': '#FFCA28',  // Gelb-Orange
+                'UseCase':   '#FFB74D',  // Hellorange
+                'Mechanism':  '#AB47BC',  // Lila
+                'Provider':   '#7E57C2',  // Dunkles Violett
+                'Service':    '#9575CD',  // Hellviolett
 
                 // External sources - Grau-Palette (neutral, dokumentarisch)
-                'markdown-folder': '#78909C',  // Blaugrau
-                'markdown-file':   '#90A4AE',  // Hellblaugrau
-                'code-source':     '#607D8B',  // Stahlblau
+                'MarkdownFolder': '#78909C',  // Blaugrau
+                'MarkdownFile':   '#90A4AE',  // Hellblaugrau
+                'CodeSource':     '#607D8B',  // Stahlblau
 
                 // UI Elements - Cyan/Türkis-Palette (interaktiv, frontend)
-                'area':         '#00ACC1',  // Cyan
-                'tab':          '#26C6DA',  // Helles Cyan
-                'flyout':       '#00BCD4',  // Türkis
-                'menu':         '#0097A7',  // Dunkles Cyan
+                'Area':         '#00ACC1',  // Cyan
+                'Tab':          '#26C6DA',  // Helles Cyan
+                'Flyout':       '#00BCD4',  // Türkis
+                'Menu':         '#0097A7',  // Dunkles Cyan
                 'dialog':       '#00838F',  // Petrol
-                'link':         '#4DD0E1',  // Sehr helles Cyan
-                'input':        '#80DEEA',  // Pastellcyan
-                'textarea':     '#84FFFF',  // Hellstes Cyan
-                'button':       '#18FFFF',  // Neon Cyan
-                'checkbox':     '#64FFDA',  // Cyan-Grün
+                'Link':         '#4DD0E1',  // Sehr helles Cyan
+                'Input':        '#80DEEA',  // Pastellcyan
+                'Textarea':     '#84FFFF',  // Hellstes Cyan
+                'Button':       '#18FFFF',  // Neon Cyan
+                'Checkbox':     '#64FFDA',  // Cyan-Grün
                 'dropdown':     '#1DE9B6',  // Mintgrün
-                'selector':     '#00E676',  // Hellgrün
-                'list':         '#69F0AE',  // Pastellgrün
-                'table':        '#B9F6CA',  // Sehr hellgrün
-                'row':          '#CCFF90',  // Gelbgrün
-                'column':       '#F4FF81',  // Hellgelb
-                'notification': '#FFD54F',  // Gold
-                'element':      '#4FC3F7',  // Sky Blue
-                'icon':         '#29B6F6',  // Hellblau
+                'Selector':     '#00E676',  // Hellgrün
+                'List':         '#69F0AE',  // Pastellgrün
+                'Table':        '#B9F6CA',  // Sehr hellgrün
+                'Row':          '#CCFF90',  // Gelbgrün
+                'Column':       '#F4FF81',  // Hellgelb
+                'Notification': '#FFD54F',  // Gold
+                'Element':      '#4FC3F7',  // Sky Blue
+                'Icon':         '#29B6F6',  // Hellblau
 
                 // Backend elements - Dunklere Violett/Braun-Töne (technisch, intern)
-                'logfile':      '#8D6E63',  // Braun
-                'value':        '#A1887F',  // Hellbraun
+                'Logfile':      '#8D6E63',  // Braun
+                'Value':        '#A1887F',  // Hellbraun
 
                 // Metadata - Warme Grau/Beige-Töne (unterstützend, sekundär)
-                'hint':         '#BCAAA4',  // Beige
-                'note':         '#D7CCC8',  // Hellbeige
-                'description':  '#EFEBE9',  // Sehr hellbeige
-                'info':         '#81C784',  // Pastellgrün (informativ)
-                'setting':      '#AED581',  // Hellgrün (konfigurierbar)
-                'configuration':'9CCC65',   // Limette
-                'synonym':      '#C5E1A5',  // Sehr hellgrün
+                'Hint':         '#BCAAA4',  // Beige
+                'Note':         '#D7CCC8',  // Hellbeige
+                'Description':  '#EFEBE9',  // Sehr hellbeige
+                'Info':         '#81C784',  // Pastellgrün (informativ)
+                'Setting':      '#AED581',  // Hellgrün (konfigurierbar)
+                'Configuration':'9CCC65',   // Limette
+                'Synonym':      '#C5E1A5',  // Sehr hellgrün
             };
             fetch('/structr/docs/ontology?type=*&levels=1&format=json').then(response => response.json()).then(data => {
 

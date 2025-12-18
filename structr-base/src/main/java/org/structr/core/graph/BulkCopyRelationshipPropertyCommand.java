@@ -27,6 +27,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
+import org.structr.docs.ontology.Concept;
 
 import java.util.List;
 import java.util.Map;
@@ -154,7 +155,7 @@ public class BulkCopyRelationshipPropertyCommand extends NodeServiceCommand impl
 	}
 
 	@Override
-	public final List<Concept> getParentConcepts() {
-		return List.of(Concept.of("topic", "Maintenance commands"));
+	public final List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(Concept.Type.Topic, "Maintenance commands"));
 	}
 }

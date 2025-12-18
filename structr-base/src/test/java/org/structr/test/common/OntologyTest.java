@@ -45,28 +45,28 @@ public class OntologyTest extends StructrUiTest {
 		);
 
 		final Ontology ontology = new Ontology("testOntology", facts);
-		final Concept concept   = ontology.getConcept("unknown", "Core System");
+		final Concept concept   = ontology.getConcept(Concept.Type.Unknown, "Core System");
 
 		assertNotNull("concept should not be null", concept);
-		assertEquals("concept type should be inferred retrospectively", "topic", concept.getType());
+		assertEquals("concept type should be inferred retrospectively", Concept.Type.Topic, concept.getType());
 
 		final List<Concept> concepts = ontology.getAllConcepts();
 		int i=0;
 
-		assertEquals("Topic was not parsed correctly", "topic(Core System)",  concepts.get(i++).toString());
-		assertEquals("Verb was not parsed correctly", "verb(has)", concepts.get(i++).toString());
-		assertEquals("Verb was not parsed correctly", "verb(isPartOf)",  concepts.get(i++).toString());
-		assertEquals("Service was not parsed correctly", "service(Cron Service)",  concepts.get(i++).toString());
-		assertEquals("Capability was not parsed correctly", "capability(Scheduled execution of business logic)",  concepts.get(i++).toString());
-		assertEquals("Area was not parsed correctly", "area(Pages)",  concepts.get(i++).toString());
-		assertEquals("Button list was not parsed correctly", "button(Test1)",  concepts.get(i++).toString());
-		assertEquals("Button list was not parsed correctly", "button(Test2)",  concepts.get(i++).toString());
-		assertEquals("Button list was not parsed correctly", "button(Test Button)",  concepts.get(i++).toString());
-		assertEquals("Button list was not parsed correctly", "button(Test3)",  concepts.get(i++).toString());
-		assertEquals("Button list was not parsed correctly", "button(Test-Button-4)",  concepts.get(i++).toString());
+		assertEquals("Topic was not parsed correctly", "Topic(Core System)",  concepts.get(i++).toString());
+		assertEquals("Service was not parsed correctly", "Service(Cron Service)",  concepts.get(i++).toString());
+		assertEquals("Verb was not parsed correctly", "Verb(has)", concepts.get(i++).toString());
+		assertEquals("Verb was not parsed correctly", "Verb(ispartof)",  concepts.get(i++).toString());
+		assertEquals("Capability was not parsed correctly", "Capability(Scheduled execution of business logic)",  concepts.get(i++).toString());
+		assertEquals("Area was not parsed correctly", "Area(Pages)",  concepts.get(i++).toString());
+		assertEquals("Button list was not parsed correctly", "Button(Test1)",  concepts.get(i++).toString());
+		assertEquals("Button list was not parsed correctly", "Button(Test2)",  concepts.get(i++).toString());
+		assertEquals("Button list was not parsed correctly", "Button(Test Button)",  concepts.get(i++).toString());
+		assertEquals("Button list was not parsed correctly", "Button(Test3)",  concepts.get(i++).toString());
+		assertEquals("Button list was not parsed correctly", "Button(Test-Button-4)",  concepts.get(i++).toString());
 
 		// "It" should reference the area "Pages" in the above list of facts, hence that area should have 9 "has" links
-		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept("area", "Pages").getChildren().get("has").size());
+		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept(Concept.Type.Area, "Pages").getChildren().get("has").size());
 	}
 
 	@Test
@@ -102,8 +102,8 @@ public class OntologyTest extends StructrUiTest {
 
 		final Ontology ontology = new Ontology("testAmbiguousIdentifiers", facts);
 
-		assertNotNull(ontology.getConcept("topic", "Services"));
-		assertNotNull(ontology.getConcept("code-source", "services"));
+		assertNotNull(ontology.getConcept(Concept.Type.Topic, "Services"));
+		assertNotNull(ontology.getConcept(Concept.Type.CodeSource, "services"));
 	}
 
 	@Test
@@ -115,10 +115,10 @@ public class OntologyTest extends StructrUiTest {
 
 		final Ontology ontology = new Ontology("testInverseVerbs", facts);
 
-		assertNotNull(ontology.getConcept("type", "Test"));
-		assertNotNull(ontology.getConcept("button", "Test"));
-		assertEquals("type(Test)", ontology.getConcept("button", "Test").getChildren().get("creates").get(0).toString());
-		assertEquals("button(Test)", ontology.getConcept("type", "Test").getParents().get("iscreatedby").get(0).toString());
+		assertNotNull(ontology.getConcept(Concept.Type.Type, "Test"));
+		assertNotNull(ontology.getConcept(Concept.Type.Button, "Test"));
+		assertEquals("Type(Test)", ontology.getConcept(Concept.Type.Button, "Test").getChildren().get("creates").get(0).toString());
+		assertEquals("Button(Test)", ontology.getConcept(Concept.Type.Type, "Test").getParents().get("iscreatedby").get(0).toString());
 	}
 
 	@Test
@@ -143,7 +143,7 @@ public class OntologyTest extends StructrUiTest {
 			System.out.println(concept.getNameTypeAndLinks());
 		}
 
-		final Concept test = ontology.getConcept("topic", "Test");
+		final Concept test = ontology.getConcept(Concept.Type.Topic, "Test");
 
 		assertNotNull(test);
 
