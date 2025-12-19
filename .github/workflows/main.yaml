@@ -95,7 +95,7 @@ jobs:
     steps:
       - name: Cleanup docker
         run: |
-          docker ps -q --filter "label=purpose" --filter "label=purpose=structr-test-neo4j-*" | xargs -r docker rm -r || true
+          docker ps --format '{{.ID}} {{.Labels}}' | grep "structr-test-neo4j" | awk '{print $1}' | xargs -r docker rm -f || true
           docker rm -f $(docker ps -aq --filter "network=ui-test-network") 2>/dev/null || true
           docker container prune -f && docker image prune -f && docker volume prune -f
       - name: Cleanup runner home

@@ -82,7 +82,7 @@
 									<executable>bash</executable>
 									<arguments>
 										<argument>-c</argument>
-										<argument>docker ps -q --filter "label=purpose=structr-test-neo4j" | xargs -r docker rm -f || true</argument>
+										<argument>docker ps --format '{{.ID}} {{.Labels}}' | grep "structr-test-neo4j" | awk '{print $1}' | xargs -r docker rm -f || true b</argument>
 									</arguments>
 								</configuration>
 							</execution>
