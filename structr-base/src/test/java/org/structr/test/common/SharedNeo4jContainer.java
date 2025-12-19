@@ -31,7 +31,8 @@ public final class SharedNeo4jContainer {
 	private static final String NEO4J_PASSWORD = "admin123";
 	private static final String NEO4J_USERNAME = "neo4j";
 
-	private static final String CONTAINER_LABEL = "structr-test-neo4j";
+	private static final String MODULE_NAME = System.getProperty("structr.test.module", "default");
+	private static final String CONTAINER_LABEL = "structr-test-neo4j-" + MODULE_NAME;
 
 	private static final Neo4jContainer CONTAINER;
 	private static final boolean CONTAINER_STARTED;
