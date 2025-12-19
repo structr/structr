@@ -94,6 +94,8 @@ jobs:
     needs: [run-tests, build-and-deploy]
     steps:
       - name: Cleanup docker
-        run: docker rm -f $(docker ps -aq --filter "network=ui-test-network") 2>/dev/null || true && docker container prune -f && docker image prune -f && docker volume prune -f
+        run: docker rm -f $(docker ps -aq --filter "network=ui-test-network") 2>/dev/null || true \
+          && docker rm -f $(docker ps -q --filter "label=purpose=structr-test-neo4j") 2>/dev/null || true \ 
+          && docker container prune -f && docker image prune -f && docker volume prune -f
       - name: Cleanup runner home
         run: cd ~/actions-runner/_work/ && rm -rf structr
