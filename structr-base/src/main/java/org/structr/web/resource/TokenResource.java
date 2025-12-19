@@ -29,7 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.entity.Principal;
 import org.structr.docs.Documentation;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -41,7 +41,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
-@Documentation(name="JWT token endpoint", type=Concept.Type.RestEndpoint, parent="System endpoints")
+@Documentation(name="JWT token endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class TokenResource extends ExactMatchEndpoint {
 
 	public TokenResource() {
@@ -138,7 +138,7 @@ public class TokenResource extends ExactMatchEndpoint {
 
 				for (Cookie cookie : request.getCookies()) {
 
-					if (StringUtils.equals(cookie.getName(), RequestHeaders.RefreshToken.getHeaderName())) {
+					if (StringUtils.equals(cookie.getName(), RequestHeaders.RefreshToken.getIdentifier())) {
 
 						return cookie.getValue();
 					}
@@ -146,7 +146,7 @@ public class TokenResource extends ExactMatchEndpoint {
 			}
 
 			if (refreshToken == null) {
-				return request.getHeader(RequestHeaders.RefreshToken.getHeaderName());
+				return request.getHeader(RequestHeaders.RefreshToken.getIdentifier());
 			}
 
 			return refreshToken;

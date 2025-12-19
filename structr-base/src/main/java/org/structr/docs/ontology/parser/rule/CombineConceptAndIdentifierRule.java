@@ -18,7 +18,7 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.*;
 
@@ -29,12 +29,12 @@ import java.util.function.BiFunction;
 
 public class CombineConceptAndIdentifierRule extends Rule {
 
-	private final Map<Concept.Type, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
-		Concept.Type.Blacklist,      DoBlacklistToken::new,
-		Concept.Type.MarkdownFolder, MarkdownFolderToken::new,
-		Concept.Type.JavascriptFile, JavascriptFileToken::new,
-		Concept.Type.CodeSource,     CodeSourceToken::new,
-		Concept.Type.EnumSource,     EnumSourceToken::new
+	private final Map<ConceptType, BiFunction<ConceptToken, IdentifierToken, Token>> SpecializedTokens = Map.of(
+		ConceptType.Blacklist,      DoBlacklistToken::new,
+		ConceptType.MarkdownFolder, MarkdownFolderToken::new,
+		ConceptType.JavascriptFile, JavascriptFileToken::new,
+		ConceptType.CodeSource,     CodeSourceToken::new,
+		ConceptType.EnumSource,     EnumSourceToken::new
 	);
 
 	public CombineConceptAndIdentifierRule(final Ontology ontology) {
@@ -57,7 +57,7 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof ConceptToken conceptToken) {
 
-					final Concept.Type type = conceptToken.getType();
+					final ConceptType type = conceptToken.getType();
 
 					if (SpecializedTokens.containsKey(type)) {
 
@@ -82,7 +82,7 @@ public class CombineConceptAndIdentifierRule extends Rule {
 
 				if (token2 instanceof IdentifierToken identifierToken) {
 
-					final Concept.Type type = conceptToken.getType();
+					final ConceptType type = conceptToken.getType();
 
 					if (SpecializedTokens.containsKey(type)) {
 

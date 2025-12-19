@@ -312,11 +312,11 @@ public abstract class RESTCallHandler {
 
 		if (request != null) {
 
-			final String distance = request.getParameter(RequestKeywords.Distance.keyword());
+			final String distance = request.getParameter(RequestKeywords.Distance.getIdentifier());
 
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-				final String latlon   = request.getParameter(RequestKeywords.LatLon.keyword());
+				final String latlon   = request.getParameter(RequestKeywords.LatLon.getIdentifier());
 				if (latlon != null) {
 
 					final String[] parts = latlon.split("[,]+");
@@ -337,14 +337,14 @@ public abstract class RESTCallHandler {
 				} else {
 
 					final double dist     = Double.parseDouble(distance);
-					final String location = request.getParameter(RequestKeywords.Location.keyword());
+					final String location = request.getParameter(RequestKeywords.Location.getIdentifier());
 
-					String street     = request.getParameter(RequestKeywords.Street.keyword());
-					String house      = request.getParameter(RequestKeywords.House.keyword());
-					String postalCode = request.getParameter(RequestKeywords.PostalCode.keyword());
-					String city       = request.getParameter(RequestKeywords.City.keyword());
-					String state      = request.getParameter(RequestKeywords.State.keyword());
-					String country    = request.getParameter(RequestKeywords.Country.keyword());
+					String street     = request.getParameter(RequestKeywords.Street.getIdentifier());
+					String house      = request.getParameter(RequestKeywords.House.getIdentifier());
+					String postalCode = request.getParameter(RequestKeywords.PostalCode.getIdentifier());
+					String city       = request.getParameter(RequestKeywords.City.getIdentifier());
+					String state      = request.getParameter(RequestKeywords.State.getIdentifier());
+					String country    = request.getParameter(RequestKeywords.Country.getIdentifier());
 
 					// if location, use city and street, else use all fields that are there!
 					if (location != null) {
@@ -377,11 +377,11 @@ public abstract class RESTCallHandler {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			if (request.getParameter(RequestKeywords.Inexact_Deprecated.keyword()) != null) {
+			if (request.getParameter(RequestKeywords.Inexact_Deprecated.getIdentifier()) != null) {
 
 				logger.warn("Usage of deprecated request keyword {} detected. This keyword is deprecated and will be removed in the future. Please use {} instead.",
-					RequestKeywords.Inexact_Deprecated.keyword(),
-					RequestKeywords.Inexact.keyword()
+					RequestKeywords.Inexact_Deprecated.getIdentifier(),
+					RequestKeywords.Inexact.getIdentifier()
 				);
 			}
 
@@ -399,7 +399,7 @@ public abstract class RESTCallHandler {
 					// add to list of searchable keys
 					searchKeys.add(key);
 
-				} else if (!RequestKeywords.keywords().contains(name)) {
+				} else if (!RequestKeywords.getIdentifiers().contains(name)) {
 
 					// exclude common request parameters here (should not throw exception)
 					throw new FrameworkException(400, "Unknown search key " + name);
@@ -558,7 +558,7 @@ public abstract class RESTCallHandler {
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
 		final Iterator<Map<String, Object>> iterator = propertySets.iterator();
-		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
+		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.getIdentifier(), 1000);
 		int overallCount                             = 0;
 
 		while (iterator.hasNext()) {
@@ -672,7 +672,7 @@ public abstract class RESTCallHandler {
 
 		for (final RequestKeywords k : requestKeywords) {
 
-			final String value = request.getParameter(k.keyword());
+			final String value = request.getParameter(k.getIdentifier());
 			if (value != null) {
 
 				if (parseInteger(value) == 1) {

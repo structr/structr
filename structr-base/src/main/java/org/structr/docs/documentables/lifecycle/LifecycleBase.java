@@ -19,7 +19,7 @@
 package org.structr.docs.documentables.lifecycle;
 
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -76,7 +76,7 @@ public abstract class LifecycleBase implements Documentable {
 
 		final List<ConceptReference> parentConcepts = Documentable.super.getParentConcepts();
 
-		parentConcepts.add(ConceptReference.of(Concept.Type.Topic, "Lifecycle methods"));
+		parentConcepts.add(ConceptReference.of(ConceptType.Topic, "Lifecycle methods"));
 
 		return parentConcepts;
 	}

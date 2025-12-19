@@ -5,7 +5,7 @@
 #
 
 # The word "Structr" is the root of the ontology
-Structr has topics "Introduction", "Building Applications", "User Interface", "Operations", References
+Structr has topics "Introduction", "Building Applications", "User Interface", "Operations", "Advanced Topics", References
 
 # Introduction: this exists to match the Markdown docs and enable gap analysis
 Introduction has topics "What is Structr?", "Installation Method", "First Steps"
@@ -15,9 +15,10 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
 
 
 # Building Applications
-"Building Applications" has topics "Business Logic", "Error handling", "Dynamic Content", "URL Routing"
+"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input", "Business Logic", "Error handling", "URL Routing", "Security", "Troubleshooting"
 
 "Dynamic Content" has topic "Repeater"
+"User Input" has topics "Event Action Mapping"
 
 
 "Repeater Keyword" has synonym "Data key"

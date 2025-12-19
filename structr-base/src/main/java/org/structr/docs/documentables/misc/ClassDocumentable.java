@@ -19,7 +19,7 @@
 package org.structr.docs.documentables.misc;
 
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -86,7 +86,7 @@ public class ClassDocumentable implements Documentable {
 
 		final List<ConceptReference> parentConcepts = Documentable.super.getParentConcepts();
 
-		parentConcepts.add(ConceptReference.of(Concept.Type.Topic, "Classes"));
+		parentConcepts.add(ConceptReference.of(ConceptType.Topic, "Classes"));
 
 		return parentConcepts;
 	}

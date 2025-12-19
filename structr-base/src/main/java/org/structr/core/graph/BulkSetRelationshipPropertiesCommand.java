@@ -31,7 +31,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
@@ -179,6 +179,6 @@ public class BulkSetRelationshipPropertiesCommand extends NodeServiceCommand imp
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(Concept.Type.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
 	}
 }

@@ -19,7 +19,7 @@
 package org.structr.docs.documentables.service;
 
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -57,6 +57,6 @@ public abstract class AbstractServiceDocumentable implements Documentable {
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(Concept.Type.Topic, "Services"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Services"));
 	}
 }

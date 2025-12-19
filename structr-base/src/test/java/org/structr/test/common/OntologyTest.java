@@ -19,6 +19,7 @@
 package org.structr.test.common;
 
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
@@ -45,10 +46,10 @@ public class OntologyTest extends StructrUiTest {
 		);
 
 		final Ontology ontology = new Ontology("testOntology", facts);
-		final Concept concept   = ontology.getConcept(Concept.Type.Unknown, "Core System");
+		final Concept concept   = ontology.getConcept(ConceptType.Unknown, "Core System");
 
 		assertNotNull("concept should not be null", concept);
-		assertEquals("concept type should be inferred retrospectively", Concept.Type.Topic, concept.getType());
+		assertEquals("concept type should be inferred retrospectively", ConceptType.Topic, concept.getType());
 
 		final List<Concept> concepts = ontology.getAllConcepts();
 		int i=0;
@@ -66,7 +67,7 @@ public class OntologyTest extends StructrUiTest {
 		assertEquals("Button list was not parsed correctly", "Button(Test-Button-4)",  concepts.get(i++).toString());
 
 		// "It" should reference the area "Pages" in the above list of facts, hence that area should have 9 "has" links
-		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept(Concept.Type.Area, "Pages").getChildren().get("has").size());
+		assertEquals("\"It\" keyword does not reference last subject", 9, ontology.getConcept(ConceptType.Area, "Pages").getChildren().get("has").size());
 	}
 
 	@Test
@@ -102,8 +103,8 @@ public class OntologyTest extends StructrUiTest {
 
 		final Ontology ontology = new Ontology("testAmbiguousIdentifiers", facts);
 
-		assertNotNull(ontology.getConcept(Concept.Type.Topic, "Services"));
-		assertNotNull(ontology.getConcept(Concept.Type.CodeSource, "services"));
+		assertNotNull(ontology.getConcept(ConceptType.Topic, "Services"));
+		assertNotNull(ontology.getConcept(ConceptType.CodeSource, "services"));
 	}
 
 	@Test
@@ -115,10 +116,10 @@ public class OntologyTest extends StructrUiTest {
 
 		final Ontology ontology = new Ontology("testInverseVerbs", facts);
 
-		assertNotNull(ontology.getConcept(Concept.Type.Type, "Test"));
-		assertNotNull(ontology.getConcept(Concept.Type.Button, "Test"));
-		assertEquals("Type(Test)", ontology.getConcept(Concept.Type.Button, "Test").getChildren().get("creates").get(0).toString());
-		assertEquals("Button(Test)", ontology.getConcept(Concept.Type.Type, "Test").getParents().get("iscreatedby").get(0).toString());
+		assertNotNull(ontology.getConcept(ConceptType.Type, "Test"));
+		assertNotNull(ontology.getConcept(ConceptType.Button, "Test"));
+		assertEquals("Type(Test)", ontology.getConcept(ConceptType.Button, "Test").getChildren().get("creates").get(0).toString());
+		assertEquals("Button(Test)", ontology.getConcept(ConceptType.Type, "Test").getParents().get("iscreatedby").get(0).toString());
 	}
 
 	@Test
@@ -143,7 +144,7 @@ public class OntologyTest extends StructrUiTest {
 			System.out.println(concept.getNameTypeAndLinks());
 		}
 
-		final Concept test = ontology.getConcept(Concept.Type.Topic, "Test");
+		final Concept test = ontology.getConcept(ConceptType.Topic, "Test");
 
 		assertNotNull(test);
 

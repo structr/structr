@@ -18,7 +18,7 @@
  */
 package org.structr.docs.ontology.parser.rule;
 
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 import org.structr.docs.ontology.parser.token.ConceptToken;
 import org.structr.docs.ontology.parser.token.IdentifierToken;
@@ -45,7 +45,7 @@ public class FindUnknownIdentifiersRule extends Rule {
 
 			if (token instanceof IdentifierToken identifierToken) {
 
-				result.add(new NamedConceptToken(new ConceptToken(Concept.Type.Unknown, "unknown"), identifierToken));
+				result.add(new NamedConceptToken(new ConceptToken(ConceptType.Unknown, "unknown"), identifierToken));
 
 			} else {
 

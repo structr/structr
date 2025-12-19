@@ -49,3 +49,8 @@ Area "Widgets" has javascript-file "structr/js/widgets.js"
 "Classes" has code-source "class"
 
 "Java internals" has topic "Classes"
+
+
+
+
+"Event Action Mapping"  has enum-source "org.structr.web.eam.EventAction"

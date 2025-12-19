@@ -146,7 +146,7 @@ public class RenderContext extends ActionContext {
 
 	public static RenderContext getInstance(final SecurityContext securityContext, final HttpServletRequest request, HttpServletResponse response) {
 
-		final String editString = StringUtils.defaultString(request.getParameter(RequestKeywords.EditMode.keyword()));
+		final String editString = StringUtils.defaultString(request.getParameter(RequestKeywords.EditMode.getIdentifier()));
 
 		return new RenderContext(securityContext, request, response, editMode(editString));
 

@@ -20,6 +20,7 @@ package org.structr.docs.ontology.parser.token;
 
 import org.graalvm.collections.Pair;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
 public class VerbToken extends Token<Pair<Concept, Concept>> {
@@ -46,8 +47,8 @@ public class VerbToken extends Token<Pair<Concept, Concept>> {
 
 	public Pair<Concept, Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final Concept verb1 = ontology.getOrCreateConcept(sourceFile, line, Concept.Type.Verb, name);
-		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, Concept.Type.Verb, inverse);
+		final Concept verb1 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, name);
+		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, inverse);
 
 		if (verb1 != null && verb2 != null) {
 

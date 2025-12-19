@@ -23,7 +23,7 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
@@ -94,7 +94,7 @@ public abstract class Expression implements Documentable {
 		final FunctionCategory category = getCategory();
 		if (category != null) {
 
-			concepts.add(ConceptReference.of(Concept.Type.Topic, category + " functions"));
+			concepts.add(ConceptReference.of(ConceptType.Topic, category + " functions"));
 		}
 
 		return concepts;

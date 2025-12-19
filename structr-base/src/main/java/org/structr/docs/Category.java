@@ -18,7 +18,7 @@
  */
 package org.structr.docs;
 
-import org.structr.docs.ontology.HasDisplayName;
+import org.structr.docs.ontology.GlossaryTerm;
 
-public interface Category extends HasDisplayName {
+public interface Category extends GlossaryTerm {
 }

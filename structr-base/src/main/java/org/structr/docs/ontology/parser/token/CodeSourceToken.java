@@ -21,6 +21,7 @@ package org.structr.docs.ontology.parser.token;
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
@@ -41,7 +42,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 		for (final String identifier : identifiers) {
 
-			final Concept.Type type                 = Concept.forName(identifier);
+			final ConceptType type                 = Concept.forName(identifier);
 			final DocumentableType documentableType = DocumentableType.forOntologyType(type);
 
 			if (documentableType != null) {
@@ -88,7 +89,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 				for (final Documentable.Link link : documentable.getLinkedConcepts()) {
 
-					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, Concept.Type.Unknown, link.name);
+					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Unknown, link.name);
 					if (childConcept != null) {
 
 						mainConcept.linkChild(link.verb, childConcept);
@@ -97,7 +98,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 				for (final String synonym : documentable.getSynonyms()) {
 
-					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, Concept.Type.Synonym, synonym);
+					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Synonym, synonym);
 					if (synonymConcept != null) {
 
 						mainConcept.linkChild("has", synonymConcept);

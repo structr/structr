@@ -45,8 +45,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.core.script.polyglot.config.ScriptConfig;
-import org.structr.core.script.polyglot.config.ScriptConfigBuilder;
 import org.structr.core.traits.*;
 import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
@@ -55,6 +53,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnModification;
 import org.structr.core.traits.operations.propertycontainer.GetPropertyKeys;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
@@ -64,6 +64,7 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.eam.EventAction;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -89,6 +90,7 @@ import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
 import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
 import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
+@Documentation(name="DOM element", type= ConceptType.SystemType, shortDescription="The base class for all elements in a Page.")
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String RELOAD_SOURCES_PROPERTY                    = "reloadSources";
@@ -699,30 +701,31 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 											case "page-param":
 												// Name of the request parameter for pager 'page'
-												final String action = triggeredAction.getAction();
-												final String value = renderContext.getRequestParameter(parameterName);
+												final String actionString = triggeredAction.getAction();
+												final String value        = renderContext.getRequestParameter(parameterName);
+												final EventAction action  = EventAction.forName(actionString);
+
 												// special handling for pagination (migrated code)
 												switch (action) {
 
-													case "prev-page":
-													case "previous-page":
+													case EventAction.PrevPage:
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														final int prev = DOMElement.intOrOne(value);
 														out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
 														break;
 
-													case "next-page":
+													case EventAction.NextPage:
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														final int next = DOMElement.intOrOne(value);
 														out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(next + 1)).append("\"");
 														break;
 
-													case "first-page":
+													case EventAction.FirstPage:
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														out.append(" data-").append(parameterName).append("=\"1\"");
 														break;
 
-													case "last-page":
+													case EventAction.LastPage:
 														// should we really count all objects?
 														out.append(" data-structr-target=\"").append(parameterName).append("\"");
 														out.append(" data-").append(parameterName).append("=\"1000\"");
@@ -867,12 +870,11 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 					final RenderContext renderContext = new RenderContext(securityContext);
 					final EventContext  eventContext  = new EventContext();
-					final String        action;
 
-					final NodeInterface domElementNode         = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
-					final DOMElement domElement                = domElementNode.as(DOMElement.class);
-
-					action = getActionMapping(domElement).getAction();
+					final NodeInterface domElementNode = StructrApp.getInstance().getNodeById(StructrTraits.DOM_ELEMENT, entity.getUuid());
+					final DOMElement domElement        = domElementNode.as(DOMElement.class);
+					final String actionString          = getActionMapping(domElement).getAction();
+					final EventAction action           = EventAction.forName(actionString);
 
 					// store event context in object
 					renderContext.setConstant("eventContext", eventContext);
@@ -882,29 +884,29 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 						// Note: if you add new actions here, please also add them to MigrationService.EventActionMappingActions so
 						// they are not migrated accidentially..
 
-						case "create":
+						case EventAction.Create:
 							return handleCreateAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "update":
+						case EventAction.Update:
 							handleUpdateAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "delete":
+						case EventAction.Delete:
 							handleDeleteAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "append-child":
+						case EventAction.AppendChild:
 							handleAppendChildAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "remove-child":
+						case EventAction.RemoveChild:
 							handleRemoveChildAction(renderContext, domElementNode, parameters, eventContext);
 							break;
 
-						case "insert-html":
+						case EventAction.InsertHtml:
 							return handleInsertHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "replace-html":
+						case EventAction.ReplaceHtml:
 							return handleReplaceHtmlAction(renderContext, domElementNode, parameters, eventContext);
 
 						/*
@@ -915,24 +917,24 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 							break;
 						*/
 
-						case "sign-in":
+						case EventAction.SignIn:
 							return handleSignInAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "sign-out":
+						case EventAction.SignOut:
 							return handleSignOutAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "sign-up":
+						case EventAction.SignUp:
 							return handleSignUpAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "reset-password":
+						case EventAction.ResetPassword:
 							return handleResetPasswordAction(renderContext, domElementNode, parameters, eventContext);
 
-						case "flow":
+						case EventAction.Flow:
 							final String flow = getActionMapping(entity.as(DOMElement.class)).getFlow();
 							return handleFlowAction(renderContext, domElementNode, parameters, eventContext, flow);
 
-						case "method":
-						default:
+						case EventAction.Method:
+						case EventAction.Unknown:
 							// execute custom method (and return the result directly)
 							final String method = (String) parameters.get(DOMElement.EVENT_ACTION_MAPPING_PARAMETER_STRUCTRMETHOD);
 							return handleCustomAction(renderContext, domElementNode, parameters, eventContext, method);

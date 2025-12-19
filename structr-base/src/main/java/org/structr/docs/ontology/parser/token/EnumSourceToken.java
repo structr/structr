@@ -19,7 +19,8 @@
 package org.structr.docs.ontology.parser.token;
 
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.HasDisplayName;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.GlossaryTerm;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
@@ -46,14 +47,20 @@ public class EnumSourceToken extends NamedConceptToken {
 
 					for (final Object constant : enumType.getEnumConstants()) {
 
-						if (constant instanceof HasDisplayName displayName) {
+						if (constant instanceof GlossaryTerm glossaryTerm) {
 
-							final String name = displayName.getDisplayName();
+							final String name = glossaryTerm.getDisplayName();
+							if (name != null) {
 
-							final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, Concept.Type.Topic, name);
-							if (concept != null) {
+								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Topic, name);
+								if (concept != null) {
 
-								concepts.add(concept);
+									if (glossaryTerm.getShortDescription() != null) {
+										concept.setShortDescription(glossaryTerm.getShortDescription());
+									}
+
+									concepts.add(concept);
+								}
 							}
 						}
 					}

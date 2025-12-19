@@ -26,7 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
@@ -185,6 +185,6 @@ public class BulkChangeNodePropertyKeyCommand extends NodeServiceCommand impleme
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(Concept.Type.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
 	}
 }

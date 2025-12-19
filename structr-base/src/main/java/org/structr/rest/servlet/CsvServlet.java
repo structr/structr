@@ -143,10 +143,10 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				authenticator.checkResourceAccess(securityContext, request, resourceSignature, handler.getRequestedView());
 
 				// add sorting & paging
-				final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
-				final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
-				final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
-				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
+				final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.getIdentifier());
+				final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.getIdentifier());
+				final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.getIdentifier());
+				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.getIdentifier());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 				final String type                       = handler.getEntityClassOrDefault(securityContext);

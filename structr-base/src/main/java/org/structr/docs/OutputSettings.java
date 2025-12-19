@@ -18,16 +18,16 @@
  */
 package org.structr.docs;
 
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
 import java.util.*;
 
 public class OutputSettings {
 
-	private final Map<String, Map<Concept.Type, Formatter>> outputFormatTypeFormatterMap = new LinkedHashMap<>();
+	private final Map<String, Map<ConceptType, Formatter>> outputFormatTypeFormatterMap = new LinkedHashMap<>();
 	private final Map<Integer, Set<String>> linkTypesPerLevel                            = new LinkedHashMap<>();
-	private final Set<Concept.Type> typesToRender                                        = new LinkedHashSet<>();
+	private final Set<ConceptType> typesToRender                                        = new LinkedHashSet<>();
 	private final Set<Details> details                                                   = new LinkedHashSet<>();
 	private String outputFormat                                                          = "text";
 	private String baseUrl;
@@ -48,9 +48,9 @@ public class OutputSettings {
 	 * @param type
 	 * @return
 	 */
-	public Formatter getFormatterForType(final Concept.Type type) {
+	public Formatter getFormatterForType(final ConceptType type) {
 
-		final Map<Concept.Type, Formatter> formatters = outputFormatTypeFormatterMap.get(outputFormat);
+		final Map<ConceptType, Formatter> formatters = outputFormatTypeFormatterMap.get(outputFormat);
 		if (formatters != null) {
 
 			final Formatter formatter = formatters.get(type);
@@ -59,7 +59,7 @@ public class OutputSettings {
 				return formatter;
 			}
 
-			final Formatter defaultFormatter = formatters.get(Concept.Type.Unknown);
+			final Formatter defaultFormatter = formatters.get(ConceptType.Unknown);
 			if (defaultFormatter != null) {
 
 				return defaultFormatter;
@@ -118,7 +118,7 @@ public class OutputSettings {
 		this.startLevel = level;
 	}
 
-	public void setFormatterForOutputFormatAndType(final String outputFormat, final Concept.Type type, final Formatter formatter) {
+	public void setFormatterForOutputFormatAndType(final String outputFormat, final ConceptType type, final Formatter formatter) {
 		outputFormatTypeFormatterMap.computeIfAbsent(outputFormat, k -> new LinkedHashMap<>()).put(type, formatter);
 	}
 
@@ -142,13 +142,13 @@ public class OutputSettings {
 		return outputFormat;
 	}
 
-	public void setTypesToRender(final Set<Concept.Type> typeList) {
+	public void setTypesToRender(final Set<ConceptType> typeList) {
 
 		typesToRender.clear();
 		typesToRender.addAll(typeList);
 	}
 
-	public boolean renderType(final Concept.Type type) {
+	public boolean renderType(final ConceptType type) {
 		return typesToRender.isEmpty() || typesToRender.contains(type);
 	}
 }

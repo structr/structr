@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Documentation;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -32,7 +32,7 @@ import org.structr.rest.api.parameter.RESTParameter;
 /**
  * Resource that handles user logins.
  */
-@Documentation(name="Login endpoint", type=Concept.Type.RestEndpoint, parent="System endpoints")
+@Documentation(name="Login endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
 public class LoginResource extends ExactMatchEndpoint {
 
 	protected static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());

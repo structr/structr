@@ -21,7 +21,6 @@ package org.structr.schema.action;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -657,7 +656,7 @@ public class ActionContext {
 
 	public static String getRemoteAddr(HttpServletRequest request) {
 
-		final String remoteAddress = request.getHeader(RequestHeaders.XForwardedFor.getHeaderName());
+		final String remoteAddress = request.getHeader(RequestHeaders.XForwardedFor.getIdentifier());
 
 		if (remoteAddress == null) {
 			return request.getRemoteAddr();

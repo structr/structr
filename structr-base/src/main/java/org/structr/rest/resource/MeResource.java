@@ -27,7 +27,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Documentation;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
@@ -42,7 +42,7 @@ import java.util.Set;
 /**
  *
  */
-@Documentation(name="User information endpoint", type=Concept.Type.RestEndpoint, shortDescription="HTTP endpoint that always returns the current user as a JSON object. URL path is /me.", parent="System endpoints")
+@Documentation(name="User information endpoint", type= ConceptType.RestEndpoint, shortDescription="HTTP endpoint that always returns the current user as a JSON object. URL path is /me.", parent="System endpoints")
 public class MeResource extends ExactMatchEndpoint {
 
     public MeResource() {

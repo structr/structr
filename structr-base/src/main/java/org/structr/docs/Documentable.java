@@ -19,6 +19,7 @@
 package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
 import java.io.IOException;
@@ -367,15 +368,15 @@ public interface Documentable {
 
 	class ConceptReference {
 
-		public org.structr.docs.ontology.Concept.Type type;
+		public ConceptType type;
 		public String name;
 
-		public ConceptReference(final org.structr.docs.ontology.Concept.Type type, final String name) {
+		public ConceptReference(final ConceptType type, final String name) {
 			this.type = type;
 			this.name = name;
 		}
 
-		public static ConceptReference of(final org.structr.docs.ontology.Concept.Type type, final String name) {
+		public static ConceptReference of(final ConceptType type, final String name) {
 			return new ConceptReference(type, name);
 		}
 	}

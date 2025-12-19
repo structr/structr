@@ -22,7 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Documentable;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.*;
 
@@ -56,7 +56,7 @@ public interface MaintenanceCommand extends Documentable {
 
 		final List<ConceptReference> parentConcepts = new LinkedList<>();
 
-		parentConcepts.add(ConceptReference.of(Concept.Type.Topic, "Maintenance commands"));
+		parentConcepts.add(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
 
 		return parentConcepts;
 	}

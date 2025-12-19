@@ -20,6 +20,7 @@ package org.structr.docs.ontology.parser.token;
 
 import org.structr.docs.formatter.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
 import java.io.IOException;
@@ -50,7 +51,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final Concept.Type type        = conceptToken.resolve(ontology, sourceFile, line);
+		final ConceptType type        = conceptToken.resolve(ontology, sourceFile, line);
 		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
 		final List<Concept> concepts   = new LinkedList<>();
 
@@ -71,7 +72,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 						for (final String file : files) {
 
 							final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
-							final Concept markdownFile = ontology.getOrCreateConcept("sourceFile", line, Concept.Type.MarkdownFile, cleanedFileName);
+							final Concept markdownFile = ontology.getOrCreateConcept("sourceFile", line, ConceptType.MarkdownFile, cleanedFileName);
 
 							if (markdownFile != null) {
 

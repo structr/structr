@@ -81,8 +81,8 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	// ----- protected methods -----
 	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final String view, final boolean wrapSingleResultInArray) {
 
-		final String serializeNullsSrc    = request.getParameter(RequestKeywords.SerializeNulls.keyword());
-		final String outputDepthSrc       = request.getParameter(RequestKeywords.OutputDepth.keyword());
+		final String serializeNullsSrc    = request.getParameter(RequestKeywords.SerializeNulls.getIdentifier());
+		final String outputDepthSrc       = request.getParameter(RequestKeywords.OutputDepth.getIdentifier());
 		final int outputDepth             = Services.parseInt(outputDepthSrc, config.getOutputNestingDepth());
 		final boolean serializeNulls      = Services.parseBoolean(serializeNullsSrc, true);
 		final String baseUrl              = request.getRequestURI();
@@ -148,13 +148,13 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final String view, final int outputDepth, final boolean wrapSingleResultInArray) throws ServletException, IOException {
 
-		final String serializeNullsSrc = request.getParameter(RequestKeywords.SerializeNulls.keyword());
+		final String serializeNullsSrc = request.getParameter(RequestKeywords.SerializeNulls.getIdentifier());
 		final boolean serializeNulls   = Services.parseBoolean(serializeNullsSrc, true);
 		final String baseUrl           = request.getRequestURI();
 
 		try {
 
-			final String accept = request.getHeader(RequestHeaders.Accept.getHeaderName());
+			final String accept = request.getHeader(RequestHeaders.Accept.getIdentifier());
 
 			if (accept != null && accept.contains("text/html")) {
 

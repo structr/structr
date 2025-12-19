@@ -19,7 +19,7 @@
 package org.structr.autocomplete;
 
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -56,6 +56,6 @@ public abstract class KeywordHint extends AbstractHint {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(Concept.Type.Topic, "Keywords"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Keywords"));
 	}
 }

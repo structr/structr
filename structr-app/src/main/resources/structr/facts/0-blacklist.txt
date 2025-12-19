@@ -1,13 +1,14 @@
 #
-# blacklist.txt
+# 0-blacklist.txt
 #
 # This file defines all the words and phrases that should NOT be imported into the ontology.
+# It should be loaded first.
 #
 
-blacklist Boolean, Byte, Date, Double, Fload, Integer, Long, String, "Boolean[]", "Byte[]", "Date[]", "Double[]", "Float[]", "Integer[]", "Long[]", "String[]", "&quot;"
+blacklist Boolean, Byte, Date, Double, Float, Integer, Long, String, "Boolean[]", "Byte[]", "Date[]", "Double[]", "Float[]", "Integer[]", "Long[]", "String[]", "&quot;"
 blacklist advanced, keep, full, none, always, indent, same, Advanced, Keep, Full, Always, None, true, false, undefined, inter, info, "10pt", "1rem", rem
 blacklist Load, Save, Create, Delete, Remove, Filter, Filters, Select, Refresh, Action, Actions, Copy, Option, Options, Name, Description, Type, Parameter, Parameters
 blacklist fixed, height, width, input, number, success, warning, "info", "type", error, monaco, checkbox, href, class, auto, signature, pointer, names, initial, uuid
 blacklist null, absolute, custom, root, numeric, json, crud, parentId, content, name, controls, desc, label, entity, curKey, curDomain, invalid, right, left
 blacklist dropdownParent, monacoChangeFn, initialText, select, "Auto-collapse objects on load (for more than 5 objects)", warningEl, signal, buttonText, Style
-blacklist transparent, "30vw", relInfo, methodId, relId
+blacklist transparent, "30vw", relInfo, methodId, relId, Date, List, Map

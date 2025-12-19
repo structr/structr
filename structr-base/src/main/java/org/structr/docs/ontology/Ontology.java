@@ -270,13 +270,13 @@ public final class Ontology {
 		throw new RuntimeException("Syntax error in " + fileName + ":" + line + ": unable to parse " + source + " into facts: remaining tokens are " + remainingTokens + ". This can happen if an identifier matches a known concept, e.g. the topic \"Settings\" and the concept \"settings\". It might help to prefix the identifier with the concept, e.g. write \"topic Settings has code-source settings\" instead of \"Settings has code-source settings\".");
 	}
 
-	public Concept getConcept(final Concept.Type type, final String name) {
+	public Concept getConcept(final ConceptType type, final String name) {
 
 		for  (final Concept concept : concepts) {
 
 			if (concept.name.equals(name)) {
 
-				if (concept.type.equals(type) || Concept.Type.Unknown.equals(type) || Concept.Type.Unknown.equals(concept.type)) {
+				if (concept.type.equals(type) || ConceptType.Unknown.equals(type) || ConceptType.Unknown.equals(concept.type)) {
 
 					return concept;
 				}
@@ -301,7 +301,7 @@ public final class Ontology {
 		return result;
 	}
 
-	public Concept getOrCreateConcept(final String sourceFile, final int line, final Concept.Type type, final String name) {
+	public Concept getOrCreateConcept(final String sourceFile, final int line, final ConceptType type, final String name) {
 
 		if (blacklist.contains(name)) {
 			return null;
@@ -311,10 +311,10 @@ public final class Ontology {
 
 			if (concept.name.equals(name)) {
 
-				if (concept.type.equals(type) || Concept.Type.Unknown.equals(type) || Concept.Type.Unknown.equals(concept.type)) {
+				if (concept.type.equals(type) || ConceptType.Unknown.equals(type) || ConceptType.Unknown.equals(concept.type)) {
 
 					// set correct type
-					if (Concept.Type.Unknown.equals(concept.type) && !Concept.Type.Unknown.equals(type)) {
+					if (ConceptType.Unknown.equals(concept.type) && !ConceptType.Unknown.equals(type)) {
 						concept.type = type;
 					}
 
@@ -344,7 +344,7 @@ public final class Ontology {
 
 			int occurrences = existingDocs.countOccurrences(concept.getName());
 
-			for (final Concept synonym : concept.getChildrenOfType("has", Concept.Type.Synonym)) {
+			for (final Concept synonym : concept.getChildrenOfType("has", ConceptType.Synonym)) {
 
 				occurrences += existingDocs.countOccurrences(synonym.getName());
 			}
@@ -388,7 +388,7 @@ public final class Ontology {
 			final Documentation documentation = entry.getValue();
 
 			// collect info from annotation and import it into the ontology
-			final Concept.Type type     = documentation.type();
+			final ConceptType type     = documentation.type();
 			final String name   = documentation.name();
 			final String desc   = documentation.shortDescription();
 			final String parent = documentation.parent();
@@ -398,7 +398,7 @@ public final class Ontology {
 
 				if (StringUtils.isNotBlank(parent)) {
 
-					final Concept parentConcept = getOrCreateConcept("Structr Documentation annotations", 0, Concept.Type.Unknown, parent);
+					final Concept parentConcept = getOrCreateConcept("Structr Documentation annotations", 0, ConceptType.Unknown, parent);
 					if (parentConcept != null) {
 
 						parentConcept.linkChild("has", concept);

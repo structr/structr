@@ -37,6 +37,7 @@ import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.*;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 import org.structr.docs.ontology.Ontology;
 import org.structr.rest.service.HttpService;
@@ -166,13 +167,13 @@ public class DocumentationServlet extends HttpServlet {
 		final String types = request.getParameter("types");
 		if (StringUtils.isNotBlank(types)) {
 
-			final Set<Concept.Type> typeSet = new LinkedHashSet<>();
+			final Set<ConceptType> typeSet = new LinkedHashSet<>();
 			for (final String type : types.split(",")) {
 
 				final String trimmed = type.trim();
 				if (StringUtils.isNotBlank(trimmed)) {
 
-					typeSet.add(Concept.Type.valueOf(trimmed));
+					typeSet.add(ConceptType.valueOf(trimmed));
 				}
 			}
 
@@ -249,19 +250,19 @@ public class DocumentationServlet extends HttpServlet {
 		// sensible default
 		settings.getDetails().add(Details.name);
 
-		settings.setFormatterForOutputFormatAndType("markdown", Concept.Type.Unknown,        new MarkdownTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", Concept.Type.Topic,          new MarkdownTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", Concept.Type.Service,        new MarkdownServiceFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", Concept.Type.MarkdownFolder, new MarkdownTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", Concept.Type.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
-		settings.setFormatterForOutputFormatAndType("markdown", Concept.Type.CodeSource,     new MarkdownCodeSourceFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Unknown,        new MarkdownTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Topic,          new MarkdownTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Service,        new MarkdownServiceFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.MarkdownFolder, new MarkdownTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.CodeSource,     new MarkdownCodeSourceFormatter());
 
-		settings.setFormatterForOutputFormatAndType("text", Concept.Type.Unknown,            new PlaintextTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("text", Concept.Type.Topic,              new PlaintextTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("text", Concept.Type.MarkdownFolder,     new PlaintextTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("text", Concept.Type.MarkdownFile,       new PlaintextMarkdownFileFormatter(baseResource));
+		settings.setFormatterForOutputFormatAndType("text", ConceptType.Unknown,            new PlaintextTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("text", ConceptType.Topic,              new PlaintextTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("text", ConceptType.MarkdownFolder,     new PlaintextTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("text", ConceptType.MarkdownFile,       new PlaintextMarkdownFileFormatter(baseResource));
 
-		settings.setFormatterForOutputFormatAndType("json", Concept.Type.Unknown,            new JsonConceptFormatter());
+		settings.setFormatterForOutputFormatAndType("json", ConceptType.Unknown,            new JsonConceptFormatter());
 
 		return settings;
 	}

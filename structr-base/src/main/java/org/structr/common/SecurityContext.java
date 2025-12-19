@@ -36,7 +36,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.docs.Documentation;
 import org.structr.docs.SystemClass;
 import org.structr.schema.SchemaHelper;
 
@@ -192,35 +191,35 @@ public class SecurityContext {
 
 	private void initializeHttpParameters(final HttpServletRequest request) {
 
-		if ("true".equals(request.getHeader(RequestHeaders.ReturnDetailsForCreatedObjects.getHeaderName()))) {
+		if ("true".equals(request.getHeader(RequestHeaders.ReturnDetailsForCreatedObjects.getIdentifier()))) {
 			this.returnDetailedCreationResults = true;
 		}
 
-		if ("disabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getHeaderName()))) {
+		if ("disabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getIdentifier()))) {
 			this.doTransactionNotifications = false;
 		}
 
-		if ("enabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getHeaderName()))) {
+		if ("enabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getIdentifier()))) {
 			this.doTransactionNotifications = true;
 		}
 
-		if ("disabled".equals(request.getHeader(RequestHeaders.StructrCascadingDelete.getHeaderName()))) {
+		if ("disabled".equals(request.getHeader(RequestHeaders.StructrCascadingDelete.getIdentifier()))) {
 			this.doCascadingDelete = false;
 		}
 
-		if ("enabled".equals(request.getHeader(RequestHeaders.StructrForceMergeOfNestedProperties.getHeaderName()))) {
+		if ("enabled".equals(request.getHeader(RequestHeaders.StructrForceMergeOfNestedProperties.getIdentifier()))) {
 			this.forceMergeOfNestedProperties = true;
 		}
 
-		if (request.getParameter(RequestKeywords.ForceResultCount.keyword()) != null) {
+		if (request.getParameter(RequestKeywords.ForceResultCount.getIdentifier()) != null) {
 			this.forceResultCount = true;
 		}
 
-		if (request.getParameter(RequestKeywords.DisableSoftLimit.keyword()) != null) {
+		if (request.getParameter(RequestKeywords.DisableSoftLimit.getIdentifier()) != null) {
 			this.disableSoftLimit = true;
 		}
 
-		if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.keyword()) != null) {
+		if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.getIdentifier()) != null) {
 			this.doMultiThreadedJsonOutput = true;
 		}
 	}
@@ -230,7 +229,7 @@ public class SecurityContext {
 		// check for custom view attributes
 
 		try {
-			final String acceptedContentType = request.getHeader(RequestHeaders.Accept.getHeaderName());
+			final String acceptedContentType = request.getHeader(RequestHeaders.Accept.getIdentifier());
 			final Matcher matcher            = customViewPattern.matcher(acceptedContentType);
 
 			if (matcher.matches()) {
@@ -256,7 +255,7 @@ public class SecurityContext {
 
 	private void initializeQueryRanges(final HttpServletRequest request) {
 
-		final String rangeSource = request.getHeader(RequestHeaders.Range.getHeaderName());
+		final String rangeSource = request.getHeader(RequestHeaders.Range.getIdentifier());
 		if (rangeSource != null) {
 
 			final String[] rangeParts = StringUtils.split(rangeSource, ";");
@@ -806,7 +805,7 @@ public class SecurityContext {
 			}
 
 			// Priority 1: URL parameter locale
-			String requestedLocaleString = request.getParameter(RequestKeywords.Locale.keyword());
+			String requestedLocaleString = request.getParameter(RequestKeywords.Locale.getIdentifier());
 			if (StringUtils.isNotBlank(requestedLocaleString)) {
 
 				locale = Locale.forLanguageTag(requestedLocaleString.replaceAll("_", "-"));

@@ -28,7 +28,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
@@ -206,6 +206,6 @@ public class BulkFixNodePropertiesCommand extends NodeServiceCommand implements 
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(Concept.Type.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
 	}
 }

@@ -4393,6 +4393,7 @@ let _Pages = {
 						<div class="hidden em-event-element em-event-any">
 							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
 
+                            <!-- the actions can be fetched from the backend in the future-->
 							<select class="select2" id="action-select">
 								<option value="none">No action</option>
 								<optgroup label="Data">

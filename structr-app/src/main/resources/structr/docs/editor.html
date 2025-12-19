@@ -2,9 +2,9 @@
 <html>
     <head>
         <style>
-            html {
+            html, body {
                 margin: 0;
-                padding: 1em;
+                padding: 0;
                 background-color: #eee;
             }
             #container {
@@ -14,9 +14,8 @@
                 margin: 0;
                 padding: 0;
                 width: 100%;
-                height: calc(90vh);
+                height: calc(100vh);
                 background-color: white;
-                border: 1px solid #999;
             }
             #context {
                 position: absolute;
@@ -28,14 +27,6 @@
                 background-color: #fff;
                 box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
             }
-            #editor {
-                padding: 1em 0;
-            }
-            #input {
-                width: 100%;
-                border: 1px solid #999;
-                box-sizing: border-box;
-            }
         </style>
     </head>
     <body>
@@ -43,9 +34,6 @@
             <div id="visualization">
             </div>
             <div id="context"></div>
-        </div>
-        <div id="editor">
-            <input type="text" id="input" />
         </div>
         <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
         <script>
@@ -155,7 +143,9 @@
                         solver: 'forceAtlas2Based',
                         stabilization: true,
                         forceAtlas2Based: {
-                            centralGravity: 0.001,
+                            centralGravity: 0.002,
+                            avoidOverlap: 0.8,
+                            springLength: 300
                         },
                         barnesHut: {
                             gravitationalConstant: -100000,

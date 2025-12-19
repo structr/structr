@@ -19,10 +19,14 @@
 package org.structr.docs.ontology;
 
 /**
- * Implement this interface in enum classes to allow
- * use in EnumSourceToken.java.
+ * Implement this interface if you want the concept to appear in the glossary.
+ * This interface is very close to the Documentable interface, but not yet.
+ * It might be removed in favor of Documentable later.
  */
-public interface HasDisplayName {
+public interface GlossaryTerm {
 
+	String getIdentifier();
 	String getDisplayName();
+	String getShortDescription();
+
 }

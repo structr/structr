@@ -34,7 +34,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.SchemaService;
 import org.structr.storage.StorageProvider;
 import org.structr.storage.StorageProviderFactory;
@@ -420,7 +420,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 			@Override
 			public List<ConceptReference> getParentConcepts() {
-				return List.of(ConceptReference.of(Concept.Type.Topic, "Services"));
+				return List.of(ConceptReference.of(ConceptType.Topic, "Services"));
 			}
 
 			@Override

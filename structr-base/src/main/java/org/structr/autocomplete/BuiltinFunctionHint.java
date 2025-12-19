@@ -20,7 +20,7 @@ package org.structr.autocomplete;
 
 import org.structr.docs.Category;
 import org.structr.docs.DocumentableType;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -49,7 +49,7 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 			final String displayName = category.getDisplayName();
 			if (displayName != null) {
 
-				concepts.add(ConceptReference.of(Concept.Type.Topic, displayName + " functions"));
+				concepts.add(ConceptReference.of(ConceptType.Topic, displayName + " functions"));
 			}
 		}
 

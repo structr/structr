@@ -20,8 +20,8 @@ package org.structr.docs.ontology.parser.token;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 import org.structr.module.StructrModule;
 
@@ -126,7 +126,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 							text = text.replaceAll("\\$\\{.*\\}", "");
 							text = text.replaceAll("<[^>]*>", "").trim().replaceAll("\\s+", " ");
 
-							final Concept concept = handleConcept(Concept.Type.Text, text, ontology, fileName, sourceLineNumber);
+							final Concept concept = handleConcept(ConceptType.Text, text, ontology, fileName, sourceLineNumber);
 							if (concept != null) {
 
 								concepts.add(concept);
@@ -191,7 +191,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 		return false;
 	}
 
-	private Concept handleConcept(final Concept.Type type, final String text, final Ontology ontology, String fileName, final int sourceLineNumber) {
+	private Concept handleConcept(final ConceptType type, final String text, final Ontology ontology, String fileName, final int sourceLineNumber) {
 
 		final String trimmed = text.trim();
 		if (StringUtils.isNotBlank(trimmed)) {

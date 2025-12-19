@@ -48,7 +48,17 @@ public enum FunctionCategory implements Category {
 		this.displayName = displayName;
 	}
 
+	@Override
+	public String getIdentifier() {
+		return name();
+	}
+
 	public String getDisplayName() {
 		return displayName;
+	}
+
+	@Override
+	public String getShortDescription() {
+		return null;
 	}
 }

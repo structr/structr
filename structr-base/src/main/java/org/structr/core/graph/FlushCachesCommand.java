@@ -27,7 +27,7 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.traits.wrappers.ResourceAccessTraitWrapper;
 import org.structr.docs.*;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.schema.action.Actions;
 
 import java.util.List;
@@ -131,6 +131,6 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 
 	@Override
 	public final List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(Concept.Type.Topic, "Maintenance commands"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Maintenance commands"));
 	}
 }
