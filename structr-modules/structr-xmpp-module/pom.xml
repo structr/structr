@@ -65,6 +65,14 @@
 			<artifactId>logback-classic</artifactId>
 			<optional>true</optional>
 		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-neo4j</artifactId>
+		</dependency>
     </dependencies>
 
 	<build>

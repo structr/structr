@@ -1,0 +1,1217 @@
+diff --git a/.github/workflows/main.yaml b/.github/workflows/main.yaml
+index cb4715abf1..bdbf9a04fa 100644
+--- a/.github/workflows/main.yaml
++++ b/.github/workflows/main.yaml
+@@ -26,16 +26,6 @@ jobs:
+     steps:
+       - uses: actions/checkout@v3
+ 
+-      - name: Start Test Database
+-        run: >-
+-          docker run -d --name ${{ matrix.module }}-test-${{ github.run_id }} 
+-          -p 7687 
+-          -e NEO4J_AUTH=neo4j/admin123 
+-          -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes 
+-          -e NEO4J_server_memory_heap_max__size=4G 
+-          -e NEO4J_server_memory_pagecache_size=4G neo4j:2025 && 
+-          echo "ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-test-${{ github.run_id }})" >> $GITHUB_ENV
+-
+       - name: Install GraalVM
+         uses: graalvm/setup-graalvm@v1
+         with:
+@@ -45,13 +35,9 @@ jobs:
+ 
+       - name: Compile and run Tests
+         run:  >-
+-          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
++          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb &&
+           cd ${{ matrix.module }} && 
+-          mvn install -q -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
+-
+-      - name: Stop Test Database
+-        if: always()
+-        run:  docker stop ${{ matrix.module }}-test-${{ github.run_id }}
++          mvn install -q
+ 
+   run-ui-tests:
+     if: ${{ false && !startsWith( github.actor, 'dependabot' ) }}
+@@ -69,9 +55,9 @@ jobs:
+ 
+       - name: Compile and run Tests
+         run: >-
+-          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
++          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb &&
+           cd structr-app && 
+-          mvn install -q -DskipDockerTestDB -DskipDeb -DskipDocker -DskipDockerTestDB
++          mvn install -q -DskipDeb -DskipDocker
+ 
+   build-and-deploy:
+     runs-on: self-hosted
+@@ -95,7 +81,7 @@ jobs:
+           distribution: 'graalvm-community'
+           github-token: ${{ secrets.GITHUB_TOKEN }}
+ 
+-      - run: mvn -U clean install -Pwith-sources -DskipDockerTestDB -DskipTests -DskipUITests
++      - run: mvn -U clean install -Pwith-sources -DskipTests -DskipUITests
+       - name: Upload binaries
+         run: >-
+           cd structr-app &&       
+diff --git a/pom.xml b/pom.xml
+index b4ec1021a5..9197a44bf2 100644
+--- a/pom.xml
++++ b/pom.xml
+@@ -646,6 +646,31 @@
+ 				<artifactId>org.eclipse.elk.alg.disco</artifactId>
+ 				<version>${elk.version}</version>
+ 			</dependency>
++
++			<dependency>
++				<groupId>org.testcontainers</groupId>
++				<artifactId>testcontainers</artifactId>
++				<version>2.0.2</version>
++				<scope>test</scope>
++			</dependency>
++			<dependency>
++				<groupId>org.testcontainers</groupId>
++				<artifactId>testcontainers-neo4j</artifactId>
++				<version>2.0.2</version>
++				<scope>test</scope>
++			</dependency>
++			<dependency>
++				<groupId>com.github.dasniko</groupId>
++				<artifactId>testcontainers-keycloak</artifactId>
++				<version>3.5.1</version>
++				<scope>test</scope>
++				<exclusions>
++					<exclusion>
++						<groupId>jakarta.xml.bind</groupId>
++						<artifactId>jakarta.xml.bind-api</artifactId>
++					</exclusion>
++				</exclusions>
++			</dependency>
+ 		</dependencies>
+ 	</dependencyManagement>
+ 
+diff --git a/structr-base/pom.xml b/structr-base/pom.xml
+index 4f4d0ea91a..d8055a7326 100644
+--- a/structr-base/pom.xml
++++ b/structr-base/pom.xml
+@@ -401,6 +401,18 @@
+             <version>3.4.0</version>
+             <scope>compile</scope>
+         </dependency>
++	    <dependency>
++		    <groupId>org.testcontainers</groupId>
++		    <artifactId>testcontainers</artifactId>
++	    </dependency>
++	    <dependency>
++		    <groupId>org.testcontainers</groupId>
++		    <artifactId>testcontainers-neo4j</artifactId>
++	    </dependency>
++	    <dependency>
++		    <groupId>com.github.dasniko</groupId>
++		    <artifactId>testcontainers-keycloak</artifactId>
++	    </dependency>
+     </dependencies>
+ 
+     <build>
+@@ -525,7 +537,6 @@
+                             <!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
+                             <systemPropertyVariables>
+                                 <testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+-                                <testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
+                             </systemPropertyVariables>
+                         </configuration>
+                         <executions>
+@@ -537,55 +548,6 @@
+                             </execution>
+                         </executions>
+                     </plugin>
+-                    <plugin>
+-                        <groupId>io.fabric8</groupId>
+-                        <artifactId>docker-maven-plugin</artifactId>
+-                        <version>${docker.maven.plugin.version}</version>
+-                        <executions>
+-                            <execution>
+-                                <id>prepare-database</id>
+-                                <phase>pre-integration-test</phase>
+-                                <goals>
+-                                    <goal>start</goal>
+-                                </goals>
+-                                <configuration>
+-                                    <images>
+-                                        <image>
+-                                            <name>${test.neo4j.version}</name>
+-                                            <alias>database</alias>
+-                                            <run>
+-                                                <ports>
+-                                                    <port>7689:7687</port>
+-                                                </ports>
+-                                                <wait>
+-                                                    <log>(.?)Bolt enabled on(.?)</log>
+-                                                    <time>20000</time>
+-                                                </wait>
+-                                                <env>
+-                                                    <NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
+-                                                    <NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+-                                                    <NEO4J_server_memory_heap_max__size>4G</NEO4J_server_memory_heap_max__size>
+-                                                    <NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
+-                                                </env>
+-                                            </run>
+-                                        </image>
+-                                    </images>
+-                                    <skip>${skipDockerTestDB}</skip>
+-                                </configuration>
+-                            </execution>
+-                            <execution>
+-                                <id>remove-database</id>
+-                                <phase>post-integration-test</phase>
+-                                <goals>
+-                                    <goal>stop</goal>
+-                                </goals>
+-                                <configuration>
+-                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
+-                                    <skip>${skipDockerTestDB}</skip>
+-                                </configuration>
+-                            </execution>
+-                        </executions>
+-                    </plugin>
+                 </plugins>
+             </build>
+         </profile>
+diff --git a/structr-base/src/test/java/org/structr/test/common/LicensingTest.java b/structr-base/src/test/java/org/structr/test/common/LicensingTest.java
+index a4cc2ec597..a30d319171 100644
+--- a/structr-base/src/test/java/org/structr/test/common/LicensingTest.java
++++ b/structr-base/src/test/java/org/structr/test/common/LicensingTest.java
+@@ -20,7 +20,6 @@ package org.structr.test.common;
+ 
+ import org.apache.commons.io.FileUtils;
+ import org.apache.commons.lang3.RandomStringUtils;
+-import org.apache.commons.lang3.StringUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.structr.api.config.Settings;
+@@ -34,6 +33,8 @@ import org.structr.core.graph.Tx;
+ import org.structr.schema.SchemaService;
+ import org.testng.annotations.*;
+ 
++import org.structr.test.common.SharedNeo4jContainer;
++
+ import java.io.File;
+ import java.lang.reflect.Method;
+ import java.util.Date;
+@@ -84,9 +85,8 @@ public class LicensingTest {
+ 		FlushCachesCommand.flushAll();
+ 	}
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass
+-	public void startSystem(@Optional String testDatabaseConnection) {
++	public void startSystem() {
+ 
+ 		Services.disableTestingMode();
+ 		Services.disableIndexConfiguration();
+@@ -98,7 +98,7 @@ public class LicensingTest {
+ 
+ 		Settings.Services.setValue("NodeService LogService SchemaService");
+ 
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+@@ -155,18 +155,17 @@ public class LicensingTest {
+ 	}
+ 
+ 
+-	protected void setupDatabaseConnection(String testDatabaseConnection) {
++	protected void setupDatabaseConnection() {
++		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
++		Settings.DatabaseDriver.setValue(testDriver);
+ 
+-		// use database driver from system property, default to MemoryDatabaseService
+-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+-		Settings.ConnectionUser.setValue("neo4j");
+-		Settings.ConnectionPassword.setValue("admin123");
+-		if (StringUtils.isBlank(testDatabaseConnection)) {
+-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+-		} else {
+-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
++		if (testDriver.contains("Bolt")) {
++			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
++			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
++			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
++			Settings.ConnectionDatabaseName.setValue("neo4j");
+ 		}
+-		Settings.ConnectionDatabaseName.setValue("neo4j");
++
+ 		Settings.TenantIdentifier.setValue(randomTenantId);
+ 	}
+ }
+diff --git a/structr-base/src/test/java/org/structr/test/common/StructrTest.java b/structr-base/src/test/java/org/structr/test/common/StructrTest.java
+index 4de51e23bc..f4dea48d7b 100644
+--- a/structr-base/src/test/java/org/structr/test/common/StructrTest.java
++++ b/structr-base/src/test/java/org/structr/test/common/StructrTest.java
+@@ -20,7 +20,6 @@ package org.structr.test.common;
+ 
+ import org.apache.commons.io.FileUtils;
+ import org.apache.commons.lang3.RandomStringUtils;
+-import org.apache.commons.lang3.StringUtils;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+ import org.structr.api.DatabaseService;
+@@ -49,7 +48,8 @@ import org.structr.schema.action.EvaluationHints;
+ import org.structr.test.core.traits.definitions.*;
+ import org.structr.test.core.traits.definitions.relationships.*;
+ import org.testng.annotations.*;
+-import org.testng.annotations.Optional;
++
++import org.structr.test.common.SharedNeo4jContainer;
+ 
+ import java.io.File;
+ import java.lang.reflect.Method;
+@@ -105,9 +105,8 @@ public class StructrTest {
+ 		first = false;
+ 	}
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+-	public void startSystem(@Optional final String testDatabaseConnection) {
++	public void startSystem() {
+ 
+ 		final Date now          = new Date();
+ 		final long timestamp    = now.getTime();
+@@ -116,7 +115,7 @@ public class StructrTest {
+ 
+ 		Settings.Services.setValue("NodeService SchemaService");
+ 
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+@@ -405,20 +404,17 @@ public class StructrTest {
+ 		return null;
+ 	}
+ 
+-	protected void setupDatabaseConnection(String testDatabaseConnection) {
+-
+-		// use database driver from system property, default to MemoryDatabaseService
+-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
+-		//Settings.DatabaseDriver.setValue(Settings.DEFAULT_DATABASE_DRIVER);
++	protected void setupDatabaseConnection() {
++		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
++		Settings.DatabaseDriver.setValue(testDriver);
+ 
+-		Settings.ConnectionUser.setValue("neo4j");
+-		Settings.ConnectionPassword.setValue("admin123");
+-		if (StringUtils.isBlank(testDatabaseConnection)) {
+-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+-		} else {
+-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
++		if (testDriver.contains("Bolt")) {
++			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
++			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
++			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
++			Settings.ConnectionDatabaseName.setValue("neo4j");
+ 		}
+-		Settings.ConnectionDatabaseName.setValue("neo4j");
++
+ 		Settings.TenantIdentifier.setValue(randomTenantId);
+ 	}
+ 
+diff --git a/structr-base/src/test/java/org/structr/test/csv/StructrCsvTest.java b/structr-base/src/test/java/org/structr/test/csv/StructrCsvTest.java
+index e2153c9399..d4e263759d 100644
+--- a/structr-base/src/test/java/org/structr/test/csv/StructrCsvTest.java
++++ b/structr-base/src/test/java/org/structr/test/csv/StructrCsvTest.java
+@@ -40,10 +40,9 @@ public class StructrCsvTest extends StructrRestTestBase {
+ 
+ 	protected static final String csvUrl = "/structr/csv";
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		final long timestamp = System.nanoTime();
+ 
+@@ -53,7 +52,7 @@ public class StructrCsvTest extends StructrRestTestBase {
+ 
+ 		Settings.Services.setValue("NodeService SchemaService HttpService");
+ 
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+diff --git a/structr-base/src/test/java/org/structr/test/files/DirectoryWatchServiceTest.java b/structr-base/src/test/java/org/structr/test/files/DirectoryWatchServiceTest.java
+index 00eac9f89e..d04ff0ac97 100644
+--- a/structr-base/src/test/java/org/structr/test/files/DirectoryWatchServiceTest.java
++++ b/structr-base/src/test/java/org/structr/test/files/DirectoryWatchServiceTest.java
+@@ -72,14 +72,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
+ 
+ 	private static final Logger logger = LoggerFactory.getLogger(DirectoryWatchServiceTest.class.getName());
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		Settings.Services.setValue("NodeService SchemaService HttpService DirectoryWatchService");
+ 
+-		super.setup(testDatabaseConnection);
++		super.setup();
+ 	}
+ 
+ 	@Test
+diff --git a/structr-base/src/test/java/org/structr/test/rest/common/IndexingTest.java b/structr-base/src/test/java/org/structr/test/rest/common/IndexingTest.java
+index c4671bd8da..9a6810a6ae 100644
+--- a/structr-base/src/test/java/org/structr/test/rest/common/IndexingTest.java
++++ b/structr-base/src/test/java/org/structr/test/rest/common/IndexingTest.java
+@@ -36,10 +36,9 @@ import org.testng.annotations.Parameters;
+  */
+ public abstract class IndexingTest extends StructrRestTestBase {
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		final long timestamp = System.nanoTime();
+ 
+@@ -48,7 +47,7 @@ public abstract class IndexingTest extends StructrRestTestBase {
+ 		basePath = "/tmp/structr-test-" + timestamp;
+ 
+ 		Settings.Services.setValue("NodeService SchemaService HttpService");
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+diff --git a/structr-base/src/test/java/org/structr/test/rest/common/StructrRestTestBase.java b/structr-base/src/test/java/org/structr/test/rest/common/StructrRestTestBase.java
+index 6315232aba..e4d784284a 100644
+--- a/structr-base/src/test/java/org/structr/test/rest/common/StructrRestTestBase.java
++++ b/structr-base/src/test/java/org/structr/test/rest/common/StructrRestTestBase.java
+@@ -21,7 +21,6 @@ package org.structr.test.rest.common;
+ import io.restassured.RestAssured;
+ import org.apache.commons.io.FileUtils;
+ import org.apache.commons.lang3.RandomStringUtils;
+-import org.apache.commons.lang3.StringUtils;
+ import org.hamcrest.Matcher;
+ import org.slf4j.Logger;
+ import org.slf4j.LoggerFactory;
+@@ -47,6 +46,8 @@ import org.structr.test.rest.traits.definitions.*;
+ import org.structr.test.rest.traits.definitions.relationships.*;
+ import org.testng.annotations.*;
+ 
++import org.structr.test.common.SharedNeo4jContainer;
++
+ import java.io.File;
+ import java.lang.reflect.Method;
+ import java.util.LinkedHashMap;
+@@ -73,9 +74,8 @@ public abstract class StructrRestTestBase {
+ 	protected final String host        = "127.0.0.1";
+ 	protected int httpPort             = 0;
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		final long timestamp = System.nanoTime();
+ 
+@@ -84,7 +84,7 @@ public abstract class StructrRestTestBase {
+ 		basePath = "/tmp/structr-test-" + timestamp;
+ 
+ 		Settings.Services.setValue("NodeService SchemaService HttpService");
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+@@ -262,18 +262,17 @@ public abstract class StructrRestTestBase {
+ 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
+ 	}
+ 
+-	protected void setupDatabaseConnection(String testDatabaseConnection) {
++	protected void setupDatabaseConnection() {
++		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
++		Settings.DatabaseDriver.setValue(testDriver);
+ 
+-		// use database driver from system property, default to MemoryDatabaseService
+-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
+-		Settings.ConnectionUser.setValue("neo4j");
+-		Settings.ConnectionPassword.setValue("admin123");
+-		if (StringUtils.isBlank(testDatabaseConnection)) {
+-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+-		} else {
+-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
++		if (testDriver.contains("Bolt")) {
++			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
++			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
++			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
++			Settings.ConnectionDatabaseName.setValue("neo4j");
+ 		}
+-		Settings.ConnectionDatabaseName.setValue("neo4j");
++
+ 		Settings.TenantIdentifier.setValue(randomTenantId);
+ 	}
+ 
+@@ -385,6 +384,7 @@ public abstract class StructrRestTestBase {
+ 		return "TestUser";
+ 	}
+ 
++
+ 	// ----- static methods -----
+ //	public static void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {
+ //
+diff --git a/structr-base/src/test/java/org/structr/test/rest/test/PropertyViewRestTest.java b/structr-base/src/test/java/org/structr/test/rest/test/PropertyViewRestTest.java
+index 6f27006d54..1786a46350 100644
+--- a/structr-base/src/test/java/org/structr/test/rest/test/PropertyViewRestTest.java
++++ b/structr-base/src/test/java/org/structr/test/rest/test/PropertyViewRestTest.java
+@@ -37,8 +37,6 @@ import org.structr.core.traits.definitions.SchemaViewTraitDefinition;
+ import org.structr.schema.export.StructrSchema;
+ import org.structr.test.rest.common.StructrRestTestBase;
+ import org.testng.annotations.BeforeClass;
+-import org.testng.annotations.Optional;
+-import org.testng.annotations.Parameters;
+ import org.testng.annotations.Test;
+ 
+ import static org.hamcrest.Matchers.*;
+@@ -49,12 +47,11 @@ import static org.testng.AssertJUnit.fail;
+  */
+ public class PropertyViewRestTest extends StructrRestTestBase {
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+-		super.setup(testDatabaseConnection);
++		super.setup();
+ 
+ 		// modify default date format
+ 		Settings.DefaultDateFormat.setValue("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+diff --git a/structr-base/src/test/java/org/structr/test/web/IndexingTest.java b/structr-base/src/test/java/org/structr/test/web/IndexingTest.java
+index a07addfbcb..db906231a5 100644
+--- a/structr-base/src/test/java/org/structr/test/web/IndexingTest.java
++++ b/structr-base/src/test/java/org/structr/test/web/IndexingTest.java
+@@ -35,17 +35,16 @@ import org.testng.annotations.Parameters;
+  */
+ public abstract class IndexingTest extends StructrUiTest {
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		final long timestamp = System.nanoTime();
+ 
+ 		basePath = "/tmp/structr-test-" + timestamp;
+ 
+ 		Settings.Services.setValue("NodeService SchemaService HttpService AgentService");
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+diff --git a/structr-base/src/test/java/org/structr/test/web/StructrUiTest.java b/structr-base/src/test/java/org/structr/test/web/StructrUiTest.java
+index 57da5161c8..106562e6ed 100644
+--- a/structr-base/src/test/java/org/structr/test/web/StructrUiTest.java
++++ b/structr-base/src/test/java/org/structr/test/web/StructrUiTest.java
+@@ -48,7 +48,8 @@ import org.structr.test.web.entity.traits.definitions.*;
+ import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
+ import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
+ import org.testng.annotations.*;
+-import org.testng.annotations.Optional;
++
++import org.structr.test.common.SharedNeo4jContainer;
+ 
+ import java.io.File;
+ import java.io.IOException;
+@@ -75,9 +76,8 @@ public abstract class StructrUiTest {
+ 	protected String baseUri           = null;
+ 	protected boolean first            = true;
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		final long timestamp = System.currentTimeMillis();
+ 
+@@ -85,7 +85,7 @@ public abstract class StructrUiTest {
+ 
+ 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
+ 
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+@@ -645,18 +645,17 @@ public abstract class StructrUiTest {
+ 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
+ 	}
+ 
+-	protected void setupDatabaseConnection(String testDatabaseConnection) {
++	protected void setupDatabaseConnection() {
++		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
++		Settings.DatabaseDriver.setValue(testDriver);
+ 
+-		// use database driver from system property, default to MemoryDatabaseService
+-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
+-		Settings.ConnectionUser.setValue("neo4j");
+-		Settings.ConnectionPassword.setValue("admin123");
+-		if (StringUtils.isBlank(testDatabaseConnection)) {
+-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+-		} else {
+-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
++		if (testDriver.contains("Bolt")) {
++			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
++			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
++			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
++			Settings.ConnectionDatabaseName.setValue("neo4j");
+ 		}
+-		Settings.ConnectionDatabaseName.setValue("neo4j");
++
+ 		Settings.TenantIdentifier.setValue(randomTenantId);
+ 	}
+ 
+diff --git a/structr-base/src/test/java/org/structr/test/web/advanced/ProxyServletTest.java b/structr-base/src/test/java/org/structr/test/web/advanced/ProxyServletTest.java
+index ed0efdbb97..ce43b0929d 100644
+--- a/structr-base/src/test/java/org/structr/test/web/advanced/ProxyServletTest.java
++++ b/structr-base/src/test/java/org/structr/test/web/advanced/ProxyServletTest.java
+@@ -36,15 +36,14 @@ import static org.testng.AssertJUnit.fail;
+ 
+ public class ProxyServletTest extends StructrUiTest {
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 		final long timestamp = System.currentTimeMillis();
+ 
+ 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
+ 
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+diff --git a/structr-base/src/test/java/org/structr/test/web/basic/BasicAuthTest.java b/structr-base/src/test/java/org/structr/test/web/basic/BasicAuthTest.java
+index 1885a295d4..80a7a06840 100644
+--- a/structr-base/src/test/java/org/structr/test/web/basic/BasicAuthTest.java
++++ b/structr-base/src/test/java/org/structr/test/web/basic/BasicAuthTest.java
+@@ -51,11 +51,10 @@ import static org.testng.AssertJUnit.fail;
+ 
+ public class BasicAuthTest extends StructrUiTest {
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
+-		super.setup(testDatabaseConnection);
++	public void setup() {
++		super.setup();
+ 		Settings.HttpBasicAuthEnabled.setValue(true);
+ 	}
+ 
+diff --git a/structr-base/src/test/java/org/structr/test/web/basic/HtmlServletObjectResolvingTest.java b/structr-base/src/test/java/org/structr/test/web/basic/HtmlServletObjectResolvingTest.java
+index fcfcaffe52..24f445db40 100644
+--- a/structr-base/src/test/java/org/structr/test/web/basic/HtmlServletObjectResolvingTest.java
++++ b/structr-base/src/test/java/org/structr/test/web/basic/HtmlServletObjectResolvingTest.java
+@@ -47,15 +47,14 @@ import java.util.List;
+ 
+ public class HtmlServletObjectResolvingTest extends StructrUiTest {
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		// important: these settings must be made before HttpService is initialized..
+ 		Settings.HtmlResolveProperties.setValue("TestOne.anInt, TestOne.aString, TestOne.aDouble");
+ 
+-		super.setup(testDatabaseConnection);
++		super.setup();
+ 	}
+ 
+ 	@Test
+diff --git a/structr-base/src/test/java/org/structr/test/web/rest/CORSMixedTest.java b/structr-base/src/test/java/org/structr/test/web/rest/CORSMixedTest.java
+index bb7fb4c256..01026de1a8 100644
+--- a/structr-base/src/test/java/org/structr/test/web/rest/CORSMixedTest.java
++++ b/structr-base/src/test/java/org/structr/test/web/rest/CORSMixedTest.java
+@@ -35,12 +35,11 @@ public class CORSMixedTest extends StructrUiTest {
+ 
+     private static final Logger logger = LoggerFactory.getLogger(CORSMixedTest.class.getName());
+ 
+-    @Parameters("testDatabaseConnection")
+     @BeforeClass(alwaysRun = true)
+     @Override
+-    public void setup(@Optional String testDatabaseConnection) {
++    public void setup() {
+ 
+-        super.setup(testDatabaseConnection);
++        super.setup();
+ 
+         Settings.AccessControlAcceptedOrigins.setValue("*, " + RestAssured.baseURI);
+         Settings.AccessControlMaxAge.setValue(1200);
+diff --git a/structr-full-tests/pom.xml b/structr-full-tests/pom.xml
+index 799ceff5f9..91bbf40615 100644
+--- a/structr-full-tests/pom.xml
++++ b/structr-full-tests/pom.xml
+@@ -158,6 +158,14 @@
+             <version>6.0-SNAPSHOT</version>
+             <scope>test</scope>
+         </dependency>
++	    <dependency>
++		    <groupId>org.testcontainers</groupId>
++		    <artifactId>testcontainers</artifactId>
++	    </dependency>
++	    <dependency>
++		    <groupId>org.testcontainers</groupId>
++		    <artifactId>testcontainers-neo4j</artifactId>
++	    </dependency>
+     </dependencies>
+ 
+ <!--    <build>-->
+diff --git a/structr-full-tests/src/test/java/org/structr/test/FullStructrTest.java b/structr-full-tests/src/test/java/org/structr/test/FullStructrTest.java
+index 7a032968cb..52564643a1 100644
+--- a/structr-full-tests/src/test/java/org/structr/test/FullStructrTest.java
++++ b/structr-full-tests/src/test/java/org/structr/test/FullStructrTest.java
+@@ -59,6 +59,8 @@ import org.structr.xmpp.XMPPModule;
+ import org.testng.annotations.*;
+ import org.testng.annotations.Optional;
+ 
++import org.structr.test.common.SharedNeo4jContainer;
++
+ import java.io.File;
+ import java.io.IOException;
+ import java.io.RandomAccessFile;
+@@ -88,9 +90,8 @@ public abstract class FullStructrTest {
+ 	protected String baseUri           = null;
+ 	protected boolean first            = true;
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		final long timestamp = System.currentTimeMillis();
+ 
+@@ -98,7 +99,7 @@ public abstract class FullStructrTest {
+ 
+ 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
+ 
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+@@ -662,18 +663,17 @@ public abstract class FullStructrTest {
+ 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
+ 	}
+ 
+-	protected void setupDatabaseConnection(String testDatabaseConnection) {
++	protected void setupDatabaseConnection() {
++		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
++		Settings.DatabaseDriver.setValue(testDriver);
+ 
+-		// use database driver from system property, default to MemoryDatabaseService
+-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
+-		Settings.ConnectionUser.setValue("neo4j");
+-		Settings.ConnectionPassword.setValue("admin123");
+-		if (StringUtils.isBlank(testDatabaseConnection)) {
+-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+-		} else {
+-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
++		if (testDriver.contains("Bolt")) {
++			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
++			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
++			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
++			Settings.ConnectionDatabaseName.setValue("neo4j");
+ 		}
+-		Settings.ConnectionDatabaseName.setValue("neo4j");
++
+ 		Settings.TenantIdentifier.setValue(randomTenantId);
+ 	}
+ 
+diff --git a/structr-modules/pom.xml b/structr-modules/pom.xml
+index 72af324a63..fa21bcee44 100644
+--- a/structr-modules/pom.xml
++++ b/structr-modules/pom.xml
+@@ -77,7 +77,6 @@
+ 							<!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
+ 							<systemPropertyVariables>
+ 								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+-								<testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
+ 							</systemPropertyVariables>
+ 						</configuration>
+ 						<executions>
+@@ -89,55 +88,7 @@
+ 							</execution>
+ 						</executions>
+ 					</plugin>
+-					<plugin>
+-						<groupId>io.fabric8</groupId>
+-						<artifactId>docker-maven-plugin</artifactId>
+-						<version>${docker.maven.plugin.version}</version>
+-						<executions>
+-							<execution>
+-								<id>prepare-database</id>
+-								<phase>pre-integration-test</phase>
+-								<goals>
+-									<goal>start</goal>
+-								</goals>
+-								<configuration>
+-									<images>
+-										<image>
+-											<name>${test.neo4j.version}</name>
+-											<alias>database</alias>
+-											<run>
+-												<ports>
+-													<port>7690:7687</port>
+-												</ports>
+-												<wait>
+-													<log>(.?)Bolt enabled on(.?)</log>
+-													<time>20000</time>
+-												</wait>
+-												<env>
+-													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
+-													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+-													<NEO4J_server_memory_heap_max__size>4G</NEO4J_server_memory_heap_max__size>
+-													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
+-												</env>
+-											</run>
+-										</image>
+-									</images>
+-									<skip>${skipDockerTestDB}</skip>
+-								</configuration>
+-							</execution>
+-							<execution>
+-								<id>remove-database</id>
+-								<phase>post-integration-test</phase>
+-								<goals>
+-									<goal>stop</goal>
+-								</goals>
+-								<configuration>
+-<!--									<executeStopOnVMShutdown>true</executeStopOnVMShutdown>-->
+-									<skip>${skipDockerTestDB}</skip>
+-								</configuration>
+-							</execution>
+-						</executions>
+-					</plugin>
++
+ 				</plugins>
+ 			</build>
+ 		</profile>
+diff --git a/structr-modules/structr-api-builder-module/pom.xml b/structr-modules/structr-api-builder-module/pom.xml
+index f120ee1e36..670073bab7 100644
+--- a/structr-modules/structr-api-builder-module/pom.xml
++++ b/structr-modules/structr-api-builder-module/pom.xml
+@@ -35,6 +35,14 @@
+ 			<optional>true</optional>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+ 
+     </dependencies>
+ 
+diff --git a/structr-modules/structr-api-builder-module/src/test/java/org/structr/test/CsvTestBase.java b/structr-modules/structr-api-builder-module/src/test/java/org/structr/test/CsvTestBase.java
+index 8b7fe7952c..d2c141bc41 100644
+--- a/structr-modules/structr-api-builder-module/src/test/java/org/structr/test/CsvTestBase.java
++++ b/structr-modules/structr-api-builder-module/src/test/java/org/structr/test/CsvTestBase.java
+@@ -48,7 +48,8 @@ import org.structr.test.web.entity.traits.definitions.*;
+ import org.structr.test.web.entity.traits.definitions.relationships.FourThreeOneToOne;
+ import org.structr.test.web.entity.traits.definitions.relationships.TwoFiveOneToMany;
+ import org.testng.annotations.*;
+-import org.testng.annotations.Optional;
++
++import org.structr.test.common.SharedNeo4jContainer;
+ 
+ import java.io.File;
+ import java.io.IOException;
+@@ -75,9 +76,8 @@ public abstract class CsvTestBase {
+ 	protected String baseUri           = null;
+ 	protected boolean first            = true;
+ 
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		final long timestamp = System.currentTimeMillis();
+ 
+@@ -85,7 +85,7 @@ public abstract class CsvTestBase {
+ 
+ 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
+ 
+-		setupDatabaseConnection(testDatabaseConnection);
++		setupDatabaseConnection();
+ 
+ 		// example for new configuration setup
+ 		Settings.BasePath.setValue(basePath);
+@@ -633,18 +633,17 @@ public abstract class CsvTestBase {
+ 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
+ 	}
+ 
+-	protected void setupDatabaseConnection(String testDatabaseConnection) {
++	protected void setupDatabaseConnection() {
++		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
++		Settings.DatabaseDriver.setValue(testDriver);
+ 
+-		// use database driver from system property, default to MemoryDatabaseService
+-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
+-		Settings.ConnectionUser.setValue("neo4j");
+-		Settings.ConnectionPassword.setValue("admin123");
+-		if (StringUtils.isBlank(testDatabaseConnection)) {
+-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+-		} else {
+-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
++		if (testDriver.contains("Bolt")) {
++			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
++			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
++			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
++			Settings.ConnectionDatabaseName.setValue("neo4j");
+ 		}
+-		Settings.ConnectionDatabaseName.setValue("neo4j");
++
+ 		Settings.TenantIdentifier.setValue(randomTenantId);
+ 	}
+ 
+diff --git a/structr-modules/structr-csv-module/pom.xml b/structr-modules/structr-csv-module/pom.xml
+index 12ac0402bf..3a58be3ece 100644
+--- a/structr-modules/structr-csv-module/pom.xml
++++ b/structr-modules/structr-csv-module/pom.xml
+@@ -39,6 +39,14 @@
+ 			<optional>true</optional>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+ 	</dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-data-feeds-module/pom.xml b/structr-modules/structr-data-feeds-module/pom.xml
+index feddc68e19..2ce6aebbeb 100644
+--- a/structr-modules/structr-data-feeds-module/pom.xml
++++ b/structr-modules/structr-data-feeds-module/pom.xml
+@@ -43,6 +43,14 @@
+             <optional>true</optional>
+             <scope>test</scope>
+         </dependency>
++	    <dependency>
++		    <groupId>org.testcontainers</groupId>
++		    <artifactId>testcontainers</artifactId>
++	    </dependency>
++	    <dependency>
++		    <groupId>org.testcontainers</groupId>
++		    <artifactId>testcontainers-neo4j</artifactId>
++	    </dependency>
+     </dependencies>
+     <build>
+         <plugins>
+diff --git a/structr-modules/structr-file-access-module/pom.xml b/structr-modules/structr-file-access-module/pom.xml
+index 6db5320459..2182d417bc 100644
+--- a/structr-modules/structr-file-access-module/pom.xml
++++ b/structr-modules/structr-file-access-module/pom.xml
+@@ -74,6 +74,14 @@
+ 			<optional>true</optional>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+ 	</dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-file-access-module/src/test/java/org/structr/test/web/files/StructrFileTestBase.java b/structr-modules/structr-file-access-module/src/test/java/org/structr/test/web/files/StructrFileTestBase.java
+index 6914220b89..f53369fffb 100644
+--- a/structr-modules/structr-file-access-module/src/test/java/org/structr/test/web/files/StructrFileTestBase.java
++++ b/structr-modules/structr-file-access-module/src/test/java/org/structr/test/web/files/StructrFileTestBase.java
+@@ -36,18 +36,16 @@ public abstract class StructrFileTestBase extends StructrUiTest {
+ 	protected int ftpPort = 8876 + new Random().nextInt(1000);
+ 	protected int sshPort = 8877 + new Random().nextInt(1000);
+ 
+-
+-	@Parameters("testDatabaseConnection")
+ 	@BeforeClass(alwaysRun = true)
+ 	@Override
+-	public void setup(@Optional String testDatabaseConnection) {
++	public void setup() {
+ 
+ 		Settings.Services.setValue("NodeService SchemaService FtpService SSHService");
+ 
+ 		Settings.FtpPort.setValue(ftpPort);
+ 		Settings.SshPort.setValue(sshPort);
+ 
+-		super.setup(testDatabaseConnection);
++		super.setup();
+ 	}
+ }
+ 
+diff --git a/structr-modules/structr-flow-module/pom.xml b/structr-modules/structr-flow-module/pom.xml
+index 9ccfd17d3f..c9fd721531 100644
+--- a/structr-modules/structr-flow-module/pom.xml
++++ b/structr-modules/structr-flow-module/pom.xml
+@@ -34,6 +34,14 @@
+ 			<artifactId>testng</artifactId>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+ 	</dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-knowledge-module/pom.xml b/structr-modules/structr-knowledge-module/pom.xml
+index 4bd2f0521b..c21afa1316 100644
+--- a/structr-modules/structr-knowledge-module/pom.xml
++++ b/structr-modules/structr-knowledge-module/pom.xml
+@@ -41,6 +41,14 @@
+ 			<optional>true</optional>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+     </dependencies>
+ 
+ <!--	<build>-->
+diff --git a/structr-modules/structr-media-module/pom.xml b/structr-modules/structr-media-module/pom.xml
+index ccf27c22f1..6fb957276f 100644
+--- a/structr-modules/structr-media-module/pom.xml
++++ b/structr-modules/structr-media-module/pom.xml
+@@ -34,6 +34,14 @@
+ 			<optional>true</optional>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+     </dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-messaging-engine-module/pom.xml b/structr-modules/structr-messaging-engine-module/pom.xml
+index 3fb5ecc708..96a8d2832f 100644
+--- a/structr-modules/structr-messaging-engine-module/pom.xml
++++ b/structr-modules/structr-messaging-engine-module/pom.xml
+@@ -61,6 +61,15 @@
+ 			<artifactId>testng</artifactId>
+ 			<scope>test</scope>
+ 		</dependency>
++
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+ 	</dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-odf-module/pom.xml b/structr-modules/structr-odf-module/pom.xml
+index efdd78ccf0..0e27d87a85 100644
+--- a/structr-modules/structr-odf-module/pom.xml
++++ b/structr-modules/structr-odf-module/pom.xml
+@@ -64,6 +64,14 @@
+ 			<optional>true</optional>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+     </dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-text-search-module/pom.xml b/structr-modules/structr-text-search-module/pom.xml
+index 40583463a4..453915b7a5 100644
+--- a/structr-modules/structr-text-search-module/pom.xml
++++ b/structr-modules/structr-text-search-module/pom.xml
+@@ -64,6 +64,14 @@
+ 			<optional>true</optional>
+ 			<scope>test</scope>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+     </dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-translation-module/pom.xml b/structr-modules/structr-translation-module/pom.xml
+index 8f31bcb540..a7336e59ac 100644
+--- a/structr-modules/structr-translation-module/pom.xml
++++ b/structr-modules/structr-translation-module/pom.xml
+@@ -58,6 +58,14 @@
+             <artifactId>testng</artifactId>
+             <scope>test</scope>
+         </dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+ 	</dependencies>
+ 
+ 	<build>
+diff --git a/structr-modules/structr-xmpp-module/pom.xml b/structr-modules/structr-xmpp-module/pom.xml
+index 92a73b9954..e6be89e03b 100644
+--- a/structr-modules/structr-xmpp-module/pom.xml
++++ b/structr-modules/structr-xmpp-module/pom.xml
+@@ -65,6 +65,14 @@
+ 			<artifactId>logback-classic</artifactId>
+ 			<optional>true</optional>
+ 		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers</artifactId>
++		</dependency>
++		<dependency>
++			<groupId>org.testcontainers</groupId>
++			<artifactId>testcontainers-neo4j</artifactId>
++		</dependency>
+     </dependencies>
+ 
+ 	<build>
+diff --git a/structr-test-configuration/pom.xml b/structr-test-configuration/pom.xml
+index 4e095a610e..8df0af5719 100644
+--- a/structr-test-configuration/pom.xml
++++ b/structr-test-configuration/pom.xml
+@@ -56,7 +56,6 @@
+ 							<!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
+ 							<systemPropertyVariables>
+ 								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+-								<testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
+ 							</systemPropertyVariables>
+ 						</configuration>
+ 						<executions>
+@@ -69,56 +68,22 @@
+ 						</executions>
+ 					</plugin>
+ 					<plugin>
+-						<groupId>io.fabric8</groupId>
+-						<artifactId>docker-maven-plugin</artifactId>
+-                        <version>${docker.maven.plugin.version}</version>
+-						<configuration>
+-						    <autoCreateCustomNetworks>true</autoCreateCustomNetworks>
+-						    <removeMode>all</removeMode>
+-						    <keepContainer>false</keepContainer>
+-						</configuration>
++						<groupId>org.codehaus.mojo</groupId>
++						<artifactId>exec-maven-plugin</artifactId>
++						<version>3.1.0</version>
+ 						<executions>
+ 							<execution>
+-								<id>prepare-database</id>
+-								<phase>pre-integration-test</phase>
+-								<goals>
+-									<goal>start</goal>
+-								</goals>
+-								<configuration>
+-
+-									<images>
+-										<image>
+-											<name>${test.neo4j.version}</name>
+-											<alias>database</alias>
+-											<run>
+-												<ports>
+-													<port>7689:7687</port>
+-												</ports>
+-												<wait>
+-													<log>(.?)Bolt enabled on(.?)</log>
+-													<time>20000</time>
+-												</wait>
+-												<env>
+-													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
+-													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
+-													<NEO4J_server_memory_heap_max__size>2G</NEO4J_server_memory_heap_max__size>
+-													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
+-												</env>
+-											</run>
+-										</image>
+-									</images>
+-									<skip>${skipDockerTestDB}</skip>
+-								</configuration>
+-							</execution>
+-							<execution>
+-								<id>remove-database</id>
++								<id>cleanup-test-containers</id>
+ 								<phase>post-integration-test</phase>
+ 								<goals>
+-									<goal>stop</goal>
++									<goal>exec</goal>
+ 								</goals>
+ 								<configuration>
+-									<skip>${skipDockerTestDB}</skip>
+-                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
++									<executable>bash</executable>
++									<arguments>
++										<argument>-c</argument>
++										<argument>docker ps -q --filter "label=purpose=structr-test-neo4j" | xargs -r docker stop || true</argument>
++									</arguments>
+ 								</configuration>
+ 							</execution>
+ 						</executions>
+@@ -157,6 +122,7 @@
+ 				</plugins>
+ 			</build>
+ 		</profile>
++
+ 	</profiles>
+ 
+ </project>

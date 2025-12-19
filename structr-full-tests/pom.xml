@@ -158,6 +158,14 @@
             <version>6.0-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>
+	    <dependency>
+		    <groupId>org.testcontainers</groupId>
+		    <artifactId>testcontainers</artifactId>
+	    </dependency>
+	    <dependency>
+		    <groupId>org.testcontainers</groupId>
+		    <artifactId>testcontainers-neo4j</artifactId>
+	    </dependency>
     </dependencies>
 
 <!--    <build>-->

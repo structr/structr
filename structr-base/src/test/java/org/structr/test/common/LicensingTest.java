@@ -20,7 +20,6 @@ package org.structr.test.common;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -33,6 +32,8 @@ import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaService;
 import org.testng.annotations.*;
+
+import org.structr.test.common.SharedNeo4jContainer;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -84,9 +85,8 @@ public class LicensingTest {
 		FlushCachesCommand.flushAll();
 	}
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass
-	public void startSystem(@Optional String testDatabaseConnection) {
+	public void startSystem() {
 
 		Services.disableTestingMode();
 		Services.disableIndexConfiguration();
@@ -98,7 +98,7 @@ public class LicensingTest {
 
 		Settings.Services.setValue("NodeService LogService SchemaService");
 
-		setupDatabaseConnection(testDatabaseConnection);
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -155,18 +155,17 @@ public class LicensingTest {
 	}
 
 
-	protected void setupDatabaseConnection(String testDatabaseConnection) {
+	protected void setupDatabaseConnection() {
+		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
+		Settings.DatabaseDriver.setValue(testDriver);
 
-		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
-		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin123");
-		if (StringUtils.isBlank(testDatabaseConnection)) {
-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-		} else {
-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
+		if (testDriver.contains("Bolt")) {
+			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
+			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
+			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
+			Settings.ConnectionDatabaseName.setValue("neo4j");
 		}
-		Settings.ConnectionDatabaseName.setValue("neo4j");
+
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 }

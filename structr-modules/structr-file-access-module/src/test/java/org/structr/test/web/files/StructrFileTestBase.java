@@ -36,18 +36,16 @@ public abstract class StructrFileTestBase extends StructrUiTest {
 	protected int ftpPort = 8876 + new Random().nextInt(1000);
 	protected int sshPort = 8877 + new Random().nextInt(1000);
 
-
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 
 		Settings.Services.setValue("NodeService SchemaService FtpService SSHService");
 
 		Settings.FtpPort.setValue(ftpPort);
 		Settings.SshPort.setValue(sshPort);
 
-		super.setup(testDatabaseConnection);
+		super.setup();
 	}
 }
 

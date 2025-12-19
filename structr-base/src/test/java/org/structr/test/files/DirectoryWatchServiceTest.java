@@ -72,14 +72,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(DirectoryWatchServiceTest.class.getName());
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 
 		Settings.Services.setValue("NodeService SchemaService HttpService DirectoryWatchService");
 
-		super.setup(testDatabaseConnection);
+		super.setup();
 	}
 
 	@Test

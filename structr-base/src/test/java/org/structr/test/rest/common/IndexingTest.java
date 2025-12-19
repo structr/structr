@@ -36,10 +36,9 @@ import org.testng.annotations.Parameters;
  */
 public abstract class IndexingTest extends StructrRestTestBase {
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 
 		final long timestamp = System.nanoTime();
 
@@ -48,7 +47,7 @@ public abstract class IndexingTest extends StructrRestTestBase {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
-		setupDatabaseConnection(testDatabaseConnection);
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

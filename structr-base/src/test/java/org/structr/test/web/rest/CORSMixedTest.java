@@ -35,12 +35,11 @@ public class CORSMixedTest extends StructrUiTest {
 
     private static final Logger logger = LoggerFactory.getLogger(CORSMixedTest.class.getName());
 
-    @Parameters("testDatabaseConnection")
     @BeforeClass(alwaysRun = true)
     @Override
-    public void setup(@Optional String testDatabaseConnection) {
+    public void setup() {
 
-        super.setup(testDatabaseConnection);
+        super.setup();
 
         Settings.AccessControlAcceptedOrigins.setValue("*, " + RestAssured.baseURI);
         Settings.AccessControlMaxAge.setValue(1200);

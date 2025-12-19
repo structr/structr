@@ -59,6 +59,8 @@ import org.structr.xmpp.XMPPModule;
 import org.testng.annotations.*;
 import org.testng.annotations.Optional;
 
+import org.structr.test.common.SharedNeo4jContainer;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -88,9 +90,8 @@ public abstract class FullStructrTest {
 	protected String baseUri           = null;
 	protected boolean first            = true;
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 
 		final long timestamp = System.currentTimeMillis();
 
@@ -98,7 +99,7 @@ public abstract class FullStructrTest {
 
 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
 
-		setupDatabaseConnection(testDatabaseConnection);
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -662,18 +663,17 @@ public abstract class FullStructrTest {
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
-	protected void setupDatabaseConnection(String testDatabaseConnection) {
+	protected void setupDatabaseConnection() {
+		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
+		Settings.DatabaseDriver.setValue(testDriver);
 
-		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
-		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin123");
-		if (StringUtils.isBlank(testDatabaseConnection)) {
-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-		} else {
-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
+		if (testDriver.contains("Bolt")) {
+			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
+			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
+			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
+			Settings.ConnectionDatabaseName.setValue("neo4j");
 		}
-		Settings.ConnectionDatabaseName.setValue("neo4j");
+
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 

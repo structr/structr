@@ -26,16 +26,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Start Test Database
-        run: >-
-          docker run -d --name ${{ matrix.module }}-test-${{ github.run_id }} 
-          -p 7687 
-          -e NEO4J_AUTH=neo4j/admin123 
-          -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes 
-          -e NEO4J_server_memory_heap_max__size=4G 
-          -e NEO4J_server_memory_pagecache_size=4G neo4j:2025 && 
-          echo "ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-test-${{ github.run_id }})" >> $GITHUB_ENV
-
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
@@ -45,13 +35,9 @@ jobs:
 
       - name: Compile and run Tests
         run:  >-
-          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
+          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb &&
           cd ${{ matrix.module }} && 
-          mvn install -q -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
-
-      - name: Stop Test Database
-        if: always()
-        run:  docker stop ${{ matrix.module }}-test-${{ github.run_id }}
+          mvn install -q -DskipDist -DskipDocker -DskipDeb
 
   run-ui-tests:
     if: ${{ false && !startsWith( github.actor, 'dependabot' ) }}
@@ -69,9 +55,9 @@ jobs:
 
       - name: Compile and run Tests
         run: >-
-          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB &&
+          mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb &&
           cd structr-app && 
-          mvn install -q -DskipDockerTestDB -DskipDeb -DskipDocker -DskipDockerTestDB
+          mvn install -q -DskipDeb -DskipDocker
 
   build-and-deploy:
     runs-on: self-hosted
@@ -95,7 +81,7 @@ jobs:
           distribution: 'graalvm-community'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: mvn -U clean install -Pwith-sources -DskipDockerTestDB -DskipTests -DskipUITests
+      - run: mvn -U clean install -Pwith-sources -DskipTests -DskipUITests
       - name: Upload binaries
         run: >-
           cd structr-app &&       

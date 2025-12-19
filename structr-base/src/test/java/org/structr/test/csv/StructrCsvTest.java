@@ -40,10 +40,9 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 	protected static final String csvUrl = "/structr/csv";
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass
 	@Override
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 
 		final long timestamp = System.nanoTime();
 
@@ -53,7 +52,7 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
 
-		setupDatabaseConnection(testDatabaseConnection);
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

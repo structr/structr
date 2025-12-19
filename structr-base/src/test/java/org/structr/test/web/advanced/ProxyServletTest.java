@@ -36,15 +36,14 @@ import static org.testng.AssertJUnit.fail;
 
 public class ProxyServletTest extends StructrUiTest {
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 		final long timestamp = System.currentTimeMillis();
 
 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
 
-		setupDatabaseConnection(testDatabaseConnection);
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

@@ -401,6 +401,30 @@
             <version>3.4.0</version>
             <scope>compile</scope>
         </dependency>
+	    <dependency>
+		    <groupId>org.testcontainers</groupId>
+		    <artifactId>testcontainers</artifactId>
+	    </dependency>
+	    <dependency>
+		    <groupId>org.testcontainers</groupId>
+		    <artifactId>testcontainers-neo4j</artifactId>
+	    </dependency>
+	    <dependency>
+		    <groupId>com.github.dasniko</groupId>
+		    <artifactId>testcontainers-keycloak</artifactId>
+		    <version>4.0.1</version>
+		    <scope>test</scope>
+		    <exclusions>
+			    <exclusion>
+				    <groupId>jakarta.xml.bind</groupId>
+				    <artifactId>jakarta.xml.bind-api</artifactId>
+			    </exclusion>
+			    <exclusion>
+				    <groupId>org.keycloak</groupId>
+				    <artifactId>keycloak-admin-client</artifactId>
+			    </exclusion>
+		    </exclusions>
+	    </dependency>
     </dependencies>
 
     <build>
@@ -525,7 +549,6 @@
                             <!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
                             <systemPropertyVariables>
                                 <testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
-                                <testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
                             </systemPropertyVariables>
                         </configuration>
                         <executions>
@@ -534,55 +557,6 @@
                                     <goal>integration-test</goal>
                                     <goal>verify</goal>
                                 </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>io.fabric8</groupId>
-                        <artifactId>docker-maven-plugin</artifactId>
-                        <version>${docker.maven.plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>prepare-database</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>start</goal>
-                                </goals>
-                                <configuration>
-                                    <images>
-                                        <image>
-                                            <name>${test.neo4j.version}</name>
-                                            <alias>database</alias>
-                                            <run>
-                                                <ports>
-                                                    <port>7689:7687</port>
-                                                </ports>
-                                                <wait>
-                                                    <log>(.?)Bolt enabled on(.?)</log>
-                                                    <time>20000</time>
-                                                </wait>
-                                                <env>
-                                                    <NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
-                                                    <NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
-                                                    <NEO4J_server_memory_heap_max__size>4G</NEO4J_server_memory_heap_max__size>
-                                                    <NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
-                                                </env>
-                                            </run>
-                                        </image>
-                                    </images>
-                                    <skip>${skipDockerTestDB}</skip>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <id>remove-database</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>stop</goal>
-                                </goals>
-                                <configuration>
-                                    <executeStopOnVMShutdown>true</executeStopOnVMShutdown>
-                                    <skip>${skipDockerTestDB}</skip>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

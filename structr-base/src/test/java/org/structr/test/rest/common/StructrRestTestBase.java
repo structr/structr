@@ -21,7 +21,6 @@ package org.structr.test.rest.common;
 import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +45,8 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.traits.definitions.*;
 import org.structr.test.rest.traits.definitions.relationships.*;
 import org.testng.annotations.*;
+
+import org.structr.test.common.SharedNeo4jContainer;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -73,9 +74,8 @@ public abstract class StructrRestTestBase {
 	protected final String host        = "127.0.0.1";
 	protected int httpPort             = 0;
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 
 		final long timestamp = System.nanoTime();
 
@@ -84,7 +84,7 @@ public abstract class StructrRestTestBase {
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
-		setupDatabaseConnection(testDatabaseConnection);
+		setupDatabaseConnection();
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -262,18 +262,17 @@ public abstract class StructrRestTestBase {
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
-	protected void setupDatabaseConnection(String testDatabaseConnection) {
+	protected void setupDatabaseConnection() {
+		String testDriver = System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER);
+		Settings.DatabaseDriver.setValue(testDriver);
 
-		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
-		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin123");
-		if (StringUtils.isBlank(testDatabaseConnection)) {
-			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
-		} else {
-			Settings.ConnectionUrl.setValue(testDatabaseConnection);
+		if (testDriver.contains("Bolt")) {
+			Settings.ConnectionUser.setValue(SharedNeo4jContainer.getUsername());
+			Settings.ConnectionPassword.setValue(SharedNeo4jContainer.getPassword());
+			Settings.ConnectionUrl.setValue(SharedNeo4jContainer.getBoltUrl());
+			Settings.ConnectionDatabaseName.setValue("neo4j");
 		}
-		Settings.ConnectionDatabaseName.setValue("neo4j");
+
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
 
@@ -384,6 +383,7 @@ public abstract class StructrRestTestBase {
 
 		return "TestUser";
 	}
+
 
 	// ----- static methods -----
 //	public static void assertMapPathValueIs(final Map<String, Object> map, final String mapPath, final Object value) {

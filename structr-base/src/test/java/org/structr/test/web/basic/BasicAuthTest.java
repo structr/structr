@@ -51,11 +51,10 @@ import static org.testng.AssertJUnit.fail;
 
 public class BasicAuthTest extends StructrUiTest {
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup(@Optional String testDatabaseConnection) {
-		super.setup(testDatabaseConnection);
+	public void setup() {
+		super.setup();
 		Settings.HttpBasicAuthEnabled.setValue(true);
 	}
 

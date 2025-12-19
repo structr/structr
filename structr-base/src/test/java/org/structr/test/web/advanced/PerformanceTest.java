@@ -400,10 +400,10 @@ public class PerformanceTest extends StructrUiTest {
 				logger.info("Creating {} nodes for user admin, count is {}", number, count);
 				try (final Tx tx = app.tx()) {
 
-					for (final NodeInterface n : createNodes(app, "TestTwo", number)){
-
+					for (final NodeInterface n : createNodesWithoutTx(app, "TestTwo", number)){
 						n.setProperty(Traits.of(StructrTraits.NODE_INTERFACE).key(NodeInterfaceTraitDefinition.NAME_PROPERTY), "Test" + StringUtils.leftPad(Integer.toString(count++), 5, "0"));
-						n.setProperty(Traits.of("TestTwo").key("testFives"), createNodes(app, "TestFive", 3));
+						// call createNodesWithoutTx to avoid deadlock in test due to nested transactions.
+						n.setProperty(Traits.of("TestTwo").key("testFives"), createNodesWithoutTx(app, "TestFive", 3));
 					}
 
 					tx.success();
@@ -615,6 +615,16 @@ public class PerformanceTest extends StructrUiTest {
 		}
 
 		return SecurityContext.getInstance(user.as(User.class), AccessMode.Backend);
+	}
+
+	private List<NodeInterface> createNodesWithoutTx(final App app, final String type, final int number) throws FrameworkException {
+		final List<NodeInterface> nodes = new LinkedList<>();
+
+		for (int i = 0; i < number; i++) {
+			nodes.add(app.create(type));
+		}
+
+		return nodes;
 	}
 
 	private List<NodeInterface> createNodes(final App app, final String type, final int number) throws FrameworkException {

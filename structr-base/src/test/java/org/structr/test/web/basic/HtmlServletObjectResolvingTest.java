@@ -47,15 +47,14 @@ import java.util.List;
 
 public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
-	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup(@Optional String testDatabaseConnection) {
+	public void setup() {
 
 		// important: these settings must be made before HttpService is initialized..
 		Settings.HtmlResolveProperties.setValue("TestOne.anInt, TestOne.aString, TestOne.aDouble");
 
-		super.setup(testDatabaseConnection);
+		super.setup();
 	}
 
 	@Test
