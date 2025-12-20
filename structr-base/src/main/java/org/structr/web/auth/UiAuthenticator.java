@@ -185,7 +185,7 @@ public class UiAuthenticator implements Authenticator {
 
 		securityContext.setAuthenticator(this);
 
-		if (StringUtils.isNotBlank(request.getHeader(RequestHeaders.Origin.getIdentifier()))) {
+		if (StringUtils.isNotBlank(request.getHeader(RequestHeaders.Origin.getName()))) {
 
 			checkCORS(securityContext, request, response);
 		}
@@ -197,12 +197,12 @@ public class UiAuthenticator implements Authenticator {
 		securityContext.setResponse(response);
 
 		// expose Structr edition
-		response.setHeader(RequestHeaders.XStructrEdition.getIdentifier(), Services.getInstance().getEdition());
+		response.setHeader(RequestHeaders.XStructrEdition.getName(), Services.getInstance().getEdition());
 
 		// expose cluster node replica number
 		if (Settings.ClusterModeEnabled.getValue(false)) {
 
-			response.setHeader(RequestHeaders.XStructrClusterNode.getIdentifier(), Services.getInstance().getNodeName());
+			response.setHeader(RequestHeaders.XStructrClusterNode.getName(), Services.getInstance().getNodeName());
 		}
 
 		return securityContext;
@@ -218,9 +218,9 @@ public class UiAuthenticator implements Authenticator {
 		final Traits traits = Traits.of(StructrTraits.CORS_SETTING);
 
 		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-		final String origin           = request.getHeader(RequestHeaders.Origin.getIdentifier());
-		final String requestedHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getIdentifier());
-		final String requestedMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getIdentifier());
+		final String origin           = request.getHeader(RequestHeaders.Origin.getName());
+		final String requestedHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getName());
+		final String requestedMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getName());
 		final String requestUri       = request.getRequestURI();
 
 		String acceptedOriginsString  = Settings.AccessControlAcceptedOrigins.getValue();
@@ -552,7 +552,7 @@ public class UiAuthenticator implements Authenticator {
 			}
 		}
 
-		final String authorizationHeader = request.getHeader(RequestHeaders.Authorization.getIdentifier());
+		final String authorizationHeader = request.getHeader(RequestHeaders.Authorization.getName());
 
 		if (authorizationHeader == null) {
 			return null;
@@ -889,9 +889,9 @@ public class UiAuthenticator implements Authenticator {
 		if (user == null) {
 
 			// Second, check X-Headers
-			String userName = request.getHeader(RequestHeaders.XUser.getIdentifier());
-			String password = request.getHeader(RequestHeaders.XPassword.getIdentifier());
-			String token    = request.getHeader(RequestHeaders.XStructrSessionToken.getIdentifier());
+			String userName = request.getHeader(RequestHeaders.XUser.getName());
+			String password = request.getHeader(RequestHeaders.XPassword.getName());
+			String token    = request.getHeader(RequestHeaders.XStructrSessionToken.getName());
 
 			// Try to authorize with a session token first
 			if (token != null) {

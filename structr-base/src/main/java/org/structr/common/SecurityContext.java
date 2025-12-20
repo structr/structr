@@ -191,35 +191,35 @@ public class SecurityContext {
 
 	private void initializeHttpParameters(final HttpServletRequest request) {
 
-		if ("true".equals(request.getHeader(RequestHeaders.ReturnDetailsForCreatedObjects.getIdentifier()))) {
+		if ("true".equals(request.getHeader(RequestHeaders.ReturnDetailsForCreatedObjects.getName()))) {
 			this.returnDetailedCreationResults = true;
 		}
 
-		if ("disabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getIdentifier()))) {
+		if ("disabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getName()))) {
 			this.doTransactionNotifications = false;
 		}
 
-		if ("enabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getIdentifier()))) {
+		if ("enabled".equals(request.getHeader(RequestHeaders.StructrWebsocketBroadcast.getName()))) {
 			this.doTransactionNotifications = true;
 		}
 
-		if ("disabled".equals(request.getHeader(RequestHeaders.StructrCascadingDelete.getIdentifier()))) {
+		if ("disabled".equals(request.getHeader(RequestHeaders.StructrCascadingDelete.getName()))) {
 			this.doCascadingDelete = false;
 		}
 
-		if ("enabled".equals(request.getHeader(RequestHeaders.StructrForceMergeOfNestedProperties.getIdentifier()))) {
+		if ("enabled".equals(request.getHeader(RequestHeaders.StructrForceMergeOfNestedProperties.getName()))) {
 			this.forceMergeOfNestedProperties = true;
 		}
 
-		if (request.getParameter(RequestKeywords.ForceResultCount.getIdentifier()) != null) {
+		if (request.getParameter(RequestKeywords.ForceResultCount.getName()) != null) {
 			this.forceResultCount = true;
 		}
 
-		if (request.getParameter(RequestKeywords.DisableSoftLimit.getIdentifier()) != null) {
+		if (request.getParameter(RequestKeywords.DisableSoftLimit.getName()) != null) {
 			this.disableSoftLimit = true;
 		}
 
-		if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.getIdentifier()) != null) {
+		if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.getName()) != null) {
 			this.doMultiThreadedJsonOutput = true;
 		}
 	}
@@ -229,7 +229,7 @@ public class SecurityContext {
 		// check for custom view attributes
 
 		try {
-			final String acceptedContentType = request.getHeader(RequestHeaders.Accept.getIdentifier());
+			final String acceptedContentType = request.getHeader(RequestHeaders.Accept.getName());
 			final Matcher matcher            = customViewPattern.matcher(acceptedContentType);
 
 			if (matcher.matches()) {
@@ -255,7 +255,7 @@ public class SecurityContext {
 
 	private void initializeQueryRanges(final HttpServletRequest request) {
 
-		final String rangeSource = request.getHeader(RequestHeaders.Range.getIdentifier());
+		final String rangeSource = request.getHeader(RequestHeaders.Range.getName());
 		if (rangeSource != null) {
 
 			final String[] rangeParts = StringUtils.split(rangeSource, ";");
@@ -805,7 +805,7 @@ public class SecurityContext {
 			}
 
 			// Priority 1: URL parameter locale
-			String requestedLocaleString = request.getParameter(RequestKeywords.Locale.getIdentifier());
+			String requestedLocaleString = request.getParameter(RequestKeywords.Locale.getName());
 			if (StringUtils.isNotBlank(requestedLocaleString)) {
 
 				locale = Locale.forLanguageTag(requestedLocaleString.replaceAll("_", "-"));

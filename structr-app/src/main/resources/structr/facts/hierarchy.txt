@@ -9,28 +9,50 @@ Structr has topics "Introduction", "Building Applications", "User Interface", "O
 
 # Introduction: this exists to match the Markdown docs and enable gap analysis
 Introduction has topics "What is Structr?", "Installation Method", "First Steps"
-"Installation Method" has topics "Sandbox", "Docker", "Manual Installation"
-"First Steps" has topics "Data Schema"
+    "Installation Method" has topics "Sandbox", "Docker", "Manual Installation"
+    "First Steps" has topics "Data Schema"
 
 
 
 # Building Applications
-"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input", "Business Logic", "Error handling", "URL Routing", "Security", "Troubleshooting"
+"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Security", "Troubleshooting"
 
-"Dynamic Content" has topic "Repeater"
-"User Input" has topics "Event Action Mapping"
+    "Creating Pages & Templates" has topics "Page Templates", "Shared Components", "Widgets"
+
+    "Navigation & Routing" has topics "Routes", "Error pages", "Page position"
+
+    "Dynamic Content" has topic "Repeaters", "Show / Hide Conditions"
+
+        "Repeaters" has topic "Data key"
+        "Repeaters" has texts "Function query", "Flow", "Cypher query"
+        "Data key" has texts "Repeater Keyword", "Data Key"
+
+    "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
+
+    "User Input & Forms" has topics "Event Action Mapping"
+
+        # link things to texts used in frontend (this is the place where the connection is formed!)
+        Topic "Event Action Mapping" has "Parameter types", "Notifications", "Follow-up Actions"
+        Topic "Event Action Mapping" has texts "Event Action Mapping", "Event", "Action", "Parameter Mapping", "Notifications", "Follow-up Actions"
+        Topic "Event Actions" has texts "Action"
+        Topic "Parameter Mapping" has texts "Parameter Mapping"
+        Topic "Follow-up Actions" has texts "Behaviour on success", "Behaviour on failure"
+        Topic "Notifications" has texts "Success notifications", "Failure notifications"
 
 
-"Repeater Keyword" has synonym "Data key"
+
 
 
 
 # User Interface
 "User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Virtual Types", "Widgets", "Flows", "Localization", "Admin Console", "Configuration Editor"
 "User Interface" has topic "Helpers"
-Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
-Pages has helper "Refactoring Helper"
-"Configuration Editor" configures "Settings"
+
+    Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
+
+    Pages has helper "Refactoring Helper"
+
+    "Configuration Editor" configures "Settings"
 
 
 

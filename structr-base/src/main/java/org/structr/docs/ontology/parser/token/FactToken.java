@@ -80,14 +80,22 @@ public class FactToken extends Token {
 
 			ontology.setCurrentSubject(subject);
 
+			if (subject == null) {
+				System.out.println(sourceFile + ":" + line + ": subject is null!");
+				continue;
+			}
+
 			for (final Concept object : objects) {
+
+				if (object == null) {
+					System.out.println(sourceFile + ":" + line + ": object is null!");
+					continue;
+				}
 
 				subject.linkChild(verb, object);
 				object.linkParent(inverse, subject);
 			}
 		}
-
-		//return ontology.getOrCreateConcept("relation", "moep");
 
 		return null;
 	}

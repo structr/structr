@@ -92,6 +92,7 @@
                 'Setting':      '#AED581',  // Hellgrün (konfigurierbar)
                 'Configuration':'9CCC65',   // Limette
                 'Synonym':      '#C5E1A5',  // Sehr hellgrün
+                'Text':         '#EEEEEE'
             };
             fetch('/structr/docs/ontology?type=*&levels=1&format=json').then(response => response.json()).then(data => {
 
@@ -145,12 +146,16 @@
                         forceAtlas2Based: {
                             centralGravity: 0.002,
                             avoidOverlap: 0.8,
-                            springLength: 300
+                            springLength: 100,
+                            springConstant: 0.2,
+                            damping: 0.2
                         },
                         barnesHut: {
                             gravitationalConstant: -100000,
                             avoidOverlap: 0.5,
-                            springLength: 300
+                            springLength: 200,
+                            springConstant: 0.2,
+                            damping: 0.2
                         },
                         wind: {
                             x: 0,

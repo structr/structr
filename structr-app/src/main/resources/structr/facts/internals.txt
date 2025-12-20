@@ -8,5 +8,5 @@ Topic "Advanced Topics" has topics "Internals", "Performance Optimizations"
 
 "Performance Optimizations" has topics "Prefetching", "Relationship naming", "Supernodes"
 
+"Internals" has topics "Page Rendering Engine"
 
-Topic "Page Rendering Engine" has concepts ""

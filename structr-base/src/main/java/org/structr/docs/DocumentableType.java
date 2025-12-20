@@ -27,16 +27,18 @@ import org.structr.core.traits.TraitsManager;
 import org.structr.docs.documentables.lifecycle.LifecycleBase;
 import org.structr.docs.documentables.misc.SettingDocumentable;
 import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.GlossaryTerm;
 import org.structr.rest.resource.MaintenanceResource;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public enum DocumentableType implements GlossaryTerm {
+public enum DocumentableType {
 
 	BuiltInFunction("Built-in function", ConceptType.Function, true, true, Functions::addFunctionsAndExpressions),
+	EventAction("Event Action", ConceptType.EventAction, false, false, null),
+	EventNotification("Event Notification", ConceptType.EventNotification, false, false, null),
+	EventBehaviour("Event Behaviour", ConceptType.EventBehaviour, false, false, null),
 	Keyword("Keyword", ConceptType.Keyword, true, true, AbstractHintProvider::addKeywordHints),
 	Method("Method", ConceptType.Method, true, true, null),
 	Property("Property", ConceptType.Property, false, false, AbstractPrimitiveProperty::addProperties),
@@ -91,17 +93,14 @@ public enum DocumentableType implements GlossaryTerm {
 	}
 
 	// ----- interface GlossaryTerm -----
-	@Override
 	public String getDisplayName() {
 		return displayName;
 	}
 
-	@Override
-	public String getIdentifier() {
+	public String getName() {
 		return type.getIdentifier();
 	}
 
-	@Override
 	public String getShortDescription() {
 		return "Documentable type \"" + displayName + "\"";
 	}

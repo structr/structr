@@ -351,7 +351,7 @@ public abstract class StreamingWriter {
 		this.reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
 		HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
-			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestKeywords.OutputReductionDepth.getIdentifier()), this.reduceNestedObjectsInRestrictedViewsDepth);
+			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestKeywords.OutputReductionDepth.getName()), this.reduceNestedObjectsInRestrictedViewsDepth);
 		}
 	}
 

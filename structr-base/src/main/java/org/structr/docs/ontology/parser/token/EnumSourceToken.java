@@ -18,9 +18,11 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import org.structr.docs.Category;
+import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
-import org.structr.docs.ontology.GlossaryTerm;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
@@ -47,16 +49,36 @@ public class EnumSourceToken extends NamedConceptToken {
 
 					for (final Object constant : enumType.getEnumConstants()) {
 
-						if (constant instanceof GlossaryTerm glossaryTerm) {
+						// Documentable?
+						if (constant instanceof Documentable documentable) {
 
-							final String name = glossaryTerm.getDisplayName();
+							final String name = documentable.getDisplayName();
+							if (name != null) {
+
+								final DocumentableType documentableType = documentable.getDocumentableType();
+								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, documentableType.getConcept(), name);
+								if (concept != null) {
+
+									if (documentable.getShortDescription() != null) {
+										concept.setShortDescription(documentable.getShortDescription());
+									}
+
+									concepts.add(concept);
+								}
+							}
+						}
+
+						// or just Category?
+						if (constant instanceof Category category) {
+
+							final String name = category.getDisplayName();
 							if (name != null) {
 
 								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Topic, name);
 								if (concept != null) {
 
-									if (glossaryTerm.getShortDescription() != null) {
-										concept.setShortDescription(glossaryTerm.getShortDescription());
+									if (category.getShortDescription() != null) {
+										concept.setShortDescription(category.getShortDescription());
 									}
 
 									concepts.add(concept);

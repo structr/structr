@@ -18,7 +18,9 @@
  */
 package org.structr.docs;
 
-import org.structr.docs.ontology.GlossaryTerm;
+public interface Category {
 
-public interface Category extends GlossaryTerm {
+	String getName();
+	String getDisplayName();
+	String getShortDescription();
 }

@@ -656,7 +656,7 @@ public class ActionContext {
 
 	public static String getRemoteAddr(HttpServletRequest request) {
 
-		final String remoteAddress = request.getHeader(RequestHeaders.XForwardedFor.getIdentifier());
+		final String remoteAddress = request.getHeader(RequestHeaders.XForwardedFor.getName());
 
 		if (remoteAddress == null) {
 			return request.getRemoteAddr();

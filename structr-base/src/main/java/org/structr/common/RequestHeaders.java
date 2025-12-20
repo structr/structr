@@ -18,14 +18,12 @@
  */
 package org.structr.common;
 
+import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
 import org.structr.docs.Documentation;
-import org.structr.docs.ontology.GlossaryTerm;
-
-/**
- */
 
 @Documentation(name="Request headers", shortDescription="Structr's HTTP API supports a number of custom request headers to influence the behaviour of the endpoints.")
-public enum RequestHeaders implements GlossaryTerm {
+public enum RequestHeaders implements Documentable {
 
 	Accept("Accept", "HTTP Accept header", null),
 	AccessControlRequestHeaders("Access-Control-Request-Headers", "HTTP CORS headers header", null),
@@ -66,7 +64,12 @@ public enum RequestHeaders implements GlossaryTerm {
 	}
 
 	@Override
-	public String getIdentifier() {
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.RequestHeader;
+	}
+
+	@Override
+	public String getName() {
 		return identifier;
 	}
 

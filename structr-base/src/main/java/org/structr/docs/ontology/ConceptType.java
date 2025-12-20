@@ -33,7 +33,9 @@ public enum ConceptType {
 
 	// technical concepts
 	Logfile("logfile"), Value("value"), LifecycleMethod("lifecycle-method"), HttpVerb("http-verb"),
-	Function("function"), Setting("setting"), Helper("helper"),
+	Function("function"), Setting("setting"), Helper("helper"), EventAction("event-action"),
+	EventNotification("event-notification"), EventBehaviour("event-behaviour"),
+	ParameterType("parameter-type"),
 
 	// metadata
 	Hint("hint"), Note("note"), Description("description"), Info("info"), Configuration("configuration"),

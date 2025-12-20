@@ -92,7 +92,7 @@ public class TemplateElement extends GenericHtmlElementTraitDefinition {
 	private static void handleRequestData(final RenderContext renderContext) {
 
 		final HttpServletRequest request = renderContext.getRequest();
-		final String contentType         = request.getHeader(RequestHeaders.ContentType.getIdentifier());
+		final String contentType         = request.getHeader(RequestHeaders.ContentType.getName());
 
 		if (StringUtils.isEmpty(contentType)) {
 

@@ -402,7 +402,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 					.body("result.oneToOneTestFive.oneToOneTestThree.name",             equalTo("TestThree"))
 
 				.when()
-					.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.getIdentifier() + "=1");
+					.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.getName() + "=1");
 
 		// remove redundancy reduction, so that TestThree.TestFive.TestThree is not limited by that and can contain TestFive again
 		Settings.JsonRedundancyReduction.setValue(false);
@@ -426,7 +426,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.body("result.oneToOneTestFive.oneToOneTestThree.oneToOneTestFive.name",             equalTo("TestFive"))
 
 				.when()
-				.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.getIdentifier() + "=2");
+				.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.getName() + "=2");
 
 
 		Settings.JsonRedundancyReduction.getValue(true);

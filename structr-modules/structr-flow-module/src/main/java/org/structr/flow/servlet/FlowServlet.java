@@ -71,7 +71,7 @@ public class FlowServlet extends JsonRestServlet {
 		try {
 
 			final Map<String, Object> flowParameters = new HashMap<>();
-			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.getIdentifier()), config.getOutputNestingDepth());
+			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.getName()), config.getOutputNestingDepth());
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -200,7 +200,7 @@ public class FlowServlet extends JsonRestServlet {
 
 		try {
 
-			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.getIdentifier()), config.getOutputNestingDepth());
+			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.getName()), config.getOutputNestingDepth());
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");

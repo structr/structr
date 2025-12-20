@@ -65,6 +65,9 @@ import org.structr.web.common.EventContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.eam.EventAction;
+import org.structr.web.eam.EventBehaviour;
+import org.structr.web.eam.EventNotification;
+import org.structr.web.eam.ParameterType;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
@@ -90,7 +93,7 @@ import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
 import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
 import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
-@Documentation(name="DOM element", type= ConceptType.SystemType, shortDescription="The base class for all elements in a Page.")
+@Documentation(name="DOM element", type=ConceptType.SystemType, shortDescription="The base class for all elements in a Page.", parent="System types")
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String RELOAD_SOURCES_PROPERTY                    = "reloadSources";
@@ -657,19 +660,20 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 									for (final ParameterMapping parameterMapping : triggeredAction.getParameterMappings()) {
 
 										final NodeInterface parameterMappingNode = parameterMapping;
-										final String parameterType = parameterMappingNode.getProperty(parameterTypeKey);
-										final String parameterName = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, parameterNameKey);
+										final String parameterTypeString         = parameterMappingNode.getProperty(parameterTypeKey);
+										final String parameterName               = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, parameterNameKey);
 
-										if (parameterType == null || parameterName == null) {
+										if (parameterTypeString == null || parameterName == null) {
 											// Ignore incomplete parameter mapping
 											continue;
 										}
 
 										final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName);
+										final ParameterType parameterType    = ParameterType.forName(parameterTypeString);
 
 										switch (parameterType) {
 
-											case "user-input":
+											case ParameterType.UserInput:
 
 												final DOMElement element = parameterMapping.getInputElement();
 												if (element != null) {
@@ -688,18 +692,18 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												}
 												break;
 
-											case "constant-value":
+											case ParameterType.ConstantValue:
 												final String constantValue = parameterMapping.getConstantValue();
 												// Could be 'json(...)' or a simple value
 												out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(DOMNode.escapeForHtmlAttributes(constantValue)).append("\"");
 												break;
 
-											case "script-expression":
+											case ParameterType.ScriptExpression:
 												final String scriptExpression = parameterMappingNode.getPropertyWithVariableReplacement(renderContext, scriptExpressionKey);
 												out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(DOMNode.escapeForHtmlAttributes(scriptExpression)).append("\"");
 												break;
 
-											case "page-param":
+											case ParameterType.PageParam:
 												// Name of the request parameter for pager 'page'
 												final String actionString = triggeredAction.getAction();
 												final String value        = renderContext.getRequestParameter(parameterName);
@@ -736,7 +740,7 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 												}
 
 												break;
-											case "pagesize-param":
+											case ParameterType.PageSizeParam:
 												// TODO: Implement additional parameter for page size
 												// Name of the request parameter for pager 'pageSize'
 												break;
@@ -1776,22 +1780,24 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public void renderSuccessNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
 
 		// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
-		final String successNotifications = triggeredAction.getSuccessNotifications();
-		if (StringUtils.isNotBlank(successNotifications)) {
+		final String successNotificationsString = triggeredAction.getSuccessNotifications();
 
-			out.append(" data-structr-success-notifications=\"").append(successNotifications).append("\"");
+		if (StringUtils.isNotBlank(successNotificationsString)) {
 
+			out.append(" data-structr-success-notifications=\"").append(successNotificationsString).append("\"");
+
+			final EventNotification successNotifications = EventNotification.forName(successNotificationsString);
 			switch (successNotifications) {
 
-				case "custom-dialog-linked":
+				case EventNotification.CustomDialogLinked:
 					out.append(" data-structr-success-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY)).append("\"");
 					break;
 
-				case "fire-event":
+				case EventNotification.FireEvent:
 					out.append(" data-structr-success-notifications-event=\"").append(triggeredAction.getSuccessNotificationsEvent()).append("\"");
 					break;
 
-				case "inline-text-message":
+				case EventNotification.InlineTextMessage:
 					final Integer delay = triggeredAction.getSuccessNotificationsDelay();
 					out.append(" data-structr-success-notifications-delay=\"").append(delay.toString()).append("\"");
 					break;
@@ -1812,25 +1818,23 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 	public void renderFailureNotificationAttributes(final RenderContext renderContext, final AsyncBuffer out, final ActionMapping triggeredAction) {
 
 		// Possible values for failure notifications are none, system-alert, inline-text-message, custom-dialog-element, fire-event
-		final String failureNotifications = triggeredAction.getFailureNotifications();
-		if (StringUtils.isNotBlank(failureNotifications)) {
+		final String failureNotificationsString = triggeredAction.getFailureNotifications();
+		if (StringUtils.isNotBlank(failureNotificationsString)) {
 
-			out.append(" data-structr-failure-notifications=\"").append(failureNotifications).append("\"");
-		}
+			out.append(" data-structr-failure-notifications=\"").append(failureNotificationsString).append("\"");
 
-		if (StringUtils.isNotBlank(failureNotifications)) {
-
+			final EventNotification failureNotifications = EventNotification.forName(failureNotificationsString);
 			switch (failureNotifications) {
 
-				case "custom-dialog-linked":
+				case EventNotification.CustomDialogLinked:
 					out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_NOTIFICATION_ELEMENTS_PROPERTY)).append("\"");
 					break;
 
-				case "fire-event":
+				case EventNotification.FireEvent:
 					out.append(" data-structr-failure-notifications-event=\"").append(triggeredAction.getFailureNotificationsEvent()).append("\"");
 					break;
 
-				case "inline-text-message":
+				case EventNotification.InlineTextMessage:
 					final Integer delay = triggeredAction.getFailureNotificationsDelay();
 					out.append(" data-structr-failure-notifications-delay=\"").append(delay.toString()).append("\"");
 					break;
@@ -1853,38 +1857,37 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Traits traits = triggeredAction.getTraits();
 
 		// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
-		final String successBehaviour = triggeredAction.getSuccessBehaviour();
-		final String successPartial   = triggeredAction.getSuccessPartial();
-		final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY));
-		final String successEvent     = triggeredAction.getSuccessEvent();
+		final String successBehaviourString   = triggeredAction.getSuccessBehaviour();
+		final String successPartial           = triggeredAction.getSuccessPartial();
+		final String successURL               = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.SUCCESS_URL_PROPERTY));
+		final String successEvent             = triggeredAction.getSuccessEvent();
+		final EventBehaviour successBehaviour = EventBehaviour.forName(successBehaviourString);
 
 		String successTargetString = null;
 
-		if (StringUtils.isNotBlank(successBehaviour)) {
-
-			switch (successBehaviour) {
-				case "partial-refresh":
-					successTargetString = successPartial;
-					break;
-				case "partial-refresh-linked":
-					successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY);
-					break;
-				case "navigate-to-url":
-					successTargetString = "url:" + successURL;
-					break;
-				case "fire-event":
-					successTargetString = "event:" + successEvent;
-					break;
-				case "full-page-reload":
-					successTargetString = "url:";
-					break;
-				case "sign-out":
-					successTargetString = "sign-out";
-					break;
-				case "none":
-				default:
-					successTargetString = null;
-			}
+		switch (successBehaviour) {
+			case EventBehaviour.PartialRefresh:
+				successTargetString = successPartial;
+				break;
+			case EventBehaviour.PartialRefreshLinked:
+				successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.SUCCESS_TARGETS_PROPERTY);
+				break;
+			case EventBehaviour.NavigateToUrl:
+				successTargetString = "url:" + successURL;
+				break;
+			case EventBehaviour.FireEvent:
+				successTargetString = "event:" + successEvent;
+				break;
+			case EventBehaviour.FullPageReload:
+				successTargetString = "url:";
+				break;
+			case EventBehaviour.SignOut:
+				successTargetString = "sign-out";
+				break;
+			case EventBehaviour.None:
+			case EventBehaviour.Unknown:
+			default:
+				successTargetString = null;
 		}
 
 		final String idExpression = triggeredAction.getIdExpression();
@@ -1911,38 +1914,37 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Traits traits = triggeredAction.getTraits();
 
 		// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
-		final String failureBehaviour = triggeredAction.getFailureBehaviour();
-		final String failurePartial   = triggeredAction.getFailurePartial();
-		final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY));
-		final String failureEvent     = triggeredAction.getFailureEvent();
+		final String failureBehaviourString   = triggeredAction.getFailureBehaviour();
+		final String failurePartial           = triggeredAction.getFailurePartial();
+		final String failureURL               = triggeredAction.getPropertyWithVariableReplacement(renderContext, traits.key(ActionMappingTraitDefinition.FAILURE_URL_PROPERTY));
+		final String failureEvent             = triggeredAction.getFailureEvent();
+		final EventBehaviour failureBehaviour = EventBehaviour.forName(failureBehaviourString);
 
 		String failureTargetString = null;
 
-		if (StringUtils.isNotBlank(failureBehaviour)) {
-
-			switch (failureBehaviour) {
-				case "partial-refresh":
-					failureTargetString = failurePartial;
-					break;
-				case "partial-refresh-linked":
-					failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
-					break;
-				case "navigate-to-url":
-					failureTargetString = "url:" + failureURL;
-					break;
-				case "fire-event":
-					failureTargetString = "event:" + failureEvent;
-					break;
-				case "full-page-reload":
-					failureTargetString = "url:";
-					break;
-				case "sign-out":
-					failureTargetString = "sign-out";
-					break;
-				case "none":
-				default:
-					failureTargetString = null;
-			}
+		switch (failureBehaviour) {
+			case EventBehaviour.PartialRefresh:
+				failureTargetString = failurePartial;
+				break;
+			case EventBehaviour.PartialRefreshLinked:
+				failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, ActionMappingTraitDefinition.FAILURE_TARGETS_PROPERTY);
+				break;
+			case EventBehaviour.NavigateToUrl:
+				failureTargetString = "url:" + failureURL;
+				break;
+			case EventBehaviour.FireEvent:
+				failureTargetString = "event:" + failureEvent;
+				break;
+			case EventBehaviour.FullPageReload:
+				failureTargetString = "url:";
+				break;
+			case EventBehaviour.SignOut:
+				failureTargetString = "sign-out";
+				break;
+			case EventBehaviour.None:
+			case EventBehaviour.Unknown:
+			default:
+				failureTargetString = null;
 		}
 
 		if (StringUtils.isNotBlank(failureTargetString)) {

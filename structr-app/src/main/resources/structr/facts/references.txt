@@ -18,8 +18,8 @@ Topic References has topics Keywords, "Built-in functions", "Lifecycle methods",
 Area "Code" has javascript-file "structr/js/code.js"
 Area "Data" has javascript-file "structr/js/crud.js"
 Area "Dashboard" has javascript-file "structr/js/dashboard.js"
-Helper "Dialogs" has javascript-file "structr/js/dialogs.js"
-Helper "Editors" has javascript-file "structr/js/editors.js"
+# Helper "Dialogs" has javascript-file "structr/js/dialogs.js"
+# Helper "Editors" has javascript-file "structr/js/editors.js"
 Helper "Elements" has javascript-file "structr/js/elements.js"
 Helper "Entities" has javascript-file "structr/js/entities.js"
 Area "Files" has javascript-file "structr/js/files.js"
@@ -49,8 +49,3 @@ Area "Widgets" has javascript-file "structr/js/widgets.js"
 "Classes" has code-source "class"
 
 "Java internals" has topic "Classes"
-
-
-
-
-"Event Action Mapping"  has enum-source "org.structr.web.eam.EventAction"

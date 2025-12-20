@@ -22,9 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
-import org.structr.docs.Documentation;
+import org.structr.docs.*;
 import org.structr.docs.Formatter;
-import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.ontology.parser.rule.*;
 import org.structr.docs.ontology.parser.token.FactToken;
@@ -304,6 +303,7 @@ public final class Ontology {
 	public Concept getOrCreateConcept(final String sourceFile, final int line, final ConceptType type, final String name) {
 
 		if (blacklist.contains(name)) {
+			System.out.println("Concept " + name + " from " + sourceFile + ":" + line + " is blacklisted!");
 			return null;
 		}
 
@@ -382,26 +382,56 @@ public final class Ontology {
 
 	private void initializeFromDocumentationAnnotations() {
 
+		final String sourceFile = "Structr Java @Documentation annotations";
+
 		for (final Map.Entry<Class, Documentation> entry : StructrApp.getConfiguration().getDocumentationAnnotations().entrySet()) {
 
 			final Class clazz                 = entry.getKey();
 			final Documentation documentation = entry.getValue();
 
 			// collect info from annotation and import it into the ontology
-			final ConceptType type     = documentation.type();
-			final String name   = documentation.name();
-			final String desc   = documentation.shortDescription();
-			final String parent = documentation.parent();
+			final ConceptType type = documentation.type();
+			final String name      = documentation.name();
+			final String desc      = documentation.shortDescription();
+			final String parent    = documentation.parent();
 
-			final Concept concept = getOrCreateConcept("Structr Documentation annotations", 0, type, name);
+			final Concept concept = getOrCreateConcept(sourceFile, 0, type, name);
 			if (concept != null) {
+
+				concept.setShortDescription(desc);
 
 				if (StringUtils.isNotBlank(parent)) {
 
-					final Concept parentConcept = getOrCreateConcept("Structr Documentation annotations", 0, ConceptType.Unknown, parent);
+					final Concept parentConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent);
 					if (parentConcept != null) {
 
 						parentConcept.linkChild("has", concept);
+					}
+				}
+
+				// import enum constants as well
+				if (clazz.isEnum()) {
+
+					for (final Object enumConstant : clazz.getEnumConstants()) {
+
+						if (enumConstant instanceof Documentable documentable) {
+
+							final String childName = documentable.getDisplayName();
+							if (childName != null) {
+
+								final DocumentableType documentableType = documentable.getDocumentableType();
+								final Concept childConcept              = getOrCreateConcept(sourceFile, 0, documentableType.getConcept(), childName);
+
+								if (childConcept != null) {
+
+									if (documentable.getShortDescription() != null) {
+										childConcept.setShortDescription(documentable.getShortDescription());
+									}
+
+									concept.linkChild("has", childConcept);
+								}
+							}
+						}
 					}
 				}
 			}

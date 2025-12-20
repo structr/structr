@@ -19,8 +19,9 @@
 package org.structr.common;
 
 import org.structr.api.config.Settings;
+import org.structr.docs.Documentable;
+import org.structr.docs.DocumentableType;
 import org.structr.docs.Documentation;
-import org.structr.docs.ontology.GlossaryTerm;
 
 import java.util.Set;
 import java.util.TreeSet;
@@ -29,7 +30,7 @@ import java.util.TreeSet;
  */
 
 @Documentation(name="Request parameters", shortDescription="Structr's HTTP API supports a number of custom request parameters to influence the behaviour of the endpoints.")
-public enum RequestKeywords implements GlossaryTerm {
+public enum RequestKeywords implements Documentable {
 
 	// pagination
 	PageNumber("page", "Page number", "Request parameter used for pagination, sets the page number, value can be any positive integer > 0."),
@@ -83,11 +84,16 @@ public enum RequestKeywords implements GlossaryTerm {
 
 	@Override
 	public String toString() {
-		return getIdentifier();
+		return getName();
 	}
 
 	@Override
-	public String getIdentifier() {
+	public DocumentableType getDocumentableType() {
+		return DocumentableType.RequestKeyword;
+	}
+
+	@Override
+	public String getName() {
 
 		if (Settings.RequestParameterLegacyMode.getValue(false)) {
 			return identifier;
@@ -114,7 +120,7 @@ public enum RequestKeywords implements GlossaryTerm {
 
 		for (final RequestKeywords keyword : RequestKeywords.values()) {
 
-			keywords.add(keyword.getIdentifier());
+			keywords.add(keyword.getName());
 		}
 
 		return keywords;

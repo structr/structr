@@ -408,14 +408,14 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		final ArrayList<String> paramList = new ArrayList<>();
 
-		final String pageSizeKeyword = RequestKeywords.PageSize.getIdentifier();
+		final String pageSizeKeyword = RequestKeywords.PageSize.getName();
 		final String requestPageSize = securityContext.getRequest().getParameter(pageSizeKeyword);
 
 		if (requestPageSize != null) {
 			paramList.add(pageSizeKeyword + "=" + requestPageSize);
 		}
 
-		final String pageNumberKeyword = RequestKeywords.PageNumber.getIdentifier();
+		final String pageNumberKeyword = RequestKeywords.PageNumber.getName();
 		final String requestPageNumber = securityContext.getRequest().getParameter(pageNumberKeyword);
 
 		if (requestPageNumber != null) {

@@ -223,7 +223,9 @@ public interface Documentable {
 	 *
 	 * @return the long description or null
 	 */
-	String getLongDescription();
+	default String getLongDescription() {
+		return null;
+	}
 
 	/**
 	 * Returns the parameters of this Documentable, or null if no
@@ -231,7 +233,9 @@ public interface Documentable {
 	 *
 	 * @return the parameters or null
 	 */
-	List<Parameter> getParameters();
+	default List<Parameter> getParameters() {
+		return null;
+	}
 
 	/**
 	 * Returns examples for this Documentable, or null if no examples
@@ -239,7 +243,9 @@ public interface Documentable {
 	 *
 	 * @return the examples or null
 	 */
-	List<Example> getExamples();
+	default List<Example> getExamples() {
+		return null;
+	}
 
 	/**
 	 * Returns notes for this Documentable, or null if no notes
@@ -247,7 +253,9 @@ public interface Documentable {
 	 *
 	 * @return the notes or null
 	 */
-	List<String> getNotes();
+	default List<String> getNotes() {
+		return null;
+	}
 
 	/**
 	 * Returns the signatures of this Documentable, or null if no
@@ -255,7 +263,9 @@ public interface Documentable {
 	 *
 	 * @return the signatures or null
 	 */
-	List<Signature> getSignatures();
+	default List<Signature> getSignatures() {
+		return null;
+	}
 
 	/**
 	 * Returns the languages for which this Documentable is valid. This
@@ -265,14 +275,18 @@ public interface Documentable {
 	 *
 	 * @return the languages
 	 */
-	List<Language> getLanguages();
+	default List<Language> getLanguages() {
+		return null;
+	}
 
 	/**
 	 * Returns the usages of this Documentable, or null if no usages exist.
 	 *
 	 * @return the usages or null
 	 */
-	List<Usage> getUsages();
+	default List<Usage> getUsages() {
+		return null;
+	}
 
 	/**
 	 * Returns the properties of this Documentable, or null if no

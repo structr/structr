@@ -23,34 +23,19 @@ import org.structr.docs.DocumentableType;
 import org.structr.docs.Documentation;
 import org.structr.docs.ontology.ConceptType;
 
-@Documentation(name="Event Actions", type=ConceptType.Topic, shortDescription="Backend actions that can be executed via Event Action Mapping.", parent="Event Action Mapping")
-public enum EventAction implements Documentable {
+@Documentation(name="Follow-up actions", type=ConceptType.Topic, shortDescription="Automated follow-up actions that can be executed after an action was executed.", parent="Event Action Mapping")
+public enum EventBehaviour implements Documentable {
 
-	None("none", "No action", null),
-	Create("create", "Create new object", null),
-	Update("update", "Update object", null),
-	Delete("delete", "Delete object", null),
-	AppendChild("append-child", "Append child", null),
-	RemoveChild("remove-child", "Remove child", null),
-	InsertHtml("insert-html", "Insert HTML", null),
-	ReplaceHtml("replace-html", "Replace HTML", null),
-	PrevPage("prev-page", "Previous page", null),
-	NextPage("next-page", "Next page", null),
-	FirstPage("first-page", "First page", null),
-	LastPage("last-page", "Last page", null),
-	SignIn("sign-in", "Sign in", null),
+	PartialRefresh("partial-refresh", "Partial refresh", null),
+	PartialRefreshLinked("partial-refresh-linked", "Partial refresh linked", "Partial refresh of a linked element."),
+	NavigateToUrl("navigate-to-url", "Navigate to URL", null),
+	FireEvent("fire-event", "Fire event", null),
+	FullPageReload("full-page-reload", "Full page reload", null),
 	SignOut("sign-out", "Sign out", null),
-	SignUp("sign-up", "Sign up", null),
-	ResetPassword("reset-password", "Reset password", null),
-	Flow("flow", "Execute flow", null),
-	Method("method", "Execute method", null),
-
-	// The "unknown" action will be used for all actions that are not defined in this enum. This is because a
-	// previous version of the Event Action Mapping used the action property to store the name of a method to
-	// be called.
+	None("none", "None", null),
 	Unknown("unknown", null, null);
 
-	EventAction(final String identifier, final String displayName, final String shortDescription) {
+	EventBehaviour(final String identifier, final String displayName, final String shortDescription) {
 
 		this.identifier       = identifier;
 		this.displayName      = displayName;
@@ -61,7 +46,7 @@ public enum EventAction implements Documentable {
 
 	@Override
 	public DocumentableType getDocumentableType() {
-		return DocumentableType.EventAction;
+		return DocumentableType.EventBehaviour;
 	}
 
 	public String getName() {
@@ -84,15 +69,15 @@ public enum EventAction implements Documentable {
 	 * @param identifier
 	 * @return
 	 */
-	public static EventAction forName(final String identifier) {
+	public static EventBehaviour forName(final String identifier) {
 
-		for (final EventAction type : EventAction.values()) {
+		for (final EventBehaviour type : EventBehaviour.values()) {
 
 			if (type.getName().equals(identifier)) {
 				return type;
 			}
 		}
 
-		return EventAction.Unknown;
+		return EventBehaviour.Unknown;
 	}
 }

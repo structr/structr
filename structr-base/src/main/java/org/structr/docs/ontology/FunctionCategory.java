@@ -49,7 +49,7 @@ public enum FunctionCategory implements Category {
 	}
 
 	@Override
-	public String getIdentifier() {
+	public String getName() {
 		return name();
 	}
 

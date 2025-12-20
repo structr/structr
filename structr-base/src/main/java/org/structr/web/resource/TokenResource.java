@@ -138,7 +138,7 @@ public class TokenResource extends ExactMatchEndpoint {
 
 				for (Cookie cookie : request.getCookies()) {
 
-					if (StringUtils.equals(cookie.getName(), RequestHeaders.RefreshToken.getIdentifier())) {
+					if (StringUtils.equals(cookie.getName(), RequestHeaders.RefreshToken.getName())) {
 
 						return cookie.getValue();
 					}
@@ -146,7 +146,7 @@ public class TokenResource extends ExactMatchEndpoint {
 			}
 
 			if (refreshToken == null) {
-				return request.getHeader(RequestHeaders.RefreshToken.getIdentifier());
+				return request.getHeader(RequestHeaders.RefreshToken.getName());
 			}
 
 			return refreshToken;

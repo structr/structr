@@ -62,7 +62,7 @@ public class NamedConceptToken extends Token<List<Concept>> {
 	@Override
 	public List<Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final ConceptType type        = conceptToken.resolve(ontology, sourceFile, line);
+		final ConceptType type         = conceptToken.resolve(ontology, sourceFile, line);
 		final List<String> identifiers = identifierToken.resolve(ontology, sourceFile, line);
 		final List<Concept> concepts   = new LinkedList<>();
 
@@ -82,9 +82,9 @@ public class NamedConceptToken extends Token<List<Concept>> {
 						concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
 					}
 				}
-			}
 
-			concepts.add(concept);
+				concepts.add(concept);
+			}
 		}
 
 		return concepts;

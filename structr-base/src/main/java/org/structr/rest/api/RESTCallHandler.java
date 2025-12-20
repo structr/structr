@@ -312,11 +312,11 @@ public abstract class RESTCallHandler {
 
 		if (request != null) {
 
-			final String distance = request.getParameter(RequestKeywords.Distance.getIdentifier());
+			final String distance = request.getParameter(RequestKeywords.Distance.getName());
 
 			if (!request.getParameterMap().isEmpty() && StringUtils.isNotBlank(distance)) {
 
-				final String latlon   = request.getParameter(RequestKeywords.LatLon.getIdentifier());
+				final String latlon   = request.getParameter(RequestKeywords.LatLon.getName());
 				if (latlon != null) {
 
 					final String[] parts = latlon.split("[,]+");
@@ -337,14 +337,14 @@ public abstract class RESTCallHandler {
 				} else {
 
 					final double dist     = Double.parseDouble(distance);
-					final String location = request.getParameter(RequestKeywords.Location.getIdentifier());
+					final String location = request.getParameter(RequestKeywords.Location.getName());
 
-					String street     = request.getParameter(RequestKeywords.Street.getIdentifier());
-					String house      = request.getParameter(RequestKeywords.House.getIdentifier());
-					String postalCode = request.getParameter(RequestKeywords.PostalCode.getIdentifier());
-					String city       = request.getParameter(RequestKeywords.City.getIdentifier());
-					String state      = request.getParameter(RequestKeywords.State.getIdentifier());
-					String country    = request.getParameter(RequestKeywords.Country.getIdentifier());
+					String street     = request.getParameter(RequestKeywords.Street.getName());
+					String house      = request.getParameter(RequestKeywords.House.getName());
+					String postalCode = request.getParameter(RequestKeywords.PostalCode.getName());
+					String city       = request.getParameter(RequestKeywords.City.getName());
+					String state      = request.getParameter(RequestKeywords.State.getName());
+					String country    = request.getParameter(RequestKeywords.Country.getName());
 
 					// if location, use city and street, else use all fields that are there!
 					if (location != null) {
@@ -377,11 +377,11 @@ public abstract class RESTCallHandler {
 
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
-			if (request.getParameter(RequestKeywords.Inexact_Deprecated.getIdentifier()) != null) {
+			if (request.getParameter(RequestKeywords.Inexact_Deprecated.getName()) != null) {
 
 				logger.warn("Usage of deprecated request keyword {} detected. This keyword is deprecated and will be removed in the future. Please use {} instead.",
-					RequestKeywords.Inexact_Deprecated.getIdentifier(),
-					RequestKeywords.Inexact.getIdentifier()
+					RequestKeywords.Inexact_Deprecated.getName(),
+					RequestKeywords.Inexact.getName()
 				);
 			}
 
@@ -558,7 +558,7 @@ public abstract class RESTCallHandler {
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
 		final Iterator<Map<String, Object>> iterator = propertySets.iterator();
-		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.getIdentifier(), 1000);
+		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.getName(), 1000);
 		int overallCount                             = 0;
 
 		while (iterator.hasNext()) {
@@ -672,7 +672,7 @@ public abstract class RESTCallHandler {
 
 		for (final RequestKeywords k : requestKeywords) {
 
-			final String value = request.getParameter(k.getIdentifier());
+			final String value = request.getParameter(k.getName());
 			if (value != null) {
 
 				if (parseInteger(value) == 1) {

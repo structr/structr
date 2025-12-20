@@ -1459,9 +1459,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	public static void setNoCacheHeaders(final HttpServletResponse response) {
 
-		response.setHeader(RequestHeaders.CacheControl.getIdentifier(), "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
-		response.setHeader(RequestHeaders.Pragma.getIdentifier(), "no-cache, no-store"); // HTTP 1.0.
-		response.setDateHeader(RequestHeaders.Expires.getIdentifier(), 0);
+		response.setHeader(RequestHeaders.CacheControl.getName(), "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
+		response.setHeader(RequestHeaders.Pragma.getName(), "no-cache, no-store"); // HTTP 1.0.
+		response.setDateHeader(RequestHeaders.Expires.getName(), 0);
 	}
 
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {
@@ -1484,15 +1484,15 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (!dontCache && seconds != null) {
 
 			cal.add(Calendar.SECOND, seconds);
-			response.setHeader(RequestHeaders.CacheControl.getIdentifier(), "max-age=" + seconds + ", s-maxage=" + seconds);
-			response.setHeader(RequestHeaders.Expires.getIdentifier(), httpDateFormat.format(cal.getTime()));
+			response.setHeader(RequestHeaders.CacheControl.getName(), "max-age=" + seconds + ", s-maxage=" + seconds);
+			response.setHeader(RequestHeaders.Expires.getName(), httpDateFormat.format(cal.getTime()));
 
 		} else {
 
 			if (!dontCache) {
-				response.setHeader(RequestHeaders.CacheControl.getIdentifier(), "no-cache, must-revalidate, proxy-revalidate");
+				response.setHeader(RequestHeaders.CacheControl.getName(), "no-cache, must-revalidate, proxy-revalidate");
 			} else {
-				response.setHeader(RequestHeaders.CacheControl.getIdentifier(), "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
+				response.setHeader(RequestHeaders.CacheControl.getName(), "private, no-cache, no-store, max-age=0, s-maxage=0, must-revalidate, proxy-revalidate");
 			}
 
 		}
@@ -1500,9 +1500,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		if (lastModified != null) {
 
 			final Date roundedLastModified = DateUtils.round(lastModified, Calendar.SECOND);
-			response.setHeader(RequestHeaders.LastModified.getIdentifier(), httpDateFormat.format(roundedLastModified));
+			response.setHeader(RequestHeaders.LastModified.getName(), httpDateFormat.format(roundedLastModified));
 
-			final String ifModifiedSince = request.getHeader(RequestHeaders.IfModifiedSince.getIdentifier());
+			final String ifModifiedSince = request.getHeader(RequestHeaders.IfModifiedSince.getName());
 
 			if (StringUtils.isNotBlank(ifModifiedSince)) {
 
@@ -1517,7 +1517,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						notModified = true;
 
 						response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
-						response.setHeader(RequestHeaders.Vary.getIdentifier(), "Accept-Encoding");
+						response.setHeader(RequestHeaders.Vary.getName(), "Accept-Encoding");
 					}
 
 				} catch (ParseException ex) {
@@ -1611,7 +1611,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					response.setContentType("application/octet-stream");
 				}
 
-				final String range = request.getHeader(RequestHeaders.Range.getIdentifier());
+				final String range = request.getHeader(RequestHeaders.Range.getName());
 
 				try {
 
@@ -1845,7 +1845,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			}
 
 			// check Http Basic Authentication headers
-			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader(RequestHeaders.Authorization.getIdentifier()));
+			final Principal principal = getPrincipalForAuthorizationHeader(request.getHeader(RequestHeaders.Authorization.getName()));
 			if (principal != null) {
 
 				final SecurityContext securityContext = SecurityContext.getInstance(principal, AccessMode.Frontend);

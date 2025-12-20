@@ -618,9 +618,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			response.setContentType("application/json; charset=utf-8");
 
 			// check if this is a CORS preflight request
-			final String origin      = request.getHeader(RequestHeaders.Origin.getIdentifier());
-			final String corsHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getIdentifier());
-			final String corsMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getIdentifier());
+			final String origin      = request.getHeader(RequestHeaders.Origin.getName());
+			final String corsHeaders = request.getHeader(RequestHeaders.AccessControlRequestHeaders.getName());
+			final String corsMethod  = request.getHeader(RequestHeaders.AccessControlRequestMethod.getName());
 			int statusCode           = HttpServletResponse.SC_OK;
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {
