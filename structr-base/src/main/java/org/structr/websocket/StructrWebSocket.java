@@ -323,6 +323,10 @@ public class StructrWebSocket implements Session.Listener.AutoDemanding {
 
 			} catch (Throwable t) {
 
+				if (t instanceof NullPointerException) {
+					t.printStackTrace();
+				}
+
 				if (!(t instanceof SyntaxErrorException) && !(t instanceof AlreadyLoggedAssertException)) {
 
 					t.printStackTrace();
