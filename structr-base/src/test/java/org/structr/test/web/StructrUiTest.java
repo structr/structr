@@ -51,9 +51,7 @@ import org.testng.annotations.*;
 import org.testng.annotations.Optional;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Method;
-import java.net.URL;
 import java.util.*;
 import java.util.function.Supplier;
 
@@ -216,54 +214,10 @@ public abstract class StructrUiTest {
 					testDir.delete();
 				}
 
-			} catch (Throwable t) {
-			}
-
-			try {
 				Thread.sleep(500);
-			} catch (Throwable t) {
-			}
+
+			} catch (Throwable t) {}
 		}
-	}
-
-	/**
-	 * Recursive method used to find all classes in a given directory and
-	 * subdirs.
-	 *
-	 * @param directory The base directory
-	 * @param packageName The package name for classes found inside the base
-	 * directory
-	 * @return The classes
-	 * @throws ClassNotFoundException
-	 */
-	private static List<Class> findClasses(File directory, String packageName) throws ClassNotFoundException {
-
-		List<Class> classes = new ArrayList<>();
-
-		if (!directory.exists()) {
-
-			return classes;
-		}
-
-		File[] files = directory.listFiles();
-
-		for (File file : files) {
-
-			if (file.isDirectory()) {
-
-				assert !file.getName().contains(".");
-
-				classes.addAll(findClasses(file, packageName + "." + file.getName()));
-
-			} else if (file.getName().endsWith(".class")) {
-
-				classes.add(Class.forName(packageName + '.' + file.getName().substring(0, file.getName().length() - 6)));
-			}
-
-		}
-
-		return classes;
-
 	}
 
 	protected NodeInterface createTestNode(final String type, final NodeAttribute... attrs) throws FrameworkException {
@@ -326,59 +280,6 @@ public abstract class StructrUiTest {
 		return user;
 	}
 
-	protected List<RelationshipInterface> createTestRelationships(final String relType, final int number) throws FrameworkException {
-
-		List<NodeInterface> nodes = createTestNodes("AbstractNode", 2);
-		final NodeInterface startNode = nodes.get(0);
-		final NodeInterface endNode   = nodes.get(1);
-
-		List<RelationshipInterface> rels = new LinkedList<>();
-
-		for (int i = 0; i < number; i++) {
-			rels.add(app.create(startNode, endNode, relType));
-		}
-
-		return rels;
-	}
-
-	/**
-	 * Get classes in given package and subpackages, accessible from the
-	 * context class loader
-	 *
-	 * @param packageName The base package
-	 * @return The classes
-	 * @throws ClassNotFoundException
-	 * @throws IOException
-	 */
-	protected static List<Class> getClasses(final String packageName) throws ClassNotFoundException, IOException {
-
-		ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
-
-		assert classLoader != null;
-
-		String path = packageName.replace('.', '/');
-		Enumeration<URL> resources = classLoader.getResources(path);
-		List<File> dirs = new ArrayList<>();
-
-		while (resources.hasMoreElements()) {
-
-			URL resource = resources.nextElement();
-
-			dirs.add(new File(resource.getFile()));
-
-		}
-
-		List<Class> classList = new ArrayList<>();
-
-		for (File directory : dirs) {
-
-			classList.addAll(findClasses(directory, packageName));
-		}
-
-		return classList;
-
-	}
-
 	protected String getUuidFromLocation(String location) {
 		return location.substring(location.lastIndexOf("/") + 1);
 	}
@@ -386,7 +287,6 @@ public abstract class StructrUiTest {
 	protected void grant(final String signature, final long flags, final boolean reset) {
 
 		if (reset) {
-
 			// delete existing permissions
 			RestAssured
 
