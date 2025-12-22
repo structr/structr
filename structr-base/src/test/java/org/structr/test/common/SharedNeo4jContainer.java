@@ -41,6 +41,11 @@ public final class SharedNeo4jContainer {
 		Neo4jContainer container = null;
 		boolean started = false;
 
+		logger.info("========================================");
+		logger.info("SharedNeo4jContainer: MODULE_NAME = {}", MODULE_NAME);
+		logger.info("SharedNeo4jContainer: CONTAINER_LABEL = {}", CONTAINER_LABEL);
+		logger.info("========================================");
+
 		// allow reuse of docker container
 		TestcontainersConfiguration.getInstance().updateUserConfig("testcontainers.reuse.enable", "true");
 
