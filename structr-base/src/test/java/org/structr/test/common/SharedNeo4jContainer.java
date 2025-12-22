@@ -52,7 +52,8 @@ public final class SharedNeo4jContainer {
 				container = new Neo4jContainer(NEO4J_VERSION)
 						.withAdminPassword(NEO4J_PASSWORD)
 						.withReuse(true) // reuse containers for performance
-						.withLabel("purpose", CONTAINER_LABEL);
+						.withLabel("purpose", CONTAINER_LABEL)
+						.withEnv("STRUCTR_TEST_MODULE", MODULE_NAME); // changes hash for reused container
 
 				container.start();
 
