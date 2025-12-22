@@ -37,7 +37,7 @@ jobs:
         run:  >-
           mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb &&
           cd ${{ matrix.module }} && 
-          mvn install -q -DskipDist -DskipDocker -DskipDeb
+          mvn install -q -DskipDist -DskipDocker -DskipDeb  -Dstructr.test.module=${{ matrix.variableName }}
 
   run-ui-tests:
     if: ${{ false && !startsWith( github.actor, 'dependabot' ) }}
@@ -56,8 +56,8 @@ jobs:
       - name: Compile and run Tests
         run: >-
           mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb &&
-          cd ${{ matrix.module }} && 
-          mvn install -q -DskipDist -DskipDocker -DskipDeb -Dstructr.test.module=${{ matrix.variableName }}
+          cd structr-app &&
+          mvn install -q -DskipDist -DskipDocker -DskipDeb
 
   build-and-deploy:
     runs-on: self-hosted

@@ -18,6 +18,7 @@
  */
 package org.structr.test.common;
 
+import org.apache.tika.utils.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.neo4j.Neo4jContainer;
@@ -31,8 +32,7 @@ public final class SharedNeo4jContainer {
 	private static final String NEO4J_PASSWORD = "admin123";
 	private static final String NEO4J_USERNAME = "neo4j";
 
-	private static final String MODULE_NAME = System.getProperty("structr.test.module", "default");
-	private static final String CONTAINER_LABEL = "structr-test-neo4j-" + MODULE_NAME;
+	private static String MODULE_NAME;
 
 	private static final Neo4jContainer CONTAINER;
 	private static final boolean CONTAINER_STARTED;
@@ -41,10 +41,16 @@ public final class SharedNeo4jContainer {
 		Neo4jContainer container = null;
 		boolean started = false;
 
-		logger.info("========================================");
+		String module = System.getProperty("structr.test.module", "default");
+		if (StringUtils.isBlank(module)) {
+			module = "default";
+		}
+
+		MODULE_NAME = module;
+		final String CONTAINER_LABEL = "structr-test-neo4j-" + MODULE_NAME;
+
 		logger.info("SharedNeo4jContainer: MODULE_NAME = {}", MODULE_NAME);
 		logger.info("SharedNeo4jContainer: CONTAINER_LABEL = {}", CONTAINER_LABEL);
-		logger.info("========================================");
 
 		// allow reuse of docker container
 		TestcontainersConfiguration.getInstance().updateUserConfig("testcontainers.reuse.enable", "true");
