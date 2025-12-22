@@ -77,6 +77,7 @@
 							<!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
 							<systemPropertyVariables>
 								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+								<structr.test.module>${structr.test.module}</structr.test.module>
 							</systemPropertyVariables>
 						</configuration>
 						<executions>
