@@ -48,7 +48,7 @@
 							<includes>
 								<include>**/*Test.java</include>
 							</includes>
-							<argLine>-Xms2g -Xmx2g -Duser.timezone=UTC</argLine>
+							<argLine>-Xms2g -Xmx2g -Duser.timezone=UTC -Dsurefire.forkNumber=${surefire.forkNumber}</argLine>
 							<reuseForks>false</reuseForks>
 							<forkCount>${test.forkCount}</forkCount>
 							<skipTests>${skipTests}</skipTests>
