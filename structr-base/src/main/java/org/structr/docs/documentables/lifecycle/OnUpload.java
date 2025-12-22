@@ -20,20 +20,20 @@ package org.structr.docs.documentables.lifecycle;
 
 import java.util.List;
 
-public class OnDownload extends LifecycleBase {
+public class OnUpload extends LifecycleBase {
 
-	public OnDownload() {
-		super("onDownload");
+	public OnUpload() {
+		super("onUpload");
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Called after the download of a File is complete.";
+		return "Called after the upload of a File is complete.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The `onDownload()` lifecycle method is called after a File is downloaded.";
+		return "The `onUpload()` lifecycle method is called after a File is uploaded.";
 	}
 
 	@Override
@@ -41,7 +41,7 @@ public class OnDownload extends LifecycleBase {
 
 		return List.of(
 			"This method must be defined on the type `File` or its descendants.",
-			"See also: `onUpload()`."
+			"See also: `onDownload()`."
 		);
 	}
 

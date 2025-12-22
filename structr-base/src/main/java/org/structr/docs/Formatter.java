@@ -46,6 +46,12 @@ public abstract class Formatter {
 		}
 
 		// type filter
+		if (concept == null) {
+
+			System.out.println("Encountered null concept while processing ontology.");
+			return;
+		}
+
 		if (!outputSettings.renderType(concept.getType())) {
 			return;
 		}

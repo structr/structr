@@ -35,6 +35,11 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.endsWith";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -87,11 +92,6 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("key, value");
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
 	}
 
 	@Override

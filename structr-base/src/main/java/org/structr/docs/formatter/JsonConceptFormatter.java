@@ -18,6 +18,8 @@
  */
 package org.structr.docs.formatter;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.structr.docs.Formatter;
@@ -25,6 +27,7 @@ import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
 import org.structr.web.function.EscapeHtmlFunction;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,40 +37,43 @@ public class JsonConceptFormatter extends Formatter {
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
 
-		final StringBuilder sb = new StringBuilder();
-		final List<String> c   = new LinkedList<>();
-		int linkCount          = concept.getTotalChildCount();
+		final Gson gson                = new GsonBuilder().create();
+		final Map<String, Object> data = new LinkedHashMap<>();
+		final List<String> c           = new LinkedList<>();
+		int childCount                 = concept.getTotalChildCount();
+
+		data.put("name",        concept.getName());
+		data.put("type",        concept.getType());
+		data.put("childCount",  childCount);
+		data.put("occurrences", concept.getOccurrences());
+
+		data.putAll(concept.getMetadata());
+
+		final List<Map<String, Object>> links = new LinkedList<>();
+
+		data.put("links", links);
 
 		for (final Map.Entry<String, List<Concept>> child : concept.getChildren().entrySet()) {
 
-			final List<String> t = new LinkedList<>();
+			final List<Map<String, Object>> childList = new LinkedList<>();
 
 			for (final Concept childConcept : child.getValue()) {
 
-				t.add("{ \"name\": \"" + escape(childConcept.getName()) + "\", \"type\": \"" + childConcept.getType() + "\" }");
+				final Map<String, Object> childMap = new LinkedHashMap<>();
+
+				childMap.put("name", childConcept.getName());
+				childMap.put("type", childConcept.getType());
+
+				childList.add(childMap);
 			}
 
-			c.add("{ \"name\": \"" + escape(child.getKey()) + "\", \"targets\": [ " + StringUtils.join(t, ", ") + " ] }");
+			links.add(Map.of(
+				"name", child.getKey(),
+				"targets", childList
+			));
 		}
 
-		sb.append("{ \"name\": \"");
-		sb.append(escape(concept.getName()));
-		sb.append("\", ");
-		sb.append("\"type\": \"");
-		sb.append(concept.getType());
-		sb.append("\", ");
-		sb.append("\"occurrences\": ");
-		sb.append(concept.getMetadata().get("occurrences"));
-		sb.append(", ");
-		sb.append("\"count\": ");
-		sb.append(linkCount);
-		sb.append(", \"links\": [");
-
-		sb.append(StringUtils.join(c, ", "));
-		sb.append("] }");
-
-		lines.add(sb.toString());
-
+		lines.add(gson.toJson(data));
 	}
 
 	// ----- private methods -----

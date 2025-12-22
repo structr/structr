@@ -4,7 +4,7 @@
 # Definitions of internal concepts that are not (yet) documented anywhere in the code or have no equivalent in code.
 #
 
-Topic "Advanced Topics" has topics "Internals", "Performance Optimizations"
+Topic "Advanced Topics" has topics "Internals", "Performance Optimization"
 
 "Performance Optimizations" has topics "Prefetching", "Relationship naming", "Supernodes"
 

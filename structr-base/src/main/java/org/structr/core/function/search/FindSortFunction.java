@@ -35,6 +35,11 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.sort";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		// use String here because the actual type of the query is not known yet
@@ -81,12 +86,16 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getLongDescription() {
-		return "";
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
+		return """
+		This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes:
+		
+		```
+		{
+			// fetch the list of projects sorted by their owner's names
+			let projects = $.find('Project', $.predicate.sort('owner.name'));
+		}
+		```
+		""";
 	}
 
 	@Override

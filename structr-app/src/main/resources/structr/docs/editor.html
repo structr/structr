@@ -19,6 +19,7 @@
             }
             #context {
                 position: absolute;
+                padding: 1em;
                 top: 2em;
                 right: 2em;
                 width: 300px;
@@ -26,6 +27,9 @@
                 border: 1px solid #999;
                 background-color: #fff;
                 box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
+            }
+            #context p {
+                margin: 0.3em 0 0 0;
             }
         </style>
     </head>
@@ -60,7 +64,6 @@
                 'CodeSource':     '#607D8B',  // Stahlblau
 
                 // UI Elements - Cyan/Türkis-Palette (interaktiv, frontend)
-                'Area':         '#00ACC1',  // Cyan
                 'Tab':          '#26C6DA',  // Helles Cyan
                 'Flyout':       '#00BCD4',  // Türkis
                 'Menu':         '#0097A7',  // Dunkles Cyan
@@ -92,6 +95,9 @@
                 'Setting':      '#AED581',  // Hellgrün (konfigurierbar)
                 'Configuration':'9CCC65',   // Limette
                 'Synonym':      '#C5E1A5',  // Sehr hellgrün
+
+                'Area':         '#FFCC00',
+                'Helper':       '#EEEEEE',
                 'Text':         '#EEEEEE'
             };
             fetch('/structr/docs/ontology?type=*&levels=1&format=json').then(response => response.json()).then(data => {
@@ -102,10 +108,16 @@
 
                 for (let entry of data.data) {
                     let id = entry.type + ':' + entry.name;
-                    let value = (entry.count + 1) * 2;
+                    let value = (entry.childCount + 1) * 2;
+                    let fontSize = 14;
                     //color = (entry.occurrences > 0 ? '#00ff0099' : 'red');
                     color = colors[entry.type];
-                    nodes.add({ id: id, label: id + ' (' + entry.occurrences + ')', value: value, color: color });
+                    if (entry.occurrences == 0) {
+                        color = '#FF0000';
+                        fontSize = 50;
+                    }
+
+                    nodes.add({ id: id, label: id + ' (' + entry.occurrences + ')', value: value, color: color, font: { size: fontSize } });
                 }
 
                 for (let entry of data.data) {
@@ -144,23 +156,50 @@
                         solver: 'forceAtlas2Based',
                         stabilization: true,
                         forceAtlas2Based: {
-                            centralGravity: 0.002,
+                            centralGravity: 0.0001,
                             avoidOverlap: 0.8,
-                            springLength: 100,
-                            springConstant: 0.2,
-                            damping: 0.2
+                            springLength: 500,
+                            springConstant: 0.05,
+                            damping: 0.2,
                         },
                         barnesHut: {
                             gravitationalConstant: -100000,
                             avoidOverlap: 0.5,
-                            springLength: 200,
-                            springConstant: 0.2,
+                            springLength: 500,
+                            springConstant: 0.05,
                             damping: 0.2
                         },
                         wind: {
                             x: 0,
                             y: 0
                         }
+                    }
+                });
+
+                network.addEventListener('click', (data) => {
+                    if (data && data.nodes && data.nodes.length) {
+
+                        let name    = data.nodes[0];
+                        let context = document.querySelector('#context');
+
+                        context.innerHTML = 'Loading data for ' + name + '...';
+
+                        fetch(`/structr/docs/ontology?root=${encodeURIComponent(name)}&format=json&levels=1`).then(response => response.json()).then(data => {
+                            let result = data.data[0];
+                            let name   = result.name;
+
+                            context.innerHTML = `
+                                <h3>${name}</h3>
+                                <h4>Type</h4>
+                                <p>${result.type}</p>
+                                <h4>Defined in</h4>
+                                <p>${result.sourceFile}:${result.lineNumber}</p>
+                                <h4>Children</h4>
+                                <p>${result.childCount}</p>
+                                <h4>Occurrences in Docs</h4>
+                                <p>${result.occurrences || 0}</p>
+                            `
+                        });
                     }
                 });
             });

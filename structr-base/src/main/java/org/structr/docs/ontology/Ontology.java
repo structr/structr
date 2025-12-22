@@ -50,7 +50,6 @@ public final class Ontology {
 		final Map<String, String> verbs = new LinkedHashMap<>();
 
 		// verbs must be defined in lower case!
-		verbs.put("is",         "is");
 		verbs.put("has",        "ispartof");
 		verbs.put("uses",       "isusedby");
 		verbs.put("provides",   "isprovidedby");
@@ -64,6 +63,10 @@ public final class Ontology {
 		verbs.put("displays",   "isdisplayedby");
 		verbs.put("writesto",   "iswrittenfrom");
 		verbs.put("executes",   "isexecutedby");
+
+		// symmetrical links
+		verbs.put("matches",    "matches");
+		verbs.put("is",         "is");
 
 		return verbs;
 	}
@@ -82,6 +85,22 @@ public final class Ontology {
 
 		initialize(pathToFactsFolder);
 		initializeFromDocumentationAnnotations();
+
+		// link concepts with the same text
+		for (final Concept concept1 : concepts) {
+
+			for (final Concept concept2 : concepts) {
+
+				if (concept1.getName().toLowerCase().equals(concept2.getName().toLowerCase())) {
+
+					if (concept1 != concept2 && !concept1.hasChild("matches", concept2) && !concept2.hasChild("matches", concept1)) {
+
+						concept1.linkChild("matches", concept2);
+					}
+				}
+
+			}
+		}
 	}
 
 	/**
@@ -318,6 +337,8 @@ public final class Ontology {
 						concept.type = type;
 					}
 
+					concept.getOccurrences().add(new Occurrence(sourceFile, line));
+
 					return concept;
 				}
 			}
@@ -390,15 +411,31 @@ public final class Ontology {
 			final Documentation documentation = entry.getValue();
 
 			// collect info from annotation and import it into the ontology
-			final ConceptType type = documentation.type();
-			final String name      = documentation.name();
-			final String desc      = documentation.shortDescription();
-			final String parent    = documentation.parent();
+			final ConceptType type  = documentation.type();
+			final String name       = documentation.name();
+			final String desc       = documentation.shortDescription();
+			final String parent     = documentation.parent();
+			final String[] synonyms = documentation.synonyms();
 
 			final Concept concept = getOrCreateConcept(sourceFile, 0, type, name);
 			if (concept != null) {
 
 				concept.setShortDescription(desc);
+
+				if (synonyms != null && synonyms.length > 0) {
+
+					for (final String synonym : synonyms) {
+
+						if (StringUtils.isNotBlank(synonym)) {
+
+							final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, type, synonym);
+							if (synonymConcept != null) {
+
+								concept.linkChild("has", synonymConcept);
+							}
+						}
+					}
+				}
 
 				if (StringUtils.isNotBlank(parent)) {
 

@@ -5,7 +5,8 @@
 #
 
 # The word "Structr" is the root of the ontology
-Structr has topics "Introduction", "Building Applications", "User Interface", "Operations", "Advanced Topics", References
+Structr has topics "Introduction", "Admin User Interface", "Building Applications", "APIs & Integrations", "Operations", "Advanced Topics", References
+
 
 # Introduction: this exists to match the Markdown docs and enable gap analysis
 Introduction has topics "What is Structr?", "Installation Method", "First Steps"
@@ -14,39 +15,9 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
 
 
 
-# Building Applications
-"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Security", "Troubleshooting"
-
-    "Creating Pages & Templates" has topics "Page Templates", "Shared Components", "Widgets"
-
-    "Navigation & Routing" has topics "Routes", "Error pages", "Page position"
-
-    "Dynamic Content" has topic "Repeaters", "Show / Hide Conditions"
-
-        "Repeaters" has topic "Data key"
-        "Repeaters" has texts "Function query", "Flow", "Cypher query"
-        "Data key" has texts "Repeater Keyword", "Data Key"
-
-    "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
-
-    "User Input & Forms" has topics "Event Action Mapping"
-
-        # link things to texts used in frontend (this is the place where the connection is formed!)
-        Topic "Event Action Mapping" has "Parameter types", "Notifications", "Follow-up Actions"
-        Topic "Event Action Mapping" has texts "Event Action Mapping", "Event", "Action", "Parameter Mapping", "Notifications", "Follow-up Actions"
-        Topic "Event Actions" has texts "Action"
-        Topic "Parameter Mapping" has texts "Parameter Mapping"
-        Topic "Follow-up Actions" has texts "Behaviour on success", "Behaviour on failure"
-        Topic "Notifications" has texts "Success notifications", "Failure notifications"
-
-
-
-
-
-
-# User Interface
-"User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Virtual Types", "Widgets", "Flows", "Localization", "Admin Console", "Configuration Editor"
-"User Interface" has topic "Helpers"
+# Admin User Interface
+"Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Virtual Types", "Widgets", "Flows", "Localization", "Admin Console", "Configuration Editor"
+"Admin User Interface" has topic "Helpers"
 
     Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
 
@@ -56,9 +27,54 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
 
 
 
+
+
+
+# Building Applications
+"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Security", "Troubleshooting"
+
+    "Creating Pages & Templates" has topics "Page Templates", "Shared Components", "Widgets"
+
+    "Navigation & Routing" has topics "Navigation", "URL routing", "Error pages", "Page position"
+
+    "Dynamic Content" has topic "Repeaters", "Show / Hide Conditions"
+
+        "Repeaters" has topic "Data key"
+        "Repeaters" has texts "Function query", "Flow", "Cypher query"
+        "Data key" has texts "Repeater Keyword"
+
+    "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
+
+    "User Input & Forms" has topics "Event Action Mapping"
+        Topic "Notifications" has texts "Success notifications", "Failure notifications"
+
+
+
+
+
+# Interfaces
+"APIs & Integrations" has topics "REST", "Open API", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
+
+
+
+
 # Operations
 
+"Operations" has topics "Deployment", "User Management", "File System", "Data Management", "SSL / TLS", "Monitoring", "Logging", "Auditing", "Statistics"
 
+    # Deployment
+
+    "User Management" has topics "User self-registration"
+
+    "File System" has topics "Checksums", "Thumbnails", "External storage"
+
+    Topic "SSL / TLS" has topic "Letsencrypt"
+
+    "Monitoring" has "HTTP Access Statistics", "CPU Time", "Free Memory", "Max Memory", "Total Memory", "Threads", "Deadlock detected"
+
+    "Logging" has "Server Log", "Event Log", "Log File"
+
+    "Auditing" has "Changelog"
 
 
 # References

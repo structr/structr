@@ -18,9 +18,11 @@
  */
 package org.structr.docs.formatter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
 import java.util.List;
@@ -30,8 +32,13 @@ public class PlaintextTopicFormatter extends Formatter {
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
-		if (settings.hasDetail(Details.name)) {
-			lines.add(formatListHeading((link != null ? link + " " : "") + concept.getType() + " \"" + concept.getName() + "\"", level));
+		if (settings.hasDetail(Details.name) && !ConceptType.Text.equals(concept.getType())) {
+
+			//final String text = (link != null ? link + " " : "") + concept.getType() + " \"" + concept.getName() + "\" from " + concept.getSourceFile() + ":" + concept.getLineNumber();
+			//lines.add(formatListHeading(text, level));
+
+			final String text = concept.getName();
+			lines.add(StringUtils.repeat(" ", level * 2) + text);
 		}
 	}
 }

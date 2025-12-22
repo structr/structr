@@ -70,7 +70,7 @@ public class CodeSourceToken extends NamedConceptToken {
 		if (!documentable.isHidden()) {
 
 			final DocumentableType conceptType = documentable.getDocumentableType();
-			final Concept mainConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, conceptType.getConcept(), documentable.getName());
+			final Concept mainConcept          = ontology.getOrCreateConcept(sourceFile, lineNumber, conceptType.getConcept(), documentable.getDisplayName());
 
 			if (mainConcept != null) {
 

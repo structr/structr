@@ -96,6 +96,7 @@ public abstract class LifecycleBase implements Documentable {
 		documentables.add(new OnNodeCreation());
 
 		// File
+		documentables.add(new OnUpload());
 		documentables.add(new OnDownload());
 
 		// User

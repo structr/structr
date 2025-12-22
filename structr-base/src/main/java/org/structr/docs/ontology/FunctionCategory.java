@@ -18,7 +18,7 @@
  */
 package org.structr.docs.ontology;
 
-import org.structr.docs.Category;
+import org.structr.api.util.Category;
 
 public enum FunctionCategory implements Category {
 

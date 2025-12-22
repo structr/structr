@@ -18,7 +18,7 @@
  */
 package org.structr.autocomplete;
 
-import org.structr.docs.Category;
+import org.structr.api.util.Category;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.ontology.ConceptType;
 

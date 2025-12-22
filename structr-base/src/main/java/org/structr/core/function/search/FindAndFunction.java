@@ -35,6 +35,11 @@ public class FindAndFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.and";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final AndPredicate andPredicate = new AndPredicate();
@@ -70,11 +75,6 @@ public class FindAndFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
 	}
 
 	@Override

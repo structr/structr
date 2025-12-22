@@ -16,22 +16,22 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs;
+package org.structr.docs.ontology;
 
-import org.structr.docs.ontology.ConceptType;
+public class Occurrence {
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+	private final String sourceFile;
+	private final int lineNumber;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface Documentation {
+	public Occurrence(final String sourceFile, final int lineNumber) {
+		this.sourceFile = sourceFile;
+		this.lineNumber = lineNumber;
+	}
 
-	ConceptType type() default ConceptType.Topic;
-	String name();
-	String shortDescription() default "";
-	String parent() default "";
-	String[] synonyms() default {};
+	public String getSourceFile() {
+		return sourceFile;
+	}
+	public int getLineNumber() {
+		return lineNumber;
+	}
 }

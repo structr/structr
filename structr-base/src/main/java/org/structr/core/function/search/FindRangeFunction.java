@@ -37,6 +37,11 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.range";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		Object rangeStart    = null;
@@ -97,11 +102,6 @@ public class FindRangeFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Signature> getSignatures() {
 		return Signature.forAllScriptingLanguages("key, value");
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
 	}
 
 	@Override

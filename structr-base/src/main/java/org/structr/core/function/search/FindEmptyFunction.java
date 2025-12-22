@@ -35,6 +35,11 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.empty";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		try {
@@ -67,11 +72,6 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
 	}
 
 	@Override

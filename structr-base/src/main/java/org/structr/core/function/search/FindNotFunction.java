@@ -35,6 +35,11 @@ public class FindNotFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.not";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final NotPredicate notPredicate = new NotPredicate();
@@ -77,11 +82,6 @@ public class FindNotFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
 	}
 
 	@Override

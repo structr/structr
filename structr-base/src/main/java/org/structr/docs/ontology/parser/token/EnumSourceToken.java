@@ -18,7 +18,7 @@
  */
 package org.structr.docs.ontology.parser.token;
 
-import org.structr.docs.Category;
+import org.structr.api.util.Category;
 import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.ontology.Concept;

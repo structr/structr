@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 public class JavascriptFileToken extends NamedConceptToken {
 
 	private final Pattern HTMLLine      = Pattern.compile("<[a-zA-Z0-9_\\p{Punct} ]+>.*");
-	private final Pattern JSONToken     = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*:\\s*([\"'a-zA-Z0-9_]+)\\s*[\\p{Punct}]*");
+	private final Pattern JSONToken     = Pattern.compile("\\s*([a-zA-Z0-9_]+)\\s*:\\s*[\"']{1}([a-zA-Z0-9_]+)\\s*[\\p{Punct}]*");
 	private final Set<String> stopWords = new LinkedHashSet<>();
 	private final int minLength         = 4;
 	private final int maxLength         = 40;

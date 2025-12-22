@@ -62,10 +62,10 @@ public class DocumentationServlet extends HttpServlet {
 			final OutputSettings settings         = setupOutputSettings(baseResource);
 			final List<Concept> concepts          = new LinkedList<>();
 
+			handleRequestParameters(request, ontology, concepts, settings);
+
 			// compare ontology to existing docs
 			ontology.countConcepts(existingDocs);
-
-			handleRequestParameters(request, ontology, concepts, settings);
 
 			final List<String> lines = ontology.createDocumentation(concepts, settings);
 
@@ -152,7 +152,7 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write("]}\n");
 	}
 
-	private void handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings) {
+	private boolean handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings) {
 
 		boolean hasFilter = false;
 
@@ -207,7 +207,19 @@ public class DocumentationServlet extends HttpServlet {
 		final String root = request.getParameter("root");
 		if (StringUtils.isNotBlank(root)) {
 
-			concepts.addAll(ontology.getConceptsByName(root));
+			if (root.contains(":")) {
+
+				final String[] parts    = root.split(":");
+				final String typeString = parts[0];
+				final String name       = parts[1];
+				final ConceptType t     = ConceptType.valueOf(typeString);
+
+				concepts.add(ontology.getConcept(t, name));
+
+			} else {
+
+				concepts.addAll(ontology.getConceptsByName(root));
+			}
 
 			// do not add default set of concepts
 			hasFilter = true;
@@ -241,6 +253,8 @@ public class DocumentationServlet extends HttpServlet {
 				settings.getDetails().add(Details.valueOf(part.trim()));
 			}
 		}
+
+		return hasFilter;
 	}
 
 	private OutputSettings setupOutputSettings(final Resource baseResource) {

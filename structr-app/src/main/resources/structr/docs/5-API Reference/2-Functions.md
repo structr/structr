@@ -1033,6 +1033,34 @@ ${int(5.8)}
 ${int('35.8')}
 ```
 
+### latLonToUtm()
+Converts the given latitude/longitude coordinates into an UTM string.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|latitude|latitude of the desired UTM result|no|
+|longitude|longitude of the desired UTM result|no|
+
+#### Signatures
+
+```
+latLonToUtm(latitude, longitude)
+```
+
+#### Examples
+##### 1. (JavaScript) Convert a lat/lon pair to UTM
+```
+${{
+	let latitude  = 53.85499997165232;
+	let longitude = 8.081674915658844;
+
+	// result: "32U 439596 5967780"
+	let utmString = $.latLonToUtm(latitude, longitude);
+}}
+
+```
+
 ### long()
 Tries to convert the given object into a long integer value.
 
@@ -1343,6 +1371,34 @@ ${urlencode(this.email)}
 ##### Example 2 (JavaScript)
 ```
 ${{ $.urlencode($.this.email) }}
+```
+
+### utmToLatLon()
+Converts the given UTM string to latitude/longitude coordinates.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|utmString|UTM location string|no|
+
+#### Signatures
+
+```
+utmToLatLon(utmString)
+```
+
+#### Examples
+##### Example 1 (StructrScript)
+```
+${utmToLatLon('32U 395473 5686479')}
+> {latitude=53.85499997165232, longitude=8.081674915658844}
+
+```
+##### Example 2 (JavaScript)
+```
+${{ $.utmToLatLon('32U 395473 5686479')
+> {latitude=53.85499997165232, longitude=8.081674915658844}
+}}
 ```
 
 ## Database Functions
@@ -2676,6 +2732,758 @@ ${{ $.setPrivileged($.page, 'accessCount', '2')} }}
 
 ## EMail Functions
 
+### mailAddAttachment()
+Adds an attachment with an optional file name to the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|file|file node from the virtual filesystem|no|
+|name|file name of attachment (defaults to the actual file name if omitted)|yes|
+
+
+Adds a file as an attachment to the mail. The `name` parameter can be used to send the file with a different name than the filename in the virtual filesystem.
+
+If the given file is a dynamic file, it will be evaluated at the time the mail is being sent.
+
+#### Notes
+- can be called multiple times to add more attachments.
+
+#### Signatures
+
+```
+mailAddAttachment(file [, name ])
+```
+
+
+### mailAddBcc()
+Adds a `Bcc:` recipient to the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|address|address of the recipient|no|
+|name|name of the recipient|yes|
+
+#### Notes
+- can be called multiple times to add more recipients.
+
+#### Signatures
+
+```
+mailAddBcc(address [, name ])
+```
+
+#### Examples
+##### 1. (JavaScript) Newsletter with only "Bcc:" recipients and no-reply address.
+```
+${{
+	let newsletterNode = $.this;
+
+	$.mailBegin('sender@example.com', 'Newsletter Agent', 'Newsletter: ' + newsletterNode.name);
+
+	$.mailAddReplyTo("no-reply@example.com");
+
+	for (let recipient of newsletterNode.recipients) {
+
+		$.mailAddBcc(recipient.eMail, recipient.name);
+	}
+
+	let htmlContent = $.template('Newsletter', 'en', newsletterNode);
+	$.mailSetHtmlContent(htmlContent);
+
+	$.mailSend();
+}}
+```
+
+### mailAddCc()
+Adds a `Cc:` recipient to the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|address|address of the recipient|no|
+|name|name of the recipient|yes|
+
+#### Notes
+- can be called multiple times to add more recipients.
+
+#### Signatures
+
+```
+mailAddCc(address [, name ])
+```
+
+#### Examples
+##### 1. (JavaScript) Project Status Report mail where all project members are "Cc:" recipients and project manager is main "To:" recipient.
+```
+${{
+	let project = $.this;
+
+	$.mailBegin('sender@example.com', 'Project Service', 'Project Status Report: ' + project.name);
+
+	$.mailAddTo(project.manager.eMail, project.manager.name);
+
+	for (let member of project.members) {
+
+		$.mailAddCc(member.eMail, member.name);
+	}
+
+	let htmlContent = $.template('Project-Status-Template', 'en', project);
+	$.mailSetHtmlContent(htmlContent);
+
+	$.mailSend();
+}}
+```
+
+### mailAddHeader()
+Adds a custom header to the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|name|header name|no|
+|value|header value|no|
+
+
+Email headers (according to RFC 822) must contain only US-ASCII characters. A header that contains non US-ASCII characters must be encoded as per the rules of RFC 2047 (see `mailEncodeText()`).
+
+Adding a non-compliant header will result in an error upon calling the `mail_send()` function.
+
+#### Notes
+- can be called multiple times to add more headers.
+
+#### Signatures
+
+```
+mailAddHeader(name, value)
+```
+
+#### Examples
+##### 1. (StructrScript) US-ASCII only header
+```
+${mailAddHeader('X-Mailer', 'Structr')}
+```
+##### 2. (StructrScript) Encoded header with non US-ASCII characters
+```
+${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}
+```
+
+### mailAddMimePart()
+Adds a MIME part to the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|content|content of the MIME part|no|
+|contentType|content type of the MIME part|no|
+
+#### Notes
+- see `mailClearMimeParts()` to remove added mime parts
+- can be called multiple times to add more mime parts.
+
+#### Signatures
+
+```
+mailAddMimePart(content, contentType)
+```
+
+#### Examples
+##### 1. (JavaScript) Mail containing all vcards a user collected
+```
+${{
+
+	$.mailBegin('sender@example.com', 'VCard Collection Service', 'Your VCards');
+	$.mailAddTo($.me.eMail);
+	$.mailSetHtmlContent('<html><body><p>This are all the vcards you collected.</p></body></html>');
+
+	for (let contact of $.me.contacts) {
+
+		let vcardContent = $.template('VCARD', 'en', contact);
+
+		$.mailAddMimePart(vcardContent, 'text/x-vcard; charset=utf-8; name="contact-' + contact.id + '.vcf"');
+	}
+
+	$.mailSend();
+}}
+```
+
+### mailAddReplyTo()
+Adds a `Reply-To:` recipient to the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|address|replyTo address|no|
+|name|name of the recipient|yes|
+
+#### Notes
+- can be called multiple times to add more reply-to addresses.
+
+#### Signatures
+
+```
+mailAddReplyTo(address [, name ])
+```
+
+#### Examples
+##### 1. (JavaScript) Newsletter with only "Bcc:" recipients and no-reply address.
+```
+${{
+	let newsletterNode = $.this;
+
+	$.mailBegin('sender@example.com', 'Newsletter Agent', 'Newsletter: ' + newsletterNode.name);
+
+	$.mailAddReplyTo("no-reply@example.com");
+
+	for (let recipient of newsletterNode.recipients) {
+
+		$.mailAddBcc(recipient.eMail, recipient.name);
+	}
+
+	let htmlContent = $.template('Newsletter', 'en', newsletterNode);
+	$.mailSetHtmlContent(htmlContent);
+
+	$.mailSend();
+}}
+```
+
+### mailAddTo()
+Adds a `To:` recipient to the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|address|address of the recipient|no|
+|name|name of the recipient|yes|
+
+#### Notes
+- can be called multiple times to add more recipients.
+
+#### Signatures
+
+```
+mailAddTo(address [, name ])
+```
+
+#### Examples
+##### 1. (JavaScript) Project Status Report mail where all project members are "To:" recipients.
+```
+${{
+	let project = $.this;
+
+	$.mailBegin('sender@example.com', 'Project Service', 'Project Status Report: ' + project.name);
+
+	for (let member of project.members) {
+
+		$.mailAddTo(member.eMail, member.name);
+	}
+
+	let htmlContent = $.template('Project-Status-Template', 'en', project);
+	$.mailSetHtmlContent(htmlContent);
+
+	$.mailSend();
+}}
+```
+
+### mailBegin()
+Begins a new mail configuration.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|fromAddress|sender address|no|
+|fromName|sender name|yes|
+|subject|subject|yes|
+|htmlContent|HTML content|yes|
+|textContent|text content|yes|
+|files|collection of file nodes to send as attachments|yes|
+
+
+Begins an HTML email with the basic given configuration. Previously started configurations are cleared.
+
+The optional parameters can be omitted and selectively be set via `mailSetFrom()`, `mailSetSubject()`, `mailSetHtml_content()`, `mailSetText_content()` and `mailAddAttachment()`.
+
+Recipients are added via the `mailAddTo()`, `mailAddCc()` and `mailAddBcc()` functions. This is separated out to allow for emails with only CC and/or BCC addresses.
+
+#### Notes
+- `htmlContent` and `textContent` are typically generated using the `template()` function.
+- By default, emails are sent based on the SMTP configuration defined in structr.conf. This can be changed using `mailSetManual_config()` and `mailResetManual_config()`
+
+#### Signatures
+
+```
+mailBegin(fromAddress [, fromName[, subject[, htmlContent[, textContent[, files]]]]])
+```
+
+#### Examples
+##### 1. (JavaScript) Project task update with multiple different recipients
+```
+${{
+	let projectTask  = $.this;
+	let project      = projectTask.project;
+	let assignee     = projectTask.assignee;
+	let manager      = project.manager;
+	let stakeHolders = projectTask.getStakeHolders();
+
+	$.mailBegin('sender@example.com', 'Project Service', 'Project Task Update: ' + projectTask.name);
+
+	$.mailAddTo(assignee.eMail, assignee.name);
+
+	for (let stakeHolder of stakeHolders) {
+
+		$.mailAddCc(stakeHolder.eMail, stakeHolder.name);
+	}
+
+	if (project.archiveMailbox) {
+		$.mailAddBcc(project.archiveMailbox);
+	}
+
+	let htmlContent = $.template('Project-Task-Update-HTML', 'en', projectTask);
+	$.mailSetHtmlContent(htmlContent);
+
+	let textContent = $.template('Project-Task-Update-TEXT', 'en', projectTask);
+	$.mailSetTextContent(textContent);
+
+	$.mailSend();
+}}
+```
+
+### mailClearAttachments()
+Removes all attachments from the current mail.
+#### Signatures
+
+```
+mailClearAttachments()
+```
+
+
+### mailClearBcc()
+Clears the current list of `Bcc:` recipients.
+#### Signatures
+
+```
+mailClearBcc()
+```
+
+
+### mailClearBounceAddress()
+Removes the bounce address from the current mail.
+#### Signatures
+
+```
+mailClearBounceAddress()
+```
+
+
+### mailClearCc()
+Clears the current list of `Cc:` recipients.
+#### Signatures
+
+```
+mailClearCc()
+```
+
+
+### mailClearHeaders()
+Clears any configured custom headers for the current mail.
+#### Signatures
+
+```
+mailClearHeaders()
+```
+
+
+### mailClearInReplyTo()
+Removes the `In-Reply-To` header from the current mail.
+
+Indicates that the current mail is not a reply to a message. This function automatically clears the `In-Reply-To` header of the mail.
+#### Notes
+- This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mailSetInReplyTo()`)
+
+#### Signatures
+
+```
+mailClearInReplyTo()
+```
+
+
+### mailClearMimeParts()
+Removes all custom MIME parts from the current mail.
+#### Signatures
+
+```
+mailClearMimeParts()
+```
+
+
+### mailClearReplyTo()
+Removes all `Reply-To:` configuration from the current mail.
+#### Signatures
+
+```
+mailClearReplyTo()
+```
+
+
+### mailClearTo()
+Clears the current list of `To:` recipients.
+#### Signatures
+
+```
+mailClearTo()
+```
+
+
+### mailDecodeText()
+Decodes RFC 822 "text" token from mail-safe form as per RFC 2047.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|text|text to decode|no|
+
+
+Decode "unstructured" headers, that is, headers that are defined as '*text' as per RFC 822.
+The string is decoded using the algorithm specified in RFC 2047, Section 6.1. If the charset-conversion fails for any sequence, it is returned as-is.
+If the String is not an RFC 2047 style encoded header, it is also returned as-is.
+
+#### Signatures
+
+```
+mailDecodeText(text)
+```
+
+#### Examples
+##### 1. (StructrScript) Decoding encoded string "hällo"
+```
+${mailDecodeText('=?utf-8?Q?h=C3=A4llo?=')}
+```
+
+### mailEncodeText()
+Encodes RFC 822 "text" token into mail-safe form as per RFC 2047.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|text|text to encode|no|
+
+
+	The given Unicode string is examined for non US-ASCII characters. If the string contains only US-ASCII characters, it is returned as-is. If the string contains non US-ASCII characters, it is first character-encoded using the platform's default charset, then transfer-encoded using either the B or Q encoding. The resulting bytes are then returned as a Unicode string containing only ASCII characters.
+	Note that this method should be used to encode only "unstructured" RFC 822 headers.
+
+#### Signatures
+
+```
+mailEncodeText(text)
+```
+
+#### Examples
+##### 1. (StructrScript) Encoded header with non US-ASCII characters
+```
+${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}
+```
+
+### mailGetError()
+Returns the last error message (or null if no error has occurred).
+#### Signatures
+
+```
+mailGetError()
+```
+
+#### Examples
+##### 1. (JavaScript) Log the error message when sending a mail failed
+```
+${{
+
+	$.mailBegin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+	$.mailAddTo('another-user@example.com');
+	$.mailSend();
+
+	if ($.mailHasError()) {
+		// react to error here
+		$.log($.mailGetError());
+	}
+}}
+
+```
+
+### mailGetLastOutgoingMessage()
+Returns the last outgoing message sent by the advanced mail module in the current script as a node of type `EMailMessage`.
+#### Notes
+- This method will only yield a result if `mailSaveOutgoingMessage()` was active when sending the mail.
+
+#### Signatures
+
+```
+mailGetLastOutgoingMessage()
+```
+
+
+### mailHasError()
+Returns true if an error occurred while sending the mail.
+#### Signatures
+
+```
+mailHasError()
+```
+
+#### Examples
+##### 1. (JavaScript) Log true/false depending on message sending outcome
+```
+	${{
+
+		$.mailBegin('user@example.com', 'User', 'Test Mail', '<b>HTML</b> message', 'plain text message');
+		$.mailAddTo('another-user@example.com');
+		$.mailSend();
+
+		$.log($.mailHasError());
+	}}
+
+```
+
+### mailRemoveHeader()
+Removes a specific custom header from the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|name|header name of header to remove|no|
+
+#### Signatures
+
+```
+mailRemoveHeader(name)
+```
+
+
+### mailResetManualConfig()
+Resets a manual SMTP configuration for the current mail.
+
+This function removes the configuration change made by using the `mailSetManualConfig(...)`.
+#### Signatures
+
+```
+mailResetManualConfig()
+```
+
+
+### mailSaveOutgoingMessage()
+Configures if the current mail should be saved or not.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|doSave|boolean indicating if mail should be saved or not|no|
+
+
+Configures the Advanced Mail Module that the next invocation of `mailSend()` should save the outgoing email as an `EMailMessage` node.
+Configured attachments are *copied* and attached to the `EMailMessage` node. For attached dynamic files the evaluated result is saved as a static file.
+After the `mailSend()` command is finished, the outgoing message can be accessed via `mailGetLastOutgoingMessage()`.
+
+#### Notes
+- By default, mails are not saved
+
+#### Signatures
+
+```
+mailSaveOutgoingMessage(doSave)
+```
+
+
+### mailSelectConfig()
+Selects a configuration prefix for the SMTP configuration.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|name|name prefix to use for lookup in configuration|no|
+
+
+Allows selecting a different SMTP configuration (as configured in structr.conf) for the current outgoing mail.
+
+The six SMTP settings can be overridden **individually** by adding a prefixed configuration entry. If no entry is found the default (non-prefixed) value is used.
+
+#### Notes
+- A selected configuration can be removed by calling `mailSelectConfig()` without parameters or with `null` or `""` as parameter.
+- A manual configuration (see `mailSetManualConfig()`) overrides a selected configuration which overrides the default configuration.
+
+#### Signatures
+
+```
+mailSelectConfig(name)
+```
+
+#### Examples
+##### Example 1 (StructrScript)
+```
+${mailSelectConfig('myDifferentConfig')}
+
+**Example structr.conf**
+[...]
+smtp.host = <server>
+smtp.port = <port>
+smtp.user = <user>
+smtp.password = <password>
+smtp.tls.enabled = true
+smtp.tls.required = true
+myDifferentConfig.smtp.host = <server>
+myDifferentConfig.smtp.port = <port>
+myDifferentConfig.smtp.user = <user>
+myDifferentConfig.smtp.password = <password>
+myDifferentConfig.smtp.tls.enabled = true
+myDifferentConfig.smtp.tls.required = true
+[...]
+
+```
+
+### mailSend()
+Sends the currently configured mail.
+
+The message-id of the created mail is being returned.
+
+If not all pre-conditions are met or the sending of the mail fails, an empty string will be returned and an error message is logged.
+
+A possible error message can be retrieved via `mailGetError()` and the presence of an error can be checked via `mailHasError()`.
+
+Before attempting to send the mail, the last error (if any) is cleared automatically.
+
+#### Notes
+- Will result in an error if no `To:`, `Cc:` or `Bcc:` addresses are configured.
+- Will result in an error if `mailBegin()` was not called
+
+#### Signatures
+
+```
+mailSend()
+```
+
+
+### mailSetBounceAddress()
+Sets the bounce address of the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|address|address to which undeliverable messages will be returned if undeliverable|no|
+
+#### Signatures
+
+```
+mailSetBounceAddress(address)
+```
+
+
+### mailSetFrom()
+Overwrites/Sets the from address (and optionally name) of the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|address|address of the sender|no|
+|name|name of the sender|yes|
+
+#### Signatures
+
+```
+mailSetFrom(address [, name ])
+```
+
+
+### mailSetHtmlContent()
+Overwrites/Sets the HTML content of the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|html|html content of the mail|no|
+
+#### Signatures
+
+```
+mailSetHtmlContent(html)
+```
+
+
+### mailSetInReplyTo()
+Sets the `In-Reply-To` header for the outgoing mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|messageId|message id of the mail to respond to|no|
+
+
+Indicates that the mail is a reply to the message with the given `messageId`. This function automatically sets the `In-Reply-To` header of the mail so that the receiving mail client can handle it correctly.
+This function is especially interesting in combination with the mail service and automatically ingested mails from configured mailboxes.
+
+#### Signatures
+
+```
+mailSetInReplyTo(messageId)
+```
+
+#### Examples
+##### Example 1 (StructrScript)
+```
+${mailSetInReplyTo('<1910177794.5.1555059600315.JavaMail.username@machine.local>')}
+```
+
+### mailSetManualConfig()
+Sets a manual SMTP configuration for the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|smtpHost|SMTP host to connect to (default: `localhost`)|yes|
+|smtpPort|SMTP port to connect use (default: `25`)|yes|
+|smtpUser|username to use for authentication|yes|
+|smtpPassword|password to use for authentication|yes|
+|smtpUseTLS|use TLS when sending email (default: `true`)|yes|
+|smtpRequireTLS|require TLS when sending emails (default: `true`)|yes|
+
+#### Notes
+- A manual configuration overrides a selected configuration (see `mailSelectConfig()`) which overrides the default configuration.
+- If no value is provided for `smtpUser` and/or `smtpPassword`, the given `smtpHost` will be contacted without authentication.
+
+#### Signatures
+
+```
+mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]])
+```
+
+
+### mailSetSubject()
+Overwrites/Sets the subject of the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|subject|subject of the mail|no|
+
+#### Signatures
+
+```
+mailSetSubject(subject)
+```
+
+
+### mailSetTextContent()
+Sets/Overwrites the text content of the current mail.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|text|text content of the mail|no|
+
+#### Signatures
+
+```
+mailSetTextContent(text)
+```
+
+
 ### sendHtmlMail()
 Sends an HTML email.
 #### Parameters
@@ -2741,6 +3549,69 @@ ${sendPlaintextMail('info@structr.com', 'Structr', 'user@domain.com', 'Test User
 
 ## Geocoding Functions
 
+### azimuth()
+Returns the azimuth between two geometries.
+#### Signatures
+
+```
+azimuth(point1, point2)
+```
+
+
+### convertGeometry()
+Converts the given geometry from source CRS to destination CRS.
+#### Signatures
+
+```
+convertGeometry(sourceCRS, destCRS, geometry)
+```
+
+
+### coordsToLineString()
+Converts a coordinate array into a line string geometry.
+#### Signatures
+
+```
+coordsToLineString(list)
+```
+
+
+### coordsToMultipoint()
+Converts a coordinate array into a multipoint geometry.
+#### Signatures
+
+```
+coordsToMultipoint(list)
+```
+
+
+### coordsToPoint()
+Converts a coordinate into a point.
+#### Signatures
+
+```
+coordsToPoint(coordObject)
+```
+
+
+### coordsToPolygon()
+Converts a coordinate array into a polygon.
+#### Signatures
+
+```
+coordsToPolygon(list)
+```
+
+
+### distance()
+Returns the distance between two geometries.
+#### Signatures
+
+```
+distance(point1, point2)
+```
+
+
 ### geocode()
 Returns the geolocation (latitude, longitude) for the given street address using the configured geocoding provider.
 #### Parameters
@@ -2775,6 +3646,96 @@ ${set(this, geocode(this.street, this.city, this.country))}
 ```
 ${{ $.set(this, $.geocode(this.street, this.city, this.country)) }}
 ```
+
+### getCoordinates()
+Returns the coordinates of a geometry.
+#### Signatures
+
+```
+getCoordinates(geometry)
+```
+
+
+### getWcsData()
+Reads coverage data from a WCS endpoint and returns it.
+#### Signatures
+
+```
+getWcsData(baseUrl, coverageId, bBox, min, max)
+```
+
+
+### getWcsHistogram()
+Reads coverage data from a WCS endpoint and returns it.
+#### Signatures
+
+```
+getWcsHistogram(baseUrl, coverageId, bBox [, bins, lowValue ])
+```
+
+
+### getWfsData()
+Reads features from a WFS endpoint and returns geometries.
+#### Signatures
+
+```
+getWfsData(baseUrl, version, typeName, [, params ])
+```
+
+
+### lineSegment()
+Returns a line segment with start point, azimuth and length.
+#### Signatures
+
+```
+lineSegment(point, azimuth, length)
+```
+
+
+### lineStringsToPolygons()
+Merges line strings to polygons.
+#### Signatures
+
+```
+lineStringsToPolygons(list)
+```
+
+
+### makePolygonValid()
+Makes a polygon valid.
+#### Signatures
+
+```
+makePolygonValid(polygon)
+```
+
+
+### readShapefile()
+Reads a shapefile from a Structr path and returns it as a list of WKT strings.
+#### Signatures
+
+```
+readShapefile(filename)
+```
+
+
+### wktToGeometry()
+Converts a WKT string into a geometry object.
+#### Signatures
+
+```
+wktToGeometry(wktString)
+```
+
+
+### wktToPolygons()
+Converts a WKT string into a list of polygons.
+#### Signatures
+
+```
+wktToPolygons(wktString)
+```
+
 
 ## Http Functions
 
@@ -3717,13 +4678,13 @@ Executes a script returning the returning the raw output directly into the outpu
 
 |Name|Description|Optional|
 |---|---|---|
-|outputStream|output stream to write the output to|no|
+|output|file or output stream to write the output to|no|
 |scriptConfigKey|configuration key used to resolve the script's filename|no|
 |parameters|collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag|yes|
 |logBehaviour|Specifies the function's call-logging behavior:<p>`0`: skip logging the command line<br>`1`: log only the script's full path<br>`2`: log the script path and all parameters, applying masking as configured</p>The default for this can be set via `log.scriptprocess.commandline`|yes|
 
 
-This function is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output buffer **without modifying the binary data**.
+This function is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output **without modifying the binary data**.
 
 This is important to allow streaming of binary data from a script to the client.
 
@@ -3735,7 +4696,7 @@ If a page is used to serve binary data, it must have the correct content-type an
 - Symlinks are not allowed, director traversal is not allowed.
 - The key of the script must be all-lowercase.
 - The script must be executable (`chmod +x`)
-- The first parameter is usually the builtin keyword `response` and this function is usually used in a page context.
+- The first parameter can be a file or `response` which streams the output to the HTTP response, usually used in a page context.
 - A page using this should have the correct content-type and have the `pageCreatesRawData` flag enabled
 - Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.
 - All parameters are automatically put in double-quotes
@@ -3745,7 +4706,7 @@ If a page is used to serve binary data, it must have the correct content-type an
 #### Signatures
 
 ```
-execBinary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ])
+execBinary(output, scriptConfigKey [, parameters [, logBehaviour ] ])
 ```
 
 #### Examples
@@ -3753,6 +4714,101 @@ execBinary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ])
 ```
 ${execBinary(response, 'my.create.pdf')}
 ```
+
+### flow()
+Executes a given Flow and returns the evaluation result.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|name|effective name of the Flow|no|
+|parameterMap|parameters|yes|
+
+#### Notes
+- The effective name is the combined name of the Flow plus all its parent packages.
+- In a StructrScript environment, parameters can be passed as pairs of 'key1', 'value1'.
+
+#### Signatures
+
+```
+flow(name)
+```
+
+#### Examples
+##### 1. (JavaScript) Execute the Flow "package1.flow1"
+```
+${{
+	let result = $.flow('package1.flow1', {
+	    parameter1 : 42,
+	    parameter2 : 3.14
+	});
+}}
+
+```
+
+### fromCsv()
+Parses the given CSV string and returns a list of objects.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|source|CSV source text to parse|no|
+|delimiterChar|delimiter char to use, defaults to ;|yes|
+|quoteChar|quote char to use, defaults to '"'|yes|
+|recordSeparator|record separator, defaults to '\n'|yes|
+|header|collection of strings that are used as column names|yes|
+|escapeChar|escape char, defaults to '\\|yes|
+
+
+If the parameter `headerList` is not supplied, it is assumed that the first line of the CSV is a header and those header values are used as property names. If the parameter is supplied, the given values are used as property names and the first line is read as data.
+#### Signatures
+
+```
+fromCsv(source [, delimiterChar = ';' [, quoteChar = '"' [, recordSeparator = '\n' [, header [, escapeChar = '\\' ]]]]])
+```
+
+#### Examples
+##### 1. (JavaScript) Parse a CSV string and access the first column
+```
+${{
+	let result = $.fromCsv('COL1;COL2;COL3\nline1:one;line1:two;line1:three\nline2:one;line2:two;line2:three');
+
+	let firstRow    = result[0];
+	let firstColumn = firstRow.COL1;
+}}
+
+```
+##### 2. (JavaScript) Parse a CSV file and work with the data
+```
+${{
+	let file = $.find('File', { name: 'test.csv' })[0];
+	let data = $.fromCsv($.getContent(file)));
+
+	$.log(data[0].name);
+}}
+
+```
+
+### fromExcel()
+Reads data from a given Excel sheet.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|file|excel file to read from|no|
+|sheetIndexOrName|sheet index or name of sheet to read from (defaults to first sheet)|yes|
+
+
+The sheet can be passed as zero-indexed sheet number or by sheet name.
+#### Notes
+- The columns in the first row of the excel sheet are used as headers and must be populated for columns to be read.
+
+#### Signatures
+
+```
+fromExcel(file [, sheetIndexOrName = 0 ])
+```
+
 
 ### fromJson()
 Parses the given JSON string and returns an object.
@@ -3837,6 +4893,37 @@ ${{ let bytes = $.getContent($.first($.find('File', 'name', 'test.txt'))) }}
 ${{ let content = $.getContent($.first($.find('File', 'name', 'test.txt')), 'UTF-8') }}
 ```
 
+### getCsvHeaders()
+Parses the given CSV string and returns a list of column headers.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|source|CSV string|no|
+|delimiter|CSV field delimiter, default: ';'|yes|
+|quoteChar|CSV field quotechar, default: '"'|yes|
+|recordSeparator|CSV record separator, default: '\n'|yes|
+
+#### Notes
+- An API Key has to be configured in structr.conf.
+- See the documentation on the Translation module for more info.
+
+#### Signatures
+
+```
+getCsvHeaders(source [, delimiterChar = ';' [, quoteChar = '"' [, recordSeparator = '\n' ]]])
+```
+
+#### Examples
+##### Example 1 (StructrScript)
+```
+${getCsvHeaders('COL1;COL2;COL3\none;two;three')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.getCsvHeaders('COL1;COL2;COL3\none;two;three') }}
+```
+
 ### importCss()
 Imports CSS classes, media queries etc. from given CSS file.
 #### Signatures
@@ -3845,6 +4932,69 @@ Imports CSS classes, media queries etc. from given CSS file.
 importCss(file)
 ```
 
+
+### importGpx()
+Parses a given GPX string and returns its contents as an object with.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|source|GPX source to parse|no|
+
+
+The object returned by this function has the following format. Please note that there can be additional keys in the object such as "tracks" and "segments".
+
+```
+{
+	"waypoints": [
+		{
+			"latitude": 42.438878,
+			"longitude": -71.119277,
+			"name": "5066"
+		},
+		...
+	],
+	"routes": [
+		{
+			"name": "BELLEVUE",
+			"description": "Bike Loop Bellevue",
+			"points": [
+				{
+					"latitude": 42.43095,
+					"longitude": -71.107628,
+					"altitude": 23.4696,
+					"time": "2001-06-02T00:18:15Z",
+					"name": "BELLEVUE",
+					"comment": "BELLEVUE",
+					"description": "Bellevue Parking Lot",
+					"symbol": "Parking Area",
+					"type": "Parking"
+				},
+				...
+			]
+		}
+	]
+}
+```
+
+#### Signatures
+
+```
+importGpx(gpxString)
+```
+
+#### Examples
+##### 1. (JavaScript) Parse a GPX track from a file in the Structr filesystem
+```
+${{
+	let file      = $.find('File', { name: 'track1.gpx' })[0];
+	let gpxString = $.getContent(file, 'utf-8');
+	let gpxData   = $.importGpx(gpxString);
+
+	$.print(Object.keys(gpxData));
+}}
+
+```
 
 ### importHtml()
 Imports HTML source code into an element.
@@ -3880,6 +5030,67 @@ log(objects...)
 ##### 1. (StructrScript) Logs a string with the current user ID
 ```
 ${log('user is ', $.me)}
+```
+
+### pdf()
+Creates the PDF representation of a given page.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|page|the page that should be rendered as a PDF|no|
+|wkhtmltopdfParameter|this string is passed to wkhtmltopdf and may contain all parameters that wkhtmltopdf accepts. A useful parameter is `--disable-smart-shrinking`|yes|
+|baseUrl|the baseUrl for the main page (the header and footer page need the baseUrl explicitly as they are currently provided as a string). Defaults to the value of the keyword `base_url`|yes|
+|runWithXServer|forces the usage of xvfb|yes|
+|xServerSettings|parameters for xvfb|yes|
+
+
+Returns a PDF string representation of the given page.
+#### Notes
+- The PDF functionality relies on other software: wkhtmltopdf. This needs to be installed on the server. It is recommended to install a [wkhtmltopdf release](https://github.com/wkhtmltopdf/wkhtmltopdf/releases) from github to ensure that a version with patched qt is installed. See the [autogenerated documentation](https://wkhtmltopdf.org/usage/wkhtmltopdf.txt) for wkhtmltopdf.
+- **IMPORTANT**: If you are creating a PDF document from a **dynamic file**, make sure that there are no extraneous whitespaces after the dynamic script content. This will lead to corrupt PDFs and is very hard to detect! The dynamic file should have the charset `ISO-8859-1` specified in its contentType (e.g. `application/octet-stream; charset=ISO-8859-1`). If you experience caching issues, make sure that the `dontCache` flag of the file is set to `true`
+- When using page-based HTML headers and/or footers the following keys are appended to the request URL so they can be used directly in the page:
+`${request.page}`       Replaced by the number of the pages currently being printed
+`${request.frompage}`   Replaced by the number of the first page to be printed
+`${request.topage}`     Replaced by the number of the last page to be printed
+`${request.webpage}`    Replaced by the URL of the page being printed
+`${request.section}`    Replaced by the name of the current section
+`${request.subsection}` Replaced by the name of the current subsection
+`${request.date}`       Replaced by the current date in system local format
+`${request.isodate}`    Replaced by the current date in ISO 8601 extended format
+`${request.time}`       Replaced by the current time in system local format
+`${request.title}`      Replaced by the title of the of the current page object
+`${request.doctitle}`   Replaced by the title of the output document
+`${request.sitepage}`   Replaced by the number of the page in the current site being converted
+`${request.sitepages}`  Replaced by the number of pages in the current site being converted
+
+
+#### Signatures
+
+```
+pdf(pageName [, wkthtmlParams, baseUrl, runWithX, xSettings ])
+```
+
+#### Examples
+##### 1. (StructrScript) Creates a new file for each run of the script
+```
+${set_content(create('File', 'name', 'new_document.pdf'), pdf('pdf-export-page'), 'ISO-8859-1')}
+```
+##### Example 2 (JavaScript)
+```
+${{
+    // download pdf file as "my-downloaded-file.pdf"
+    $.setResponseHeader('Content-Disposition', 'attachment; filename="my-downloaded-file.pdf"');
+    $.set_response_header('Cache-Control', 'no-cache');
+    // These variables reference local pages in the structr installation
+    let main   = 'pdf-export-main-page/';
+    let header = '--header-html ' + $.get('base_url') + '/pdf-export-header-page/';
+    let footer   = '--footer-html ' + $.get('base_url') + '/pdf-export-footer-page/';
+    let wkhtmlArgs   = header + ' ' + footer + ' --disable-smart-shrinking';
+    let pdf = $.pdf(main, wkhtmlArgs);
+    $.print(pdf);
+}}
+
 ```
 
 ### read()
@@ -3989,6 +5200,120 @@ ${setContent(create('File', 'name', 'logo.png'), GET('https://example.com/img/lo
 ${{ $.setContent($.create('File', 'name', 'new_document.xlsx'), $.toExcel($.find('User'), 'public'), 'ISO-8859-1') }}
 ```
 
+### toCsv()
+Returns a CSV representation of the given nodes.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|nodes|A collection of objects (these objects can be database nodes or javascript objects)|no|
+|propertiesOrView|The name of a view (e.g. ui or public) or a collection of property names (e.g. merge('id', 'name') in StructrScript or ['id', 'name'] in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used.|yes|
+|delimiterChar|A single character used as the column separator. (If more than one character is supplied, only the first character is used without raising an error) (default: `;`)|yes|
+|quoteChar|A single character used as the quote character. (If more than one character is supplied, only the first character is used without raising an error) (default (`"`)|yes|
+|recordSeparator|The separator between the records (recommended usage is 
+,  or 
+) (default: `
+`)|yes|
+|includeHeader|Switch indicating if a header row should be printed (default `true`)|yes|
+|localizeHeader|Switch indicating if the column names in the header should be localized (default: `false`)|yes|
+|headerLocalizationDomain|Optional header localization domain|yes|
+
+#### Notes
+- If the column values contain the quote character, a `\` is prepended before that instance of the quote character
+- All instances of `
+` or `` in the column values are replaced by `\n` and `\r` respectively so we can guarantee that only intended newlines (i.e. the record separator) occurr inside the produced CSV
+- The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.
+- If a view is given, the (optionally localized) property names of that view are used as header row
+- If a collection of properties is given, these (optionally localized) property names are used as a header row
+
+#### Signatures
+
+```
+toCsv(nodes, propertiesOrView [, delimiterChar, quoteChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain ])
+```
+
+#### Examples
+##### Example 1 (StructrScript)
+```
+${toCsv(find('Page'), 'ui')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.toCsv($.find('Page'), 'ui')) }}
+```
+
+### toExcel()
+Creates Excel from given data.
+#### Parameters
+
+|Name|Description|Optional|
+|---|---|---|
+|nodes|Collection of objects (these objects can be database nodes or javascript objects)|no|
+|propertiesOrView|Name of a view (e.g. ui or public) or a collection of property names (e.g. `merge('id', 'name')` in StructrScript or `['id', 'name']` in JavaScript). If the nodes parameter was a collection of javascript objects this needs to be a collection of property names. If the nodes parameter was a collection of database nodes, a collection of property names or a view name can be used.|no|
+|includeHeader|Switch indicating if a header row should be printed (default: `true`)|yes|
+|localizeHeader|Switch indicating if the column names in the header should be localized (default: `false`)|yes|
+|headerLocalizationDomain|lookup domain for localization of header names|yes|
+|maxCellLength|maximum length after which content cells are truncated|yes|
+|overflowMode|Controls how content that is longer than maxCellLength is handled (affects content-rows only - the header remains untouched)<p>`t`: Truncates the content at maxCellLength<br>`o` (default): Overflows the remaining text after maxCellLength into a cell comment. (This is restricted to 32767 bytes by Excel)</p>Any other value is used as is as a cell comment. This is useful to display a message like "The content of this cell has been truncated".|yes|
+
+
+Returns XLSX string representation of the given collection of objects with the configured header view/columns.
+#### Notes
+- The output of this function is a complete excel file, so the complete data must be contained in the `nodes` parameter and can not be appended later on
+- This function is intended to be used in conjunction with the `setContent()` function or in a dynamic file
+- **IMPORTANT**: The dynamic file should have the charset `ISO-8859-1` specified in its `contentType` (e.g. `application/octet-stream; charset=ISO-8859-1`)
+- The content of the header row depends on the contents of `propertiesOrView` and the localization configuration.
+- If a view is given, the (optionally localized) property names of that view are used as header row
+- If a collection of properties is given, these (optionally localized) property names are used as a header row
+- **IMPORTANT**: If you are creating Excel document from a dynamic file, make sure that there are no extraneous whitespaces after the dynamic script content. This is very hard to find and Excel will warn the user that the created file is corrupt and has to be repaired!
+- Limitations: Structr is creating `EXCEL2007` spreadsheets. The following limitations are taken directly from the [documentation](https://poi.apache.org/apidocs/org/apache/poi/ss/SpreadsheetVersion.html):
+	- Maximum length of text cell contents is 32767
+	- Maximum length of text cell comments is 32767
+	- The total number of available rows is 1M (2^20)
+	- The total number of available columns is 16K (2^14)
+	- The maximum number of arguments to a function is 255
+	- Number of conditional format conditions on a cell is unlimited (actually limited by available memory in Excel)
+	- Number of cell styles is 64000
+
+
+#### Signatures
+
+```
+toExcel(nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ])
+```
+
+#### Examples
+##### 1. (StructrScript) Excel file with view 'public' of user list.
+```
+${setContent(create('File', 'name', 'newDocument.xlsx'), toExcel(find('User'), 'public'), 'ISO-8859-1')}
+```
+##### 2. (StructrScript) Downloadable dynamic file containing the list of users in StructrScript. (See note regarding content-type)
+```
+${
+	(
+		setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"'),
+		toExcel(find('User'), 'public')
+	)
+}
+
+```
+##### 3. (JavaScript) Downloadable dynamic file with view 'public' of user list of users in JavaScript. (See note regarding content-type)
+```
+${{
+	$.setResponseHeader('Content-Disposition', 'attachment; filename="user-export.xlsx"');
+	$.print($.toExcel($.find('User'), 'public'));
+}}
+
+```
+##### 4. (JavaScript) Downloadable dynamic file with view 'excelView' of user list where headers are included but not localized and all cells are truncated after 1000 characters. (See note regarding content-type)
+```
+${{
+	$.setResponseHeader('Content-Disposition', 'attachment; filename="users-truncated.xlsx"');
+	$.print($.toExcel($.find('User'), 'excelView', true, false, '', 1000, 't'));
+}}
+
+```
+
 ### toJson()
 Serializes the given object to JSON.
 #### Parameters
@@ -4024,6 +5349,32 @@ ${ toJson(find('MyData'), 'public', 4) }
 ##### Example 2 (JavaScript)
 ```
 ${{$.toJson($.this, 'public', 4)}}
+```
+
+### translate()
+Translates the given string from the source language to the target language.
+
+Supported translation providers:
+  - google (Google Cloud Translation API, default)
+  - deepl (DeepL REST API)
+#### Notes
+- An API Key has to be configured in structr.conf.
+- See the documentation on the Translation module for more info.
+
+#### Signatures
+
+```
+translate(text, sourceLanguage, targetLanguage, translationProvider)
+```
+
+#### Examples
+##### Example 1 (StructrScript)
+```
+${translate('Structr is awesome', 'en', 'de')}
+```
+##### Example 2 (JavaScript)
+```
+${{ $.translate('Structr is awesome', 'en', 'de', 'deepl') }}
 ```
 
 ### unarchive()
@@ -4524,6 +5875,35 @@ or(bool1, bool2, ...)
 ```
 ${or(true, false)}
 ```
+
+## MQTT Functions
+
+### mqttPublish()
+Publishes message on given mqtt client with given topic.
+#### Signatures
+
+```
+mqttPublish(client, topic, message)
+```
+
+
+### mqttSubscribe()
+Subscribes given topic on given mqtt client.
+#### Signatures
+
+```
+mqttSubscribe(client, topic)
+```
+
+
+### mqttUnsubscribe()
+Unsubscribes given topic on given mqtt client.
+#### Signatures
+
+```
+mqttUnsubscribe(client, topic)
+```
+
 
 ## Mathematical Functions
 
@@ -5998,6 +7378,15 @@ login(user, password)
 ```
 
 
+### pdfEncrypt()
+Encrypts a PDF file so that it can't be opened without password.
+#### Signatures
+
+```
+pdfEncrypt(file, password)
+```
+
+
 ## String Functions
 
 ### abbr()
@@ -6544,6 +7933,15 @@ ${startsWith('Hello World!', 'Hola')}
 ```
 ${{ $.startsWith('Hello World!', 'Hello') }}
 ```
+
+### stopWords()
+Returns a list of words (for the given language) which can be ignored for NLP purposes.
+#### Signatures
+
+```
+stopWords(language)
+```
+
 
 ### strReplace()
 Replaces **each** substring of the subject that matches the given regular expression with the given replacement.

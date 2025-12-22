@@ -35,6 +35,11 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.page";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		int page     = 1;
@@ -80,11 +85,6 @@ public class FindPageFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
 	}
 
 	@Override

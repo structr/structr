@@ -35,6 +35,11 @@ public class FindOrFunction extends CoreFunction {
 	}
 
 	@Override
+	public String getDisplayName() {
+		return "predicate.or";
+	}
+
+	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		final OrPredicate orPredicate = new OrPredicate();
@@ -70,11 +75,6 @@ public class FindOrFunction extends CoreFunction {
 	@Override
 	public String getLongDescription() {
 		return "";
-	}
-
-	@Override
-	public boolean isHidden() {
-		return true;
 	}
 
 	@Override

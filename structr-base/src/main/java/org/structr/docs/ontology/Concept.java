@@ -18,6 +18,8 @@
  */
 package org.structr.docs.ontology;
 
+import io.netty.handler.ssl.OpenSslCertificateCompressionConfig;
+
 import java.util.*;
 
 /**
@@ -28,20 +30,19 @@ public final class Concept {
 
 	protected final Map<String, List<Concept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
-	protected final Map<String, String> metadata        =  new LinkedHashMap<>();
+	protected final Map<String, String> metadata        = new LinkedHashMap<>();
+	protected final List<Occurrence> occurrences        = new LinkedList<>();
 	protected String shortDescription                   = null;
 
-	protected final String sourceFile;
-	protected final int lineNumber;
 	protected final String name;
 	protected ConceptType type;
 
 	protected Concept(final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
 
-		this.sourceFile = sourceFile;
-		this.lineNumber = lineNumber;
-		this.type       = type;
-		this.name       = name;
+		this.type = type;
+		this.name = name;
+
+		occurrences.add(new Occurrence(sourceFile, lineNumber));
 	}
 
 	@Override
@@ -121,12 +122,8 @@ public final class Concept {
 		return parents;
 	}
 
-	public int getLineNumber() {
-		return lineNumber;
-	}
-
-	public String getSourceFile() {
-		return sourceFile;
+	public List<Occurrence> getOccurrences() {
+		return occurrences;
 	}
 
 	public boolean isTopic() {

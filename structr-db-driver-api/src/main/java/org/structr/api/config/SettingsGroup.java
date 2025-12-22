@@ -18,6 +18,7 @@
  */
 package org.structr.api.config;
 
+import org.structr.api.util.Category;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -27,7 +28,7 @@ import java.util.Map.Entry;
 /**
  * A named group of configuration settings.
  */
-public class SettingsGroup {
+public class SettingsGroup implements Category {
 
 	private final List<Setting> settings = new LinkedList<>();
 	private String name                  = null;
@@ -43,6 +44,16 @@ public class SettingsGroup {
 
 	public String getName() {
 		return name;
+	}
+
+	@Override
+	public String getDisplayName() {
+		return name;
+	}
+
+	@Override
+	public String getShortDescription() {
+		return null;
 	}
 
 	public String getKey() {

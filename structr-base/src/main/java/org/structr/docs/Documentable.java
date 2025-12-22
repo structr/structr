@@ -19,6 +19,7 @@
 package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Category;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
@@ -419,12 +420,12 @@ public interface Documentable {
 		final Map<DocumentableType, DocumentationEntry> files = Map.of(
 
 			DocumentableType.Keyword,            new DocumentationEntry("1-Keywords.md",             "Keywords"),
-			DocumentableType.BuiltInFunction,    new GroupedDocumentationEntry("2-Functions.md",     "Built-in Functions"),
+			DocumentableType.BuiltInFunction,    new GroupedDocumentationEntry("2-Functions.md",     "Built-in Functions", "Functions"),
 			DocumentableType.LifecycleMethod,    new DocumentationEntry("3-Lifecycle Methods.md",    "Lifecycle Methods"),
 			DocumentableType.SystemType,         new DocumentationEntry("4-System Types.md",         "System Types"),
 			DocumentableType.Service,            new DocumentationEntry("5-Services.md",             "Services"),
 			DocumentableType.MaintenanceCommand, new DocumentationEntry("6-Maintenance Commands.md", "Maintenance Commands"),
-			DocumentableType.Setting,            new DocumentationEntry("7-Settings.md",             "Settings")
+			DocumentableType.Setting,            new GroupedDocumentationEntry("7-Settings.md",      "Settings", "Settings")
 		);
 
 		DocumentableType.collectAllDocumentables(documentables);

@@ -26,9 +26,13 @@ import java.util.TreeMap;
 public class GroupedDocumentationEntry extends DocumentationEntry {
 
 	private final Map<String, List<String>> linesPerCategory = new TreeMap<>();
+	private final String titleSuffix;
 
-	public GroupedDocumentationEntry(final String fileName, final String header) {
+	public GroupedDocumentationEntry(final String fileName, final String header, final String titleSuffix) {
+
 		super(fileName, header);
+
+		this.titleSuffix = titleSuffix;
 	}
 
 	@Override
@@ -42,7 +46,15 @@ public class GroupedDocumentationEntry extends DocumentationEntry {
 			list = new LinkedList<>();
 			linesPerCategory.put(category, list);
 
-			list.add("## " + category + " Functions");
+			if (titleSuffix != null && !category.endsWith(titleSuffix)) {
+
+				list.add("## " + category + " " + titleSuffix);
+
+			} else {
+
+				list.add("## " + category);
+			}
+
 			list.add("");
 		}
 

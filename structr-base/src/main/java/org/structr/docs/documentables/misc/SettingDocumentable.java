@@ -21,6 +21,7 @@ package org.structr.docs.documentables.misc;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
+import org.structr.api.util.Category;
 import org.structr.docs.*;
 import org.structr.docs.ontology.ConceptType;
 
@@ -29,10 +30,10 @@ import java.util.List;
 
 public class SettingDocumentable implements Documentable {
 
-	private final String parentGroup;
+	private final SettingsGroup parentGroup;
 	private final Setting setting;
 
-	public SettingDocumentable(final String parentGroup, final Setting setting) {
+	public SettingDocumentable(final SettingsGroup parentGroup, final Setting setting) {
 
 		this.parentGroup = parentGroup;
 		this.setting     = setting;
@@ -41,6 +42,11 @@ public class SettingDocumentable implements Documentable {
 	@Override
 	public DocumentableType getDocumentableType() {
 		return DocumentableType.Setting;
+	}
+
+	@Override
+	public Category getCategory() {
+		return parentGroup;
 	}
 
 	@Override
@@ -90,7 +96,7 @@ public class SettingDocumentable implements Documentable {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, parentGroup));
+		return List.of(ConceptReference.of(ConceptType.Topic, parentGroup.getDisplayName()));
 	}
 
 	public List<Link> getLinkedConcepts() {
@@ -108,7 +114,7 @@ public class SettingDocumentable implements Documentable {
 
 				if (setting.getComment() != null) {
 
-					documentables.add(new SettingDocumentable(group.getName(), setting));
+					documentables.add(new SettingDocumentable(group, setting));
 				}
 			}
 		}

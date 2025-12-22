@@ -18,11 +18,14 @@
  */
 package org.structr.docs.formatter;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.Details;
+import org.structr.docs.ontology.Occurrence;
 
+import java.util.LinkedList;
 import java.util.List;
 
 public class MarkdownTopicFormatter extends Formatter {
@@ -38,7 +41,14 @@ public class MarkdownTopicFormatter extends Formatter {
 
 		if (settings.hasDetail(Details.source)) {
 
-			lines.add("<small>Source: " + concept.getSourceFile() + ", line " + concept.getLineNumber() + "</small>");
+			final List<String> buf = new LinkedList<>();
+
+			for (final Occurrence occurrence : concept.getOccurrences()) {
+
+				buf.add(occurrence.getSourceFile() + ":" + occurrence.getLineNumber());
+			}
+
+			lines.add("<small>Sources: " + StringUtils.join(buf, ", ") + "</small>");
 			lines.add("");
 		}
 
