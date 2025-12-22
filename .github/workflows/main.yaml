@@ -37,7 +37,7 @@ jobs:
         run:  >-
           mvn clean install -q -DskipTests -DskipUITests -DskipDist -DskipDocker -DskipDeb &&
           cd ${{ matrix.module }} && 
-          mvn install -q -DskipDist -DskipDocker -DskipDeb  -Dstructr.test.module=${{ matrix.variableName }}
+          mvn install -q -DskipDist -DskipDocker -DskipDeb -Dstructr.test.module=${{ matrix.variableName }}
 
   run-ui-tests:
     if: ${{ false && !startsWith( github.actor, 'dependabot' ) }}

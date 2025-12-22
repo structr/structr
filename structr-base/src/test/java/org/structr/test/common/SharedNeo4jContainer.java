@@ -32,8 +32,6 @@ public final class SharedNeo4jContainer {
 	private static final String NEO4J_PASSWORD = "admin123";
 	private static final String NEO4J_USERNAME = "neo4j";
 
-	private static String MODULE_NAME;
-
 	private static final Neo4jContainer CONTAINER;
 	private static final boolean CONTAINER_STARTED;
 
@@ -41,13 +39,14 @@ public final class SharedNeo4jContainer {
 		Neo4jContainer container = null;
 		boolean started = false;
 
+		final String FORK_ID = System.getProperty("surefire.forkNumber", "0");
 		String module = System.getProperty("structr.test.module", "default");
 		if (StringUtils.isBlank(module)) {
 			module = "default";
 		}
 
-		MODULE_NAME = module;
-		final String CONTAINER_LABEL = "structr-test-neo4j-" + MODULE_NAME;
+		String MODULE_NAME = module;
+		final String CONTAINER_LABEL = "structr-test-neo4j-" + MODULE_NAME + FORK_ID;
 
 		logger.info("SharedNeo4jContainer: MODULE_NAME = {}", MODULE_NAME);
 		logger.info("SharedNeo4jContainer: CONTAINER_LABEL = {}", CONTAINER_LABEL);
