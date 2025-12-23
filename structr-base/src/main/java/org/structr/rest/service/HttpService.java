@@ -159,36 +159,30 @@ public class HttpService implements RunnableService, StatsCallback {
 	@Override
 	public void stopService() {
 
-		if (server != null) {
+		stopJetty(server, "HTTP Service");
+		stopJetty(maintenanceServer, "Maintenance HTTP Service");
+	}
 
-			try {
-				server.stop();
+	private void stopJetty(final Server jettyServer, final String serverName) {
 
-				while (server.isStopping() && !server.isStopped()) {
-					// wait until server is stopped
-					Thread.sleep(100);
-				}
-
-			} catch (Exception ex) {
-				logger.warn("Exception while stopping Jetty", ex);
-			}
+		if (jettyServer == null) {
+			return;
 		}
 
-		if (maintenanceServer != null) {
+		try {
+			jettyServer.setStopTimeout(30_000);
+			jettyServer.stop();
+			jettyServer.join();
 
-			try {
-				maintenanceServer.stop();
+		} catch (InterruptedException ie) {
+			Thread.currentThread().interrupt();
+			logger.warn("Interrupted while stopping {}", serverName, ie);
 
-				while (maintenanceServer.isStopping() && !maintenanceServer.isStopped()) {
-					// wait until server is stopped
-					Thread.sleep(100);
-				}
-
-			} catch (Exception ex) {
-				logger.warn("Exception while stopping temporary maintenance server: {}", ex.getMessage());
-			}
+		} catch (Exception ex) {
+			logger.warn("Exception while stopping {}", serverName, ex);
 		}
 	}
+
 
 	@Override
 	public boolean runOnStartup() {
