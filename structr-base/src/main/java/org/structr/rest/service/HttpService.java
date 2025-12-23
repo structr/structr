@@ -170,7 +170,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				}
 
 			} catch (Exception ex) {
-				logger.warn("Exception while stopping Jetty: {}", ex.getMessage());
+				logger.warn("Exception while stopping Jetty", ex);
 			}
 		}
 
