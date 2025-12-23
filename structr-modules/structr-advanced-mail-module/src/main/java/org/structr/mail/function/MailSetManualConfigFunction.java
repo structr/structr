@@ -96,7 +96,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${ mailSetManual_config([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }"),
+			Usage.structrScript("Usage: ${ mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }"),
 			Usage.javaScript("Usage: ${{ $.mailSetManualConfig([smtpHost = 'localhost' [, smtpPort = 25 [, smtpUser = null [, smtpPassword = null [, smtpUseTLS = true [, smtpRequireTLS = true ]]]]]]) }}")
 		);
 	}
@@ -114,7 +114,7 @@ public class MailSetManualConfigFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"A manual configuration overrides a selected configuration (see `mail_select_config()`) which overrides the default configuration.",
+				"A manual configuration overrides a selected configuration (see `mailSelectConfig()`) which overrides the default configuration.",
 				"If no value is provided for `smtpUser` and/or `smtpPassword`, the given `smtpHost` will be contacted without authentication."
 		);
 	}

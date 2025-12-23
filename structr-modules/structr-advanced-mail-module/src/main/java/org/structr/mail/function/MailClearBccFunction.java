@@ -34,7 +34,7 @@ public class MailClearBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_bcc";
+		return "mailClearBcc";
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MailClearBccFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_bcc()}"),
+			Usage.structrScript("Usage: ${mailClearBcc()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearBcc() }}")
 		);
 	}

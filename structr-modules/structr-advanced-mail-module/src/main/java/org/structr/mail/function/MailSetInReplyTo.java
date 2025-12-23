@@ -38,7 +38,7 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_set_in_reply_to";
+		return "mailSetInReplyTo";
 	}
 
 	@Override
@@ -70,7 +70,7 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_set_in_reply_to(messageId)}"),
+			Usage.structrScript("Usage: ${mailSetInReplyTo(messageId)}"),
 			Usage.javaScript("Usage: ${{ $.mailSetInReplyTo(messageId) }}")
 		);
 	}
@@ -98,7 +98,7 @@ public class MailSetInReplyTo extends AdvancedMailModuleFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${mail_set_in_reply_to('<1910177794.5.1555059600315.JavaMail.username@machine.local>')}")
+				Example.structrScript("${mailSetInReplyTo('<1910177794.5.1555059600315.JavaMail.username@machine.local>')}")
 		);
 	}
 }

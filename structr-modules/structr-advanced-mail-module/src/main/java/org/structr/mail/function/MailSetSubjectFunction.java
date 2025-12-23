@@ -35,7 +35,7 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_set_subject";
+		return "mailSetSubject";
 	}
 
 	@Override
@@ -64,7 +64,7 @@ public class MailSetSubjectFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_set_subject(subject)}"),
+			Usage.structrScript("Usage: ${mailSetSubject(subject)}"),
 			Usage.javaScript("Usage: ${{ $.mailSetSubject(subject) }}")
 		);
 	}
