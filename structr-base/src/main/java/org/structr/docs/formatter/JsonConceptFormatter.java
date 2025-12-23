@@ -20,12 +20,10 @@ package org.structr.docs.formatter;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
-import org.structr.web.function.EscapeHtmlFunction;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;

@@ -325,7 +325,6 @@ public final class Ontology {
 	public Concept getOrCreateConcept(final String sourceFile, final int line, final ConceptType type, final String name) {
 
 		if (blacklist.contains(name)) {
-			System.out.println("Concept " + name + " from " + sourceFile + ":" + line + " is blacklisted!");
 			return null;
 		}
 
@@ -406,12 +405,12 @@ public final class Ontology {
 
 	private void initializeFromDocumentationAnnotations() {
 
-		final String sourceFile = "Structr Java @Documentation annotations";
 
 		for (final Map.Entry<Class, Documentation> entry : StructrApp.getConfiguration().getDocumentationAnnotations().entrySet()) {
 
 			final Class clazz                 = entry.getKey();
 			final Documentation documentation = entry.getValue();
+			final String sourceFile           = "@Documentation on " + clazz.getSimpleName();
 
 			// collect info from annotation and import it into the ontology
 			final ConceptType type  = documentation.type();

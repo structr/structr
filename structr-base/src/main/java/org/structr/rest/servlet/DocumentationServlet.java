@@ -53,7 +53,6 @@ public class DocumentationServlet extends HttpServlet {
 
 		try {
 
-			//ExistingDocs existingDocs             = new ExistingDocs("structr/docs");
 			final HttpService service             = Services.getInstance().getServiceImplementation(HttpService.class);
 			final ResourceHandler resourceHandler = service.getExportedResourceHandler();
 			final Resource baseResource           = resourceHandler.getBaseResource();
@@ -65,7 +64,10 @@ public class DocumentationServlet extends HttpServlet {
 			handleRequestParameters(request, ontology, concepts, settings);
 
 			// compare ontology to existing docs
-			//ontology.countConcepts(existingDocs);
+			if (request.getParameter("includeMentions") != null) {
+
+				ontology.countConcepts(new ExistingDocs("structr/docs"));
+			}
 
 			final List<String> lines = ontology.createDocumentation(concepts, settings);
 

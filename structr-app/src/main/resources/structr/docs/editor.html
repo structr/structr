@@ -102,7 +102,7 @@
                 'Helper':       '#EEEEEE',
                 'Text':         '#EEEEEE'
             };
-            fetch('/structr/docs/ontology?type=*&levels=1&format=json').then(response => response.json()).then(data => {
+            fetch('/structr/docs/ontology?type=*&levels=1&format=json&includeMentions').then(response => response.json()).then(data => {
 
                 var container = document.querySelector('#visualization');
                 var nodes = new vis.DataSet();
@@ -186,7 +186,7 @@
 
                         context.innerHTML = 'Loading data for ' + name + '...';
 
-                        fetch(`/structr/docs/ontology?root=${encodeURIComponent(name)}&format=json&levels=1`).then(response => response.json()).then(data => {
+                        fetch(`/structr/docs/ontology?root=${encodeURIComponent(name)}&format=json&levels=1&includeMentions`).then(response => response.json()).then(data => {
                             let result = data.data[0];
                             let name   = result.name;
                             let max    = Math.min(result.mentions.length, 30);

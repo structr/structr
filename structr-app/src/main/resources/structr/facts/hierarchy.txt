@@ -65,7 +65,7 @@ Structr has topics "Admin User Interface", "Building Applications", "APIs & Inte
 # Interfaces
 "APIs & Integrations" has topics "HTTP", "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
 
-    "HTTP" has topics "REST", "Proxy Settings", "Outbound Connection Settings"
+    "HTTP" has topics "HTTPS", "REST", "Proxy Settings", "Outbound Connection Settings"
         HTTP has topics "HTTP Settings"
         "REST" has topics "Resource Access Permissions", "System Endpoints"
 

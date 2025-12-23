@@ -51,7 +51,7 @@ import org.structr.util.Writable;
 import java.io.IOException;
 import java.util.*;
 
-@Documentation(name="Admin console")
+@Documentation(name="Admin Console")
 public class Console {
 
 	private static Logger logger = LoggerFactory.getLogger(Console.class);

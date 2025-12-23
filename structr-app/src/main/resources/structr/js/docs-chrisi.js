@@ -162,10 +162,8 @@ let _Documentation = {
 
         let iframe = document.querySelector('div#docs-area iframe');
         if (iframe) {
-
            iframe.src = `/structr/docs/ontology?root=${encodeURIComponent(rawPath)}&details=all&format=markdown`;
-        } else {
-            console.log('no iframe found')
+           _Documentation.loadContext('Unknown', rawPath);
         }
 	},
     loadContext: (type, name) => {
@@ -177,7 +175,7 @@ let _Documentation = {
                 let index = 1;
                 let aside = document.querySelector('aside.index');
 
-                aside.innerHTML = '';
+                aside.innerHTML = '<h2>On this page</h2>';
 
                 for (let entry of json.data) {
 
