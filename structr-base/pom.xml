@@ -537,12 +537,13 @@
                             <includes>
                                 <include>**/*Test.java</include>
                             </includes>
-                            <argLine>-Xms2g -Xmx2g -Duser.timezone=UTC</argLine>
+                            <argLine>-Xms2g -Xmx2g -Duser.timezone=UTC -XX:+HeapDumpOnOutOfMemoryError -XX:ErrorFile=/tmp/hs_err_pid%p.log</argLine>
                             <reuseForks>false</reuseForks>
                             <forkCount>${test.forkCount}</forkCount>
                             <skipTests>${skipTests}</skipTests>
                             <rerunFailingTestsCount>2</rerunFailingTestsCount>
-                            <!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
+                            <redirectTestOutputToFile>false</redirectTestOutputToFile>
+                            <printSummary>true</printSummary>
                             <systemPropertyVariables>
                                 <testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
                                 <testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
