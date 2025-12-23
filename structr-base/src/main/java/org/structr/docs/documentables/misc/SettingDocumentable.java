@@ -103,8 +103,24 @@ public class SettingDocumentable implements Documentable {
 
 		final List<Link> links = new LinkedList<>();
 
+		final String category = setting.getCategory();
+		if (category != null && !"hidden".equals(category)) {
+
+			if (category.toLowerCase().endsWith(" settings")) {
+
+				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, category)));
+
+			} else {
+
+				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, category + " Settings")));
+			}
+		}
+
 		return links;
 	}
+
+
+	add settings for common topics
 
 	public static void collectAllSettings(final List<Documentable> documentables) {
 

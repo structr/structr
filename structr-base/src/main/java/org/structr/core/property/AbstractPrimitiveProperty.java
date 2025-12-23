@@ -351,7 +351,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 	}
 
 	@Override
-	public List<org.structr.docs.Property> getProperties() {
+	public List<DocumentedProperty> getDocumentedProperties() {
 		return null;
 	}
 

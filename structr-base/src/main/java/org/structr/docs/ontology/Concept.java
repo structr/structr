@@ -18,8 +18,6 @@
  */
 package org.structr.docs.ontology;
 
-import io.netty.handler.ssl.OpenSslCertificateCompressionConfig;
-
 import java.util.*;
 
 /**
@@ -30,8 +28,8 @@ public final class Concept {
 
 	protected final Map<String, List<Concept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
-	protected final Map<String, String> metadata        = new LinkedHashMap<>();
-	protected final List<Occurrence> occurrences        = new LinkedList<>();
+	protected final Map<String, Object> metadata        = new LinkedHashMap<>();
+	protected final Set<Occurrence> occurrences         = new LinkedHashSet<>();
 	protected String shortDescription                   = null;
 
 	protected final String name;
@@ -86,7 +84,7 @@ public final class Concept {
 		return children;
 	}
 
-	public Map<String, String> getMetadata() {
+	public Map<String, Object> getMetadata() {
 		return metadata;
 	}
 
@@ -122,7 +120,7 @@ public final class Concept {
 		return parents;
 	}
 
-	public List<Occurrence> getOccurrences() {
+	public Set<Occurrence> getOccurrences() {
 		return occurrences;
 	}
 
@@ -191,9 +189,9 @@ public final class Concept {
 		return false;
 	}
 
-	public void setOccurrences(final int occurrences) {
+	public void setMentions(final List<Occurrence> mentions) {
 
-		metadata.put("occurrences", String.valueOf(occurrences));
+		metadata.put("mentions", mentions);
 	}
 
 	public static boolean exists(final String name) {

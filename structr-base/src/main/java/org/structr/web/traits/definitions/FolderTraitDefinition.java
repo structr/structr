@@ -40,6 +40,8 @@ import org.structr.core.traits.operations.LifecycleMethod;
 import org.structr.core.traits.operations.graphobject.OnCreation;
 import org.structr.core.traits.operations.graphobject.OnDeletion;
 import org.structr.core.traits.operations.graphobject.OnModification;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.web.entity.Folder;
 import org.structr.web.traits.wrappers.FolderTraitWrapper;
@@ -47,6 +49,7 @@ import org.structr.web.traits.wrappers.FolderTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
+@Documentation(name="Folder", type= ConceptType.SystemType, parent="System types")
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String WORK_FOLDER_OF_USERS_PROPERTY       = "workFolderOfUsers";

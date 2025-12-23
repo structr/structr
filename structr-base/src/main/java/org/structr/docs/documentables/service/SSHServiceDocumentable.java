@@ -19,6 +19,7 @@
 package org.structr.docs.documentables.service;
 
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class SSHServiceDocumentable extends AbstractServiceDocumentable {
 
 		final List<Link> concepts = super.getLinkedConcepts();
 
-		concepts.add(Link.to("provides", "SSH server"));
+		concepts.add(Link.to("provides", ConceptReference.of(ConceptType.Topic, "SSH server")));
 
 		return concepts;
 	}

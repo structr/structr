@@ -25,6 +25,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -100,7 +101,7 @@ public class SetLogLevelFunction extends CoreFunction {
 
 		final List<Link> linkedConcepts = super.getLinkedConcepts();
 
-		linkedConcepts.add(Link.to("ispartof", "Logging"));
+		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, "Logging")));
 
 		return linkedConcepts;
 	}

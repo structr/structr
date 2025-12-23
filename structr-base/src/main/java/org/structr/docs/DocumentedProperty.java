@@ -18,12 +18,12 @@
  */
 package org.structr.docs;
 
-public class Property {
+public class DocumentedProperty {
 
 	private final String name;
 	private final String description;
 
-	public Property(final String name, final String description) {
+	public DocumentedProperty(final String name, final String description) {
 
 		this.name        = name;
 		this.description = description;

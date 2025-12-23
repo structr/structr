@@ -24,6 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.CypherQueryConverter;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.cypher.CypherQueryHandler;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 import java.util.Map;
@@ -100,7 +101,7 @@ public class CypherProperty<T> extends AbstractPrimitiveProperty<T> {
 
 		final List<Link> links = super.getLinkedConcepts();
 
-		links.add(Link.to("executes", "Cypher query"));
+		links.add(Link.to("executes", ConceptReference.of(ConceptType.Topic, "Cypher query")));
 
 		return links;
 	}

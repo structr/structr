@@ -28,6 +28,21 @@ public class Occurrence {
 		this.lineNumber = lineNumber;
 	}
 
+	@Override
+	public int hashCode() {
+		return (sourceFile + ":" + lineNumber).hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+
+		if (obj instanceof Occurrence other) {
+			return sourceFile.equals(other.sourceFile) && lineNumber == other.lineNumber;
+		}
+
+		return false;
+	}
+
 	public String getSourceFile() {
 		return sourceFile;
 	}

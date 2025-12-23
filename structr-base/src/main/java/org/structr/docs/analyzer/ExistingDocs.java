@@ -18,6 +18,8 @@
  */
 package org.structr.docs.analyzer;
 
+import org.structr.docs.ontology.Occurrence;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,23 +41,28 @@ public class ExistingDocs {
 		initialize();
 	}
 
-	public int countOccurrences(final String concept) {
+	public List<Occurrence> getMentions(final String concept) {
 
-		final String lowerCaseConcept = concept.toLowerCase();
-		int occurrences               = 0;
+		final List<Occurrence> mentions = new LinkedList<>();
+		final String lowerCaseConcept   = concept.toLowerCase();
 
 		for (final Map.Entry<String, List<String>> entry : filesAndLines.entrySet()) {
+
+			final String fileName = entry.getKey();
+			int lineNumber        = 0;
 
 			for (final String line : entry.getValue()) {
 
 				if (line.toLowerCase().contains(lowerCaseConcept)) {
 
-					occurrences++;
+					mentions.add(new Occurrence(fileName, lineNumber));
 				}
+
+				lineNumber++;
 			}
 		}
 
-		return occurrences;
+		return mentions;
 	}
 
 	// ----- private methods -----

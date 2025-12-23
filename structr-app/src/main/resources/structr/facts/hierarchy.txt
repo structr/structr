@@ -37,7 +37,9 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
 
     "Navigation & Routing" has topics "Navigation", "URL routing", "Error pages", "Page position"
 
-    "Dynamic Content" has topic "Repeaters", "Show / Hide Conditions"
+    "Dynamic Content" has topic "Template expressions", "Repeaters", "Show / Hide Conditions"
+
+        "Template expressions" has synonym "template expression"
 
         "Repeaters" has topic "Data key"
         "Repeaters" has texts "Function query", "Flow", "Cypher query"
@@ -55,26 +57,63 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
 # Interfaces
 "APIs & Integrations" has topics "REST", "Open API", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
 
+    "REST" has topics "Resource Access Permissions"
+    "Open API" has topic "OpenAPI Settings"
+    "Cron jobs" has topic "CronService Settings"
+    "Geocoding" has topic "Geocoding Settings"
+    "oAuth" has topic "oAuth Settings"
+    "SMTP" has topic "SMTP Settings"
+    "FTP" has topic "FTP Settings"
+    "SSH" has topic "SSH Settings"
+    "JDBC" has topic "JDBC Settings"
+    "MongoDB" has topic "MongoDB Settings"
 
 
 
 # Operations
 
-"Operations" has topics "Deployment", "User Management", "File System", "Data Management", "SSL / TLS", "Monitoring", "Logging", "Auditing", "Statistics"
+"Operations" has topics "Deployment", "User Management", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Monitoring", "Logging", "Auditing", "Statistics"
 
     # Deployment
 
     "User Management" has topics "User self-registration"
 
-    "File System" has topics "Checksums", "Thumbnails", "External storage"
+    "Filesystem" has topics "Checksums", "Thumbnails", "External storage", "Filesystem Settings"
 
     Topic "SSL / TLS" has topic "Letsencrypt"
+        Letsencrypt has topic "Letsencrypt Settings"
+        HTTPS has topic "HTTPS Settings"
+
+    "Debugging" has topic "Debugging Settings"
 
     "Monitoring" has "HTTP Access Statistics", "CPU Time", "Free Memory", "Max Memory", "Total Memory", "Threads", "Deadlock detected"
 
     "Logging" has "Server Log", "Event Log", "Log File"
+        Logging has topic "Logging Settings"
 
     "Auditing" has "Changelog"
+        Changelog has topic "Changelog Settings"
+
+
+
+# Advanced Topics
+Topic "Advanced Topics" has topics "Internals", "Performance Optimization"
+
+    "Performance Optimization" has topics "Prefetching", "Relationship naming", "Supernodes"
+
+        "Prefetching" has topics "Prefetching Settings"
+
+
+
+    "Internals" has topics "Page Rendering Engine"
+
+
+
+
+
+
+
 
 
 # References
+    MailService has topic "MailService settings"

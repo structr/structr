@@ -52,15 +52,15 @@ public interface Documentable {
 		final List<String> lines = new LinkedList<>();
 
 		// build Markdown
-		final List<Signature> signatures = getSignatures();
-		final List<Setting> settings     = getSettings();
-		final List<Property> properties  = getProperties();
-		final List<Parameter> parameters = getParameters();
-		final List<Example> examples     = getExamples();
-		final List<String> notes         = getNotes();
-		final String longDescription     = getLongDescription();
-		final String name                = getName();
-		final String startHeading        = StringUtils.repeat("#", startLevel);
+		final List<Signature> signatures          = getSignatures();
+		final List<Setting> settings              = getSettings();
+		final List<DocumentedProperty> properties = getDocumentedProperties();
+		final List<Parameter> parameters          = getParameters();
+		final List<Example> examples              = getExamples();
+		final List<String> notes                  = getNotes();
+		final String longDescription              = getLongDescription();
+		final String name                         = getName();
+		final String startHeading                 = StringUtils.repeat("#", startLevel);
 
 		if (details.contains(Details.name) || details.contains(Details.all)) {
 			lines.add(startHeading + " " + getDisplayName());
@@ -94,7 +94,7 @@ public interface Documentable {
 				lines.add("|Name|Description|");
 				lines.add("|---|---|");
 
-				for (final Property property : properties) {
+				for (final DocumentedProperty property : properties) {
 					lines.add("|" + property.getName() + "|" + property.getDescription() + "|");
 				}
 
@@ -295,7 +295,7 @@ public interface Documentable {
 	 *
 	 * @return the properties or null
 	 */
-	default List<Property> getProperties() {
+	default List<DocumentedProperty> getDocumentedProperties() {
 		return null;
 	}
 
@@ -399,15 +399,16 @@ public interface Documentable {
 	class Link {
 
 		public String verb;
-		public String name;
+		public ConceptReference target;
 
-		public Link(final String verb, final String name) {
-			this.verb = verb;
-			this.name = name;
+		public Link(final String verb, final ConceptReference target) {
+
+			this.verb   = verb;
+			this.target = target;
 		}
 
-		public static Link to(final String verb, final String name) {
-			return new Link(verb, name);
+		public static Link to(final String verb, final ConceptReference target) {
+			return new Link(verb, target);
 		}
 	}
 

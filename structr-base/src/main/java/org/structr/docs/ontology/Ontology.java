@@ -22,6 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.core.app.StructrApp;
 import org.structr.core.function.Functions;
+import org.structr.core.traits.Traits;
+import org.structr.core.traits.definitions.AbstractNodeTraitDefinition;
 import org.structr.docs.*;
 import org.structr.docs.Formatter;
 import org.structr.docs.analyzer.ExistingDocs;
@@ -31,6 +33,7 @@ import org.structr.docs.ontology.parser.token.Token;
 import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -363,14 +366,14 @@ public final class Ontology {
 
 		for (final Concept concept : concepts) {
 
-			int occurrences = existingDocs.countOccurrences(concept.getName());
+			final List<Occurrence> mentions = existingDocs.getMentions(concept.getName());
 
 			for (final Concept synonym : concept.getChildrenOfType("has", ConceptType.Synonym)) {
 
-				occurrences += existingDocs.countOccurrences(synonym.getName());
+				mentions.addAll(existingDocs.getMentions(synonym.getName()));
 			}
 
-			concept.setOccurrences(occurrences);
+			concept.setMentions(mentions);
 		}
 	}
 
@@ -428,7 +431,7 @@ public final class Ontology {
 
 						if (StringUtils.isNotBlank(synonym)) {
 
-							final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, type, synonym);
+							final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym);
 							if (synonymConcept != null) {
 
 								concept.linkChild("has", synonymConcept);
@@ -444,6 +447,44 @@ public final class Ontology {
 
 						parentConcept.linkChild("has", concept);
 					}
+				}
+
+				// import properties and important methods from system types, maybe longDescription as well...?
+				if (AbstractNodeTraitDefinition.class.isAssignableFrom(clazz)) {
+
+					try {
+
+						final Constructor constructor = clazz.getConstructor();
+						if (constructor != null) {
+
+							final AbstractNodeTraitDefinition def = (AbstractNodeTraitDefinition) constructor.newInstance();
+							if (def != null) {
+
+								final String typeName = def.getName();
+								if (Traits.exists(typeName)) {
+
+									final Traits traits = Traits.of(typeName);
+
+									// collect properties here
+									for (final DocumentedProperty property : traits.getDocumentedProperties()) {
+
+										final Concept propertyConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Property, property.getName());
+										if (propertyConcept != null) {
+
+											concept.linkChild("has", propertyConcept);
+										}
+									}
+								}
+							}
+
+						} else {
+
+							System.out.println("Cannot instantiate " + clazz.getSimpleName() + " because it has no no-args constructor.");
+						}
+					} catch (Throwable t) {
+						t.printStackTrace();
+					}
+
 				}
 
 				// import enum constants as well

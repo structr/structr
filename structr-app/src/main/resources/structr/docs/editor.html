@@ -21,15 +21,17 @@
                 position: absolute;
                 padding: 1em;
                 top: 2em;
+                font-size: 10pt;
                 right: 2em;
-                width: 300px;
-                height: 500px;
+                width: 500px;
+                height: 800px;
                 border: 1px solid #999;
                 background-color: #fff;
                 box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
+                overflow: auto;
             }
-            #context p {
-                margin: 0.3em 0 0 0;
+            #context h3, h4, p {
+                margin: 0.5rem 0;
             }
         </style>
     </head>
@@ -109,15 +111,15 @@
                 for (let entry of data.data) {
                     let id = entry.type + ':' + entry.name;
                     let value = (entry.childCount + 1) * 2;
-                    let fontSize = 14;
+                    let fontSize = 50;
                     //color = (entry.occurrences > 0 ? '#00ff0099' : 'red');
                     color = colors[entry.type];
-                    if (entry.occurrences == 0) {
+                    if (entry.mentions.length == 0) {
                         color = '#FF0000';
                         fontSize = 50;
                     }
 
-                    nodes.add({ id: id, label: id + ' (' + entry.occurrences + ')', value: value, color: color, font: { size: fontSize } });
+                    nodes.add({ id: id, label: id + ' (' + entry.mentions.length + ')', value: value, color: color, font: { size: fontSize } });
                 }
 
                 for (let entry of data.data) {
@@ -187,17 +189,18 @@
                         fetch(`/structr/docs/ontology?root=${encodeURIComponent(name)}&format=json&levels=1`).then(response => response.json()).then(data => {
                             let result = data.data[0];
                             let name   = result.name;
+                            let max    = Math.min(result.mentions.length, 30);
+                            let plus   = result.mentions.length > max ? '+' : '';
 
                             context.innerHTML = `
                                 <h3>${name}</h3>
-                                <h4>Type</h4>
                                 <p>${result.type}</p>
-                                <h4>Defined in</h4>
-                                <p>${result.sourceFile}:${result.lineNumber}</p>
+                                <h4>Defined in (${result.references.length})</h4>
+                                <p>${result.references.map(m => m.sourceFile + ':' + m.lineNumber).join('<br/>')}</p>
                                 <h4>Children</h4>
                                 <p>${result.childCount}</p>
-                                <h4>Occurrences in Docs</h4>
-                                <p>${result.occurrences || 0}</p>
+                                <h4>Mentions in Docs (${max}${plus})</h4>
+                                <p>${result.mentions.slice(0, max).map(m => m.sourceFile + ':' + m.lineNumber).join('<br/>')}</p>
                             `
                         });
                     }

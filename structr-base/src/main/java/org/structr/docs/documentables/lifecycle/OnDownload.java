@@ -18,6 +18,8 @@
  */
 package org.structr.docs.documentables.lifecycle;
 
+import org.structr.docs.ontology.ConceptType;
+
 import java.util.List;
 
 public class OnDownload extends LifecycleBase {
@@ -50,7 +52,7 @@ public class OnDownload extends LifecycleBase {
 
 		final List<Link> linkedConcepts = super.getLinkedConcepts();
 
-		linkedConcepts.add(Link.to("ispartof", "File"));
+		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, "File")));
 
 		return linkedConcepts;
 	}

@@ -556,9 +556,9 @@ public class TraitsImplementation implements Traits {
 	}
 
 	@Override
-	public List<Property> getProperties() {
+	public List<DocumentedProperty> getDocumentedProperties() {
 
-		final List<Property> properties = new LinkedList<>();
+		final List<DocumentedProperty> properties = new LinkedList<>();
 
 		for (final PropertyKey<?> key : getAllPropertyKeys()) {
 
@@ -566,7 +566,7 @@ public class TraitsImplementation implements Traits {
 			final String description = key.getDescription();
 			if (description != null) {
 
-				properties.add(new Property(key.jsonName(), description));
+				properties.add(new DocumentedProperty(key.jsonName(), description));
 			}
 		}
 

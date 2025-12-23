@@ -18,6 +18,8 @@
  */
 package org.structr.docs.documentables.lifecycle;
 
+import org.structr.docs.ontology.ConceptType;
+
 import java.util.List;
 
 public class OnAcmeChallenge extends LifecycleBase {
@@ -41,7 +43,7 @@ public class OnAcmeChallenge extends LifecycleBase {
 
 		final List<Link> links = super.getLinkedConcepts();
 
-		links.add(Link.to("isexecutedby", "Letsencrypt"));
+		links.add(Link.to("isexecutedby", ConceptReference.of(ConceptType.Topic, "Letsencrypt")));
 
 		return links;
 	}

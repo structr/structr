@@ -26,6 +26,7 @@ import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class CodeSourceToken extends NamedConceptToken {
 
@@ -65,7 +66,8 @@ public class CodeSourceToken extends NamedConceptToken {
 	// ----- private methods -----
 	private List<Concept> handleDocumentable(final Documentable documentable, final Ontology ontology, final String sourceFile, final int lineNumber) {
 
-		final List<Concept> parents = new LinkedList<>();
+		final Map<String, String> knownVerbs = ontology.getKnownVerbs();
+		final List<Concept> parents          = new LinkedList<>();
 
 		if (!documentable.isHidden()) {
 
@@ -89,10 +91,18 @@ public class CodeSourceToken extends NamedConceptToken {
 
 				for (final Documentable.Link link : documentable.getLinkedConcepts()) {
 
-					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Unknown, link.name);
+					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, link.target.type, link.target.name);
 					if (childConcept != null) {
 
-						mainConcept.linkChild(link.verb, childConcept);
+						// determine direction of link
+						if (knownVerbs.containsKey(link.verb)) {
+
+							mainConcept.linkChild(link.verb, childConcept);
+
+						} else if (knownVerbs.containsValue(link.verb)) {
+
+							childConcept.linkChild(link.verb, mainConcept);
+						}
 					}
 				}
 

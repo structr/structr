@@ -19,6 +19,7 @@
 package org.structr.docs.documentables.service;
 
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -62,7 +63,7 @@ public class MailServiceDocumentable extends AbstractServiceDocumentable {
 
 		final List<Link> concepts = super.getLinkedConcepts();
 
-		concepts.add(Link.to("provides", "Sending emails"));
+		concepts.add(Link.to("provides", ConceptReference.of(ConceptType.Topic, "Sending emails")));
 
 		return concepts;
 	}

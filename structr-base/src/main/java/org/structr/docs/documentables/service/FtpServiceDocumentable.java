@@ -19,6 +19,7 @@
 package org.structr.docs.documentables.service;
 
 import org.structr.docs.*;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -49,7 +50,7 @@ public class FtpServiceDocumentable extends AbstractServiceDocumentable {
 
 		final List<Link> links = super.getLinkedConcepts();
 
-		links.add(Link.to("implements", "FTP server"));
+		links.add(Link.to("implements", ConceptReference.of(ConceptType.Topic, "FTP server")));
 
 		return links;
 	}

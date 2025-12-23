@@ -42,6 +42,7 @@ import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 import org.structr.schema.action.ActionContext;
 
@@ -180,7 +181,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 		final List<Link> links = super.getLinkedConcepts();
 
-		links.add(Link.to("provides", "Changelog"));
+		links.add(Link.to("provides", ConceptReference.of(ConceptType.Topic, "Changelog")));
 
 		return links;
 	}

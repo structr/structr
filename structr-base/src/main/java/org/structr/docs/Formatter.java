@@ -56,6 +56,11 @@ public abstract class Formatter {
 			return;
 		}
 
+		// only output the same concept once
+		if (!seenConcepts.add(concept)) {
+			return;
+		}
+
 		if (level >= outputSettings.getStartLevel()) {
 
 			// part1: fetch formatter for concept and call format()
@@ -64,11 +69,6 @@ public abstract class Formatter {
 
 				formatter.format(lines, concept, outputSettings, link, level);
 			}
-		}
-
-		// only output the same concept once
-		if (!seenConcepts.add(concept)) {
-			return;
 		}
 
 		// part2: recurse (children are handled externally, i.e. not inside the type-specific formatters)

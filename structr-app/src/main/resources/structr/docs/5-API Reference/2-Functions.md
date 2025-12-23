@@ -1790,7 +1790,7 @@ ${{
 
 ```
 
-### find.and()
+### predicate.and
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1799,7 +1799,7 @@ find.and(predicates)
 ```
 
 
-### find.contains()
+### predicate.contains
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1808,7 +1808,7 @@ find.contains(key, value)
 ```
 
 
-### find.empty()
+### predicate.empty
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1817,7 +1817,7 @@ find.empty(key)
 ```
 
 
-### find.endsWith()
+### predicate.endsWith
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1826,7 +1826,7 @@ find.endsWith(key, value)
 ```
 
 
-### find.equals()
+### predicate.equals
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1835,7 +1835,7 @@ find.equals(value)
 ```
 
 
-### find.gt()
+### predicate.gt
 Returns a gt predicate that can be used in find() function calls.
 #### Signatures
 
@@ -1844,7 +1844,7 @@ find.gt(value)
 ```
 
 
-### find.gte()
+### predicate.gte
 Returns a gte predicate that can be used in find() function calls.
 #### Signatures
 
@@ -1853,7 +1853,7 @@ find.gte(value)
 ```
 
 
-### find.lt()
+### predicate.lt
 Returns an lt predicate that can be used in find() function calls.
 #### Signatures
 
@@ -1862,7 +1862,7 @@ find.lt(value)
 ```
 
 
-### find.lte()
+### predicate.lte
 Returns an lte predicate that can be used in find() function calls.
 #### Signatures
 
@@ -1871,7 +1871,7 @@ find.lte(value)
 ```
 
 
-### find.not()
+### predicate.not
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1880,7 +1880,7 @@ find.not(predicate)
 ```
 
 
-### find.or()
+### predicate.or
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1889,7 +1889,7 @@ find.or(predicates)
 ```
 
 
-### find.page()
+### predicate.page
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1898,7 +1898,7 @@ find.page(page, pageSize)
 ```
 
 
-### find.range()
+### predicate.range
 Returns a range predicate that can be used in find() function calls.
 #### Parameters
 
@@ -1963,8 +1963,18 @@ ${{ $.find('Article', 'createdDate', $.predicate.range(
 
 ```
 
-### find.sort()
+### predicate.sort
 Returns a query predicate that can be used with find() or search().
+
+This predicate sorts the results of a query by the given key. It supports "transitive sorting", i.e. you can sort nodes by properties of related nodes:
+
+```
+{
+	// fetch the list of projects sorted by their owner's names
+	let projects = $.find('Project', $.predicate.sort('owner.name'));
+}
+```
+
 #### Signatures
 
 ```
@@ -1972,7 +1982,7 @@ find.sort(key, value)
 ```
 
 
-### find.startsWith()
+### predicate.startsWith
 Returns a query predicate that can be used with find() or search().
 #### Signatures
 
@@ -1981,7 +1991,7 @@ find.startsWith(key, value)
 ```
 
 
-### find.withinDistance()
+### predicate.withinDistance
 Returns a query predicate that can be used with find() or search().
 #### Parameters
 

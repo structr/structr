@@ -32,6 +32,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.docs.Documentable;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.FunctionCategory;
 
 import java.util.List;
@@ -48,9 +49,9 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 		final List<Link> concepts = super.getLinkedConcepts();
 
-		concepts.add(Link.to("implements", "Advanced find"));
-		concepts.add(Link.to("provides", "Search"));
-		concepts.add(Link.to("provides", "Database query"));
+		concepts.add(Link.to("implements", ConceptReference.of(ConceptType.Topic, "Advanced find")));
+		concepts.add(Link.to("provides", ConceptReference.of(ConceptType.Topic, "Search")));
+		concepts.add(Link.to("provides", ConceptReference.of(ConceptType.Topic, "Database query")));
 
 		return concepts;
 	}

@@ -47,7 +47,7 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 		// concept name contains folder name
-		final String path       = concept.getMetadata().get("path");
+		final String path       = (String) concept.getMetadata().get("path");
 		final String fileName   = StringUtils.substringAfterLast(path, "/");
 		final String folderName = StringUtils.substringBeforeLast(path, "/");
 		final Resource resource = baseResource.resolve("docs/" + folderName);
