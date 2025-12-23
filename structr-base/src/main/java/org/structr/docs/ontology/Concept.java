@@ -116,6 +116,18 @@ public final class Concept {
 		return List.of();
 	}
 
+	public String getParentConceptName() {
+
+		final List<Concept> p = parents.get("ispartof");
+		if (p != null) {
+
+			return p.get(0).getName();
+		}
+
+		return null;
+
+	}
+
 	public Map<String, List<Concept>> getParents() {
 		return parents;
 	}

@@ -22,24 +22,44 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 import org.structr.docs.ontology.Occurrence;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
-public class MarkdownTopicFormatter extends Formatter {
+public class ToplevelTopicsMarkdownFormatter extends Formatter {
+
+	private final Set<ConceptType> blacklistedTypes = Set.of(ConceptType.Text); //, ConceptType.Setting, ConceptType.Helper, ConceptType.Category, ConceptType.HttpVerb);
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
 
+		// do not display blacklisted entries
+		if (blacklistedTypes.contains(concept.getType())) {
+			return;
+		}
+
 		if (settings.hasDetail(Details.name) || settings.hasDetail(Details.all)) {
 
-			lines.add(formatMarkdownHeading((link != null ? link + " " : "") + concept.getName() + " (" + concept.getType() + ")", level + 1));
+			// add parent topic here, but only at level 0
+			if (level == 0) {
+
+				final String parentConceptName = concept.getParentConceptName();
+				if (parentConceptName != null) {
+
+					lines.add(formatMarkdownHeading(parentConceptName, level));
+					lines.add("");
+				}
+			}
+
+			lines.add(formatMarkdownHeading(concept.getName(), level + 1));
 			lines.add("");
 		}
 
-		if (settings.hasDetail(Details.source)) {
+		if (settings.hasDetail(Details.source) || settings.hasDetail(Details.all)) {
 
 			final List<String> buf = new LinkedList<>();
 

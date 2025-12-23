@@ -53,7 +53,7 @@ public class DocumentationServlet extends HttpServlet {
 
 		try {
 
-			ExistingDocs existingDocs             = new ExistingDocs("structr/docs");
+			//ExistingDocs existingDocs             = new ExistingDocs("structr/docs");
 			final HttpService service             = Services.getInstance().getServiceImplementation(HttpService.class);
 			final ResourceHandler resourceHandler = service.getExportedResourceHandler();
 			final Resource baseResource           = resourceHandler.getBaseResource();
@@ -65,7 +65,7 @@ public class DocumentationServlet extends HttpServlet {
 			handleRequestParameters(request, ontology, concepts, settings);
 
 			// compare ontology to existing docs
-			ontology.countConcepts(existingDocs);
+			//ontology.countConcepts(existingDocs);
 
 			final List<String> lines = ontology.createDocumentation(concepts, settings);
 
@@ -77,7 +77,7 @@ public class DocumentationServlet extends HttpServlet {
 				renderPlaintext(response, lines);
 			}
 
-			if ("json".equals(settings.getOutputFormat())) {
+			if ("json".equals(settings.getOutputFormat()) || "toc".equals(settings.getOutputFormat())) {
 				renderJson(response, lines);
 			}
 
@@ -264,10 +264,10 @@ public class DocumentationServlet extends HttpServlet {
 		// sensible default
 		settings.getDetails().add(Details.name);
 
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Unknown,        new MarkdownTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Topic,          new MarkdownTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Topic,          new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Service,        new MarkdownServiceFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.MarkdownFolder, new MarkdownTopicFormatter());
+		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.MarkdownFolder, new ToplevelTopicsMarkdownFormatter());
 		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
 		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.CodeSource,     new MarkdownCodeSourceFormatter());
 
@@ -277,6 +277,9 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatAndType("text", ConceptType.MarkdownFile,       new PlaintextMarkdownFileFormatter(baseResource));
 
 		settings.setFormatterForOutputFormatAndType("json", ConceptType.Unknown,            new JsonConceptFormatter());
+
+		// table of contents for inline documentation
+		settings.setFormatterForOutputFormatAndType("toc", ConceptType.Unknown,            new TableOfConcentsConceptFormatter());
 
 		return settings;
 	}

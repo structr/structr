@@ -45,7 +45,7 @@ let _Documentation = {
 			Structr.subModule = Structr.subModule?.substring(0, lastIndexOfHash);
 		}
 
-		_Documentation.loadDoc(Structr.subModule || '1-Introduction/1-Getting%20Started.md', inPageHash);
+		_Documentation.loadDoc(Structr.subModule || 'Getting Started', inPageHash);
 
 		Structr.setFunctionBarHTML(_Documentation.templates.searchField());
 
@@ -110,213 +110,86 @@ let _Documentation = {
 	},
 	init: () => {
 
+        // build the table of contents
 		const docsElement = document.getElementById('docs-main-navigation');
 
-		fetch('/structr/docs/ontology?root=Structr&details=name&levels=1&format=text&startLevel=1')
-			.then(response => response.text())
-			.then(text => {
-				text.split('\n').forEach((line, i) => {
-                    let index = i+1;
-					if (line) {
-						docsElement.insertAdjacentHTML('beforeend', _Documentation.templates.mainNavigationItem({
-							index: index,
-							label: line
-						}));
+		fetch('/structr/docs/ontology?root=Structr&details=name&levels=1&format=toc&startLevel=1')
+			.then(response => response.json())
+			.then(json => {
 
-						const parentIndex = index;
-						const parentLabel = line;
+                let index = 1;
 
-						docsElement.querySelector(`li:nth-child(${index})`).insertAdjacentHTML('beforeend', '<ul>');
+                for (let entry of json.data) {
 
-						const articleListElement = docsElement.querySelector(`li:nth-child(${index}) ul`);
+                    let menuItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationItem({
+                        index: index,
+                        label: entry.name
+                    }));
 
-						fetch(`/structr/docs/ontology?root=${encodeURIComponent(line)}&details=name&startLevel=1&levels=1&format=text`)
-							.then(response => {
-								if (response.ok) {
-									return response.text();
-								}
-							})
-							.then(text => {
-								text.split('\n').forEach((line, i) => {
-                                    let index = i+1;
-									if (line) {
+                    docsElement.appendChild(menuItem);
 
-										articleListElement.insertAdjacentHTML('beforeend', _Documentation.templates.mainNavigationSubItem({
-											parentIndex: parentIndex,
-											parentLabel: parentLabel,
-											index: index,
-											name: line,
-											label: line
-										}));
-									}
-								});
-							});
-					}
-				});
+                    let sublist = document.createElement('ul');
+                    menuItem.appendChild(sublist);
+
+                    const parentIndex = index;
+                    const parentLabel = entry.name;
+                    let subIndex = 1;
+
+                    index++;
+
+                    for (let child of entry.links[0].targets) {
+
+                        let subItem = _Documentation.createElementFromHTML(_Documentation.templates.mainNavigationSubItem({
+                            parentIndex: parentIndex,
+                            parentLabel: parentLabel,
+                            index: subIndex,
+                            type: child.type,
+                            name: child.name,
+                            label: child.name
+                        }));
+
+                        subItem.addEventListener('click', e => {
+                            _Documentation.loadContext(child.type, child.name)
+                        });
+
+                        sublist.appendChild(subItem);
+                    }
+				}
 			});
 
 	},
 	loadDoc: (rawPath, hash) => {
 
-        return;
-        let path = decodeURIComponent(rawPath);
-        let slash = path.indexOf('/');
-        let parent = path.substring(0, slash);
-        let root = path.substring(slash + 1);
+        let iframe = document.querySelector('div#docs-area iframe');
+        if (iframe) {
 
-        fetch(`/structr/docs/ontology?root=${parent}&details=all&levels=2&format=markdown`)
-            .then(response => {
-                if (response.ok) {
-                    return response.text();
-                }
-            })
-            .then(html => {
-
-                document.querySelector('#docs-area article').innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
-
-                let indexHtml = '';
-
-                fetch(`/structr/docs/ontology?root=${parent}&details=all&levels=2&format=markdown`)
-                    .then(response => {
-                        if (response.ok) {
-                                return response.text();
-                        }
-                    })
-                    .then(text => {
-
-                        let indexHtml = 'moep';
-
-                        // Page index
-                        document.querySelector('#docs-area aside').innerHTML = '<div class="index-heading">On this page</div>' + indexHtml;
-
-                    });
-
-                /*
-                // console.log('Loading documentation page ', rawPath, hash);
-                const path = decodeURI(rawPath);
-                //const path = rawPath;
-                const text = _Documentation._content[path];
-                const converter = new showdown.Converter({ tables: true, simplifiedAutoLink: true, prefixHeaderId: `${path}` });
-
-                // Transform image URLs
-                // Input: Local URLs like just "login.png": ![Login Screen](login.png)
-                // Output: /docs/5-Admin%20User%20Interface/login.png
-
-                const markdownImageRegex = /!\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
-                const markdownLinkRegex  = /[^!]\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+)\)/g;
-
-                const prefixMarkdownImages = (text, prefix) => {
-                    return text?.replace(markdownImageRegex, (match, alt, url) => {
-                        return `![${alt}](${prefix}${url})`;
-                    });
-                }
-
-                // Transform image URLs
-                // Input: Local URLs like just "login.png": ![Login Screen](login.png)
-                // Output: /docs/5-Admin%20User%20Interface/login.png
-
-
-                const prefixArticleLinks = (text, prefix) => {
-                    return text?.replace(markdownLinkRegex, (match, alt, url) => {
-                        return ` [${alt}](${prefix}${url})`;
-                    });
-                }
-
-                const parent = path.substring(0, path.lastIndexOf('/'));
-                let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
-                updatedContent = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
-
-                const html      = converter.makeHtml(updatedContent);
-                document.querySelector('#docs-area article').innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
-
-                const indexHtml = converter.makeHtml(html);
-                */
-
-
-
-                // Activate in-page index links (aside element on the right-hand side)
-                document.querySelectorAll('#docs-area aside h1, #docs-area aside h2, #docs-area aside h3, #docs-area aside h4').forEach(el => {
-                    const newAElement = document.createElement('A');
-                    const hrefAfterClick = `#docs:${path}#${el.id}`;
-                    newAElement.href = '#' + el.id;
-                    newAElement.dataset.hrefAfterClick = hrefAfterClick;
-                    el.removeAttribute('id');
-                    el.parentNode.insertBefore(newAElement, el);
-                    newAElement.appendChild(el);
-                    newAElement.addEventListener('click', e => {
-                        //e.preventDefault();
-                        const aEl = e.target.closest('a');
-                        document.querySelectorAll('#docs-area aside a').forEach(el => {
-                            el.classList.remove('active');
-                        });
-                        aEl.classList.add('active');
-                        window.setTimeout(() => {
-                            window.location.hash = aEl.dataset.hrefAfterClick;
-                        }, 100);
-                    });
-                });
-
-                document.querySelector('#docs-area article').scrollTo(0,0);
-
-                if (hash) {
-                    document.querySelector(`#docs-area aside a[href="${hash}"]`).click();
-                }
-
-                document.querySelectorAll('#docs-area nav a').forEach(aElement => {
-                    aElement.classList.remove('active');
-                });
-
-                // Make navigation link active
-                waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
-                    el.classList.add('active');
-                });
-
-                // Allow navigation from main document
-                document.querySelectorAll('#docs-area .article a').forEach(aElementInArticle => {
-                    aElementInArticle.addEventListener('click', e => {
-                        const el = e.target;
-                        const href = el.href;
-                        // Don't try to load document for external links
-                        if (href.startsWith('http')) { return }
-                        _Documentation.loadDoc(href.substring(href.lastIndexOf(':') + 1));
-                    });
-                });
-
-                const isElementInViewport = el => {
-
-                    const rect = el.getBoundingClientRect();
-
-                    return (
-                        rect.top >= 0 &&
-                        rect.left >= 0 &&
-                        rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) && /* or $(window).height() */
-                        rect.right <= (window.innerWidth || document.documentElement.clientWidth) /* or $(window).width() */
-                    );
-                };
-
-                document.querySelector('#docs-area article').addEventListener('scroll', e => {
-                    for (const el of document.querySelectorAll('.article h1, .article h2, .article h3')) {
-                        const isVisible = isElementInViewport(el);
-                        if (isVisible) {
-                            document.querySelectorAll('.index a').forEach(el => {
-                                el.classList.remove('active');
-                            });
-                            const id = el.id; //querySelector('a').id;
-                            const indexEl = document.querySelector('.index a[href="#' + id + '"]');
-                            indexEl.classList.add('active');
-                            break;
-                        } else {
-                            /*
-                                            const id = el.querySelector('a').id;
-                                            const indexEl = document.querySelector('.index a[href="#' + id + '"]');
-                                            indexEl.classList.remove('active');
-                                            */
-                        }
-                    }
-
-                });
-            });
+           iframe.src = `/structr/docs/ontology?root=${encodeURIComponent(rawPath)}&details=all&format=markdown`;
+        } else {
+            console.log('no iframe found')
+        }
 	},
+    loadContext: (type, name) => {
+
+        fetch(`/structr/docs/ontology?root=${type}:${encodeURIComponent(name)}&details=name&levels=1&format=toc&startLevel=1`)
+            .then(response => response.json())
+            .then(json => {
+
+                let index = 1;
+                let aside = document.querySelector('aside.index');
+
+                aside.innerHTML = '';
+
+                for (let entry of json.data) {
+
+                    aside.appendChild(_Documentation.createElementFromHTML(_Documentation.templates.indexItem({
+                        parentName: name,
+                        type: type,
+                        name: entry.name.replaceAll(/[\W]+/g, '-').toLowerCase(),
+                        label: entry.name
+                    })));
+                }
+            });
+    },
 	search: {
 		searchOverlay: undefined,
 		overlaySearchField: undefined,
@@ -418,6 +291,10 @@ let _Documentation = {
 			_Documentation.search.searchOverlay.classList.add('hidden');
 		}
 	},
+    createElementFromHTML: (html) => {
+        let range = document.createRange();
+        return range.createContextualFragment(html).firstElementChild;
+    },
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/docs-chrisi.css">
@@ -426,7 +303,7 @@ let _Documentation = {
 					<ul id="docs-main-navigation">
 					</ul>
 				</nav>
-				<iframe name="main-documentation" src="/structr/docs/ontology?root=Introduction&details=all"></iframe>
+				<iframe name="main-documentation"></iframe>
 				<aside class="index"></aside>
 			</div>`,
 		searchField: config => `
@@ -438,7 +315,8 @@ let _Documentation = {
 			</div>
 		`,
 		mainNavigationItem: config => `<li class="docs-main-nav-item">${config.label}</li>`,
-		mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?root=${encodeURIComponent(config.name)}&details=all&startLevel=0">${config.label}</a></li>`,
+        mainNavigationSubItem: config => `<li><a target="main-documentation" href="/structr/docs/ontology?root=${config.type}:${encodeURIComponent(config.name)}&details=all&startLevel=0&format=markdown">${config.label}</a></li>`,
+		indexItem: config => `<h2><a target="main-documentation" href="/structr/docs/ontology?root=${config.type}:${encodeURIComponent(config.parentName)}&details=all&startLevel=0&format=markdown#${config.name}">${config.label}</a></h2>`,
 		searchOverlay: config => `
 			<div id="search-overlay" class="hidden">
 				<div id="search-overlay-dialog">

@@ -5,13 +5,16 @@
 #
 
 # The word "Structr" is the root of the ontology
-Structr has topics "Introduction", "Admin User Interface", "Building Applications", "APIs & Integrations", "Operations", "Advanced Topics", References
+Structr has markdown-folder "1-Introduction"
+Structr has topics "Admin User Interface", "Building Applications", "APIs & Integrations", "Operations", "Advanced Topics", References
 
 
 # Introduction: this exists to match the Markdown docs and enable gap analysis
-Introduction has topics "What is Structr?", "Installation Method", "First Steps"
-    "Installation Method" has topics "Sandbox", "Docker", "Manual Installation"
-    "First Steps" has topics "Data Schema"
+#Introduction has markdown-file "1-Introduction/1-Getting Started.md"
+#Introduction has topics "Getting Started", "First Steps"
+    #"Getting Started" has topics "What is Structr?",
+    #"Installation Method" has topics "Sandbox", "Docker", "Manual Installation"
+    #"First Steps" has topics "Data Schema"
 
 
 
@@ -31,9 +34,12 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
 
 
 # Building Applications
-"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Security", "Troubleshooting"
+"Building Applications" has topics "Creating Pages & Templates", "Schema Setup", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
 
     "Creating Pages & Templates" has topics "Page Templates", "Shared Components", "Widgets"
+
+    "Schema Setup" has topics "Dynamic types", "Built-in types", "Property types"
+        "Built-in types" has synonym "System types"
 
     "Navigation & Routing" has topics "Navigation", "URL routing", "Error pages", "Page position"
 
@@ -50,19 +56,26 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
     "User Input & Forms" has topics "Event Action Mapping"
         Topic "Notifications" has texts "Success notifications", "Failure notifications"
 
+    "Language localization" has topics "Translations", "Localization Settings"
+        Translations has topics "Translation Settings", "Translation Providers"
 
 
 
 
 # Interfaces
-"APIs & Integrations" has topics "REST", "Open API", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
+"APIs & Integrations" has topics "HTTP", "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
 
-    "REST" has topics "Resource Access Permissions"
-    "Open API" has topic "OpenAPI Settings"
+    "HTTP" has topics "REST", "Proxy Settings", "Outbound Connection Settings"
+        HTTP has topics "HTTP Settings"
+        "REST" has topics "Resource Access Permissions", "System Endpoints"
+
+    "OpenAPI" has topic "OpenAPI Settings"
     "Cron jobs" has topic "CronService Settings"
     "Geocoding" has topic "Geocoding Settings"
     "oAuth" has topic "oAuth Settings"
-    "SMTP" has topic "SMTP Settings"
+
+    "SMTP" has topic "Sending emails", "SMTP Settings"
+
     "FTP" has topic "FTP Settings"
     "SSH" has topic "SSH Settings"
     "JDBC" has topic "JDBC Settings"
@@ -72,23 +85,31 @@ Introduction has topics "What is Structr?", "Installation Method", "First Steps"
 
 # Operations
 
-"Operations" has topics "Deployment", "User Management", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Monitoring", "Logging", "Auditing", "Statistics"
+"Operations" has topics "Configuration", "Deployment", "User Management", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Maintenance", "Monitoring", "Logging", "Auditing", "Statistics"
 
-    # Deployment
+    Topic "Configuration" has topics "Path Settings", "Application Settings"
 
-    "User Management" has topics "User self-registration"
+    Deployment has topics "Deployment Settings"
+
+    "User Management" has topics "Superuser", "Two-factor authentication", "User self-registration", "Password policy"
+        "Superuser" has topics "Superuser settings", "Initial Admin User Settings"
+        "Two-factor authentication" has topics "Two-factor authentication Settings"
+        "User self-registration" has topic "User self-registration Settings"
+        "Password policy" has topic "Password policy Settings"
 
     "Filesystem" has topics "Checksums", "Thumbnails", "External storage", "Filesystem Settings"
 
     Topic "SSL / TLS" has topic "Letsencrypt"
         Letsencrypt has topic "Letsencrypt Settings"
-        HTTPS has topic "HTTPS Settings"
+        HTTPS has topic "HTTPS Settings", "Interfaces Settings"
 
     "Debugging" has topic "Debugging Settings"
 
-    "Monitoring" has "HTTP Access Statistics", "CPU Time", "Free Memory", "Max Memory", "Total Memory", "Threads", "Deadlock detected"
+    "Maintenance" has topics "Maintenance Mode", "Maintenance Settings"
 
-    "Logging" has "Server Log", "Event Log", "Log File"
+    "Monitoring" has topics "HTTP Access Statistics", "CPU Time", "Free Memory", "Max Memory", "Total Memory", "Threads", "Deadlock detected"
+
+    "Logging" has topics "Server Log", "Event Log", "Log File"
         Logging has topic "Logging Settings"
 
     "Auditing" has "Changelog"
@@ -105,7 +126,9 @@ Topic "Advanced Topics" has topics "Internals", "Performance Optimization"
 
 
 
-    "Internals" has topics "Page Rendering Engine"
+    "Internals" has topics "Page Rendering Engine", "Indexing"
+
+        Indexing has topic "Indexing Settings"
 
 
 
@@ -116,4 +139,4 @@ Topic "Advanced Topics" has topics "Internals", "Performance Optimization"
 
 
 # References
-    MailService has topic "MailService settings"
+    MailService has topic "MailService Settings"

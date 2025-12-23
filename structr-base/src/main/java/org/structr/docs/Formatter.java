@@ -81,6 +81,7 @@ public abstract class Formatter {
 			}
 		}
 
+		/*
 		final Map<String, List<Concept>> parents = concept.getParents();
 		for (final String key : parents.keySet()) {
 
@@ -89,6 +90,7 @@ public abstract class Formatter {
 				walkOntology(lines, parent, outputSettings, key, level + 1, seenConcepts);
 			}
 		}
+		*/
 	}
 
 	// ----- protected methods -----

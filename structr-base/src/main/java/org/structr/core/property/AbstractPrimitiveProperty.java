@@ -78,6 +78,7 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> implement
 		documentables.add(new DateProperty(null));
 		documentables.add(new DoubleProperty(null));
 		documentables.add(new EnumProperty(null, Set.of()));
+		documentables.add(new FunctionProperty<>(null, null));
 		documentables.add(new IntProperty(null));
 		documentables.add(new LongProperty(null));
 		documentables.add(new LowercaseStringProperty(null));

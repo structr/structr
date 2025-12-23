@@ -18,6 +18,7 @@
  */
 package org.structr.docs.documentables.misc;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
@@ -104,23 +105,20 @@ public class SettingDocumentable implements Documentable {
 		final List<Link> links = new LinkedList<>();
 
 		final String category = setting.getCategory();
-		if (category != null && !"hidden".equals(category)) {
+		if (category != null && !"hidden".equals(category) && !StringUtils.isEmpty(category)) {
 
 			if (category.toLowerCase().endsWith(" settings")) {
 
-				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, category)));
+				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Category, category)));
 
 			} else {
 
-				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, category + " Settings")));
+				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Category, category + " Settings")));
 			}
 		}
 
 		return links;
 	}
-
-
-	add settings for common topics
 
 	public static void collectAllSettings(final List<Documentable> documentables) {
 

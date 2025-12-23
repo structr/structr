@@ -18,6 +18,15 @@
  */
 package org.structr.docs.ontology.parser.token;
 
+import com.vladsch.flexmark.ast.Heading;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.profile.pegdown.Extensions;
+import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
+import com.vladsch.flexmark.util.ast.Document;
+import com.vladsch.flexmark.util.ast.Node;
+import com.vladsch.flexmark.util.data.MutableDataSet;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.formatter.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
@@ -59,16 +68,18 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 			final String cleanedName = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
 			final Concept folder     = ontology.getOrCreateConcept(sourceFile, line, type, cleanedName);
-			final Path path          = Path.of("structr/docs/" + folderName + "/index.txt");
+			final Path folderPath    = Path.of("structr/docs/" + folderName);
+			final Path indexFile     = folderPath.resolve("index.txt");
 
 			if (folder != null) {
+
 				concepts.add(folder);
 
 				// resolve markdown folder contents and add them as topics
-				if (Files.exists(path)) {
+				if (Files.exists(indexFile)) {
 
 					try {
-						final List<String> files = Files.readAllLines(path);
+						final List<String> files = Files.readAllLines(indexFile);
 						for (final String file : files) {
 
 							final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
@@ -81,6 +92,34 @@ public class MarkdownFolderToken extends NamedConceptToken {
 								markdownFile.getMetadata().put("path", filePath);
 
 								folder.linkChild("has", markdownFile);
+
+								// handle children
+								final List<String> lines = Files.readAllLines(folderPath.resolve(file));
+								final MutableDataSet options = new MutableDataSet();
+
+								options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+
+								final Parser parser         = Parser.builder(options).build();
+								final Document doc          = parser.parse(StringUtils.join(lines, "\n"));
+
+								for (final Node child : doc.getChildren()) {
+
+									if (child instanceof Heading heading) {
+
+										final int level   = heading.getLevel();
+										final String text = heading.getText().unescape();
+
+										if (level == 2) {
+
+											final Concept headingConcept = ontology.getOrCreateConcept(sourceFile, line, ConceptType.MarkdownHeading, text);
+											if (headingConcept != null) {
+
+												markdownFile.linkChild("has", headingConcept);
+											}
+										}
+									}
+								}
+
 
 							} else {
 

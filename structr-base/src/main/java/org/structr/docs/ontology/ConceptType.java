@@ -22,10 +22,11 @@ public enum ConceptType {
 
 	Topic("topic"), Concept("concept"), Component("component"), Feature("feature"), Mechanism("mechanism"),
 	Provider("provider"), Service("service"), Capability("capability"), UseCase("use-case"), Type("type"),
+	Category("category"),
 
 	// external sources
-	MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), CodeSource("code-source"),
-	EnumSource("enum-source"), JavascriptFile("javascript-file"),
+	MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), MarkdownHeading("markdown-heading"),
+	CodeSource("code-source"), EnumSource("enum-source"), JavascriptFile("javascript-file"),
 
 	// concepts for user interface elements
 	Screen("screen"), Form("form"), Area("area"), Tab("tab"), Flyout("flyout"), Menu("menu"), Dialog("dialog"),
