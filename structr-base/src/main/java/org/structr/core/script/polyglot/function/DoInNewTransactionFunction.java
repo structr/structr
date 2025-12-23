@@ -65,12 +65,9 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 				lockedContext = ContextFactory.getContext("js", actionContext, entity);
 
-				lockedContext.getLock().lock();
-				try {
-					lockedContext.getContext().leave();
-				} finally {
-					lockedContext.getLock().unlock();
-				}
+				// When function is called, lock is already acquired. Unlock for inner context and lock after.
+				lockedContext.getContext().leave();
+				lockedContext.getLock().unlock();
 
 				final Thread workerThread = new Thread(() -> {
 
@@ -169,20 +166,24 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 				workerThread.start();
 
+				try {
+					workerThread.join();
+				} catch (InterruptedException ex) {
+					logger.warn("Thread was interrupted - breaking out of doInNewTransaction() worker thread.");
+				}
+
 			} catch (FrameworkException ex) {
 
 				logger.error("Exception in DoInNewTransactionFunction.", ex);
 
 			} finally {
 
+
+				// Lock and enter context again after inner worker thread is done
 				if (lockedContext != null) {
 
 					lockedContext.getLock().lock();
-					try {
-						lockedContext.getContext().enter();
-					} finally {
-						lockedContext.getLock().unlock();
-					}
+					lockedContext.getContext().enter();
 				}
 			}
 		}
