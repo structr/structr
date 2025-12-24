@@ -143,7 +143,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 				"Attachments must be provided as a list, even when only a single file is included.",
 				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
 				"Emails are sent based on the SMTP configuration defined in structr.conf.",
-				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mailBegin()`."
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`."
 		);
 	}
 

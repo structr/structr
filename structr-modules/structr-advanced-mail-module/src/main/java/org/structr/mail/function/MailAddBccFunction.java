@@ -36,7 +36,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_bcc";
+		return "mailAddBcc";
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MailAddBccFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_bcc(address [, name])}"),
+			Usage.structrScript("Usage: ${mailAddBcc(address [, name])}"),
 			Usage.javaScript("Usage: ${{ $.mailAddBcc(address [, name]) }}")
 		);
 	}

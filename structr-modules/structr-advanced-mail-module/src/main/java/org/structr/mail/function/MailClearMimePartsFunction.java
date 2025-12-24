@@ -53,7 +53,7 @@ public class MailClearMimePartsFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mailClearMime_parts()}"),
+			Usage.structrScript("Usage: ${mailClearMimeParts()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearMimeParts() }}")
 		);
 	}

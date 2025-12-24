@@ -66,7 +66,7 @@ public class MailSetBounceAddressFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mailSetBounce_address(address)}"),
+			Usage.structrScript("Usage: ${mailSetBounceAddress(address)}"),
 			Usage.javaScript("Usage: ${{ $.mailSetBounceAddress(address) }}")
 		);
 	}

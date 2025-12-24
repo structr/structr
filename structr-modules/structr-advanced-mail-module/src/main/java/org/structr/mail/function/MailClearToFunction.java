@@ -34,7 +34,7 @@ public class MailClearToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_to";
+		return "mailClearTo";
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MailClearToFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_to()}"),
+			Usage.structrScript("Usage: ${mailClearTo()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearTo() }}")
 		);
 	}

@@ -37,7 +37,7 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_mime_part";
+		return "mailAddMimePart";
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_mime_part(content, contentType)}"),
+			Usage.structrScript("Usage: ${mailAddMimePart(content, contentType)}"),
 			Usage.javaScript("Usage: ${{ $.mailAddMimePart(content, contentType) }}")
 		);
 	}
@@ -94,7 +94,7 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"see `mail_clear_mime_parts()` to remove added mime parts",
+				"see `mailClearMimeParts()` to remove added mime parts",
 				"can be called multiple times to add more mime parts."
 		);
 	}
