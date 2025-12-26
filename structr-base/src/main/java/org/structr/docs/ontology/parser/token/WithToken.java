@@ -20,9 +20,9 @@ package org.structr.docs.ontology.parser.token;
 
 import org.structr.docs.ontology.Ontology;
 
-public class PrepositionToken extends Token {
+public class WithToken extends Token {
 
-	public PrepositionToken(String name) {
+	public WithToken(String name) {
 		super(name);
 	}
 

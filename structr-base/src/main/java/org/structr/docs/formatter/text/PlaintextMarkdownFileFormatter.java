@@ -16,29 +16,34 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.formatter;
+package org.structr.docs.formatter.text;
 
-import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
 import java.util.List;
 
-public class PlaintextTopicFormatter extends Formatter {
+/**
+ * Formats the contents of an external markdown source as plaintext,
+ * but only the name. This is mainly used to build the navigation index.
+ */
+public class PlaintextMarkdownFileFormatter extends Formatter {
+
+	private final Resource baseResource;
+
+	public PlaintextMarkdownFileFormatter(final Resource baseResource) {
+		this.baseResource = baseResource;
+	}
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
-		if (settings.hasDetail(Details.name) && !ConceptType.Text.equals(concept.getType())) {
+		if (settings.getDetails().contains(Details.name)) {
 
-			//final String text = (link != null ? link + " " : "") + concept.getType() + " \"" + concept.getName() + "\" from " + concept.getSourceFile() + ":" + concept.getLineNumber();
-			//lines.add(formatListHeading(text, level));
-
-			final String text = concept.getName();
-			lines.add(StringUtils.repeat(" ", level * 2) + text);
+			lines.add(concept.getName());
 		}
 	}
 }

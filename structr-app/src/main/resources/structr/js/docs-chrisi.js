@@ -175,7 +175,7 @@ let _Documentation = {
                 let index = 1;
                 let aside = document.querySelector('aside.index');
 
-                aside.innerHTML = '<h2>On this page</h2>';
+                aside.innerHTML = '<h2 class="index-heading">On this page</h2>';
 
                 for (let entry of json.data) {
 

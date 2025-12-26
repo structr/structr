@@ -5,8 +5,8 @@
 #
 
 # The word "Structr" is the root of the ontology
-Structr has markdown-folder "1-Introduction"
-Structr has topics "Admin User Interface", "Building Applications", "APIs & Integrations", "Operations", "Advanced Topics", References
+Structr has markdown-folders "1-Introduction", "4-Admin User Interface"
+Structr has topics "Building Applications", "APIs & Integrations", "Operations", "Advanced Topics", References
 
 
 # Introduction: this exists to match the Markdown docs and enable gap analysis
@@ -19,14 +19,14 @@ Structr has topics "Admin User Interface", "Building Applications", "APIs & Inte
 
 
 # Admin User Interface
-"Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Virtual Types", "Widgets", "Flows", "Localization", "Admin Console", "Configuration Editor"
-"Admin User Interface" has topic "Helpers"
+#"Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Virtual Types", "Widgets", "Flows", "Localization", "Admin Console", "Configuration Editor"
+#"Admin User Interface" has topic "Helpers"
 
-    Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
+    #Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
 
-    Pages has helper "Refactoring Helper"
+    #Pages has helper "Refactoring Helper"
 
-    "Configuration Editor" configures "Settings"
+    #"Configuration Editor" configures "Settings"
 
 
 
@@ -139,4 +139,5 @@ Topic "Advanced Topics" has topics "Internals", "Performance Optimization"
 
 
 # References
+
     MailService has topic "MailService Settings"

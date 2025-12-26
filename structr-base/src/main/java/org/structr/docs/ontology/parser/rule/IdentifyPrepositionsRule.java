@@ -19,7 +19,8 @@
 package org.structr.docs.ontology.parser.rule;
 
 import org.structr.docs.ontology.Ontology;
-import org.structr.docs.ontology.parser.token.PrepositionToken;
+import org.structr.docs.ontology.parser.token.AsToken;
+import org.structr.docs.ontology.parser.token.WithToken;
 import org.structr.docs.ontology.parser.token.Token;
 
 import java.util.Deque;
@@ -41,9 +42,20 @@ public class IdentifyPrepositionsRule extends Rule {
 			final Token token1 = tokens.poll();
 			final String name  = token1.getName();
 
-			if (token1.isUnresolved() && name != null && "with".equals(name.toLowerCase())) {
+			if (token1.isUnresolved() && name != null) {
 
-				result.add(new PrepositionToken(name));
+				if ("with".equals(name.toLowerCase())) {
+
+					result.add(new WithToken(name));
+
+				}  else if ("as".equals(name.toLowerCase())) {
+
+					result.add(new AsToken(name));
+
+				} else {
+
+					result.add(token1);
+				}
 
 			} else {
 

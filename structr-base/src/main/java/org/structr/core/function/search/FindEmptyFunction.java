@@ -81,6 +81,6 @@ public class FindEmptyFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

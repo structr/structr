@@ -35,7 +35,11 @@ import org.structr.core.Services;
 import org.structr.docs.Documentable;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
-import org.structr.docs.formatter.*;
+import org.structr.docs.formatter.json.JsonConceptFormatter;
+import org.structr.docs.formatter.json.TableOfConcentsConceptFormatter;
+import org.structr.docs.formatter.markdown.*;
+import org.structr.docs.formatter.text.PlaintextMarkdownFileFormatter;
+import org.structr.docs.formatter.text.PlaintextTopicFormatter;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
@@ -266,22 +270,21 @@ public class DocumentationServlet extends HttpServlet {
 		// sensible default
 		settings.getDetails().add(Details.name);
 
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Unknown,        new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Topic,          new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.Service,        new MarkdownServiceFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.MarkdownFolder, new ToplevelTopicsMarkdownFormatter());
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
-		settings.setFormatterForOutputFormatAndType("markdown", ConceptType.CodeSource,     new MarkdownCodeSourceFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Topic,          new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFolder, new ToplevelTopicsMarkdownFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.CodeSource,     new MarkdownCodeSourceFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Table,          new MarkdownTableFormatter());
 
-		settings.setFormatterForOutputFormatAndType("text", ConceptType.Unknown,            new PlaintextTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("text", ConceptType.Topic,              new PlaintextTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("text", ConceptType.MarkdownFolder,     new PlaintextTopicFormatter());
-		settings.setFormatterForOutputFormatAndType("text", ConceptType.MarkdownFile,       new PlaintextMarkdownFileFormatter(baseResource));
+		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Unknown,            new PlaintextTopicFormatter());
+		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Topic,              new PlaintextTopicFormatter());
+		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.MarkdownFolder,     new PlaintextTopicFormatter());
+		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.MarkdownFile,       new PlaintextMarkdownFileFormatter(baseResource));
 
-		settings.setFormatterForOutputFormatAndType("json", ConceptType.Unknown,            new JsonConceptFormatter());
+		settings.setFormatterForOutputFormatModeAndType("json", "overview", ConceptType.Unknown,            new JsonConceptFormatter());
 
 		// table of contents for inline documentation
-		settings.setFormatterForOutputFormatAndType("toc", ConceptType.Unknown,            new TableOfConcentsConceptFormatter());
+		settings.setFormatterForOutputFormatModeAndType("toc", "overview", ConceptType.Unknown,            new TableOfConcentsConceptFormatter());
 
 		return settings;
 	}

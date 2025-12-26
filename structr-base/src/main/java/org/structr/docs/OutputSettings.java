@@ -18,6 +18,7 @@
  */
 package org.structr.docs;
 
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
@@ -25,11 +26,12 @@ import java.util.*;
 
 public class OutputSettings {
 
-	private final Map<String, Map<ConceptType, Formatter>> outputFormatTypeFormatterMap = new LinkedHashMap<>();
-	private final Map<Integer, Set<String>> linkTypesPerLevel                            = new LinkedHashMap<>();
-	private final Set<ConceptType> typesToRender                                        = new LinkedHashSet<>();
-	private final Set<Details> details                                                   = new LinkedHashSet<>();
-	private String outputFormat                                                          = "text";
+	private final Map<String, Map<String, Map<ConceptType, Formatter>>> formatterMap = new LinkedHashMap<>();
+	private final Map<Integer, Set<String>> linkTypesPerLevel                        = new LinkedHashMap<>();
+	private final Set<ConceptType> typesToRender                                     = new LinkedHashSet<>();
+	private final Set<Details> details                                               = new LinkedHashSet<>();
+	private String outputMode                                                        = "overview";
+	private String outputFormat                                                      = "text";
 	private String baseUrl;
 	private int startLevel;
 	private int maxLevels;
@@ -41,28 +43,44 @@ public class OutputSettings {
 	}
 
 	/**
-	 * Returns the formatter for the given type and the output format
+	 * Returns the formatter for the given concept and output format
 	 * configured in this settings object, or null if no formatter was
 	 * registered for the given combination.
 	 *
-	 * @param type
+	 * @param concept
 	 * @return
 	 */
-	public Formatter getFormatterForType(final ConceptType type) {
+	public Formatter getFormatterForConcept(final Concept concept, final String mode) {
 
-		final Map<ConceptType, Formatter> formatters = outputFormatTypeFormatterMap.get(outputFormat);
+		final Map<String, Map<ConceptType, Formatter>> formatters = formatterMap.get(outputFormat);
 		if (formatters != null) {
 
-			final Formatter formatter = formatters.get(type);
-			if (formatter != null) {
+			final Map<ConceptType, Formatter> modeMap = formatters.get(mode);
+			if (modeMap != null) {
 
-				return formatter;
-			}
+				// format wins
+				if (concept.getFormat() != null) {
 
-			final Formatter defaultFormatter = formatters.get(ConceptType.Unknown);
-			if (defaultFormatter != null) {
+					final Formatter formatter = modeMap.get(concept.getFormat());
+					if (formatter != null) {
 
-				return defaultFormatter;
+						return formatter;
+					}
+				}
+
+				// then type
+				final Formatter formatter = modeMap.get(concept.getType());
+				if (formatter != null) {
+
+					return formatter;
+				}
+
+				// then default
+				final Formatter defaultFormatter = modeMap.get(ConceptType.Unknown);
+				if (defaultFormatter != null) {
+
+					return defaultFormatter;
+				}
 			}
 		}
 
@@ -79,6 +97,10 @@ public class OutputSettings {
 
 		// return a default?
 		return null;
+	}
+
+	public String getOutputMode() {
+		return outputMode;
 	}
 
 	public Set<Details> getDetails() {
@@ -118,8 +140,8 @@ public class OutputSettings {
 		this.startLevel = level;
 	}
 
-	public void setFormatterForOutputFormatAndType(final String outputFormat, final ConceptType type, final Formatter formatter) {
-		outputFormatTypeFormatterMap.computeIfAbsent(outputFormat, k -> new LinkedHashMap<>()).put(type, formatter);
+	public void setFormatterForOutputFormatModeAndType(final String outputFormat, final String mode, final ConceptType type, final Formatter formatter) {
+		formatterMap.computeIfAbsent(outputFormat, k -> new LinkedHashMap<>()).computeIfAbsent(mode, k -> new LinkedHashMap<>()).put(type, formatter);
 	}
 
 	public void setBaseUrl(final String baseUrl) {

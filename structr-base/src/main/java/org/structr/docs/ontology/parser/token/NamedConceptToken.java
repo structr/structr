@@ -34,6 +34,8 @@ public class NamedConceptToken extends Token<List<Concept>> {
 	protected final ConceptToken conceptToken;
 	protected final IdentifierToken identifierToken;
 
+	protected ConceptToken formatSpecification = null;
+
 	public NamedConceptToken(final ConceptToken conceptToken, final IdentifierToken identifierToken) {
 
 		super((conceptToken != null ? conceptToken.getName() : "") + "(" + (identifierToken != null ? identifierToken.getName() : "") + ")");
@@ -71,6 +73,10 @@ public class NamedConceptToken extends Token<List<Concept>> {
 			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier);
 			if (concept != null) {
 
+				if (formatSpecification != null) {
+					concept.setFormat(formatSpecification.resolve(ontology, sourceFile, line));
+				}
+
 				// additional named concepts go into metadata of a concept (for now..)
 				for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
@@ -88,5 +94,9 @@ public class NamedConceptToken extends Token<List<Concept>> {
 		}
 
 		return concepts;
+	}
+
+	public void setFormat(final ConceptToken format) {
+		this.formatSpecification = format;
 	}
 }

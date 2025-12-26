@@ -16,20 +16,23 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.formatter;
+package org.structr.docs.ontology.parser.token;
 
-import org.structr.docs.Formatter;
-import org.structr.docs.OutputSettings;
-import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.Ontology;
 
-import java.util.List;
+public class AsToken extends Token {
 
-public class MarkdownServiceFormatter extends Formatter {
+	public AsToken(String name) {
+		super(name);
+	}
 
 	@Override
-	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
+	public boolean isUnresolved() {
+		return false;
+	}
 
-
-
+	@Override
+	public Object resolve(final Ontology ontology, final String sourceFile, final int line) {
+		return null;
 	}
 }

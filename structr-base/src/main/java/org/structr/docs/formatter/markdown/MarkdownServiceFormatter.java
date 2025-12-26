@@ -16,34 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.formatter;
+package org.structr.docs.formatter.markdown;
 
-import org.eclipse.jetty.util.resource.Resource;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.Details;
 
 import java.util.List;
 
-/**
- * Formats the contents of an external markdown source as plaintext,
- * but only the name. This is mainly used to build the navigation index.
- */
-public class PlaintextMarkdownFileFormatter extends Formatter {
-
-	private final Resource baseResource;
-
-	public PlaintextMarkdownFileFormatter(final Resource baseResource) {
-		this.baseResource = baseResource;
-	}
+public class MarkdownServiceFormatter extends Formatter {
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
-		if (settings.getDetails().contains(Details.name)) {
 
-			lines.add(concept.getName());
-		}
+
 	}
 }

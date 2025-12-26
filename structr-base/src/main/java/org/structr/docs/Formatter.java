@@ -64,7 +64,7 @@ public abstract class Formatter {
 		if (level >= outputSettings.getStartLevel()) {
 
 			// part1: fetch formatter for concept and call format()
-			final Formatter formatter = outputSettings.getFormatterForType(concept.getType());
+			final Formatter formatter = outputSettings.getFormatterForConcept(concept, outputSettings.getOutputMode());
 			if (formatter != null) {
 
 				formatter.format(lines, concept, outputSettings, link, level);
@@ -75,9 +75,12 @@ public abstract class Formatter {
 		final Map<String, List<Concept>> children = concept.getChildren();
 		for (final String key : children.keySet()) {
 
-			for (final Concept child : children.get(key)) {
+			if ("has".equals(key)) {
 
-				walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
+				for (final Concept child : children.get(key)) {
+
+					walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
+				}
 			}
 		}
 

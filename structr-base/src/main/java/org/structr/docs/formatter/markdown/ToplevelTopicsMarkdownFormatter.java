@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.formatter;
+package org.structr.docs.formatter.markdown;
 
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;

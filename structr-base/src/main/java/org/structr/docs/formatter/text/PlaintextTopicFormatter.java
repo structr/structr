@@ -16,38 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.formatter;
+package org.structr.docs.formatter.text;
 
-import org.structr.docs.Documentable;
-import org.structr.docs.DocumentableType;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
+import org.structr.docs.ontology.Details;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 
-public class MarkdownCodeSourceFormatter extends Formatter {
+public class PlaintextTopicFormatter extends Formatter {
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
-		final List<Documentable> documentables  = new LinkedList<>();
-		final DocumentableType documentableType = DocumentableType.forOntologyType(concept.getType());
+		if (settings.hasDetail(Details.name) && !ConceptType.Text.equals(concept.getType())) {
 
-		if (documentableType != null) {
+			//final String text = (link != null ? link + " " : "") + concept.getType() + " \"" + concept.getName() + "\" from " + concept.getSourceFile() + ":" + concept.getLineNumber();
+			//lines.add(formatListHeading(text, level));
 
-			documentables.addAll(documentableType.getDocumentables());
-		}
-
-		// sort
-		Collections.sort(documentables, Comparator.comparing(Documentable::getName));
-
-		// render
-		for (final Documentable documentable : documentables) {
-			lines.addAll(documentable.createMarkdownDocumentation(settings.getDetails(), level));
+			final String text = concept.getName();
+			lines.add(StringUtils.repeat(" ", level * 2) + text);
 		}
 	}
 }

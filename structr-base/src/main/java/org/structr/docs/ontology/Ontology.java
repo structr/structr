@@ -90,6 +90,7 @@ public final class Ontology {
 		initializeFromDocumentationAnnotations();
 
 		// link concepts with the same text
+		/*
 		for (final Concept concept1 : concepts) {
 
 			for (final Concept concept2 : concepts) {
@@ -104,6 +105,7 @@ public final class Ontology {
 
 			}
 		}
+		*/
 	}
 
 	/**

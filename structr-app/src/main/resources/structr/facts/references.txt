@@ -37,8 +37,8 @@ Area "Virtual Types" has javascript-file "structr/js/virtual-types.js"
 Area "Widgets" has javascript-file "structr/js/widgets.js"
 
 # resources from Java
-"Keywords" has code-source "keyword"
-"Built-in functions" has code-source "function"
+"Keywords" has code-source "keyword" as table
+"Built-in functions" has code-source "function" as table
 "Settings" has code-source "setting"
 "Maintenance commands" has code-source "maintenance-command"
 "Lifecycle methods" has code-source "lifecycle-method"

@@ -26,6 +26,7 @@ public enum FunctionCategory implements Category {
 	Collection("Collection"),
 	Conversion("Conversion"),
 	Database("Database"),
+	Predicate("Predicate"),
 	EMail("EMail"),
 	Geocoding("Geocoding"),
 	Http("Http"),

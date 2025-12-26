@@ -96,6 +96,6 @@ public class FindEndsWithFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 }

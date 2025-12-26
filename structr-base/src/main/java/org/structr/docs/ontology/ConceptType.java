@@ -20,9 +20,13 @@ package org.structr.docs.ontology;
 
 public enum ConceptType {
 
+	// structural topics
 	Topic("topic"), Concept("concept"), Component("component"), Feature("feature"), Mechanism("mechanism"),
 	Provider("provider"), Service("service"), Capability("capability"), UseCase("use-case"), Type("type"),
 	Category("category"),
+
+	// output formats
+	Table("table"), List("list"),
 
 	// external sources
 	MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), MarkdownHeading("markdown-heading"),

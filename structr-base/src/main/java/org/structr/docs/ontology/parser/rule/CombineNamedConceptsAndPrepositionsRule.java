@@ -45,13 +45,32 @@ public class CombineNamedConceptsAndPrepositionsRule extends Rule {
 				// unresolved => check if next is existing concept
 				final Token token2 = tokens.pop();
 
-				if (token2 instanceof PrepositionToken preposition && !tokens.isEmpty()) {
+				if (token2 instanceof WithToken preposition && !tokens.isEmpty()) {
 
 					final Token token3 = tokens.pop();
 
 					if (token3 instanceof NamedConceptToken concept2) {
 
 						concept1.addAdditionalNamedConcept(concept2);
+
+						result.add(token1);
+
+					} else {
+
+						result.add(token1);
+
+						// reset tokens 2 & 3 to be evaluated again
+						tokens.push(token2);
+						tokens.push(token3);
+					}
+
+				} else if (token2 instanceof AsToken preposition && !tokens.isEmpty()) {
+
+					final Token token3 = tokens.pop();
+
+					if (token3 instanceof ConceptToken concept2) {
+
+						concept1.setFormat(concept2);
 
 						result.add(token1);
 

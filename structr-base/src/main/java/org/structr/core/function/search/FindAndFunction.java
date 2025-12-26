@@ -84,7 +84,7 @@ public class FindAndFunction extends CoreFunction {
 
 	@Override
 	public FunctionCategory getCategory() {
-		return FunctionCategory.Database;
+		return FunctionCategory.Predicate;
 	}
 
 	// ----- private methods -----

@@ -68,6 +68,11 @@ public class CodeSourceToken extends NamedConceptToken {
 
 		final Map<String, String> knownVerbs = ontology.getKnownVerbs();
 		final List<Concept> parents          = new LinkedList<>();
+		ConceptType format                   = ConceptType.Unknown;
+
+		if (formatSpecification != null) {
+			format = formatSpecification.resolve(ontology, sourceFile, lineNumber);
+		}
 
 		if (!documentable.isHidden()) {
 
@@ -76,6 +81,8 @@ public class CodeSourceToken extends NamedConceptToken {
 
 			if (mainConcept != null) {
 
+				mainConcept.setDocumentable(documentable);
+
 				for (final Documentable.ConceptReference parentConcept : documentable.getParentConcepts()) {
 
 					// every documentable has a list of parent concepts
@@ -83,6 +90,7 @@ public class CodeSourceToken extends NamedConceptToken {
 					if (parent != null) {
 
 						parent.linkChild("has", mainConcept);
+						parent.setFormat(format);
 
 						// link to parents
 						parents.add(parent);

@@ -18,6 +18,8 @@
  */
 package org.structr.docs.ontology;
 
+import org.structr.docs.Documentable;
+
 import java.util.*;
 
 /**
@@ -30,7 +32,9 @@ public final class Concept {
 	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
 	protected final Map<String, Object> metadata        = new LinkedHashMap<>();
 	protected final Set<Occurrence> occurrences         = new LinkedHashSet<>();
+	protected Documentable documentable                 = null;
 	protected String shortDescription                   = null;
+	protected ConceptType format                        = null;
 
 	protected final String name;
 	protected ConceptType type;
@@ -94,6 +98,18 @@ public final class Concept {
 
 	public void setShortDescription(final String shortDescription) {
 		this.shortDescription = shortDescription;
+	}
+
+	public void setDocumentable(final Documentable documentable) {
+		this.documentable = documentable;
+	}
+
+	public Documentable getDocumentable() {
+		return documentable;
+	}
+
+	public List<Concept> getChildren(final String linkType) {
+		return children.get(linkType);
 	}
 
 	public List<Concept> getChildrenOfType(final String linkType, final ConceptType conceptType) {
@@ -228,5 +244,13 @@ public final class Concept {
 		}
 
 		return null;
+	}
+
+	public void setFormat(final ConceptType format) {
+		this.format = format;
+	}
+
+	public ConceptType getFormat() {
+		return format;
 	}
 }

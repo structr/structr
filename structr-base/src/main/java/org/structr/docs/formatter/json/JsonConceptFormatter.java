@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs.formatter;
+package org.structr.docs.formatter.json;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -24,60 +24,56 @@ import org.apache.commons.text.StringEscapeUtils;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
-import org.structr.docs.ontology.ConceptType;
 
 import java.util.*;
 
-public class TableOfConcentsConceptFormatter extends Formatter {
-
-	private final Set<ConceptType> whitelistedTypes = Set.of(
-		ConceptType.Topic,
-		ConceptType.MarkdownFolder,
-		ConceptType.MarkdownFile,
-		ConceptType.MarkdownHeading,
-		ConceptType.Keyword
-	);
+public class JsonConceptFormatter extends Formatter {
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
 
-		// only whitelisted types here..
-		if (!whitelistedTypes.contains(concept.getType())) {
-			return;
-		}
+		final Gson gson                = new GsonBuilder().create();
+		final Map<String, Object> data = new LinkedHashMap<>();
+		final List<String> c           = new LinkedList<>();
+		int childCount                 = concept.getTotalChildCount();
 
-		final Gson gson                       = new GsonBuilder().create();
+		data.put("name",        concept.getName());
+		data.put("type",        concept.getType());
+		data.put("childCount",  childCount);
+		data.put("references",  concept.getOccurrences());
+
+		data.putAll(concept.getMetadata());
+
 		final List<Map<String, Object>> links = new LinkedList<>();
-		final Map<String, Object> data        = new LinkedHashMap<>();
 
-		data.put("name",  concept.getName());
-		data.put("type",  concept.getType());
 		data.put("links", links);
 
 		for (final Map.Entry<String, List<Concept>> child : concept.getChildren().entrySet()) {
 
 			final List<Map<String, Object>> childList = new LinkedList<>();
-			final String key                          = child.getKey();
 
-			if ("has".equals(key)) {
+			for (final Concept childConcept : child.getValue()) {
 
-				for (final Concept childConcept : child.getValue()) {
+				final Map<String, Object> childMap = new LinkedHashMap<>();
 
-					final Map<String, Object> childMap = new LinkedHashMap<>();
+				childMap.put("name", childConcept.getName());
+				childMap.put("type", childConcept.getType());
 
-					childMap.put("name", childConcept.getName());
-					childMap.put("type", childConcept.getType());
-
-					childList.add(childMap);
-				}
-
-				links.add(Map.of(
-					"name", child.getKey(),
-					"targets", childList
-				));
+				childList.add(childMap);
 			}
+
+			links.add(Map.of(
+				"name", child.getKey(),
+				"targets", childList
+			));
 		}
 
 		lines.add(gson.toJson(data));
+	}
+
+	// ----- private methods -----
+	private String escape(final String input) {
+
+		return StringEscapeUtils.escapeJson(input);
 	}
 }
