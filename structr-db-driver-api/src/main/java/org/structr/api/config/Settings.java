@@ -795,8 +795,8 @@ public class Settings {
 
 			for (final Setting setting : settings.values()) {
 
-				// store only modified settings and the superuser password
-				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
+				// store only modified/dynamic settings and the superuser password
+				if (setting.isModified() || setting.isDynamic() || "superuser.password".equals(setting.getKey())) {
 
 					config.setProperty(setting.getKey(), setting.getValue());
 
