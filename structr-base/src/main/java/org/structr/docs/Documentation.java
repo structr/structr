@@ -34,4 +34,5 @@ public @interface Documentation {
 	String shortDescription() default "";
 	String parent() default "";
 	String[] synonyms() default {};
+	String[] children() default {};
 }

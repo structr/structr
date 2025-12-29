@@ -33,6 +33,32 @@
             #context h3, h4, p {
                 margin: 0.5rem 0;
             }
+            #search {
+                position: absolute;
+                box-shadow: 0 4px 10px 0 rgba(0,0,0,0.1);
+                bottom: 3em;
+                left: 35%;
+                width: 30%;
+            }
+            #search input {
+                width: 100%;
+                box-sizing: border-box;
+            }
+            #search input.error {
+                background-color: #fef;
+            }
+            #results {
+                position: relative;
+                padding: 0 .5em;
+                background-color: #fff;
+                font-size: 9pt;
+                overflow: auto;
+                width: 100%;
+                height: 300px;
+            }
+            .hidden {
+                display: none;
+            }
         </style>
     </head>
     <body>
@@ -40,6 +66,10 @@
             <div id="visualization">
             </div>
             <div id="context"></div>
+            <div id="search">
+                <div id="results" class="hidden"></div>
+                <input />
+            </div>
         </div>
         <script src="https://visjs.github.io/vis-network/standalone/umd/vis-network.min.js"></script>
         <script>
@@ -205,6 +235,63 @@
                         });
                     }
                 });
+
+                let debounce = (func, wait, immediate) => {
+                    var timeout;
+
+                    return function() {
+                        var context = this, args = arguments;
+                        var later = function() {
+                            timeout = null;
+                            if (!immediate) func.apply(context, args);
+                        };
+                        var callNow = immediate && !timeout;
+                        clearTimeout(timeout);
+                        timeout = setTimeout(later, wait);
+                        if (callNow) func.apply(context, args);
+                    };
+                }
+
+                document.network = network;
+
+                let searchField   = document.querySelector('#search input');
+                let resultsWidget = document.querySelector('#results');
+                searchField.addEventListener('keyup', debounce((keyup) => {
+                    resultsWidget.classList.add('hidden');
+                    if (keyup.key === "Escape") {
+                        searchField.value = '';
+                    } else {
+                        let selected = [];
+                        let found    = [];
+                        let value = searchField.value.toLowerCase();
+                        if (value.length > 0) {
+                            for (let node of nodes.get()) {
+                                if (node.label.toLowerCase().includes(value)) {
+                                    selected.push(node.id);
+                                    found.push(node);
+                                }
+                            }
+                            switch (selected.length) {
+                                case 0:
+                                    searchField.classList.add('error');
+                                    window.setTimeout(() => {
+                                        searchField.classList.remove('error');
+                                    }, 3000);
+                                    break;
+
+                                case 1:
+                                    network.fit({nodes: selected});
+                                    network.selectNodes(selected);
+                                    break;
+
+                                default:
+                                    resultsWidget.classList.remove('hidden');
+                                    resultsWidget.innerHTML = found.map(n => n.label).join('<br/>');
+                                    break;
+                            }
+                        }
+                    }
+                }, 500));
             });
         </script>
     </body>

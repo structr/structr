@@ -18,12 +18,12 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.KeywordHint;
+import org.structr.autocomplete.PageKeywordHint;
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class ParentHint extends KeywordHint {
+public class ParentHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
@@ -52,12 +52,6 @@ public class ParentHint extends KeywordHint {
 				</body>
 			</html>
 			""", "Outputs a paragraph with the UUID of the H1 element above")
-		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
 		);
 	}
 }

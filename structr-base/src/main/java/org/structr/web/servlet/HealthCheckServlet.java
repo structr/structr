@@ -32,6 +32,7 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Documentation;
 import org.structr.rest.common.Stats;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -47,6 +48,7 @@ import java.util.*;
 /**
  * A servlet that implements the /health endpoint.
  */
+@Documentation(name="HealthCheckServlet", parent="Servlets", children={ "HealthCheckServlet Settings"})
 public class HealthCheckServlet extends AbstractDataServlet {
 
 	private static final Logger logger  = LoggerFactory.getLogger(HealthCheckServlet.class);

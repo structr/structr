@@ -33,6 +33,7 @@ import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
 import org.structr.core.Services;
 import org.structr.docs.Documentable;
+import org.structr.docs.Documentation;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.json.JsonConceptFormatter;
@@ -50,6 +51,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.*;
 
+@Documentation(name="DocumentationServlet", parent="Servlets", children={ "DocumentationServlet Settings" })
 public class DocumentationServlet extends HttpServlet {
 
 	@Override

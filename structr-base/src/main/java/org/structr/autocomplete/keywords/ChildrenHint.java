@@ -18,12 +18,12 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.KeywordHint;
+import org.structr.autocomplete.PageKeywordHint;
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class ChildrenHint extends KeywordHint {
+public class ChildrenHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
@@ -44,13 +44,6 @@ public class ChildrenHint extends KeywordHint {
 	public List<Example> getExamples() {
 		return List.of(
 			Example.structrScript("${render(children)}", "Render the HTML content of an element's children into the page")
-		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
-			"This keyword is only available in Page elements (DOM nodes)."
 		);
 	}
 }

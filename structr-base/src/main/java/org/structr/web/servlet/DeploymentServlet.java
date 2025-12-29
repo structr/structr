@@ -38,6 +38,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.graph.Tx;
+import org.structr.docs.Documentation;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
@@ -65,6 +66,7 @@ import java.util.stream.Stream;
 /**
  * Servlet to handle upload and download of application and data deployment files.
  */
+@Documentation(name="DeploymentServlet", parent="Servlets", children={ "DeploymentServlet Settings"})
 public class DeploymentServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeploymentServlet.class.getName());

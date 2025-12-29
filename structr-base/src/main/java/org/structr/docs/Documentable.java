@@ -432,7 +432,7 @@ public interface Documentable {
 		DocumentableType.collectAllDocumentables(documentables);
 
 		// sort by name
-		Collections.sort(documentables, Comparator.comparing(Documentable::getName));
+		Collections.sort(documentables, Comparator.comparing(Documentable::getDisplayName));
 
 		// check style and content and generate Markdown docs
 		for (final Documentable item : documentables) {

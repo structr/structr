@@ -25,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.QueryHistogram;
+import org.structr.docs.Documentation;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -33,6 +34,7 @@ import java.util.Set;
 /**
  * A servlet that implements the /histogram endpoint.
  */
+@Documentation(name="HistogramServlet", parent="Servlets", children={ "HistogramServlet Settings" })
 public class HistogramServlet extends HealthCheckServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(HistogramServlet.class);

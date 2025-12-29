@@ -35,6 +35,7 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.traits.StructrTraits;
+import org.structr.docs.Documentation;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.HttpServiceServlet;
@@ -46,7 +47,7 @@ import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
-
+@Documentation(name="EventSourceServlet", parent="Servlets", children={ "EventSourceServlet Settings"})
 public class EventSourceServlet extends org.eclipse.jetty.ee10.servlets.EventSourceServlet implements HttpServiceServlet {
 
 	private static final Logger logger = LoggerFactory.getLogger(EventSourceServlet.class.getName());

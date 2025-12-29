@@ -60,6 +60,7 @@ import org.structr.core.traits.StructrTraits;
 import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
+import org.structr.docs.Documentation;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.service.HttpServiceServlet;
@@ -81,6 +82,7 @@ import java.util.*;
 /**
  * Simple upload servlet.
  */
+@Documentation(name="UploadServlet", parent="Servlets", shortDescription="File upload endpoint.", children={ "UploadServlet Settings"})
 public class UploadServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Set<String> AllowedProperties = Set.of(

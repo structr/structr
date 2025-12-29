@@ -40,7 +40,7 @@ public class MarkdownCodeSourceFormatter extends Formatter {
 		}
 
 		// sort
-		Collections.sort(documentables, Comparator.comparing(Documentable::getName));
+		Collections.sort(documentables, Comparator.comparing(Documentable::getDisplayName));
 
 		// render
 		for (final Documentable documentable : documentables) {

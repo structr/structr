@@ -52,7 +52,7 @@ public class OnUpload extends LifecycleBase {
 
 		final List<Link> linkedConcepts = super.getLinkedConcepts();
 
-		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, "File")));
+		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.SystemType, "File")));
 
 		return linkedConcepts;
 	}

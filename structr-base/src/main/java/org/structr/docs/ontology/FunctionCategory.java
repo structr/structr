@@ -22,31 +22,34 @@ import org.structr.api.util.Category;
 
 public enum FunctionCategory implements Category {
 
-	AccessControl("Access Control"),
-	Collection("Collection"),
-	Conversion("Conversion"),
-	Database("Database"),
-	Predicate("Predicate"),
-	EMail("EMail"),
-	Geocoding("Geocoding"),
-	Http("Http"),
-	InputOutput("Input Output"),
-	Logic("Logic"),
-	Mathematical("Mathematical"),
-	Miscellaneous("Miscellaneous"),
-	MQTT("MQTT"),
-	Rendering("Rendering"),
-	Security("Security"),
-	Schema("Schema"),
-	Scripting("Scripting"),
-	String("String"),
-	System("System"),
-	Validation("Validation");
+	AccessControl("Access Control", "Functions for controlling security and access control features of nodes."),
+	Collection("Collection", null),
+	Conversion("Conversion", null),
+	Database("Database", "Database functions for database use.. FIXME"),
+	Predicate("Predicate", ""),
+	EMail("EMail", ""),
+	Geocoding("Geocoding", ""),
+	Http("Http", ""),
+	InputOutput("Input Output", ""),
+	Logic("Logic", ""),
+	Mathematical("Mathematical", ""),
+	Miscellaneous("Miscellaneous", ""),
+	MQTT("MQTT", ""),
+	Rendering("Rendering", ""),
+	Security("Security", ""),
+	Schema("Schema", ""),
+	Scripting("Scripting", ""),
+	String("String", ""),
+	System("System", ""),
+	Validation("Validation", "");
 
 	private final String displayName;
+	private final String shortDescription;
 
-	FunctionCategory(final String displayName) {
-		this.displayName = displayName;
+	FunctionCategory(final String displayName, final String shortDescription) {
+
+		this.shortDescription = shortDescription;
+		this.displayName      = displayName;
 	}
 
 	@Override
@@ -60,6 +63,6 @@ public enum FunctionCategory implements Category {
 
 	@Override
 	public String getShortDescription() {
-		return null;
+		return shortDescription;
 	}
 }

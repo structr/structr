@@ -74,7 +74,7 @@ public class Settings {
 	public static final SettingsGroup applicationGroup        = new SettingsGroup("application", "Application Configuration");
 	public static final SettingsGroup smtpGroup               = new SettingsGroup("smtp",        "Mail Configuration");
 	public static final SettingsGroup advancedGroup           = new SettingsGroup("advanced",    "Advanced Settings");
-	public static final SettingsGroup servletsGroup           = new SettingsGroup("servlets",    "Servlets");
+	public static final SettingsGroup servletsGroup           = new SettingsGroup("servlets",    "Servlet Settings");
 	public static final SettingsGroup cronGroup               = new SettingsGroup("cron",        "Cron Jobs");
 	public static final SettingsGroup securityGroup           = new SettingsGroup("security",    "Security Settings");
 	public static final SettingsGroup oauthGroup              = new SettingsGroup("oauth",       "OAuth Settings");

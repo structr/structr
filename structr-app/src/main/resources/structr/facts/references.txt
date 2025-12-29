@@ -6,12 +6,10 @@
 #
 
 # References
-Topic References has topics Keywords, "Built-in functions", "Lifecycle methods", "System types", "Built-in properties", Services, "Maintenance commands", Settings, "HTTP API", "Java internals"
-
-"HTTP API" has topics "Generic endpoints", "System endpoints", "Request parameters", "Request headers"
+Topic References has topics "Built-in keywords", "Built-in functions", "Lifecycle methods", "System types", "Built-in properties", Services, "Maintenance commands", Settings, "Java internals"
 
 # enum constants
-"Request parameters" has enum-source "org.structr.common.RequestKeywords"
+"Request parameters" has enum-source "org.structr.common.RequestParameters"
 "Request headers" has enum-source "org.structr.common.RequestHeaders"
 
 # JavaScript resources
@@ -30,20 +28,19 @@ Area "Localizations" has javascript-file "structr/js/localization.js"
 Area "Mail Templates" has javascript-file "structr/js/mail-templates.js"
 Area "Pages" has javascript-file "structr/js/pages.js"
 Helper "Refactoring Helper" has javascript-file "structr/js/refactoring-helper.js"
-Topic "REST" has javascript-file "structr/js/rest.js"
 Area "Schema" has javascript-file "structr/js/schema.js"
 Area "Security" has javascript-file "structr/js/security.js"
 Area "Virtual Types" has javascript-file "structr/js/virtual-types.js"
 Area "Widgets" has javascript-file "structr/js/widgets.js"
 
 # resources from Java
-"Keywords" has code-source "keyword" as table
+"Built-in keywords" has code-source "keyword" as table
 "Built-in functions" has code-source "function" as table
-"Settings" has code-source "setting"
-"Maintenance commands" has code-source "maintenance-command"
-"Lifecycle methods" has code-source "lifecycle-method"
-"Services" has code-source "service"
-"Built-in properties" has code-source "property"
-"Classes" has code-source "class"
+"Settings" has code-source "setting" as table
+"Maintenance commands" has code-source "maintenance-command" as table
+"Lifecycle methods" has code-source "lifecycle-method" as table
+"Services" has code-source "service" as table
+"Built-in properties" has code-source "property" as table
+"Classes" has code-source "class" as table
 
 "Java internals" has topic "Classes"

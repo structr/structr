@@ -16,18 +16,25 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.docs;
+package org.structr.autocomplete;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface SystemClass {
+import java.util.List;
 
-	String name() default "";
-	String shortDescription() default "";
-	String[] concepts() default {};
+@Documentation(name="Page keywords", shortDescription="Built-in keywords that are available in page rendering contexts.")
+public abstract class PageKeywordHint extends KeywordHint {
+
+	@Override
+	public List<String> getNotes() {
+		return List.of(
+			"This keywords is only available in Page elements (DOM nodes)."
+		);
+	}
+
+	@Override
+	public List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "Page keywords"));
+	}
 }

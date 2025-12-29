@@ -74,7 +74,10 @@ public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
 		if (settings.hasDetail(Details.all)) {
 
-			//
+			if (concept.getShortDescription() != null) {
+
+				lines.add(concept.getShortDescription());
+			}
 		}
 	}
 }

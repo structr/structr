@@ -420,11 +420,27 @@ public final class Ontology {
 			final String desc       = documentation.shortDescription();
 			final String parent     = documentation.parent();
 			final String[] synonyms = documentation.synonyms();
+			final String[] children = documentation.children();
 
 			final Concept concept = getOrCreateConcept(sourceFile, 0, type, name);
 			if (concept != null) {
 
 				concept.setShortDescription(desc);
+
+				if (children != null && children.length > 0) {
+
+					for (final String child : children) {
+
+						if (StringUtils.isNotBlank(child)) {
+
+							final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child);
+							if (childConcept != null) {
+
+								concept.linkChild("has", childConcept);
+							}
+						}
+					}
+				}
 
 				if (synonyms != null && synonyms.length > 0) {
 

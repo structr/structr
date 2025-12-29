@@ -19,7 +19,6 @@
 package org.structr.autocomplete;
 
 import org.structr.docs.*;
-import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
@@ -52,10 +51,5 @@ public abstract class KeywordHint extends AbstractHint {
 	public List<Language> getLanguages() {
 		// keywords are valid for all languages
 		return Language.scriptingLanguages();
-	}
-
-	@Override
-	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "Keywords"));
 	}
 }

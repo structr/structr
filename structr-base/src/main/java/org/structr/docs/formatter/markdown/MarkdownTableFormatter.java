@@ -19,11 +19,12 @@
 package org.structr.docs.formatter.markdown;
 
 import org.structr.docs.Documentable;
+import org.structr.docs.Documentation;
 import org.structr.docs.Formatter;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
 
-import java.util.List;
+import java.util.*;
 
 public class MarkdownTableFormatter extends Formatter {
 
@@ -31,6 +32,10 @@ public class MarkdownTableFormatter extends Formatter {
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, String link, final int level) {
 
 		lines.add(formatMarkdownHeading(concept.getName(), level + 1));
+
+		if (concept.getShortDescription() != null) {
+			lines.add(concept.getShortDescription());
+		}
 
 		lines.add("");
 		lines.add("| Name | Description |");
@@ -40,13 +45,22 @@ public class MarkdownTableFormatter extends Formatter {
 		final List<Concept> children = concept.getChildren("has");
 		if (children != null) {
 
+			final List<Documentable> documentables = new LinkedList<>();
+
 			for (final Concept child : children) {
 
 				final Documentable documentable = child.getDocumentable();
 				if (documentable != null) {
 
-					lines.add("| `" + documentable.getDisplayName() + "` | " + documentable.getShortDescription() + " |");
+					documentables.add(documentable);
+
 				}
+			}
+
+			Collections.sort(documentables, Comparator.comparing(Documentable::getDisplayName));
+
+			for (final Documentable documentable : documentables) {
+				lines.add("| `" + documentable.getDisplayName() + "` | " + documentable.getShortDescription() + " |");
 			}
 		}
 	}

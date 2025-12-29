@@ -23,6 +23,8 @@ import org.structr.docs.Documentable;
 import org.structr.docs.DocumentableType;
 import org.structr.docs.Documentation;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -30,7 +32,7 @@ import java.util.TreeSet;
  */
 
 @Documentation(name="Request parameters", shortDescription="Structr's HTTP API supports a number of custom request parameters to influence the behaviour of the endpoints.")
-public enum RequestKeywords implements Documentable {
+public enum RequestParameters implements Documentable {
 
 	// pagination
 	PageNumber("page", "Page number", "Request parameter used for pagination, sets the page number, value can be any positive integer > 0."),
@@ -54,6 +56,7 @@ public enum RequestKeywords implements Documentable {
 	Distance("distance", "Distance in kilometers", "Request parameter used for distance search, specifies the **radius** of the search circle."),
 
 	// special settings
+	// link to JSON output
 	OutputDepth("outputNestingDepth", null, null),
 	DebugLogging("debugLoggingEnabled", null, null),
 	ForceResultCount("forceResultCount", null, null),
@@ -62,6 +65,11 @@ public enum RequestKeywords implements Documentable {
 	SerializeNulls("serializeNulls", null, null),
 	BatchSize("batchSize", null, null),
 	OutputReductionDepth("outputReductionDepth", null, null),
+
+	// HtmlServlet
+	// link to "File download"
+	DownloadAsFilename("filename", "Download filename", "Request parameter that sets the 'filename' part of the `Content-Disposition: attachment` response header."),
+	DownloadAsDataUrl("as-data-url", "Download as data URL", "Request parameter that controls the response format of a file download. If set (with any value), it causes the file data to be returned in Base64 format ready to be used in a data URL."),
 
 	// edit mode
 	EditMode("edit", null, null),
@@ -75,7 +83,7 @@ public enum RequestKeywords implements Documentable {
 	private final String displayName;
 	private final String shortDescription;
 
-	RequestKeywords(final String keyword, final String displayName, final String shortDescription) {
+	RequestParameters(final String keyword, final String displayName, final String shortDescription) {
 
 		this.shortDescription = shortDescription;
 		this.displayName      = displayName;
@@ -118,7 +126,7 @@ public enum RequestKeywords implements Documentable {
 
 		final Set<String> keywords = new TreeSet<>();
 
-		for (final RequestKeywords keyword : RequestKeywords.values()) {
+		for (final RequestParameters keyword : RequestParameters.values()) {
 
 			keywords.add(keyword.getName());
 		}

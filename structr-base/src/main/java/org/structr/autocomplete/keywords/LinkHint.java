@@ -18,12 +18,12 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.KeywordHint;
+import org.structr.autocomplete.PageKeywordHint;
 import org.structr.docs.Example;
 
 import java.util.List;
 
-public class LinkHint extends KeywordHint {
+public class LinkHint extends PageKeywordHint {
 
 	@Override
 	public String getName() {
@@ -64,10 +64,5 @@ public class LinkHint extends KeywordHint {
 			</html>
 			""", "Display a linked image")
 		);
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return null;
 	}
 }

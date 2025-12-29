@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,39 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.autocomplete.keywords;
+package org.structr.autocomplete;
 
-import org.structr.autocomplete.GeneralKeywordHint;
-import org.structr.docs.Example;
+import org.structr.docs.Documentation;
+import org.structr.docs.ontology.ConceptType;
 
 import java.util.List;
 
-public class HostHint extends GeneralKeywordHint {
+@Documentation(name="General keywords", shortDescription="Built-in keywords that are available in all scripting contexts.")
+public abstract class GeneralKeywordHint extends KeywordHint {
 
 	@Override
-	public String getName() {
-		return "host";
-	}
-
-	@Override
-	public String getShortDescription() {
-		return "Refers to the host name **of the server that Structr runs on**.";
-	}
-
-	@Override
-	public String getLongDescription() {
-		return "";
-	}
-
-	@Override
-	public List<Example> getExamples() {
-		return List.of();
-	}
-
-	@Override
-	public List<String> getNotes() {
-		return List.of(
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
-		);
+	public List<ConceptReference> getParentConcepts() {
+		return List.of(ConceptReference.of(ConceptType.Topic, "General keywords"));
 	}
 }

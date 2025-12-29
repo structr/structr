@@ -33,6 +33,7 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.RequestHeaders;
+import org.structr.common.RequestParameters;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -61,6 +62,7 @@ import org.structr.core.traits.Traits;
 import org.structr.core.traits.definitions.GraphObjectTraitDefinition;
 import org.structr.core.traits.definitions.NodeInterfaceTraitDefinition;
 import org.structr.core.traits.definitions.UserTraitDefinition;
+import org.structr.docs.Documentation;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -102,6 +104,7 @@ import java.util.regex.Pattern;
 /**
  * Main servlet for content rendering.
  */
+@Documentation(name="HtmlServlet", parent="Servlets", shortDescription="Main entry point for HTML rendering.", children={ "HtmlServlet Settings" })
 public class HtmlServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger                             = LoggerFactory.getLogger(HtmlServlet.class.getName());
@@ -109,9 +112,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 	public static final String CONFIRM_REGISTRATION_PAGE = "/confirm_registration";
 	public static final String RESET_PASSWORD_PAGE       = "/reset-password";
-	public static final String DOWNLOAD_AS_FILENAME_KEY  = "filename";
-	public static final String RANGE_KEY                 = "range";
-	public static final String DOWNLOAD_AS_DATA_URL_KEY  = "as-data-url";
 	public static final String CONFIRMATION_KEY_KEY      = "key";
 	public static final String TARGET_PATH_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
@@ -1540,7 +1540,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		final long t0 = System.currentTimeMillis();
 
 		final ServletOutputStream out         = response.getOutputStream();
-		final String downloadAsFilename       = request.getParameter(DOWNLOAD_AS_FILENAME_KEY);
+		final String downloadAsFilename       = request.getParameter(RequestParameters.DownloadAsFilename.getName());
 		final Map<String, Object> callbackMap = new HashMap<>();
 
 		// make edit mode available in callback method
@@ -1572,7 +1572,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		} else {
 
-			final String downloadAsDataUrl = request.getParameter(DOWNLOAD_AS_DATA_URL_KEY);
+			final String downloadAsDataUrl = request.getParameter(RequestParameters.DownloadAsDataUrl.getName());
 			if (downloadAsDataUrl != null) {
 
 				final String encoded = FileHelper.getBase64String(file);

@@ -39,7 +39,7 @@ public enum DocumentableType {
 	EventAction("Event Action", ConceptType.EventAction, false, false, null),
 	EventNotification("Event Notification", ConceptType.EventNotification, false, false, null),
 	EventBehaviour("Event Behaviour", ConceptType.EventBehaviour, false, false, null),
-	Keyword("Keyword", ConceptType.Keyword, true, true, AbstractHintProvider::addKeywordHints),
+	Keyword("Built-in keyword", ConceptType.Keyword, true, true, AbstractHintProvider::addBuiltInKeywordHints),
 	Method("Method", ConceptType.Method, true, true, null),
 	Property("Property", ConceptType.Property, false, false, AbstractPrimitiveProperty::addProperties),
 	UserDefinedFunction("User-defined function", ConceptType.UserDefinedFunction, false, false, null),

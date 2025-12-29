@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,45 +18,36 @@
  */
 package org.structr.autocomplete.keywords;
 
-import org.structr.autocomplete.GeneralKeywordHint;
+import org.structr.autocomplete.SpecialKeywordHint;
 import org.structr.docs.Example;
-import org.structr.docs.Language;
 
 import java.util.List;
 
-public class QueryStringHint extends GeneralKeywordHint {
+public class ValueHint extends SpecialKeywordHint {
 
 	@Override
 	public String getName() {
-		return "queryString";
+		return "value";
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Refers to the HTTP query string of the current request.";
+		return "Refers to the input value in the write function of a Function property.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "The `queryString` keyword contains the raw query string, i.e. the part of the URL after the first `?` character, **excluding** the hash fragment (everything after the `#` character).";
+		return "";
 	}
 
 	@Override
 	public List<Example> getExamples() {
-		return List.of(
-		);
+		return null;
 	}
 
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-			"This keyword is defined in StructrScript only.",
-			"Only available in a context where Structr is responding to an HTTP request from the outside."
 		);
-	}
-
-	@Override
-	public List<Language> getLanguages() {
-		return List.of(Language.StructrScript);
 	}
 }

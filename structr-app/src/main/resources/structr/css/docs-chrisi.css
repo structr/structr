@@ -108,6 +108,7 @@
 .article {
     background-color: white;
     padding: 0 2rem 2rem 2rem;
+    height: 100%;
 }
 
 #docs-area iframe {
@@ -204,6 +205,7 @@ html {
     background-color: #f7f7f7;
     font-size: .9rem;
     overflow-x: auto;
+    border: 1px solid #eee;
 }
 
 .article pre {
@@ -212,7 +214,6 @@ html {
 }
 
 .article code {
-    margin: 0 .25rem;
     padding: .125rem;
 }
 
@@ -238,6 +239,25 @@ html {
 
 .article li li {
     list-style-type: circle;
+}
+
+.article table {
+    margin: .5rem 0;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.article table th {
+    border-bottom: 2px solid var(--gray-ccc);
+}
+
+.article table th, td {
+    text-align: left;
+    padding: 1rem .5rem;
+}
+
+.article tr {
+    border-bottom: 1px solid var(--gray-eee);
 }
 
 .index {
@@ -313,20 +333,6 @@ index h2, .index h3 {
     white-space: nowrap;
     font-weight: 400;
     font-size: 1rem;
-}
-
-.article table {
-    border: 1px solid var(--gray-ccc);
-    margin: .5rem 0;
-}
-
-.article table th,td {
-    padding: .25rem .5rem;
-    border-right: 1px solid var(--gray-ccc);
-}
-
-.article tr {
-    border-bottom: 1px solid var(--gray-ccc);
 }
 
 .index table {

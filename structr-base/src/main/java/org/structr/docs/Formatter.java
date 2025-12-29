@@ -21,9 +21,7 @@ package org.structr.docs;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.ontology.Concept;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public abstract class Formatter {
 
@@ -77,7 +75,14 @@ public abstract class Formatter {
 
 			if ("has".equals(key)) {
 
-				for (final Concept child : children.get(key)) {
+				final List<Concept> concepts = new LinkedList<>(children.get(key));
+
+				// only sort second-level topics
+				if (level > 0) {
+					Collections.sort(concepts, Comparator.comparing(Concept::getName));
+				}
+
+				for (final Concept child : concepts) {
 
 					walkOntology(lines, child, outputSettings, key, level + 1, seenConcepts);
 				}

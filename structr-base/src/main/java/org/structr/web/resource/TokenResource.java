@@ -41,7 +41,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Map;
 
-@Documentation(name="JWT token endpoint", type= ConceptType.RestEndpoint, parent="System endpoints")
+@Documentation(name="JWT token endpoint", type=ConceptType.RestEndpoint, parent="System endpoints")
 public class TokenResource extends ExactMatchEndpoint {
 
 	public TokenResource() {

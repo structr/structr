@@ -131,8 +131,8 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-		Returns the geocoding result for the given parameters. 
-		See Geocoding Configuration for more information. 
+		Returns the geocoding result for the given parameters.
+		See Geocoding Configuration for more information.
 		This function returns a nested object with latitude / longitude that can directly be used in the `set()` method.
 		""";
 	}
@@ -148,8 +148,8 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"An API Key (`geocoding.apikey`) has to be configured in structr.conf.",
-				"Also this key is configurable through **Config -> Advanced Settings**."
+			"An API Key (`geocoding.apikey`) has to be configured in structr.conf.",
+			"Also this key is configurable through **Config -> Advanced Settings**."
 		);
 	}
 
@@ -158,10 +158,10 @@ public class GeocodeFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-				Parameter.mandatory("street", "street of place to geocode"),
-				Parameter.mandatory("city", "city of place to geocode"),
-				Parameter.mandatory("country", "country of place to geocode")
-				);
+			Parameter.mandatory("street", "street of place to geocode"),
+			Parameter.mandatory("city", "city of place to geocode"),
+			Parameter.mandatory("country", "country of place to geocode")
+		);
 	}
 
 	@Override

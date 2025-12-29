@@ -6,7 +6,7 @@
 
 # The word "Structr" is the root of the ontology
 Structr has markdown-folders "1-Introduction", "4-Admin User Interface"
-Structr has topics "Building Applications", "APIs & Integrations", "Operations", "Advanced Topics", References
+Structr has topics "Building Applications", "REST Interface", "APIs & Integrations", "Operations", "Advanced Topics", References
 
 
 # Introduction: this exists to match the Markdown docs and enable gap analysis
@@ -34,14 +34,15 @@ Structr has topics "Building Applications", "APIs & Integrations", "Operations",
 
 
 # Building Applications
-"Building Applications" has topics "Creating Pages & Templates", "Schema Setup", "Navigation & Routing", "Dynamic Content", "User Input & Forms", "Business Logic", "Error handling", "Language localization", "Troubleshooting"
+"Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
 
-    "Creating Pages & Templates" has topics "Page Templates", "Shared Components", "Widgets"
+    "Creating Pages & Templates" has topics "Page Templates", "Shared Components", "Widgets", "Static resources"
 
-    "Schema Setup" has topics "Dynamic types", "Built-in types", "Property types"
-        "Built-in types" has synonym "System types"
+        "Static resources" has topic "File download"
 
-    "Navigation & Routing" has topics "Navigation", "URL routing", "Error pages", "Page position"
+    "Navigation & Routing" has topics "Access levels", "Visibility", "Authentication", "Navigation", "Error pages", "Page position", "URL routing", "URI object resolution"
+
+        "Authentication" has topics "Authentication methods for pages"
 
     "Dynamic Content" has topic "Template expressions", "Repeaters", "Show / Hide Conditions"
 
@@ -51,31 +52,43 @@ Structr has topics "Building Applications", "APIs & Integrations", "Operations",
         "Repeaters" has texts "Function query", "Flow", "Cypher query"
         "Data key" has texts "Repeater Keyword"
 
-    "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
+        "Show / Hide Conditions" has texts "Show Conditions", "Hide Conditions"
+
+    "Business Logic" has topics "Dynamic types", "Built-in types", "Property types", "Scripting contexts", "Advanced find"
+        "Built-in types" has synonym "System types"
 
     "User Input & Forms" has topics "Event Action Mapping"
         Topic "Notifications" has texts "Success notifications", "Failure notifications"
 
-    "Language localization" has topics "Translations", "Localization Settings"
+    "Language localization" has topics "Translations", "Localization Settings", "Effective locale"
         Translations has topics "Translation Settings", "Translation Providers"
 
 
 
 
-# Interfaces
-"APIs & Integrations" has topics "HTTP", "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
 
-    "HTTP" has topics "HTTPS", "REST", "Proxy Settings", "Outbound Connection Settings"
-        HTTP has topics "HTTP Settings"
-        "REST" has topics "Resource Access Permissions", "System Endpoints"
+
+
+
+
+
+
+"REST Interface" has topics "Authentication", "Resource Access Permissions", "System endpoints", "Servlets", "Views", "Request parameters", "Request headers"
+
+        "Authentication" has topics "Authentication methods for REST"
+
+
+
+
+
+# Interfaces
+"APIs & Integrations" has topics "OpenAPI", "Cron jobs", "Geocoding", "oAuth", "SMTP", "FTP", "SSH", "JDBC", "MongoDB"
 
     "OpenAPI" has topic "OpenAPI Settings"
     "Cron jobs" has topic "CronService Settings"
     "Geocoding" has topic "Geocoding Settings"
     "oAuth" has topic "oAuth Settings"
-
     "SMTP" has topic "Sending emails", "SMTP Settings"
-
     "FTP" has topic "FTP Settings"
     "SSH" has topic "SSH Settings"
     "JDBC" has topic "JDBC Settings"
@@ -87,19 +100,23 @@ Structr has topics "Building Applications", "APIs & Integrations", "Operations",
 
 "Operations" has topics "Configuration", "Deployment", "User Management", "Filesystem", "Data Management", "SSL / TLS", "Debugging", "Maintenance", "Monitoring", "Logging", "Auditing", "Statistics"
 
-    Topic "Configuration" has topics "Path Settings", "Application Settings"
+    Topic "Configuration" has topics "Path Settings", "Application Settings", "HTTP Settings"
+        "HTTP Settings" has topics "Outbound Connection Settings", "Proxy Settings"
 
     Deployment has topics "Deployment Settings"
 
     "User Management" has topics "Superuser", "Two-factor authentication", "User self-registration", "Password policy"
-        "Superuser" has topics "Superuser settings", "Initial Admin User Settings"
+        "Superuser" has topics "Superuser Settings", "Initial Admin User Settings"
         "Two-factor authentication" has topics "Two-factor authentication Settings"
         "User self-registration" has topic "User self-registration Settings"
         "Password policy" has topic "Password policy Settings"
 
     "Filesystem" has topics "Checksums", "Thumbnails", "External storage", "Filesystem Settings"
 
-    Topic "SSL / TLS" has topic "Letsencrypt"
+    "Data Management" has topics "Cascading Delete", "Indexing"
+        "Indexing" has topics "Passive Indexing"
+
+    Topic "SSL / TLS" has topic "HTTPS", "Letsencrypt"
         Letsencrypt has topic "Letsencrypt Settings"
         HTTPS has topic "HTTPS Settings", "Interfaces Settings"
 
@@ -120,13 +137,17 @@ Structr has topics "Building Applications", "APIs & Integrations", "Operations",
 # Advanced Topics
 Topic "Advanced Topics" has topics "Internals", "Performance Optimization"
 
-    "Performance Optimization" has topics "Prefetching", "Relationship naming", "Supernodes"
+    "Performance Optimization" has topics "Prefetching", "Partial rendering", "Relationship naming", "Supernodes"
 
         "Prefetching" has topics "Prefetching Settings"
+
+        "Partial rendering" has topics "Partials"
 
 
 
     "Internals" has topics "Page Rendering Engine", "Indexing"
+
+        "Page Rendering Engine" has topics "Async rendering"
 
         Indexing has topic "Indexing Settings"
 

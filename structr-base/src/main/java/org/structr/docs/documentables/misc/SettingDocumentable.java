@@ -97,7 +97,23 @@ public class SettingDocumentable implements Documentable {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, parentGroup.getDisplayName()));
+
+		final List<ConceptReference> list = Documentable.super.getParentConcepts();
+		final String displayName          = parentGroup.getDisplayName();
+
+		if (displayName != null) {
+
+			if (displayName.toLowerCase().endsWith(" settings")) {
+
+				list.add(ConceptReference.of(ConceptType.Topic, displayName));
+
+			} else {
+
+				list.add(ConceptReference.of(ConceptType.Topic, displayName + " Settings"));
+			}
+		}
+
+		return list;
 	}
 
 	public List<Link> getLinkedConcepts() {
@@ -109,11 +125,11 @@ public class SettingDocumentable implements Documentable {
 
 			if (category.toLowerCase().endsWith(" settings")) {
 
-				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Category, category)));
+				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, category)));
 
 			} else {
 
-				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Category, category + " Settings")));
+				links.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, category + " Settings")));
 			}
 		}
 
@@ -124,11 +140,14 @@ public class SettingDocumentable implements Documentable {
 
 		for (final SettingsGroup group : Settings.getGroups()) {
 
-			for (final org.structr.api.config.Setting setting : group.getSettings()) {
+			if (group != null && group.getSettings() != null) {
 
-				if (setting.getComment() != null) {
+				for (final org.structr.api.config.Setting setting : group.getSettings()) {
 
-					documentables.add(new SettingDocumentable(group, setting));
+					if (setting.getComment() != null) {
+
+						documentables.add(new SettingDocumentable(group, setting));
+					}
 				}
 			}
 		}

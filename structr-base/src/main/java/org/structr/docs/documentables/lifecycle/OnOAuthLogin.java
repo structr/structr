@@ -67,7 +67,7 @@ public class OnOAuthLogin extends LifecycleBase {
 
 		final List<Link> linkedConcepts = super.getLinkedConcepts();
 
-		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.Topic, "User")));
+		linkedConcepts.add(Link.to("ispartof", ConceptReference.of(ConceptType.SystemType, "User")));
 
 		return linkedConcepts;
 	}

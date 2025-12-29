@@ -36,7 +36,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.docs.SystemClass;
+import org.structr.docs.Documentation;
 import org.structr.schema.SchemaHelper;
 
 import java.util.*;
@@ -49,7 +49,7 @@ import java.util.regex.Pattern;
  * permission flags for a given node. This is the place where Request
  * and Authenticator get together.
  */
-@SystemClass(name="SecurityContext", shortDescription="The ")
+@Documentation(name="SecurityContext", shortDescription="Encapsulates the current user and access path.", parent="Java internals")
 public class SecurityContext {
 
 	public static final String LOCALE_KEY = "locale";
@@ -211,15 +211,15 @@ public class SecurityContext {
 			this.forceMergeOfNestedProperties = true;
 		}
 
-		if (request.getParameter(RequestKeywords.ForceResultCount.getName()) != null) {
+		if (request.getParameter(RequestParameters.ForceResultCount.getName()) != null) {
 			this.forceResultCount = true;
 		}
 
-		if (request.getParameter(RequestKeywords.DisableSoftLimit.getName()) != null) {
+		if (request.getParameter(RequestParameters.DisableSoftLimit.getName()) != null) {
 			this.disableSoftLimit = true;
 		}
 
-		if (request.getParameter(RequestKeywords.ParallelizeJsonOutput.getName()) != null) {
+		if (request.getParameter(RequestParameters.ParallelizeJsonOutput.getName()) != null) {
 			this.doMultiThreadedJsonOutput = true;
 		}
 	}
@@ -805,7 +805,7 @@ public class SecurityContext {
 			}
 
 			// Priority 1: URL parameter locale
-			String requestedLocaleString = request.getParameter(RequestKeywords.Locale.getName());
+			String requestedLocaleString = request.getParameter(RequestParameters.Locale.getName());
 			if (StringUtils.isNotBlank(requestedLocaleString)) {
 
 				locale = Locale.forLanguageTag(requestedLocaleString.replaceAll("_", "-"));
