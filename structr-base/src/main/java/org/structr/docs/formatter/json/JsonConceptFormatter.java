@@ -37,6 +37,7 @@ public class JsonConceptFormatter extends Formatter {
 		final List<String> c           = new LinkedList<>();
 		int childCount                 = concept.getTotalChildCount();
 
+		data.put("id",          concept.getId());
 		data.put("name",        concept.getName());
 		data.put("type",        concept.getType());
 		data.put("childCount",  childCount);
@@ -56,6 +57,7 @@ public class JsonConceptFormatter extends Formatter {
 
 				final Map<String, Object> childMap = new LinkedHashMap<>();
 
+				childMap.put("id",   childConcept.getId());
 				childMap.put("name", childConcept.getName());
 				childMap.put("type", childConcept.getType());
 

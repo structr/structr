@@ -77,7 +77,7 @@ public class CodeSourceToken extends NamedConceptToken {
 		if (!documentable.isHidden()) {
 
 			final DocumentableType conceptType = documentable.getDocumentableType();
-			final Concept mainConcept          = ontology.getOrCreateConcept(sourceFile, lineNumber, conceptType.getConcept(), documentable.getDisplayName());
+			final Concept mainConcept          = ontology.getOrCreateConcept(sourceFile, lineNumber, conceptType.getConcept(), documentable.getDisplayName(), false);
 
 			if (mainConcept != null) {
 
@@ -86,7 +86,7 @@ public class CodeSourceToken extends NamedConceptToken {
 				for (final Documentable.ConceptReference parentConcept : documentable.getParentConcepts()) {
 
 					// every documentable has a list of parent concepts
-					final Concept parent = ontology.getOrCreateConcept(sourceFile, lineNumber, parentConcept.type, parentConcept.name);
+					final Concept parent = ontology.getOrCreateConcept(sourceFile, lineNumber, parentConcept.type, parentConcept.name, true);
 					if (parent != null) {
 
 						parent.linkChild("has", mainConcept);
@@ -99,7 +99,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 				for (final Documentable.Link link : documentable.getLinkedConcepts()) {
 
-					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, link.target.type, link.target.name);
+					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, link.target.type, link.target.name, true);
 					if (childConcept != null) {
 
 						// determine direction of link
@@ -116,7 +116,7 @@ public class CodeSourceToken extends NamedConceptToken {
 
 				for (final String synonym : documentable.getSynonyms()) {
 
-					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Synonym, synonym);
+					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Synonym, synonym, false);
 					if (synonymConcept != null) {
 
 						mainConcept.linkChild("has", synonymConcept);

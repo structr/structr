@@ -1,5 +1,0 @@
-
-
-
-REST has http-verbs HEAD, GET, PUT, POST, PATCH, DELETE, OPTIONS
-Function GET uses http-verb GET

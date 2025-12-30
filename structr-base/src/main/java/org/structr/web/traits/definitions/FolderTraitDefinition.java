@@ -49,7 +49,7 @@ import org.structr.web.traits.wrappers.FolderTraitWrapper;
 import java.util.Map;
 import java.util.Set;
 
-@Documentation(name="Folder", type= ConceptType.SystemType, parent="System types")
+@Documentation(name="Folder", type= ConceptType.SystemType, parent="Built-in types")
 public class FolderTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String WORK_FOLDER_OF_USERS_PROPERTY       = "workFolderOfUsers";

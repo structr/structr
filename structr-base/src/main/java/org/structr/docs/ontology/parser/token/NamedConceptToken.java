@@ -70,7 +70,7 @@ public class NamedConceptToken extends Token<List<Concept>> {
 
 		for (final String identifier : identifiers) {
 
-			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier);
+			final Concept concept = ontology.getOrCreateConcept(sourceFile, line, type, identifier, true);
 			if (concept != null) {
 
 				if (formatSpecification != null) {

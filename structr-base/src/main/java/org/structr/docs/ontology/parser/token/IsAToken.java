@@ -52,7 +52,7 @@ public class IsAToken extends Token<List<Concept>> {
 
 		for (final Concept concept : input) {
 
-			final Concept toRefine = ontology.getOrCreateConcept(sourceFile, line, type, concept.getName());
+			final Concept toRefine = ontology.getOrCreateConcept(sourceFile, line, type, concept.getName(), true);
 			if (toRefine != null) {
 
 				toRefine.setType(type);

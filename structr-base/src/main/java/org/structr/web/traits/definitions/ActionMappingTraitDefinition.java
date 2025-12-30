@@ -113,37 +113,37 @@ public class ActionMappingTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<Iterable<NodeInterface>> successNotificationElements  = new StartNodes(traitsInstance, SUCCESS_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_SUCCESS_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 		final Property<Iterable<NodeInterface>> failureNotificationElements  = new StartNodes(traitsInstance, FAILURE_NOTIFICATION_ELEMENTS_PROPERTY, StructrTraits.DOM_NODE_FAILURE_NOTIFICATION_ELEMENT_ACTION_MAPPING);
 
-		final Property<String> eventProperty                                 = new StringProperty(EVENT_PROPERTY).hint("DOM event which triggers the action");
-		final Property<String> actionProperty                                = new StringProperty(ACTION_PROPERTY).hint("Action which will be triggered");
-		final Property<String> methodProperty                                = new StringProperty(METHOD_PROPERTY).hint("Name of method to execute when triggered action is 'method'");
-		final Property<String> flowProperty                                  = new StringProperty(FLOW_PROPERTY).hint("Name of flow to execute when triggered action is 'flow'");
-		final Property<String> dataTypeProperty                              = new StringProperty(DATA_TYPE_PROPERTY).hint("Data type for create action");
-		final Property<String> idExpressionProperty                          = new StringProperty(ID_EXPRESSION_PROPERTY).hint("Script expression that evaluates to the id of the object the method should be executed on");
-		final Property<String> optionsProperty                               = new StringProperty(OPTIONS_PROPERTY).hint("JSON string with that contains configuration options for this action mapping");
+		final Property<String> eventProperty                                 = new StringProperty(EVENT_PROPERTY).description("DOM event which triggers the action");
+		final Property<String> actionProperty                                = new StringProperty(ACTION_PROPERTY).description("Action which will be triggered");
+		final Property<String> methodProperty                                = new StringProperty(METHOD_PROPERTY).description("Name of method to execute when triggered action is 'method'");
+		final Property<String> flowProperty                                  = new StringProperty(FLOW_PROPERTY).description("Name of flow to execute when triggered action is 'flow'");
+		final Property<String> dataTypeProperty                              = new StringProperty(DATA_TYPE_PROPERTY).description("Data type for create action");
+		final Property<String> idExpressionProperty                          = new StringProperty(ID_EXPRESSION_PROPERTY).description("Script expression that evaluates to the id of the object the method should be executed on");
+		final Property<String> optionsProperty                               = new StringProperty(OPTIONS_PROPERTY).description("JSON string with that contains configuration options for this action mapping");
 
-		final Property<String> dialogTypeProperty                            = new StringProperty(DIALOG_TYPE_PROPERTY).hint("Type of dialog to confirm a destructive / update action");
-		final Property<String> dialogTitleProperty                           = new StringProperty(DIALOG_TITLE_PROPERTY).hint("Dialog Title");
-		final Property<String> dialogTextProperty                            = new StringProperty(DIALOG_TEXT_PROPERTY).hint("Dialog Text");
+		final Property<String> dialogTypeProperty                            = new StringProperty(DIALOG_TYPE_PROPERTY).description("Type of dialog to confirm a destructive / update action");
+		final Property<String> dialogTitleProperty                           = new StringProperty(DIALOG_TITLE_PROPERTY).description("Dialog Title");
+		final Property<String> dialogTextProperty                            = new StringProperty(DIALOG_TEXT_PROPERTY).description("Dialog Text");
 
-		final Property<String> successNotificationsProperty                  = new StringProperty(SUCCESS_NOTIFICATIONS_PROPERTY).hint("Notifications after successful execution of action");
-		final Property<String> successNotificationsPartialProperty           = new StringProperty(SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY).hint("CSS selector for partial to display as success notification");
-		final Property<String> successNotificationsEventProperty             = new StringProperty(SUCCESS_NOTIFICATIONS_EVENT_PROPERTY).hint("Event to raise for success notifications");
-		final Property<Integer> successNotificationsDelayProperty            = new IntProperty(SUCCESS_NOTIFICATIONS_DELAY_PROPERTY).hint("Delay before hiding success notifications").defaultValue(5000);
+		final Property<String> successNotificationsProperty                  = new StringProperty(SUCCESS_NOTIFICATIONS_PROPERTY).description("Notifications after successful execution of action");
+		final Property<String> successNotificationsPartialProperty           = new StringProperty(SUCCESS_NOTIFICATIONS_PARTIAL_PROPERTY).description("CSS selector for partial to display as success notification");
+		final Property<String> successNotificationsEventProperty             = new StringProperty(SUCCESS_NOTIFICATIONS_EVENT_PROPERTY).description("Event to raise for success notifications");
+		final Property<Integer> successNotificationsDelayProperty            = new IntProperty(SUCCESS_NOTIFICATIONS_DELAY_PROPERTY).description("Delay before hiding success notifications").defaultValue(5000);
 
-		final Property<String> failureNotificationsProperty                  = new StringProperty(FAILURE_NOTIFICATIONS_PROPERTY).hint("Notifications after failed execution of action");
-		final Property<String> failureNotificationsPartialProperty           = new StringProperty(FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY).hint("CSS selector for partial to display as failure notification");
-		final Property<String> failureNotificationsEventProperty             = new StringProperty(FAILURE_NOTIFICATIONS_EVENT_PROPERTY).hint("Event to raise for failure notifications");
-		final Property<Integer> failureNotificationsDelayProperty            = new IntProperty(FAILURE_NOTIFICATIONS_DELAY_PROPERTY).hint("Delay before hiding failure notifications").defaultValue(5000);
+		final Property<String> failureNotificationsProperty                  = new StringProperty(FAILURE_NOTIFICATIONS_PROPERTY).description("Notifications after failed execution of action");
+		final Property<String> failureNotificationsPartialProperty           = new StringProperty(FAILURE_NOTIFICATIONS_PARTIAL_PROPERTY).description("CSS selector for partial to display as failure notification");
+		final Property<String> failureNotificationsEventProperty             = new StringProperty(FAILURE_NOTIFICATIONS_EVENT_PROPERTY).description("Event to raise for failure notifications");
+		final Property<Integer> failureNotificationsDelayProperty            = new IntProperty(FAILURE_NOTIFICATIONS_DELAY_PROPERTY).description("Delay before hiding failure notifications").defaultValue(5000);
 
-		final Property<String> successBehaviourProperty                      = new StringProperty(SUCCESS_BEHAVIOUR_PROPERTY).hint("Behaviour after successful execution of action");
-		final Property<String> successPartialProperty                        = new StringProperty(SUCCESS_PARTIAL_PROPERTY).hint("CSS selector for partial to refresh on success");
-		final Property<String> successURLProperty                            = new StringProperty(SUCCESS_URL_PROPERTY).hint("URL to navigate to on success");
-		final Property<String> successEventProperty                          = new StringProperty(SUCCESS_EVENT_PROPERTY).hint("Event to raise on success");
+		final Property<String> successBehaviourProperty                      = new StringProperty(SUCCESS_BEHAVIOUR_PROPERTY).description("Behaviour after successful execution of action");
+		final Property<String> successPartialProperty                        = new StringProperty(SUCCESS_PARTIAL_PROPERTY).description("CSS selector for partial to refresh on success");
+		final Property<String> successURLProperty                            = new StringProperty(SUCCESS_URL_PROPERTY).description("URL to navigate to on success");
+		final Property<String> successEventProperty                          = new StringProperty(SUCCESS_EVENT_PROPERTY).description("Event to raise on success");
 
-		final Property<String> failureBehaviourProperty                      = new StringProperty(FAILURE_BEHAVIOUR_PROPERTY).hint("Behaviour after failed execution of action");
-		final Property<String> failurePartialProperty                        = new StringProperty(FAILURE_PARTIAL_PROPERTY).hint("CSS selector for partial to refresh on failure");
-		final Property<String> failureURLProperty                            = new StringProperty(FAILURE_URL_PROPERTY).hint("URL to navigate to on failure");
-		final Property<String> failureEventProperty                          = new StringProperty(FAILURE_EVENT_PROPERTY).hint("Event to raise on failure");
+		final Property<String> failureBehaviourProperty                      = new StringProperty(FAILURE_BEHAVIOUR_PROPERTY).description("Behaviour after failed execution of action");
+		final Property<String> failurePartialProperty                        = new StringProperty(FAILURE_PARTIAL_PROPERTY).description("CSS selector for partial to refresh on failure");
+		final Property<String> failureURLProperty                            = new StringProperty(FAILURE_URL_PROPERTY).description("URL to navigate to on failure");
+		final Property<String> failureEventProperty                          = new StringProperty(FAILURE_EVENT_PROPERTY).description("Event to raise on failure");
 
 		return Set.of(
 			triggerElements,

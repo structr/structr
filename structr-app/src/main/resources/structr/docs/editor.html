@@ -56,6 +56,14 @@
                 width: 100%;
                 height: 300px;
             }
+            #results div.node-link {
+                padding: 0.2em 0;
+                font-weight: 500;
+                cursor: pointer;
+            }
+            #results div.node-link:hover {
+                background-color: #eee;
+            }
             .hidden {
                 display: none;
             }
@@ -139,7 +147,7 @@
                 var edges = new vis.DataSet();
 
                 for (let entry of data.data) {
-                    let id = entry.type + ':' + entry.name;
+                    let id = entry.id;
                     let value = (entry.childCount + 1) * 2;
                     let fontSize = 50;
                     //color = (entry.occurrences > 0 ? '#00ff0099' : 'red');
@@ -149,14 +157,14 @@
                         fontSize = 50;
                     }
 
-                    nodes.add({ id: id, label: id + ' (' + entry.mentions.length + ')', value: value, color: color, font: { size: fontSize } });
+                    nodes.add({ id: id, label: entry.type + ':' + entry.name + ' (' + entry.mentions.length + ')', value: value, color: color, font: { size: fontSize } });
                 }
 
                 for (let entry of data.data) {
                     for (let link of entry.links) {
                         for (let target of link.targets) {
-                            let id1 = entry.type + ':' + entry.name;
-                            let id2 = target.type + ':' + target.name;
+                            let id1 = entry.id;
+                            let id2 = target.id;
                             let edge = { from: id1, to: id2 };
                             edges.add(edge);
                         }
@@ -208,21 +216,19 @@
                     }
                 });
 
-                network.addEventListener('click', (data) => {
-                    if (data && data.nodes && data.nodes.length) {
+                let loadNode = (rawName) => {
 
-                        let name    = data.nodes[0];
-                        let context = document.querySelector('#context');
+                    let name    = rawName.substring(0, rawName.lastIndexOf(' '));
+                    let context = document.querySelector('#context');
+                    context.innerHTML = 'Loading data for ' + name + '...';
 
-                        context.innerHTML = 'Loading data for ' + name + '...';
+                    fetch(`/structr/docs/ontology?root=${encodeURIComponent(name)}&format=json&levels=1&includeMentions`).then(response => response.json()).then(data => {
+                        let result = data.data[0];
+                        let name   = result.name;
+                        let max    = Math.min(result.mentions.length, 30);
+                        let plus   = result.mentions.length > max ? '+' : '';
 
-                        fetch(`/structr/docs/ontology?root=${encodeURIComponent(name)}&format=json&levels=1&includeMentions`).then(response => response.json()).then(data => {
-                            let result = data.data[0];
-                            let name   = result.name;
-                            let max    = Math.min(result.mentions.length, 30);
-                            let plus   = result.mentions.length > max ? '+' : '';
-
-                            context.innerHTML = `
+                        context.innerHTML = `
                                 <h3>${name}</h3>
                                 <p>${result.type}</p>
                                 <h4>Defined in (${result.references.length})</h4>
@@ -232,7 +238,14 @@
                                 <h4>Mentions in Docs (${max}${plus})</h4>
                                 <p>${result.mentions.slice(0, max).map(m => m.sourceFile + ':' + m.lineNumber).join('<br/>')}</p>
                             `
-                        });
+                    });
+                }
+
+                network.addEventListener('click', (data) => {
+                    if (data && data.nodes && data.nodes.length) {
+
+                        let node = nodes.get(data.nodes[0]);
+                        loadNode(node.label);
                     }
                 });
 
@@ -282,11 +295,25 @@
                                 case 1:
                                     network.fit({nodes: selected});
                                     network.selectNodes(selected);
+                                    let node = nodes.get(selected[0]);
+                                    loadNode(node.label);
                                     break;
 
                                 default:
                                     resultsWidget.classList.remove('hidden');
-                                    resultsWidget.innerHTML = found.map(n => n.label).join('<br/>');
+                                    resultsWidget.innerHTML = '';
+                                    for (let node of found) {
+                                        let div = document.createElement('div');
+                                        div.classList.add('node-link');
+                                        div.appendChild(document.createTextNode(node.label));
+                                        div.addEventListener('click', () => {
+                                            let n = [node.id];
+                                            network.fit({ nodes: n });
+                                            network.selectNodes(n);
+                                            loadNode(node.label);
+                                        });
+                                        resultsWidget.appendChild(div);
+                                    }
                                     break;
                             }
                         }

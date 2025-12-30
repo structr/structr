@@ -47,7 +47,7 @@ import java.util.Set;
 
 /**
  */
-@Documentation(name="Group", type= ConceptType.SystemType, shortDescription="The Group type", parent="System types")
+@Documentation(name="Group", type= ConceptType.SystemType, shortDescription="The Group type", parent="Built-in types")
 public final class GroupTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String MEMBERS_PROPERTY           = "members";

@@ -20,11 +20,9 @@ package org.structr.schema;
 
 import org.structr.agent.Agent;
 import org.structr.api.service.LicenseManager;
-import org.structr.docs.Documentable;
 import org.structr.docs.Documentation;
 import org.structr.module.StructrModule;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -40,6 +38,5 @@ public interface ConfigurationProvider {
 	Map<String, Class<? extends Agent>> getAgents();
 	Map<String, StructrModule> getModules();
 	Set<String> getClassNames();
-	void addDocumentedClasses(List<Documentable> documentables);
 	Map<Class, Documentation> getDocumentationAnnotations();
 }

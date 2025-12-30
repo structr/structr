@@ -93,7 +93,7 @@ import static org.structr.web.entity.dom.DOMElement.lowercaseBodyName;
 import static org.structr.web.entity.dom.DOMNode.EVENT_ACTION_MAPPING_CATEGORY;
 import static org.structr.web.entity.dom.DOMNode.PAGE_CATEGORY;
 
-@Documentation(name="DOM element", type=ConceptType.SystemType, shortDescription="The base class for all elements in a Page.", parent="System types")
+@Documentation(name="DOM element", type=ConceptType.SystemType, shortDescription="The base class for all elements in a Page.", parent="Built-in types")
 public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String RELOAD_SOURCES_PROPERTY                    = "reloadSources";
@@ -987,17 +987,17 @@ public class DOMElementTraitDefinition extends AbstractNodeTraitDefinition {
 		final Property<String> pathProperty                 = new StringProperty(PATH_PROPERTY).indexed();
 		final Property<String> partialUpdateKeyProperty     = new StringProperty(PARTIAL_UPDATE_KEY_PROPERTY).indexed();
 
-		final Property<Boolean> manualReloadTargetProperty  = new BooleanProperty(DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
+		final Property<Boolean> manualReloadTargetProperty  = new BooleanProperty(DATA_STRUCTR_MANUAL_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
 		final Property<Boolean> fromWidgetProperty          = new BooleanProperty(FROM_WIDGET_PROPERTY);
 		final Property<Boolean> dataInsertProperty          = new BooleanProperty(DATA_STRUCTR_INSERT_PROPERTY);
 		final Property<Boolean> dataFromWidgetProperty      = new BooleanProperty(DATA_STRUCTR_FROM_WIDGET_PROPERTY);
 
-		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
+		final Property<String> eventMappingProperty        = new StringProperty(EVENT_MAPPING_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		// probably useless ATM because EAM does not support trees yet
-		final Property<String> dataTreeChildrenProperty    = new StringProperty(DATA_STRUCTR_TREE_CHILDREN_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
-		final Property<String> dataReloadTargetProperty    = new StringProperty(DATA_STRUCTR_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("CSS selector that specifies which partials to reload.");
-		final Property<String> renderingModeProperty       = new StringProperty(DATA_STRUCTR_RENDERING_MODE_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
-		final Property<String> delayOrIntervalProperty     = new StringProperty(DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).hint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
+		final Property<String> dataTreeChildrenProperty    = new StringProperty(DATA_STRUCTR_TREE_CHILDREN_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Toggles automatic visibility for tree child items when the 'toggle-tree-item' event is mapped. This field must contain the data key on which the tree is based, e.g. 'item'.");
+		final Property<String> dataReloadTargetProperty    = new StringProperty(DATA_STRUCTR_RELOAD_TARGET_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("CSS selector that specifies which partials to reload.");
+		final Property<String> renderingModeProperty       = new StringProperty(DATA_STRUCTR_RENDERING_MODE_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
+		final Property<String> delayOrIntervalProperty     = new StringProperty(DATA_STRUCTR_DELAY_OR_INTERVAL_PROPERTY).category(EVENT_ACTION_MAPPING_CATEGORY).description("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
 		final Property<String> onAbortProperty             = new StringProperty(_HTML_ONABORT_PROPERTY);
 		final Property<String> onBlurProperty              = new StringProperty(_HTML_ONBLUR_PROPERTY);
 		final Property<String> onCanPlayProperty           = new StringProperty(_HTML_ONCANPLAY_PROPERTY);

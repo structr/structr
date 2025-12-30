@@ -56,7 +56,7 @@ public class EnumSourceToken extends NamedConceptToken {
 							if (name != null) {
 
 								final DocumentableType documentableType = documentable.getDocumentableType();
-								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, documentableType.getConcept(), name);
+								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, documentableType.getConcept(), name, false);
 								if (concept != null) {
 
 									if (documentable.getShortDescription() != null) {
@@ -74,7 +74,7 @@ public class EnumSourceToken extends NamedConceptToken {
 							final String name = category.getDisplayName();
 							if (name != null) {
 
-								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Topic, name);
+								final Concept concept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Topic, name, true);
 								if (concept != null) {
 
 									if (category.getShortDescription() != null) {

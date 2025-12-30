@@ -203,7 +203,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 				if (StringUtils.isNotBlank(cleaned) && len >= minLength && len <= maxLength && !isCode(cleaned)) {
 
-					final Concept concept = ontology.getOrCreateConcept(fileName, sourceLineNumber, type, cleaned);
+					final Concept concept = ontology.getOrCreateConcept(fileName, sourceLineNumber, type, cleaned, false);
 					if (concept != null) {
 
 						for (final NamedConceptToken additionalNamedConcept : getAdditionalNamedConcepts()) {

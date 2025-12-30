@@ -66,7 +66,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 		for (final String folderName : identifiers) {
 
 			final String cleanedName = MarkdownMarkdownFileFormatter.getNameFromFileName(folderName);
-			final Concept folder     = ontology.getOrCreateConcept(sourceFile, line, type, cleanedName);
+			final Concept folder     = ontology.getOrCreateConcept(sourceFile, line, type, cleanedName, false);
 			final Path folderPath    = Path.of("structr/docs/" + folderName);
 			final Path indexFile     = folderPath.resolve("index.txt");
 
@@ -82,7 +82,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 						for (final String file : files) {
 
 							final String cleanedFileName = MarkdownMarkdownFileFormatter.getNameFromFileName(file);
-							final Concept markdownFile = ontology.getOrCreateConcept("sourceFile", line, ConceptType.MarkdownFile, cleanedFileName);
+							final Concept markdownFile = ontology.getOrCreateConcept(folderName, line, ConceptType.MarkdownFile, cleanedFileName, false);
 
 							if (markdownFile != null) {
 
@@ -110,7 +110,7 @@ public class MarkdownFolderToken extends NamedConceptToken {
 
 										if (level == 2) {
 
-											final Concept headingConcept = ontology.getOrCreateConcept(sourceFile, line, ConceptType.MarkdownHeading, text);
+											final Concept headingConcept = ontology.getOrCreateConcept(sourceFile, line, ConceptType.MarkdownHeading, text, false);
 											if (headingConcept != null) {
 
 												markdownFile.linkChild("has", headingConcept);
@@ -118,7 +118,6 @@ public class MarkdownFolderToken extends NamedConceptToken {
 										}
 									}
 								}
-
 
 							} else {
 

@@ -324,27 +324,24 @@ public final class Ontology {
 		return result;
 	}
 
-	public Concept getOrCreateConcept(final String sourceFile, final int line, final ConceptType type, final String name) {
+	public Concept getOrCreateConcept(final String sourceFile, final int line, final ConceptType type, final String name, final boolean useExisting) {
 
 		if (blacklist.contains(name)) {
 			return null;
 		}
 
-		for  (final Concept concept : concepts) {
+		for (final Concept concept : concepts) {
 
-			if (concept.name.equals(name)) {
+			if (concept.isSame(name, type, sourceFile, line) && useExisting) {
 
-				if (concept.type.equals(type) || ConceptType.Unknown.equals(type) || ConceptType.Unknown.equals(concept.type)) {
-
-					// set correct type
-					if (ConceptType.Unknown.equals(concept.type) && !ConceptType.Unknown.equals(type)) {
-						concept.type = type;
-					}
-
-					concept.getOccurrences().add(new Occurrence(sourceFile, line));
-
-					return concept;
+				// set correct type
+				if (ConceptType.Unknown.equals(concept.type) && !ConceptType.Unknown.equals(type)) {
+					concept.type = type;
 				}
+
+				concept.getOccurrences().add(new Occurrence(sourceFile, line));
+
+				return concept;
 			}
 		}
 
@@ -407,7 +404,6 @@ public final class Ontology {
 
 	private void initializeFromDocumentationAnnotations() {
 
-
 		for (final Map.Entry<Class, Documentation> entry : StructrApp.getConfiguration().getDocumentationAnnotations().entrySet()) {
 
 			final Class clazz                 = entry.getKey();
@@ -422,7 +418,8 @@ public final class Ontology {
 			final String[] synonyms = documentation.synonyms();
 			final String[] children = documentation.children();
 
-			final Concept concept = getOrCreateConcept(sourceFile, 0, type, name);
+			// allow this getOrCreate call to find existing concepts so we can combine concepts from different @Documentation annotations
+			final Concept concept = getOrCreateConcept(sourceFile, 0, type, name, true);
 			if (concept != null) {
 
 				concept.setShortDescription(desc);
@@ -433,7 +430,7 @@ public final class Ontology {
 
 						if (StringUtils.isNotBlank(child)) {
 
-							final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child);
+							final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child, false);
 							if (childConcept != null) {
 
 								concept.linkChild("has", childConcept);
@@ -448,7 +445,7 @@ public final class Ontology {
 
 						if (StringUtils.isNotBlank(synonym)) {
 
-							final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym);
+							final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym, false);
 							if (synonymConcept != null) {
 
 								concept.linkChild("has", synonymConcept);
@@ -459,7 +456,7 @@ public final class Ontology {
 
 				if (StringUtils.isNotBlank(parent)) {
 
-					final Concept parentConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent);
+					final Concept parentConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent, true);
 					if (parentConcept != null) {
 
 						parentConcept.linkChild("has", concept);
@@ -485,7 +482,7 @@ public final class Ontology {
 									// collect properties here
 									for (final DocumentedProperty property : traits.getDocumentedProperties()) {
 
-										final Concept propertyConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Property, property.getName());
+										final Concept propertyConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Property, property.getName(), false);
 										if (propertyConcept != null) {
 
 											concept.linkChild("has", propertyConcept);
@@ -515,7 +512,7 @@ public final class Ontology {
 							if (childName != null) {
 
 								final DocumentableType documentableType = documentable.getDocumentableType();
-								final Concept childConcept              = getOrCreateConcept(sourceFile, 0, documentableType.getConcept(), childName);
+								final Concept childConcept              = getOrCreateConcept(sourceFile, 0, documentableType.getConcept(), childName, false);
 
 								if (childConcept != null) {
 

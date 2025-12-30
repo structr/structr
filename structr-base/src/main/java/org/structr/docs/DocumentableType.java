@@ -50,7 +50,6 @@ public enum DocumentableType {
 	Setting("Setting", ConceptType.Setting, false, false, SettingDocumentable::collectAllSettings),
 	RequestKeyword("Request parameter", ConceptType.RequestParameter, false, false, null),
 	RequestHeader("Request header", ConceptType.RequestHeader, false, false, null),
-	Class("Class", ConceptType.Class, false, false, StructrApp.getConfiguration()::addDocumentedClasses),
 	Hidden(null, null, false, false, null);
 
 	private final Consumer<List<Documentable>> getFunction;

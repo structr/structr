@@ -47,8 +47,8 @@ public class VerbToken extends Token<Pair<Concept, Concept>> {
 
 	public Pair<Concept, Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final Concept verb1 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, name);
-		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, inverse);
+		final Concept verb1 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, name, true);
+		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, inverse, true);
 
 		if (verb1 != null && verb2 != null) {
 

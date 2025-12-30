@@ -28,8 +28,6 @@ import org.structr.api.service.Service;
 import org.structr.core.Services;
 import org.structr.docs.Documentable;
 import org.structr.docs.Documentation;
-import org.structr.docs.SystemClass;
-import org.structr.docs.documentables.misc.ClassDocumentable;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -53,8 +51,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
 	private final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<>(100);
-	private final Map<Class, SystemClass> documentedSystemClasses     = new LinkedHashMap<>();
-	private final Map<Class, Documentation> documentationAnnotations = new LinkedHashMap<>();
+	private final Map<Class, Documentation> documentationAnnotations  = new LinkedHashMap<>();
 	private final Map<String, StructrModule> modules                  = new ConcurrentHashMap<>(100);
 	private final Set<String> classNames                              = new LinkedHashSet<>();
 	private final Set<String> agentPackages                           = new LinkedHashSet<>();
@@ -105,15 +102,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public Set<String> getClassNames() {
 		return classNames;
-	}
-
-	@Override
-	public void addDocumentedClasses(List<Documentable> documentables) {
-
-		for (final Map.Entry<Class, SystemClass> entry : documentedSystemClasses.entrySet()) {
-
-			documentables.add(new ClassDocumentable(entry.getValue()));
-		}
 	}
 
 	@Override

@@ -18,15 +18,20 @@
  */
 package org.structr.docs.ontology;
 
+import org.apache.commons.lang3.StringUtils;
 import org.structr.docs.Documentable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * A concept in the Structr Documentation Ontology. This class
  * will store everything you add into the ontology.
  */
 public final class Concept {
+
+	private static final AtomicLong idGenerator = new AtomicLong();
+	private final long id = idGenerator.getAndIncrement();
 
 	protected final Map<String, List<Concept>> children = new LinkedHashMap<>();
 	protected final Map<String, List<Concept>> parents  = new LinkedHashMap<>();
@@ -36,15 +41,23 @@ public final class Concept {
 	protected String shortDescription                   = null;
 	protected ConceptType format                        = null;
 
+	protected final String sourceFile;
+	protected final int lineNumber;
 	protected final String name;
 	protected ConceptType type;
 
 	protected Concept(final String sourceFile, final int lineNumber, final ConceptType type, final String name) {
 
-		this.type = type;
-		this.name = name;
+		this.type       = type;
+		this.name       = name;
+		this.lineNumber = lineNumber;
+		this.sourceFile = sourceFile;
 
 		occurrences.add(new Occurrence(sourceFile, lineNumber));
+	}
+
+	public String getId() {
+		return "concept" + StringUtils.leftPad(String.valueOf(id), 5, '0');
 	}
 
 	@Override
@@ -222,6 +235,37 @@ public final class Concept {
 		metadata.put("mentions", mentions);
 	}
 
+	public void setFormat(final ConceptType format) {
+		this.format = format;
+	}
+
+	public ConceptType getFormat() {
+		return format;
+	}
+
+	public boolean isSame(final String name, final ConceptType type, final String sourceFile, final int lineNumber) {
+
+		if (this.name.equals(name)) {
+
+			if (this.type.equals(type) || ConceptType.Unknown.equals(type)) {
+
+				return true;
+
+				/*
+				if (this.sourceFile.equals(sourceFile)) {
+
+					if (this.lineNumber == lineNumber) {
+
+						return true;
+					}
+				}
+				*/
+			}
+		}
+
+		return false;
+	}
+
 	public static boolean exists(final String name) {
 
 		for (final ConceptType type : ConceptType.values()) {
@@ -244,13 +288,5 @@ public final class Concept {
 		}
 
 		return null;
-	}
-
-	public void setFormat(final ConceptType format) {
-		this.format = format;
-	}
-
-	public ConceptType getFormat() {
-		return format;
 	}
 }

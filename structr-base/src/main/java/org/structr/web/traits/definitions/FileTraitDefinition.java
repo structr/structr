@@ -68,7 +68,7 @@ import java.util.Set;
  *
  *
  */
-@Documentation(name="File", type=ConceptType.SystemType, parent="System types")
+@Documentation(name="File", type=ConceptType.SystemType, parent="Built-in types")
 public class FileTraitDefinition extends AbstractNodeTraitDefinition {
 
 	public static final String FILE_PARENT_PROPERTY               = "fileParent";

@@ -5,28 +5,22 @@
 #
 
 # The word "Structr" is the root of the ontology
-Structr has markdown-folders "1-Introduction", "4-Admin User Interface"
-Structr has topics "Building Applications", "REST Interface", "APIs & Integrations", "Operations", "Advanced Topics", References
-
-
-# Introduction: this exists to match the Markdown docs and enable gap analysis
-#Introduction has markdown-file "1-Introduction/1-Getting Started.md"
-#Introduction has topics "Getting Started", "First Steps"
-    #"Getting Started" has topics "What is Structr?",
-    #"Installation Method" has topics "Sandbox", "Docker", "Manual Installation"
-    #"First Steps" has topics "Data Schema"
+Structr has markdown-folders "1-Introduction"
+Structr has topics "Building Applications", "Admin User Interface", "REST Interface", "APIs & Integrations", "Operations", "Advanced Topics", References
 
 
 
 # Admin User Interface
-#"Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Virtual Types", "Widgets", "Flows", "Localization", "Admin Console", "Configuration Editor"
-#"Admin User Interface" has topic "Helpers"
+"Admin User Interface" has areas "Dashboard", "Pages", "Files", "Schema", "Code", "Security", "Importer", "Data", "Virtual Types", "Widgets", "Flows", "Localizations", "Mail Templates", "Admin Console", "Configuration Editor"
+"Admin User Interface" has topic "Helpers"
 
-    #Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
+    "Admin User Interface" has markdown-file "4-Admin User Interface/1-Overview.md"
 
-    #Pages has helper "Refactoring Helper"
+    Topic "Helpers" has helpers "Dialogs", "Editors", "Elements", "Entities", "Init", "Refactoring Helper"
 
-    #"Configuration Editor" configures "Settings"
+    Pages has helper "Refactoring Helper"
+
+    "Configuration Editor" configures "Settings"
 
 
 
@@ -36,9 +30,16 @@ Structr has topics "Building Applications", "REST Interface", "APIs & Integratio
 # Building Applications
 "Building Applications" has topics "Creating Pages & Templates", "Navigation & Routing", "Dynamic Content", "Business Logic", "User Input & Forms", "Error handling", "Language localization", "Troubleshooting"
 
-    "Creating Pages & Templates" has topics "Page Templates", "Shared Components", "Widgets", "Static resources"
+    "Creating Pages & Templates" has topics "Pages", "Page Templates", "Elements", "Shared Components", "Widgets", "Static resources"
 
-        "Static resources" has topic "File download"
+        "Pages" has topics "Create page", "Import page"
+        Topic "Elements" has topics "Rendering options"
+            "Rendering options" has topics "Eager", "When page has finished loading", "When element becomes visible"
+
+        "Shared Components" has topics "Shared Component Configuration"
+
+        "Static resources" has topic "File download", "Dynamic files"
+            "Dynamic files" has topics "Replace template expressions"
 
     "Navigation & Routing" has topics "Access levels", "Visibility", "Authentication", "Navigation", "Error pages", "Page position", "URL routing", "URI object resolution"
 
@@ -105,7 +106,8 @@ Structr has topics "Building Applications", "REST Interface", "APIs & Integratio
 
     Deployment has topics "Deployment Settings"
 
-    "User Management" has topics "Superuser", "Two-factor authentication", "User self-registration", "Password policy"
+    "User Management" has topics "Users & Groups", "Superuser", "Two-factor authentication", "User self-registration", "Password policy"
+        "Users & Groups" has topics "Creating users", "Creating groups", "Passwords"
         "Superuser" has topics "Superuser Settings", "Initial Admin User Settings"
         "Two-factor authentication" has topics "Two-factor authentication Settings"
         "User self-registration" has topic "User self-registration Settings"
@@ -122,7 +124,7 @@ Structr has topics "Building Applications", "REST Interface", "APIs & Integratio
 
     "Debugging" has topic "Debugging Settings"
 
-    "Maintenance" has topics "Maintenance Mode", "Maintenance Settings"
+    "Maintenance" has topics "Maintenance mode", "Maintenance Settings"
 
     "Monitoring" has topics "HTTP Access Statistics", "CPU Time", "Free Memory", "Max Memory", "Total Memory", "Threads", "Deadlock detected"
 
@@ -135,7 +137,7 @@ Structr has topics "Building Applications", "REST Interface", "APIs & Integratio
 
 
 # Advanced Topics
-Topic "Advanced Topics" has topics "Internals", "Performance Optimization"
+Topic "Advanced Topics" has topics "Performance Optimization", "Internals"
 
     "Performance Optimization" has topics "Prefetching", "Partial rendering", "Relationship naming", "Supernodes"
 
