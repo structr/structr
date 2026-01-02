@@ -302,7 +302,6 @@ let Command = {
 	 *
 	 * If type is given, the search will be filtered to nodes
 	 * of that type.
-	 *
 	 */
 	search: function(searchString, type, exact, callback) {
 		let obj = {
@@ -314,6 +313,23 @@ let Command = {
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
+	},
+	/**
+	 * Send SEARCH_NODES command to the server.
+	 *
+	 * The server will search for nodes with the given searchString in ANY of their keys
+	 */
+	searchNodes: async (searchString, config) => {
+		let obj = {
+			command: 'SEARCH_NODES',
+			data: {
+				searchString: searchString,
+				...config
+			}
+		};
+		return new Promise((resolve, reject) => {
+			StructrWS.sendObj(obj, resolve);
+		});
 	},
 	/**
 	 * Send a Cypher query by SEARCH command to the server.

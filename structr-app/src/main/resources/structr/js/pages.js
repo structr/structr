@@ -124,6 +124,7 @@ let _Pages = {
 		_Pages.previewSlideout         = $('#previewSlideout');
 
 		_Pages.localizations.init();
+		_Pages.search.init();
 
 		_Pages.ensureShadowPageExists().then(_Pages.initSlideouts).then(() => {
 
@@ -164,7 +165,6 @@ let _Pages = {
 			let innerOpenCallback     = isLeft ? _Pages.leftSlideoutOpenedCallback : _Pages.rightSlideoutOpenedCallback;
 			let innerCloseCallback    = isLeft ? _Pages.leftSlideoutClosedCallback : _Pages.rightSlideoutClosedCallback;
 
-			console.log(isLeft, slideoutActivatorTab)
 			let slideoutAction = (eventOrData) => {
 
 				triggerFn(slideoutActivatorTab, correspondingSlideout, allSlideouts, () => {
@@ -3923,6 +3923,32 @@ let _Pages = {
 		}
 	},
 
+	search: {
+		init: () => {
+			let form = document.querySelector('#search-node-form');
+			form.addEventListener('submit', e => {
+				e.preventDefault();
+
+				let input        = form.querySelector('[name="searchString"]');
+				let searchString = input.value.trim();
+
+				if (searchString.length > 0) {
+					_Pages.search.doSearch(searchString);
+				} else {
+					_Helpers.blinkRed(input)
+				}
+			})
+		},
+		doSearch: async (searchString) => {
+
+			let results = await Command.searchNodes(searchString, {
+				searchDOM: true
+			});
+
+			console.log(results);
+		}
+	},
+
 	templates: {
 		pagesActions: config => `
 			<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
@@ -4069,6 +4095,15 @@ let _Pages = {
 			</div>
 
 			<div id="searchSlideout" class="slideOut slideOutRight">
+				<form id="search-node-form" class="flex flex-col mx-4 my-4">
+					<div class="flex gap-2">
+						<input type="text" name="searchString" placeholder="Search">
+						<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
+					</div>
+					<div class="search-results">
+					</div>
+				</form>
+				
 			</div>
 		`,
 		functions: config => `
