@@ -669,9 +669,10 @@ let Structr = {
 		return entity;
 	},
 	slideouts: {
-		leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+		leftSlideoutTrigger: (triggerEl, slideoutElement, allLeftSlideouts, openCallback, closeCallback) => {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
+			let otherSlideouts          = allLeftSlideouts.filter(s => s !== slideoutElement);
 
 			document.querySelector('.column-resizer-left')?.classList.toggle('hidden', selectedSlideoutWasOpen);
 
@@ -718,9 +719,10 @@ let Structr = {
 
 			document.querySelector('.slideout-activator.left.active')?.classList.remove('active');
 		},
-		rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+		rightSlideoutClickTrigger: (triggerEl, slideoutElement, allRightSlideouts, openCallback, closeCallback) => {
 
 			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
+			let otherSlideouts          = allRightSlideouts.filter(s => s !== slideoutElement);
 
 			document.querySelector('.column-resizer-right')?.classList.toggle('hidden', selectedSlideoutWasOpen);
 
