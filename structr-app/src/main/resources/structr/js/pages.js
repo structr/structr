@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Pages = {
 	_moduleName: 'pages',
 	urlHashKey: 'structrUrlHashKey_' + location.port,
+	activeCenterTabKey: 'structrActiveCenterTabKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
 	leftTabMinWidth: 410,
@@ -228,6 +229,20 @@ let _Pages = {
 
 			_Pages.refresh();
 		});
+
+	},
+	cleanActiveTabsFromLocalStorage: () => {
+
+		// Delete entries for DOM nodes that don't exist anymore
+		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
+		for (const id of Object.keys(activeCenterTabs)) {
+			Command.get(id, 'id', obj => {
+				if (!obj) {
+					delete activeCenterTabs[id];
+					LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+				}
+			});
+		}
 	},
 	getContextMenuElements: (div, entity) => {
 
@@ -876,6 +891,11 @@ let _Pages = {
 				}
 			});
 		}
+
+		window.setTimeout(() => {
+			_Pages.cleanActiveTabsFromLocalStorage();
+		}, 500);
+
 	},
 	removePage: (page) => {
 		Structr.removeExpandedNode(page.id);
@@ -983,6 +1003,16 @@ let _Pages = {
 		_Helpers.fastRemoveAllChildren(_Pages.centerPane);
 	},
 	refreshCenterPane: (obj, urlHash) => {
+
+		const activeCenterTabs = JSON.parse(LSWrapper.getItem(_Pages.activeCenterTabKey)) || {};
+		if (!urlHash) {
+			if (activeCenterTabs.hasOwnProperty(obj.id)) {
+				urlHash = activeCenterTabs[obj.id];
+			}
+		} else {
+			activeCenterTabs[obj.id] = urlHash;
+			LSWrapper.setItem(_Pages.activeCenterTabKey, JSON.stringify(activeCenterTabs));
+		}
 
 		_Entities.deselectAllElements();
 

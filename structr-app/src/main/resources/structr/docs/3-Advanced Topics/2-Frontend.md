@@ -22,21 +22,21 @@ In this section we develop the basis for our simple project management applicati
 
 Pages are the basic elements to render static and dynamic content. While static content is always displayed exactly the same way, dynamic elements are created by combining markup with data retrieved from a data source, usually the internal database.
 
-![pages_create-page.png](pages_create-page.png)
+![pages_create-page.png](../pages_create-page.png)
 
 To create a new page in Structr, we navigate to the Pages area by clicking on the pages icon in the main menu and click on "Create Page" in the dropdown menu in the top-right corner of the Page Tree. This creates a fresh page with a minimal hierarchical structure, the so-called DOM tree, which can be navigated in the Page Tree in the navigation pane on the left-hand side. Clicking on the page element will display a set of basic attributes in the main area.
 
-![pages_page-created.png](pages_page-created.png)
+![pages_page-created.png](../pages_page-created.png)
 
 To display a preview rendering of the page, click on the Preview tab in the functions bar above the main area.
 
-![pages_page-preview.png](pages_page-preview.png)
+![pages_page-preview.png](../pages_page-preview.png)
 
 In preview mode, you can edit static content inline by clicking on a text fragment of a page.
 
 The elements of a page are organized in a tree structure, the so-called DOM tree. Specific nodes in the tree can be expanded or collapsed to navigate through the tree.
 
-![pages_page-expanded.png](pages_page-expanded.png)
+![pages_page-expanded.png](../pages_page-expanded.png)
 
 The initial structure of our new page includes a page `<title>`, and a `<div>` inside the page's body. We will look at these elements now and fill them with appropriate content.
 

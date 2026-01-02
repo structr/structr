@@ -630,7 +630,11 @@ let _Files = {
 	},
 	loadAndSetWorkingDir: async (callback) => {
 
-        let response = await fetch(`${Structr.rootUrl}me`);
+        let response = await fetch(`${Structr.rootUrl}me`, {
+			headers: {
+				Accept: `application/json; charset=utf-8;properties=id,workingDirectory`
+			}
+		});
         let result    = await response.json();
         let me        = result.result;
 		if (me.workingDirectory) {
@@ -945,7 +949,7 @@ let _Files = {
 		let filePath              = d.path;
 		let iconSize              = (tilesModeActive || imageModeActive) ? 40 : 16;
 		let fileIcon              = (d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d));
-		let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize);
+		let fileIconHTML          = _Icons.getSvgIcon(fileIcon, iconSize, iconSize, 'cursor-pointer');
 		let parentIdString        = d.parentId ? `data-parent-id="${d.parentId}"` : '';
 		let ownerString           = (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '');
 
@@ -954,9 +958,19 @@ let _Files = {
 			let getIconColumnHTML = () => {
 
 				if (d.isFolder) {
-					return `<td class="is-folder file-icon" data-target-id="${d.id}" ${parentIdString}>${fileIconHTML}</td>`;
+					return `
+						<td data-icon-col class="is-folder file-icon" data-target-id="${d.id}" ${parentIdString}>
+							<div data-row-icon-container class="flex justify-between">${fileIconHTML}</div>
+						</td>
+					`;
 				} else {
-					return `<td class="file-icon"><a href="${filePath}" target="_blank">${fileIconHTML}</a></td>`;
+					return `
+						<td data-icon-col class="file-icon">
+							<div data-row-icon-container class="flex justify-between">
+								<a href="${filePath}" target="_blank">${fileIconHTML}</a>
+							</div>
+						</td>
+					`;
 				}
 			};
 
@@ -964,22 +978,22 @@ let _Files = {
 			let rowHTML = `
 				<tr id="${rowId}" class="row${(d.isThumbnail ? ' thumbnail' : '')}">
 					${getIconColumnHTML()}
-					<td>
+					<td data-name-col>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
 							<b class="name_ leading-8 truncate" data-key="name"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
 					</td>
-					<td class="text-center">
+					<td data-export-col class="text-center">
 						<input include-in-frontend-export type="checkbox" ${(d.parentId === null) ? 'class="mr-0 cursor-pointer"' : 'class="mr-0 cursor-not-allowed" disabled'} title="${_Files.tooltips.includeInFrontendExport}" ${d.includeInFrontendExport === true ? 'checked' : ''}>
 					</td>
-					<td class="truncate id_ leading-8">${d.id}</td>
-					<td class="truncate date">${createdDate}</td>
-					<td class="truncate date" data-key="lastModifiedDate">${modifiedDate}</td>
-					<td class="size whitespace-nowrap" data-key="size">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
-					<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (<span  data-key="contentType">${d.contentType}</span>)` : '')}</td>
-					<td data-key="owner">${ownerString}</td>
+					<td data-uuid-col class="truncate id_ leading-8">${d.id}</td>
+					<td data-created-col class="truncate date">${createdDate}</td>
+					<td data-modified-col class="truncate date" data-key="lastModifiedDate">${modifiedDate}</td>
+					<td data-size-col class="size whitespace-nowrap" data-key="size">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
+					<td data-type-col class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (<span data-key="contentType" title="${_Helpers.escapeForHtmlAttributes(d.contentType)}">${d.contentType}</span>)` : '')}</td>
+					<td data-owner-col data-key="owner">${ownerString}</td>
 				</tr>
 			`;
 
@@ -1025,7 +1039,8 @@ let _Files = {
 
 					let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
 					let displayImagePath  = (d.isThumbnail) ? filePath : (d[thumbnailProperty]?.path ?? filePath);
-					let iconOrThumbnail   = d.isImage ? `<img class="tn" src="${displayImagePath}" draggable="false">` : fileIconHTML;
+					let canShowImage      = d.isImage && !d.name.includes('.svg');
+					let iconOrThumbnail   = canShowImage ? `<img class="tn" src="${displayImagePath}" draggable="false">` : fileIconHTML;
 
 					return `
 						<div class="file-icon">
@@ -1715,7 +1730,7 @@ let _Files = {
 					mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
 					mountConfig.storageConfiguration.entries = [ Object.fromEntries(Object.entries(storageConfigurationEntryData).map(entry => [ ['name', entry[0]], ['value', entry[1]] ]).flat()) ];
 
-					let response = await fetch ('/structr/rest/Folder', {
+					let response = await fetch (`${Structr.rootUrl}Folder`, {
 						method: 'POST',
 						body: JSON.stringify(mountConfig)
 					});
@@ -1830,20 +1845,23 @@ let _Files = {
 						${_Files.templates.folderContentsTableSkeleton({})}
 					`);
 
-					container.querySelector('th.icon').insertAdjacentHTML('beforebegin', '<th class="icon">&nbsp;</th>');
+					container.querySelector('th[data-icon-col]').classList.add('with-search-icon');
 
 					for (let fileHit of data.result) {
 
 						_Files.appendFileOrFolder(fileHit, container);
 
-						let row  = container.querySelector('#row' + fileHit.id);
-						let icon = row.querySelector('td.file-icon');
-						icon.insertAdjacentHTML('beforebegin', `<td class="search-context-icon">${_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context')}</td>`);
+						let row           = container.querySelector('#row' + fileHit.id);
+						let iconContainer = row.querySelector('td[data-icon-col] div[data-row-icon-container]');
+						let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconSearch, 16, 16, ['mr-2', 'cursor-pointer'], 'Toggle search context'));
 
-						row.querySelector('.search-context-icon svg').addEventListener('click', (e) => {
+						icon.addEventListener('click', (e) => {
 
 							_Files.search.getAndAppendSearchContext(fileHit.id, searchString);
 						});
+
+						iconContainer.insertAdjacentElement('afterbegin', icon);
+						iconContainer.classList.add('with-search-icon');
 					}
 				}
 			}
@@ -1994,15 +2012,15 @@ let _Files = {
 			<table id="files-table" class="stripe">
 				<thead>
 					<tr>
-						<th class="icon">&nbsp;</th>
-						<th name>Name</th>
-						<th export class="text-center">${_Icons.getSvgIcon(_Icons.iconIncludeInFrontendExport, 16, 16, [], _Files.tooltips.includeInFrontendExport)}</th>
-						<th uuid>ID</th>
-						<th created>Created</th>
-						<th modified>Modified</th>
-						<th size>Size</th>
-						<th type>Type</th>
-						<th owner>Owner</th>
+						<th data-icon-col></th>
+						<th data-name-col>Name</th>
+						<th data-export-col class="text-center">${_Icons.getSvgIcon(_Icons.iconIncludeInFrontendExport, 16, 16, [], _Files.tooltips.includeInFrontendExport)}</th>
+						<th data-uuid-col>ID</th>
+						<th data-created-col>Created</th>
+						<th data-modified-col>Modified</th>
+						<th data-size-col>Size</th>
+						<th data-type-col>Type</th>
+						<th data-owner-col>Owner</th>
 					</tr>
 				</thead>
 				<tbody id="files-table-body">

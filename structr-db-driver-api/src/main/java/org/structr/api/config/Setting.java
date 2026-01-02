@@ -230,7 +230,7 @@ public abstract class Setting<T> {
 
 	protected void renderResetButton(final Tag group) {
 
-		if (isModified()) {
+		if (isModified() || isDynamic()) {
 
 			final Tag icon = group.block("svg").css("reset-key cursor-pointer hover:opacity-100 icon-red ml-4 opacity-60 flex-shrink-0").attr(new Attr("width", 16), new Attr("height", 16), new Attr("data-key", getKey())).block("use").attr(new Attr("href", "#interface_delete_circle"));
 

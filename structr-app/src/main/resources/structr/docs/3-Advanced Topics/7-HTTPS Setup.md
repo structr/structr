@@ -278,6 +278,7 @@ echo | openssl s_client -connect localhost:443 2>/dev/null | \
 **Problem**: Let's Encrypt certificate generation fails
 
 **Solutions**:
+
 - Verify domain DNS points to your server
 - Check firewall allows port 80 access
 - Ensure no other service is using port 80
@@ -299,6 +300,7 @@ sudo ufw status
 **Problem**: HTTPS connection fails or shows certificate errors
 
 **Solutions**:
+
 - Verify `application.https.enabled=true` is set
 - Check certificate files exist in SSL directory
 - Restart HttpService completely
@@ -320,6 +322,7 @@ tail -f /var/log/structr/structr.log | grep -i ssl
 **Problem**: HTTP traffic not redirecting to HTTPS
 
 **Solutions**:
+
 - Verify `httpservice.force.https=true` is set
 - Restart HttpService after setting
 - Check for configuration typos
@@ -330,6 +333,7 @@ tail -f /var/log/structr/structr.log | grep -i ssl
 **Problem**: Cannot bind to ports 80/443
 
 **Solutions**:
+
 - Run Structr with appropriate privileges
 - Use port forwarding from higher ports
 - Configure systemd service with proper capabilities

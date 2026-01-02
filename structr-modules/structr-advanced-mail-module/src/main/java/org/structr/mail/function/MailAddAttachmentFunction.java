@@ -89,7 +89,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 	public List<Usage> getUsages() {
 		return List.of(
 			Usage.structrScript("Usage: ${mailAddAttachment(file[, name])}"),
-			Usage.javaScript("Usage: ${{ Structr.mailAddAttachment(file[, name]) }}")
+			Usage.javaScript("Usage: ${{ $.mailAddAttachment(file[, name]) }}")
 		);
 	}
 

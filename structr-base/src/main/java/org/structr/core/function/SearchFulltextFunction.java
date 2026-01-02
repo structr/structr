@@ -23,6 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.docs.Example;
 import org.structr.docs.Signature;
 import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
@@ -93,18 +94,51 @@ public class SearchFulltextFunction extends CoreFunction implements QueryFunctio
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${searchFulltext(indexName, searchString)}. Example: ${searchFulltext(\"UserName\", \"abc\")}"),
-			Usage.javaScript("Usage: ${{Structr.searchFulltext(indexName, value)}}. Example: ${{Structr.searchFulltext(\"UserName\", \"abc\")}}")
+			Usage.structrScript("Usage: ${searchFulltext(indexName, searchString)}. Example: ${searchFulltext(\"index_name\", \"abc\")}"),
+			Usage.javaScript("Usage: ${{$.searchFulltext(indexName, searchString)}}. Example: ${{$.searchFulltext(\"index_name\", \"abc\")}}")
 		);
 	}
 
 	@Override
 	public String getShortDescription() {
-		return "Returns a map of entities and search scores matching the given search string from the given fulltext index. Searches case-insensitve / inexact.";
+		return "Returns a map of entities and search scores matching the given search string from the given fulltext index.";
 	}
 
 	@Override
 	public String getLongDescription() {
-		return "";
+		return """
+			Searches are **case-insensitive**. A query term matches only if the **complete token** exists in the fulltext index; partial substrings inside a longer token won't match unless that exact token is indexed.
+
+			For type attributes with the fulltext index flag enabled, the fulltext index name is auto-generated as `<type name>_<attribute name>_fulltext` (for example, `Employee_firstName_fulltext`).
+
+			Typically, the following features are available. Refer to the documentation for the database you're connecting to.
+			
+			Wildcards:
+
+			- `?` matches exactly one character
+			- `*` matches zero or more characters
+			
+			For performance reasons, avoid placing `*` at the beginning of a term (for example `*test`), because leading wildcards can make queries much more expensive/slower. Prefer anchored patterns like `test*` where possible.
+
+			Query modifiers:
+
+			- `~` enables fuzzy matching for the preceding term, allowing similar words rather than exact equality.
+			""";
+	}
+
+	@Override
+	public List<Example> getExamples() {
+		return List.of(
+				Example.javaScript("""
+				${{
+					$.searchFulltext("Employee_title_fulltext", "Senior*");
+				}}
+				""", "Wildcard fulltext search for all employees with a senior role"),
+				Example.javaScript("""
+				${{
+					$.searchFulltext("Employee_firstName_fulltext", "alex~");
+				}}
+				""", "Fuzzy fulltext search for all employees with names similar to 'alex'")
+		);
 	}
 }

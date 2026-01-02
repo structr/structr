@@ -40,7 +40,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("from, fromName, to, toName, subject, content");
+		return Signature.forAllScriptingLanguages("fromAddress, fromName, toAddress, toName, subject, content");
 	}
 
 	@Override
@@ -103,7 +103,7 @@ public class SendPlaintextMailFunction extends UiAdvancedFunction {
 		return List.of(
 				"`textContent` is typically generated using the `template()` function.",
 				"Emails are sent based on the SMTP configuration defined in structr.conf.",
-				"For advanced scenarios, refer to the extended mail functions prefixed with `mail_`, beginning with `mailBegin()`."
+				"For advanced scenarios, refer to the extended mail functions prefixed with `mail`, beginning with `mailBegin()`."
 		);
 	}
 

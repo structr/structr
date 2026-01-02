@@ -28,6 +28,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.IllegalArgumentTypeException;
 import org.structr.core.api.NamedArguments;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.context.ContextHelper;
 import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.core.traits.Traits;
@@ -307,7 +308,8 @@ public abstract class PolyglotWrapper {
 					return null;
 				}
 
-				return value;
+				// Even if we can't successfully unwrap the value, we can't return the raw value, since it's bound to it's original context.
+				return null;
 			}
 
 			if (obj instanceof GraphObjectWrapper) {
@@ -465,26 +467,45 @@ public abstract class PolyglotWrapper {
 
 	public static class FunctionWrapper implements ProxyExecutable {
 
-		private Value func;
+		private final Value func;
+		private final ContextFactory.LockedContext lockedContext;
 		private ActionContext actionContext;
-		private final ReentrantLock lock;
 		private boolean hasRun;
 
-		public FunctionWrapper(final ActionContext actionContext, final Value func) {
+		public FunctionWrapper(final ActionContext actionContext, final Value func) throws FrameworkException {
 
 			this.actionContext = actionContext;
-			this.lock = new ReentrantLock();
 			this.hasRun = false;
 
 			if (func.canExecute()) {
 
 				this.func = func;
 				ContextHelper.incrementReferenceCount(func.getContext());
+
+				this.lockedContext = determineLockedContextFromFunction(func);
+			} else {
+
+				throw new FrameworkException(422, "Could not initialize FunctionWrapper, because given value was not executable.");
 			}
 		}
 
 		public void setActionContext(final ActionContext actionContext) {
 			this.actionContext = actionContext;
+		}
+
+		public ContextFactory.LockedContext getLockedContext() {
+			return this.lockedContext;
+		}
+
+		private ContextFactory.LockedContext determineLockedContextFromFunction(Value func) {
+
+            return actionContext.getScriptingContexts()
+                    .entrySet()
+                    .stream()
+                    .filter(entry -> entry.getValue().locksContext(func.getContext()))
+                    .findFirst()
+                    .map(Entry::getValue)
+                    .orElse(null);
 		}
 
 		@Override
@@ -494,49 +515,51 @@ public abstract class PolyglotWrapper {
 				throw new IllegalStateException("FunctionWrapper: Function cannot be null.");
 			}
 
-			synchronized (func.getContext()) {
+			if (lockedContext == null) {
+				throw new IllegalStateException("Could not execute function within PolyglotWrapper.FunctionWrapper, because the attached context is null.");
+			}
+
+			Object result = null;
+
+			lockedContext.getLock().lock();
+			try {
+
+				lockedContext.getContext().enter();
 
 				if (hasRun) {
 
-					ContextHelper.incrementReferenceCount(func.getContext());
+					ContextHelper.incrementReferenceCount(lockedContext.getContext());
 					hasRun = false;
 				}
 
-				lock.lock();
 				List<Value> processedArgs = Arrays.stream(arguments)
 						.map(a -> unwrap(actionContext, a))
 						.map(a -> wrap(actionContext, a))
 						.map(Value::asValue)
 						.toList();
 
-				Object result = func.execute(processedArgs.toArray());
-				hasRun = true;
-				lock.unlock();
+				try {
 
-				final Object wrappedResult = wrap(actionContext, unwrap(actionContext, result));
+					result = unwrap(actionContext, func.execute(processedArgs.toArray()));
+					hasRun = true;
+				} finally {
+					// Handle context reference counter and close current context if thread is the last one referencing it
+					ContextHelper.decrementReferenceCount(lockedContext.getContext());
 
-				// Handle context reference counter and close current context if thread is the last one referencing it
-				ContextHelper.decrementReferenceCount(func.getContext());
-				if (ContextHelper.getReferenceCount(func.getContext()) <= 0) {
+					lockedContext.getContext().leave();
 
-					final Context curContext = actionContext.getScriptingContexts()
-							.entrySet()
-							.stream()
-							.filter(entry -> entry.getValue().equals(func.getContext()))
-							.findFirst()
-							.map(Entry::getValue)
-							.orElse(null);
+					if (ContextHelper.getReferenceCount(lockedContext.getContext()) <= 0) {
 
-					if (curContext != null) {
-
-						curContext.close();
-						actionContext.removeScriptingContextByValue(curContext);
+						lockedContext.getContext().close();
+						actionContext.removeScriptingContextByValue(lockedContext);
 					}
 				}
 
-				return wrappedResult;
+			} finally {
+				lockedContext.getLock().unlock();
 			}
 
+            return wrap(actionContext, result);
 		}
 
 		public Value getValue() {

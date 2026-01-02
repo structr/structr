@@ -58,13 +58,28 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 		if (arguments != null && arguments.length > 0) {
 
 			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
-			Context context = null;
+
+			ContextFactory.LockedContext lockedContext = null;
+
+			boolean shouldRestoreLock = false;
 
 			try {
 
-				context = ContextFactory.getContext("js", actionContext, entity);
+				lockedContext = ContextFactory.getContext("js", actionContext, entity);
 
-				context.leave();
+				// When function is called, lock is already acquired. Unlock for inner context and lock after.
+				lockedContext.getLock().lock();
+				try {
+					lockedContext.getContext().leave();
+				} finally {
+					lockedContext.getLock().unlock();
+				}
+
+				// If lock is held by current thread through previous lock call, unlock it for the worker thread
+				if (lockedContext.getLock().isHeldByCurrentThread()) {
+					lockedContext.getLock().unlock();
+					shouldRestoreLock = true;
+				}
 
 				final Thread workerThread = new Thread(() -> {
 
@@ -75,16 +90,18 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 					if (unwrappedArgs[0] instanceof PolyglotWrapper.FunctionWrapper) {
 
-						Context innerContext = null;
+						ContextFactory.LockedContext innerLockedContext = null;
 						try {
-							innerContext = ContextFactory.getContext("js", actionContext, entity);
+							innerLockedContext = ContextFactory.getContext("js", actionContext, entity);
 						} catch (FrameworkException ex) {
 							logger.error("Could not retrieve context in DoInNewTransactionFunction worker.", ex);
 							return;
 						}
 
+						innerLockedContext.getLock().lock();
 						try {
 
+							final Context innerContext = innerLockedContext.getContext();
 							innerContext.enter();
 
 							// Execute batch function until it returns anything but true
@@ -139,15 +156,21 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 								isInterrupted = Thread.currentThread().isInterrupted();
 
 							} while (!isInterrupted && result != null && result.equals(true));
+						} catch (Throwable ex) {
 
+							throw new RuntimeException(new FrameworkException(422, "Could enter context for doInNewTransaction method.", ex));
 						} finally {
 
-							innerContext.leave();
+							try {
+								final Context innerContext = innerLockedContext.getContext();
+								innerContext.leave();
+								if (ContextHelper.getReferenceCount(innerContext) <= 0) {
 
-							if (ContextHelper.getReferenceCount(innerContext) <= 0) {
-
-								innerContext.close();
-								actionContext.removeScriptingContextByValue(innerContext);
+									innerContext.close();
+									actionContext.removeScriptingContextByValue(innerLockedContext);
+								}
+							} finally {
+								innerLockedContext.getLock().unlock();
 							}
 						}
 					}
@@ -156,10 +179,10 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 				workerThread.start();
 
 				try {
-
 					workerThread.join();
-
-				} catch (Throwable t) {}
+				} catch (InterruptedException ex) {
+					logger.warn("Thread was interrupted - breaking out of doInNewTransaction() worker thread.");
+				}
 
 			} catch (FrameworkException ex) {
 
@@ -167,9 +190,21 @@ public class DoInNewTransactionFunction extends BuiltinFunctionHint implements P
 
 			} finally {
 
-				if (context != null) {
 
-					context.enter();
+				// Lock and enter context again after inner worker thread is done
+				if (lockedContext != null) {
+
+					lockedContext.getLock().lock();
+					try {
+						lockedContext.getContext().enter();
+					} finally {
+						lockedContext.getLock().unlock();
+					}
+
+					// Restore lock condition to match the state at the beginning of the function call.
+					if (shouldRestoreLock)	{
+						lockedContext.getLock().lock();
+					}
 				}
 			}
 		}

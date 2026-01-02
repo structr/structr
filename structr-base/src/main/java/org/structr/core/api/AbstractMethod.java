@@ -95,78 +95,86 @@ public abstract class AbstractMethod {
 					if (!engineName.isEmpty()) {
 
 						// Important: getContext is called with allowEntityOverride=false to prevent entity automatically being overridden in the case of an existent context
-						final Context context                 = ContextFactory.getContext(engineName, actionContext, entity, false);
-						final SecurityContext securityContext = actionContext.getSecurityContext();
-						final Value bindings = context.getBindings(engineName).getMember("Structr");
-						final StructrBinding binding = bindings.asProxyObject();
-						final GraphObject previousEntity = binding.getEntity();
-						final ActionContext previousContext = binding.getActionContext();
-						final Value previousMethodParameters = binding.getMethodParameters();
-						final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
-						Locale effectiveLocale = actionContext.getLocale();
-
-						ActionContext inner = null;
+						final ContextFactory.LockedContext lockedContext = ContextFactory.getContext(engineName, actionContext, entity, false);
+						lockedContext.getLock().lock();
 						try {
 
-							final Arguments args      = NamedArguments.fromValues(actionContext, arguments);
-							final Arguments converted = checkAndConvertArguments(securityContext, args, true);
-							inner = new ActionContext(securityContext, converted.toMap());
-							inner.setLocale(effectiveLocale);
+							final Context context = lockedContext.getContext();
+							final SecurityContext securityContext = actionContext.getSecurityContext();
+							final Value bindings = context.getBindings(engineName).getMember("Structr");
+							final StructrBinding binding = bindings.asProxyObject();
+							final GraphObject previousEntity = binding.getEntity();
+							final ActionContext previousContext = binding.getActionContext();
+							final Value previousMethodParameters = binding.getMethodParameters();
+							final Map<String, Object> tmp = securityContext.getContextStore().getTemporaryParameters();
+							Locale effectiveLocale = actionContext.getLocale();
 
-							inner.setScriptingContexts(actionContext.getScriptingContexts());
+							ActionContext inner = null;
+							try {
 
-							if (arguments.length == 1) {
-								binding.setMethodParameters(arguments[0]);
+								final Arguments args = NamedArguments.fromValues(actionContext, arguments);
+								final Arguments converted = checkAndConvertArguments(securityContext, args, true);
+								inner = new ActionContext(securityContext, converted.toMap());
+								inner.setLocale(effectiveLocale);
+
+								inner.setScriptingContexts(actionContext.getScriptingContexts());
+
+								if (arguments.length == 1) {
+									binding.setMethodParameters(arguments[0]);
+								}
+
+								binding.setEntity(entity);
+								binding.setActionContext(inner);
+
+								// store current AbstractMethod object in ActionContext
+								inner.setCurrentMethod(this);
+
+								// Context reference count handling
+								ContextHelper.incrementReferenceCount(context);
+								context.enter();
+
+								final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
+
+								// Context reference count handling
+								context.leave();
+								ContextHelper.decrementReferenceCount(context);
+
+								if (ContextHelper.getReferenceCount(context) <= 0) {
+
+									context.close();
+									actionContext.putScriptingContext(engineName, null);
+								}
+
+								effectiveLocale = inner.getLocale();
+
+								return result;
+
+							} catch (IllegalArgumentTypeException iaex) {
+
+								iaex.printStackTrace();
+
+								throwIllegalArgumentExceptionForMapBasedArguments();
+
+							} finally {
+
+								// pass on error tokens
+								if (inner != null && inner.hasError()) {
+									for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
+										actionContext.getErrorBuffer().add(token);
+									}
+								}
+
+								// restore state before this method call
+								binding.setEntity(previousEntity);
+								binding.setActionContext(previousContext);
+								binding.setMethodParameters(previousMethodParameters);
+								securityContext.getContextStore().setTemporaryParameters(tmp);
+								// take over inner locale, in case it changed
+								actionContext.setLocale(effectiveLocale);
 							}
-
-							binding.setEntity(entity);
-							binding.setActionContext(inner);
-
-							// store current AbstractMethod object in ActionContext
-							inner.setCurrentMethod(this);
-
-							// Context reference count handling
-							ContextHelper.incrementReferenceCount(context);
-							context.enter();
-
-							final Value result = Scripting.evaluatePolyglot(inner, engineName, context, entity, snippet);
-
-							// Context reference count handling
-							context.leave();
-							ContextHelper.decrementReferenceCount(context);
-
-							if (ContextHelper.getReferenceCount(context) <= 0) {
-
-								context.close();
-								actionContext.putScriptingContext(engineName, null);
-							}
-
-							effectiveLocale = inner.getLocale();
-
-							return result;
-
-						} catch (IllegalArgumentTypeException iaex) {
-
-							iaex.printStackTrace();
-
-							throwIllegalArgumentExceptionForMapBasedArguments();
-
 						} finally {
 
-							// pass on error tokens
-							if (inner != null && inner.hasError()) {
-								for (ErrorToken token : inner.getErrorBuffer().getErrorTokens()) {
-									actionContext.getErrorBuffer().add(token);
-								}
-							}
-
-							// restore state before this method call
-							binding.setEntity(previousEntity);
-							binding.setActionContext(previousContext);
-							binding.setMethodParameters(previousMethodParameters);
-							securityContext.getContextStore().setTemporaryParameters(tmp);
-							// take over inner locale, in case it changed
-							actionContext.setLocale(effectiveLocale);
+							lockedContext.getLock().unlock();
 						}
 					}
 				}

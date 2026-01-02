@@ -7,8 +7,8 @@ import {StructrRest} from '../rest/StructrRest.js';
 
 export class Persistence {
 
-    constructor() {
-        this._structrRest = new StructrRest();
+    constructor(basePath) {
+        this._structrRest = new StructrRest(basePath);
     }
 
 

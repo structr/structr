@@ -102,6 +102,7 @@ public abstract class StructrRestTestBase {
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 		Settings.OpenAPIAuthenticator.setValue(SuperUserAuthenticator.class.getName());
+		Settings.LogFunctionsStackTrace.setValue(true);
 
 		final Services services = Services.getInstance();
 

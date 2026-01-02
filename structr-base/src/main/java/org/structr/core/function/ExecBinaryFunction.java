@@ -23,6 +23,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.traits.StructrTraits;
 import org.structr.docs.Example;
 import org.structr.docs.Parameter;
 import org.structr.docs.Signature;
@@ -30,6 +32,7 @@ import org.structr.docs.Usage;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.util.AbstractBinaryProcess;
+import org.structr.web.entity.File;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -49,7 +52,7 @@ public class ExecBinaryFunction extends ExecFunction {
 
 	@Override
 	public List<Signature> getSignatures() {
-		return Signature.forAllScriptingLanguages("outputStream, scriptConfigKey [, parameters [, logBehaviour ] ]");
+		return Signature.forAllScriptingLanguages("output, scriptConfigKey [, parameters [, logBehaviour ] ]");
 	}
 
 	@Override
@@ -63,7 +66,16 @@ public class ExecBinaryFunction extends ExecFunction {
 
 			if (sanityCheckedAbsolutePathOrNull != null) {
 
-				final OutputStream out                  = (OutputStream)sources[0];
+				final OutputStream out;
+				if (sources[0] instanceof AbstractNode node && node.is(StructrTraits.FILE)) {
+
+					final File f = node.as(File.class);
+					out = f.getOutputStream();
+
+				} else {
+					out = (OutputStream)sources[0];
+				}
+
 				final ScriptingProcess scriptingProcess = new ScriptingProcess(ctx.getSecurityContext(), sanityCheckedAbsolutePathOrNull, out);
 
 				if (sources.length > 2) {
@@ -155,8 +167,8 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${execBinary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
-			Usage.javaScript("Usage: ${{ $.execBinary(outputStream, scriptConfigKey [, parameters [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
+			Usage.structrScript("Usage: ${execBinary(output, scriptConfigKey [, parameters [, logBehaviour ] ])}. Example: ${exec(response, 'my-script', merge('param1', 'param2'), 1)}"),
+			Usage.javaScript("Usage: ${{ $.execBinary(output, scriptConfigKey [, parameters [, logBehaviour ] ]}}. Example: ${{ $.exec($.response, 'my-script', ['param1', { value: 'CLIENT_SECRET', mask: true }], 2); }}")
 		);
 	}
 
@@ -168,7 +180,7 @@ public class ExecBinaryFunction extends ExecFunction {
 				"Symlinks are not allowed, director traversal is not allowed.",
 				"The key of the script must be all-lowercase.",
 				"The script must be executable (`chmod +x`)",
-				"The first parameter is usually the builtin keyword `response` and this function is usually used in a page context.",
+				"The first parameter can be a file or `response` which streams the output to the HTTP response, usually used in a page context.",
 				"A page using this should have the correct content-type and have the `pageCreatesRawData` flag enabled",
 				"Caution: Supplying unvalidated user input to this command may introduce security vulnerabilities.",
 				"All parameters are automatically put in double-quotes",
@@ -180,7 +192,7 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public List<Parameter> getParameters() {
 		return List.of(
-				Parameter.mandatory("outputStream", "output stream to write the output to"),
+				Parameter.mandatory("output", "file or output stream to write the output to"),
 				Parameter.mandatory("scriptConfigKey", "configuration key used to resolve the script's filename"),
 				Parameter.optional("parameters", "collection of script parameters, each either a raw string or an object containing a `value` field and a `mask` flag"),
 				Parameter.optional("logBehaviour", (
@@ -202,7 +214,7 @@ public class ExecBinaryFunction extends ExecFunction {
 	@Override
 	public String getLongDescription() {
 		return """
-			This function is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output buffer **without modifying the binary data**.
+			This function is very similar to `exec()`, but instead of returning the (text) result of the execution, it will copy its input stream to the given output **without modifying the binary data**.
 			
 			This is important to allow streaming of binary data from a script to the client.
 			

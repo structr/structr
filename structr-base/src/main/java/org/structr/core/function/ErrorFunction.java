@@ -89,8 +89,8 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${$.error(cause, token[, detail])}. Example: ${$.error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}"),
-			Usage.structrScript("Usage: ${error(cause, token[, detail])}. Example: ${error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}")
+			Usage.javaScript("Usage: ${$.error(propertyName, errorToken[, errorMessage])}. Example: ${$.error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}"),
+			Usage.structrScript("Usage: ${error(propertyName, errorToken[, errorMessage])}. Example: ${error('name', 'alreadyTaken'[, 'Another node with that name already exists'])}")
 		);
 	}
 
@@ -116,9 +116,9 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 	public List<Parameter> getParameters() {
 
 		return List.of(
-			Parameter.mandatory("cause", "cause of the error, e.g. a property name or other error message"),
+			Parameter.mandatory("propertyName", "name of the property that caused the error, will end up in the `property` field of the response"),
 			Parameter.mandatory("errorToken", "arbitrary string that represents the error, will end up in the `token` field of the response"),
-			Parameter.optional("detail", "more detailed description of the error for humans to read")
+			Parameter.optional("errorMessage", "more detailed description of the error for humans to read, will end up in the `detail` field of the response")
 		);
 	}
 

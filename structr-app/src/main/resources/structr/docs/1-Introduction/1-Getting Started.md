@@ -5,6 +5,7 @@ Welcome to Structr! This guide will help you get up and running with Structr, a 
 ## What is Structr?
 
 Structr is an open-source low-code platform that allows you to:
+
 - Build web applications without extensive coding
 - Create and manage complex data models using a visual schema editor
 - Design responsive web pages with drag-and-drop functionality
@@ -16,6 +17,7 @@ Structr is an open-source low-code platform that allows you to:
 ## Prerequisites
 
 Before you begin, you should have:
+
 - Basic understanding of web technologies (HTML, CSS, JavaScript)
 - A modern web browser (Chrome, Firefox, Safari, or Edge)
 - For local installation: Java 25 or higher and a Neo4j database (optional, as Structr can manage this for you)
@@ -29,6 +31,7 @@ There are three ways to get started with Structr:
 The easiest way to start is with a free Structr Sandbox - a cloud-hosted server instance managed by the Structr team.
 
 **Advantages:**
+
 - No installation required
 - Ready to use in minutes
 - Full functionality for testing
@@ -36,6 +39,7 @@ The easiest way to start is with a free Structr Sandbox - a cloud-hosted server 
 - Free for 14 days
 
 **How to get started:**
+
 1. Visit [https://structr.com/try-structr/](https://structr.com/try-structr/)
 2. Sign up for a free sandbox
 3. Access your personal Structr instance via the provided URL
@@ -48,11 +52,13 @@ The easiest way to start is with a free Structr Sandbox - a cloud-hosted server 
 For local development or self-hosted production environments, Docker provides the most straightforward setup.
 
 **Advantages:**
+
 - Consistent environment across different systems
 - Easy to update and maintain
 - Includes all necessary dependencies
 
 **Quick start:**
+
 ```bash
 # Clone the Docker setup repository
 git clone https://github.com/structr/docker-setup.git
@@ -180,14 +186,15 @@ After installation (for Docker or manual setup), you'll need to go through the i
 
 Navigate to [http://localhost:8082/structr](http://localhost:8082/structr) which will redirect you to the configuration wizard at [http://localhost:8082/structr/config](http://localhost:8082/structr/config).
 
-![Enter a superuser password](initial-configuration-superuser-password.png)
+![Enter a superuser password](../config_set-superuser-password.png)
 
 > **Note:** Choose a strong password - this is your system administrator account with full access to all Structr features. After the first call, the configuration tool is secured with this password. If you have forgotten the password, you can only obtain it as a system administrator at the operating system level from structr.conf.
 
 ### 2. Configure a Database Connection
 
 Click "Configure a database connection" and then "Create new database connection".
-![Configure a database connection](config_create-database-connection.png)
+
+![Configure a database connection](../config_create-database-connection.png)
 
 
 For a standard Neo4j setup:
@@ -195,19 +202,19 @@ For a standard Neo4j setup:
 2. Adjust the connection parameters if needed
 3. Click "Save" to establish the connection
 
-![Database Connections](config_configure-database-connection.png)
+![Database Connections](../config_configure-database-connection.png)
 
 If your database connection does not use these default settings, change them according to your database configuration.
 
-![Database Connections](config_database-connection-specified.png)
+![Database Connections](../config_database-connection-specified.png)
 
-![Database Connections](config_database-connection-wait.png)
+![Database Connections](../config_database-connection-wait.png)
 
 ### 3. Access the Admin Interface
 
 Once connected, click "Open Structr UI" to enter the main application.
 
-![Finished database connection](config_database-connection-established.png)
+![Finished database connection](../config_database-connection-established.png)
 
 ## First Steps 
 
@@ -215,7 +222,7 @@ When you see the sign-in screen, you're ready to start working with your Structr
 
 ### Sign In
 
-![Sign-in Screen](login.png)
+![Sign-in Screen](../login.png)
 
 There's default admin user which is created automatically if the database was found empty. The default password is `admin`.
 
@@ -223,6 +230,6 @@ There's default admin user which is created automatically if the database was fo
 
 ### Change Admin Password
 
-![Change the admin password](security_change-admin-password.png)
+![Change the admin password](../security_change-admin-password.png)
 
-Now you're set and done and ready for the [first steps](2-First Steps.md) with Structr.
+Now you're set and done and ready for the [first steps](2-First%20Steps.md) with Structr.

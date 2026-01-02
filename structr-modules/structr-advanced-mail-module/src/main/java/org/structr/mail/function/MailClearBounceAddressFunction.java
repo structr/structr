@@ -53,7 +53,7 @@ public class MailClearBounceAddressFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mailClearBounce_address()}"),
+			Usage.structrScript("Usage: ${mailClearBounceAddress()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearBounceAddress() }}")
 		);
 	}

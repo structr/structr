@@ -36,6 +36,8 @@ RUN npm install && npx playwright install chromium
 
 # Set environment variables
 ENV BASE_URL=http://structr-ui-tests:8082
+ENV DATABASE_URL=bolt://neo4j-test:7687
+ENV DATABASE_PASSWORD=admin123
 ENV SUPERUSER_PASSWORD=structr1234
 ENV CI=true
 

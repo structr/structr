@@ -38,7 +38,7 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_encode_text";
+		return "mailEncodeText";
 	}
 
 	@Override
@@ -73,7 +73,7 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_encode_text(text)}"),
+			Usage.structrScript("Usage: ${mailEncodeText(text)}"),
 			Usage.javaScript("Usage: ${{ $.mailEncodeText(text) }}")
 		);
 	}
@@ -101,7 +101,7 @@ public class MailEncodeTextFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Example> getExamples() {
 		return List.of(
-				Example.structrScript("${mail_add_header('X-Mailer', mail_encode_text('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
+				Example.structrScript("${mailAddHeader('X-Mailer', mailEncodeText('Umlaut Mail Dämon'))}", "Encoded header with non US-ASCII characters")
 		);
 	}
 }

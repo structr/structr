@@ -2,7 +2,7 @@
 
 Structr delivers a complete, integrated web development platform built on three foundational layers.
 
-![pages_page-preview.png](pages_page-preview.png)
+![pages_page-preview.png](../pages_page-preview.png)
 
 **Complete Web Stack**: Provides all essential components required for web applications—database, APIs, authentication, content management, and frontend rendering—in a unified platform that eliminates technology integration complexity.
 

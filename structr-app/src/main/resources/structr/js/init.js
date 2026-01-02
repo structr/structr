@@ -372,7 +372,7 @@ let Structr = {
 	},
 	renewSessionId: (callback) => {
 
-		fetch(Structr.viewRootUrl).then(response => {
+		fetch(Structr.viewRootUrl, {redirect: 'manual'}).then(response => {
 
 			StructrWS.sessionId = Structr.getSessionId();
 
@@ -389,7 +389,7 @@ let Structr = {
 			if (typeof callback === "function") {
 				callback();
 			}
-		});
+		}).catch(error => {console.error(error); });
 	},
 	loadInitialModule: (isLogin, callback) => {
 
@@ -2380,7 +2380,7 @@ class LifecycleMethods {
 		{
 			name: 'onDelete',
 			available: LifecycleMethods.onlyAvailableInSchemaNodeContext,
-			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes. (Linked nodes can not be accessed. Use <code>retrieve("modifications")</code> for that.)',
+			comment: 'The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The node being deleted can be accessed via <strong>$.this</strong>.',
 			isPrefix: true
 		},
 		{
@@ -3186,13 +3186,13 @@ let UISettings = {
 					type: 'checkbox'
 				},
 				favorEditorForContentElementsKey: {
-					text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
+					text: 'Open the editor tab for content nodes in the page area by default (unless the last one used is saved).',
 					storageKey: 'favorEditorForContentElements' + location.port,
 					defaultValue: true,
 					type: 'checkbox'
 				},
 				favorHTMLForDOMNodesKey: {
-					text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
+					text: 'Open the HTML tab for DOM nodes in the page area by default (unless the last one used is saved).',
 					storageKey: 'favorHTMLForDOMNodes' + location.port,
 					defaultValue: true,
 					type: 'checkbox'

@@ -49,7 +49,7 @@ test('user-defined-functions', async ({ page }) => {
 
   await page.waitForTimeout(1000);
 
-  //await page.screenshot({ path: 'login.png' });
+  //await page.screenshot({ path: 'screenshots/login.png' });
 
   // Login with admin/admin
   await page.locator('#usernameField').fill('admin');
@@ -64,7 +64,7 @@ test('user-defined-functions', async ({ page }) => {
 
   // Wait for Code UI to load all components
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'code.png'});
+  await page.screenshot({ path: 'screenshots/code.png' });
 
   // Create new user-defined function
   await page.getByText('User-defined functions').first().click();
@@ -80,13 +80,13 @@ test('user-defined-functions', async ({ page }) => {
   await page.waitForTimeout(1000);
   await page.getByText('Save all').first().click();
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'code_create-user-defined-function.png'});
+  await page.screenshot({ path: 'screenshots/code_create-user-defined-function.png' });
 
   // Run function
   await page.locator('[data-id="globals"] .jstree-ocl').first().click();
   await page.waitForTimeout(500);
   await page.getByText('testMethod()', { exact: false }).first().click();
-  await page.screenshot({path: 'code_run-function.png'});
+  await page.screenshot({ path: 'screenshots/code_run-function.png' });
   await page.waitForTimeout(500);
   await page.getByText('Open run dialog').first().click();
   await page.waitForTimeout(500);
@@ -95,7 +95,7 @@ test('user-defined-functions', async ({ page }) => {
   //await page.getByText('Run', { exact: false }).first().click();
   await page.waitForTimeout(1000);
   await expect(page.getByText('"result": "testMethod return value"')).toBeVisible();
-  await page.screenshot({path: 'code_run-function-result.png'});
+  await page.screenshot({ path: 'screenshots/code_run-function-result.png' });
   await page.waitForTimeout(1000);
   await page.getByRole('button', {name: 'Close', exact: true}).click();
 
@@ -106,6 +106,8 @@ test('user-defined-functions', async ({ page }) => {
   await page.getByRole('link', {name: 'Project', exact: true}).waitFor({state: 'visible'});
   await page.getByRole('link', {name: 'Project', exact: true}).click();
   await page.waitForTimeout(500);
+  await page.getByText('General').first().click();
+  await page.waitForTimeout(500);
   await page.getByRole('checkbox', {name: 'Include in OpenAPI output', exact: false}).click();
   await page.locator('#openapi-options > div > div').filter({ hasText: 'Tags'}).getByRole('combobox').click();
   await page.keyboard.type('default');
@@ -113,7 +115,7 @@ test('user-defined-functions', async ({ page }) => {
   await page.waitForTimeout(500);
   await page.getByRole('button', {name: 'Save', exact: false}).click();
   await page.waitForTimeout(1000);
-  await page.screenshot({path: 'code_project-to-openapi.png'});
+  await page.screenshot({ path: 'screenshots/code_project-to-openapi.png' });
 
   // Logout
   await page.locator('.submenu-trigger').hover();

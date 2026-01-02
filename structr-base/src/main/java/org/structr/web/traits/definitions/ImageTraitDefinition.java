@@ -71,6 +71,7 @@ public class ImageTraitDefinition extends AbstractNodeTraitDefinition {
 	public static final String EXIF_SUB_IFD_DATA_PROPERTY         = "exifSubIFDData";
 	public static final String GPS_DATA_PROPERTY                  = "gpsData";
 	public static final String IMAGE_DATA_PROPERTY                = "imageData";
+	public static final String POSTER_IMAGE_OF_VIDEO_PROPERTY     = "posterImageOfVideo";
 
 	public ImageTraitDefinition() {
 		super(StructrTraits.IMAGE);

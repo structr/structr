@@ -25,9 +25,13 @@ let _Documentation = {
 	_content: {},
 	_moduleName: 'docs',
 	//urlHashKey: 'structrUrlHashKey_' + location.port,
+	currentDoc: undefined,
 
 	unload: () => {
 		_Documentation.search.dispose();
+		_Documentation.currentDoc = undefined;
+
+		window.removeEventListener('hashchange', _Documentation.hashChangeHandler);
 	},
 	onload: () => {
 
@@ -37,16 +41,20 @@ let _Documentation = {
 		const lastIndexOfHash = Structr.subModule?.lastIndexOf('#');
 		let inPageHash;
 		if (lastIndexOfHash > 0) {
-			inPageHash = Structr.subModule?.substring(lastIndexOfHash);
+			inPageHash = Structr.subModule?.substring(lastIndexOfHash + 1);
 			Structr.subModule = Structr.subModule?.substring(0, lastIndexOfHash);
 		}
 
 		_Documentation.preloadContent().then(() => {
+
+			// install handler after preload
+			window.addEventListener('hashchange', _Documentation.hashChangeHandler);
+
+			_Documentation.updateHashWithoutAddingHistory('#docs:' + (Structr.subModule || '1-Introduction/1-Getting%20Started.md') + '#' + (inPageHash ?? ''))
 			_Documentation.loadDoc(Structr.subModule || '1-Introduction/1-Getting%20Started.md', inPageHash);
 		});
 
 		Structr.setFunctionBarHTML(_Documentation.templates.searchField());
-		document.querySelector('body').insertAdjacentHTML('beforeend', _Documentation.templates.searchOverlay());
 
 		Structr.mainMenu.unblock(100);
 
@@ -66,14 +74,46 @@ let _Documentation = {
 			});
 		});
 	},
-	keyDownHandler: e =>{
+	hashChangeHandler: e => {
+
+		let hash = new URL(e.newURL).hash;
+
+		if (hash.startsWith('#docs:')) {
+
+			let rawPath = hash.substring(hash.indexOf(':') + 1);
+			let deepHash = undefined;
+
+			if (rawPath.indexOf('#') > -1) {
+				deepHash = rawPath.substring(rawPath.indexOf('#') + 1);
+				rawPath = rawPath.substring(0, rawPath.indexOf('#'));
+			}
+
+			_Documentation.loadDoc(rawPath, deepHash);
+
+		} else {
+
+			// browser should have navigated by itself - update hash so it survives page reload
+			// _Documentation.updateHashWithoutAddingHistory('#docs:' + _Documentation.currentDoc + hash);
+			_Documentation.loadDoc(_Documentation.currentDoc, hash.substring(1));
+		}
+	},
+	updateHashWithoutAddingHistory: (newHash) => {
+		history.replaceState(history.state, "", newHash);
+	},
+	keyDownHandler: e => {
+
 		if (e.key === 'Escape') {
 			_Documentation.search.hideSearch();
 			_Documentation.search.clearSearchResults();
 		}
+
+        if ((e.code === 'KeyK' || e.keyCode === 75) && ((!_Helpers.isMac() && e.ctrlKey) || (_Helpers.isMac() && e.metaKey))) {
+            e.preventDefault();
+			_Documentation.search.showSearch();
+        }
 	},
 	removeAllMarkdownChars: (text) => {
-		return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ');
+		return text.replace(/[*`![\]()_~#>\-+=|\\{}<>^]/g, ' ').replace(/ +/g, ' ');
 	},
 	init: () => {
 
@@ -120,15 +160,6 @@ let _Documentation = {
 
 									}
 								});
-
-								articleListElement.querySelectorAll(`li a`).forEach(el => {
-									el.addEventListener('click', e => {
-										const el = e.target;
-										const href = el.href;
-										_Documentation.loadDoc(href.substring(href.lastIndexOf(':') + 1));
-									});
-								});
-
 							});
 					}
 				});
@@ -185,94 +216,116 @@ let _Documentation = {
 				});
 		});
 	},
-	loadDoc: (rawPath, hash) => { console.log('Loading documentation page ', rawPath, hash);
+	loadDoc: (rawPath, hash, searchText) => {
+
+		// console.log('Loading documentation page ', rawPath, hash);
 		const path = decodeURI(rawPath);
-		//const path = rawPath;
-		const text = _Documentation._content[path];
-		const converter = new showdown.Converter({ tables: true, simplifiedAutoLink: true, prefixHeaderId: `${path}` });
+		let articleElement       = document.querySelector('#docs-area article');
 
-		// Transform image URLs
-		// Input: Local URLs like just "login.png": ![Login Screen](login.png)
-		// Output: /docs/5-Admin%20User%20Interface/login.png
+		if (_Documentation.currentDoc !== rawPath) {
 
-		const markdownImageRegex = /!\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
-		const markdownLinkRegex  = /[^!]\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+)\)/g;
+			_Documentation.currentDoc = rawPath;
 
-		const prefixMarkdownImages = (text, prefix) => {
-			return text?.replace(markdownImageRegex, (match, alt, url) => {
-				return `![${alt}](${prefix}${url})`;
-			});
-		}
+			const text = _Documentation._content[path];
+			const converter = new showdown.Converter({ tables: true, simplifiedAutoLink: true, prefixHeaderId: `${path}` });
 
-		// Transform image URLs
-		// Input: Local URLs like just "login.png": ![Login Screen](login.png)
-		// Output: /docs/5-Admin%20User%20Interface/login.png
+			// Transform image URLs
+			// Input: Local URLs like just "login.png": ![Login Screen](login.png)
+			// Output: /docs/5-Admin%20User%20Interface/login.png
 
+			const markdownImageRegex = /!\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+(?<!\.md))\)/g;
+			const markdownLinkRegex  = /[^!]\[([^\]]*)\]\(((?!https?:\/\/)[^)\s]+)\)/g;
 
-		const prefixArticleLinks = (text, prefix) => {
-			return text?.replace(markdownLinkRegex, (match, alt, url) => {
-				return ` [${alt}](${prefix}${url})`;
-			});
-		}
-
-		const parent = path.substring(0, path.lastIndexOf('/'));
-		let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
-		updatedContent = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
-
-		const html      = converter.makeHtml(updatedContent);
-		document.querySelector('#docs-area article').innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
-
-		const indexHtml = converter.makeHtml(html);
-
-		// Page index
-		document.querySelector('#docs-area aside').innerHTML = '<div class="index-heading">On this page</div>' + indexHtml;
-
-		// Activate in-page index links (aside element on the right-hand side)
-		document.querySelectorAll('#docs-area aside h1, #docs-area aside h2, #docs-area aside h3, #docs-area aside h4').forEach(el => {
-			const newAElement = document.createElement('A');
-			const hrefAfterClick = `#docs:${path}#${el.id}`;
-			newAElement.href = '#' + el.id;
-			newAElement.dataset.hrefAfterClick = hrefAfterClick;
-			el.removeAttribute('id');
-			el.parentNode.insertBefore(newAElement, el);
-			newAElement.appendChild(el);
-			newAElement.addEventListener('click', e => {
-				//e.preventDefault();
-				const aEl = e.target.closest('a');
-				document.querySelectorAll('#docs-area aside a').forEach(el => {
-					el.classList.remove('active');
+			const prefixMarkdownImages = (text, prefix) => {
+				return text?.replace(markdownImageRegex, (match, alt, url) => {
+					return `![${alt}](${prefix}${url})`;
 				});
-				aEl.classList.add('active');
-				window.setTimeout(() => {
-					window.location.hash = aEl.dataset.hrefAfterClick;
-				}, 100);
-			});
-		});
+			}
 
-		document.querySelector('#docs-area article').scrollTo(0,0);
+			// Transform image URLs
+			// Input: Local URLs like just "login.png": ![Login Screen](login.png)
+			// Output: /docs/5-Admin%20User%20Interface/login.png
+
+			const prefixArticleLinks = (text, prefix) => {
+				return text?.replace(markdownLinkRegex, (match, alt, url) => {
+					return ` [${alt}](${prefix}${url})`;
+				});
+			}
+
+			const parent       = path.substring(0, path.lastIndexOf('/'));
+			let updatedContent = prefixMarkdownImages(text, '/structr/docs/' + parent.replace(/ /g, '%20') + '/');
+			updatedContent     = prefixArticleLinks(updatedContent, '/structr/#docs:' + parent.replace(/ /g, '%20') + '/');
+
+			const html               = converter.makeHtml(updatedContent);
+			articleElement.innerHTML = `<p class="main-category subtitle">${parent.substring(parent.lastIndexOf('-')+1)}</p>` + html;
+
+			const indexHtml = converter.makeHtml(html);
+
+			// Page index
+			document.querySelector('#docs-area aside').innerHTML = '<div class="index-heading">On this page</div>' + indexHtml;
+
+			// Activate in-page index links (aside element on the right-hand side)
+			document.querySelectorAll('#docs-area aside h1, #docs-area aside h2, #docs-area aside h3, #docs-area aside h4').forEach(el => {
+				const newAElement = document.createElement('A');
+				newAElement.href = '#' + el.id;
+				el.removeAttribute('id');
+				el.parentNode.insertBefore(newAElement, el);
+				newAElement.appendChild(el);
+			});
+		}
+
+		articleElement.scrollTo(0,0);
 
 		if (hash) {
-			document.querySelector(`#docs-area aside a[href="${hash}"]`).click();
+
+			const el = document.getElementById(hash) || document.querySelector(`[name="${CSS.escape(hash)}"]`);
+			if (el) el.scrollIntoView({ block: "start" });
+
+			_Documentation.updateHashWithoutAddingHistory('#docs:' + _Documentation.currentDoc + '#' + hash);
+
+		} else if (searchText) {
+
+			let navigateToClosestAnchor = (el) => {
+				let id;
+				while (!id) {
+					if (el.id) {
+						id = el.id;
+						break;
+					} else {
+						el = el.previousElementSibling;
+						if (el === articleElement) {
+							return;
+						}
+					}
+				}
+
+				// attempt to find link for this id
+				let linkToEl = document.querySelector(`a[href="#${id}"]`);
+				if (linkToEl) {
+					linkToEl.click();
+				} else {
+					// this breaks on reload...
+					location.hash = '#' + id;
+				}
+			};
+
+			for (let child of articleElement.children) {
+
+				if (child.innerText.toLowerCase().contains(searchText)) {
+					navigateToClosestAnchor(child);
+					break;
+				}
+			}
 		}
 
 		document.querySelectorAll('#docs-area nav a').forEach(aElement => {
 			aElement.classList.remove('active');
 		});
 
-		// Make navigation link active
+		// Make navigation link active and scroll into view
 		_Helpers.waitForElement(`#docs-area nav a[href='#docs:${decodeURI(path)}']`).then(el => {
 			el.classList.add('active');
-		});
-
-		// Allow navigation from main document
-		document.querySelectorAll('#docs-area .article a').forEach(aElementInArticle => {
-			aElementInArticle.addEventListener('click', e => {
-				const el = e.target;
-				const href = el.href;
-				// Don't try to load document for external links
-				if (href.startsWith('http')) { return }
-				_Documentation.loadDoc(href.substring(href.lastIndexOf(':') + 1));
-			});
+			el.scrollIntoView({ block: "start" });
 		});
 
 		const isElementInViewport = el => {
@@ -287,8 +340,8 @@ let _Documentation = {
 			);
 		};
 
-		document.querySelector('#docs-area article').addEventListener('scroll', e => {
-			for (const el of document.querySelectorAll('.article h1, .article h2, .article h3')) {
+		articleElement.addEventListener('scroll', e => {
+			for (const el of document.querySelectorAll('.article h1, .article h2')) {
 				const isVisible = isElementInViewport(el);
 				if (isVisible) {
 					document.querySelectorAll('.index a').forEach(el => {
@@ -300,30 +353,38 @@ let _Documentation = {
 					break;
 				} else {
 					/*
-									const id = el.querySelector('a').id;
-									const indexEl = document.querySelector('.index a[href="#' + id + '"]');
-									indexEl.classList.remove('active');
-									*/
+					const id = el.querySelector('a').id;
+					const indexEl = document.querySelector('.index a[href="#' + id + '"]');
+					indexEl.classList.remove('active');
+					*/
 				}
 			}
-
 		});
-
 	},
 	search: {
+		searchOverlay: undefined,
 		overlaySearchField: undefined,
 		searchAnimationFrameKey: undefined,
 		init: () => {
 
-			_Documentation.search.overlaySearchField = document.getElementById('overlay-search-field');
-			_Documentation.search.searchResultsList  = document.querySelector('#search-results ul');
+			_Documentation.search.searchOverlay      = _Helpers.createSingleDOMElementFromHTML(_Documentation.templates.searchOverlay());
+			_Documentation.search.overlaySearchField = _Documentation.search.searchOverlay.querySelector('#overlay-search-field');
+			_Documentation.search.searchResultsList  = _Documentation.search.searchOverlay.querySelector('#search-results ul');
+
+			document.querySelector('body').insertAdjacentElement('beforeend', _Documentation.search.searchOverlay);
 
 			document.querySelector('#search-field').addEventListener('click', e => {
-				document.getElementById('search-overlay')?.classList.remove('hidden');
-				document.querySelector('[data-autofocus=true]').focus();
+				_Documentation.search.showSearch();
 			});
 
-			window.addEventListener('keydown', _Documentation.keyDownHandler);
+			_Documentation.search.searchOverlay.addEventListener('click', e => {
+				if (e.target?.id === 'search-overlay') {
+					_Documentation.search.hideSearch();
+					_Documentation.search.clearSearchResults();
+				}
+			});
+
+			document.addEventListener('keydown', _Documentation.keyDownHandler);
 
 			_Documentation.search.overlaySearchField.addEventListener('keyup', e => {
 				_Helpers.requestAnimationFrameWrapper(_Documentation.search.searchAnimationFrameKey, _Documentation.search.doSearch);
@@ -331,13 +392,20 @@ let _Documentation = {
 
 			_Documentation.search.overlaySearchField.addEventListener('search', e => {
 				let query = e.target.value;
-				if (query === '') {
+				if (query.trim() === '') {
 					_Documentation.search.clearSearchResults();
 				}
 			});
 		},
 		dispose: () => {
-			window.removeEventListener('keydown', _Documentation.keyDownHandler);
+
+			document.removeEventListener('keydown', _Documentation.keyDownHandler);
+
+			_Helpers.fastRemoveElement(_Documentation.search.searchOverlay);
+
+			delete _Documentation.search.searchOverlay;
+			delete _Documentation.search.overlaySearchField;
+			delete _Documentation.search.searchResultsList;
 		},
 		clearSearchResults: () => {
 			_Documentation.search.searchResultsList.replaceChildren();
@@ -350,25 +418,21 @@ let _Documentation = {
 
 			if (searchText) {
 
-				let files = [];
-				for (const key of Object.keys(_Documentation._content)) {
-					const content = _Documentation._content[key].toLowerCase();
-					if (content.indexOf(searchText.toLowerCase()) > -1) {
-						files.push(key);
-					}
-				}
+				for (const file of Object.keys(_Documentation._content)) {
 
-				for (const file of files) {
+					const textLowerCase       = _Documentation.removeAllMarkdownChars(_Documentation._content[file]).toLowerCase();
+					const searchTextLowerCase = searchText.toLowerCase();
+					const numContextWords     = 5;
+					let index                 = textLowerCase.indexOf(searchTextLowerCase.toLowerCase());
 
-					const text            = _Documentation.removeAllMarkdownChars(_Documentation._content[file]);
-					const index           = text.toLowerCase().indexOf(searchText.toLowerCase());
-					const substringBefore = text.slice(0, index);
-					const wordsBefore     = substringBefore.split(' ');
-					const substringAfter  = text.slice(index);
-					const wordsAfter      = substringAfter.split(' ');
-					const numContextWords = 5;
+					if (index >= 0) {
 
-					let result = _Helpers.createSingleDOMElementFromHTML(`
+						const substringBefore = textLowerCase.slice(0, index);
+						const wordsBefore = substringBefore.split(' ');
+						const substringAfter = textLowerCase.slice(index);
+						const wordsAfter = substringAfter.split(' ');
+
+						let result = _Helpers.createSingleDOMElementFromHTML(`
 							<li class="search-result cursor-pointer">
 								<div class="group-aria-selected:text-sky-600">
 									<span>${wordsBefore.slice(Math.max(wordsBefore.length - numContextWords, 1)).join(' ')}${wordsAfter.slice(0, numContextWords).join(' ')}</span>
@@ -377,17 +441,22 @@ let _Documentation = {
 							</li>
 						`);
 
-					result.addEventListener('click', e => {
-						_Documentation.search.hideSearch();
-						_Documentation.loadDoc(encodeURI(file));
-					});
+						result.addEventListener('click', e => {
+							_Documentation.search.hideSearch();
+							_Documentation.loadDoc(encodeURI(file), null, searchTextLowerCase);
+						});
 
-					_Documentation.search.searchResultsList.appendChild(result);
+						_Documentation.search.searchResultsList.appendChild(result);
+					}
 				}
 			}
 		},
+		showSearch: () => {
+			_Documentation.search.searchOverlay.classList.remove('hidden');
+			_Documentation.search.overlaySearchField.focus();
+		},
 		hideSearch: () => {
-			document.getElementById('search-overlay')?.classList.add('hidden');
+			_Documentation.search.searchOverlay.classList.add('hidden');
 		}
 	},
 	templates: {

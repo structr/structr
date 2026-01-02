@@ -82,7 +82,7 @@ let _Security = {
 			if (parentGroupEl.length) {
 				let parentGroupId = _UsersAndGroups.getGroupId(parentGroupEl);
 				elements.push({
-					name: `Remove ${entity.name} from ${$('.name_', parentGroupEl).attr('title')}`,
+					name: `Remove ${isGroup ? _UsersAndGroups.getDisplayNameForGroup(entity) : _UsersAndGroups.getDisplayNameForUser(entity)} from ${$('.name_', parentGroupEl).attr('title')}`,
 					clickHandler: () => {
 
 						Command.removeFromCollection(parentGroupId, 'members', entity.id, async () => {
@@ -338,6 +338,25 @@ let _UsersAndGroups = {
 		return element.data('groupId');
 	},
 
+	getDisplayNameForUser: (user) => {
+
+		let displayName = user?.name ?? '';
+		if (displayName.trim() === '') {
+			displayName = `[${user.eMail}]`;
+		}
+
+		return displayName;
+	},
+	getDisplayNameForGroup: (group) => {
+
+		let displayName = group?.name ?? '';
+		if (displayName.trim() === '') {
+			displayName = '[unnamed]';
+		}
+
+		return displayName;
+	},
+
 	getUsersListElement: () => document.getElementById('users-list'),
 	getGroupsListElement: () => document.getElementById('groups-list'),
 
@@ -407,7 +426,7 @@ let _UsersAndGroups = {
 
 		let nameElement = userElement[0].querySelector('.name_');
 
-		let displayName         = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
+		let displayName         = _UsersAndGroups.getDisplayNameForUser(user);
 		nameElement.textContent = displayName;
 		nameElement.title       = displayName;
 
@@ -432,7 +451,7 @@ let _UsersAndGroups = {
 				let userName = userEl.querySelector('.name_');
 				if (userName) {
 
-					let displayName      = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
+					let displayName      = _UsersAndGroups.getDisplayNameForUser(user);
 					userName.title       = displayName;
 					userName.textContent = displayName;
 				}
@@ -607,7 +626,7 @@ let _UsersAndGroups = {
 
 		let nameElement = groupElement[0].querySelector('.name_');
 
-		let displayName         = group?.name ?? '[unnamed]';
+		let displayName         = _UsersAndGroups.getDisplayNameForGroup(group);
 		nameElement.title       = displayName;
 		nameElement.textContent = displayName;
 
@@ -671,7 +690,7 @@ let _UsersAndGroups = {
 
 				let groupName = groupEl.querySelector('.name_');
 				if (groupName) {
-					let displayName = ((group.name) ? group.name : '[unnamed]');
+					let displayName = _UsersAndGroups.getDisplayNameForGroup(group);
 
 					groupName.setAttribute('title', displayName);
 					groupName.textContent = displayName;

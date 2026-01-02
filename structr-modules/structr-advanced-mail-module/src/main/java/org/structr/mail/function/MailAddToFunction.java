@@ -36,7 +36,7 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_to";
+		return "mailAddTo";
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MailAddToFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_to(address [, name])}"),
+			Usage.structrScript("Usage: ${mailAddTo(address [, name])}"),
 			Usage.javaScript("Usage: ${{ $.mailAddTo(address [, name]) }}")
 		);
 	}

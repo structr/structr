@@ -40,7 +40,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_begin";
+		return "mailBegin";
 	}
 
 	@Override
@@ -98,7 +98,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_begin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}"),
+			Usage.structrScript("Usage: ${mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]])}"),
 			Usage.javaScript("Usage: ${{ $.mailBegin(fromAddress[, fromName[, subject[, htmlContent[, textContent[, files]]]]]) }}")
 		);
 	}
@@ -113,9 +113,9 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 		return """
 				Begins an HTML email with the basic given configuration. Previously started configurations are cleared.
 
-				The optional parameters can be omitted and selectively be set via `mail_set_from()`, `mail_set_subject()`, `mail_set_html_content()`, `mail_set_text_content()` and `mail_add_attachment()`.
+				The optional parameters can be omitted and selectively be set via `mailSetFrom()`, `mailSetSubject()`, `mailSetHtmlContent()`, `mailSetTextContent()` and `mailAddAttachment()`.
 
-				Recipients are added via the `mail_add_to()`, `mail_add_cc()` and `mail_add_bcc()` functions. This is separated out to allow for emails with only CC and/or BCC addresses.
+				Recipients are added via the `mailAddTo()`, `mailAddCc()` and `mailAddBcc()` functions. This is separated out to allow for emails with only CC and/or BCC addresses.
 				""";
 	}
 
@@ -123,7 +123,7 @@ public class MailBeginFunction extends AdvancedMailModuleFunction {
 	public List<String> getNotes() {
 		return List.of(
 				"`htmlContent` and `textContent` are typically generated using the `template()` function.",
-				"By default, emails are sent based on the SMTP configuration defined in structr.conf. This can be changed using `mail_set_manual_config()` and `mail_reset_manual_config()`"
+				"By default, emails are sent based on the SMTP configuration defined in structr.conf. This can be changed using `mailSetManualConfig()` and `mailResetManualConfig()`"
 		);
 	}
 

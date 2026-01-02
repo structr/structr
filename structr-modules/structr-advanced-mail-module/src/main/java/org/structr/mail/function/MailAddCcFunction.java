@@ -36,7 +36,7 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_add_cc";
+		return "mailAddCc";
 	}
 
 	@Override
@@ -68,7 +68,7 @@ public class MailAddCcFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_add_cc(address [, name])}"),
+			Usage.structrScript("Usage: ${mailAddCc(address [, name])}"),
 			Usage.javaScript("Usage: ${{ $.mailAddCc(address [, name]) }}")
 		);
 	}

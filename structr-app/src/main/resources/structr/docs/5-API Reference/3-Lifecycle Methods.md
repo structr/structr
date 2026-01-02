@@ -1,4 +1,5 @@
 # Lifecycle Methods
+
 ## afterCreate
 Called after a new object of this type is created.
 
@@ -39,17 +40,17 @@ If you want to execute code after successful validation, implement the `afterCre
 - See also: `afterCreate()`, `error()` and `assert()`.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 {
 	if ($.this.name === 'foo') {
 
-		// don't allow Nodes named "foo"
-		$.error('Type', 'name', 'name can not be "foo"!');
+		// don't allow creation of nodes named "foo"
+		$.error('name', 'create_not_allowed', 'Can\'t be created because name is "foo"');
 
 	} else {
 
-		$.log('Node with name ' + $.this.name + ' has just created.');
+		$.log('Node with name ' + $.this.name + ' has just been created.');
 	}
 }
 
@@ -64,18 +65,35 @@ If you throw an error in this method, the enclosing transaction will be rolled b
 
 If you want to execute code after successful validation, implement the `afterDelete()` callback method.
 
-Please note that you cannot directly access the properties of the deleted entity in this method, since the entity is already marked as deleted.
+You can access the local properties of the deleted entity through the `this` keyword.
 
 ### Notes
-- See also: `afterSave()`, `error()` and `assert()`.
+- See also: `afterDelete()`, `error()` and `assert()`.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 {
+	if ($.this.name === 'foo') {
+
+		// don't allow deletion of nodes named "foo"
+		$.error('name', 'delete_not_allowed', 'Can\'t be deleted because name is "foo"');
+
+	} else {
+
+		$.log('Node with name ' + $.this.name + ' has been deleted.');
+	}
 }
 
 ```
+
+## onDownload
+Called after the download of a File is complete.
+
+The `onDownload()` lifecycle method is called after a File is downloaded.
+### Notes
+- See also: `onDelete()`.
+
 
 ## onSave
 Called when an existing object of this type is modified.
@@ -90,18 +108,18 @@ If you want to execute code after successful validation, implement the `afterSav
 - See also: `afterSave()`, `error()` and `assert()`.
 
 ### Examples
-##### Example 1 (JavaScript)
+#### Example 1 (JavaScript)
 ```
 {
 	if ($.this.name === 'foo') {
 
-		// don't allow Nodes named "foo"
-		$.error('Type', 'name', 'name can not be "foo"!');
+		// don't allow deletion of nodes named "foo"
+		$.error('name', 'save_not_allowed', 'Name can\'t be changed to "foo"');
 
 	} else {
 
 		$.log('Node with name ' + $.this.name + ' has been modified.');
 	}
-}
+ }
 
 ```

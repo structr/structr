@@ -34,7 +34,7 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_headers";
+		return "mailClearHeaders";
 	}
 
 	@Override
@@ -53,7 +53,7 @@ public class MailClearHeadersFunction extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_headers()}"),
+			Usage.structrScript("Usage: ${mailClearHeaders()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearHeaders() }}")
 		);
 	}

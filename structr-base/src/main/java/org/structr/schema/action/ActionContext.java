@@ -41,6 +41,7 @@ import org.structr.core.api.Methods;
 import org.structr.core.api.NamedArguments;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.script.Scripting;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.core.script.polyglot.wrappers.HttpSessionWrapper;
 import org.structr.core.traits.Traits;
 import org.structr.schema.parser.DatePropertyGenerator;
@@ -57,16 +58,16 @@ public class ActionContext {
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 
 	// Regular members
-	private Map<String, Context> scriptingContexts       = new HashMap<>();
-	private final ContextStore temporaryContextStore     = new ContextStore();
-	private final StringBuilder outputBuffer             = new StringBuilder();
-	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
-	private Locale locale                                = Locale.getDefault();
-	private AbstractMethod currentMethod                 = null;
-	private SecurityContext securityContext              = null;
-	private Predicate predicate                          = null;
-	private boolean disableVerboseExceptionLogging       = false;
-	private boolean javaScriptContext                    = false;
+	private Map<String, ContextFactory.LockedContext> scriptingContexts       = new HashMap<>();
+	private final ContextStore temporaryContextStore                          = new ContextStore();
+	private final StringBuilder outputBuffer                                  = new StringBuilder();
+	private ErrorBuffer errorBuffer                                           = new ErrorBuffer();
+	private Locale locale                                                     = Locale.getDefault();
+	private AbstractMethod currentMethod                                      = null;
+	private SecurityContext securityContext                                   = null;
+	private Predicate predicate                                               = null;
+	private boolean disableVerboseExceptionLogging                            = false;
+	private boolean javaScriptContext                                         = false;
 
 	public int level = 0;
 
@@ -583,23 +584,23 @@ public class ActionContext {
 		return this.securityContext.getContextStore();
 	}
 
-	public Context getScriptingContext(final String language) {
+	public ContextFactory.LockedContext getScriptingContext(final String language) {
 		return scriptingContexts.get(language);
 	}
 
-	public void putScriptingContext(final String language, final Context context) {
+	public void putScriptingContext(final String language, final ContextFactory.LockedContext context) {
 		scriptingContexts.put(language, context);
 	}
 
-	public void removeScriptingContextByValue(final Context context) {
+	public void removeScriptingContextByValue(final ContextFactory.LockedContext context) {
 		scriptingContexts.entrySet().removeIf(entry -> entry.getValue().equals(context));
 	}
 
-	public void setScriptingContexts(final Map<String, Context> contexts) {
+	public void setScriptingContexts(final Map<String, ContextFactory.LockedContext> contexts) {
 		scriptingContexts = contexts;
 	}
 
-	public Map<String,Context> getScriptingContexts() {
+	public Map<String,ContextFactory.LockedContext> getScriptingContexts() {
 		return scriptingContexts;
 	}
 

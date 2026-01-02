@@ -1,4 +1,4 @@
-# Structr 4.x Migration Guide
+# Structr 4.x Migration Notes
 
 All versions starting with the 4.0 release include breaking changes which require a migration of applications that have been built with Structr versions prior to 4.0 (1.x, 2.x and 3.x). The following chapters will give an overview of how the migration can be done.
 

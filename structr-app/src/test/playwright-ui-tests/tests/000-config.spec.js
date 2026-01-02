@@ -39,25 +39,25 @@ test('config', async ({ page }) => {
   //await page.evaluate('document.body.style.zoom="2.0"');
 
   await expect(page).toHaveTitle('Structr Configuration Editor');
-  await page.screenshot({ path: 'config_set-superuser-password.png' });
+  await page.screenshot({ path: 'screenshots/config_set-superuser-password.png' });
 
   await expect(page.getByPlaceholder('Enter a superuser password')).toBeVisible();
   await page.getByPlaceholder('Enter a superuser password').fill(process.env.SUPERUSER_PASSWORD);
   await page.getByRole('button', { name: 'Save'}).click();
   await page.waitForTimeout(500);
-  await page.screenshot({ path: 'config_superuser-password-set.png', caret: 'initial' });
+  await page.screenshot({ path: 'screenshots/config_superuser-password-set.png', caret: 'initial' });
   await page.getByRole('button', { name: 'Configure a database connection'}).click();
   await page.waitForTimeout(500);
 
   /*
   await expect(page.locator('#loginButton')).toBeVisible();
-  await page.screenshot({ path: 'config_login.png', caret: 'initial' });
+  await page.screenshot({ path: 'screenshots/config_login.png', caret: 'initial' });
 
   await page.locator('#passwordField').fill(process.env.SUPERUSER_PASSWORD);
   await page.locator('#loginButton').click();
   await page.waitForTimeout(500);
   await expect(page.locator('#configTabs')).toBeVisible();
-  await page.screenshot({ path: 'config_after-login.png' });
+  await page.screenshot({ path: 'screenshots/config_after-login.png' });
 
   // Disconnect from database and remove database connection
   await page.getByRole('link', { name: 'Database Connections' }).click();
@@ -69,21 +69,21 @@ test('config', async ({ page }) => {
 */
 
   await expect(page.getByRole('button', { name: 'Create new database connection'})).toBeVisible();
-  await page.screenshot({ path: 'config_create-database-connection.png' });
+  await page.screenshot({ path: 'screenshots/config_create-database-connection.png' });
   await page.getByRole('button', { name: 'Create new database connection'}).click();
   await page.waitForTimeout(500);
-  await page.screenshot({ path: 'config_configure-database-connection.png' });
+  await page.screenshot({ path: 'screenshots/config_configure-database-connection.png' });
   await page.getByRole('button', { name: 'Set Neo4j defaults'}).click();
   await page.waitForTimeout(500);
   await page.getByPlaceholder('Enter a connection name').fill('neo4j-localhost-7687');
-  await page.getByPlaceholder('Enter URL').fill('bolt://neo4j-test:7687');
-  await page.getByPlaceholder('Enter password').fill('admin123');
-  await page.screenshot({ path: 'config_database-connection-specified.png' });
+  await page.getByPlaceholder('Enter URL').fill(process.env.DATABASE_URL);
+  await page.getByPlaceholder('Enter password').fill(process.env.DATABASE_PASSWORD);
+  await page.screenshot({ path: 'screenshots/config_database-connection-specified.png' });
 
   await page.getByRole('button', { name: 'Add connection'}).click();
-  await page.screenshot({ path: 'config_database-connection-wait.png' });
+  await page.screenshot({ path: 'screenshots/config_database-connection-wait.png' });
   await page.waitForTimeout(500);
-  await page.screenshot({ path: 'config_database-connection-established.png' });
+  await page.screenshot({ path: 'screenshots/config_database-connection-established.png' });
 
   // Logout
   await page.getByRole('link', { name: 'Logout' }).click();

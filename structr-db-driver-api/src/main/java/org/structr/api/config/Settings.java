@@ -789,12 +789,14 @@ public class Settings {
 			}
 
 			final PropertiesConfiguration config = builder.getConfiguration();
-			final FileHandler fileHandler        = builder.getFileHandler();
+
+			// clear data loaded from disk, so we can delete keys
+			config.clear();
 
 			for (final Setting setting : settings.values()) {
 
-				// store only modified settings and the superuser password
-				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
+				// store only modified/dynamic settings and the superuser password
+				if (setting.isModified() || setting.isDynamic() || "superuser.password".equals(setting.getKey())) {
 
 					config.setProperty(setting.getKey(), setting.getValue());
 
@@ -802,14 +804,15 @@ public class Settings {
 				}
 			}
 
-			final long freeSpace = fileHandler.getFile().getFreeSpace();
+			final FileHandler fileHandler = builder.getFileHandler();
+			final long freeSpace          = fileHandler.getFile().getFreeSpace();
 
 			if (freeSpace < 1024 * 1024){
 				logger.error("Refusing to start with less than 1 MB of disk space.");
 				System.exit(1);
 			}
 
-			fileHandler.save();
+			builder.save();
 
 			checkConfigurationFilePermissions(builder, warnForNotRecommendedPermissions);
 

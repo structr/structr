@@ -34,7 +34,7 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 
 	@Override
 	public String getName() {
-		return "mail_clear_in_reply_to";
+		return "mailClearInReplyTo";
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.structrScript("Usage: ${mail_clear_in_reply_to()}"),
+			Usage.structrScript("Usage: ${mailClearInReplyTo()}"),
 			Usage.javaScript("Usage: ${{ $.mailClearInReplyTo() }}")
 		);
 	}
@@ -72,7 +72,7 @@ public class MailClearInReplyTo extends AdvancedMailModuleFunction {
 	@Override
 	public List<String> getNotes() {
 		return List.of(
-				"This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mail_set_in_reply_to()`)"
+				"This function is only useful after sending a previous message with a configured `In-Reply-To` (see `mailSetInReplyTo()`)"
 		);
 	}
 }

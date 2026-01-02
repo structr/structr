@@ -1620,7 +1620,7 @@ let _Entities = {
 	accessControlDialog: (entity, container, typeInfo) => {
 
 		let id = entity.id;
-		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin,blocked';
+		let requiredAttributesForPrincipals = 'id,name,eMail,type,isGroup,isAdmin,blocked';
 
 		let handleGraphObject = (entity) => {
 
@@ -1729,7 +1729,7 @@ let _Entities = {
 					}
 					let icon = _Icons.getIconForPrincipal(JSON.parse(state.element.dataset.principal));
 
-					return $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} ${state.text}</span>`);
+					return $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} <div class="truncate">${state.text}</div></span>`);
 				};
 
 				let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
@@ -1784,7 +1784,11 @@ let _Entities = {
 			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 		}
 	},
-	templateForPrincipalOption: (p, selected = false) => `<option value="${p.id}" data-principal="${_Helpers.escapeForHtmlAttributes(JSON.stringify(p))}" ${(selected ? 'selected' : '')}>${p.name}</option>`,
+	templateForPrincipalOption: (p, selected = false) => `
+		<option value="${p.id}" data-principal="${_Helpers.escapeForHtmlAttributes(JSON.stringify(p))}" ${(selected ? 'selected' : '')}>
+			${p.isGroup ? _UsersAndGroups.getDisplayNameForGroup(p) : _UsersAndGroups.getDisplayNameForUser(p)}
+		</option>
+	`,
 	showAccessControlDialog: (entity) => {
 
 		let id = entity.id;
@@ -1802,11 +1806,11 @@ let _Entities = {
 				let handleGraphObject = (entity) => {
 
 					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
-						_Crud.objectList.refreshCellWithNewValue(id, "owner", entity.owner, entity.type, initialObj.ownerId);
+						_Crud.objectList.refreshWithNewValue(id, "owner", entity.type, entity.owner);
 					}
 
-					_Crud.objectList.refreshCellWithNewValue(id, 'visibleToPublicUsers',        entity.visibleToPublicUsers,        entity.type, initialObj.visibleToPublicUsers);
-					_Crud.objectList.refreshCellWithNewValue(id, 'visibleToAuthenticatedUsers', entity.visibleToAuthenticatedUsers, entity.type, initialObj.visibleToAuthenticatedUsers);
+					_Crud.objectList.refreshWithNewValue(id, 'visibleToPublicUsers',        entity.type, entity.visibleToPublicUsers);
+					_Crud.objectList.refreshWithNewValue(id, 'visibleToAuthenticatedUsers', entity.type, entity.visibleToAuthenticatedUsers);
 				};
 
 				if (entity.targetId) {
@@ -1833,7 +1837,7 @@ let _Entities = {
 		let row = $(`
 			<tr class="_${principal.id}">
 				<td>
-					<div class="flex items-center gap-2">${_Icons.getIconForPrincipal(principal)}<span class="name">${principal.name}</span></div>
+					<div class="flex items-center gap-2">${_Icons.getIconForPrincipal(principal)}<span class="name">${principal.isGroup ? _UsersAndGroups.getDisplayNameForGroup(principal) : _UsersAndGroups.getDisplayNameForUser(principal)}</span></div>
 				</td>
 			</tr>
 		`);

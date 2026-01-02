@@ -68,8 +68,8 @@ public class FindContainsFunction extends AdvancedScriptingFunction {
 	@Override
 	public List<Usage> getUsages() {
 		return List.of(
-			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}. Example: ${{ $.find('Group', $.predicate.and($.predicate.contains('name', 'Test'))) }}"),
-			Usage.structrScript("Usage: ${contains(key, value). Example: ${find('Group', and(contains('name', 'Test')))}")
+			Usage.javaScript("Usage: ${{ $.predicate.contains(key, value) }}. Example: ${{ $.find('Group', $.predicate.contains('name', 'Test')); }}"),
+			Usage.structrScript("Usage: ${contains(key, value). Example: ${find('Group', contains('name', 'Test'))}")
 		);
 	}
 
