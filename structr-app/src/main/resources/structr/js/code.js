@@ -247,7 +247,7 @@ let _Code = {
 						data: {
 							key: 'searchresults',
 							path: path + '/searchresults',
-							svgIcon: _Icons.getSvgIcon(_Icons.iconSearch, 16, 24)
+							svgIcon: _Icons.getSvgIcon(_Icons.iconSearch, 20, 24)
 						},
 						state: {
 							opened: true

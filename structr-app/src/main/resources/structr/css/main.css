@@ -280,6 +280,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 .icon-white {
 	color: var(--solid-white);
 }
+.icon-black {
+    color: var(--solid-black);
+}
 
 .fill-none {
 	fill: none;
@@ -622,43 +625,21 @@ img.disabled {
 }
 
 /*
- * Pages: Left slideout activators
+ * Pages: slideout activators
  */
-#pagesTab,
-#widgetsTab {
-	top: 2rem;
+#pagesTab         { top: 2rem; }
+#localizationsTab {	top: 8rem; }
+
+#widgetsTab    { top:  2rem; }
+#componentsTab { top:  7rem; }
+#elementsTab   { top: 13rem; }
+#previewTab    { top: 19rem; }
+#searchTab     { top: 24rem; }
+
+.slideout-activator.left {
+    left: 0;
 }
-
-#localizationsTab {
-	top: 8rem;
-}
-
-#componentsTab {
-	top: 7rem;
-}
-
-#elementsTab {
-	top: 13rem;
-}
-
-#previewTab {
-	top: 19rem;
-}
-
-#activeElementsTab {
-	top: 33rem;
-}
-
-
-/*
- * Pages: Right slideout activators
- */
-#widgetsTab,
-#paletteTab,
-#componentsTab,
-#elementsTab,
-#previewTab,
-#activeElementsTab {
+.slideout-activator.right {
 	right: 0;
 }
 

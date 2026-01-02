@@ -4061,6 +4061,15 @@ let _Pages = {
 
 			<div id="previewSlideout" class="slideOut slideOutRight">
 			</div>
+
+			<div class="slideout-activator right" id="searchTab" data-for-slideout="#searchSlideout" data-sub-section="search">
+				${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, ['icon-grey'])}
+				<br>
+				Search
+			</div>
+
+			<div id="searchSlideout" class="slideOut slideOutRight">
+			</div>
 		`,
 		functions: config => `
 			<div class="flex-grow">
