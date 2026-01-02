@@ -1341,19 +1341,33 @@ let _Pages = {
 
 		return div;
 	},
-	expandTreeNode: (id, stack, lastId) => {
+	expandTreeNode: (id) => {
 		if (!id) {
 			return;
 		}
-		lastId = lastId || id;
-		stack = stack || [];
-		stack.push(id);
-		Command.get(id, 'id,parent', (obj) => {
+
+		_Pages.getParentsRecursively(id).then(parents => {
+			_Entities.expandAll(parents.reverse(), id);
+		});
+	},
+	getParentsRecursively: async (id, stack = []) => {
+
+		let obj = await Command.getPromise(id, 'id,parent');
+		if (obj) {
+
+			stack.push(id);
+
 			if (obj.parent) {
-				_Pages.expandTreeNode(obj.parent.id, stack, lastId);
-			} else {
-				_Entities.expandAll(stack.reverse(), lastId);
+				stack = _Pages.getParentsRecursively(obj.parent.id, stack);
 			}
+		}
+
+		return stack;
+	},
+	selectAndShowArbitraryDOMElement: (id) => {
+
+		_Pages.getParentsRecursively(id).then(parents => {
+			_Entities.expandAll(parents.reverse(), id, true);
 		});
 	},
 	highlight: (id) => {
@@ -2958,7 +2972,7 @@ let _Pages = {
 
 			parentElement = (parentElement && parentElement.length) ? parentElement[0] : _Pages.centerPane;
 
-			if (pageId) {
+			if (pageId && pageId !== _Pages.shadowPage.id) {
 
 				let innerFn = () => {
 
