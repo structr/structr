@@ -34,8 +34,10 @@ import org.structr.docs.ontology.Ontology;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * An identifier that is augmented with a type so we know what it is.
@@ -64,10 +66,11 @@ public class MarkdownFileToken extends NamedConceptToken {
 
 		for (final String path : identifiers) {
 
-			final String fileName      = StringUtils.substringAfterLast(path, "/");
-			final String cleanedName   = MarkdownMarkdownFileFormatter.getNameFromFileName(fileName);
-			final Path folderPath      = Path.of("structr/docs/" + path);
-			final Concept markdownFile = ontology.getOrCreateConcept(fileName, line, ConceptType.MarkdownFile, cleanedName, false);
+			final Map<String, String> metadata = getMetadata(ontology, sourceFile, line);
+			final String fileName              = StringUtils.substringAfterLast(path, "/");
+			final String cleanedName           = coalesce(metadata.get("heading"), MarkdownMarkdownFileFormatter.getNameFromFileName(fileName));
+			final Path folderPath              = Path.of("structr/docs/" + path);
+			final Concept markdownFile         = ontology.getOrCreateConcept(fileName, line, ConceptType.MarkdownFile, cleanedName, false);
 
 			if (markdownFile != null) {
 
@@ -111,5 +114,36 @@ public class MarkdownFileToken extends NamedConceptToken {
 		}
 
 		return concepts;
+	}
+
+	// ----- private methods -----
+	private Map<String, String> getMetadata(final Ontology ontology, final String sourceFile, final int line) {
+
+		final Map<String, String> metadata = new LinkedHashMap<>();
+
+		// additional named concepts go into metadata of a concept (for now..)
+		for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
+
+			final List<Concept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
+			for (final Concept additionalConcept : additionalConcepts) {
+
+				metadata.put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
+			}
+		}
+
+		return metadata;
+	}
+
+	private String coalesce(final String... strings) {
+
+		for (final String string : strings) {
+
+			if (StringUtils.isNotBlank(string)) {
+
+				return string;
+			}
+		}
+
+		return null;
 	}
 }

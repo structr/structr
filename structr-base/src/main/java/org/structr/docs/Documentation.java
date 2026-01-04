@@ -20,17 +20,15 @@ package org.structr.docs;
 
 import org.structr.docs.ontology.ConceptType;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+@Repeatable(Documentations.class)
 public @interface Documentation {
 
 	ConceptType type() default ConceptType.Topic;
-	String name();
+	String name() default "";
 	String shortDescription() default "";
 	String parent() default "";
 	String[] synonyms() default {};

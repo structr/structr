@@ -26,7 +26,7 @@ public enum ConceptType {
 	Category("category"),
 
 	// output formats
-	Table("table"), List("list"),
+	Table("table"), List("list"), Heading("heading"),
 
 	// external sources
 	MarkdownFolder("markdown-folder"), MarkdownFile("markdown-file"), MarkdownHeading("markdown-heading"),
@@ -40,11 +40,11 @@ public enum ConceptType {
 	Logfile("logfile"), Value("value"), LifecycleMethod("lifecycle-method"), HttpVerb("http-verb"),
 	Function("function"), Setting("setting"), Helper("helper"), EventAction("event-action"),
 	EventNotification("event-notification"), EventBehaviour("event-behaviour"),
-	ParameterType("parameter-type"),
+	ParameterType("parameter-type"), Constant("constant"),
 
 	// metadata
 	Hint("hint"), Note("note"), Description("description"), Info("info"), Configuration("configuration"),
-	Synonym("synonym"), Text("text"),
+	Synonym("synonym"), Text("text"), Glossary("glossary"),
 
 	// java types
 	Keyword("keyword"), Method("method"), Property("property"), UserDefinedFunction("user-defined-function"),

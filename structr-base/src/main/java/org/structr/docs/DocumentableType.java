@@ -50,6 +50,7 @@ public enum DocumentableType {
 	Setting("Setting", ConceptType.Setting, false, false, SettingDocumentable::collectAllSettings),
 	RequestKeyword("Request parameter", ConceptType.RequestParameter, false, false, null),
 	RequestHeader("Request header", ConceptType.RequestHeader, false, false, null),
+	Constant("Constant", ConceptType.Constant, false, false, null),
 	Hidden(null, null, false, false, null);
 
 	private final Consumer<List<Documentable>> getFunction;

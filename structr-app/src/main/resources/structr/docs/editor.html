@@ -269,53 +269,55 @@
 
                 let searchField   = document.querySelector('#search input');
                 let resultsWidget = document.querySelector('#results');
-                searchField.addEventListener('keyup', debounce((keyup) => {
-                    resultsWidget.classList.add('hidden');
+                document.addEventListener('keyup', (keyup) => {
                     if (keyup.key === "Escape") {
                         searchField.value = '';
-                    } else {
-                        let selected = [];
-                        let found    = [];
-                        let value = searchField.value.toLowerCase();
-                        if (value.length > 0) {
-                            for (let node of nodes.get()) {
-                                if (node.label.toLowerCase().includes(value)) {
-                                    selected.push(node.id);
-                                    found.push(node);
+                        resultsWidget.classList.add('hidden');
+                    }
+                });
+                searchField.addEventListener('keyup', debounce((keyup) => {
+                    resultsWidget.classList.add('hidden');
+                    let selected = [];
+                    let found    = [];
+                    let value = searchField.value.toLowerCase();
+                    if (value.length > 0) {
+                        for (let node of nodes.get()) {
+                            if (node.label.toLowerCase().includes(value)) {
+                                selected.push(node.id);
+                                found.push(node);
+                            }
+                        }
+                        switch (selected.length) {
+                            case 0:
+                                searchField.classList.add('error');
+                                window.setTimeout(() => {
+                                    searchField.classList.remove('error');
+                                }, 3000);
+                                break;
+
+                            case 1:
+                                network.fit({nodes: selected});
+                                network.selectNodes(selected);
+                                let node = nodes.get(selected[0]);
+                                loadNode(node.label);
+                                break;
+
+                            default:
+                                resultsWidget.classList.remove('hidden');
+                                resultsWidget.innerHTML = '';
+                                for (let node of found) {
+                                    let div = document.createElement('div');
+                                    div.classList.add('node-link');
+                                    div.appendChild(document.createTextNode(node.label));
+                                    div.addEventListener('click', () => {
+                                        let n = [node.id];
+                                        network.fit({ nodes: n });
+                                        network.selectNodes(n);
+                                        loadNode(node.label);
+                                    });
+                                    resultsWidget.appendChild(div);
                                 }
-                            }
-                            switch (selected.length) {
-                                case 0:
-                                    searchField.classList.add('error');
-                                    window.setTimeout(() => {
-                                        searchField.classList.remove('error');
-                                    }, 3000);
-                                    break;
-
-                                case 1:
-                                    network.fit({nodes: selected});
-                                    network.selectNodes(selected);
-                                    let node = nodes.get(selected[0]);
-                                    loadNode(node.label);
-                                    break;
-
-                                default:
-                                    resultsWidget.classList.remove('hidden');
-                                    resultsWidget.innerHTML = '';
-                                    for (let node of found) {
-                                        let div = document.createElement('div');
-                                        div.classList.add('node-link');
-                                        div.appendChild(document.createTextNode(node.label));
-                                        div.addEventListener('click', () => {
-                                            let n = [node.id];
-                                            network.fit({ nodes: n });
-                                            network.selectNodes(n);
-                                            loadNode(node.label);
-                                        });
-                                        resultsWidget.appendChild(div);
-                                    }
-                                    break;
-                            }
+                                break;
                         }
                     }
                 }, 500));

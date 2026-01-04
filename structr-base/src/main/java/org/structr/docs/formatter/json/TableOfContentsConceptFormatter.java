@@ -27,7 +27,7 @@ import org.structr.docs.ontology.ConceptType;
 
 import java.util.*;
 
-public class TableOfConcentsConceptFormatter extends Formatter {
+public class TableOfContentsConceptFormatter extends Formatter {
 
 	private final Set<ConceptType> whitelistedTypes = Set.of(
 		ConceptType.Topic,

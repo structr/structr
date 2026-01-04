@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class ToplevelTopicsMarkdownFormatter extends Formatter {
 
-	private final Set<ConceptType> blacklistedTypes = Set.of(ConceptType.Text); //, ConceptType.Setting, ConceptType.Helper, ConceptType.Category, ConceptType.HttpVerb);
+	private final Set<ConceptType> blacklistedTypes = Set.of(ConceptType.Text, ConceptType.Constant); //, ConceptType.Setting, ConceptType.Helper, ConceptType.Category, ConceptType.HttpVerb);
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {

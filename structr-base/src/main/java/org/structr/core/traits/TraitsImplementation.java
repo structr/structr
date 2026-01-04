@@ -552,7 +552,7 @@ public class TraitsImplementation implements Traits {
 
 	@Override
 	public List<ConceptReference> getParentConcepts() {
-		return List.of(ConceptReference.of(ConceptType.Topic, "System types"));
+		return List.of(ConceptReference.of(ConceptType.Topic, "Built-in types"));
 	}
 
 	@Override

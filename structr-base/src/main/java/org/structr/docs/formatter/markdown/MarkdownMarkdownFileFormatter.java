@@ -56,17 +56,7 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 
 		try {
 
-			final String name = getNameFromFileName(fileName);
-
-			if (settings.hasDetail(Details.name)) {
-
-				lines.add(formatMarkdownHeading(name, level));
-			}
-
-			if (settings.hasDetail(Details.all)) {
-
-				lines.addAll(Files.readAllLines(resource.resolve(fileName).getPath()));
-			}
+			lines.addAll(Files.readAllLines(resource.resolve(fileName).getPath()));
 
 		} catch (IOException e) {
 			e.printStackTrace();

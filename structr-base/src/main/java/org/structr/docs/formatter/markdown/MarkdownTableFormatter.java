@@ -18,10 +18,9 @@
  */
 package org.structr.docs.formatter.markdown;
 
-import org.structr.docs.Documentable;
-import org.structr.docs.Documentation;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.docs.*;
 import org.structr.docs.Formatter;
-import org.structr.docs.OutputSettings;
 import org.structr.docs.ontology.Concept;
 
 import java.util.*;
@@ -54,6 +53,24 @@ public class MarkdownTableFormatter extends Formatter {
 
 					documentables.add(documentable);
 
+				} else {
+
+					documentables.add(new Documentable() {
+						@Override
+						public DocumentableType getDocumentableType() {
+							return DocumentableType.Constant;
+						}
+
+						@Override
+						public String getName() {
+							return child.getName();
+						}
+
+						@Override
+						public String getShortDescription() {
+							return coalesce(child.getShortDescription(), (String) child.getMetadata().get("description"));
+						}
+					});
 				}
 			}
 
@@ -63,5 +80,18 @@ public class MarkdownTableFormatter extends Formatter {
 				lines.add("| `" + documentable.getDisplayName() + "` | " + documentable.getShortDescription() + " |");
 			}
 		}
+	}
+
+	// ----- private methods -----
+	private String coalesce(final String... strings) {
+
+		for (final String string : strings) {
+
+			if (StringUtils.isNotBlank(string)) {
+				return string;
+			}
+		}
+
+		return null;
 	}
 }

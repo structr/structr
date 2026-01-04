@@ -28,6 +28,7 @@ import org.structr.api.service.Service;
 import org.structr.core.Services;
 import org.structr.docs.Documentable;
 import org.structr.docs.Documentation;
+import org.structr.docs.Documentations;
 import org.structr.schema.ConfigurationProvider;
 
 import java.io.ByteArrayOutputStream;
@@ -50,18 +51,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(JarConfigurationProvider.class.getName());
 
-	private final Map<String, Class<? extends Agent>> agentClassCache = new ConcurrentHashMap<>(100);
-	private final Map<Class, Documentation> documentationAnnotations  = new LinkedHashMap<>();
-	private final Map<String, StructrModule> modules                  = new ConcurrentHashMap<>(100);
-	private final Set<String> classNames                              = new LinkedHashSet<>();
-	private final Set<String> agentPackages                           = new LinkedHashSet<>();
-	private final String fileSep                                      = System.getProperty("file.separator");
-	private final String pathSep                                      = System.getProperty("path.separator");
-	private final String fileSepEscaped                               = fileSep.replaceAll("\\\\", "\\\\\\\\");
-	private final String testClassesDir                               = fileSep.concat("test-classes");
-	private final String classesDir                                   = fileSep.concat("classes");
+	private final Map<String, Class<? extends Agent>> agentClassCache      = new ConcurrentHashMap<>(100);
+	private final Map<Class, List<Documentation>> documentationAnnotations = new LinkedHashMap<>();
+	private final Map<String, StructrModule> modules                       = new ConcurrentHashMap<>(100);
+	private final Set<String> classNames                                   = new LinkedHashSet<>();
+	private final Set<String> agentPackages                                = new LinkedHashSet<>();
+	private final String fileSep                                           = System.getProperty("file.separator");
+	private final String pathSep                                           = System.getProperty("path.separator");
+	private final String fileSepEscaped                                    = fileSep.replaceAll("\\\\", "\\\\\\\\");
+	private final String testClassesDir                                    = fileSep.concat("test-classes");
+	private final String classesDir                                        = fileSep.concat("classes");
 
-	private LicenseManager licenseManager                             = null;
+	private LicenseManager licenseManager                                  = null;
 
 	// ----- interface ConfigurationProvider -----
 	@Override
@@ -105,7 +106,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	}
 
 	@Override
-	public Map<Class, Documentation> getDocumentationAnnotations() {
+	public Map<Class, List<Documentation>> getDocumentationAnnotations() {
 		return documentationAnnotations;
 	}
 
@@ -219,14 +220,18 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				final Class clazz    = Class.forName(className);
 				final int modifiers  = clazz.getModifiers();
 
-				// capture documentation annotation
-				if (clazz.getAnnotation(Documentation.class) != null) {
+				// capture documentations annotation (repeatable / multiple annotations on the same target)
+				final Documentations documentations = (Documentations) clazz.getAnnotation(Documentations.class);
+				if (documentations != null) {
 
-					final Documentation documentation = (Documentation) clazz.getAnnotation(Documentation.class);
-					if (documentation != null) {
+					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).addAll(Arrays.asList(documentations.value()));
+				}
 
-						documentationAnnotations.put(clazz, documentation);
-					}
+				// single documentation annotation
+				final Documentation documentation = (Documentation) clazz.getAnnotation(Documentation.class);
+				if (documentation != null) {
+
+					documentationAnnotations.computeIfAbsent(clazz, k -> new LinkedList<>()).add(documentation);
 				}
 
 				// register services

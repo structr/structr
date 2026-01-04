@@ -77,13 +77,13 @@ public class NamedConceptToken extends Token<List<Concept>> {
 					concept.setFormat(formatSpecification.resolve(ontology, sourceFile, line));
 				}
 
-				// additional named concepts go into metadata of a concept (for now..)
+				// additional named concepts go into metadata of a concept
 				for (final NamedConceptToken additionalNamedConcept : additionalNamedConcepts) {
 
 					final List<Concept> additionalConcepts = additionalNamedConcept.resolve(ontology, sourceFile, line);
 					for (final Concept additionalConcept : additionalConcepts) {
 
-						concepts.add(additionalConcept);
+						//concepts.add(additionalConcept);
 
 						concept.getMetadata().put(additionalConcept.getType().getIdentifier(), additionalConcept.getName());
 					}

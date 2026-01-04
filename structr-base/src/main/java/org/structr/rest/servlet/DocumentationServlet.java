@@ -37,7 +37,7 @@ import org.structr.docs.Documentation;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.json.JsonConceptFormatter;
-import org.structr.docs.formatter.json.TableOfConcentsConceptFormatter;
+import org.structr.docs.formatter.json.TableOfContentsConceptFormatter;
 import org.structr.docs.formatter.markdown.*;
 import org.structr.docs.formatter.text.PlaintextMarkdownFileFormatter;
 import org.structr.docs.formatter.text.PlaintextTopicFormatter;
@@ -64,7 +64,7 @@ public class DocumentationServlet extends HttpServlet {
 			final Resource baseResource           = resourceHandler.getBaseResource();
 			final Resource facts                  = baseResource.resolve("facts");
 			final Ontology ontology               = new Ontology(facts.getPath());
-			final OutputSettings settings         = setupOutputSettings(baseResource);
+			final OutputSettings settings         = setupOutputSettings(ontology, baseResource);
 			final List<Concept> concepts          = new LinkedList<>();
 
 			handleRequestParameters(request, ontology, concepts, settings);
@@ -265,9 +265,9 @@ public class DocumentationServlet extends HttpServlet {
 		return hasFilter;
 	}
 
-	private OutputSettings setupOutputSettings(final Resource baseResource) {
+	private OutputSettings setupOutputSettings(final Ontology ontology, final Resource baseResource) {
 
-		final OutputSettings settings = new OutputSettings(0, 5);
+		final OutputSettings settings = new OutputSettings(ontology, 0, 5);
 
 		// sensible default
 		settings.getDetails().add(Details.name);
@@ -277,6 +277,7 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.MarkdownFile,   new MarkdownMarkdownFileFormatter(baseResource));
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.CodeSource,     new MarkdownCodeSourceFormatter());
 		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Table,          new MarkdownTableFormatter());
+		settings.setFormatterForOutputFormatModeAndType("markdown", "overview", ConceptType.Glossary,       new MarkdownGlossaryFormatter());
 
 		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Unknown,            new PlaintextTopicFormatter());
 		settings.setFormatterForOutputFormatModeAndType("text", "overview", ConceptType.Topic,              new PlaintextTopicFormatter());
@@ -286,7 +287,7 @@ public class DocumentationServlet extends HttpServlet {
 		settings.setFormatterForOutputFormatModeAndType("json", "overview", ConceptType.Unknown,            new JsonConceptFormatter());
 
 		// table of contents for inline documentation
-		settings.setFormatterForOutputFormatModeAndType("toc", "overview", ConceptType.Unknown,            new TableOfConcentsConceptFormatter());
+		settings.setFormatterForOutputFormatModeAndType("toc", "overview", ConceptType.Unknown,            new TableOfContentsConceptFormatter());
 
 		return settings;
 	}

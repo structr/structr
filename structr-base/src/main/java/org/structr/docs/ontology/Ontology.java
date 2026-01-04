@@ -34,6 +34,7 @@ import org.structr.docs.ontology.parser.token.UnresolvedToken;
 
 import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -404,64 +405,80 @@ public final class Ontology {
 
 	private void initializeFromDocumentationAnnotations() {
 
-		for (final Map.Entry<Class, Documentation> entry : StructrApp.getConfiguration().getDocumentationAnnotations().entrySet()) {
+		for (final Map.Entry<Class, List<Documentation>> entry : StructrApp.getConfiguration().getDocumentationAnnotations().entrySet()) {
 
-			final Class clazz                 = entry.getKey();
-			final Documentation documentation = entry.getValue();
-			final String sourceFile           = "@Documentation on " + clazz.getSimpleName();
+			final Class clazz                       = entry.getKey();
+			final List<Documentation> documentation = entry.getValue();
 
-			// collect info from annotation and import it into the ontology
-			final ConceptType type  = documentation.type();
-			final String name       = documentation.name();
-			final String desc       = documentation.shortDescription();
-			final String parent     = documentation.parent();
-			final String[] synonyms = documentation.synonyms();
-			final String[] children = documentation.children();
+			for (final Documentation doc : documentation) {
 
-			// allow this getOrCreate call to find existing concepts so we can combine concepts from different @Documentation annotations
-			final Concept concept = getOrCreateConcept(sourceFile, 0, type, name, true);
-			if (concept != null) {
+				initializeFromDocumentationAnnotations(clazz, doc, clazz.getSimpleName(), null, null);
+			}
+		}
+	}
 
-				concept.setShortDescription(desc);
+	private void initializeFromDocumentationAnnotations(final Class clazz, final Documentation documentation, final String typeName, final String itemName, final Concept parentConcept) {
 
-				if (children != null && children.length > 0) {
+		final String sourceFile = "@Documentation on " + typeName;
 
-					for (final String child : children) {
+		// collect info from annotation and import it into the ontology
+		final ConceptType type  = documentation.type();
+		final String name       = coalesce(documentation.name(), itemName);
+		final String desc       = documentation.shortDescription();
+		final String parent     = documentation.parent();
+		final String[] synonyms = documentation.synonyms();
+		final String[] children = documentation.children();
 
-						if (StringUtils.isNotBlank(child)) {
+		// allow this getOrCreate call to find existing concepts so we can combine concepts from different @Documentation annotations
+		final Concept concept = getOrCreateConcept(sourceFile, 0, type, name, true);
+		if (concept != null) {
 
-							final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child, false);
-							if (childConcept != null) {
+			concept.setShortDescription(desc);
 
-								concept.linkChild("has", childConcept);
-							}
+			if (children != null && children.length > 0) {
+
+				for (final String child : children) {
+
+					if (StringUtils.isNotBlank(child)) {
+
+						final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child, false);
+						if (childConcept != null) {
+
+							concept.linkChild("has", childConcept);
 						}
 					}
 				}
+			}
 
-				if (synonyms != null && synonyms.length > 0) {
+			if (synonyms != null && synonyms.length > 0) {
 
-					for (final String synonym : synonyms) {
+				for (final String synonym : synonyms) {
 
-						if (StringUtils.isNotBlank(synonym)) {
+					if (StringUtils.isNotBlank(synonym)) {
 
-							final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym, false);
-							if (synonymConcept != null) {
+						final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym, false);
+						if (synonymConcept != null) {
 
-								concept.linkChild("has", synonymConcept);
-							}
+							concept.linkChild("has", synonymConcept);
 						}
 					}
 				}
+			}
 
-				if (StringUtils.isNotBlank(parent)) {
+			if (StringUtils.isNotBlank(parent)) {
 
-					final Concept parentConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent, true);
-					if (parentConcept != null) {
+				final Concept p = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent, true);
+				if (p != null) {
 
-						parentConcept.linkChild("has", concept);
-					}
+					p.linkChild("has", concept);
 				}
+
+			} else if (parentConcept != null) {
+
+				parentConcept.linkChild("has", concept);
+			}
+
+			if (clazz != null) {
 
 				// import properties and important methods from system types, maybe longDescription as well...?
 				if (AbstractNodeTraitDefinition.class.isAssignableFrom(clazz)) {
@@ -474,10 +491,10 @@ public final class Ontology {
 							final AbstractNodeTraitDefinition def = (AbstractNodeTraitDefinition) constructor.newInstance();
 							if (def != null) {
 
-								final String typeName = def.getName();
-								if (Traits.exists(typeName)) {
+								final String dynamicTypeName = def.getName();
+								if (Traits.exists(dynamicTypeName)) {
 
-									final Traits traits = Traits.of(typeName);
+									final Traits traits = Traits.of(dynamicTypeName);
 
 									// collect properties here
 									for (final DocumentedProperty property : traits.getDocumentedProperties()) {
@@ -512,7 +529,7 @@ public final class Ontology {
 							if (childName != null) {
 
 								final DocumentableType documentableType = documentable.getDocumentableType();
-								final Concept childConcept              = getOrCreateConcept(sourceFile, 0, documentableType.getConcept(), childName, false);
+								final Concept childConcept = getOrCreateConcept(sourceFile, 0, documentableType.getConcept(), childName, false);
 
 								if (childConcept != null) {
 
@@ -526,7 +543,41 @@ public final class Ontology {
 						}
 					}
 				}
+
+				// examine static fields etc.
+				for (final Field field : clazz.getDeclaredFields()) {
+
+					final Documentations fieldAnnotation = field.getAnnotation(Documentations.class);
+					if (fieldAnnotation != null) {
+
+						for (final Documentation doc : fieldAnnotation.value()) {
+
+							// recurse
+							initializeFromDocumentationAnnotations(null, doc, typeName + "." + field.getName(), field.getName(), concept);
+						}
+					}
+
+					final Documentation doc = field.getAnnotation(Documentation.class);
+					if (doc != null) {
+
+						// recurse
+						initializeFromDocumentationAnnotations(null, doc, typeName + "." + field.getName(), field.getName(), concept);
+					}
+				}
 			}
 		}
+	}
+
+	private String coalesce(final String... strings) {
+
+		for (final String string : strings) {
+
+			if (StringUtils.isNotBlank(string)) {
+
+				return string;
+			}
+		}
+
+		return null;
 	}
 }

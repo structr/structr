@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2026 Structr GmbH
+ * Copyright (C) 2010-2025 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,28 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema;
+package org.structr.docs;
 
-import org.structr.agent.Agent;
-import org.structr.api.service.LicenseManager;
-import org.structr.docs.Documentation;
-import org.structr.module.StructrModule;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-/**
- *
- *
- */
-public interface ConfigurationProvider {
-
-	void initialize(final LicenseManager licenseManager);
-	void shutdown();
-
-	Map<String, Class<? extends Agent>> getAgents();
-	Map<String, StructrModule> getModules();
-	Set<String> getClassNames();
-	Map<Class, List<Documentation>> getDocumentationAnnotations();
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.TYPE, ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+public @interface Documentations {
+	Documentation[] value();
 }

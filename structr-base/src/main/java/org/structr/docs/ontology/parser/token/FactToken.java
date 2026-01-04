@@ -20,6 +20,7 @@ package org.structr.docs.ontology.parser.token;
 
 import org.graalvm.collections.Pair;
 import org.structr.docs.ontology.Concept;
+import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
 
 import java.util.LinkedList;
@@ -92,8 +93,16 @@ public class FactToken extends Token {
 					continue;
 				}
 
-				subject.linkChild(verb, object);
-				object.linkParent(inverse, subject);
+				// capture "has description" fact
+				if ("has".equals(verb) && ConceptType.Description.equals(object.getType())) {
+
+					subject.setShortDescription(object.getName());
+
+				} else {
+
+					subject.linkChild(verb, object);
+					object.linkParent(inverse, subject);
+				}
 			}
 		}
 

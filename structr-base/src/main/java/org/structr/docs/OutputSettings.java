@@ -21,6 +21,7 @@ package org.structr.docs;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
+import org.structr.docs.ontology.Ontology;
 
 import java.util.*;
 
@@ -30,16 +31,18 @@ public class OutputSettings {
 	private final Map<Integer, Set<String>> linkTypesPerLevel                        = new LinkedHashMap<>();
 	private final Set<ConceptType> typesToRender                                     = new LinkedHashSet<>();
 	private final Set<Details> details                                               = new LinkedHashSet<>();
+	private final Ontology ontology;
 	private String outputMode                                                        = "overview";
 	private String outputFormat                                                      = "text";
 	private String baseUrl;
 	private int startLevel;
 	private int maxLevels;
 
-	public OutputSettings(final int startLevel, final int maxLevels) {
+	public OutputSettings(final Ontology ontology, final int startLevel, final int maxLevels) {
 
+		this.ontology   = ontology;
 		this.startLevel = startLevel;
-		this.maxLevels = maxLevels;
+		this.maxLevels  = maxLevels;
 	}
 
 	/**
@@ -172,5 +175,9 @@ public class OutputSettings {
 
 	public boolean renderType(final ConceptType type) {
 		return typesToRender.isEmpty() || typesToRender.contains(type);
+	}
+
+	public Ontology getOntology() {
+		return ontology;
 	}
 }
