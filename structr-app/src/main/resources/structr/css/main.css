@@ -590,7 +590,6 @@ img.disabled {
 	width: 3rem;
 	font-size: .75rem;
 	z-index: 1000;
-	position: absolute;
 	padding: .5rem;
 	overflow: visible ! important;
 	transform-style: preserve-3d;
@@ -617,30 +616,14 @@ img.disabled {
 .slideout-activator.left:not(.active):hover {
 	border-right: .25rem solid var(--structr-light-green);
 }
+.slideout-activator.right {
+    border-left: .25rem solid transparent;
+}
 .slideout-activator.active.right {
 	border-left: .25rem solid var(--structr-green);
 }
 .slideout-activator.right:not(.active):hover {
 	border-left: .25rem solid var(--structr-light-green);
-}
-
-/*
- * Pages: slideout activators
- */
-#pagesTab         { top: 2rem; }
-#localizationsTab {	top: 8rem; }
-
-#widgetsTab    { top:  2rem; }
-#componentsTab { top:  7rem; }
-#elementsTab   { top: 13rem; }
-#previewTab    { top: 19rem; }
-#searchTab     { top: 24rem; }
-
-.slideout-activator.left {
-    left: 0;
-}
-.slideout-activator.right {
-	right: 0;
 }
 
 .slideOut {
@@ -3322,15 +3305,6 @@ div#custom-properties-container table td:nth-child(3) {
 	padding: 0;
 }
 
-button.icon-button {
-	background-color: transparent;
-	padding: 1px 4px 2px 4px;
-}
-
-button.icon-button i {
-	margin: 0;
-}
-
 /* routing dialog */
 .routing-container select,
 .routing-container input[type="text"],
@@ -4463,6 +4437,9 @@ ul.combined-input-select-field li:hover {
 .gap-y-2 {
 	row-gap: .5rem;
 }
+.gap-y-3 {
+    row-gap: .75rem;
+}
 .gap-y-4 {
 	row-gap: 1rem;
 }
@@ -4489,6 +4466,9 @@ ul.combined-input-select-field li:hover {
 }
 .gap-4 {
 	gap: 1rem;
+}
+.gap-5 {
+    gap: 1.25rem;
 }
 .gap-8 {
 	gap: 2rem;

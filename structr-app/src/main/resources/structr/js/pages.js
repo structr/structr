@@ -3945,7 +3945,53 @@ let _Pages = {
 				searchDOM: true
 			});
 
-			console.log(results);
+			let resultsElement = document.querySelector('#dom-search-results');
+
+			for (let result of results) {
+				let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result));
+
+				resultsElement.appendChild(el);
+
+				el.querySelector('button').addEventListener('click', _Pages.search.goToResultButtonClicked);
+			}
+		},
+		goToResultButtonClicked: e => {
+			let id = e.target.closest('[data-id]').dataset.id;
+			console.log(e, id);
+			_Pages.selectAndShowArbitraryDOMElement(id);
+		},
+		templates: {
+			slideoutContent: config => `
+				<div class="mx-4 my-4">
+					<form id="search-node-form" class="flex flex-col">
+						<div class="flex gap-2">
+							<input type="text" name="searchString" placeholder="Search">
+							<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
+						</div>
+					</form>
+
+					<div id="dom-search-results" class="grid items-center gap-x-2 gap-y-3 mt-6" style="grid-template-columns: [ name ] minmax(0, 1fr) [ keys ] minmax(10%, max-content) [ id ] 4rem [ actions ] minmax(2rem, max-content)">
+						<div class="contents font-bold">
+							<div>Name/Type</div>
+							<div>Key(s)</div>
+							<div>ID</div>
+							<div></div>
+						</div>
+					</div>
+				</div>
+			`,
+			result: result => `
+				<div class="contents" data-id="${result.id}">
+					<div>${result.name ? `${result.name} [${result.type}]` : result.type}</div>
+					<div>${result.keys.join(', ')}</div>
+					<div class="truncate">${result.id}</div>
+					<div>
+						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0">
+							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'], 'Go to element')}
+						</button>
+					</div>
+				</div>
+			`
 		}
 	},
 
@@ -3980,31 +4026,13 @@ let _Pages = {
 			<div class="column-resizer column-resizer-left hidden"></div>
 			<div class="column-resizer column-resizer-right hidden"></div>
 
-			<div class="slideout-activator left" id="pagesTab" data-for-slideout="#pages" data-sub-section="pageTree">
-				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
-					<g transform="matrix(1,0,0,1,0,0)">
-						<path d="M9.750 18.748 L23.250 18.748 L23.250 23.248 L9.750 23.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.750 11.248 L23.250 11.248 L23.250 15.748 L9.750 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L14.250 0.748 L14.250 5.248 L0.750 5.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,5.248v1.5a1.5,1.5,0,0,0,1.5,1.5h4.5a1.5,1.5,0,0,1,1.5,1.5v1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 15.748L17.25 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Page Tree
-			</div>
+			${_Pages.templates.slideoutActivators.left()}
 
 			<div id="pages" class="slideOut slideOutLeft">
 				<div id="pages-controls">
 					<div id="pagesPager"></div>
 				</div>
 				<div id="pagesTree"></div>
-			</div>
-
-			<div class="slideout-activator left" id="localizationsTab" data-for-slideout="#localizations" data-sub-section="localizations">
-				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
-					<g transform="matrix(1,0,0,1,0,0)">
-						<path d="M19.652 0.748L15.902 2.998 18.152 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25,8.187A6.749,6.749,0,0,0,16.366,3.77" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M4.348 23.248L8.098 20.998 5.848 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M.75,15.808a6.749,6.749,0,0,0,6.884,4.417" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L12.750 0.748 L12.750 12.748 L0.750 12.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,11.248h6a1.5,1.5,0,0,1,1.5,1.5v9a1.5,1.5,0,0,1-1.5,1.5h-9a1.5,1.5,0,0,1-1.5-1.5v-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,20.248v-4.5a1.5,1.5,0,0,1,3,0v4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75 18.748L18.75 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 3.748L6.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 5.248L9.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,5.248s-1.5,4.5-4.5,4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.749,8.014a3.933,3.933,0,0,0,3,1.734" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Trans-<br>lations
 			</div>
 
 			<div id="localizations" class="slideOut slideOutLeft">
@@ -4021,91 +4049,116 @@ let _Pages = {
 
 			<div id="center-pane"></div>
 
-			<div class="slideout-activator right" id="widgetsTab" data-for-slideout="#widgetsSlideout" data-sub-section="widgets">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path d="M16.5,23.248H21a.75.75,0,0,0,.75-.75V17.559a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75v6A.75.75,0,0,0,16.5,23.248Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5,9.748H21A.75.75,0,0,0,21.75,9V4.059a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75V9A.75.75,0,0,0,16.5,9.748Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 0.748L2.25 2.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 5.248L2.25 8.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 11.248L2.25 14.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25,17.248v1.5a1.5,1.5,0,0,0,1.5,1.5h1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 20.248L11.25 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 20.248L15.75 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 6.748L5.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 6.748L11.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 6.748L15.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Widgets
-			</div>
+			${_Pages.templates.slideoutActivators.right()}
 
 			<div id="widgetsSlideout" class="slideOut slideOutRight">
 			</div>
 
-			<div class="slideout-activator right" id="componentsTab" data-for-slideout="#components" data-sub-section="sharedComponents">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path d="M6.750 3.001 A5.25 2.25 0 1 0 17.250 3.001 A5.25 2.25 0 1 0 6.750 3.001 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,3V6c0,1.242,2.351,2.25,5.25,2.25S17.25,7.243,17.25,6V3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,6V9c0,1.242,2.351,2.25,5.25,2.25S17.25,10.243,17.25,9V6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 14.251 L9.750 14.251 L9.750 20.251 L0.750 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 20.251L5.25 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3 23.251L7.5 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.250 14.251 L23.250 14.251 L23.250 20.251 L14.250 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.75 20.251L18.75 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5 23.251L21 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.251,11.251v-1.5a1.5,1.5,0,0,1,1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M21.751,11.251v-1.5a1.5,1.5,0,0,0-1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Shared Comp.
-			</div>
-
 			<div id="components" class="slideOut slideOutRight">
-			</div>
-
-			<div class="slideout-activator right" id="elementsTab" data-for-slideout="#elements" data-sub-section="unattachedNodes">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path d="M22.9,1.3A1.5,1.5,0,0,0,21.75.764H2.25A1.5,1.5,0,0,0,.772,2.521l3.387,19.5a1.5,1.5,0,0,0,1.478,1.243H18.363a1.5,1.5,0,0,0,1.478-1.243l3.387-19.5A1.5,1.5,0,0,0,22.9,1.3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.125 13.514L6.375 13.514 6.375 17.264" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.792,14.247a5.572,5.572,0,0,1-10.74-.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.625 10.514L18.375 10.514 18.375 6.764" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.958,9.781a5.572,5.572,0,0,1,10.74.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>
-				Recycle Bin
 			</div>
 
 			<div id="elements" class="slideOut slideOutRight">
 				<div id="elementsArea"></div>
 			</div>
 
-			<div class="slideout-activator right" id="previewTab" data-for-slideout="#previewSlideout" data-sub-section="previews">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5px">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M21.25 1.0061H2.75C1.64543 1.0061 0.75 1.90153 0.75 3.0061V16.9041C0.75 18.0087 1.64543 18.9041 2.75 18.9041H21.25C22.3546 18.9041 23.25 18.0087 23.25 16.9041V3.0061C23.25 1.90153 22.3546 1.0061 21.25 1.0061Z"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M9.95501 18.9031L8.93201 22.9941"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.93201 22.9939H14.557"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M14.046 18.9031L15.068 22.9941"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M16.602 22.9939H7.39801"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M0.75 15.312H23.25"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 5.15308H6.201"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.46701 5.15308H9.82701"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 8.20996H5.294"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M7.561 8.20996H9.827"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 11.2671H9.827"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 1.0061V15.3121"></path>
-						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 12.0169L16.075 9.04089C16.5729 8.64889 17.1845 8.42882 17.818 8.41368C18.4516 8.39854 19.0729 8.58913 19.589 8.95689L23.25 12.0169"></path>
-						<path stroke="currentColor" d="M16.597 5.65308C16.3208 5.65308 16.097 5.42922 16.097 5.15308C16.097 4.87693 16.3208 4.65308 16.597 4.65308"></path>
-						<path stroke="currentColor" d="M16.597 5.65308C16.8731 5.65308 17.097 5.42922 17.097 5.15308C17.097 4.87693 16.8731 4.65308 16.597 4.65308"></path>
-					</g>
-				</svg>
-				<br>
-				Preview
-			</div>
-
 			<div id="previewSlideout" class="slideOut slideOutRight">
 			</div>
 
-			<div class="slideout-activator right" id="searchTab" data-for-slideout="#searchSlideout" data-sub-section="search">
-				${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, ['icon-grey'])}
-				<br>
-				Search
-			</div>
-
 			<div id="searchSlideout" class="slideOut slideOutRight">
-				<form id="search-node-form" class="flex flex-col mx-4 my-4">
-					<div class="flex gap-2">
-						<input type="text" name="searchString" placeholder="Search">
-						<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
-					</div>
-					<div class="search-results">
-					</div>
-				</form>
-				
+				${_Pages.search.templates.slideoutContent()}
 			</div>
 		`,
+		slideoutActivators: {
+			left: config => `
+				<div class="flex flex-col gap-5 absolute left-0 top-8">
+
+					<div class="slideout-activator left" id="pagesTab" data-for-slideout="#pages" data-sub-section="pageTree">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="24" height="24">
+							<g transform="matrix(1,0,0,1,0,0)">
+								<path d="M9.750 18.748 L23.250 18.748 L23.250 23.248 L9.750 23.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M9.750 11.248 L23.250 11.248 L23.250 15.748 L9.750 15.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L14.250 0.748 L14.250 5.248 L0.750 5.248 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,5.248v1.5a1.5,1.5,0,0,0,1.5,1.5h4.5a1.5,1.5,0,0,1,1.5,1.5v1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.25 15.748L17.25 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Page Tree
+					</div>
+
+					<div class="slideout-activator left" id="localizationsTab" data-for-slideout="#localizations" data-sub-section="localizations">
+						<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="24" height="24">
+							<g transform="matrix(1,0,0,1,0,0)">
+								<path d="M19.652 0.748L15.902 2.998 18.152 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M23.25,8.187A6.749,6.749,0,0,0,16.366,3.77" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M4.348 23.248L8.098 20.998 5.848 17.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M.75,15.808a6.749,6.749,0,0,0,6.884,4.417" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 0.748 L12.750 0.748 L12.750 12.748 L0.750 12.748 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,11.248h6a1.5,1.5,0,0,1,1.5,1.5v9a1.5,1.5,0,0,1-1.5,1.5h-9a1.5,1.5,0,0,1-1.5-1.5v-6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75,20.248v-4.5a1.5,1.5,0,0,1,3,0v4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M15.75 18.748L18.75 18.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75 3.748L6.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3.75 5.248L9.75 5.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25,5.248s-1.5,4.5-4.5,4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.749,8.014a3.933,3.933,0,0,0,3,1.734" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Trans-<br>lations
+					</div>
+				</div>
+			`,
+			right: config => `
+				<div class="flex flex-col gap-5 absolute right-0 top-8">
+
+					<div class="slideout-activator right" id="widgetsTab" data-for-slideout="#widgetsSlideout" data-sub-section="widgets">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path d="M16.5,23.248H21a.75.75,0,0,0,.75-.75V17.559a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75v6A.75.75,0,0,0,16.5,23.248Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5,9.748H21A.75.75,0,0,0,21.75,9V4.059a.75.75,0,0,0-.219-.53l-1.06-1.061a.749.749,0,0,0-.53-.22H16.5a.75.75,0,0,0-.75.75V9A.75.75,0,0,0,16.5,9.748Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 0.748L2.25 2.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 5.248L2.25 8.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 11.248L2.25 14.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25,17.248v1.5a1.5,1.5,0,0,0,1.5,1.5h1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 20.248L11.25 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 20.248L15.75 20.248" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.25 6.748L5.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M8.25 6.748L11.25 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.25 6.748L15.75 6.748" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Widgets
+					</div>
+
+					<div class="slideout-activator right" id="componentsTab" data-for-slideout="#components" data-sub-section="sharedComponents">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path d="M6.750 3.001 A5.25 2.25 0 1 0 17.250 3.001 A5.25 2.25 0 1 0 6.750 3.001 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,3V6c0,1.242,2.351,2.25,5.25,2.25S17.25,7.243,17.25,6V3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.75,6V9c0,1.242,2.351,2.25,5.25,2.25S17.25,10.243,17.25,9V6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 14.251 L9.750 14.251 L9.750 20.251 L0.750 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M5.25 20.251L5.25 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M3 23.251L7.5 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.250 14.251 L23.250 14.251 L23.250 20.251 L14.250 20.251 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M18.75 20.251L18.75 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M16.5 23.251L21 23.251" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M2.251,11.251v-1.5a1.5,1.5,0,0,1,1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M21.751,11.251v-1.5a1.5,1.5,0,0,0-1.5-1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Shared Comp.
+					</div>
+
+					<div class="slideout-activator right" id="elementsTab" data-for-slideout="#elements" data-sub-section="unattachedNodes">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path d="M22.9,1.3A1.5,1.5,0,0,0,21.75.764H2.25A1.5,1.5,0,0,0,.772,2.521l3.387,19.5a1.5,1.5,0,0,0,1.478,1.243H18.363a1.5,1.5,0,0,0,1.478-1.243l3.387-19.5A1.5,1.5,0,0,0,22.9,1.3Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M10.125 13.514L6.375 13.514 6.375 17.264" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.792,14.247a5.572,5.572,0,0,1-10.74-.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M14.625 10.514L18.375 10.514 18.375 6.764" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M6.958,9.781a5.572,5.572,0,0,1,10.74.733" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+							</g>
+						</svg>
+						<br>
+						Recycle Bin
+					</div>
+
+					<div class="slideout-activator right" id="previewTab" data-for-slideout="#previewSlideout" data-sub-section="previews">
+						<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5px">
+							<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M21.25 1.0061H2.75C1.64543 1.0061 0.75 1.90153 0.75 3.0061V16.9041C0.75 18.0087 1.64543 18.9041 2.75 18.9041H21.25C22.3546 18.9041 23.25 18.0087 23.25 16.9041V3.0061C23.25 1.90153 22.3546 1.0061 21.25 1.0061Z"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M9.95501 18.9031L8.93201 22.9941"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.93201 22.9939H14.557"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M14.046 18.9031L15.068 22.9941"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M16.602 22.9939H7.39801"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M0.75 15.312H23.25"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 5.15308H6.201"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.46701 5.15308H9.82701"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 8.20996H5.294"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M7.561 8.20996H9.827"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 11.2671H9.827"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 1.0061V15.3121"></path>
+								<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 12.0169L16.075 9.04089C16.5729 8.64889 17.1845 8.42882 17.818 8.41368C18.4516 8.39854 19.0729 8.58913 19.589 8.95689L23.25 12.0169"></path>
+								<path stroke="currentColor" d="M16.597 5.65308C16.3208 5.65308 16.097 5.42922 16.097 5.15308C16.097 4.87693 16.3208 4.65308 16.597 4.65308"></path>
+								<path stroke="currentColor" d="M16.597 5.65308C16.8731 5.65308 17.097 5.42922 17.097 5.15308C17.097 4.87693 16.8731 4.65308 16.597 4.65308"></path>
+							</g>
+						</svg>
+						<br>
+						Preview
+					</div>
+
+					<div class="slideout-activator right" id="searchTab" data-for-slideout="#searchSlideout" data-sub-section="search">
+						${_Icons.getSvgIcon(_Icons.iconSearch, 24, 24, ['icon-grey'])}
+						<br>
+						Search
+					</div>
+
+				</div>
+			`
+		},
 		functions: config => `
 			<div class="flex-grow">
 				<ul class="tabs-menu hidden">
