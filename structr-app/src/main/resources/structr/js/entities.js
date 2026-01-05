@@ -2201,7 +2201,7 @@ let _Entities = {
 					_Entities.highlightElement(el);
 
 					if (clickLast === true) {
-						el.find('.node-container').click();
+						el[0].querySelector(':scope > .node-container')?.click();
 					}
 				}
 

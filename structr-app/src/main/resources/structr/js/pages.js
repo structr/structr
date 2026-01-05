@@ -3947,7 +3947,13 @@ let _Pages = {
 
 			let resultsElement = document.querySelector('#dom-search-results');
 
+			for (let oldResult of resultsElement.querySelectorAll('[data-id]')) {
+				_Helpers.fastRemoveElement(oldResult);
+			}
+
 			for (let result of results) {
+
+				// TODO: do we need multiple rows for the possibly multiple keys?...
 				let el = _Helpers.createSingleDOMElementFromHTML(_Pages.search.templates.result(result));
 
 				resultsElement.appendChild(el);
@@ -3956,8 +3962,10 @@ let _Pages = {
 			}
 		},
 		goToResultButtonClicked: e => {
+
 			let id = e.target.closest('[data-id]').dataset.id;
-			console.log(e, id);
+
+			// TODO: select the correct tab for the key...
 			_Pages.selectAndShowArbitraryDOMElement(id);
 		},
 		templates: {
@@ -3965,7 +3973,7 @@ let _Pages = {
 				<div class="mx-4 my-4">
 					<form id="search-node-form" class="flex flex-col">
 						<div class="flex gap-2">
-							<input type="text" name="searchString" placeholder="Search">
+							<input type="search" name="searchString" placeholder="Search">
 							<button type="submit" class="action button btn focus:border-gray-666 active:border-green">Search</button>
 						</div>
 					</form>
@@ -3986,8 +3994,8 @@ let _Pages = {
 					<div>${result.keys.join(', ')}</div>
 					<div class="truncate">${result.id}</div>
 					<div>
-						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0">
-							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'], 'Go to element')}
+						<button class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green p-2 mr-0" title="Go to element">
+							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, [..._Icons.getSvgIconClassesNonColorIcon(), 'pointer-events-none'])}
 						</button>
 					</div>
 				</div>
