@@ -116,6 +116,7 @@ public class SettingDocumentable implements Documentable {
 		return list;
 	}
 
+	/*
 	public List<Link> getLinkedConcepts() {
 
 		final List<Link> links = new LinkedList<>();
@@ -135,6 +136,7 @@ public class SettingDocumentable implements Documentable {
 
 		return links;
 	}
+	*/
 
 	public static void collectAllSettings(final List<Documentable> documentables) {
 

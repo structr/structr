@@ -23,12 +23,19 @@ import org.structr.docs.Documentable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 
 /**
  * A concept in the Structr Documentation Ontology. This class
  * will store everything you add into the ontology.
  */
 public final class Concept {
+
+	public static final double EXACT_MATCH_SCORE      = 100.0;
+	public static final double NAME_MATCH_SCORE       = 10.0;
+	public static final double SHORT_DESC_MATCH_SCORE = 2.0;
+	public static final double LONG_DESC_MATCH_SCORE  = 1.0;
+	public static final double NOTES_MATCH_SCORE      = 0.1;
 
 	private static final AtomicLong idGenerator = new AtomicLong();
 	private final long id = idGenerator.getAndIncrement();
@@ -81,14 +88,26 @@ public final class Concept {
 		return name;
 	}
 
-	public void linkChild(final String verb, final Concept concept) {
+	public void createSymmetricLink(final Verb verb, final Concept concept) {
 
-		if (!this.equals(concept) && !hasChild(verb, concept)) {
+		final String ltr = verb.getLeftToRight();
+		final String rtl = verb.getRightToLeft();
 
-			children.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
+		if (!this.equals(concept)) {
+
+			if (!hasChild(ltr, concept)) {
+
+				children.computeIfAbsent(ltr, key -> new LinkedList<>()).add(concept);
+			}
+
+			if (!concept.hasParent(rtl, this)) {
+
+				concept.parents.computeIfAbsent(rtl, key -> new LinkedList<>()).add(this);
+			}
 		}
 	}
 
+	/*
 	public void linkParent(final String verb, final Concept concept) {
 
 		if (!this.equals(concept) && !hasParent(verb, concept)) {
@@ -96,6 +115,7 @@ public final class Concept {
 			parents.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
 		}
 	}
+	*/
 
 	public Map<String, List<Concept>> getChildren() {
 		return children;
@@ -198,14 +218,14 @@ public final class Concept {
 		return sum;
 	}
 
-	public boolean hasChild(final String has, final Concept additionalConcept) {
+	public boolean hasChild(final String has, final Concept concept) {
 
 		final List<Concept> list = children.get(has);
 		if (list != null) {
 
 			for (final Concept child : list) {
 
-				if (child.equals(additionalConcept)) {
+				if (child.equals(concept)) {
 					return true;
 				}
 			}
@@ -214,14 +234,14 @@ public final class Concept {
 		return false;
 	}
 
-	public boolean hasParent(final String has, final Concept additionalConcept) {
+	public boolean hasParent(final String has, final Concept concept) {
 
 		final List<Concept> list = parents.get(has);
 		if (list != null) {
 
 			for (final Concept parent : list) {
 
-				if (parent.equals(additionalConcept)) {
+				if (parent.equals(concept)) {
 					return true;
 				}
 			}
@@ -241,6 +261,40 @@ public final class Concept {
 
 	public ConceptType getFormat() {
 		return format;
+	}
+
+	public double matches(final String searchString) {
+
+		double score = 0.0;
+
+		if (name != null && name.toLowerCase().equals(searchString)) {
+
+			score += EXACT_MATCH_SCORE;
+
+		} else {
+
+			if (name != null && name.toLowerCase().contains(searchString)) {
+
+				score += NAME_MATCH_SCORE;
+			}
+		}
+
+		if (shortDescription != null && shortDescription.toLowerCase().contains(searchString)) {
+
+			score += SHORT_DESC_MATCH_SCORE;
+		}
+
+		if (metadata.containsKey("description")) {
+
+			final String desc = (String) metadata.get("description");
+
+			if (desc != null && desc.toLowerCase().contains(searchString)) {
+
+				score += SHORT_DESC_MATCH_SCORE;
+			}
+		}
+
+		return score;
 	}
 
 	public boolean isSame(final String name, final ConceptType type, final String sourceFile, final int lineNumber) {

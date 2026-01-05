@@ -38,6 +38,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 /**
@@ -310,6 +311,43 @@ public final class Ontology {
 		return null;
 	}
 
+	public void searchConcepts(final Map<Concept, Double> result, final String searchString) {
+
+		// check exact match first
+		for  (final Concept concept : concepts) {
+
+			// do not show "text" results as they are extracted from Javascript files
+			if (ConceptType.Text.equals(concept.type)) {
+				continue;
+			}
+
+			// exact match yields a score of 100
+			if (concept.getName() != null && concept.getName().equals(searchString)) {
+
+				result.compute(concept, (k, v) -> add(v, Concept.EXACT_MATCH_SCORE));
+			}
+
+			final Documentable documentable = concept.getDocumentable();
+			if (documentable != null) {
+
+				final double score = documentable.matches(searchString);
+
+				if (score > 0) {
+
+					result.compute(concept, (k, v) -> add(v, score));
+				}
+
+			} else {
+
+				final double score = concept.matches(searchString);
+				if (score > 0) {
+
+					result.compute(concept, (k, v) -> add(v, score));
+				}
+			}
+		}
+	}
+
 	public List<Concept> getConceptsByName(final String name) {
 
 		final List<Concept> result = new LinkedList<>();
@@ -444,7 +482,7 @@ public final class Ontology {
 						final Concept childConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Topic, child, false);
 						if (childConcept != null) {
 
-							concept.linkChild("has", childConcept);
+							concept.createSymmetricLink(Verb.Has, childConcept);
 						}
 					}
 				}
@@ -459,7 +497,7 @@ public final class Ontology {
 						final Concept synonymConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Synonym, synonym, false);
 						if (synonymConcept != null) {
 
-							concept.linkChild("has", synonymConcept);
+							concept.createSymmetricLink(Verb.Has, synonymConcept);
 						}
 					}
 				}
@@ -470,12 +508,12 @@ public final class Ontology {
 				final Concept p = getOrCreateConcept(sourceFile, 0, ConceptType.Unknown, parent, true);
 				if (p != null) {
 
-					p.linkChild("has", concept);
+					p.createSymmetricLink(Verb.Has, concept);
 				}
 
 			} else if (parentConcept != null) {
 
-				parentConcept.linkChild("has", concept);
+				parentConcept.createSymmetricLink(Verb.Has, concept);
 			}
 
 			if (clazz != null) {
@@ -502,7 +540,7 @@ public final class Ontology {
 										final Concept propertyConcept = getOrCreateConcept(sourceFile, 0, ConceptType.Property, property.getName(), false);
 										if (propertyConcept != null) {
 
-											concept.linkChild("has", propertyConcept);
+											concept.createSymmetricLink(Verb.Has, propertyConcept);
 										}
 									}
 								}
@@ -537,7 +575,7 @@ public final class Ontology {
 										childConcept.setShortDescription(documentable.getShortDescription());
 									}
 
-									concept.linkChild("has", childConcept);
+									concept.createSymmetricLink(Verb.Has, childConcept);
 								}
 							}
 						}
@@ -579,5 +617,14 @@ public final class Ontology {
 		}
 
 		return null;
+	}
+
+	private Double add(final Double v1, final double v2) {
+
+		if (v1 == null) {
+			return v2;
+		}
+
+		return v1 + v2;
 	}
 }

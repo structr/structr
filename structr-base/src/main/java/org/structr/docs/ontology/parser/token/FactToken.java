@@ -22,6 +22,7 @@ import org.graalvm.collections.Pair;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.Verb;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -71,10 +72,7 @@ public class FactToken extends Token {
 			objects.addAll(objectToken.resolve(ontology, sourceFile, line));
 		}
 
-		final Pair<Concept, Concept> verbs = predicateToken.resolve(ontology, sourceFile, line);
-
-		final String verb    = verbs.getLeft().getName();
-		final String inverse = verbs.getRight().getName();
+		final Verb verb = predicateToken.resolve(ontology, sourceFile, line);
 
 		// this resolution refines the knowledge about the three concepts
 		for (final Concept subject : subjects) {
@@ -100,8 +98,7 @@ public class FactToken extends Token {
 
 				} else {
 
-					subject.linkChild(verb, object);
-					object.linkParent(inverse, subject);
+					subject.createSymmetricLink(verb, object);
 				}
 			}
 		}

@@ -22,8 +22,9 @@ import org.graalvm.collections.Pair;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.Verb;
 
-public class VerbToken extends Token<Pair<Concept, Concept>> {
+public class VerbToken extends Token<Verb> {
 
 	private final boolean isInverted;
 	private final String inverse;
@@ -45,17 +46,15 @@ public class VerbToken extends Token<Pair<Concept, Concept>> {
 		return inverse;
 	}
 
-	public Pair<Concept, Concept> resolve(final Ontology ontology, final String sourceFile, final int line) {
+	public Verb resolve(final Ontology ontology, final String sourceFile, final int line) {
 
-		final Concept verb1 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, name, true);
-		final Concept verb2 = ontology.getOrCreateConcept(sourceFile, line, ConceptType.Verb, inverse, true);
+		final Verb ltr = Verb.leftToRight(name);
+		final Verb rtl = Verb.rightToLeft(inverse);
 
-		if (verb1 != null && verb2 != null) {
-
-			return Pair.create(verb1, verb2);
+		if (ltr != null && rtl != null && ltr == rtl) {
+			return ltr;
 		}
 
-		// at least one of the verbs is blacklisted..
 		return null;
 	}
 

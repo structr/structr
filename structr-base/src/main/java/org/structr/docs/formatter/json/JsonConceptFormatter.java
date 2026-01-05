@@ -31,7 +31,6 @@ public class JsonConceptFormatter extends Formatter {
 
 	@Override
 	public void format(final List<String> lines, final Concept concept, final OutputSettings settings, final String link, final int level) {
-
 		final Gson gson                = new GsonBuilder().create();
 		final Map<String, Object> data = new LinkedHashMap<>();
 		final List<String> c           = new LinkedList<>();

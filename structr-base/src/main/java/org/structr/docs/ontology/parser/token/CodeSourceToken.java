@@ -23,6 +23,7 @@ import org.structr.docs.DocumentableType;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.Verb;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -66,9 +67,8 @@ public class CodeSourceToken extends NamedConceptToken {
 	// ----- private methods -----
 	private List<Concept> handleDocumentable(final Documentable documentable, final Ontology ontology, final String sourceFile, final int lineNumber) {
 
-		final Map<String, String> knownVerbs = ontology.getKnownVerbs();
-		final List<Concept> parents          = new LinkedList<>();
-		ConceptType format                   = ConceptType.Unknown;
+		final List<Concept> parents = new LinkedList<>();
+		ConceptType format          = ConceptType.Unknown;
 
 		if (formatSpecification != null) {
 			format = formatSpecification.resolve(ontology, sourceFile, lineNumber);
@@ -89,7 +89,7 @@ public class CodeSourceToken extends NamedConceptToken {
 					final Concept parent = ontology.getOrCreateConcept(sourceFile, lineNumber, parentConcept.type, parentConcept.name, true);
 					if (parent != null) {
 
-						parent.linkChild("has", mainConcept);
+						parent.createSymmetricLink(Verb.Has, mainConcept);
 						parent.setFormat(format);
 
 						// link to parents
@@ -102,14 +102,16 @@ public class CodeSourceToken extends NamedConceptToken {
 					final Concept childConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, link.target.type, link.target.name, true);
 					if (childConcept != null) {
 
-						// determine direction of link
-						if (knownVerbs.containsKey(link.verb)) {
+						final Verb ltr = Verb.leftToRight(link.verb);
+						if (ltr != null) {
 
-							mainConcept.linkChild(link.verb, childConcept);
+							mainConcept.createSymmetricLink(ltr, childConcept);
+						}
 
-						} else if (knownVerbs.containsValue(link.verb)) {
+						final Verb rtl = Verb.rightToLeft(link.verb);
+						if (rtl != null) {
 
-							childConcept.linkChild(link.verb, mainConcept);
+							childConcept.createSymmetricLink(rtl, mainConcept);
 						}
 					}
 				}
@@ -119,7 +121,7 @@ public class CodeSourceToken extends NamedConceptToken {
 					final Concept synonymConcept = ontology.getOrCreateConcept(sourceFile, lineNumber, ConceptType.Synonym, synonym, false);
 					if (synonymConcept != null) {
 
-						mainConcept.linkChild("has", synonymConcept);
+						mainConcept.createSymmetricLink(Verb.Has, synonymConcept);
 					}
 				}
 			}

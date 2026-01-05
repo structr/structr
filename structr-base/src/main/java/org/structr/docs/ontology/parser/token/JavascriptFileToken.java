@@ -23,6 +23,7 @@ import org.structr.core.Services;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.Verb;
 import org.structr.module.StructrModule;
 
 import java.io.IOException;
@@ -215,7 +216,7 @@ public class JavascriptFileToken extends NamedConceptToken {
 
 									if (!concept.equals(additionalConcept)) {
 
-										concept.linkChild("has", additionalConcept);
+										concept.createSymmetricLink(Verb.Has, additionalConcept);
 									}
 								}
 							}

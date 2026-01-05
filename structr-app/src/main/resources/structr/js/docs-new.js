@@ -112,6 +112,16 @@ let _Documentation = {
 
         // build the table of contents
 		const docsElement = document.getElementById('docs-main-navigation');
+        const iframe = document.querySelector('iframe');
+
+        if (iframe){
+
+            iframe.addEventListener('load', e => {
+                _Documentation.makeEditable();
+            });
+        } else {
+            console.log('iframe not found');
+        }
 
 		fetch('/structr/docs/ontology?root=Structr&details=name&levels=1&format=toc&startLevel=1')
 			.then(response => response.json())
@@ -158,12 +168,17 @@ let _Documentation = {
 			});
 
 	},
-	loadDoc: (rawPath, hash) => {
-
+	loadDoc: (rawPath, hash, parents, searchHit) => {
         let iframe = document.querySelector('div#docs-area iframe');
         if (iframe) {
-           iframe.src = `/structr/docs/ontology?root=${encodeURIComponent(rawPath)}&details=all&format=markdown`;
-           _Documentation.loadContext('Unknown', rawPath);
+            let hash = '';
+            if (parents && parents.length > 1) {
+                hash = '#' + _Documentation.cleanStringForLink(parents[parents.length - 1].name);
+            } else if (searchHit) {
+                hash = '#' + _Documentation.cleanStringForLink(searchHit);
+            }
+            iframe.src = `/structr/docs/ontology?root=${encodeURIComponent(rawPath)}&details=all&format=markdown${hash}`;
+            _Documentation.loadContext('Unknown', rawPath);
         }
 	},
     loadContext: (type, name) => {
@@ -182,12 +197,83 @@ let _Documentation = {
                     aside.appendChild(_Documentation.createElementFromHTML(_Documentation.templates.indexItem({
                         parentName: name,
                         type: type,
-                        name: entry.name.replaceAll(/[\W]+/g, '-').toLowerCase(),
+                        name: _Documentation.cleanStringForLink(entry.name),
                         label: entry.name
                     })));
                 }
             });
     },
+    makeEditable: () => {
+
+        let iframe = document.querySelector('iframe');
+        if (iframe && iframe.contentDocument) {
+
+            let treeWalker = document.createTreeWalker(
+                iframe.contentDocument,
+                NodeFilter.SHOW_COMMENT,
+                null,
+                false
+            );
+
+            let node;
+
+            while (node = treeWalker.nextNode()) {
+                let text = node.nodeValue.trim();
+                if (text.startsWith('start of')) {
+
+                    let fileName = text.substring(10, text.length - 1).trim();
+                    let toMove = [];
+                    let test = node.nextSibling;
+                    let ref = test;
+                    let parent = test.parentElement;
+                    while (test) {
+                        test = test.nextSibling;
+                        text = test?.nodeValue?.trim();
+
+                        if (text && text.startsWith('end of')) {
+
+                            // move all collected nodes to a div
+                            let div = iframe.contentDocument.createElement('div');
+                            div.classList.add('editable');
+
+                            let textarea = iframe.contentDocument.createElement('textarea');
+                            textarea.classList.add('hidden');
+
+                            parent.insertBefore(textarea, ref);
+                            parent.insertBefore(div, ref);
+
+                            let btn = iframe.contentDocument.createElement('button');
+                            btn.innerHTML = 'Edit this paragraph';
+                            div.appendChild(btn);
+
+                            btn.addEventListener('click', () => {
+
+                                fetch(`/structr/docs/${fileName}`).then(response => response.text()).then((text) => {
+
+                                    textarea.value = text;
+                                    textarea.style.height = div.clientHeight + 'px';
+
+                                    div.classList.add('hidden');
+                                    textarea.classList.remove('hidden');
+
+                                });
+
+                            })
+
+                            for (var e of toMove) {
+                                div.appendChild(e);
+                            }
+
+                        } else {
+                            toMove.push(test);
+                        }
+                    }
+
+                }
+            }
+        }
+    },
+    cleanStringForLink: (str) => str.replaceAll(/[\W]+/g, '-').toLowerCase(),
 	search: {
 		searchOverlay: undefined,
 		overlaySearchField: undefined,
@@ -213,9 +299,9 @@ let _Documentation = {
 
 			document.addEventListener('keydown', _Documentation.keyDownHandler);
 
-			_Documentation.search.overlaySearchField.addEventListener('keyup', e => {
-				_Helpers.requestAnimationFrameWrapper(_Documentation.search.searchAnimationFrameKey, _Documentation.search.doSearch);
-			});
+			_Documentation.search.overlaySearchField.addEventListener('keyup', _Helpers.debounce(e => {
+                _Documentation.search.doSearch();
+			}, 500));
 
 			_Documentation.search.overlaySearchField.addEventListener('search', e => {
 				let query = e.target.value;
@@ -237,65 +323,116 @@ let _Documentation = {
 		clearSearchResults: () => {
 			_Documentation.search.searchResultsList.replaceChildren();
 		},
-		doSearch: () => {
+        doSearch: () => {
 
-			_Documentation.search.clearSearchResults();
+            _Documentation.search.clearSearchResults();
 
-			let searchText = _Documentation.search.overlaySearchField.value;
+            let searchText = _Documentation.search.overlaySearchField.value;
+            if (searchText) {
 
-			if (searchText) {
+                if (searchText.length < 3) {
 
-				let files = [];
-				for (const key of Object.keys(_Documentation._content)) {
-					const content = _Documentation._content[key].toLowerCase();
-					if (content.indexOf(searchText.toLowerCase()) > -1) {
-						files.push(key);
-					}
-				}
+                    let result = _Helpers.createSingleDOMElementFromHTML(`
+                        <li class="search-result cursor-pointer">
+                            <div class="group-aria-selected:text-sky-600">
+                                <span>Please type at least 3 characters to search.</span>
+                            </div>
+                        </li>
+                    `);
 
-				for (const file of files) {
+                    result.addEventListener('click', e => {
+                        _Documentation.search.hideSearch();
+                    });
 
-					const text            = _Documentation.removeAllMarkdownChars(_Documentation._content[file]);
-					const index           = text.toLowerCase().indexOf(searchText.toLowerCase());
-					const substringBefore = text.slice(0, index);
-					const wordsBefore     = substringBefore.split(' ');
-					const substringAfter  = text.slice(index);
-					const wordsAfter      = substringAfter.split(' ');
-					const numContextWords = 5;
+                    _Documentation.search.searchResultsList.appendChild(result);
 
-					let result = _Helpers.createSingleDOMElementFromHTML(`
-							<li class="search-result cursor-pointer">
-								<div class="group-aria-selected:text-sky-600">
-									<span>${wordsBefore.slice(Math.max(wordsBefore.length - numContextWords, 1)).join(' ')}${wordsAfter.slice(0, numContextWords).join(' ')}</span>
-								</div>
-								<div aria-hidden="true" class="search-result-path">${file}<span class="sr-only">/</span></div>
-							</li>
-						`);
+                } else {
 
-					result.addEventListener('click', e => {
-						_Documentation.search.hideSearch();
-						_Documentation.loadDoc(encodeURI(file));
-					});
+                    fetch(`/structr/docs/ontology?search=${encodeURIComponent(searchText)}&details=name&levels=1&startLevel=0`)
+                        .then(response => response.json())
+                        .then(json => {
 
-					_Documentation.search.searchResultsList.appendChild(result);
-				}
-			}
-		},
-		showSearch: () => {
-			_Documentation.search.searchOverlay.classList.remove('hidden');
-			_Documentation.search.overlaySearchField.focus();
-		},
-		hideSearch: () => {
-			_Documentation.search.searchOverlay.classList.add('hidden');
-		}
-	},
+                            if (json.data) {
+
+                                let num = json.data.length;
+                                let count = 0;
+
+                                for (let entry of json.data) {
+
+                                    if (count++ < 15) {
+
+                                        let parents = _Documentation.search.extractParents(entry);
+                                        let parentsString= parents.map(parent => parent.name).join(' / ');
+
+                                        let result = _Helpers.createSingleDOMElementFromHTML(`
+                                            <li class="search-result cursor-pointer">
+                                                <div class="group-aria-selected:text-sky-600">
+                                                    <span>${entry.name}</span>
+                                                </div>
+                                                <div class="search-result-description">${entry.shortDescription || entry.type}<span class="sr-only">/</span></div>
+                                            </li>
+                                        `);
+
+                                        result.addEventListener('click', e => {
+                                            _Documentation.search.hideSearch();
+                                            _Documentation.loadDoc(`${parents[0].name}`, null, parents, entry.name);
+                                        });
+
+                                        _Documentation.search.searchResultsList.appendChild(result);
+
+                                    } else {
+
+                                        let result = _Helpers.createSingleDOMElementFromHTML(`
+                                            <li class="search-result">
+                                                <div class="text-gray-999 text-center">
+                                                    <span>Showing results 1 - 15 of ${num}</span>
+                                                </div>
+                                            </li>
+                                        `);
+
+                                        _Documentation.search.searchResultsList.appendChild(result);
+
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                }
+            }
+        },
+        showSearch: () => {
+            _Documentation.search.searchOverlay.classList.remove('hidden');
+            _Documentation.search.overlaySearchField.value = '';
+            _Documentation.search.overlaySearchField.focus();
+        },
+        hideSearch: () => {
+            _Documentation.search.searchOverlay.classList.add('hidden');
+        },
+        extractParents: (entry) => {
+
+            let parents = [];
+
+            let parent = entry?.parents?.[0]?.targets?.[0];
+            while (parent) {
+
+                parents.push(parent);
+
+                parent = parent?.parents?.[0]?.targets?.[0];
+            }
+
+            parents.pop();
+            parents = parents.reverse();
+
+            return parents;
+        }
+    },
     createElementFromHTML: (html) => {
         let range = document.createRange();
         return range.createContextualFragment(html).firstElementChild;
     },
 	templates: {
 		main: config => `
-			<link rel="stylesheet" type="text/css" media="screen" href="css/docs-chrisi.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/docs-new.css">
 			<div id="docs-area">
 				<nav>
 					<ul id="docs-main-navigation">

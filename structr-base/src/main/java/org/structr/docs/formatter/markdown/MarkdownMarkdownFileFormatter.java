@@ -56,7 +56,9 @@ public class MarkdownMarkdownFileFormatter extends Formatter {
 
 		try {
 
+			lines.add("<!-- start of \"" + path + "\" -->");
 			lines.addAll(Files.readAllLines(resource.resolve(fileName).getPath()));
+			lines.add("<!-- end of \"" + path + "\" -->");
 
 		} catch (IOException e) {
 			e.printStackTrace();

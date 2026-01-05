@@ -19,14 +19,19 @@
 package org.structr.docs;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.search.Operation;
 import org.structr.api.util.Category;
+import org.structr.core.Value;
+import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Details;
 
 import java.io.IOException;
+import java.lang.ref.Reference;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * Base interface for all things that are documentable. Implement this
@@ -381,6 +386,51 @@ public interface Documentable {
 		return getExamples() != null;
 	}
 
+	default double matches(final String searchString) {
+
+		double score = 0.0;
+
+		if (getName() != null) {
+
+			if (getName() != null && getName().toLowerCase().equals(searchString)) {
+
+				score += Concept.EXACT_MATCH_SCORE;
+
+			} else if (getDisplayName() != null && getDisplayName().toLowerCase().equals(searchString)) {
+
+				score += Concept.EXACT_MATCH_SCORE;
+
+			} else if (getName() != null && getName().toLowerCase().contains(searchString)) {
+
+				score += Concept.NAME_MATCH_SCORE;
+
+			} else if (getDisplayName() != null && getDisplayName().toLowerCase().contains(searchString)) {
+
+				score += Concept.NAME_MATCH_SCORE;
+			}
+		}
+
+		if (getShortDescription() != null && getShortDescription().toLowerCase().contains(searchString)) {
+			score += Concept.SHORT_DESC_MATCH_SCORE;
+		}
+
+		if (getLongDescription() != null && getLongDescription().toLowerCase().contains(searchString)) {
+			score += Concept.LONG_DESC_MATCH_SCORE;
+		}
+
+		if (getNotes() != null) {
+
+			for (final String note : getNotes()) {
+
+				if (note.toLowerCase().contains(searchString)) {
+					score += Concept.NOTES_MATCH_SCORE;
+				}
+			}
+		}
+
+		return score;
+	}
+
 	class ConceptReference {
 
 		public ConceptType type;
@@ -477,5 +527,4 @@ public interface Documentable {
 
 		return documentables;
 	}
-
 }

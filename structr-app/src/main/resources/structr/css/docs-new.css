@@ -131,6 +131,26 @@ html {
     color: inherit;
 }
 
+.article div.editable {
+    position: relative;
+}
+
+.article div.editable:has(button:hover) {
+    background-color: var(--structr-light-green-transparent);
+}
+
+.article div.editable button {
+    background-color: #eee;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
+.article textarea {
+    width: 100%;
+    box-sizing: border-box;
+}
+
 .article .subtitle {
     font-weight: 500;
     margin: 0;
@@ -401,7 +421,7 @@ index h2, .index h3 {
 .search-result {
     overflow: hidden;
     display: block;
-    padding: 1rem;
+    padding: .75rem 1rem;
     margin: 0;
     background-color: white;
     border-bottom-left-radius: .25rem;
@@ -414,6 +434,14 @@ index h2, .index h3 {
 
 .search-result div {
     overflow: hidden;
+}
+
+.search-result-description {
+    font-size: .9rem;
+    margin-top: .25rem;
+    text-overflow: ellipsis;
+    whitespace: nowrap;
+    color: var(--gray-999);
 }
 
 .search-result-path {

@@ -30,6 +30,7 @@ import org.structr.docs.formatter.markdown.MarkdownMarkdownFileFormatter;
 import org.structr.docs.ontology.Concept;
 import org.structr.docs.ontology.ConceptType;
 import org.structr.docs.ontology.Ontology;
+import org.structr.docs.ontology.Verb;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -101,7 +102,7 @@ public class MarkdownFileToken extends NamedConceptToken {
 								final Concept headingConcept = ontology.getOrCreateConcept(sourceFile, line, ConceptType.MarkdownHeading, text, false);
 								if (headingConcept != null) {
 
-									markdownFile.linkChild("has", headingConcept);
+									markdownFile.createSymmetricLink(Verb.Has, headingConcept);
 								}
 							}
 						}

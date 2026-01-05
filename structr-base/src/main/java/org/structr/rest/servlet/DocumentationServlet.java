@@ -37,6 +37,7 @@ import org.structr.docs.Documentation;
 import org.structr.docs.OutputSettings;
 import org.structr.docs.analyzer.ExistingDocs;
 import org.structr.docs.formatter.json.JsonConceptFormatter;
+import org.structr.docs.formatter.json.SearchResultsConceptFormatter;
 import org.structr.docs.formatter.json.TableOfContentsConceptFormatter;
 import org.structr.docs.formatter.markdown.*;
 import org.structr.docs.formatter.text.PlaintextMarkdownFileFormatter;
@@ -59,36 +60,65 @@ public class DocumentationServlet extends HttpServlet {
 
 		try {
 
-			final HttpService service             = Services.getInstance().getServiceImplementation(HttpService.class);
-			final ResourceHandler resourceHandler = service.getExportedResourceHandler();
-			final Resource baseResource           = resourceHandler.getBaseResource();
-			final Resource facts                  = baseResource.resolve("facts");
-			final Ontology ontology               = new Ontology(facts.getPath());
-			final OutputSettings settings         = setupOutputSettings(ontology, baseResource);
-			final List<Concept> concepts          = new LinkedList<>();
+			final HttpService service                = Services.getInstance().getServiceImplementation(HttpService.class);
+			final ResourceHandler resourceHandler    = service.getExportedResourceHandler();
+			final Resource baseResource              = resourceHandler.getBaseResource();
+			final Resource facts                     = baseResource.resolve("facts");
+			final Ontology ontology                  = new Ontology(facts.getPath());
+			final OutputSettings settings            = setupOutputSettings(ontology, baseResource);
+			final Map<Concept, Double> searchResults = new LinkedHashMap<>();
+			final List<Concept> concepts             = new LinkedList<>();
 
-			handleRequestParameters(request, ontology, concepts, settings);
+			handleRequestParameters(request, ontology, concepts, settings, searchResults);
 
-			// compare ontology to existing docs
-			if (request.getParameter("includeMentions") != null) {
+			if (isSearch(request)) {
 
-				ontology.countConcepts(new ExistingDocs("structr/docs"));
-			}
+				final SearchResultsConceptFormatter searchResultsFormatter = new SearchResultsConceptFormatter();
+				final List<Map.Entry<Concept, Double>> sortedResults       = new LinkedList<>();
+				final List<String> lines                                   = new LinkedList<>();
 
-			final List<String> lines = ontology.createDocumentation(concepts, settings);
+				for (final Map.Entry<Concept, Double> entry : searchResults.entrySet()) {
 
-			if ("markdown".equals(settings.getOutputFormat())) {
-				renderMarkdown(response, lines, settings);
-			}
+					sortedResults.add(entry);
+				}
 
-			if ("text".equals(settings.getOutputFormat())) {
-				renderPlaintext(response, lines);
-			}
+				// sort by score
+				final Comparator<Map.Entry<Concept, Double>> comparator = Comparator.comparingDouble(Map.Entry::getValue);
 
-			if ("json".equals(settings.getOutputFormat()) || "toc".equals(settings.getOutputFormat())) {
+				Collections.sort(sortedResults, comparator.reversed());
+
+				for (final Map.Entry<Concept, Double> entry : sortedResults) {
+
+					final Concept concept = entry.getKey();
+					final Double score    = entry.getValue();
+
+					searchResultsFormatter.format(lines, concept, score);
+				}
+
 				renderJson(response, lines);
-			}
 
+			} else {
+
+				// compare ontology to existing docs
+				if (request.getParameter("includeMentions") != null) {
+
+					ontology.countConcepts(new ExistingDocs("structr/docs"));
+				}
+
+				final List<String> lines = ontology.createDocumentation(concepts, settings);
+
+				if ("markdown".equals(settings.getOutputFormat())) {
+					renderMarkdown(response, lines, settings);
+				}
+
+				if ("text".equals(settings.getOutputFormat())) {
+					renderPlaintext(response, lines);
+				}
+
+				if ("json".equals(settings.getOutputFormat()) || "toc".equals(settings.getOutputFormat())) {
+					renderJson(response, lines);
+				}
+			}
 
 		} catch (Throwable t) {
 
@@ -109,6 +139,8 @@ public class DocumentationServlet extends HttpServlet {
 	// ----- private methods -----
 	private void renderMarkdown(final HttpServletResponse response, final List<String> lines, final OutputSettings settings) throws IOException {
 
+		response.setContentType("text/html; charset=utf-8");
+
 		final MutableDataSet options = new MutableDataSet();
 
 		options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
@@ -123,7 +155,7 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write("<html>\n");
 		writer.write("<head>\n");
 		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/main.css\" />\n");
-		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/docs-chrisi.css\" />\n");
+		writer.write("    <link rel=\"stylesheet\" href=\"/structr/css/docs-new.css\" />\n");
 
 		if (settings.getBaseUrl() != null) {
 			writer.write("<base href='" + settings.getBaseUrl() + "'/>\n");
@@ -142,6 +174,8 @@ public class DocumentationServlet extends HttpServlet {
 
 	private void renderPlaintext(final HttpServletResponse response, final List<String> lines) throws IOException {
 
+		response.setContentType("text/plain; charset=utf-8");
+
 		final Writer writer = response.getWriter();
 
 		for (final String line : lines) {
@@ -153,6 +187,8 @@ public class DocumentationServlet extends HttpServlet {
 
 	private void renderJson(final HttpServletResponse response, final List<String> lines) throws IOException {
 
+		response.setContentType("application/json; charset=utf-8");
+
 		final Writer writer = response.getWriter();
 
 		writer.write("{ \"data\": [\n");
@@ -160,7 +196,7 @@ public class DocumentationServlet extends HttpServlet {
 		writer.write("]}\n");
 	}
 
-	private boolean handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings) {
+	private boolean handleRequestParameters(final HttpServletRequest request, final Ontology ontology, final List<Concept> concepts, final OutputSettings settings, final Map<Concept, Double> searchResults) {
 
 		boolean hasFilter = false;
 
@@ -205,6 +241,21 @@ public class DocumentationServlet extends HttpServlet {
 			} else {
 
 				concepts.addAll(ontology.getConcepts(c -> c.getType().equals(type)));
+			}
+
+			// do not add default set of concepts
+			hasFilter = true;
+		}
+
+		// search
+		final String search = request.getParameter("search");
+		if (StringUtils.isNotBlank(search)) {
+
+			ontology.searchConcepts(searchResults, search.trim().toLowerCase());
+
+			for (final String part : search.split("[, ]+")) {
+
+				ontology.searchConcepts(searchResults, part.trim().toLowerCase());
 			}
 
 			// do not add default set of concepts
@@ -291,4 +342,9 @@ public class DocumentationServlet extends HttpServlet {
 
 		return settings;
 	}
+
+	private boolean isSearch(final HttpServletRequest request) {
+		return request.getParameter("search") != null;
+	}
 }
+

@@ -66,6 +66,7 @@ public abstract class Formatter {
 			if (formatter != null) {
 
 				formatter.format(lines, concept, outputSettings, link, level);
+
 			} else {
 
 				System.out.println("No formatter registered for format " + outputSettings.getOutputFormat() + ", mode " + outputSettings.getOutputMode() + " and " + concept);
