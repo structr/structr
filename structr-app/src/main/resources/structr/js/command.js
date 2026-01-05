@@ -486,7 +486,7 @@ let Command = {
 		if (!syncMode && _Pages.sharedComponents.shouldAskUserSyncSharedComponentAttributes(id, syncKey, data[syncKey])) {
 
 			_Pages.sharedComponents.askSyncSharedComponentAttributesPromise().then(userSyncMode => {
-				Command.setProperties(id, data, callback, userSyncMode);
+				Command.setProperties(id, data, callback, userSyncMode, syncKey);
 			});
 
 		} else {
@@ -513,10 +513,12 @@ let Command = {
 			}
 		};
 
-		return StructrWS.sendObj(obj, callback);
-
-		// TODO: syncKey and newValue are interesting to determine!
-		if (!syncMode) {
+		// syncKey and newValue are interesting to determine (they are not members of the node but of a relationship)
+		// thus, we are ignoring this and ask the user, unless they have saved a preferred sync mode
+		// on top, ALL and BY_VALUE are identical for SET_PERMISSION because we are only flipping bits... the dialog might hide one of those buttons
+		let syncKey = null;
+		let newValue = null;
+		if (!syncMode && _Pages.sharedComponents.shouldAskUserSyncSharedComponentAttributes(id, syncKey, newValue)) {
 
 			_Pages.sharedComponents.askSyncSharedComponentAttributesPromise(id).then(userSyncMode => {
 				Command.setPermission(id, principalId, action, permissions, recursive, callback, userSyncMode);

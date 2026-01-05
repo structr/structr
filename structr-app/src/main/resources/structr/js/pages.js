@@ -3208,13 +3208,16 @@ let _Pages = {
 			if (!modelObj) {
 				return false;
 			}
-			let previousValue  = modelObj[key];
-			if (newValue == previousValue) {
-				return false;
-			}
-			let doNotAskForKeys = ['id', 'name', 'syncedNodeIds', 'syncedNodes', 'sharedComponent', 'sharedComponentId'];
-			if (doNotAskForKeys.includes(key) || ((modelObj instanceof StructrContent) && (key === 'content' || key === 'contentType'))) {
-				return false;
+
+			if (key) {
+				let previousValue  = modelObj[key];
+				if (newValue == previousValue) {
+					return false;
+				}
+				let doNotAskForKeys = ['id', 'name', 'syncedNodeIds', 'syncedNodes', 'sharedComponent', 'sharedComponentId'];
+				if (doNotAskForKeys.includes(key) || ((modelObj instanceof StructrContent) && (key === 'content' || key === 'contentType'))) {
+					return false;
+				}
 			}
 
 			let isDOMNode      = (modelObj.isDOMNode === true);
