@@ -60,6 +60,7 @@ Structr has topics "Building Applications", "Admin User Interface", "REST Interf
 
     "Business Logic" has markdown-file "snippets/Business Logic.md" with heading "Overview"
     "Business Logic" has topics "Dynamic types", "Relationships", "Built-in types", "Built-in properties", "Scripting contexts", "Advanced find"
+    "Business Logic" has markdown-file "snippets/Test.md" with heading "Test"
         "Built-in types" has description "description from hierarchy.txt, but only a short description possible here.."
         "Dynamic types" has topics "Dynamic type options"
         "Relationships" has topics "Cascading Delete", "Automatic Creation of Related Nodes" as table

@@ -28,6 +28,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.util.resource.Resource;
@@ -48,8 +49,10 @@ import org.structr.docs.ontology.Details;
 import org.structr.docs.ontology.Ontology;
 import org.structr.rest.service.HttpService;
 
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 
 @Documentation(name="DocumentationServlet", parent="Servlets", children={ "DocumentationServlet Settings" })
@@ -134,6 +137,61 @@ public class DocumentationServlet extends HttpServlet {
 
 		// simply write out the markdown documentation on POST for now..
 		Documentable.createMarkdownDocumentation();
+	}
+
+	@Override
+	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+
+		// update markdown file here
+		final String fileName = request.getParameter("fileName");
+		if (StringUtils.isNotBlank(fileName)) {
+
+			final HttpService service                = Services.getInstance().getServiceImplementation(HttpService.class);
+			final ResourceHandler resourceHandler    = service.getExportedResourceHandler();
+			final Resource baseResource              = resourceHandler.getBaseResource();
+			final Resource facts                     = baseResource.resolve("facts");
+			final Path filePath                      = facts.getPath().resolve(fileName);
+
+			if (Files.exists(filePath)) {
+
+				try (final InputStream inputStream = request.getInputStream()) {
+
+					final String content = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+					// store markdown content in file
+					try (final BufferedWriter writer = new BufferedWriter(new FileWriter(filePath.toFile()))) {
+
+						writer.write(content);
+						writer.flush();
+					}
+
+					// send new HTML content to client
+					response.setContentType("text/html; charset=utf-8");
+
+					final MutableDataSet options = new MutableDataSet();
+
+					options.setAll(PegdownOptionsAdapter.flexmarkOptions(false, Extensions.ALL));
+					//options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
+
+					final Parser parser         = Parser.builder(options).build();
+					final HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+					final Document doc          = parser.parse(content);
+					final Writer writer         = response.getWriter();
+
+					renderer.render(doc, writer);
+				}
+
+			} else {
+
+				response.setStatus(404);
+				response.getWriter().print("File " + fileName + " does not exist.");
+			}
+
+		} else {
+
+			response.setStatus(422);
+			response.getWriter().print("No fileName provided for update.");
+		}
 	}
 
 	// ----- private methods -----

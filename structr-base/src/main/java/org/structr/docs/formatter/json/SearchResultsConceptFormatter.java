@@ -57,7 +57,7 @@ public class SearchResultsConceptFormatter {
 	// ----- private methods -----
 	private void collectParents(final Concept concept, final Map<String, Object> data, final int level) {
 
-		if (level > 2) {
+		if (level > 3) {
 			return;
 		}
 
@@ -73,9 +73,10 @@ public class SearchResultsConceptFormatter {
 
 				final Map<String, Object> childMap = new LinkedHashMap<>();
 
-				childMap.put("id",   parentConcept.getId());
-				childMap.put("name", parentConcept.getName());
-				childMap.put("type", parentConcept.getType());
+				childMap.put("id",         parentConcept.getId());
+				childMap.put("name",       parentConcept.getName());
+				childMap.put("type",       parentConcept.getType());
+				childMap.put("isToplevel", parentConcept.isToplevelConcept());
 
 				collectParents(parentConcept, childMap, level + 1);
 

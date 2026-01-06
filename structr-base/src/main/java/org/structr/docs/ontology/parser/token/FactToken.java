@@ -92,7 +92,7 @@ public class FactToken extends Token {
 				}
 
 				// capture "has description" fact
-				if ("has".equals(verb) && ConceptType.Description.equals(object.getType())) {
+				if (Verb.Has.equals(verb) && ConceptType.Description.equals(object.getType())) {
 
 					subject.setShortDescription(object.getName());
 

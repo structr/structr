@@ -108,6 +108,9 @@ public class MarkdownFileToken extends NamedConceptToken {
 						}
 					}
 
+					// store markdown content in concept
+					markdownFile.getMetadata().put("content", StringUtils.join(lines, "\n"));
+
 				} catch (IOException ioex) {
 					ioex.printStackTrace();
 				}

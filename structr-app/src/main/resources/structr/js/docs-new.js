@@ -208,6 +208,7 @@ let _Documentation = {
         let iframe = document.querySelector('iframe');
         if (iframe && iframe.contentDocument) {
 
+            // The treewalker is used to identify comment nodes
             let treeWalker = document.createTreeWalker(
                 iframe.contentDocument,
                 NodeFilter.SHOW_COMMENT,
@@ -217,55 +218,101 @@ let _Documentation = {
 
             let node;
 
+            // The following code moves all HTML nodes between start and end comments
+            // of the markdown output to a div so we can handle them together.
             while (node = treeWalker.nextNode()) {
+
                 let text = node.nodeValue.trim();
                 if (text.startsWith('start of')) {
 
                     let fileName = text.substring(10, text.length - 1).trim();
-                    let toMove = [];
-                    let test = node.nextSibling;
-                    let ref = test;
-                    let parent = test.parentElement;
-                    while (test) {
-                        test = test.nextSibling;
-                        text = test?.nodeValue?.trim();
+                    let nodesToMove = [];
+                    let currentElement = node.nextSibling;
+                    let referenceElement = currentElement;
+                    let parentElement = currentElement.parentElement;
 
+                    while (currentElement) {
+
+                        currentElement = currentElement.nextSibling;
+                        text = currentElement?.nodeValue?.trim();
+
+                        // start of comment
                         if (text && text.startsWith('end of')) {
 
-                            // move all collected nodes to a div
-                            let div = iframe.contentDocument.createElement('div');
-                            div.classList.add('editable');
+                            // create move target
+                            let previousContentContainer = iframe.contentDocument.createElement('div');
+                            previousContentContainer.classList.add('editable');
 
+                            // create textarea for content editing
+                            let editingContainer = iframe.contentDocument.createElement('div');
                             let textarea = iframe.contentDocument.createElement('textarea');
-                            textarea.classList.add('hidden');
+                            editingContainer.classList.add('hidden');
+                            editingContainer.append(textarea);
 
-                            parent.insertBefore(textarea, ref);
-                            parent.insertBefore(div, ref);
+                            // stop editing on ESC
+                            textarea.addEventListener('keyup', e => {
+                                if (e.key === 'Escape') {
+                                    previousContentContainer.classList.remove('hidden');
+                                    editingContainer.classList.add('hidden');
+                                }
+                            });
 
-                            let btn = iframe.contentDocument.createElement('button');
-                            btn.innerHTML = 'Edit this paragraph';
-                            div.appendChild(btn);
+                            // prepend move target and textarea
+                            parentElement.insertBefore(editingContainer, referenceElement);
+                            parentElement.insertBefore(previousContentContainer, referenceElement);
 
-                            btn.addEventListener('click', () => {
+                            // create edit button
+                            let editButton = iframe.contentDocument.createElement('button');
+                            editButton.innerHTML = 'Edit this paragraph';
+                            previousContentContainer.appendChild(editButton);
+
+                            // implement button action
+                            editButton.addEventListener('click', () => {
 
                                 fetch(`/structr/docs/${fileName}`).then(response => response.text()).then((text) => {
 
                                     textarea.value = text;
-                                    textarea.style.height = div.clientHeight + 'px';
+                                    textarea.style.height = Math.max(300, previousContentContainer.clientHeight) + 'px';
 
-                                    div.classList.add('hidden');
-                                    textarea.classList.remove('hidden');
+                                    previousContentContainer.classList.add('hidden');
+                                    editingContainer.classList.remove('hidden');
 
+                                    textarea.focus();
                                 });
 
-                            })
+                            });
 
-                            for (var e of toMove) {
-                                div.appendChild(e);
+                            let saveDiv = iframe.contentDocument.createElement('div');
+                            let saveButton = iframe.contentDocument.createElement('button');
+                            saveDiv.classList.add('text-right');
+                            saveButton.innerHTML = 'Save to "' + fileName + '"';
+                            saveDiv.appendChild(saveButton);
+                            editingContainer.appendChild(saveDiv);
+
+                            saveButton.addEventListener('click', e => {
+                                fetch(`/structr/docs/ontology?fileName=${encodeURIComponent(fileName)}`, {
+                                    method: 'PUT',
+                                    body: textarea.value
+                                }).then(response => response.text()).then((text) => {
+                                    editingContainer.classList.add('hidden');
+                                    previousContentContainer.classList.remove('hidden');
+                                    previousContentContainer.innerHTML = text;
+                                    previousContentContainer.appendChild(editButton);
+                                });
+                            });
+
+                            // move all collected nodes to a div
+                            for (var n of nodesToMove) {
+                                previousContentContainer.appendChild(n);
                             }
 
+                            // exit while
+                            break;
+
                         } else {
-                            toMove.push(test);
+
+                            nodesToMove.push(currentElement);
+
                         }
                     }
 
@@ -415,12 +462,13 @@ let _Documentation = {
             let parent = entry?.parents?.[0]?.targets?.[0];
             while (parent) {
 
-                parents.push(parent);
+                if (!parent.isToplevel) {
+                    parents.push(parent);
+                }
 
                 parent = parent?.parents?.[0]?.targets?.[0];
             }
 
-            parents.pop();
             parents = parents.reverse();
 
             return parents;

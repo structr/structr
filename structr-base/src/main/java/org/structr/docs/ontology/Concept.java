@@ -107,16 +107,6 @@ public final class Concept {
 		}
 	}
 
-	/*
-	public void linkParent(final String verb, final Concept concept) {
-
-		if (!this.equals(concept) && !hasParent(verb, concept)) {
-
-			parents.computeIfAbsent(verb, key -> new LinkedList<>()).add(concept);
-		}
-	}
-	*/
-
 	public Map<String, List<Concept>> getChildren() {
 		return children;
 	}
@@ -294,6 +284,17 @@ public final class Concept {
 			}
 		}
 
+		// content of markdown files
+		if (metadata.containsKey("content")) {
+
+			final String content = (String) metadata.get("content");
+
+			if (content != null && content.toLowerCase().contains(searchString)) {
+
+				score += SHORT_DESC_MATCH_SCORE;
+			}
+		}
+
 		return score;
 	}
 
@@ -342,5 +343,30 @@ public final class Concept {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Indicates whether this concept is a toplevel concept, meaning it
+	 * has no parent, or the generic "Structr" concept as a parent.
+	 * @return whether this concept is a toplevel concept
+	 */
+	public boolean isToplevelConcept() {
+
+		final Map<String, List<Concept>> parents = getParents();
+		if (parents.isEmpty()) {
+			return true;
+		}
+
+		for (final Map.Entry<String, List<Concept>> entry : parents.entrySet()) {
+
+			for (final Concept parent : entry.getValue()) {
+
+				if ("Structr".equals(parent.getName())) {
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 }
